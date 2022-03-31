@@ -6,13 +6,13 @@ from setuptools import find_packages  # type: ignore
 
 
 def _get_version():
-    version_file = os.path.normpath(os.path.join(os.path.dirname(__file__), 'piperider', 'VERSION'))
+    version_file = os.path.normpath(os.path.join(os.path.dirname(__file__), 'piperider_cli', 'VERSION'))
     with open(version_file) as fh:
         version = fh.read().strip()
         return version
 
 
-setup(name='piperider-cli',
+setup(name='piperider_cli-cli',
       version=_get_version(),
       description='PiperRider CLI',
       long_description=open('README.md').read(),
@@ -21,12 +21,11 @@ setup(name='piperider-cli',
       author_email='dev@infuseai.io',
       url='https://github.com/InfuseAI/piperider-cli',
       entry_points={
-          'console_scripts': ['piperider = piperider.cli:main', 'doc-piperider = piperider.extras.doc_generator:main',
-                              'auto-piperider = piperider.utils.completion:auto_complete']
+          'console_scripts': ['pcli = piperider_cli.cli:main']
       },
       python_requires=">=3.6",
       packages=find_packages(),
-      install_requires=['requests', 'tabulate==0.8.9', 'types-tabulate==0.8.2', 'types-requests'],
+      install_requires=['great_expectations'],
       extras_require={
           'dev': [
               'pytest>=4.6',
@@ -35,7 +34,8 @@ setup(name='piperider-cli',
               'pytest-mypy',
               'pytest-cov',
               'Jinja2', 'types-Jinja2',
-              'twine'
+              'twine',
+              'jupyter'
           ],
       },
       project_urls={
@@ -48,5 +48,5 @@ setup(name='piperider-cli',
           "Development Status :: 4 - Beta"
       ],
       package_data={
-          'piperider': ['*.json', 'VERSION']
+          'piperider_cli': ['*.json', 'VERSION', 'data/**']
       })
