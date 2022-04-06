@@ -21,7 +21,7 @@ setup(name='piperider_cli-cli',
       author_email='dev@infuseai.io',
       url='https://github.com/InfuseAI/piperider-cli',
       entry_points={
-          'console_scripts': ['pcli = piperider_cli.cli:main']
+          'console_scripts': ['piperider-cli = piperider_cli.cli:cli']
       },
       python_requires=">=3.6",
       packages=find_packages(),
