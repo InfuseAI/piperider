@@ -25,7 +25,7 @@ setup(name='piperider-cli',
       },
       python_requires=">=3.6",
       packages=find_packages(),
-      install_requires=['great_expectations', 'snowflake-sqlalchemy'],
+      install_requires=['great_expectations', 'snowflake-sqlalchemy', 'scikit-learn', 'pydantic'],
       extras_require={
           'dev': [
               'pytest>=4.6',

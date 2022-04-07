@@ -58,11 +58,6 @@ def run(**kwargs):
 
             data = s['data']
             source_file = os.path.abspath(os.path.join(os.path.dirname(a_stage_file), '../sources', f'{data}.yaml'))
-            # print(stage_content[stage])
-            # """
-            # {'data': 'local', 'tests': [{'function': 'shouldNotBeNull', 'column': ['timestamp', 'price', 'process_time', 'result']}, {'function': 'shouldBeConst', 'column': 'result', 'params': [True, False]}, {'function': 'shouldBeInRange', 'column': 'price', 'params': [10, 500000]}]}
-            # """
-            # print(stage)
 
             from tempfile import TemporaryDirectory
             with TemporaryDirectory() as tmpdir:
