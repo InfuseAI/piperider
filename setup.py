@@ -35,7 +35,9 @@ setup(name='piperider-cli',
               'pytest-cov',
               'Jinja2', 'types-Jinja2',
               'twine',
-              'jupyter'
+              'jupyter',
+              'click',
+              'ruamel'
           ],
       },
       project_urls={

@@ -1,5 +1,6 @@
 import click
 
+from piperider_cli import config as cfg
 from piperider_cli import workspace
 
 
@@ -21,6 +22,8 @@ def report():
 
 @cli.command()
 def config():
+    cfg.load('./piperider/sources/local.yaml')
+    print(cfg.get())
     pass
 
 
