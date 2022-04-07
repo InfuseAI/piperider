@@ -1,6 +1,5 @@
 import click
 
-from piperider_cli import config as cfg
 from piperider_cli import workspace
 
 
@@ -11,23 +10,12 @@ def cli():
 
 @cli.command()
 def init():
+    # TODO show the process and message to users
     workspace.init()
 
 
 @cli.command()
-def report():
-    # generate report from ge's checkpoint data
-    pass
-
-
-@cli.command()
-def config():
-    cfg.load('piperider/sources/local.yaml', key='sources')
-    cfg.load('piperider/stages/local.yaml', key='stages')
-    print(cfg.get())
-    pass
-
-
-@cli.command()
 def run():
+    # TODO check the args are "stages" files
+    # invoke the stage -> piperider_cli.data.execute_great_expectation
     pass
