@@ -1,0 +1,15 @@
+datasource:
+  credentials:
+    host: infuseai.io
+    username: account
+    database: dataset
+    query:
+      schema: PUBLIC
+      warehouse: COMPUTE_WH
+      role: ACCOUNTADMIN
+    password: my-password
+
+tests: null
+
+
+
