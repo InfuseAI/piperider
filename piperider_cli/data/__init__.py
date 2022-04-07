@@ -57,5 +57,12 @@ def extract_ge_data(target_dir):
         tf.extractall(target_dir)
 
 
+def get_example_by_name(filename):
+    location = os.path.dirname(os.path.abspath(__file__))
+    example_file = os.path.join(location, 'examples', filename)
+    with open(example_file, 'r') as fh:
+        return fh.read()
+
+
 if __name__ == '__main__':
     create_workspace('./foo')
