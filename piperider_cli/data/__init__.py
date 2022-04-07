@@ -4,14 +4,14 @@ import tarfile
 PANDAS_DATASOURCE = 'great_expectations_local_pandas.tgz'
 
 
-def create_workspace(target_dir: str):
+def create_ge_workspace(target_dir: str):
     # Note: suite and checkpoint name are hardcode to "mydata"
     #       filename is hardcode "train.csv"
 
     extract_ge_data(target_dir)
 
-    context = get_context(target_dir)
-    generate_expectation_suite(context)
+    # context = get_context(target_dir)
+    # generate_expectation_suite(context)
 
 
 def generate_expectation_suite(context):
@@ -27,6 +27,7 @@ def generate_expectation_suite(context):
     column_names = [f'"{column_name}"' for column_name in validator.columns()]
     print(f"Columns: {', '.join(column_names)}.")
     validator.head(n_rows=5, fetch_all=False)
+
     # run profile
     ignored_columns = []
     profiler = UserConfigurableProfiler(
@@ -65,4 +66,4 @@ def get_example_by_name(filename):
 
 
 if __name__ == '__main__':
-    create_workspace('./foobarbar')
+    create_ge_workspace('./foobarbar')
