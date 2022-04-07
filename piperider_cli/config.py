@@ -1,3 +1,5 @@
+import os.path
+
 from ruamel.yaml import YAML
 
 from piperider_cli.data import get_example_by_name
@@ -8,20 +10,6 @@ __all__ = ['load', 'get']
 
 DEFAULT_SOURCES_CONFIG = 'piperider/sources/local.yaml'
 DEFAULT_STAGES_CONFIG = 'piperider/stages/local.yaml'
-
-
-def convert_to_ge_datasource(source_file):
-    s = load(source_file)
-    cfg = s['data']
-    datasource_type = cfg['type']
-
-    if 'file' == datasource_type:
-        # a filename
-        # directory
-        get_example_by_name('datasources_filesystem.yml')
-        pass
-    pass
-
 
 
 class Singleton(type):
@@ -46,6 +34,10 @@ class PipeRiderConfig(metaclass=Singleton):
             self.data['stages'] = yaml.load(f)
         return self.data
 
+    def load_yaml(self, filename):
+        with open(filename, "r") as f:
+            return yaml.load(f)
+
     def get(self, key=None):
         if key is None:
             return self.data
@@ -57,4 +49,3 @@ get = PipeRiderConfig().get
 
 if __name__ == '__main__':
     print(PipeRiderConfig().load('data/examples/source_local.yml'))
-

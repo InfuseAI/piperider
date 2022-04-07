@@ -3,15 +3,45 @@ import tarfile
 
 PANDAS_DATASOURCE = 'great_expectations_local_pandas.tgz'
 
+from ruamel.yaml import YAML
 
-def create_ge_workspace(target_dir: str):
+yaml = YAML(typ="safe")
+yaml.default_flow_style = False
+
+
+def convert_to_ge_datasource(source_file):
+    with open(source_file, 'r') as fh:
+        cfg = yaml.load(fh)
+        cfg = cfg['data']
+        datasource_type = cfg['type']
+
+    if 'file' == datasource_type:
+        # a filename
+        # update great_expectations.yml
+        template = get_example_by_name('datasources_filesystem.yml')
+        template = template.replace('$BASE', os.getcwd())
+        return cfg['file'], yaml.load(template)
+
+
+def create_ge_workspace(target_dir: str, source_file):
     # Note: suite and checkpoint name are hardcode to "mydata"
     #       filename is hardcode "train.csv"
 
+    filename, datasource = convert_to_ge_datasource(source_file)
     extract_ge_data(target_dir)
 
-    # context = get_context(target_dir)
-    # generate_expectation_suite(context)
+    # update datasource
+    ge_cfg_path = os.path.join(target_dir, 'great_expectations/great_expectations.yml')
+    with open(ge_cfg_path) as fh:
+        ge_cfg = yaml.load(fh)
+        ge_cfg['datasources'] = datasource['datasources']
+
+    with open(ge_cfg_path, 'w') as fh:
+        yaml.dump(ge_cfg, fh)
+
+    # TODO update checkpoint
+
+    # TODO update expectation
 
 
 def generate_expectation_suite(context):
@@ -66,4 +96,5 @@ def get_example_by_name(filename):
 
 
 if __name__ == '__main__':
-    create_ge_workspace('./foobarbar')
+    f = os.path.join(os.path.dirname(__file__), 'examples/source_local.yml')
+    create_ge_workspace('./foobarbar', f)
