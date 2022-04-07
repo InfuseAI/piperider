@@ -22,7 +22,8 @@ def report():
 
 @cli.command()
 def config():
-    cfg.load('./piperider/sources/local.yaml')
+    cfg.load('piperider/sources/local.yaml', key='sources')
+    cfg.load('piperider/stages/local.yaml', key='stages')
     print(cfg.get())
     pass
 
