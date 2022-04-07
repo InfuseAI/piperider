@@ -21,8 +21,3 @@ def init():
     generate_file_from_example('source_local.yml', 'sources/local.yaml')
     generate_file_from_example('stage_local.yml', 'stages/local.yaml')
     generate_file_from_example('data.csv', 'data.csv')
-
-    # create a stage to test the file
-
-    # 2. sources/ local file convert to ge datasource
-    # 3. stages/ read config and validate source and test structure (invoke with `run`)

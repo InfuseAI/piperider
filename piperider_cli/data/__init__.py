@@ -4,7 +4,7 @@ import tarfile
 
 from ruamel.yaml import YAML
 
-from convert_to_exp import convert_to_ge_expectations
+from piperider_cli.data.convert_to_exp import convert_to_ge_expectations
 
 PANDAS_DATASOURCE = 'great_expectations_local_pandas.tgz'
 
