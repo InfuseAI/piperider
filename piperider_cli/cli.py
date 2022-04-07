@@ -5,7 +5,7 @@ import sys
 import click
 
 from piperider_cli import workspace
-from piperider_cli.config import load, verify_stages
+from piperider_cli.config import load_stages
 from piperider_cli.data import execute_great_expectation
 
 
@@ -46,8 +46,7 @@ def run(**kwargs):
 
     for a_stage_file in all_stage_files:
         try:
-            stage_content: dict = load(a_stage_file)
-            verify_stages(stage_content)
+            stage_content: dict = load_stages(a_stage_file)
         except Exception as e:
             click.echo(f'Error: file {a_stage_file}: {e}')
             sys.exit(1)
@@ -67,7 +66,11 @@ def run(**kwargs):
 
             from tempfile import TemporaryDirectory
             with TemporaryDirectory() as tmpdir:
-                execute_great_expectation(tmpdir, source_file, a_stage_file)
+                try:
+                    execute_great_expectation(tmpdir, source_file, a_stage_file)
+                except Exception as e:
+                    click.echo(f'Skipped: Stage [{stage}]: Error: {e}')
+                    continue
 
                 for root, dirs, files in os.walk(tmpdir):
                     for f in files:

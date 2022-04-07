@@ -4,6 +4,7 @@ import tarfile
 
 from ruamel.yaml import YAML
 
+from piperider_cli.config import load_sources
 from piperider_cli.data.convert_to_exp import convert_to_ge_expectations
 
 PANDAS_DATASOURCE = 'great_expectations_local_pandas.tgz'
@@ -13,10 +14,9 @@ yaml.default_flow_style = False
 
 
 def convert_to_ge_datasource(source_file):
-    with open(source_file, 'r') as fh:
-        cfg = yaml.load(fh)
-        cfg = cfg['data']
-        datasource_type = cfg['type']
+    cfg = load_sources(source_file)
+    cfg = cfg['data']
+    datasource_type = cfg['type']
 
     if 'file' == datasource_type:
         # a filename

@@ -1,23 +1,8 @@
 from ruamel.yaml import YAML
 
-from piperider_cli.data import get_example_by_name
-
 yaml = YAML(typ="safe")
 
-__all__ = ['load', 'get']
-
-
-def convert_to_ge_datasource(source_file):
-    s = load(source_file)
-    cfg = s['data']
-    datasource_type = cfg['type']
-
-    if 'file' == datasource_type:
-        # a filename
-        # directory
-        get_example_by_name('datasources_filesystem.yml')
-        pass
-    pass
+__all__ = ['load', 'load_stages', 'load_sources', 'get']
 
 
 class Singleton(type):
@@ -42,6 +27,16 @@ class PipeRiderConfig(metaclass=Singleton):
                 self.data[key] = data
         return data
 
+    def load_stages(self, file_path):
+        data = self.load(file_path)
+        verify_stages(data)
+        return data
+
+    def load_sources(self, file_path):
+        data = self.load(file_path)
+        verify_sources(data)
+        return data
+
     def get(self, key=None):
         if key is None:
             return self.data
@@ -58,7 +53,7 @@ def verify_sources(sources):
     data = sources['data']
 
     if 'type' not in data:
-        raise Exception("Sources must contain 'data.type' key")
+        raise Exception("Sources must contain 'type' key under data")
 
     # TODO: check different keys based on support types. Ex. s3,  bigquery, etc...
     return True
@@ -83,6 +78,8 @@ def verify_stages(stages):
 
 
 load = PipeRiderConfig().load
+load_sources = PipeRiderConfig().load_sources
+load_stages = PipeRiderConfig().load_stages
 get = PipeRiderConfig().get
 
 if __name__ == '__main__':
