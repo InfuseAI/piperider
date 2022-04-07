@@ -1,5 +1,7 @@
 import os.path
 import tarfile
+import json
+from convert_to_exp import convert_to_ge_expectations
 
 PANDAS_DATASOURCE = 'great_expectations_local_pandas.tgz'
 
@@ -22,8 +24,7 @@ def convert_to_ge_datasource(source_file):
         template = template.replace('$BASE', os.getcwd())
         return cfg['file'], yaml.load(template)
 
-
-def create_ge_workspace(target_dir: str, source_file):
+def create_ge_workspace(target_dir: str, source_file, stage_file):
     # Note: suite and checkpoint name are hardcode to "mydata"
     #       filename is hardcode "train.csv"
 
@@ -42,6 +43,10 @@ def create_ge_workspace(target_dir: str, source_file):
     # TODO update checkpoint
 
     # TODO update expectation
+    results = convert_to_ge_expectations(stage_file)
+    ge_exp_path = os.path.join(target_dir, 'great_expectations/expectations/mydata.json')
+    with open(ge_exp_path, 'w') as fh:
+        json.dump(results, fh, indent=2, sort_keys=True)
 
 
 def generate_expectation_suite(context):
@@ -97,4 +102,5 @@ def get_example_by_name(filename):
 
 if __name__ == '__main__':
     f = os.path.join(os.path.dirname(__file__), 'examples/source_local.yml')
-    create_ge_workspace('./foobarbar', f)
+    s = os.path.join(os.path.dirname(__file__), 'examples/stage_local.yml')
+    create_ge_workspace('./foobarbar', f, s)
