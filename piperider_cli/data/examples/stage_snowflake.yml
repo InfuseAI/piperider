@@ -3,7 +3,7 @@ input:
   tests:
     - function: shouldNotBeNull
       column:
-        - O_TOTALPRICE
+        - o_totalprice
     - function: shouldBeInRange
-      column: O_TOTALPRICE
+      column: o_totalprice
       params: [ 10, 500000 ]
