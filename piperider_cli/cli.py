@@ -5,8 +5,8 @@ import sys
 import click
 
 from piperider_cli import workspace
+from piperider_cli.config import load, verify_stages
 from piperider_cli.data import execute_great_expectation
-from piperider_cli.config import load
 
 
 @click.group()
@@ -33,20 +33,28 @@ def run(**kwargs):
         click.echo(f'--stage is required')
         sys.exit(1)
 
-    if not os.path.exists(stage_file):
+    if os.path.isdir(stage_file):
+        all_stage_files = []
+        for yaml_file in os.listdir(stage_file):
+            if yaml_file.endswith('.yaml') or yaml_file.endswith('.yml'):
+                all_stage_files.append(os.path.join(stage_file, yaml_file))
+    elif not os.path.exists(stage_file):
         click.echo(f'Cannot find the stage file: {stage_file}')
         sys.exit(1)
 
     all_stage_files = [stage_file]
     for a_stage_file in all_stage_files:
-        stage_content: dict = load(a_stage_file)
+        try:
+            stage_content: dict = load(a_stage_file)
+            verify_stages(stage_content)
+        except Exception as e:
+            click.echo(f'Error: {e}')
+            sys.exit(1)
+
         for stage in stage_content.keys():
             click.echo(f'Process stage [{stage}]')
 
             s = stage_content[stage]
-            if 'data' not in s:
-                click.echo('data is required')
-                sys.exit(1)
 
             data = s['data']
             source_file = os.path.join(os.path.dirname(a_stage_file), '../sources', f'{data}.yaml')
