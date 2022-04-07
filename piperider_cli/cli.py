@@ -33,16 +33,18 @@ def run(**kwargs):
         click.echo(f'--stage is required')
         sys.exit(1)
 
+    all_stage_files = []
     if os.path.isdir(stage_file):
         all_stage_files = []
         for yaml_file in os.listdir(stage_file):
             if yaml_file.endswith('.yaml') or yaml_file.endswith('.yml'):
-                all_stage_files.append(os.path.join(stage_file, yaml_file))
+                all_stage_files.append(os.path.abspath(os.path.join(stage_file, yaml_file)))
     elif not os.path.exists(stage_file):
         click.echo(f'Cannot find the stage file: {stage_file}')
         sys.exit(1)
+    else:
+        all_stage_files = [os.path.abspath(stage_file)]
 
-    all_stage_files = [stage_file]
     for a_stage_file in all_stage_files:
         try:
             stage_content: dict = load(a_stage_file)
@@ -57,8 +59,7 @@ def run(**kwargs):
             s = stage_content[stage]
 
             data = s['data']
-            source_file = os.path.join(os.path.dirname(a_stage_file), '../sources', f'{data}.yaml')
-
+            source_file = os.path.abspath(os.path.join(os.path.dirname(a_stage_file), '../sources', f'{data}.yaml'))
             # print(stage_content[stage])
             # """
             # {'data': 'local', 'tests': [{'function': 'shouldNotBeNull', 'column': ['timestamp', 'price', 'process_time', 'result']}, {'function': 'shouldBeConst', 'column': 'result', 'params': [True, False]}, {'function': 'shouldBeInRange', 'column': 'price', 'params': [10, 500000]}]}
