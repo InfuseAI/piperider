@@ -24,13 +24,23 @@ def convert_to_ge_datasource(source_file):
         template = get_example_by_name('datasources_filesystem.yml')
         template = template.replace('$BASE', os.getcwd())
         return cfg['file'], yaml.load(template)
+    elif 'snowflake' == datasource_type:
+        template = get_example_by_name('datasources_snowflake.yml')
+        template = template.replace('$HOST', cfg['host'])
+        template = template.replace('$USERNAME', cfg['username'])
+        template = template.replace('$PASSWORD', cfg['password'])
+        template = template.replace('$DATABASE', cfg['database'])
+        template = template.replace('$SCHEMA', cfg['schema'])
+        template = template.replace('$WAREHOUSE', cfg['warehouse'])
+        template = template.replace('$ROLE', cfg['role'])
+        return cfg['table'], yaml.load(template)
 
 
 def execute_great_expectation(target_dir: str, source_file, stage_file):
     # Note: suite and checkpoint name are hardcode to "mydata"
     #       filename is hardcode "train.csv"
 
-    filename, datasource = convert_to_ge_datasource(source_file)
+    asset_name, datasource = convert_to_ge_datasource(source_file)
     extract_ge_data(target_dir)
 
     # update datasource
@@ -46,7 +56,7 @@ def execute_great_expectation(target_dir: str, source_file, stage_file):
     checkpont_cfg = os.path.join(target_dir, 'great_expectations/checkpoints/mydata.yml')
     with open(checkpont_cfg, 'w') as fh:
         template = get_example_by_name('checkpoint.yml')
-        fh.write(template.replace('$FILENAME', filename))
+        fh.write(template.replace('$ASSET_NAME', asset_name))
 
     # TODO update expectation
     results = convert_to_ge_expectations(stage_file)

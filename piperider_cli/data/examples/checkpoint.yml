@@ -23,7 +23,7 @@ validations:
   - batch_request:
       datasource_name: my_datasource
       data_connector_name: default_inferred_data_connector_name
-      data_asset_name: $FILENAME
+      data_asset_name: $ASSET_NAME
       data_connector_query:
         index: -1
     expectation_suite_name: mydata

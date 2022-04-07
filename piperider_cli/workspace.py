@@ -19,5 +19,7 @@ def init():
             os.makedirs(os.path.join(working_dir, s), exist_ok=True)
 
     generate_file_from_example('source_local.yml', 'sources/local.yaml')
+    generate_file_from_example('source_snowflake.yml', 'sources/snowflake.yaml')
     generate_file_from_example('stage_local.yml', 'stages/local.yaml')
+    generate_file_from_example('stage_snowflake.yml', 'stages/snowflake.yaml')
     generate_file_from_example('data.csv', 'data.csv')
