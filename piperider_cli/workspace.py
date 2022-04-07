@@ -24,6 +24,5 @@ def init():
 
     # create a stage to test the file
 
-    # 1. init to create an example to use local file (a csv) by qrtt1
     # 2. sources/ local file convert to ge datasource
     # 3. stages/ read config and validate source and test structure (invoke with `run`)

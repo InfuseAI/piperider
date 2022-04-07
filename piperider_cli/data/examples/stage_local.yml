@@ -1,6 +1,6 @@
-Input:
+input:
   data: local
-  Tests:
+  tests:
     - function: shouldNotBeNull
       column:
         - timestamp
