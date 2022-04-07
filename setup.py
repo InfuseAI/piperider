@@ -12,7 +12,7 @@ def _get_version():
         return version
 
 
-setup(name='piperider_cli-cli',
+setup(name='piperider-cli',
       version=_get_version(),
       description='PiperRider CLI',
       long_description=open('README.md').read(),

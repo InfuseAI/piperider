@@ -65,4 +65,4 @@ def get_example_by_name(filename):
 
 
 if __name__ == '__main__':
-    create_workspace('./foo')
+    create_workspace('./foobarbar')

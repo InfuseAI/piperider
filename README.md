@@ -1,8 +1,3 @@
 # piperider-cli
-The CLI for PipeRider MLP Prototype
 
-
-```
-$ pcli
-PipeRider CLI: Hello World!
-```
+please check README in https://github.com/InfuseAI/piperider-test-harness-example

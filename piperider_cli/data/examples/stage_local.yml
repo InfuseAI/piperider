@@ -1,18 +1,15 @@
 Input:
-  data: bidding_service_log
+  data: local
   Tests:
-    - function: shouldNotNull # tests are built-in, based on open source projects like great-expectation and ydata-quality
+    - function: shouldNotBeNull
       column:
         - timestamp
-        - bid_price
+        - price
         - process_time
         - result
     - function: shouldBeConst
       column: result
       params: [ true, false ]
     - function: shouldBeInRange
-      column: bid_price
-      params: [ 10, 500000 ] # unit: cent
-    - function: shouldBeInDay # a custom test to make sure every log file only contains entries within that day
-      column: timestamp
-      params: [ timestamp, today ]
+      column: price
+      params: [ 10, 500000 ]
