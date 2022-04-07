@@ -10,10 +10,12 @@ expectation_type_map = {
     'shouldBeInRange': 'expect_column_values_to_be_between',
 }
 
+
 def get_expectation_type(name):
     if name in expectation_type_map:
         return expectation_type_map[name]
     return None
+
 
 def generate_expectation(test):
     exp = {
@@ -30,6 +32,7 @@ def generate_expectation(test):
         exp['kwargs']['max_value'] = test['params'][1]
     return exp
 
+
 def convert_to_ge_expectations(stage_file):
     with open(stage_file, 'r') as fh:
         stage = yaml.load(fh)
@@ -45,7 +48,7 @@ def convert_to_ge_expectations(stage_file):
                     }))
             else:
                 expectations.append(generate_expectation(test))
-    
+
         output = {
             'data_asset_type': None,
             'expectation_suite_name': 'mydata',
@@ -55,5 +58,4 @@ def convert_to_ge_expectations(stage_file):
         }
         results.append(output)
     return results
-        #json.dumps(output, indent=2, sort_keys=True))
-
+    # json.dumps(output, indent=2, sort_keys=True))

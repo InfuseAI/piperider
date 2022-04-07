@@ -24,6 +24,7 @@ def convert_to_ge_datasource(source_file):
         template = template.replace('$BASE', os.getcwd())
         return cfg['file'], yaml.load(template)
 
+
 def create_ge_workspace(target_dir: str, source_file, stage_file):
     # Note: suite and checkpoint name are hardcode to "mydata"
     #       filename is hardcode "train.csv"
@@ -41,9 +42,14 @@ def create_ge_workspace(target_dir: str, source_file, stage_file):
         yaml.dump(ge_cfg, fh)
 
     # TODO update checkpoint
+    checkpont_cfg = os.path.join(target_dir, 'great_expectations/checkpoints/mydata.yml')
+    with open(checkpont_cfg, 'w') as fh:
+        template = get_example_by_name('checkpoint.yml')
+        fh.write(template.replace('$FILENAME', filename))
 
     # TODO update expectation
     results = convert_to_ge_expectations(stage_file)
+    results = results[0]
     ge_exp_path = os.path.join(target_dir, 'great_expectations/expectations/mydata.json')
     with open(ge_exp_path, 'w') as fh:
         json.dump(results, fh, indent=2, sort_keys=True)
