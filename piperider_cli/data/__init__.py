@@ -1,11 +1,12 @@
+import json
 import os.path
 import tarfile
-import json
+
+from ruamel.yaml import YAML
+
 from convert_to_exp import convert_to_ge_expectations
 
 PANDAS_DATASOURCE = 'great_expectations_local_pandas.tgz'
-
-from ruamel.yaml import YAML
 
 yaml = YAML(typ="safe")
 yaml.default_flow_style = False
@@ -41,7 +42,7 @@ def execute_great_expectation(target_dir: str, source_file, stage_file):
     with open(ge_cfg_path, 'w') as fh:
         yaml.dump(ge_cfg, fh)
 
-    # TODO update checkpoint
+    # update checkpoint
     checkpont_cfg = os.path.join(target_dir, 'great_expectations/checkpoints/mydata.yml')
     with open(checkpont_cfg, 'w') as fh:
         template = get_example_by_name('checkpoint.yml')
@@ -49,6 +50,8 @@ def execute_great_expectation(target_dir: str, source_file, stage_file):
 
     # TODO update expectation
     results = convert_to_ge_expectations(stage_file)
+
+    # TODO why the results is a list?
     results = results[0]
     ge_exp_path = os.path.join(target_dir, 'great_expectations/expectations/mydata.json')
     with open(ge_exp_path, 'w') as fh:
