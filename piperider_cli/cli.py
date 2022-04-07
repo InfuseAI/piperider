@@ -33,7 +33,6 @@ def run(**kwargs):
         click.echo(f'--stage is required')
         sys.exit(1)
 
-    all_stage_files = []
     if os.path.isdir(stage_file):
         all_stage_files = []
         for yaml_file in os.listdir(stage_file):
@@ -50,7 +49,7 @@ def run(**kwargs):
             stage_content: dict = load(a_stage_file)
             verify_stages(stage_content)
         except Exception as e:
-            click.echo(f'Error: {e}')
+            click.echo(f'Error: file {a_stage_file}: {e}')
             sys.exit(1)
 
         for stage in stage_content.keys():

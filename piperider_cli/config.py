@@ -49,6 +49,9 @@ class PipeRiderConfig(metaclass=Singleton):
 
 
 def verify_sources(sources):
+    if sources is None:
+        raise Exception('Sources must be defined')
+
     if 'data' not in sources:
         raise Exception("Sources must contain 'data' key")
 
@@ -62,6 +65,9 @@ def verify_sources(sources):
 
 
 def verify_stages(stages):
+    if stages is None:
+        raise Exception('Stages must be defined')
+
     for key in stages.keys():
         if 'data' not in stages[key]:
             raise Exception(f'Stages {key} must contain "data" key')
