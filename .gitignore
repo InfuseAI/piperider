@@ -314,3 +314,4 @@ tags
 .idea
 # End of https://www.toptal.com/developers/gitignore/api/pycharm,visualstudiocode,vim,macos
 foo*
+piperider/

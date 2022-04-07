@@ -36,7 +36,7 @@ def convert_to_ge_datasource(source_file):
         return cfg['table'], yaml.load(template)
 
 
-def execute_great_expectation(target_dir: str, source_file, stage_file):
+def execute_ge_checkpoint(target_dir: str, source_file, stage_file):
     # Note: suite and checkpoint name are hardcode to "mydata"
     #       filename is hardcode "train.csv"
 
@@ -58,7 +58,6 @@ def execute_great_expectation(target_dir: str, source_file, stage_file):
         template = get_example_by_name('checkpoint.yml')
         fh.write(template.replace('$ASSET_NAME', asset_name))
 
-    # TODO update expectation
     results = convert_to_ge_expectations(stage_file)
 
     # TODO why the results is a list?
@@ -68,38 +67,23 @@ def execute_great_expectation(target_dir: str, source_file, stage_file):
         json.dump(results, fh, indent=2, sort_keys=True)
 
     context = get_context(target_dir)
+    all_columns = get_all_columns(context, asset_name)
     context.run_checkpoint(checkpoint_name='mydata')
+    return all_columns
 
 
-def generate_expectation_suite(context):
+def get_all_columns(context, asset_name):
     from great_expectations.core.batch import BatchRequest
     from great_expectations.profile.user_configurable_profiler import UserConfigurableProfiler
     batch_request = {'datasource_name': 'my_datasource', 'data_connector_name': 'default_inferred_data_connector_name',
-                     'data_asset_name': 'train.csv', 'limit': 1000}
+                     'data_asset_name': asset_name, 'limit': 1000}
+
     expectation_suite_name = "mydata"
     validator = context.get_validator(
         batch_request=BatchRequest(**batch_request),
         expectation_suite_name=expectation_suite_name
     )
-    column_names = [f'"{column_name}"' for column_name in validator.columns()]
-    print(f"Columns: {', '.join(column_names)}.")
-    validator.head(n_rows=5, fetch_all=False)
-
-    # run profile
-    ignored_columns = []
-    profiler = UserConfigurableProfiler(
-        profile_dataset=validator,
-        excluded_expectations=None,
-        ignored_columns=ignored_columns,
-        not_null_only=False,
-        primary_or_compound_key=False,
-        semantic_types_dict=None,
-        table_expectations_only=False,
-        value_set_threshold="MANY",
-    )
-    suite = profiler.build_suite()
-    print(validator.get_expectation_suite(discard_failed_expectations=False))
-    validator.save_expectation_suite(discard_failed_expectations=False)
+    return validator.columns()
 
 
 def get_context(target_dir):
@@ -125,4 +109,4 @@ def get_example_by_name(filename):
 if __name__ == '__main__':
     f = os.path.join(os.path.dirname(__file__), 'examples/source_local.yml')
     s = os.path.join(os.path.dirname(__file__), 'examples/stage_local.yml')
-    execute_great_expectation('./foobarbar', f, s)
+    execute_ge_checkpoint('./foobarbar', f, s)
