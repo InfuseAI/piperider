@@ -74,9 +74,8 @@ def execute_ge_checkpoint(target_dir: str, source_file, stage_file):
 
 def get_all_columns(context, asset_name):
     from great_expectations.core.batch import BatchRequest
-    from great_expectations.profile.user_configurable_profiler import UserConfigurableProfiler
     batch_request = {'datasource_name': 'my_datasource', 'data_connector_name': 'default_inferred_data_connector_name',
-                     'data_asset_name': asset_name, 'limit': 1000}
+                     'data_asset_name': asset_name, 'limit': 1}
 
     expectation_suite_name = "mydata"
     validator = context.get_validator(

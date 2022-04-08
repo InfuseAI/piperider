@@ -35,9 +35,14 @@ def run_stages(all_stage_files):
                     import pandas as pd
                     from piperider_cli.ydata.data_expectations import DataExpectationsReporter
                     df = pd.DataFrame(columns=all_columns)
+                    # df.columns
                     der = DataExpectationsReporter()
                     results = der.evaluate(report_file, df)
                     # TODO more report from results
+                    expectations_report, expectations_dense = results['Expectation Level Assessment']
+                    expectations_report
+                    print(expectations_report)
+                    # print(expectations_dense)
 
                 except Exception as e:
                     click.echo(f'Skipped: Stage [{stage_file}::{stage_name}]: Error: {e}')
