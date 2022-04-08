@@ -1,13 +1,23 @@
 from ruamel.yaml import YAML
 import json
+import re
 
 yaml = YAML(typ="safe")
 yaml.default_flow_style = False
 
 expectation_type_map = {
+    'shouldExist': 'expect_column_to_exist',
+    'shouldBeUnique': 'expect_column_values_to_be_unique',
+    'shouldBeNull': 'expect_column_values_to_be_null',
     'shouldNotBeNull': 'expect_column_values_to_not_be_null',
     'shouldBeConst': 'expect_column_values_to_be_in_set',
+    'shouldNotBeConst': 'expect_column_values_to_not_be_in_set',
     'shouldBeInRange': 'expect_column_values_to_be_between',
+    'shouldMaxBeInRange': 'expect_column_max_to_be_between',
+    'shouldMinBeInRange': 'expect_column_min_to_be_between',
+    'shouldMeanBeInRange': 'expect_column_mean_to_be_between',
+    'shouldMedianBeInRange': 'expect_column_median_to_be_between',
+    'shouldSumBeInRange': 'expect_column_sum_to_be_between',
 }
 
 
@@ -25,9 +35,9 @@ def generate_expectation(test):
         },
         'meta': {},
     }
-    if test['function'] == 'shouldBeConst':
+    if re.match(r'BeConst$', test['function']):
         exp['kwargs']['value_set'] = test['params']
-    elif test['function'] == 'shouldBeInRange':
+    elif re.match(r'InRange$', test['function']):
         exp['kwargs']['min_value'] = test['params'][0]
         exp['kwargs']['max_value'] = test['params'][1]
     return exp
