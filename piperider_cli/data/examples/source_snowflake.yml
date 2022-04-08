@@ -6,5 +6,6 @@ data:
   warehouse: COMPUTE_WH
   table: public.orders_1k
   role: ACCOUNTADMIN
-  username:
-  password:
+  username: ${SNOWFLAKE_USERNAME}
+  password: ${SNOWFLAKE_PASSWORD}
+
