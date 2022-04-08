@@ -21,11 +21,13 @@ def init():
 
 @cli.command()
 @click.option('--stage', help='stage file')
+@click.option('--keep-ge-workspace', is_flag=True, default=False)
 def run(**kwargs):
     # TODO check the args are "stages" files
     # invoke the stage -> piperider_cli.data.execute_great_expectation
     # generate the report file or directory
-    stage_inputs: str = kwargs.get('stage', '')
+    stage_inputs: str = kwargs.get('stage')
+    keep_ge_workspace: bool = kwargs.get('keep_ge_workspace')
 
     if stage_inputs is None:
         click.echo(f'--stage is required')
@@ -42,4 +44,4 @@ def run(**kwargs):
     else:
         all_stage_files = [os.path.abspath(stage_inputs)]
 
-    run_stages(all_stage_files)
+    run_stages(all_stage_files, keep_ge_workspace)
