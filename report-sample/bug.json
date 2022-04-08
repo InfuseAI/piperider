@@ -1,0 +1,80 @@
+{
+  "evaluation_parameters": {},
+  "meta": {
+    "active_batch_definition": {
+      "batch_identifiers": {},
+      "data_asset_name": "public.orders_1k",
+      "data_connector_name": "default_inferred_data_connector_name",
+      "datasource_name": "my_datasource"
+    },
+    "batch_markers": {
+      "ge_load_time": "20220408T105610.849694Z"
+    },
+    "batch_spec": {
+      "batch_identifiers": {},
+      "data_asset_name": "public.orders_1k",
+      "schema_name": "public",
+      "table_name": "orders_1k",
+      "type": "table"
+    },
+    "expectation_suite_name": "mydata",
+    "great_expectations_version": "0.14.13",
+    "run_id": {
+      "run_name": "20220408-185610-my-run-name-template",
+      "run_time": "2022-04-08T18:56:10.833322+00:00"
+    },
+    "validation_time": "20220408T105612.500369Z"
+  },
+  "results": [
+    {
+      "exception_info": {
+        "exception_message": "min_value and max_value cannot both be None",
+        "exception_traceback": "Traceback (most recent call last):\n  File \"/Users/qrtt1/temp/piperider-cli/venv/lib/python3.9/site-packages/great_expectations/execution_engine/execution_engine.py\", line 386, in resolve_metrics\n    resolved_metrics[metric_to_resolve.id] = metric_fn(\n  File \"/Users/qrtt1/temp/piperider-cli/venv/lib/python3.9/site-packages/great_expectations/expectations/metrics/metric_provider.py\", line 55, in inner_func\n    return metric_fn(*args, **kwargs)\n  File \"/Users/qrtt1/temp/piperider-cli/venv/lib/python3.9/site-packages/great_expectations/expectations/metrics/map_metric_provider.py\", line 400, in inner_func\n    expected_condition = metric_fn(\n  File \"/Users/qrtt1/temp/piperider-cli/venv/lib/python3.9/site-packages/great_expectations/expectations/metrics/column_map_metrics/column_values_between.py\", line 199, in _sqlalchemy\n    raise ValueError(\"min_value and max_value cannot both be None\")\nValueError: min_value and max_value cannot both be None\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/qrtt1/temp/piperider-cli/venv/lib/python3.9/site-packages/great_expectations/validator/validator.py\", line 1162, in resolve_validation_graph\n    self._resolve_metrics(\n  File \"/Users/qrtt1/temp/piperider-cli/venv/lib/python3.9/site-packages/great_expectations/validator/validator.py\", line 2070, in _resolve_metrics\n    return execution_engine.resolve_metrics(\n  File \"/Users/qrtt1/temp/piperider-cli/venv/lib/python3.9/site-packages/great_expectations/execution_engine/execution_engine.py\", line 390, in resolve_metrics\n    raise ge_exceptions.MetricResolutionError(\ngreat_expectations.exceptions.exceptions.MetricResolutionError: min_value and max_value cannot both be None\n",
+        "raised_exception": true
+      },
+      "expectation_config": {
+        "expectation_type": "expect_column_values_to_be_between",
+        "kwargs": {
+          "batch_id": "68826d1fc4627a6685f0291acd9c54bb",
+          "column": "o_totalprice"
+        },
+        "meta": {}
+      },
+      "meta": {},
+      "result": {},
+      "success": false
+    },
+    {
+      "exception_info": {
+        "exception_message": null,
+        "exception_traceback": null,
+        "raised_exception": false
+      },
+      "expectation_config": {
+        "expectation_type": "expect_column_values_to_not_be_null",
+        "kwargs": {
+          "batch_id": "68826d1fc4627a6685f0291acd9c54bb",
+          "column": "o_totalprice"
+        },
+        "meta": {}
+      },
+      "meta": {},
+      "result": {
+        "element_count": 1000,
+        "partial_unexpected_counts": [],
+        "partial_unexpected_index_list": null,
+        "partial_unexpected_list": [],
+        "unexpected_count": 0,
+        "unexpected_percent": 0.0
+      },
+      "success": true
+    }
+  ],
+  "statistics": {
+    "evaluated_expectations": 2,
+    "success_percent": 50.0,
+    "successful_expectations": 1,
+    "unsuccessful_expectations": 1
+  },
+  "success": false
+}
