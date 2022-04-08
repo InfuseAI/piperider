@@ -36,8 +36,7 @@ setup(name='piperider-cli',
               'Jinja2', 'types-Jinja2',
               'twine',
               'jupyter',
-              'click',
-              'ruamel'
+              'click'
           ],
       },
       project_urls={

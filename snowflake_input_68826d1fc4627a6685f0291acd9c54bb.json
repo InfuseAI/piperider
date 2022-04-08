@@ -1,0 +1,93 @@
+{
+  "evaluation_parameters": {},
+  "meta": {
+    "active_batch_definition": {
+      "batch_identifiers": {},
+      "data_asset_name": "public.orders_1k",
+      "data_connector_name": "default_inferred_data_connector_name",
+      "datasource_name": "my_datasource"
+    },
+    "batch_markers": {
+      "ge_load_time": "20220408T022109.648259Z"
+    },
+    "batch_spec": {
+      "batch_identifiers": {},
+      "data_asset_name": "public.orders_1k",
+      "schema_name": "public",
+      "table_name": "orders_1k",
+      "type": "table"
+    },
+    "expectation_suite_name": "mydata",
+    "great_expectations_version": "0.14.13",
+    "run_id": {
+      "run_name": "20220408-102109-my-run-name-template",
+      "run_time": "2022-04-08T10:21:09.631822+00:00"
+    },
+    "validation_time": "20220408T022111.714399Z"
+  },
+  "results": [
+    {
+      "exception_info": {
+        "exception_message": null,
+        "exception_traceback": null,
+        "raised_exception": false
+      },
+      "expectation_config": {
+        "expectation_type": "expect_column_values_to_not_be_null",
+        "kwargs": {
+          "batch_id": "68826d1fc4627a6685f0291acd9c54bb",
+          "column": "o_totalprice"
+        },
+        "meta": {}
+      },
+      "meta": {},
+      "result": {
+        "element_count": 1000,
+        "partial_unexpected_counts": [],
+        "partial_unexpected_index_list": null,
+        "partial_unexpected_list": [],
+        "unexpected_count": 0,
+        "unexpected_percent": 0.0
+      },
+      "success": true
+    },
+    {
+      "exception_info": {
+        "exception_message": null,
+        "exception_traceback": null,
+        "raised_exception": false
+      },
+      "expectation_config": {
+        "expectation_type": "expect_column_values_to_be_between",
+        "kwargs": {
+          "batch_id": "68826d1fc4627a6685f0291acd9c54bb",
+          "column": "o_totalprice",
+          "max_value": 500000,
+          "min_value": 10
+        },
+        "meta": {}
+      },
+      "meta": {},
+      "result": {
+        "element_count": 1000,
+        "missing_count": 0,
+        "missing_percent": 0.0,
+        "partial_unexpected_counts": [],
+        "partial_unexpected_index_list": null,
+        "partial_unexpected_list": [],
+        "unexpected_count": 0,
+        "unexpected_percent": 0.0,
+        "unexpected_percent_nonmissing": 0.0,
+        "unexpected_percent_total": 0.0
+      },
+      "success": true
+    }
+  ],
+  "statistics": {
+    "evaluated_expectations": 2,
+    "success_percent": 100.0,
+    "successful_expectations": 2,
+    "unsuccessful_expectations": 0
+  },
+  "success": true
+}

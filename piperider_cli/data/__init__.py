@@ -1,7 +1,9 @@
 import json
 import os.path
 import tarfile
+import warnings
 
+from sqlalchemy import exc as sa_exc
 from ruamel.yaml import YAML
 
 from piperider_cli.config import load_sources
@@ -66,9 +68,12 @@ def execute_ge_checkpoint(target_dir: str, source_file, stage_file):
     with open(ge_exp_path, 'w') as fh:
         json.dump(results, fh, indent=2, sort_keys=True)
 
-    context = get_context(target_dir)
-    all_columns = get_all_columns(context, asset_name)
-    context.run_checkpoint(checkpoint_name='mydata')
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=sa_exc.SAWarning)
+        context = get_context(target_dir)
+        all_columns = get_all_columns(context, asset_name)
+        context.run_checkpoint(checkpoint_name='mydata')
+        
     return all_columns
 
 
