@@ -7,7 +7,7 @@ input:
         - price
         - process_time
         - result
-    - function: shouldBeConst
+    - function: shouldBeInSet
       column: result
       params: [ true, false ]
     - function: shouldBeInRange
