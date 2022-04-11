@@ -1,6 +1,8 @@
-from ruamel.yaml import YAML
-import json
 import re
+
+from ruamel.yaml import YAML
+
+from piperider_cli.config import get_stages
 
 yaml = YAML(typ="safe")
 yaml.default_flow_style = False
@@ -43,29 +45,28 @@ def generate_expectation(test):
     return exp
 
 
-def convert_to_ge_expectations(stage_file):
-    with open(stage_file, 'r') as fh:
-        stage = yaml.load(fh)
-    results = []
-    for e in stage.keys():
-        expectations = []
-        for test in stage[e]['tests']:
-            if type(test['column']) == list:
-                for col in test['column']:
-                    expectations.append(generate_expectation({
-                        'function': test['function'],
-                        'column': col,
-                    }))
-            else:
-                expectations.append(generate_expectation(test))
+def convert_to_ge_expectations(stage_file, stage_name):
+    stages = get_stages(stage_file)
+    stage = stages[stage_name]
 
-        output = {
-            'data_asset_type': None,
-            'expectation_suite_name': 'mydata',
-            'expectations': expectations,
-            'ge_cloud_id': None,
-            'meta': {},
-        }
-        results.append(output)
-    return results
+    expectations = []
+    for test in stage['tests']:
+        if type(test['column']) == list:
+            for col in test['column']:
+                expectations.append(generate_expectation({
+                    'function': test['function'],
+                    'column': col,
+                }))
+        else:
+            expectations.append(generate_expectation(test))
+
+    output = {
+        'data_asset_type': None,
+        'expectation_suite_name': 'mydata',
+        'expectations': expectations,
+        'ge_cloud_id': None,
+        'meta': {},
+    }
+
+    return output
     # json.dumps(output, indent=2, sort_keys=True))
