@@ -73,7 +73,7 @@ def execute_ge_checkpoint(target_dir: str, source_file, stage_file):
         context = get_context(target_dir)
         all_columns = get_all_columns(context, asset_name)
         context.run_checkpoint(checkpoint_name='mydata')
-        
+
     return all_columns
 
 

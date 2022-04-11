@@ -24,7 +24,6 @@ expectation_type_map = {
     'shouldSumBeInRange': 'expect_column_sum_to_be_between',
     'shouldStdevBeInRange': 'expect_column_stdev_to_be_between',
     'shouldLengthBeInRange': 'expect_column_value_lengths_to_be_between',
-    'shouldBeXMLParseable': 'expect_column_values_to_be_xml_parseable',
     'shouldBeJSONParseable': 'expect_column_values_to_be_json_parseable',
     'shouldBeDateParseable': 'expect_column_values_to_be_dateutil_parseable',
     'shouldMatchRegex': 'expect_column_values_to_match_regex',
@@ -49,33 +48,31 @@ def get_expectation_type(name):
 def generate_expectation(test):
     exp = {
         'expectation_type': get_expectation_type(test['function']),
-        'kwargs': {
-            'column': test['column'],
-        },
+        'kwargs': {},
         'meta': {},
     }
     if test['function'].startswith('should'):
         exp['kwargs']['column'] = test['column']
 
-    if test['function'].endswith('Set'):
-        exp['kwargs']['value_set'] = test['params']
-    elif test['function'].endswith('InRange'):
-        exp['kwargs']['min_value'] = test['params'][0]
-        exp['kwargs']['max_value'] = test['params'][1]
+    if test['function'] == 'tableColumnMatchList':
+        exp['kwargs']['column_list'] = test['params']
+    elif test['function'] == 'tableColumnMatchSet':
+        exp['kwargs']['column_set'] = test['params']
     elif test['function'] == 'shouldBeType':
         exp['kwargs']['type_'] = test['params']
     elif test['function'] == 'shouldBeInTypes':
         exp['kwargs']['type_list'] = test['params']
+    elif test['function'].endswith('Set'):
+        exp['kwargs']['value_set'] = test['params']
+    elif test['function'].endswith('InRange'):
+        exp['kwargs']['min_value'] = test['params'][0]
+        exp['kwargs']['max_value'] = test['params'][1]
     elif test['function'].endswith('Regex'):
         exp['kwargs']['regex'] = test['params']
     elif test['function'].endswith('RegexList'):
         exp['kwargs']['regex_list'] = test['params']
     elif test['function'].endswith('Equal'):
         exp['kwargs']['value'] = test['params']
-    elif test['function'] == 'tableColumnMatchList':
-        exp['kwargs']['column_list'] = test['params']
-    elif test['function'] == 'tableColumnMatchSet':
-        exp['kwargs']['column_set'] = test['params']
     return exp
 
 
@@ -86,7 +83,7 @@ def convert_to_ge_expectations(stage_file):
     for e in stage.keys():
         expectations = []
         for test in stage[e]['tests']:
-            if type(test['column']) == list:
+            if 'column' in test and type(test['column']) == list:
                 for col in test['column']:
                     expectations.append(generate_expectation({
                         'function': test['function'],

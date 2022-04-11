@@ -71,8 +71,6 @@ def verify_stages(stages):
         for test in stages[key]['tests']:
             if 'function' not in test:
                 raise Exception(f'Stages {key} must contain "function" key in tests')
-            if 'column' not in test:
-                raise Exception(f'Stages {key} must contain "column" key in tests')
             # TODO: check the value of function and column
     return True
 
