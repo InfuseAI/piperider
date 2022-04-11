@@ -44,4 +44,15 @@ def run(**kwargs):
     else:
         all_stage_files = [os.path.abspath(stage_inputs)]
 
+    if all_stage_files:
+        assertions = os.path.join(os.path.dirname(os.path.abspath(all_stage_files[0])), '../assertions')
+        sys.path.append(assertions)
+
+        for f in os.listdir(assertions):
+            if f.endswith('.py'):
+                module_name = f.split('.py')[0]
+                __import__(module_name)
+
+    from piperider_cli.great_expectations.expect_column_values_pass_with_assertion import \
+        ExpectColumnValuesPassWithAssertion
     run_stages(all_stage_files, keep_ge_workspace)

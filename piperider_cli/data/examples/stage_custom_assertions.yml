@@ -1,0 +1,6 @@
+input:
+  data: local
+  tests:
+    - function: shouldBeInDate
+      column: timestamp
+      params: [ today ]

@@ -25,7 +25,7 @@ setup(name='piperider-cli',
       },
       python_requires=">=3.6",
       packages=find_packages(),
-      install_requires=['great_expectations', 'snowflake-sqlalchemy', 'scikit-learn', 'pydantic'],
+      install_requires=['great_expectations', 'snowflake-sqlalchemy', 'scikit-learn', 'pydantic', 'pyspark'],
       extras_require={
           'dev': [
               'pytest>=4.6',
@@ -36,7 +36,6 @@ setup(name='piperider-cli',
               'Jinja2', 'types-Jinja2',
               'twine',
               'jupyter',
-              'click'
           ],
       },
       project_urls={

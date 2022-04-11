@@ -1,6 +1,8 @@
 from ruamel.yaml import YAML
 from piperider_cli.config import get_stages
 
+CUSTOM_ASSERTION_KEY = 'expect_column_values_pass_with_assertion'
+
 yaml = YAML(typ="safe")
 yaml.default_flow_style = False
 
@@ -42,10 +44,16 @@ expectation_type_map = {
 def get_expectation_type(name):
     if name in expectation_type_map:
         return expectation_type_map[name]
+
+    from piperider_cli.custom_assertion import has_assertion_id
+    if has_assertion_id(name):
+        return CUSTOM_ASSERTION_KEY
+
     return None
 
 
 def generate_expectation(test):
+    expectation_name = get_expectation_type(test['function'])
     exp = {
         'expectation_type': get_expectation_type(test['function']),
         'kwargs': {},
@@ -73,8 +81,11 @@ def generate_expectation(test):
         exp['kwargs']['regex_list'] = test['params']
     elif test['function'].endswith('Equal'):
         exp['kwargs']['value'] = test['params']
-    return exp
 
+    if expectation_name == CUSTOM_ASSERTION_KEY:
+        exp['kwargs']['assertion_id'] = test['function']
+        exp['kwargs']['params'] = test['params']
+    return exp
 
 def convert_to_ge_expectations(stage_file, stage_name):
     stages = get_stages(stage_file)
