@@ -1,4 +1,3 @@
-import json
 import os
 import shutil
 import sys
@@ -19,11 +18,11 @@ def run_stages(all_stage_files, keep_ge_workspace: bool):
             sys.exit(1)
 
         for stage_name in stage_content.keys():
-            click.echo(f'Process stage [{stage_name}]')
+            click.echo(f'Process stage [{os.path.basename(stage_file).split(".")[0]}:{stage_name}]')
             current_stage = stage_content[stage_name]
-            datasource = current_stage['data']
+            source_name = current_stage['data']
             source_file = os.path.abspath(
-                os.path.join(os.path.dirname(stage_file), '../sources', f'{datasource}.yaml'))
+                os.path.join(os.path.dirname(stage_file), '../sources', f'{source_name}.yaml'))
 
             from tempfile import TemporaryDirectory
             with TemporaryDirectory() as tmpdir:
@@ -34,8 +33,7 @@ def run_stages(all_stage_files, keep_ge_workspace: bool):
                     print(f"keep ge workspace at {ge_workspace}")
 
                 try:
-                    # TODO assume only 1 stage in a stage file for now
-                    all_columns = execute_ge_checkpoint(ge_workspace, source_file, stage_file)
+                    all_columns = execute_ge_checkpoint(ge_workspace, source_file, stage_file, stage_name)
                     report_file = copy_report(ge_workspace, stage_file, stage_name)
                     print(f"create report at {report_file}")
 
