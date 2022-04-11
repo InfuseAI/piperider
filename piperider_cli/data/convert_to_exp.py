@@ -35,9 +35,9 @@ def generate_expectation(test):
         },
         'meta': {},
     }
-    if re.match(r'BeConst$', test['function']):
+    if re.match(r'.*BeConst$', test['function']):
         exp['kwargs']['value_set'] = test['params']
-    elif re.match(r'InRange$', test['function']):
+    elif re.match(r'.*InRange$', test['function']):
         exp['kwargs']['min_value'] = test['params'][0]
         exp['kwargs']['max_value'] = test['params'][1]
     return exp
