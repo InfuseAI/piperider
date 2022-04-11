@@ -1,12 +1,28 @@
+import json
 import os
 import shutil
 import sys
 import time
 
 import click
+import pandas as pd
 
 from piperider_cli.config import load_stages
 from piperider_cli.data import execute_ge_checkpoint
+
+
+def refine_ydata_result(results: dict):
+    outputs = {}
+    for k, v in results.items():
+        if 'Expectation Level Assessment' == k:
+            refined_assessment = list(v)
+            for idx, elem in enumerate(refined_assessment):
+                if isinstance(elem, pd.DataFrame):
+                    refined_assessment[idx] = elem.to_json(orient='table')
+            outputs[k] = refined_assessment
+        else:
+            outputs[k] = v
+    return outputs
 
 
 def run_stages(all_stage_files, keep_ge_workspace: bool):
@@ -48,7 +64,11 @@ def run_stages(all_stage_files, keep_ge_workspace: bool):
                     expectations_report, expectations_dense = results['Expectation Level Assessment']
                     expectations_report
                     print(expectations_report)
-                    # print(expectations_dense)
+
+                    ydata_report = report_file.replace('.json', '_ydata.json')
+                    print(f"create ydata report at {ydata_report}")
+                    with open(ydata_report, 'w') as fh:
+                        fh.write(json.dumps(refine_ydata_result(results)))
 
                 except Exception as e:
                     click.echo(f'Skipped: Stage [{stage_file}::{stage_name}]: Error: {e}')
