@@ -1,0 +1,12 @@
+m_s3$:
+  data: s3
+  tests:
+    - function: shouldNotBeNull
+      column:
+        - a
+m_s1$:
+  data: s1
+  tests:
+    - function: shouldNotBeNull
+      column:
+        - a
