@@ -42,6 +42,18 @@ class PipeRiderConfig(metaclass=Singleton):
             return self.data
         return self.data[key]
 
+    def get_stages(self, file_path):
+        stages = self.data.get(file_path)
+        if stages is None:
+            stages = self.load_stages(file_path)
+        return stages
+
+    def get_sources(self, file_path):
+        sources = self.data.get(file_path)
+        if sources is None:
+            sources = self.load_sources(file_path)
+        return sources
+
 
 def verify_sources(sources):
     if sources is None:
@@ -75,10 +87,12 @@ def verify_stages(stages):
     return True
 
 
+get = PipeRiderConfig().get
 load = PipeRiderConfig().load
 load_sources = PipeRiderConfig().load_sources
 load_stages = PipeRiderConfig().load_stages
-get = PipeRiderConfig().get
+get_sources = PipeRiderConfig().get_sources
+get_stages = PipeRiderConfig().get_stages
 
 if __name__ == '__main__':
     print(PipeRiderConfig().load('data/examples/source_local.yml'))

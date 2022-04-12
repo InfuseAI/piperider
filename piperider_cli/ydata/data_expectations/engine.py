@@ -181,7 +181,7 @@ implied absolute threshold of {int(error_tol)} failed expectations."
             if result is False:
                 # Expectation specific rules are called here
                 if "between" in expectation_type and "quantile" not in expectation_type:
-                    if expectation_summary['result']:
+                    if expectation_summary['result'] and 'observed_value' in expectation_summary['result']:
                         error_metric = self.__between_value_error(expectation_summary)
             expectation_level_report.iloc[idx_] = [expectation_type, result, error_metric]
         return (expectation_level_report, {idx: expectations_summary[idx] for idx in expectation_level_report.index})
