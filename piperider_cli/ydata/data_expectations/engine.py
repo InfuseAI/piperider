@@ -219,3 +219,6 @@ implied absolute threshold of {int(error_tol)} failed expectations."
         if summary:
             self._report()
         return results
+
+    def has_warning(self):
+        return len(self._warnings) > 0

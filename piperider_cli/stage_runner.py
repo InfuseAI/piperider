@@ -26,6 +26,7 @@ def refine_ydata_result(results: dict):
 
 
 def run_stages(all_stage_files, keep_ge_workspace: bool):
+    has_warning = False
     for stage_file in all_stage_files:
         try:
             stage_content: dict = load_stages(stage_file)
@@ -60,9 +61,9 @@ def run_stages(all_stage_files, keep_ge_workspace: bool):
                     print("columns: ", all_columns)
                     der = DataExpectationsReporter()
                     results = der.evaluate(report_file, df)
+                    has_warning |= der.has_warning()
                     # TODO more report from results
                     expectations_report, expectations_dense = results['Expectation Level Assessment']
-                    expectations_report
                     print(expectations_report)
 
                     ydata_report = report_file.replace('.json', '_ydata.json')
@@ -72,7 +73,11 @@ def run_stages(all_stage_files, keep_ge_workspace: bool):
 
                 except Exception as e:
                     click.echo(f'Skipped: Stage [{stage_file}::{stage_name}]: Error: {e}')
+                    has_warning = True
                     continue
+
+    if has_warning:
+        sys.exit(1)
 
 
 def copy_report(ge_workspace, stage_file, stage_name):
