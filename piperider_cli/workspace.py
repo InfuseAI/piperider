@@ -12,7 +12,7 @@ def generate_file_from_example(example_file, output_path):
 
 def init():
     working_dir = os.path.join(os.getcwd(), 'piperider')
-    sub_dirs = ['tests', 'sources', 'stages', 'harness']
+    sub_dirs = ['assertions', 'sources', 'stages', 'harness']
 
     if not os.path.exists(working_dir):
         for s in sub_dirs:
@@ -23,3 +23,8 @@ def init():
     generate_file_from_example('stage_local.yml', 'stages/local.yaml')
     generate_file_from_example('stage_snowflake.yml', 'stages/snowflake.yaml')
     generate_file_from_example('data.csv', 'data.csv')
+
+    # custom assertion
+    generate_file_from_example('functions.py', 'assertions/functions.py')
+    generate_file_from_example('stage_custom_assertions.yml', 'stages/stage_custom_assertions.yml')
+
