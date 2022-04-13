@@ -61,8 +61,8 @@ bound of the expected range."
                 category=QualityWarning.Category.DATA_EXPECTATIONS, priority=Priority.P3,
                 data=(range_deviations, bound_deviations),
                 description=f"Column {column_name} - The observed value is outside of the expected range."
-                + (range_deviation_string if range_deviations else "")
-                + (bound_deviation_string if bound_deviations else "")
+                            + (range_deviation_string if range_deviations else "")
+                            + (bound_deviation_string if bound_deviations else "")
             )
         )
         return (range_deviations, bound_deviations)
@@ -89,7 +89,7 @@ bound of the expected range."
             expectation_kwargs = expectation_results['expectation_config']['kwargs']
             expectation_summary['is_table_expectation'] = expectation_summary['type'].startswith("expect_table_")
             expectation_summary['column_kwargs'] = {k: v for k,
-                                                    v in expectation_kwargs.items() if k.startswith('column')}
+                                                             v in expectation_kwargs.items() if k.startswith('column')}
             results_summary["EXPECTATIONS"][idx_] = expectation_summary
 
         overall_results = {
@@ -220,5 +220,3 @@ implied absolute threshold of {int(error_tol)} failed expectations."
             self._report()
         return results
 
-    def has_warning(self):
-        return len(self._warnings) > 0

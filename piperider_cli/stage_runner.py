@@ -12,13 +12,14 @@ from piperider_cli.data import execute_ge_checkpoint
 
 
 def refine_ydata_result(results: dict):
-    outputs = {}
+    outputs = {'has_error': True}
     for k, v in results.items():
         if 'Expectation Level Assessment' == k:
             refined_assessment = list(v)
             for idx, elem in enumerate(refined_assessment):
                 if isinstance(elem, pd.DataFrame):
                     refined_assessment[idx] = elem.to_json(orient='table')
+                    outputs['has_error'] = False if elem['Successful?'].all() else True
             outputs[k] = refined_assessment
         else:
             outputs[k] = v
@@ -26,7 +27,7 @@ def refine_ydata_result(results: dict):
 
 
 def run_stages(all_stage_files, keep_ge_workspace: bool):
-    has_warning = False
+    has_error = False
     for stage_file in all_stage_files:
         try:
             stage_content: dict = load_stages(stage_file)
@@ -61,27 +62,30 @@ def run_stages(all_stage_files, keep_ge_workspace: bool):
                     print("columns: ", all_columns)
                     der = DataExpectationsReporter()
                     results = der.evaluate(report_file, df)
-                    has_warning |= der.has_warning()
-                    # TODO more report from results
+
                     expectations_report, expectations_dense = results['Expectation Level Assessment']
                     print(expectations_report)
 
                     ydata_report = report_file.replace('.json', '_ydata.json')
                     print(f"create ydata report at {ydata_report}")
                     with open(ydata_report, 'w') as fh:
-                        fh.write(json.dumps(refine_ydata_result(results)))
+                        outputs = refine_ydata_result(results)
+                        fh.write(json.dumps(outputs))
+
+                    has_error = outputs['has_error']
 
                 except Exception as e:
                     click.echo(f'Skipped: Stage [{stage_file}::{stage_name}]: Error: {e}')
-                    has_warning = True
+                    has_error = True
                     continue
 
-    if has_warning:
+    if has_error:
         sys.exit(1)
+    else:
+        sys.exit(0)
 
 
 def copy_report(ge_workspace, stage_file, stage_name):
-    # TODO each stage should have its report file
     for root, dirs, files in os.walk(ge_workspace):
         for f in files:
             if f.endswith('.json') and 'uncommitted' in root:
