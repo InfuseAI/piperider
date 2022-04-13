@@ -6,6 +6,7 @@ import warnings
 from ruamel.yaml import YAML
 from sqlalchemy import exc as sa_exc
 
+from piperider_cli import StageFile, Stage
 from piperider_cli.config import get_sources, get_stages
 from piperider_cli.data.convert_to_exp import convert_to_ge_expectations
 
@@ -38,11 +39,8 @@ def convert_to_ge_datasource(source_file):
         return cfg['table'], yaml.load(template)
 
 
-def execute_ge_checkpoint(target_dir: str, source_file, stage_file, stage_name):
-    # Note: suite and checkpoint name are hardcode to "mydata"
-    #       filename is hardcode "train.csv"
-
-    asset_name, datasource = convert_to_ge_datasource(source_file)
+def execute_ge_checkpoint(target_dir: str, stage: Stage):
+    asset_name, datasource = convert_to_ge_datasource(stage.source_file)
     extract_ge_data(target_dir)
 
     # update datasource
@@ -60,7 +58,7 @@ def execute_ge_checkpoint(target_dir: str, source_file, stage_file, stage_name):
         template = get_example_by_name('checkpoint.yml')
         fh.write(template.replace('$ASSET_NAME', asset_name))
 
-    result = convert_to_ge_expectations(stage_file, stage_name)
+    result = convert_to_ge_expectations(stage.stage_file_obj, stage.name)
     ge_exp_path = os.path.join(target_dir, 'great_expectations/expectations/mydata.json')
     with open(ge_exp_path, 'w') as fh:
         json.dump(result, fh, indent=2, sort_keys=True)
@@ -71,7 +69,7 @@ def execute_ge_checkpoint(target_dir: str, source_file, stage_file, stage_name):
         all_columns = get_all_columns(context, asset_name)
         context.run_checkpoint(checkpoint_name='mydata')
 
-    return all_columns
+    return all_columns, context
 
 
 def get_all_columns(context, asset_name):

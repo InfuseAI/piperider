@@ -4,7 +4,6 @@ For detailed instructions on how to use it, please see:
     https://docs.greatexpectations.io/docs/guides/expectations/creating_custom_expectations/how_to_create_custom_column_map_expectations
 """
 
-import json
 from typing import Optional
 
 from great_expectations.core.expectation_configuration import ExpectationConfiguration
@@ -24,12 +23,12 @@ from pyspark.sql.column import Column
 
 # This class defines a Metric to support your Expectation.
 # For most ColumnMapExpectations, the main business logic for calculation will live in this class.
-from piperider_cli import custom_assertion
+from piperider_cli.great_expectations import ge_custom_assertion
 
 
 def find_delegation(engine_type: str, assertion_id: str):
     try:
-        from piperider_cli.custom_assertion import find_assert
+        from piperider_cli.great_expectations.ge_custom_assertion import find_assert
         func = find_assert(engine_type, assertion_id)
         if not func:
             raise NotImplementedError(f'Cannot find assertion with id {assertion_id}')
@@ -148,9 +147,9 @@ class ExpectColumnValuesPassWithAssertion(ColumnMapExpectation):
 
 
 if __name__ == "__main__":
-    @custom_assertion.spark('my-custom-assertion')
-    @custom_assertion.pandas('my-custom-assertion')
-    @custom_assertion.sql('my-custom-assertion')
+    @ge_custom_assertion.spark('my-custom-assertion')
+    @ge_custom_assertion.pandas('my-custom-assertion')
+    @ge_custom_assertion.sql('my-custom-assertion')
     def _c_func(column, **kwargs):
         return column == 3
 

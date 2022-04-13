@@ -96,7 +96,10 @@ bound of the expected range."
             'expectation_count': len(results_summary["EXPECTATIONS"]),
             'total_successes': sum([True for summary in results_summary["EXPECTATIONS"].values() if summary['success']])
         }
-        overall_results["success_rate"] = overall_results["total_successes"] / overall_results["expectation_count"]
+        try:
+            overall_results["success_rate"] = overall_results["total_successes"] / overall_results["expectation_count"]
+        except:
+            overall_results["success_rate"] = None
         results_summary['OVERALL'] = overall_results
         return results_summary
 
@@ -219,4 +222,3 @@ implied absolute threshold of {int(error_tol)} failed expectations."
         if summary:
             self._report()
         return results
-

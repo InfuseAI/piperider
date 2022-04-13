@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from piperider_cli.data import get_example_by_name
 
@@ -11,20 +12,7 @@ def generate_file_from_example(example_file, output_path):
 
 
 def init():
+    from piperider_cli import data
+    init_template_dir = os.path.join(os.path.dirname(data.__file__), 'piperider-init-template')
     working_dir = os.path.join(os.getcwd(), 'piperider')
-    sub_dirs = ['assertions', 'sources', 'stages', 'harness']
-
-    if not os.path.exists(working_dir):
-        for s in sub_dirs:
-            os.makedirs(os.path.join(working_dir, s), exist_ok=True)
-
-    generate_file_from_example('source_local.yml', 'sources/local.yaml')
-    generate_file_from_example('source_snowflake.yml', 'sources/snowflake.yaml')
-    generate_file_from_example('stage_local.yml', 'stages/local.yaml')
-    generate_file_from_example('stage_snowflake.yml', 'stages/snowflake.yaml')
-    generate_file_from_example('data.csv', 'data.csv')
-
-    # custom assertion
-    generate_file_from_example('functions.py', 'assertions/functions.py')
-    generate_file_from_example('stage_custom_assertions.yml', 'stages/stage_custom_assertions.yml')
-
+    shutil.copytree(init_template_dir, working_dir, dirs_exist_ok=True)
