@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+from glob import glob
 from unittest import TestCase
 
 
@@ -24,21 +25,21 @@ class MultiStagesTest(TestCase):
             os.system('pwd')
             os.system('ls -alh')
 
-            multistages_dir = os.path.join(testdata, 'stages')
+            multistages_dir = os.path.join(testdata, 'stages', '*.yaml')
+            multistages = ' '.join(glob(multistages_dir))
+            print(multistages)
 
             # uncomment it for debug
             keep_ge_workspace = ''
             # keep_ge_workspace = '--keep-ge-workspace'
 
             # run stages by directory
-            os.system(f'piperider-cli run --stage {multistages_dir} {keep_ge_workspace}')
+            os.system(f'piperider-cli run {multistages} {keep_ge_workspace}')
 
             # check all stages reports
             stages = set(['multi_m_s1', 'multi_m_s3', 'multi1_m_s2', 'multi1_m_local'])
             found_stages = []
-            for root, dirs, files in os.walk('.'):
-                for f in files:
-                    if '$' in f:
-                        found_stages.append(f.split('$')[0])
+            for f in glob('./*$*_ydata.json'):
+                found_stages.append(os.path.basename(f).split('$')[0])
 
             self.assertEqual(stages, set(found_stages))

@@ -6,6 +6,7 @@ import time
 
 import click
 import pandas as pd
+from glob import glob
 
 from piperider_cli import StageFile, Stage
 from piperider_cli.data import execute_ge_checkpoint
@@ -163,11 +164,8 @@ def run_stages(all_stage_files, keep_ge_workspace: bool):
 
 
 def copy_report(ge_workspace, stage: Stage):
-    for root, dirs, files in os.walk(ge_workspace):
-        for f in files:
-            if f.endswith('.json') and 'uncommitted' in root:
-                report_json = os.path.join(root, f)
-                filename = stage.stage_file
-                report_name = f'{filename}_{stage.name}_{os.path.basename(report_json)}'
-                shutil.copy(report_json, os.path.join('.', report_name))
-                return report_name
+    for report_json in glob(os.path.join(ge_workspace, 'great_expectations', 'uncommitted', '**', '*.json'), recursive=True):
+        filename = os.path.basename(stage.stage_file).split('.')[0]
+        report_name = f'{filename}_{stage.name}_{os.path.basename(report_json)}'
+        shutil.copy(report_json, os.path.join(os.environ['PIPERIDER_REPORT_DIR'], report_name))
+        return report_name
