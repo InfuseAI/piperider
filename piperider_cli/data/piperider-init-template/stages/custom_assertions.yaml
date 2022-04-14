@@ -1,0 +1,12 @@
+input1:
+  data: local
+  tests:
+    - function: my-should-be-in-date
+      column: timestamp
+      params: [ today ]
+#input2:
+#  data: snowflake
+#  tests:
+#    - function: my-should-be-in-date
+#      column: timestamp
+#      params: [ today ]
