@@ -5,6 +5,7 @@ import click
 
 from piperider_cli import workspace
 from piperider_cli.stage_runner import run_stages
+from piperider_cli.custom_assertion import set_assertion_dir
 
 
 @click.group()
@@ -47,6 +48,7 @@ def run(**kwargs):
     if all_stage_files:
         assertions = os.path.join(os.path.dirname(os.path.abspath(all_stage_files[0])), '../assertions')
         sys.path.append(assertions)
+        set_assertion_dir(assertions)
 
         for f in os.listdir(assertions):
             if f.endswith('.py'):

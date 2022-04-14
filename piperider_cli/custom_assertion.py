@@ -1,4 +1,5 @@
 import functools
+import os
 from typing import Dict, Callable
 
 
@@ -27,3 +28,12 @@ def has_assertion_id(assertion_id: str):
     if assertion_id in __registry:
         return True
     return False
+
+def get_assertion_dir():
+    return os.environ.get('PIPERIDER_CUSTOM_ASSERTIONS_PATH', '')
+
+def set_assertion_dir(dir):
+    snap_dir = os.path.join(os.path.normpath(dir), '__snapshots__')
+    if not os.path.exists(snap_dir):
+        os.mkdir(snap_dir)
+    os.environ['PIPERIDER_CUSTOM_ASSERTIONS_PATH'] = snap_dir

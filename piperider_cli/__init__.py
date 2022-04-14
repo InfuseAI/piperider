@@ -3,7 +3,6 @@ import os
 import sys
 import click
 
-
 def create_logger(name) -> logging.Logger:
     log_level = logging.WARNING
     if os.environ.get('PIPERIDER_LOG_LEVEL') == 'DEBUG':
@@ -63,3 +62,12 @@ class StageFile(object):
     def get(self, name):
         if name in self.stage_content:
             return Stage(self, name, self.stage_content[name])
+
+def get_assertion_dir():
+    return os.environ.get('PIPERIDER_CUSTOM_ASSERTIONS_PATH', '')
+
+def set_assertion_dir(dir):
+    snap_dir = os.path.join(os.path.normpath(dir), '__snapshots__')
+    if not os.path.exists(snap_dir):
+        os.mkdir(snap_dir)
+    os.environ['PIPERIDER_CUSTOM_ASSERTIONS_PATH'] = snap_dir
