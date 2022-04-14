@@ -133,15 +133,12 @@ def execute_custom_assertions(ge_context, report_file):
             # execute the scheduled test
             action_result = v.execute_and_remove_from_queue(ge_context)
             if isinstance(action_result, bool):
-                # TODO update True/False
                 update_report(report_file, v, action_result)
             elif isinstance(action_result, pd.DataFrame):
                 values = action_result.all().values
                 if len(values) == 1 and values[0]:
-                    # TODO update Success
-                    update_report(report_file, v, values[0])
+                    update_report(report_file, v, True if values[0] else False)
                 else:
-                    # TODO update Failed
                     update_report(report_file, v, False)
         except:
             raise
