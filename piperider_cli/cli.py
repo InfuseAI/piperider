@@ -12,40 +12,34 @@ def cli():
     pass
 
 
-@cli.command()
+@cli.command(short_help='Initialize PipeRider configurations')
 def init():
     # TODO show the process and message to users
     click.echo(f'Initialize piperider to path {os.getcwd()}/piperider')
     workspace.init()
 
 
-@cli.command()
-@click.option('--stage', help='stage file')
+@cli.command(short_help='Run stages')
+@click.argument('stages', nargs=-1)
 @click.option('--keep-ge-workspace', is_flag=True, default=False)
-def run(**kwargs):
+def run(stages, **kwargs):
     # TODO check the args are "stages" files
     # invoke the stage -> piperider_cli.data.execute_great_expectation
     # generate the report file or directory
-    stage_inputs: str = kwargs.get('stage')
     keep_ge_workspace: bool = kwargs.get('keep_ge_workspace')
 
-    if stage_inputs is None:
-        click.echo(f'--stage is required')
+    if not stages:
+        click.echo(f'stage file is required')
         sys.exit(1)
 
-    if os.path.isdir(stage_inputs):
-        all_stage_files = []
-        for yaml_file in os.listdir(stage_inputs):
-            if yaml_file.endswith('.yaml') or yaml_file.endswith('.yml'):
-                all_stage_files.append(os.path.abspath(os.path.join(stage_inputs, yaml_file)))
-    elif not os.path.exists(stage_inputs):
-        click.echo(f'Cannot find the stage file: {stage_inputs}')
-        sys.exit(1)
-    else:
-        all_stage_files = [os.path.abspath(stage_inputs)]
+    for stage in stages:
+        if not os.path.exists(stage):
+            click.echo(f'Cannot find the stage file: {stage}')
+            sys.exit(1)
 
-    if all_stage_files:
-        assertions = os.path.join(os.path.dirname(os.path.abspath(all_stage_files[0])), '../assertions')
+    stages = list(map(os.path.abspath, stages))
+    if stages:
+        assertions = os.path.join(os.path.dirname(os.path.abspath(stages[0])), '../assertions')
         sys.path.append(assertions)
 
         for f in os.listdir(assertions):
@@ -55,4 +49,4 @@ def run(**kwargs):
 
     from piperider_cli.great_expectations.expect_column_values_pass_with_assertion import \
         ExpectColumnValuesPassWithAssertion
-    run_stages(all_stage_files, keep_ge_workspace)
+    run_stages(stages, keep_ge_workspace)
