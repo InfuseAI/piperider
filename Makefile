@@ -17,5 +17,19 @@ release: dev-requires
 	python3 -m build
 	python3 -m twine upload dist/*
 
+require-%:
+	@if [ "${${*}}" = "" ]; then \
+		echo "Environment variable $* not set"; \
+		exit 1; \
+	fi
+
+bump-version: require-VERSION
+	@echo "Bumping version to ${VERSION}"
+	@echo "${VERSION}" > piperider_cli/VERSION
+
 docker-build:
 	$(DOCKER_BUILD_CMD) -t piperider-cli:$$(cat piperider_cli/VERSION) .
+
+docker-deploy: docker-build
+	docker tag piperider-cli:$$(cat piperider_cli/VERSION) infuseai/piperider-cli:$$(cat piperider_cli/VERSION)
+	docker push infuseai/piperider-cli:$$(cat piperider_cli/VERSION)
