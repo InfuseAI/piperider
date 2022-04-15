@@ -45,12 +45,11 @@ def run(stages, **kwargs):
             sys.exit(1)
 
     stages = list(map(os.path.abspath, stages))
-    print(os.getcwd())
     assertions = os.path.join(os.path.dirname(os.path.abspath(stages[0])), '../assertions')
     if os.path.exists(assertions):
         sys.path.append(assertions)
         set_assertion_dir(assertions)
-        
+
         for f in os.listdir(assertions):
             if f.endswith('.py'):
                 module_name = f.split('.py')[0]
