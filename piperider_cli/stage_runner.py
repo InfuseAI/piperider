@@ -3,10 +3,10 @@ import os
 import shutil
 import sys
 import time
+from glob import glob
 
 import click
 import pandas as pd
-from glob import glob
 
 from piperider_cli import StageFile, Stage
 from piperider_cli.data import execute_ge_checkpoint
@@ -41,24 +41,26 @@ def _run_stage(stage: Stage, keep_ge_workspace: bool):
             stage.show_progress()
             all_columns, ge_context = execute_ge_checkpoint(ge_workspace, stage)
             report_file = copy_report(ge_workspace, stage)
+            ydata_report = report_file.replace('.json', '_ydata.json')
 
             execute_custom_assertions(ge_context, report_file)
 
-            print(f"create report at {report_file}")
+            click.echo(f"Test Report:  {report_file}", err=True)
+            click.echo(f"Ydata Report: {ydata_report}", err=True)
 
             # generate ydata report
             import pandas as pd
             from piperider_cli.ydata.data_expectations import DataExpectationsReporter
             df = pd.DataFrame(columns=all_columns)
-            print("columns: ", all_columns)
+            print(f"Data Source: {stage.source_file.split('/')[-1]}")
+            print("Data Columns: ", all_columns)
             der = DataExpectationsReporter()
             results = der.evaluate(report_file, df)
 
             expectations_report, expectations_dense = results['Expectation Level Assessment']
-            print(expectations_report)
+            click.echo(expectations_report)
 
-            ydata_report = report_file.replace('.json', '_ydata.json')
-            print(f"create ydata report at {ydata_report}")
+            # save ydata report
             with open(ydata_report, 'w') as fh:
                 outputs = refine_ydata_result(results)
                 fh.write(json.dumps(outputs))
@@ -155,6 +157,7 @@ def run_stages(all_stage_files, keep_ge_workspace: bool):
         for stage in stage_file.stages():
             has_error = _run_stage(stage, keep_ge_workspace)
             return_states.append(has_error)
+            click.echo()
 
     has_error = [x for x in return_states if x is True]
     if has_error:
@@ -164,7 +167,8 @@ def run_stages(all_stage_files, keep_ge_workspace: bool):
 
 
 def copy_report(ge_workspace, stage: Stage):
-    for report_json in glob(os.path.join(ge_workspace, 'great_expectations', 'uncommitted', '**', '*.json'), recursive=True):
+    for report_json in glob(os.path.join(ge_workspace, 'great_expectations', 'uncommitted', '**', '*.json'),
+                            recursive=True):
         filename = os.path.basename(stage.stage_file).split('.')[0]
         report_name = f'{filename}_{stage.name}_{os.path.basename(report_json)}'
         shutil.copy(report_json, os.path.join(os.environ['PIPERIDER_REPORT_DIR'], report_name))
