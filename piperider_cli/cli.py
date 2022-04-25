@@ -24,11 +24,14 @@ def init():
 @click.argument('stages', nargs=-1)
 @click.option('--report-dir', default=os.getcwd())
 @click.option('--keep-ge-workspace', is_flag=True, default=False)
+@click.option('--one-json', is_flag=True, default=False)
+@click.option('--metadata', '-m', multiple=True)
 def run(stages, **kwargs):
     # TODO check the args are "stages" files
     # invoke the stage -> piperider_cli.data.execute_great_expectation
     # generate the report file or directory
     keep_ge_workspace: bool = kwargs.get('keep_ge_workspace')
+    one_json: bool = kwargs.get('one_json')
     os.environ['PIPERIDER_REPORT_DIR'] = kwargs.get('report_dir')
     if os.path.isfile(kwargs.get('report_dir')):
         click.echo(f'report-dir cannot be a file')
@@ -57,4 +60,4 @@ def run(stages, **kwargs):
 
     from piperider_cli.great_expectations.expect_column_values_pass_with_assertion import \
         ExpectColumnValuesPassWithAssertion
-    run_stages(stages, keep_ge_workspace)
+    run_stages(stages, keep_ge_workspace, one_json, kwargs)

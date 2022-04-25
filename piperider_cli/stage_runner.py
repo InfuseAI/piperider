@@ -1,9 +1,11 @@
+import collections
 import json
 import os
 import shutil
 import sys
 import time
 from glob import glob
+from typing import Tuple
 
 import click
 import pandas as pd
@@ -11,6 +13,48 @@ import pandas as pd
 from piperider_cli import StageFile, Stage
 from piperider_cli.data import execute_ge_checkpoint
 from piperider_cli.data.convert_to_exp import get_scheduled_tests
+
+
+class ReportAggregator(object):
+
+    def __init__(self, metadata: tuple):
+        self._reports = collections.OrderedDict()
+        if metadata:
+            self.update_metadata(metadata)
+
+    def stage(self, stage):
+        stage_name = os.path.basename(stage.stage_file).split('.')[0] + '::' + stage.name
+        if stage_name not in self._reports:
+            self._reports[stage_name] = {}
+        return self._reports[stage_name]
+
+    def add_ge_report_file(self, stage, report_file):
+        with open(report_file, 'r') as fh:
+            self.stage(stage)['ge'] = json.loads(fh.read())
+
+    def add_ydata_report(self, stage, outputs):
+        self.stage(stage)['ydata'] = outputs
+
+    def report(self):
+        return json.dumps(self._reports)
+
+    def report_dict(self):
+        return self._reports
+
+    def update_metadata(self, metadata: Tuple[str]):
+        import re
+        output = dict()
+        for data in metadata:
+            # get the first '='
+            sep = data.index('=')
+            k, v = data[:sep].strip(), data[sep + 1:].strip()
+            if re.match(r'^[a-zA-Z_0-9]+$', k):
+                output[k] = v
+            else:
+                # check the key naming make it acceptable to the firebase realtime database
+                # https://firebase.google.com/docs/database/web/structure-data
+                print(f'drop invalid key [{k}] for metadata')
+        self._reports['metadata'] = output
 
 
 def refine_ydata_result(results: dict):
@@ -28,7 +72,7 @@ def refine_ydata_result(results: dict):
     return outputs
 
 
-def _run_stage(stage: Stage, keep_ge_workspace: bool):
+def _run_stage(aggregator: ReportAggregator, stage: Stage, keep_ge_workspace: bool):
     from tempfile import TemporaryDirectory
     with TemporaryDirectory() as tmpdir:
         ge_workspace = tmpdir
@@ -42,6 +86,7 @@ def _run_stage(stage: Stage, keep_ge_workspace: bool):
             all_columns, ge_context = execute_ge_checkpoint(ge_workspace, stage)
             report_file = copy_report(ge_workspace, stage)
             ydata_report = report_file.replace('.json', '_ydata.json')
+            aggregator.add_ge_report_file(stage, report_file)
 
             execute_custom_assertions(ge_context, report_file)
 
@@ -63,6 +108,7 @@ def _run_stage(stage: Stage, keep_ge_workspace: bool):
             # save ydata report
             with open(ydata_report, 'w') as fh:
                 outputs = refine_ydata_result(results)
+                aggregator.add_ydata_report(stage, outputs)
                 fh.write(json.dumps(outputs))
 
             return outputs['has_error']
@@ -150,16 +196,49 @@ def execute_custom_assertions(ge_context, report_file):
             pass
 
 
-def run_stages(all_stage_files, keep_ge_workspace: bool):
+def upload_reports_to_piperider(aggregator: ReportAggregator):
+    if 'PIPERIDER_SERVICE_URL' not in os.environ:
+        return
+    url = os.environ['PIPERIDER_SERVICE_URL']
+    if url.endswith('/'):
+        url = url[:-1]
+
+    # TODO hardcode it for demo
+    project_uid = 'mlp-demo'
+    reports_upload_url = f'{url}/projects/{project_uid}/reports'
+    import requests
+
+    status_code = 0
+    try:
+        response = requests.post(reports_upload_url, json=aggregator.report_dict())
+
+        status_code = response.status_code
+        if status_code == 200:
+            result = response.json()
+            click.echo(f'Upload reports to {reports_upload_url} => {result}')
+            return result
+        return dict(status_code=status_code, text=response.text)
+    except BaseException as e:
+        return dict(status_code=status_code, text=str(e))
+
+
+def run_stages(all_stage_files, keep_ge_workspace: bool, one_json: bool, kwargs):
     return_states = []
     stage_files = [StageFile(s) for s in all_stage_files]
+    aggregator = ReportAggregator(kwargs.get('metadata', ()))
     for stage_file in stage_files:
         for stage in stage_file.stages():
-            has_error = _run_stage(stage, keep_ge_workspace)
+            has_error = _run_stage(aggregator, stage, keep_ge_workspace)
             return_states.append(has_error)
             click.echo()
 
     has_error = [x for x in return_states if x is True]
+    upload_reports_to_piperider(aggregator)
+
+    if one_json:
+        with open('aggregated-reports.json', 'w') as fh:
+            fh.write(aggregator.report())
+
     if has_error:
         sys.exit(1)
     else:
