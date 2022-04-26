@@ -42,7 +42,7 @@ class ReportAggregator(object):
         if piperider_app_url is None:
             return None
         self._report_uid = uid
-        self._report_url = f'{piperider_app_url}/report/{uid}'
+        self._report_url = f'{piperider_app_url}/reports/{uid}'
         return self._report_url
 
     def report(self):
