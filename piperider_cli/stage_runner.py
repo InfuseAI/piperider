@@ -19,6 +19,8 @@ class ReportAggregator(object):
 
     def __init__(self, metadata: tuple):
         self._reports = collections.OrderedDict()
+        self._report_uid = None
+        self._report_url = None
         if metadata:
             self.update_metadata(metadata)
 
@@ -34,6 +36,14 @@ class ReportAggregator(object):
 
     def add_ydata_report(self, stage, outputs):
         self.stage(stage)['ydata'] = outputs
+
+    def set_report_uid(self, uid):
+        piperider_app_url = os.environ.get('PIPERIDER_APP_URL', 'https://app.piperider.io')
+        if piperider_app_url is None:
+            return None
+        self._report_uid = uid
+        self._report_url = f'{piperider_app_url}/report/{uid}'
+        return self._report_url
 
     def report(self):
         return json.dumps(self._reports)
@@ -215,8 +225,8 @@ def upload_reports_to_piperider(aggregator: ReportAggregator):
         status_code = response.status_code
         if status_code == 200:
             result = response.json()
-            click.echo(f'Upload reports to {reports_upload_url} => {result}')
-            return result
+            # click.echo(f'Upload reports to {reports_upload_url} => {result}')
+            return dict(status_code=status_code, result=result)
         return dict(status_code=status_code, text=response.text)
     except BaseException as e:
         return dict(status_code=status_code, text=str(e))
@@ -233,8 +243,12 @@ def run_stages(all_stage_files, keep_ge_workspace: bool, one_json: bool, kwargs)
             click.echo()
 
     has_error = [x for x in return_states if x is True]
-    upload_reports_to_piperider(aggregator)
-
+    rc = upload_reports_to_piperider(aggregator)
+    if rc and rc.get('status_code') == 200:
+        uid = rc.get('result', {}).get('uid')
+        url = aggregator.set_report_uid(uid)
+        if url:
+            click.echo(f'Report URL: {url}')
     if one_json:
         with open('aggregated-reports.json', 'w') as fh:
             fh.write(aggregator.report())
