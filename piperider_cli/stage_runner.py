@@ -86,9 +86,9 @@ def _run_stage(aggregator: ReportAggregator, stage: Stage, keep_ge_workspace: bo
             all_columns, ge_context = execute_ge_checkpoint(ge_workspace, stage)
             report_file = copy_report(ge_workspace, stage)
             ydata_report = report_file.replace('.json', '_ydata.json')
-            aggregator.add_ge_report_file(stage, report_file)
 
             execute_custom_assertions(ge_context, report_file)
+            aggregator.add_ge_report_file(stage, report_file)
 
             click.echo(f"Test Report:  {report_file}", err=True)
             click.echo(f"Ydata Report: {ydata_report}", err=True)
