@@ -3,8 +3,10 @@ from typing import Dict
 
 import pandas as pd
 from ruamel.yaml import YAML
-from piperider_cli.config import get_stages, get_sources
-from piperider_cli import create_logger, StageFile
+
+from piperider_cli import create_logger
+from piperider_cli.config import get_sources
+from piperider_cli.stage import StageFile
 
 GE_CUSTOM_ASSERTION_KEY = 'expect_column_values_pass_with_assertion'
 
