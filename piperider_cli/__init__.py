@@ -1,7 +1,9 @@
 import logging
 import os
 import sys
+
 import click
+
 
 def create_logger(name) -> logging.Logger:
     log_level = logging.WARNING
@@ -31,9 +33,23 @@ class Stage(object):
 
         self._load_source()
 
-    def show_progress(self):
-        click.echo(
-            f'Process stage [{os.path.basename(self.stage_file).split(".")[0]}:{self.name}]')
+    def show_progress(self, console=None):
+        if console is None:
+            click.echo(
+                f'Process stage [{os.path.basename(self.stage_file).split(".")[0]}:{self.name}]')
+        else:
+            console.rule(f'[bold green][Process stage] {os.path.basename(self.stage_file).split(".")[0]}:{self.name}',
+                         align='left')
+
+    def show_result(self, console=None, error=None):
+        stage_name = f'{os.path.basename(self.stage_file).split(".")[0]}:{self.name}'
+
+        if console:
+            if error is not None:
+                click.echo(f'Skipped stage [{stage_name}] Error: {error}')
+                console.rule(f'[bold red][Failed] {stage_name}', align='left')
+            else:
+                console.rule(f'[bold green][Pass] {stage_name}', align='left')
 
     def _load_source(self):
         if 'data' not in self.content:
@@ -63,8 +79,10 @@ class StageFile(object):
         if name in self.stage_content:
             return Stage(self, name, self.stage_content[name])
 
+
 def get_assertion_dir():
     return os.environ.get('PIPERIDER_CUSTOM_ASSERTIONS_PATH', '')
+
 
 def set_assertion_dir(dir):
     snap_dir = os.path.join(os.path.normpath(dir), '__snapshots__')

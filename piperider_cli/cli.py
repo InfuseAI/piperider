@@ -2,10 +2,12 @@ import os.path
 import sys
 
 import click
+from rich.console import Console
+from rich.syntax import Syntax
 
 from piperider_cli import workspace
-from piperider_cli.stage_runner import run_stages
 from piperider_cli.custom_assertion import set_assertion_dir
+from piperider_cli.stage_runner import run_stages
 
 
 @click.group()
@@ -18,6 +20,20 @@ def init():
     # TODO show the process and message to users
     click.echo(f'Initialize piperider to path {os.getcwd()}/piperider')
     workspace.init()
+
+
+@cli.command(short_help='Test Configuration')
+def debug():
+    console = Console()
+    console.print(f'Debugging...')
+
+    for file in os.listdir('stages'):
+        console.rule(f'[bold green] {file}')
+        with open(os.path.join('stages', file), "r") as fd:
+            content = fd.read()
+            syntax = Syntax(content, 'yaml', theme='monokai', line_numbers=True)
+            console.print(syntax)
+    pass
 
 
 @cli.command(short_help='Run stages')
@@ -58,6 +74,4 @@ def run(stages, **kwargs):
                 module_name = f.split('.py')[0]
                 __import__(module_name)
 
-    from piperider_cli.great_expectations.expect_column_values_pass_with_assertion import \
-        ExpectColumnValuesPassWithAssertion
     run_stages(stages, keep_ge_workspace, generate_local_report, kwargs)
