@@ -10,6 +10,8 @@ from typing import Tuple
 
 import click
 import pandas as pd
+from rich.console import Console
+from rich.markdown import Markdown
 
 from piperider_cli import StageFile, Stage
 from piperider_cli.data import execute_ge_checkpoint
@@ -141,13 +143,14 @@ def _run_stage(aggregator: ReportAggregator, stage: Stage, keep_ge_workspace: bo
     from tempfile import TemporaryDirectory
     with TemporaryDirectory() as tmpdir:
         ge_workspace = tmpdir
-
+        console = Console()
         if keep_ge_workspace:
             ge_workspace = os.path.join(os.getcwd(), f'ge_dir_{int(time.time())}')
             print(f"keep ge workspace at {ge_workspace}")
 
         try:
-            stage.show_progress()
+
+            stage.show_progress(console)
             all_columns, ge_context = execute_ge_checkpoint(ge_workspace, stage)
             report_file = copy_report(ge_workspace, stage)
             ydata_report = report_file.replace('.json', '_ydata.json')
@@ -155,20 +158,34 @@ def _run_stage(aggregator: ReportAggregator, stage: Stage, keep_ge_workspace: bo
             execute_custom_assertions(ge_context, report_file)
             aggregator.add_ge_report_file(stage, report_file)
 
-            click.echo(f"Test Report:  {report_file}", err=True)
-            click.echo(f"Ydata Report: {ydata_report}", err=True)
-
             # generate ydata report
             import pandas as pd
             from piperider_cli.ydata.data_expectations import DataExpectationsReporter
             df = pd.DataFrame(columns=all_columns)
-            print(f"Data Source: {stage.source_file.split('/')[-1]}")
-            print("Data Columns: ", all_columns)
+            # print(f"Data Source: {stage.source_file.split('/')[-1]}")
+            # print("Data Columns: ", all_columns)
+
+            datasource_name = stage.source_file.split('/')[-1]
+
             der = DataExpectationsReporter()
             results = der.evaluate(report_file, df)
 
             expectations_report, expectations_dense = results['Expectation Level Assessment']
-            click.echo(expectations_report)
+
+            markdown_template = f'''
+# Status
+* Data Source : {datasource_name}
+* Data Columns : {all_columns}
+* Output Reports
+  * Test report: {report_file}
+  * Ydata report: {ydata_report}
+
+# Output
+``` text
+{expectations_report}
+```
+'''
+            console.print(Markdown(markdown_template))
 
             # save ydata report
             with open(ydata_report, 'w') as fh:
@@ -176,11 +193,13 @@ def _run_stage(aggregator: ReportAggregator, stage: Stage, keep_ge_workspace: bo
                 aggregator.add_ydata_report(stage, outputs)
                 fh.write(json.dumps(outputs))
 
+            stage.show_result(console)
             return outputs['has_error']
 
         except Exception as e:
-            click.echo(f'Skipped: Stage [{stage.stage_file}::{stage.name}]: Error: {e}')
+            # click.echo(f'Skipped: Stage [{stage.stage_file}::{stage.name}]: Error: {e}')
             # mark as error
+            stage.show_result(console, e)
             return True
 
         # mark as error when the result does not come from ydata
