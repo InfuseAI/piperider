@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 import time
+from datetime import datetime
 from glob import glob
 from typing import Tuple
 
@@ -65,6 +66,60 @@ class ReportAggregator(object):
                 # https://firebase.google.com/docs/database/web/structure-data
                 print(f'drop invalid key [{k}] for metadata')
         self._reports['metadata'] = output
+
+    def generate_local_report(self):
+        from piperider_cli import data
+        init_template_dir = os.path.join(os.path.dirname(data.__file__), 'static-report')
+        working_dir = os.path.join(os.getcwd(), 'reports')
+        report_file_template = os.path.join(os.getcwd(), 'reports/index.html')
+        shutil.copytree(init_template_dir, working_dir, dirs_exist_ok=True)
+        content = self.convert_to_report_json()
+        # patch report_file_template
+        with open(report_file_template) as fh:
+            s = fh.read()
+
+        with open(report_file_template, "w") as fh:
+            s = s.replace(r'window.PIPERIDER_REPORT_DATA={};', f'window.PIPERIDER_REPORT_DATA={json.dumps(content)};')
+            fh.write(s)
+
+        filename = datetime.now().strftime('%Y%m%dT%H%M%S')
+        report_file = os.path.join(os.getcwd(), f'reports/{filename}.html')
+        shutil.move(report_file_template, report_file)
+
+        print(f'Generate report at {report_file}')
+
+    def convert_to_report_json(self):
+        payload = self.report_dict()
+        stages = list()
+        metadata = payload.pop('metadata', {})
+        for key in payload:
+            ge = payload[key].get('ge', {})
+            ydata = payload[key].get('ydata', {})
+
+            ge_metadata = ge.get('meta', {})
+            if 'validation_time' in ge_metadata:
+                t = datetime.strptime(ge_metadata['validation_time'], '%Y%m%dT%H%M%S.%fZ')
+                ge_metadata['validation_time'] = t.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
+            stage = dict(
+                name=key,
+                metadata=ge_metadata,
+                cases=ge.get('results', []),
+                summary=dict(
+                    success=ge.get('statistics', {}).get('successful_expectations', None),
+                    failure=ge.get('statistics', {}).get('unsuccessful_expectations', None),
+                    success_percent=ge.get('statistics', {}).get('success_percent', None),
+                    coverage=ydata.get('Coverage Fraction', None),
+                ),
+            )
+            stages.append(stage)
+        content = dict(
+            stages=stages,
+            metadata=metadata,
+            raw=payload,
+            created_at=int(time.time() * 1000),
+        )
+        return content
 
 
 def refine_ydata_result(results: dict):
@@ -232,7 +287,7 @@ def upload_reports_to_piperider(aggregator: ReportAggregator):
         return dict(status_code=status_code, text=str(e))
 
 
-def run_stages(all_stage_files, keep_ge_workspace: bool, one_json: bool, kwargs):
+def run_stages(all_stage_files, keep_ge_workspace: bool, generate_local_report: bool, kwargs):
     return_states = []
     stage_files = [StageFile(s) for s in all_stage_files]
     aggregator = ReportAggregator(kwargs.get('metadata', ()))
@@ -249,9 +304,9 @@ def run_stages(all_stage_files, keep_ge_workspace: bool, one_json: bool, kwargs)
         url = aggregator.set_report_uid(uid)
         if url:
             click.echo(f'Report URL: {url}')
-    if one_json:
-        with open('aggregated-reports.json', 'w') as fh:
-            fh.write(aggregator.report())
+
+    if generate_local_report:
+        aggregator.generate_local_report()
 
     if has_error:
         sys.exit(1)
