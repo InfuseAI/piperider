@@ -31,7 +31,8 @@ def debug():
         console.rule(f'[bold green] {file}')
         with open(os.path.join('stages', file), "r") as fd:
             content = fd.read()
-            syntax = Syntax(content, 'yaml', theme='monokai', line_numbers=True)
+            syntax = Syntax(content, 'yaml', theme='monokai',
+                            line_numbers=True)
             console.print(syntax)
     pass
 
@@ -64,7 +65,8 @@ def run(stages, **kwargs):
             sys.exit(1)
 
     stages = list(map(os.path.abspath, stages))
-    assertions = os.path.join(os.path.dirname(os.path.abspath(stages[0])), '../assertions')
+    assertions = os.path.join(os.path.dirname(
+        os.path.abspath(stages[0])), '../assertions')
     if os.path.exists(assertions):
         sys.path.append(assertions)
         set_assertion_dir(assertions)
@@ -74,4 +76,7 @@ def run(stages, **kwargs):
                 module_name = f.split('.py')[0]
                 __import__(module_name)
 
+    # noinspection PyUnresolvedReferences
+    from piperider_cli.great_expectations.expect_column_values_pass_with_assertion import \
+        ExpectColumnValuesPassWithAssertion
     run_stages(stages, keep_ge_workspace, generate_local_report, kwargs)

@@ -6,9 +6,9 @@ import warnings
 from ruamel.yaml import YAML
 from sqlalchemy import exc as sa_exc
 
-from piperider_cli import StageFile, Stage
 from piperider_cli.config import get_sources, get_stages
 from piperider_cli.data.convert_to_exp import convert_to_ge_expectations
+from piperider_cli.stage import Stage
 
 PANDAS_DATASOURCE = 'great_expectations_local_pandas.tgz'
 
