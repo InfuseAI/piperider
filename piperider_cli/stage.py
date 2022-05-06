@@ -1,11 +1,9 @@
-import json
 import os
 import shutil
 from glob import glob
 from time import time
 
 import click
-import pandas as pd
 from rich.console import Console
 from rich.markdown import Markdown
 
@@ -18,6 +16,11 @@ class Stage(object):
         self.name = name
         self.content = content
         self.source_file = None
+        self.all_columns = None
+        self.reports = {
+            'ge': None,
+            'ydata': None,
+        }
         self.console = Console()
 
         self._load_source()
@@ -35,6 +38,23 @@ class Stage(object):
         else:
             self.console.rule(f'[bold green][Pass] {stage_name}', align='left')
 
+    def _show_status(self, expectations_report):
+        datasource_name = self.source_file.split('/')[-1]
+        markdown_template = f'''
+# Status
+* Data Source : {datasource_name}
+* Data Columns : {self.all_columns}
+* Output Reports
+  * Test report: {self.reports['ge']}
+  * Ydata report: {self.reports['ge']}
+
+# Output
+``` text
+{expectations_report}
+```
+'''
+        self.console.print(Markdown(markdown_template))
+
     def _load_source(self):
         if 'data' not in self.content:
             raise ValueError('data is required field')
@@ -47,9 +67,8 @@ class Stage(object):
         return self.content['tests']
 
     def run(self, keep_ge_workspace=False):
-        from piperider_cli.data import execute_ge_checkpoint
-
-        from piperider_cli.ydata.data_expectations import DataExpectationsReporter
+        from piperider_cli.data import execute_ge_checkpoint, execute_custom_assertions
+        from piperider_cli.ydata import execute_ydata
         from tempfile import TemporaryDirectory
         with TemporaryDirectory() as tmp_dir:
             ge_workspace = tmp_dir
@@ -59,41 +78,22 @@ class Stage(object):
 
         try:
             self._show_progress()
-            all_columns, ge_context = execute_ge_checkpoint(ge_workspace, self)
-            ge_report_file = self.copy_report(ge_workspace)
-            ydata_report_file = ge_report_file.replace('.json', '_ydata.json')
 
-            self.execute_custom_assertions(ge_context, ge_report_file)
+            # generate great expectations report
+            self.all_columns, ge_context = execute_ge_checkpoint(ge_workspace, self)
+            self.reports['ge'] = self.copy_report(ge_workspace)
+            self.reports['ydata'] = self.reports['ge'].replace('.json', '_ydata.json')
+
+            # execute custom assertions and update ge report
+            execute_custom_assertions(ge_context, self.reports['ge'])
 
             # generate ydata report
-            df = pd.DataFrame(columns=all_columns)
-            datasource_name = self.source_file.split('/')[-1]
-            der = DataExpectationsReporter()
-            results = der.evaluate(ge_report_file, df)
-            expectations_report, expectations_dense = results['Expectation Level Assessment']
-
-            markdown_template = f'''
-# Status
-* Data Source : {datasource_name}
-* Data Columns : {all_columns}
-* Output Reports
-  * Test report: {ge_report_file}
-  * Ydata report: {ydata_report_file}
-
-# Output
-``` text
-{expectations_report}
-```
-'''
-            self.console.print(Markdown(markdown_template))
-
-            # save ydata report
-            with open(ydata_report_file, 'w') as fh:
-                outputs = self.refine_ydata_result(results)
-                fh.write(json.dumps(outputs))
-
+            expectations_report, expectations_dense, has_error = execute_ydata(self.all_columns, self.reports['ge'],
+                                                                               self.reports['ydata'])
+            self._show_status(expectations_report)
             self._show_result()
-            return outputs['has_error'], {'ge': ge_report_file, 'ydata': ydata_report_file}
+            return has_error, self.reports
+
         except Exception as e:
             # mark as error
             self.console.print_exception(show_locals=True)
@@ -107,94 +107,6 @@ class Stage(object):
             report_name = f'{filename}_{self.name}_{os.path.basename(report_json)}'
             shutil.copy(report_json, os.path.join(os.environ['PIPERIDER_REPORT_DIR'], report_name))
             return report_name
-
-    def execute_custom_assertions(self, ge_context, report_file):
-        from piperider_cli.data.convert_to_exp import get_scheduled_tests
-        scheduled_tests = get_scheduled_tests()
-        if not scheduled_tests:
-            return
-
-        print(f"executing {len(scheduled_tests)} scheduled tests", )
-        for k, v in scheduled_tests.items():
-            try:
-                # execute the scheduled test
-                action_result = v.execute_and_remove_from_queue(ge_context)
-                if isinstance(action_result, bool):
-                    self.update_report(report_file, v, action_result)
-                elif isinstance(action_result, pd.DataFrame):
-                    values = action_result.all().values
-                    if len(values) == 1 and values[0]:
-                        self.update_report(report_file, v, True if values[0] else False)
-                    else:
-                        self.update_report(report_file, v, False)
-            except Exception as e:
-                click.echo(f'Error: {e}')
-                raise
-            finally:
-                # TODO update the report to ge's output
-                pass
-
-    def update_report(self, report_file, custom_assertion, action_result):
-        with open(report_file) as fh:
-            report_data = json.loads(fh.read())
-            results = report_data['results']
-            kwargs = {
-                "batch_id": "68826d1fc4627a6685f0291acd9c54bb",
-            }
-            if 'column' in custom_assertion.test_definition:
-                kwargs['column'] = custom_assertion.test_definition['column']
-
-            results.append(
-                {
-                    "exception_info": {
-                        "exception_message": None,
-                        "exception_traceback": None,
-                        "raised_exception": False
-                    },
-                    "expectation_config": {
-                        "expectation_type": f"custom-assertion::{custom_assertion.function_name}",
-                        "kwargs": kwargs,
-                        "meta": {
-                            "test_definition": custom_assertion.test_definition,
-                            "function_name": custom_assertion.function_name
-                        }
-                    },
-                    "meta": {},
-                    "result": {},
-                    "success": action_result
-                }
-            )
-
-            if not action_result:
-                report_data['success'] = False
-
-            all_count = len(results)
-            success_count = len([r for r in results if r['success']])
-
-            report_data['statistics'] = {
-                'evaluated_expectations': all_count,
-                'success_percent': 100 * (success_count / all_count),
-                'successful_expectations': success_count,
-                'unsuccessful_expectations': all_count - success_count}
-
-            # write back to file
-            with open(report_file, 'w') as fd:
-                fd.write(json.dumps(report_data, indent=2))
-        pass
-
-    def refine_ydata_result(self, results: dict):
-        outputs = {'has_error': True}
-        for k, v in results.items():
-            if 'Expectation Level Assessment' == k:
-                refined_assessment = list(v)
-                for idx, elem in enumerate(refined_assessment):
-                    if isinstance(elem, pd.DataFrame):
-                        refined_assessment[idx] = elem.to_json(orient='table')
-                        outputs['has_error'] = False if elem['Successful?'].all() else True
-                outputs[k] = refined_assessment
-            else:
-                outputs[k] = v
-        return outputs
 
 
 class StageFile(object):

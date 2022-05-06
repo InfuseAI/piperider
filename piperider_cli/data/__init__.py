@@ -3,11 +3,12 @@ import os.path
 import tarfile
 import warnings
 
+import pandas as pd
 from ruamel.yaml import YAML
 from sqlalchemy import exc as sa_exc
 
 from piperider_cli.config import get_sources, get_stages
-from piperider_cli.data.convert_to_exp import convert_to_ge_expectations
+from piperider_cli.data.convert_to_exp import convert_to_ge_expectations, get_scheduled_tests
 from piperider_cli.stage import Stage
 
 PANDAS_DATASOURCE = 'great_expectations_local_pandas.tgz'
@@ -103,6 +104,81 @@ def get_example_by_name(filename):
     example_file = os.path.join(location, 'examples', filename)
     with open(example_file, 'r') as fh:
         return fh.read()
+
+
+def execute_custom_assertions(ge_context, report_file):
+    scheduled_tests = get_scheduled_tests()
+    if not scheduled_tests:
+        return
+
+    print(f"executing {len(scheduled_tests)} scheduled tests", )
+    for k, v in scheduled_tests.items():
+        try:
+            # execute the scheduled test
+            action_result = v.execute_and_remove_from_queue(ge_context)
+            if isinstance(action_result, bool):
+                update_report(report_file, v, action_result)
+            elif isinstance(action_result, pd.DataFrame):
+                values = action_result.all().values
+                if len(values) == 1 and values[0]:
+                    update_report(report_file, v, True if values[0] else False)
+                else:
+                    update_report(report_file, v, False)
+        except Exception as e:
+            print(f"Error: {e}")
+            raise
+        finally:
+            # TODO update the report to ge's output
+            pass
+
+
+def update_report(report_file, custom_assertion, action_result):
+    with open(report_file) as fh:
+        report_data = json.loads(fh.read())
+        results = report_data['results']
+        kwargs = {
+            "batch_id": "68826d1fc4627a6685f0291acd9c54bb",
+        }
+        if 'column' in custom_assertion.test_definition:
+            kwargs['column'] = custom_assertion.test_definition['column']
+
+        results.append(
+            {
+                "exception_info": {
+                    "exception_message": None,
+                    "exception_traceback": None,
+                    "raised_exception": False
+                },
+                "expectation_config": {
+                    "expectation_type": f"custom-assertion::{custom_assertion.function_name}",
+                    "kwargs": kwargs,
+                    "meta": {
+                        "test_definition": custom_assertion.test_definition,
+                        "function_name": custom_assertion.function_name
+                    }
+                },
+                "meta": {},
+                "result": {},
+                "success": action_result
+            }
+        )
+
+        if not action_result:
+            report_data['success'] = False
+
+        all_count = len(results)
+        success_count = len([r for r in results if r['success']])
+
+        report_data['statistics'] = {
+            'evaluated_expectations': all_count,
+            'success_percent': 100 * (success_count / all_count),
+            'successful_expectations': success_count,
+            'unsuccessful_expectations': all_count - success_count}
+
+        # write back to file
+        with open(report_file, 'w') as fd:
+            fd.write(json.dumps(report_data, indent=2))
+    pass
 
 
 if __name__ == '__main__':
