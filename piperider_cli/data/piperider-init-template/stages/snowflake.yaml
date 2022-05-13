@@ -1,9 +1,0 @@
-input:
-  data: snowflake
-  tests:
-    - function: shouldNotBeNull
-      column:
-        - o_totalprice
-    - function: shouldBeInRange
-      column: o_totalprice
-      params: [ 10, 500000 ]
