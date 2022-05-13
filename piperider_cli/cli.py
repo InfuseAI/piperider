@@ -16,10 +16,16 @@ def cli():
 
 
 @cli.command(short_help='Initialize PipeRider configurations')
-def init():
+@click.option('--provider', type=click.Choice(['dbt-local']), default=None)
+def init(**kwargs):
     # TODO show the process and message to users
-    click.echo(f'Initialize piperider to path {os.getcwd()}/piperider')
-    workspace.init()
+    click.echo(f'Initialize piperider to path {os.getcwd()}/.piperider')
+
+    dbt_project_path = None
+    if kwargs.get('provider') == 'dbt-local':
+        dbt_project_path = os.path.join(os.getcwd(), 'dbt_project.yml')
+
+    workspace.init(dbt_project_path=dbt_project_path)
 
 
 @cli.command(short_help='Test Configuration')
