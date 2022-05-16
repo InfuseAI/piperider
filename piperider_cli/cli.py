@@ -3,11 +3,23 @@ import sys
 
 import click
 from rich.console import Console
-from rich.syntax import Syntax
 
 from piperider_cli import workspace
 from piperider_cli.custom_assertion import set_assertion_dir
 from piperider_cli.stage_runner import run_stages
+
+debug_option = [
+    click.option('--debug', is_flag=True, help='Enable debug mode')
+]
+
+
+def add_options(options):
+    def _add_options(func):
+        for option in reversed(options):
+            func = option(func)
+        return func
+
+    return _add_options
 
 
 @click.group()
@@ -17,6 +29,7 @@ def cli():
 
 @cli.command(short_help='Initialize PipeRider configurations')
 @click.option('--provider', type=click.Choice(['dbt-local']), default=None)
+@add_options(debug_option)
 def init(**kwargs):
     # TODO show the process and message to users
     click.echo(f'Initialize piperider to path {os.getcwd()}/.piperider')
@@ -25,7 +38,12 @@ def init(**kwargs):
     if kwargs.get('provider') == 'dbt-local':
         dbt_project_path = os.path.join(os.getcwd(), 'dbt_project.yml')
 
-    workspace.init(dbt_project_path=dbt_project_path)
+    config = workspace.init(dbt_project_path=dbt_project_path)
+    if kwargs.get('debug'):
+        console = Console()
+        for ds in config.dataSources:
+            console.rule(f'./piperider/config.yml')
+            console.print(ds.__dict__)
 
 
 @cli.command(short_help='Test Configuration')
@@ -33,13 +51,10 @@ def debug():
     console = Console()
     console.print(f'Debugging...')
 
-    for file in os.listdir('stages'):
-        console.rule(f'[bold green] {file}')
-        with open(os.path.join('stages', file), "r") as fd:
-            content = fd.read()
-            syntax = Syntax(content, 'yaml', theme='monokai',
-                            line_numbers=True)
-            console.print(syntax)
+    config = workspace.debug()
+
+    for ds in config.dataSources:
+        console.print(ds.__dict__)
     pass
 
 
