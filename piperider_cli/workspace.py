@@ -1,6 +1,7 @@
 import os
 import shutil
 
+from getpass import getpass
 from ruamel.yaml import YAML
 
 yaml = YAML(typ="safe")
@@ -49,10 +50,44 @@ def _generate_piperider_workspace():
 
 
 def _ask_user_for_datasource():
-    # TODO: ask the user for datasource
     # we only support snowfalke and pg only
     # we might consider a sqlite for dev mode?
-    raise NotImplemented
+    print(f'\nWhat is your project name? (alphanumeric only)')
+    in_source_name = input(':').strip()
+    if in_source_name == '':
+        raise Exception('Error: project name is empty')
+
+    print(f'\nWhat data source would you like to connect to?')
+    print('1. snowflake')
+    print('2. postgres')
+    in_source_type = input(':').strip()
+    fields = {
+        '1': ['account', 'user', 'password', 'role', 'database', 'warehouse', 'schema'],
+        '2': ['host', 'port', 'user', 'password', 'dbname'],
+    }
+
+    if in_source_type not in fields.keys():
+        raise Exception('Error: invalid source type')
+
+    source = dict(
+        name=in_source_name,
+        type=(in_source_type == '1' and 'snowflake') or 'postgres',
+    )
+
+    print(f'\nPlease enter the following fields for {source["type"]}')
+    for field in fields[in_source_type]:
+        if field == 'password':
+            source[field] = getpass(f'{field} (hidden): ')
+        else:
+            source[field] = input(f'{field}: ').strip()
+    config = {
+        'dataSources': [source],
+    }
+
+    piperider_config_path = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
+    with open(piperider_config_path, 'w') as fd:
+        yaml.dump(config, fd)
+
     # return Configuration()
 
 
