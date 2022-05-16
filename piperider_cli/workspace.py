@@ -1,11 +1,49 @@
 import os
 import shutil
-
+from abc import ABCMeta
 from getpass import getpass
+from typing import List
+
 from ruamel.yaml import YAML
 
 yaml = YAML(typ="safe")
 PIPERIDER_WORKSPACE_NAME = '.piperider'
+PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
+
+DBT_PROFILE_DEFAULT_PATH = os.path.join(os.path.expanduser('~'), '.dbt/profiles.yml')
+
+
+class DataSource(metaclass=ABCMeta):
+
+    def __init__(self, name, type_name, **kwargs):
+        self.name = name
+        self.type_name = type_name
+        self.args = kwargs
+
+    def validate(self):
+        raise NotImplemented
+
+
+class PostgreSQLDataSource(DataSource):
+    def __init__(self, name, **kwargs):
+        super().__init__(name, 'postgresql', **kwargs)
+
+    def validate(self):
+        if self.type_name != 'postgresql':
+            raise ValueError('type name should be snowflake')
+        # TODO verify fields
+        raise NotImplemented
+
+
+class SnowflakeDataSource(DataSource):
+    def __init__(self, name, **kwargs):
+        super().__init__(name, 'snowflake', **kwargs)
+
+    def validate(self):
+        if self.type_name != 'snowflake':
+            raise ValueError('type name should be snowflake')
+        # TODO verify fields
+        raise NotImplemented
 
 
 class Configuration(object):
@@ -14,28 +52,86 @@ class Configuration(object):
     at $PROJECT_ROOT./piperider/config.yml
     """
 
-    def __init__(self):
+    def __init__(self, dataSources: List[DataSource] = []):
+        self.dataSources: List[DataSource] = dataSources
         pass
 
     @classmethod
-    def from_dbt_profile(cls, dbt_profile_path):
+    def from_dbt_project(cls, dbt_project_path,
+                         dbt_profile_path=DBT_PROFILE_DEFAULT_PATH):
         """
-        build configuration from the existing dbt profile
+        build configuration from the existing dbt project
 
+        :param dbt_project_path:
         :param dbt_profile_path:
         :return:
         """
         # TODO create configuration from dbt profile
-        raise NotImplemented
+        with open(dbt_project_path, 'r') as fd:
+            dbt_project = yaml.load(fd)
+
+        with open(dbt_profile_path, 'r') as fd:
+            dbt_profile = yaml.load(fd)
+
+        profile_name = dbt_project.get('profile')
+        target_name = dbt_profile.get(profile_name, {}).get('target')
+        credential = dbt_profile.get(profile_name, {}).get('outputs', {}).get(target_name, {})
+        type_name = credential.get('type')
+        dbt = {
+            'project': profile_name,
+            'target': target_name,
+            'profile': dbt_profile_path,
+        }
+
+        if type_name == 'postgresql':
+            ds = PostgreSQLDataSource(name=profile_name, dbt=dbt, credential=credential)
+        elif type_name == 'snowflake':
+            ds = SnowflakeDataSource(name=profile_name, dbt=dbt, credential=credential)
+        else:
+            raise ValueError('unknown type name')
+
+        return cls(dataSources=[ds])
 
     @classmethod
-    def load(cls):
+    def load(cls, piperider_config_path=PIPERIDER_CONFIG_PATH):
         """
         load from the existing configuration
 
         :return:
         """
-        raise NotImplemented
+
+        with open(piperider_config_path, 'r') as fd:
+            config = yaml.load(fd)
+
+        dataSources: List[DataSource] = []
+        for ds in config.get('dataSources', []):
+            if ds.get('type') == 'postgresql':
+                ds_obj = PostgreSQLDataSource(name=ds.get('name'), dbt=ds.get('dbt'))
+            elif ds.get('type') == 'snowflake':
+                ds_obj = SnowflakeDataSource(name=ds.get('name'), dbt=ds.get('dbt'))
+            else:
+                raise ValueError('unknown type name')
+            dataSources.append(ds_obj)
+        return cls(dataSources=dataSources)
+
+    def dump(self, path):
+        """
+        dump the configuration to the given path
+        :param path:
+        :return:
+        """
+        config = dict(dataSources=[])
+
+        for d in self.dataSources:
+            config['dataSources'].append(
+                dict(
+                    name=d.name,
+                    type=d.type_name,
+                    dbt=d.args.get('dbt')),
+            )
+
+        with open(path, 'w') as fd:
+            yaml.dump(config, fd)
 
     def to_sqlalchemy_config(self, datasource_name):
         # TODO we will convert a data source to a sqlalchemy parameters
@@ -97,30 +193,13 @@ def _generate_configuration(dbt_project_path=None):
     :return: Configuration object
     """
     if dbt_project_path is None:
-        return _ask_user_for_datasource();
+        return _ask_user_for_datasource()
 
-    # TODO move datssource extracting to the Configuration.from_dbt_profile
-    dbt_profile_path = os.path.join(os.path.expanduser('~'), '.dbt/profiles.yml')
-    profile_name, target_name, type_name = _dbt_project_parser(dbt_project_path, dbt_profile_path)
-    config = dict({
-        'dataSources': [
-            {
-                'name': profile_name,
-                'type': type_name,
-                'dbt': {
-                    'project': profile_name,
-                    'target': target_name,
-                    'profile': dbt_profile_path
-                }
-            }
-        ]
-    })
     piperider_config_path = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
-    with open(piperider_config_path, 'w') as fd:
-        yaml.dump(config, fd)
+    config = Configuration.from_dbt_project(dbt_project_path)
+    config.dump(piperider_config_path)
 
-    # TODO return config object
-    return Configuration.from_dbt_profile(dbt_profile_path)
+    return config
 
 
 def _dbt_project_parser(dbt_project_path, dbt_profile_path):
@@ -148,7 +227,7 @@ def init(dbt_project_path=None):
         _generate_piperider_workspace()
         # get Configuration object from dbt or user created configuation
         configuration = _generate_configuration(dbt_project_path=dbt_project_path)
-
+        return configuration
     except Exception as e:
         print(e)
         return False
@@ -156,7 +235,7 @@ def init(dbt_project_path=None):
 
 def debug(configuration=None):
     if not configuration:
-        configuration = Configuration.load()
+        Configuration.load()
     # TODO debug with configuration
     # test configuration format
     # test connection working
@@ -168,5 +247,5 @@ def run():
     # TODO ....
 
 
-def generateReport():
+def generate_report():
     raise NotImplemented
