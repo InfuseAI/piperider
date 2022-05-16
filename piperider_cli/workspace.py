@@ -26,10 +26,10 @@ class DataSource(metaclass=ABCMeta):
 
 class PostgreSQLDataSource(DataSource):
     def __init__(self, name, **kwargs):
-        super().__init__(name, 'postgresql', **kwargs)
+        super().__init__(name, 'postgres', **kwargs)
 
     def validate(self):
-        if self.type_name != 'postgresql':
+        if self.type_name != 'postgres':
             raise ValueError('type name should be snowflake')
         # TODO verify fields
         raise NotImplemented
@@ -83,7 +83,7 @@ class Configuration(object):
             'profile': dbt_profile_path,
         }
 
-        if type_name == 'postgresql':
+        if type_name == 'postgres':
             ds = PostgreSQLDataSource(name=profile_name, dbt=dbt, credential=credential)
         elif type_name == 'snowflake':
             ds = SnowflakeDataSource(name=profile_name, dbt=dbt, credential=credential)
@@ -105,7 +105,7 @@ class Configuration(object):
 
         dataSources: List[DataSource] = []
         for ds in config.get('dataSources', []):
-            if ds.get('type') == 'postgresql':
+            if ds.get('type') == 'postgres':
                 ds_obj = PostgreSQLDataSource(name=ds.get('name'), dbt=ds.get('dbt'))
             elif ds.get('type') == 'snowflake':
                 ds_obj = SnowflakeDataSource(name=ds.get('name'), dbt=ds.get('dbt'))
