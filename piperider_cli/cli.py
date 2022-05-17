@@ -3,6 +3,7 @@ import sys
 
 import click
 from rich.console import Console
+from rich.syntax import Syntax
 
 from piperider_cli import workspace
 from piperider_cli.custom_assertion import set_assertion_dir
@@ -31,19 +32,33 @@ def cli():
 @click.option('--provider', type=click.Choice(['dbt-local']), default=None)
 @add_options(debug_option)
 def init(**kwargs):
+    console = Console()
+    piperider_config_dir = os.path.join(os.getcwd(), '.piperider')
     # TODO show the process and message to users
-    click.echo(f'Initialize piperider to path {os.getcwd()}/.piperider')
+    console.print(f'Initialize piperider to path {piperider_config_dir}')
 
     dbt_project_path = None
     if kwargs.get('provider') == 'dbt-local':
         dbt_project_path = os.path.join(os.getcwd(), 'dbt_project.yml')
 
-    config = workspace.init(dbt_project_path=dbt_project_path)
-    if kwargs.get('debug'):
-        console = Console()
-        for ds in config.dataSources:
-            console.rule(f'./piperider/config.yml')
-            console.print(ds.__dict__)
+    try:
+        config = workspace.init(dbt_project_path=dbt_project_path)
+        if kwargs.get('debug'):
+            for ds in config.dataSources:
+                console.rule(f'Configuration')
+                console.print(ds.__dict__)
+    except Exception as e:
+        if kwargs.get('debug'):
+            console.print_exception(e)
+        else:
+            console.print(e)
+        sys.exit(1)
+
+    # Show the content of config.yml
+    with open(os.path.join(piperider_config_dir, 'config.yml'), 'r') as f:
+        console.rule(f'.piperider/config.yml')
+        config = Syntax(f.read(), "yaml", theme="monokai", line_numbers=True)
+        console.print(config)
 
 
 @cli.command(short_help='Test Configuration')
