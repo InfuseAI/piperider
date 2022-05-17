@@ -1,0 +1,128 @@
+import os
+from statistics import median
+from sqlalchemy import *
+
+class Profiler:
+    engine = None
+    metadata = None
+
+    def __init__(self, engine):
+        self.engine = engine
+        # reflect the metadata
+        # self.metadata = metadata = MetaData()
+        # metadata.reflect(bind=engine)
+
+    def profile_column(self, table_name, column_name):
+        metadata = MetaData()
+        t = Table(table_name, metadata, Column(column_name, String))
+        # t = self.metadata.tables[table_name]
+
+        with engine.connect() as conn:
+            t2 = select(t.c[column_name].label("c")).cte(name="T")
+            stmt = select(
+                func.count().label("_total"),
+                func.count(t2.c.c).label("_non_nulls"),
+                func.count(distinct(t2.c.c)).label("_distinct"),
+                func.sum(t2.c.c).label("_sum"),
+                func.avg(t2.c.c).label("_avg"),
+                func.min(t2.c.c).label("_min"),
+                func.max(t2.c.c).label("_max"),
+                func.median(t2.c.c).label("_median"),
+            )
+            result = conn.execute(stmt).fetchone()
+            _total, _non_null, _distinct, _sum, _avg, _min, _max, _median = result
+            _total            
+            # print(f"total={_total}")
+            # print(f"non_null={_non_null}")
+            # print(f"distinct={_distinct}")
+
+            distribution = []
+            stmt = select(
+                t2.c.c,
+                func.count(t2.c.c).label("_count")
+            ).group_by(
+                t2.c.c
+            ).order_by(
+                func.count(t2.c.c).desc(),
+
+            ).limit(20)
+            result = conn.execute(stmt)            
+            for row in result:                
+                _value, _value_count = row
+                distribution += [[float(_value), _value_count]]
+            return {
+                'total': _total,
+                'non_nulls': _non_null,
+                'distinct': _distinct,
+                'min': float(_min),
+                'max': float(_max),
+                'sum': float(_sum),
+                'avg': float(_avg),
+                'median': float(_median),
+                'distribution': distribution,
+            }
+
+    def profile_string_column(self, table_name, column_name):
+        metadata = MetaData()
+        t = Table(table_name, metadata, Column(column_name, String))
+        # t = self.metadata.tables[table_name]
+
+        with engine.connect() as conn:
+            t2 = select(t.c[column_name].label("c")).cte(name="T")
+            stmt = select(
+                func.count().label("_total"),
+                func.count(t2.c.c).label("_non_nulls"),
+                func.count(distinct(t2.c.c)).label("_distinct")
+            )
+            result = conn.execute(stmt).fetchone()
+            _total, _non_null, _distinct = result
+            # print(f"total={_total}")
+            # print(f"non_null={_non_null}")
+            # print(f"distinct={_distinct}")
+
+            # with T as (
+            # select symbol as c from price
+            # )
+            # select top 20
+            #     c,
+            #     count(c) as _count
+            # from T
+            # group by c
+            # order by _count desc
+            stmt = select(
+                t2.c.c,
+                func.count(t2.c.c).label("_count")
+            ).group_by(
+                t2.c.c
+            ).order_by(
+                func.count(t2.c.c).desc(),
+
+            ).limit(20)
+            result = conn.execute(stmt)
+            distribution = []
+            for row in result:
+                distribution += [list(row)]
+            return {
+                'total': _total,
+                'non_nulls': _non_null,
+                'distinct': _distinct,
+                'distribution': distribution,
+            }
+
+
+if __name__ == '__main__':
+    user= os.getenv("SNOWFLAKE_USER")
+    password= os.getenv("SNOWFLAKE_PASSWORD")
+    account=os.getenv("SNOWFLAKE_ACCOUNT")
+    database="INFUSE_FINANCE"
+    schema="PUBLIC"
+    warehouse="COMPUTE_WH"
+
+    engine = create_engine(f"snowflake://{user}:{password}@{account}/{database}/{schema}?warehouse={warehouse}")
+    profiler = Profiler(engine)
+    result = profiler.profile_column("price", "close")
+    # print(result)
+    import json
+    print(json.dumps(result, indent=4))
+
+
