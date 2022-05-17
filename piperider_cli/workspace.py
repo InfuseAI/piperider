@@ -5,9 +5,8 @@ from getpass import getpass
 from typing import List
 
 from rich.console import Console
-from ruamel.yaml import YAML
+from ruamel import yaml
 
-yaml = YAML(typ="safe")
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
 PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'credentials.yml')
@@ -89,10 +88,10 @@ class Configuration(object):
         :return:
         """
         with open(dbt_project_path, 'r') as fd:
-            dbt_project = yaml.load(fd)
+            dbt_project = yaml.safe_load(fd)
 
         with open(dbt_profile_path, 'r') as fd:
-            dbt_profile = yaml.load(fd)
+            dbt_profile = yaml.safe_load(fd)
 
         profile_name = dbt_project.get('profile')
         target_name = dbt_profile.get(profile_name, {}).get('target')
@@ -121,7 +120,7 @@ class Configuration(object):
         credentials = None
 
         with open(piperider_config_path, 'r') as fd:
-            config = yaml.load(fd)
+            config = yaml.safe_load(fd)
 
         datasources: List[DataSource] = []
         for ds in config.get('dataSources', []):
@@ -133,12 +132,12 @@ class Configuration(object):
             dbt = ds.get('dbt')
             if dbt:
                 with open(dbt.get('profile'), 'r') as fd:
-                    profile = yaml.load(fd)
+                    profile = yaml.safe_load(fd)
                 credential = profile.get(dbt.get('project'), {}).get('outputs', {}).get(dbt.get('target', {}))
                 datasource = datasource_class(name=ds.get('name'), dbt=dbt, credential=credential)
             else:
                 with open(PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
-                    credentials = yaml.load(fd)
+                    credentials = yaml.safe_load(fd)
                 credential = credentials.get(ds.get('name'))
                 datasource = datasource_class(name=ds.get('name'), credential=credential)
             datasources.append(datasource)
@@ -159,8 +158,7 @@ class Configuration(object):
             config['dataSources'].append(datasource)
 
         with open(path, 'w') as fd:
-            yaml.default_flow_style = False
-            yaml.dump(config, fd)
+            yaml.round_trip_dump(config, fd)
 
     def dump_credentials(self, path):
         """
@@ -173,7 +171,7 @@ class Configuration(object):
             creds[d.name] = dict(type=d.type_name, **d.args)
 
         with open(path, 'w') as fd:
-            yaml.dump(creds, fd)
+            yaml.round_trip_dump(creds, fd)
 
     def to_sqlalchemy_config(self, datasource_name):
         # TODO we will convert a data source to a sqlalchemy parameters
