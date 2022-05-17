@@ -9,6 +9,7 @@ from ruamel.yaml import YAML
 yaml = YAML(typ="safe")
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
+PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'credentials.yml')
 
 DBT_PROFILE_DEFAULT_PATH = os.path.join(os.path.expanduser('~'), '.dbt/profiles.yml')
 
@@ -212,9 +213,8 @@ def _ask_user_for_datasource():
 
     config = Configuration(dataSources=[ds])
 
-    piperider_path = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
-    config.dump(os.path.join(piperider_path, 'config.yml'))
-    config.dump_credentials(os.path.join(piperider_path, 'credentials.yml'))
+    config.dump(PIPERIDER_CONFIG_PATH)
+    config.dump_credentials(PIPERIDER_CREDENTIALS_PATH)
 
     return config
 
