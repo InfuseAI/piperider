@@ -33,6 +33,7 @@ def cli():
 @add_options(debug_option)
 def init(**kwargs):
     console = Console()
+
     piperider_config_dir = os.path.join(os.getcwd(), '.piperider')
     # TODO show the process and message to users
     console.print(f'Initialize piperider to path {piperider_config_dir}')
@@ -49,7 +50,7 @@ def init(**kwargs):
                 console.print(ds.__dict__)
     except Exception as e:
         if kwargs.get('debug'):
-            console.print_exception(e)
+            console.print_exception(show_locals=True)
         else:
             console.print(e)
         sys.exit(1)
@@ -66,11 +67,9 @@ def debug():
     console = Console()
     console.print(f'Debugging...')
 
-    config = workspace.debug()
-
-    for ds in config.dataSources:
-        console.print(ds.__dict__)
-    pass
+    isPassed = workspace.debug()
+    if not isPassed:
+        return 1
 
 
 @cli.command(short_help='Run stages')
