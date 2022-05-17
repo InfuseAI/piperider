@@ -305,28 +305,41 @@ def debug(configuration: Configuration = None):
         configuration = Configuration.load()
 
     has_error = False
+    console.print(f'Config files:')
+    console.print(f'  {PIPERIDER_CONFIG_PATH}: [[bold green]OK[/bold green]]')
+
     for ds in configuration.dataSources:
-        console.print(f"check format for datasource [ {ds.name} ]")
+        console.print(f"Check format for datasource [ {ds.name} ]")
         result, reasons = ds.validate()
         if result:
-            console.print("\tPASS")
+            console.print("[bold green]✅ PASS[/bold green]")
         else:
             has_error = True
-            console.print("\tFAILED")
+            console.print("[bold red]😱 FAILED[/bold red]")
             for reason in reasons:
                 console.print(f"\t{reason}")
 
         if has_error:
             return has_error
 
-        console.print(f"test connection for datasource [ {ds.name} ]")
+        dbt = ds.args.get('dbt')
+        provider_info = ''
+        if dbt:
+            provider_info = f'(Provider dbt-local : {dbt["project"]} : {dbt["target"]})'
+        console.print(f'Connection {provider_info}:')
+        console.print(f'  Name: {ds.name}')
+        console.print(f'  Type: {ds.type_name}')
+
         engine = None
         try:
             from sqlalchemy import create_engine
             engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
             from sqlalchemy import inspect
-            print(f'tables: {inspect(engine).get_table_names()}')
+            print(f'  Available Tables: {inspect(engine).get_table_names()}')
+            # TODO: show the host & user info based on each dataSources
+            console.print(f'[bold green]✅ PASS[/bold green]')
         except Exception as e:
+            console.print("[bold red]😱 FAILED[/bold red]")
             raise e
         finally:
             if engine:
