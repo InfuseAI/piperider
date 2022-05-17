@@ -62,11 +62,12 @@ class PostgreSQLDataSource(DataSource):
         return self._validate_required_fields()
 
     def to_database_url(self):
-        host = self.args.get('host')
-        port = self.args.get('port')
-        user = self.args.get('user')
-        password = self.args.get('password')
-        dbname = self.args.get('dbname')
+        credential = self.args.get('credential')
+        host = credential.get('host')
+        port = credential.get('port')
+        user = credential.get('user')
+        password = credential.get('password')
+        dbname = credential.get('dbname')
         return f"postgres://{user}:{password}@{host}:{port}/{dbname}"
 
 
@@ -81,13 +82,14 @@ class SnowflakeDataSource(DataSource):
         return self._validate_required_fields()
 
     def to_database_url(self):
-        account = self.args.get('account')
-        password = self.args.get('password')
-        user = self.args.get('user')
-        database = self.args.get('database')
-        schema = self.args.get('schema')
-        warehouse = self.args.get('warehouse')
-        role = self.args.get('role')
+        credential = self.args.get('credential')
+        account = credential.get('account')
+        password = credential.get('password')
+        user = credential.get('user')
+        database = credential.get('database')
+        schema = credential.get('schema')
+        warehouse = credential.get('warehouse')
+        role = credential.get('role')
         return f'snowflake://{user}:{password}@{account}/{database}/{schema}?warehouse={warehouse}&role={role}'
 
 
@@ -314,8 +316,17 @@ def debug(configuration: Configuration = None):
             for reason in reasons:
                 console.print(f"\t{reason}")
 
-    # TODO conection test for each datasource
-    # TODO should return exit 1
+        console.print(f"test connection for datasource [ {ds.name} ]")
+        try:
+            from sqlalchemy import create_engine
+            engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
+            from sqlalchemy import inspect
+            print(f'tables: {inspect(engine).get_table_names()}')
+        except:
+            print(f'cannot fetch tables for [ {ds.name} ]')
+            has_error = True
+            pass
+
     return has_error
 
 
