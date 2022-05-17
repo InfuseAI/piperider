@@ -28,6 +28,12 @@ def cli():
     pass
 
 
+@cli.command(short_help='Show the version of piperider-cli')
+def version():
+    from piperider_cli import __version__
+    click.echo(__version__)
+
+
 @cli.command(short_help='Initialize PipeRider configurations')
 @click.option('--provider', type=click.Choice(['dbt-local']), default=None)
 @add_options(debug_option)
