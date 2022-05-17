@@ -1,6 +1,6 @@
 import os
 import shutil
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from getpass import getpass
 from typing import List
 
@@ -31,6 +31,7 @@ class DataSource(metaclass=ABCMeta):
 
         return reasons == [], reasons
 
+    @abstractmethod
     def validate(self):
         """
         validate type name and required fields.
@@ -38,6 +39,14 @@ class DataSource(metaclass=ABCMeta):
         Returns True if everything is fine, False and reasons otherwise.
 
         :return: bool, []
+        """
+        raise NotImplemented
+
+    @abstractmethod
+    def to_database_url(self):
+        """
+        build a database url for sqlalchemy create_engine method
+        :return:
         """
         raise NotImplemented
 
@@ -52,6 +61,14 @@ class PostgreSQLDataSource(DataSource):
             raise ValueError('type name should be snowflake')
         return self._validate_required_fields()
 
+    def to_database_url(self):
+        host = self.args.get('host')
+        port = self.args.get('port')
+        user = self.args.get('user')
+        password = self.args.get('password')
+        dbname = self.args.get('dbname')
+        return f"postgres://{user}:{password}@{host}:{port}/{dbname}"
+
 
 class SnowflakeDataSource(DataSource):
     def __init__(self, name, **kwargs):
@@ -62,6 +79,16 @@ class SnowflakeDataSource(DataSource):
         if self.type_name != 'snowflake':
             raise ValueError('type name should be snowflake')
         return self._validate_required_fields()
+
+    def to_database_url(self):
+        account = self.args.get('account')
+        password = self.args.get('password')
+        user = self.args.get('user')
+        database = self.args.get('database')
+        schema = self.args.get('schema')
+        warehouse = self.args.get('warehouse')
+        role = self.args.get('role')
+        return f'snowflake://{user}:{password}@{account}/{database}/{schema}?warehouse={warehouse}&role={role}'
 
 
 DATASOURCE_PROVIDERS = dict(postgres=PostgreSQLDataSource, snowflake=SnowflakeDataSource)
@@ -277,7 +304,7 @@ def debug(configuration: Configuration = None):
 
     has_error = False
     for ds in configuration.dataSources:
-        console.print(f"check format for datasource [{ds}]")
+        console.print(f"check format for datasource [ {ds.name} ]")
         result, reasons = ds.validate()
         if result:
             console.print("\tPASS")
