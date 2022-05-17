@@ -52,7 +52,7 @@ def init(**kwargs):
         if kwargs.get('debug'):
             console.print_exception(show_locals=True)
         else:
-            console.print(e)
+            console.print(f'[bold red ]Error:[/bold red] {e}')
         sys.exit(1)
 
     # Show the content of config.yml
@@ -67,9 +67,13 @@ def debug():
     console = Console()
     console.print(f'Debugging...')
 
-    isPassed = workspace.debug()
-    if not isPassed:
-        return 1
+    try:
+        if not workspace.debug():
+            return 1
+        return 0
+    except Exception as e:
+        console.print(f'[bold red]Error:[/bold red] {e}')
+        sys.exit(1)
 
 
 @cli.command(short_help='Run stages')
