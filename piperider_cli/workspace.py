@@ -68,7 +68,7 @@ class PostgreSQLDataSource(DataSource):
         user = credential.get('user')
         password = credential.get('password')
         dbname = credential.get('dbname')
-        return f"postgres://{user}:{password}@{host}:{port}/{dbname}"
+        return f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
 
 
 class SnowflakeDataSource(DataSource):
@@ -323,9 +323,8 @@ def debug(configuration: Configuration = None):
             engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
             from sqlalchemy import inspect
             print(f'tables: {inspect(engine).get_table_names()}')
-        except:
-            print(f'cannot fetch tables for [ {ds.name} ]')
-            has_error = True
+        except Exception as e:
+            raise e
         finally:
             if engine:
                 engine.dispose()
