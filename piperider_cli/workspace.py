@@ -202,6 +202,12 @@ def _ask_user_for_datasource():
         '1': ['account', 'user', 'password', 'role', 'database', 'warehouse', 'schema'],
         '2': ['host', 'port', 'user', 'password', 'dbname'],
     }
+    parse_fields = {
+        'port': {
+            'parser': int,
+            'type_desc': 'an integer',
+        }
+    }
 
     if in_source_type not in fields.keys():
         raise Exception('Error: invalid source type')
@@ -215,6 +221,11 @@ def _ask_user_for_datasource():
             source_args[field] = getpass(f'{field} (hidden): ')
         else:
             source_args[field] = input(f'{field}: ').strip()
+        if field in parse_fields.keys():
+            try:
+                source_args[field] = parse_fields[field]['parser'](source_args[field])
+            except:
+                raise Exception(f'Error: {field} is expected to be {parse_fields[field]["type_desc"]}')
 
     ds: DataSource = None
     if source_type == 'snowflake':
