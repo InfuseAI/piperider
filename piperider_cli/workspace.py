@@ -316,6 +316,9 @@ def debug(configuration: Configuration = None):
             for reason in reasons:
                 console.print(f"\t{reason}")
 
+        if has_error:
+            return has_error
+
         console.print(f"test connection for datasource [ {ds.name} ]")
         engine = None
         try:
