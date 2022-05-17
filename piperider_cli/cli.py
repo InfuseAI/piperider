@@ -5,7 +5,7 @@ import click
 from rich.console import Console
 from rich.syntax import Syntax
 
-from piperider_cli import workspace
+from piperider_cli import workspace, __version__
 from piperider_cli.custom_assertion import set_assertion_dir
 from piperider_cli.stage_runner import run_stages
 
@@ -72,6 +72,8 @@ def init(**kwargs):
 def debug():
     console = Console()
     console.print(f'Debugging...')
+
+    console.print(f'[bold dark_orange]PipeRider Version:[/bold dark_orange] {__version__}')
 
     try:
         if not workspace.debug():
