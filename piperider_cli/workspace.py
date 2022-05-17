@@ -317,6 +317,7 @@ def debug(configuration: Configuration = None):
                 console.print(f"\t{reason}")
 
         console.print(f"test connection for datasource [ {ds.name} ]")
+        engine = None
         try:
             from sqlalchemy import create_engine
             engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
@@ -325,7 +326,9 @@ def debug(configuration: Configuration = None):
         except:
             print(f'cannot fetch tables for [ {ds.name} ]')
             has_error = True
-            pass
+        finally:
+            if engine:
+                engine.dispose()
 
     return has_error
 
