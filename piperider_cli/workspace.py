@@ -87,6 +87,9 @@ class Configuration(object):
         :param dbt_profile_path:
         :return:
         """
+        if not os.path.exists(dbt_project_path):
+            raise ValueError(f"Cannot find dbt project at {dbt_project_path}")
+
         with open(dbt_project_path, 'r') as fd:
             dbt_project = yaml.safe_load(fd)
 
@@ -192,7 +195,7 @@ def _ask_user_for_datasource():
     console.print(f'\nWhat is your project name? (alphanumeric only)')
     in_source_name = input(':').strip()
     if in_source_name == '':
-        raise Exception('Error: project name is empty')
+        raise Exception('project name is empty')
 
     console.print(f'\nWhat data source would you like to connect to?')
     console.print('1. snowflake')
@@ -210,7 +213,7 @@ def _ask_user_for_datasource():
     }
 
     if in_source_type not in fields.keys():
-        raise Exception('Error: invalid source type')
+        raise Exception('invalid source type')
 
     source_type = 'snowflake' if in_source_type == '1' else 'postgres'
     source_args = dict()
@@ -225,7 +228,7 @@ def _ask_user_for_datasource():
             try:
                 source_args[field] = parse_fields[field]['parser'](source_args[field])
             except:
-                raise Exception(f'Error: {field} is expected to be {parse_fields[field]["type_desc"]}')
+                raise Exception(f'{field} is expected to be {parse_fields[field]["type_desc"]}')
 
     ds: DataSource = None
     if source_type == 'snowflake':
