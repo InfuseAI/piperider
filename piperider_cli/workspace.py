@@ -133,6 +133,19 @@ class Configuration(object):
         with open(path, 'w') as fd:
             yaml.dump(config, fd)
 
+    def dump_credentials(self, path):
+        """
+        dump the credentials to the given path
+        :param path:
+        :return:
+        """
+        creds = dict()
+        for d in self.dataSources:
+            creds[d.name] = dict(type=d.type_name, **d.args)
+
+        with open(path, 'w') as fd:
+            yaml.dump(creds, fd)
+
     def to_sqlalchemy_config(self, datasource_name):
         # TODO we will convert a data source to a sqlalchemy parameters
         raise NotImplemented
@@ -165,26 +178,29 @@ def _ask_user_for_datasource():
     if in_source_type not in fields.keys():
         raise Exception('Error: invalid source type')
 
-    source = dict(
-        name=in_source_name,
-        type=(in_source_type == '1' and 'snowflake') or 'postgres',
-    )
+    source_type = 'snowflake' if in_source_type == '1' else 'postgres'
+    source_args = dict()
 
-    print(f'\nPlease enter the following fields for {source["type"]}')
+    print(f'\nPlease enter the following fields for {source_type}')
     for field in fields[in_source_type]:
         if field == 'password':
-            source[field] = getpass(f'{field} (hidden): ')
+            source_args[field] = getpass(f'{field} (hidden): ')
         else:
-            source[field] = input(f'{field}: ').strip()
-    config = {
-        'dataSources': [source],
-    }
+            source_args[field] = input(f'{field}: ').strip()
 
-    piperider_config_path = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
-    with open(piperider_config_path, 'w') as fd:
-        yaml.dump(config, fd)
+    ds: DataSource = None
+    if source_type == 'snowflake':
+        ds = SnowflakeDataSource(name=in_source_name, **source_args)
+    elif source_type == 'postgres':
+        ds = PostgreSQLDataSource(name=in_source_name, **source_args)
 
-    # return Configuration()
+    config = Configuration(dataSources=[ds])
+
+    piperider_path = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
+    config.dump(os.path.join(piperider_path, 'config.yml'))
+    config.dump_credentials(os.path.join(piperider_path, 'credentials.yml'))
+
+    return config
 
 
 def _generate_configuration(dbt_project_path=None):
