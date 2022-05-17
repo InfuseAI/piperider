@@ -19,31 +19,51 @@ class DataSource(metaclass=ABCMeta):
         self.name = name
         self.type_name = type_name
         self.args = kwargs
+        self.fields: List[str] = []
+
+    def _validate_required_fields(self):
+        reasons = []
+        # check required fields
+        for f in self.fields:
+            if f not in self.args:
+                reasons.append(f"{f} is required")
+
+        return reasons == [], reasons
 
     def validate(self):
+        """
+        validate type name and required fields.
+
+        Returns True if everything is fine, False and reasons otherwise.
+
+        :return: bool, []
+        """
         raise NotImplemented
 
 
 class PostgreSQLDataSource(DataSource):
     def __init__(self, name, **kwargs):
         super().__init__(name, 'postgres', **kwargs)
+        self.fields = ["host", "port", "user", "password", "dbname"]
 
     def validate(self):
         if self.type_name != 'postgres':
             raise ValueError('type name should be snowflake')
-        # TODO verify fields
-        raise NotImplemented
+        return self._validate_required_fields()
 
 
 class SnowflakeDataSource(DataSource):
     def __init__(self, name, **kwargs):
         super().__init__(name, 'snowflake', **kwargs)
+        self.fields = ["account", "user", "password", "role", "database", "warehouse", "schema"]
 
     def validate(self):
         if self.type_name != 'snowflake':
             raise ValueError('type name should be snowflake')
-        # TODO verify fields
-        raise NotImplemented
+        return self._validate_required_fields()
+
+
+DATASOURCE_PROVIDERS = dict(postgres=PostgreSQLDataSource, snowflake=SnowflakeDataSource)
 
 
 class Configuration(object):
@@ -52,7 +72,7 @@ class Configuration(object):
     at $PROJECT_ROOT./piperider/config.yml
     """
 
-    def __init__(self, dataSources: List[DataSource] = []):
+    def __init__(self, dataSources: List[DataSource]):
         self.dataSources: List[DataSource] = dataSources
         pass
 
@@ -66,7 +86,6 @@ class Configuration(object):
         :param dbt_profile_path:
         :return:
         """
-        # TODO create configuration from dbt profile
         with open(dbt_project_path, 'r') as fd:
             dbt_project = yaml.load(fd)
 
@@ -83,14 +102,12 @@ class Configuration(object):
             'profile': dbt_profile_path,
         }
 
-        if type_name == 'postgres':
-            ds = PostgreSQLDataSource(name=profile_name, dbt=dbt, credential=credential)
-        elif type_name == 'snowflake':
-            ds = SnowflakeDataSource(name=profile_name, dbt=dbt, credential=credential)
-        else:
+        if type_name not in DATASOURCE_PROVIDERS:
             raise ValueError('unknown type name')
 
-        return cls(dataSources=[ds])
+        datasource_class = DATASOURCE_PROVIDERS[type_name]
+        datasource = datasource_class(name=profile_name, dbt=dbt, credential=credential)
+        return cls(dataSources=[datasource])
 
     @classmethod
     def load(cls, piperider_config_path=PIPERIDER_CONFIG_PATH):
@@ -103,16 +120,16 @@ class Configuration(object):
         with open(piperider_config_path, 'r') as fd:
             config = yaml.load(fd)
 
-        dataSources: List[DataSource] = []
+        datasources: List[DataSource] = []
         for ds in config.get('dataSources', []):
-            if ds.get('type') == 'postgres':
-                ds_obj = PostgreSQLDataSource(name=ds.get('name'), dbt=ds.get('dbt'))
-            elif ds.get('type') == 'snowflake':
-                ds_obj = SnowflakeDataSource(name=ds.get('name'), dbt=ds.get('dbt'))
-            else:
+            type_name = ds.get('type')
+            if type_name not in DATASOURCE_PROVIDERS:
                 raise ValueError('unknown type name')
-            dataSources.append(ds_obj)
-        return cls(dataSources=dataSources)
+
+            datasource_class = DATASOURCE_PROVIDERS[type_name]
+            datasource = datasource_class(name=ds.get('name'), dbt=ds.get('dbt'))
+            datasources.append(datasource)
+        return cls(dataSources=datasources)
 
     def dump(self, path):
         """
@@ -123,14 +140,13 @@ class Configuration(object):
         config = dict(dataSources=[])
 
         for d in self.dataSources:
-            config['dataSources'].append(
-                dict(
-                    name=d.name,
-                    type=d.type_name,
-                    dbt=d.args.get('dbt')),
-            )
+            datasource = dict(name=d.name, type=d.type_name)
+            if d.args.get('dbt'):
+                datasource['dbt'] = d.args.get('dbt')
+            config['dataSources'].append(datasource)
 
         with open(path, 'w') as fd:
+            yaml.default_flow_style = False
             yaml.dump(config, fd)
 
     def dump_credentials(self, path):
@@ -203,6 +219,14 @@ def _ask_user_for_datasource():
     return config
 
 
+def _inherit_datasource_from_dbt_project(dbt_project_path):
+    piperider_config_path = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
+    config = Configuration.from_dbt_project(dbt_project_path)
+    config.dump(piperider_config_path)
+
+    return config
+
+
 def _generate_configuration(dbt_project_path=None):
     """
     :param dbt_project_path:
@@ -211,51 +235,35 @@ def _generate_configuration(dbt_project_path=None):
     if dbt_project_path is None:
         return _ask_user_for_datasource()
 
-    piperider_config_path = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
-    config = Configuration.from_dbt_project(dbt_project_path)
-    config.dump(piperider_config_path)
-
-    return config
-
-
-def _dbt_project_parser(dbt_project_path, dbt_profile_path):
-    if not os.path.isfile(dbt_project_path):
-        raise Exception('DBT project path does not exist')
-
-    if not os.path.isfile(dbt_profile_path):
-        raise Exception('DBT profile path does not exist')
-
-    with open(dbt_project_path, 'r') as fd:
-        dbt_project = yaml.load(fd)
-
-    with open(dbt_profile_path, 'r') as fd:
-        dbt_profile = yaml.load(fd)
-
-    profile_name = dbt_project.get('profile')
-    target_name = dbt_profile.get(profile_name, {}).get('target')
-    type_name = dbt_profile.get(profile_name, {}).get('outputs', {}).get(target_name, {}).get('type')
-
-    return profile_name, target_name, type_name
+    return _inherit_datasource_from_dbt_project(dbt_project_path)
 
 
 def init(dbt_project_path=None):
-    try:
-        _generate_piperider_workspace()
-        # get Configuration object from dbt or user created configuation
-        configuration = _generate_configuration(dbt_project_path=dbt_project_path)
-        return configuration
-    except Exception as e:
-        print(e)
-        return False
+    _generate_piperider_workspace()
+    # get Configuration object from dbt or user created configuation
+    configuration = _generate_configuration(dbt_project_path=dbt_project_path)
+    return configuration
 
 
-def debug(configuration=None):
+def debug(configuration: Configuration = None):
     if not configuration:
-        Configuration.load()
-    # TODO debug with configuration
-    # test configuration format
-    # test connection working
-    raise NotImplemented
+        configuration = Configuration.load()
+
+    has_error = False
+    for ds in configuration.dataSources:
+        print(f"check format for datasource [{ds}]")
+        result, reasons = ds.validate()
+        if result:
+            print("\tPASS")
+        else:
+            has_error = True
+            print("\tFAILED")
+            for reason in reasons:
+                print(f"\t{reason}")
+
+    # TODO conection test for each datasource
+    # TODO should return exit 1
+    return has_error
 
 
 def run():
