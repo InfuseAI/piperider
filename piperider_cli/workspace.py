@@ -4,6 +4,7 @@ from abc import ABCMeta
 from getpass import getpass
 from typing import List
 
+from rich.console import Console
 from ruamel.yaml import YAML
 
 yaml = YAML(typ="safe")
@@ -26,7 +27,7 @@ class DataSource(metaclass=ABCMeta):
         reasons = []
         # check required fields
         for f in self.fields:
-            if f not in self.args:
+            if f not in self.args.get('credential', {}):
                 reasons.append(f"{f} is required")
 
         return reasons == [], reasons
@@ -117,6 +118,7 @@ class Configuration(object):
 
         :return:
         """
+        credentials = None
 
         with open(piperider_config_path, 'r') as fd:
             config = yaml.load(fd)
@@ -128,7 +130,17 @@ class Configuration(object):
                 raise ValueError('unknown type name')
 
             datasource_class = DATASOURCE_PROVIDERS[type_name]
-            datasource = datasource_class(name=ds.get('name'), dbt=ds.get('dbt'))
+            dbt = ds.get('dbt')
+            if dbt:
+                with open(dbt.get('profile'), 'r') as fd:
+                    profile = yaml.load(fd)
+                credential = profile.get(dbt.get('project'), {}).get('outputs', {}).get(dbt.get('target', {}))
+                datasource = datasource_class(name=ds.get('name'), dbt=dbt, credential=credential)
+            else:
+                with open(PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
+                    credentials = yaml.load(fd)
+                credential = credentials.get(ds.get('name'))
+                datasource = datasource_class(name=ds.get('name'), credential=credential)
             datasources.append(datasource)
         return cls(dataSources=datasources)
 
@@ -176,16 +188,17 @@ def _generate_piperider_workspace():
 
 
 def _ask_user_for_datasource():
+    console = Console()
     # we only support snowfalke and pg only
     # we might consider a sqlite for dev mode?
-    print(f'\nWhat is your project name? (alphanumeric only)')
+    console.print(f'\nWhat is your project name? (alphanumeric only)')
     in_source_name = input(':').strip()
     if in_source_name == '':
         raise Exception('Error: project name is empty')
 
-    print(f'\nWhat data source would you like to connect to?')
-    print('1. snowflake')
-    print('2. postgres')
+    console.print(f'\nWhat data source would you like to connect to?')
+    console.print('1. snowflake')
+    console.print('2. postgres')
     in_source_type = input(':').strip()
     fields = {
         '1': ['account', 'user', 'password', 'role', 'database', 'warehouse', 'schema'],
@@ -198,7 +211,7 @@ def _ask_user_for_datasource():
     source_type = 'snowflake' if in_source_type == '1' else 'postgres'
     source_args = dict()
 
-    print(f'\nPlease enter the following fields for {source_type}')
+    console.print(f'\nPlease enter the following fields for {source_type}')
     for field in fields[in_source_type]:
         if field == 'password':
             source_args[field] = getpass(f'{field} (hidden): ')
@@ -246,20 +259,21 @@ def init(dbt_project_path=None):
 
 
 def debug(configuration: Configuration = None):
+    console = Console()
     if not configuration:
         configuration = Configuration.load()
 
     has_error = False
     for ds in configuration.dataSources:
-        print(f"check format for datasource [{ds}]")
+        console.print(f"check format for datasource [{ds}]")
         result, reasons = ds.validate()
         if result:
-            print("\tPASS")
+            console.print("\tPASS")
         else:
             has_error = True
-            print("\tFAILED")
+            console.print("\tFAILED")
             for reason in reasons:
-                print(f"\t{reason}")
+                console.print(f"\t{reason}")
 
     # TODO conection test for each datasource
     # TODO should return exit 1
