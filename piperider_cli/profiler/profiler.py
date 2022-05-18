@@ -13,7 +13,7 @@ class Profiler:
         # metadata.reflect(bind=engine)
 
     def profile_column(self, table_name, column_name):
-        return self.profile_numeric_column(table_name, column_name)
+        return self.profile_datetime_column(table_name, column_name)
 
     def profile_string_column(self, table_name, column_name):
         metadata = MetaData()
@@ -51,7 +51,7 @@ class Profiler:
 
     def profile_numeric_column(self, table_name, column_name):
         metadata = MetaData()
-        t = Table(table_name, metadata, Column(column_name, String))
+        t = Table(table_name, metadata, Column(column_name, Numeric))
         # t = self.metadata.tables[table_name]
 
         with engine.connect() as conn:
@@ -112,6 +112,47 @@ class Profiler:
                 'distribution': distribution,
             }
 
+    def profile_datetime_column(self, table_name, column_name):
+        metadata = MetaData()
+        t = Table(table_name, metadata, Column(column_name, DateTime))
+        # t = self.metadata.tables[table_name]
+
+        with engine.connect() as conn:
+            t2 = select(t.c[column_name].label("c")).cte(name="T")
+            stmt = select(
+                func.count().label("_total"),
+                func.count(t2.c.c).label("_non_nulls"),
+                func.count(distinct(t2.c.c)).label("_distinct"),
+                func.min(t2.c.c).label("_min"),
+                func.max(t2.c.c).label("_max"),
+            )
+            result = conn.execute(stmt).fetchone()
+            _total, _non_null, _distinct, _min, _max,  = result
+
+            t2 = select(func.date_trunc("YEAR", t.c[column_name]).label("d")).cte(name="T")
+            distribution = []
+            stmt = select(
+                t2.c.d,
+                func.count(t2.c.d).label("_count")
+            ).group_by(
+                t2.c.d
+            ).order_by(
+                t2.c.d
+            )
+            print(stmt)
+            result = conn.execute(stmt)
+            for row in result:
+                _d, _value_count = row
+                distribution += [[str(_d), _value_count]]
+            return {
+                'total': _total,
+                'non_nulls': _non_null,
+                'distinct': _distinct,
+                'min': str(_min),
+                'max': str(_max),
+                'distribution': distribution,
+            }            
+
 if __name__ == '__main__':
     user= os.getenv("SNOWFLAKE_USER")
     password= os.getenv("SNOWFLAKE_PASSWORD")
@@ -122,7 +163,7 @@ if __name__ == '__main__':
 
     engine = create_engine(f"snowflake://{user}:{password}@{account}/{database}/{schema}?warehouse={warehouse}")
     profiler = Profiler(engine)
-    result = profiler.profile_column("price", "close")
+    result = profiler.profile_column("price", "date")
     # print(result)
     import json
     print(json.dumps(result, indent=4))
