@@ -90,6 +90,8 @@ class SnowflakeDataSource(DataSource):
         schema = credential.get('schema')
         warehouse = credential.get('warehouse')
         role = credential.get('role')
+        from snowflake.sqlalchemy.snowdialect import SnowflakeDialect
+        SnowflakeDialect.supports_statement_cache = True
         return f'snowflake://{user}:{password}@{account}/{database}/{schema}?warehouse={warehouse}&role={role}'
 
 
