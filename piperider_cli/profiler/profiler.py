@@ -1,5 +1,4 @@
 import os
-from statistics import median
 from sqlalchemy import *
 
 class Profiler:
@@ -9,18 +8,86 @@ class Profiler:
     def __init__(self, engine):
         self.engine = engine
         # reflect the metadata
-        # self.metadata = metadata = MetaData()
-        # metadata.reflect(bind=engine)
+        print("fetching metadata")
+        self.metadata = metadata = MetaData()
+        metadata.reflect(bind=engine)
+
+    def profile(self):
+        tables = {}
+        for t in self.metadata.tables:
+            tresult = self.profile_table(t)
+            tables[t] = tresult
+        return {
+            "tables": tables,
+        }
+
+    def profile_table(self, table_name):
+        t = self.metadata.tables[table_name]
+        columns = {}
+        for c in t.columns:
+            tresult = self.profile_column(table_name, c.name)
+            columns[c.name] = tresult
+
+        row_count = 0
+        for k in columns:
+            row_count = columns[k]["total"]
+            break
+            
+        return {
+            "name": table_name,
+            "row_count": row_count,
+            "col_count": len(columns),
+            "columns": columns
+        }
 
     def profile_column(self, table_name, column_name):
-        return self.profile_datetime_column(table_name, column_name)
+        t = self.metadata.tables[table_name]
+        c = t.c[column_name]
+
+        print(f"profiling [{c.table.name}.{c.name}] type={c.type}")
+        result = None
+        genericType = None
+        
+        if(isinstance(c.type, String)):
+            # VARCHAR
+            # CHAR
+            # TEXT
+            # CLOB
+            genericType = "string"
+            result = self.profile_string_column(table_name, c.name)
+        elif (isinstance(c.type, Integer)):
+            # INTEGER
+            # BIGINT
+            # SMALLINT
+            genericType = "integer"
+            result = self.profile_numeric_column(table_name, c.name)
+        elif (isinstance(c.type, Numeric)):
+            # NUMERIC
+            # DECIMAL
+            # FLOAT
+            genericType = "numeric"
+            result = self.profile_numeric_column(table_name, c.name)
+        elif (isinstance(c.type, Date)) or (isinstance(c.type, DateTime)) :
+            # DATE
+            # DATETIME
+            genericType = "datetime"
+            result = self.profile_datetime_column(table_name, c.name)                
+        else:
+            genericType = "other"
+            result = self.profile_other_column(table_name, c.name)
+        
+        result["name"] = column_name
+        result["profile_duration"] = 0
+        result["type"] = genericType
+        result["schema_type"] = str(c.type)
+        return result
 
     def profile_string_column(self, table_name, column_name):
         metadata = MetaData()
-        t = Table(table_name, metadata, Column(column_name, String))
-        # t = self.metadata.tables[table_name]
+        # t = Table(table_name, metadata, Column(column_name, String))
+        t = self.metadata.tables[table_name]
 
-        with engine.connect() as conn:
+        with self.engine.connect() as conn:
             t2 = select(t.c[column_name].label("c")).cte(name="T")
             stmt = select(
                 func.count().label("_total"),
@@ -39,9 +106,16 @@ class Profiler:
 
             ).limit(20)
             result = conn.execute(stmt)
-            distribution = []
+            distribution = {
+                "type": "topk", # Top K Items
+                "labels": [],
+                "counts": [],
+            }
             for row in result:
-                distribution += [list(row)]
+                # distribution += [list(row)]
+                k,v = row
+                distribution["labels"].append(k)
+                distribution["counts"].append(v)
             return {
                 'total': _total,
                 'non_nulls': _non_null,
@@ -51,10 +125,10 @@ class Profiler:
 
     def profile_numeric_column(self, table_name, column_name):
         metadata = MetaData()
-        t = Table(table_name, metadata, Column(column_name, Numeric))
-        # t = self.metadata.tables[table_name]
+        # t = Table(table_name, metadata, Column(column_name, Numeric))
+        t = self.metadata.tables[table_name]
 
-        with engine.connect() as conn:
+        with self.engine.connect() as conn:
             t2 = select(t.c[column_name].label("c")).cte(name="T")
             stmt = select(
                 func.count().label("_total"),
@@ -73,6 +147,7 @@ class Profiler:
             _min = float(_min)
             _max = float(_max)
             _median = float(_median)
+            _num_buckets = 20
 
             def width_bucket(expr, min_value, max_value, num_buckets):
                 interval = (max_value - min_value) / num_buckets
@@ -85,8 +160,12 @@ class Profiler:
                     cases, else_=num_buckets+1
                 )
 
-            t2 = select(t.c[column_name].label("c"), width_bucket(t.c[column_name].label("c"), _min, _max, 20).label("bucket")).cte(name="T")
-            distribution = []
+            t2 = select(t.c[column_name].label("c"), width_bucket(t.c[column_name].label("c"), _min, _max, _num_buckets).label("bucket")).cte(name="T")
+            distribution = {
+                "type": "histogram",
+                "labels": [],
+                "counts": [],
+            }
             stmt = select(
                 t2.c.bucket,
                 func.count(t2.c.bucket).label("_count")
@@ -95,11 +174,18 @@ class Profiler:
             ).order_by(
                 t2.c.bucket
             )
-            print(stmt)
             result = conn.execute(stmt)
+            for i in range(_num_buckets+1):
+                interval = (_max - _min) / _num_buckets
+                label = f"{i * interval + _min} -  {(i + 1) * interval + _min}"
+
+                distribution["labels"].append(label)
+                distribution["counts"].append(0)
+
             for row in result:
-                _bucket, _value_count = row
-                distribution += [[_bucket, _value_count]]
+                _bucket, v = row
+                distribution["counts"][int(_bucket-1)] = v
+
             return {
                 'total': _total,
                 'non_nulls': _non_null,
@@ -117,7 +203,7 @@ class Profiler:
         t = Table(table_name, metadata, Column(column_name, DateTime))
         # t = self.metadata.tables[table_name]
 
-        with engine.connect() as conn:
+        with self.engine.connect() as conn:
             t2 = select(t.c[column_name].label("c")).cte(name="T")
             stmt = select(
                 func.count().label("_total"),
@@ -130,7 +216,11 @@ class Profiler:
             _total, _non_null, _distinct, _min, _max,  = result
 
             t2 = select(func.date_trunc("YEAR", t.c[column_name]).label("d")).cte(name="T")
-            distribution = []
+            distribution = {
+                "type": "yearly",
+                "labels": [],
+                "counts": [],
+            }
             stmt = select(
                 t2.c.d,
                 func.count(t2.c.d).label("_count")
@@ -139,11 +229,11 @@ class Profiler:
             ).order_by(
                 t2.c.d
             )
-            print(stmt)
             result = conn.execute(stmt)
             for row in result:
-                _d, _value_count = row
-                distribution += [[str(_d), _value_count]]
+                k, v = row
+                distribution["labels"].append(str(k))
+                distribution["counts"].append(v)
             return {
                 'total': _total,
                 'non_nulls': _non_null,
@@ -151,6 +241,27 @@ class Profiler:
                 'min': str(_min),
                 'max': str(_max),
                 'distribution': distribution,
+            }            
+
+    def profile_other_column(self, table_name, column_name):
+        metadata = MetaData()
+        # t = Table(table_name, metadata, Column(column_name, String))
+        t = self.metadata.tables[table_name]
+
+        with self.engine.connect() as conn:
+            t2 = select(t.c[column_name].label("c")).cte(name="T")
+            stmt = select(
+                func.count().label("_total"),
+                func.count(t2.c.c).label("_non_nulls"),
+                func.count(distinct(t2.c.c)).label("_distinct")
+            )
+            result = conn.execute(stmt).fetchone()
+            _total, _non_null, _distinct = result
+            return {
+                'total': _total,
+                'non_nulls': _non_null,
+                'distinct': _distinct,
+                'distribution': None,
             }            
 
 if __name__ == '__main__':
@@ -163,9 +274,10 @@ if __name__ == '__main__':
 
     engine = create_engine(f"snowflake://{user}:{password}@{account}/{database}/{schema}?warehouse={warehouse}")
     profiler = Profiler(engine)
-    result = profiler.profile_column("price", "date")
-    # print(result)
+    result = profiler.profile()
     import json
     print(json.dumps(result, indent=4))
+    with open('report.json', 'w') as f:
+        f.write(json.dumps(result, indent=4))
 
 
