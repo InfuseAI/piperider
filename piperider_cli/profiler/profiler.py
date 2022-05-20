@@ -1,5 +1,8 @@
 import os
+import time
+
 from sqlalchemy import *
+
 
 class Profiler:
     engine = None
@@ -32,7 +35,7 @@ class Profiler:
         for k in columns:
             row_count = columns[k]["total"]
             break
-            
+
         return {
             "name": table_name,
             "row_count": row_count,
@@ -46,39 +49,41 @@ class Profiler:
 
         print(f"profiling [{c.table.name}.{c.name}] type={c.type}")
         result = None
-        genericType = None
-        
-        if(isinstance(c.type, String)):
+        generic_type = None
+        profile_start = time.perf_counter()
+        if isinstance(c.type, String):
             # VARCHAR
             # CHAR
             # TEXT
             # CLOB
-            genericType = "string"
+            generic_type = "string"
             result = self.profile_string_column(table_name, c.name)
-        elif (isinstance(c.type, Integer)):
+        elif isinstance(c.type, Integer):
             # INTEGER
             # BIGINT
             # SMALLINT
-            genericType = "integer"
+            generic_type = "integer"
             result = self.profile_numeric_column(table_name, c.name)
-        elif (isinstance(c.type, Numeric)):
+        elif isinstance(c.type, Numeric):
             # NUMERIC
             # DECIMAL
             # FLOAT
-            genericType = "numeric"
+            generic_type = "numeric"
             result = self.profile_numeric_column(table_name, c.name)
-        elif (isinstance(c.type, Date)) or (isinstance(c.type, DateTime)) :
+        elif isinstance(c.type, Date) or isinstance(c.type, DateTime) :
             # DATE
             # DATETIME
-            genericType = "datetime"
-            result = self.profile_datetime_column(table_name, c.name)                
+            generic_type = "datetime"
+            result = self.profile_datetime_column(table_name, c.name)
         else:
-            genericType = "other"
+            generic_type = "other"
             result = self.profile_other_column(table_name, c.name)
-        
+        profile_end = time.perf_counter()
+        duration = profile_end - profile_start
+
         result["name"] = column_name
-        result["profile_duration"] = 0
-        result["type"] = genericType
+        result["profile_duration"] = f"{duration:.2f}"
+        result["type"] = generic_type
         result["schema_type"] = str(c.type)
         return result
 
@@ -241,7 +246,7 @@ class Profiler:
                 'min': str(_min),
                 'max': str(_max),
                 'distribution': distribution,
-            }            
+            }
 
     def profile_other_column(self, table_name, column_name):
         metadata = MetaData()
@@ -262,7 +267,8 @@ class Profiler:
                 'non_nulls': _non_null,
                 'distinct': _distinct,
                 'distribution': None,
-            }            
+            }
+
 
 if __name__ == '__main__':
     user= os.getenv("SNOWFLAKE_USER")
