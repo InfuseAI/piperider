@@ -1,11 +1,14 @@
 import os
 import shutil
+import json
 from abc import ABCMeta, abstractmethod
 from getpass import getpass
 from typing import List
 
 from rich.console import Console
 from ruamel import yaml
+from sqlalchemy import create_engine, inspect
+from piperider_cli.profiler import Profiler
 
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
@@ -135,6 +138,7 @@ class Configuration(object):
             'project': profile_name,
             'target': target_name,
             'profile': dbt_profile_path,
+            'root': os.path.dirname(dbt_project_path),
         }
 
         if type_name not in DATASOURCE_PROVIDERS:
@@ -334,9 +338,7 @@ def debug(configuration: Configuration = None):
 
         engine = None
         try:
-            from sqlalchemy import create_engine
             engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
-            from sqlalchemy import inspect
             print(f'  Available Tables: {inspect(engine).get_table_names()}')
             # TODO: show the host & user info based on each dataSources
             console.print(f'[bold green]✅ PASS[/bold green]')
@@ -352,7 +354,30 @@ def debug(configuration: Configuration = None):
 
 def run():
     configuration = Configuration.load()
-    # TODO ....
+    for ds in configuration.dataSources:
+        tables = []
+        dbt_root = ds.args.get('dbt', {}).get('root')
+        if dbt_root:
+            dbt_catalog = os.path.join(dbt_root, 'target', 'catalog.json')
+            if os.path.exists(dbt_catalog):
+                with open(dbt_catalog) as fd:
+                    catalog = json.loads(fd.read())
+                # TODO we should consider the case that the table name is not unique
+                tables += [k.split('.')[-1].lower() for k in catalog.get('nodes', {}).keys()]
+                tables += [k.split('.')[-1].lower() for k in catalog.get('sources', {}).keys()]
+
+        engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
+        profiler = Profiler(engine)
+        if tables:
+            result = dict(tables={})
+            for table in tables:
+                result['tables'][table] = profiler.profile_table(table)
+        else:
+            result = profiler.profile()
+
+        # TODO store the result to a file
+        with open('report.json', 'w') as f:
+            f.write(json.dumps(result, indent=4))
 
 
 def generate_report():

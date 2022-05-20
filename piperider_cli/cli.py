@@ -2,6 +2,7 @@ import os.path
 import sys
 
 import click
+from glob import glob
 from rich.console import Console
 from rich.syntax import Syntax
 
@@ -44,7 +45,9 @@ def init(**kwargs):
 
     dbt_project_path = None
     if kwargs.get('provider') == 'dbt-local':
-        dbt_project_path = os.path.join(os.getcwd(), 'dbt_project.yml')
+        pathes = glob(os.path.join(os.getcwd(), '**', 'dbt_project.yml'), recursive=True)
+        if pathes:
+            dbt_project_path = pathes[0]
 
     try:
         config = workspace.init(dbt_project_path=dbt_project_path)
@@ -80,3 +83,8 @@ def debug():
     except Exception as e:
         console.print(f'[bold red]Error:[/bold red] {e}')
         sys.exit(1)
+
+
+@cli.command(short_help='Run')
+def run():
+    workspace.run()
