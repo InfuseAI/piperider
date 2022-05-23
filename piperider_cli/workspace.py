@@ -1,14 +1,16 @@
+import json
 import os
 import shutil
-import json
-from datetime import datetime
 from abc import ABCMeta, abstractmethod
+from datetime import datetime
 from getpass import getpass
 from typing import List
 
 from rich.console import Console
 from ruamel import yaml
 from sqlalchemy import create_engine, inspect
+
+from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.profiler import Profiler
 
 PIPERIDER_WORKSPACE_NAME = '.piperider'
@@ -351,6 +353,14 @@ def debug(configuration: Configuration = None):
             if engine:
                 engine.dispose()
 
+        passed_files, failed_files, content = AssertionEngine.check_assertions_syntax()
+        if passed_files and failed_files:
+            console.print(f'Check Assertion Files:')
+            for file in passed_files:
+                console.print(f'  {file}: [[bold green]OK[/bold green]]')
+            for file in failed_files:
+                console.print(f'  {file}: [[red green]Failed[/red green]]')
+
     return has_error
 
 
@@ -400,7 +410,18 @@ def run(datasource=None, table=None, output=None):
         else:
             result = profiler.profile()
 
-        output_file = os.path.join(PIPERIDER_OUTPUT_PATH, f"report-{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}.json")
+        # TODO: Implement running test cases based on profiling result
+        assertion_engine = AssertionEngine(ds, profiler)
+        assertion_engine.load_assertions()
+        if len(assertion_engine.assertions_content) == 0:
+            console.print(f'No assertions found for datasource [ {ds.name} ]')
+            console.print(f'Do you want to auto generate assertion templates for this datasource? \[yes/no]')
+            confirm = input(':').strip().lower()
+            if confirm == 'yes' or confirm == 'y':
+                assertion_engine.generate_assertion_templates()
+
+        output_file = os.path.join(PIPERIDER_OUTPUT_PATH,
+                                   f"report-{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}.json")
         if output:
             # TODO currently multiple datasource reports will be overwritten by the last one
             output_file = output

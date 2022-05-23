@@ -1,8 +1,8 @@
 import os.path
 import sys
+from glob import glob
 
 import click
-from glob import glob
 from rich.console import Console
 from rich.syntax import Syntax
 
@@ -89,8 +89,17 @@ def debug():
 @click.option('--datasource', default=None)
 @click.option('--table', default=None)
 @click.option('--output', default=None)
+@add_options(debug_option)
 def run(**kwargs):
+    console = Console()
     datasource = kwargs.get('datasource')
     table = kwargs.get('table')
     output = kwargs.get('output')
-    workspace.run(datasource=datasource, table=table, output=output)
+    try:
+        workspace.run(datasource=datasource, table=table, output=output)
+    except Exception as e:
+        if (kwargs.get('debug')):
+            console.print_exception(show_locals=True)
+        else:
+            console.print(f'[bold red]Error:[/bold red] {e}')
+        sys.exit(1)
