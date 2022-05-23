@@ -89,6 +89,7 @@ def debug():
 @click.option('--datasource', default=None)
 @click.option('--table', default=None)
 @click.option('--output', default=None)
+@click.option('--no-interaction', is_flag=True, help='Disable interactive question')
 @add_options(debug_option)
 def run(**kwargs):
     console = Console()
@@ -96,7 +97,7 @@ def run(**kwargs):
     table = kwargs.get('table')
     output = kwargs.get('output')
     try:
-        workspace.run(datasource=datasource, table=table, output=output)
+        workspace.run(datasource=datasource, table=table, output=output, interaction=not kwargs.get('no_interaction'))
     except Exception as e:
         if (kwargs.get('debug')):
             console.print_exception(show_locals=True)

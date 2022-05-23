@@ -364,7 +364,7 @@ def debug(configuration: Configuration = None):
     return has_error
 
 
-def run(datasource=None, table=None, output=None):
+def run(datasource=None, table=None, output=None, interaction=True):
     console = Console()
     configuration = Configuration.load()
 
@@ -411,13 +411,17 @@ def run(datasource=None, table=None, output=None):
             result = profiler.profile()
 
         # TODO: Implement running test cases based on profiling result
-        assertion_engine = AssertionEngine(ds, profiler)
+        assertion_engine = AssertionEngine(profiler)
         assertion_engine.load_assertions()
         if len(assertion_engine.assertions_content) == 0:
             console.print(f'No assertions found for datasource [ {ds.name} ]')
-            console.print(f'Do you want to auto generate assertion templates for this datasource? \[yes/no]')
-            confirm = input(':').strip().lower()
-            if confirm == 'yes' or confirm == 'y':
+            if interaction:
+                console.print(f'Do you want to auto generate assertion templates for this datasource \[yes/no]?',
+                              end=' ')
+                confirm = input('').strip().lower()
+                if confirm == 'yes' or confirm == 'y':
+                    assertion_engine.generate_assertion_templates()
+            else:
                 assertion_engine.generate_assertion_templates()
 
         output_file = os.path.join(PIPERIDER_OUTPUT_PATH,
