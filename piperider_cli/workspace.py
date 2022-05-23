@@ -354,11 +354,18 @@ def debug(configuration: Configuration = None):
 
 
 def run(datasource=None, table=None, output=PIPERIDER_LOG_PATH):
+    console = Console()
     configuration = Configuration.load()
-    # TODO show warning if datasource or table doesn't exist
+
+    datasource_names = [ds.name for ds in configuration.dataSources]
+    if datasource and datasource not in datasource_names:
+        console.print(f"[bold red]Error: datasource '{datasource}' doesn't exist[/bold red]")
+        return
+
     for ds in configuration.dataSources:
         if datasource and ds.name != datasource:
             continue
+        console.print(f'[bold dark_orange]datasource:[/bold dark_orange] {ds.name}')
         tables = []
         dbt_root = ds.args.get('dbt', {}).get('root')
         if dbt_root:
@@ -369,6 +376,9 @@ def run(datasource=None, table=None, output=PIPERIDER_LOG_PATH):
                 # TODO we should consider the case that the table name is not unique
                 tables += [k.split('.')[-1].lower() for k in catalog.get('nodes', {}).keys()]
                 tables += [k.split('.')[-1].lower() for k in catalog.get('sources', {}).keys()]
+                if table and table not in tables:
+                    console.print(f"[bold red]Error: table '{table}' doesn't exist[/bold red]")
+                    return
         if table:
             tables = [table]
 
