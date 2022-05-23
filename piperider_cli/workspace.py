@@ -13,6 +13,7 @@ from piperider_cli.profiler import Profiler
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
 PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'credentials.yml')
+PIPERIDER_LOG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'logs')
 
 DBT_PROFILE_DEFAULT_PATH = os.path.join(os.path.expanduser('~'), '.dbt/profiles.yml')
 
@@ -352,7 +353,7 @@ def debug(configuration: Configuration = None):
     return has_error
 
 
-def run(datasource=None, table=None):
+def run(datasource=None, table=None, output=PIPERIDER_LOG_PATH):
     configuration = Configuration.load()
     # TODO show warning if datasource or table doesn't exist
     for ds in configuration.dataSources:
@@ -373,6 +374,7 @@ def run(datasource=None, table=None):
 
         engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
         profiler = Profiler(engine)
+        # TODO store logs to output directory
         if tables:
             result = dict(tables={})
             for table in tables:

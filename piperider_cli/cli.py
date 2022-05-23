@@ -88,7 +88,9 @@ def debug():
 @cli.command(short_help='Run')
 @click.option('--datasource', default=None)
 @click.option('--table', default=None)
+@click.option('--output', default=None)
 def run(**kwargs):
     datasource = kwargs.get('datasource')
     table = kwargs.get('table')
-    workspace.run(datasource=datasource, table=table)
+    output = kwargs.get('output')
+    workspace.run(datasource=datasource, table=table, output=output)
