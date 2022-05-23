@@ -377,9 +377,16 @@ def run(datasource=None, table=None, output=None):
                 # TODO we should consider the case that the table name is not unique
                 tables += [k.split('.')[-1].lower() for k in catalog.get('nodes', {}).keys()]
                 tables += [k.split('.')[-1].lower() for k in catalog.get('sources', {}).keys()]
+                if not tables:
+                    console.print(f'[bold red]Error: no table found in {dbt_catalog}[/bold red]')
+                    return
                 if table and table not in tables:
                     console.print(f"[bold red]Error: table '{table}' doesn't exist[/bold red]")
                     return
+            else:
+                console.print(f"[bold red]Error: '{dbt_catalog}' not found[/bold red]")
+                return
+
         if table:
             tables = [table]
 
