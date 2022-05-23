@@ -86,5 +86,9 @@ def debug():
 
 
 @cli.command(short_help='Run')
-def run():
-    workspace.run()
+@click.option('--datasource', default=None)
+@click.option('--table', default=None)
+def run(**kwargs):
+    datasource = kwargs.get('datasource')
+    table = kwargs.get('table')
+    workspace.run(datasource=datasource, table=table)
