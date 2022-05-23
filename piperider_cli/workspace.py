@@ -1,6 +1,7 @@
 import os
 import shutil
 import json
+from datetime import datetime
 from abc import ABCMeta, abstractmethod
 from getpass import getpass
 from typing import List
@@ -13,7 +14,7 @@ from piperider_cli.profiler import Profiler
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
 PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'credentials.yml')
-PIPERIDER_LOG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'logs')
+PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'output')
 
 DBT_PROFILE_DEFAULT_PATH = os.path.join(os.path.expanduser('~'), '.dbt/profiles.yml')
 
@@ -353,7 +354,7 @@ def debug(configuration: Configuration = None):
     return has_error
 
 
-def run(datasource=None, table=None, output=PIPERIDER_LOG_PATH):
+def run(datasource=None, table=None, output=None):
     console = Console()
     configuration = Configuration.load()
 
@@ -365,7 +366,7 @@ def run(datasource=None, table=None, output=PIPERIDER_LOG_PATH):
     for ds in configuration.dataSources:
         if datasource and ds.name != datasource:
             continue
-        console.print(f'[bold dark_orange]datasource:[/bold dark_orange] {ds.name}')
+        console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
         tables = []
         dbt_root = ds.args.get('dbt', {}).get('root')
         if dbt_root:
@@ -382,9 +383,9 @@ def run(datasource=None, table=None, output=PIPERIDER_LOG_PATH):
         if table:
             tables = [table]
 
+        created_at = datetime.now()
         engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
         profiler = Profiler(engine)
-        # TODO store logs to output directory
         if tables:
             result = dict(tables={})
             for table in tables:
@@ -392,9 +393,15 @@ def run(datasource=None, table=None, output=PIPERIDER_LOG_PATH):
         else:
             result = profiler.profile()
 
-        # TODO store the result to a file
-        with open('report.json', 'w') as f:
+        output_file = os.path.join(PIPERIDER_OUTPUT_PATH, f"report-{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}.json")
+        if output:
+            # TODO currently multiple datasource reports will be overwritten by the last one
+            output_file = output
+        if not os.path.exists(output_file):
+            os.makedirs(os.path.dirname(output_file), exist_ok=True)
+        with open(output_file, 'w') as f:
             f.write(json.dumps(result, indent=4))
+        console.print(f'Result saved to {output_file}')
 
 
 def generate_report():
