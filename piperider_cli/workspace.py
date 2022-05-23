@@ -352,9 +352,12 @@ def debug(configuration: Configuration = None):
     return has_error
 
 
-def run():
+def run(datasource=None, table=None):
     configuration = Configuration.load()
+    # TODO show warning if datasource or table doesn't exist
     for ds in configuration.dataSources:
+        if datasource and ds.name != datasource:
+            continue
         tables = []
         dbt_root = ds.args.get('dbt', {}).get('root')
         if dbt_root:
@@ -365,6 +368,8 @@ def run():
                 # TODO we should consider the case that the table name is not unique
                 tables += [k.split('.')[-1].lower() for k in catalog.get('nodes', {}).keys()]
                 tables += [k.split('.')[-1].lower() for k in catalog.get('sources', {}).keys()]
+        if table:
+            tables = [table]
 
         engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
         profiler = Profiler(engine)
