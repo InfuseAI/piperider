@@ -424,16 +424,17 @@ def run(datasource=None, table=None, output=None, interaction=True):
             else:
                 assertion_engine.generate_assertion_templates()
 
-        output_file = os.path.join(PIPERIDER_OUTPUT_PATH,
-                                   f"report-{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}.json")
+        output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
+                                   f"{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}")
         if output:
-            # TODO currently multiple datasource reports will be overwritten by the last one
-            output_file = output
-        if not os.path.exists(output_file):
-            os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        with open(output_file, 'w') as f:
-            f.write(json.dumps(result, indent=4))
-        console.print(f'Result saved to {output_file}')
+            output_path = output
+        if not os.path.exists(output_path):
+            os.makedirs(output_path, exist_ok=True)
+        for t in result['tables']:
+            output_file = os.path.join(output_path, f"{t}.json")
+            with open(output_file, 'w') as f:
+                f.write(json.dumps(result['tables'][t], indent=4))
+        console.print(f'Results saved to {output_path}')
 
 
 def generate_report():
