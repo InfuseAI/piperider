@@ -1,33 +1,33 @@
-# piperider-cli
+# PipeRider
 
-This is a command line interface for PipeRider.
+For data practitioner who wants to trust their data by:  
+- Defining the shape of data, so they can **make sure the data will be expected in the future** 
+- Save time on debugging data,**easily discover & discuss any data problems from upstream**
+- Socially **collaborate across teams on the dataset through data catalog and data insights**
 
-# Installation
+# Install
 
 ```bash
 $ pip install git+https://github.com/InfuseAI/piperider-cli.git@main
 ```
 
-# Initialization
+# Command
 
+## Attach piperider to a dbt project
 ```bash
 $ piperider-cli init
 ```
+This command creates `/.piperider` under a dbt project root and generate necessary configurations.
 
-It will create a directory `piperider` in current working directory with four subdirectory:
-- `sources`: contains configurations for data sources, such as S3 and SnowFlake
-- `stages`: contains configurations for tests in each stage
-- `assertions`: contains custom assertions for current project
-- `harness`: contains configurations for PipeRider
 
-# Run Tests
-
-Run test for single stage:
+## Scan models
 ```bash
-$ piperider-cli run piperider/stages/local.yaml
+$ piperider-cli run
 ```
+This command scans the models from datasource and create assessment results in `/.piperider/output`
 
-Run test for multiple stages:
+## Generate reports
 ```bash
-$ piperider-cli run piperider/stages/*.yaml
+$ piperider-cli generate-report <piperider result file>
 ```
+generate a static html report under current path. 
