@@ -1,8 +1,8 @@
 import os
+from importlib import import_module
 
 from ruamel import yaml
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
-from importlib import import_module
 
 
 def safe_load_yaml(file_path):
@@ -57,7 +57,7 @@ class AssertionResult:
         return str(dict(success=self._success, exception=str(self._exception)))
 
 
-class Assertion:
+class AssertionContext:
     def __init__(self, table_name: str, column_name: str, assertion_name: str, payload: dict):
         self.name: str = assertion_name
         self.table: str = table_name
@@ -137,10 +137,10 @@ class AssertionEngine:
         # Load assertion
         for t in self.assertions_content:
             for ta in self.assertions_content[t].get('tests', []):
-                self.assertions.append(Assertion(t, None, ta.get('name'), self.assertions_content))
+                self.assertions.append(AssertionContext(t, None, ta.get('name'), self.assertions_content))
             for c in self.assertions_content[t].get('columns', {}):
                 for ca in self.assertions_content[t]['columns'][c].get('tests', []):
-                    self.assertions.append(Assertion(t, c, ca.get('name'), self.assertions_content))
+                    self.assertions.append(AssertionContext(t, c, ca.get('name'), self.assertions_content))
         pass
 
     def generate_assertion_templates(self):
@@ -186,7 +186,7 @@ class AssertionEngine:
                 yaml.YAML().dump(assertion, f)
         pass
 
-    def evaluate(self, assertion: Assertion, metrics_result):
+    def evaluate(self, assertion: AssertionContext, metrics_result):
         """
         This method is used to evaluate the assertion.
         :param assertion:
