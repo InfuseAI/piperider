@@ -1,6 +1,9 @@
+import math
 import os
 import time
+from datetime import date
 
+from dateutil.relativedelta import relativedelta
 from sqlalchemy import *
 
 
@@ -164,7 +167,7 @@ class Profiler:
                 func.max(t2.c.c).label("_max"),
             )
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _distinct, _sum, _avg, _min, _max = result            
+            _total, _non_null, _distinct, _sum, _avg, _min, _max = result
             if is_integer:
                 _sum = int(_sum) if _sum is not None else None
                 _min = int(_min) if _min is not None else None
@@ -173,7 +176,7 @@ class Profiler:
                 _sum = float(_sum) if _sum is not None else None
                 _min = float(_min) if _min is not None else None
                 _max = float(_max) if _max is not None else None
-            _avg = float(_avg) if _avg is not None else None                            
+            _avg = float(_avg) if _avg is not None else None
 
             def map_bucket(expr, min_value, max_value, num_buckets):
                 interval = (max_value - min_value) / num_buckets
@@ -184,7 +187,7 @@ class Profiler:
                         cases += [(expr < bound, i)]
                     else:
                         cases += [(expr <= bound, i)]
-                
+
                 return case(
                     cases, else_=None
                 )
@@ -198,7 +201,7 @@ class Profiler:
                 _num_buckets = 20
 
                 t2 = select(
-                    t.c[column_name].label("c"), 
+                    t.c[column_name].label("c"),
                     map_bucket(t.c[column_name].label("c"), dmin, dmin + (interval * _num_buckets), _num_buckets).label("bucket")
                 ).where(
                     t.c[column_name] != None
@@ -244,7 +247,7 @@ class Profiler:
                     distribution["labels"].append(label)
                     distribution["counts"].append(0)
 
-                for row in result:                    
+                for row in result:
                     _bucket, v = row
                     if _bucket is None:
                         continue
@@ -278,25 +281,58 @@ class Profiler:
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _distinct, _min, _max, = result
 
-            t2 = select(func.date_trunc("YEAR", t.c[column_name]).label("d")).cte(name="T")
-            distribution = {
-                "type": "yearly",
-                "labels": [],
-                "counts": [],
-            }
-            stmt = select(
-                t2.c.d,
-                func.count(t2.c.d).label("_count")
-            ).group_by(
-                t2.c.d
-            ).order_by(
-                t2.c.d
-            )
-            result = conn.execute(stmt)
-            for row in result:
-                k, v = row
-                distribution["labels"].append(str(k))
-                distribution["counts"].append(v)
+            distribution = None
+            if _non_null == 1 or _distinct == 1:
+                distribution = self._dist_topk(conn, t2.c.c, 20)
+            elif _non_null > 0:
+                distribution = {
+                    "type": "",
+                    "labels": [],
+                    "counts": [],
+                }
+
+                dmin, dmax, interval = Profiler._calc_date_range(_min, _max)
+                if interval.years:
+                    distribution["type"] = "yearly"
+                    period = relativedelta(dmax, dmin)
+                    num_buckets = math.ceil(period.years / interval.years)
+                    t2 = select(func.date_trunc("YEAR", t.c[column_name]).label("d")).cte(name="T")
+                elif interval.months:
+                    num_buckets = 24
+                    distribution["type"] = "monthly"
+                    t2 = select(func.date_trunc("MONTH", t.c[column_name]).label("d")).cte(name="T")
+                else:
+                    num_buckets = 30
+                    distribution["type"] = "daily"
+                    t2 = select(func.date_trunc("DAY", t.c[column_name]).label("d")).cte(name="T")
+
+                stmt = select(
+                    t2.c.d,
+                    func.count(t2.c.d).label("_count")
+                ).group_by(
+                    t2.c.d
+                ).order_by(
+                    t2.c.d
+                )
+
+                result = conn.execute(stmt)
+
+                for i in range(num_buckets):
+                    label = f"{dmin + i * interval} - {dmin + (i + 1) * interval}"
+                    distribution["labels"].append(label)
+                    distribution["counts"].append(0)
+
+                for row in result:
+                    bucket, v = row
+                    if bucket is None:
+                        continue
+
+                    for i in range(num_buckets):
+                        d = distribution["labels"][i].split(" - ")
+                        if date.fromisoformat(d[0]) <= bucket < date.fromisoformat(d[1]):
+                            distribution["counts"][i] += v
+                            break
+
             return {
                 'total': _total,
                 'non_nulls': _non_null,
@@ -338,7 +374,7 @@ class Profiler:
         # make the min align to 0
         if min > 0 and max / 4 > min:
             min=0
-        
+
         # only one value case
         if min == max:
             if is_integer:
@@ -350,7 +386,7 @@ class Profiler:
                 elif min > 0:
                     min = 0
                 else:
-                    max = 0        
+                    max = 0
         range = max - min
 
         # find the base
@@ -372,11 +408,11 @@ class Profiler:
         elif range / base <= 4:
             range = base * 4
         elif range / base <= 5:
-            range = base * 5            
+            range = base * 5
         else:
             range = base * 10
         interval = range / 20
-        
+
         # Adjust the min/max to the grid
         # interval=10, 235->230
         # interval=20, 235->220
@@ -398,10 +434,33 @@ class Profiler:
             #   (499, 699) => align to interval grid => (490, 700)
             #   max-min=210 > interval*20=200
             #
-            # In order to max sure the min, max is inside the 20 bins, we calculate the range again by the adjusted min/max. 
-            return Profiler._calc_distribution_range(min, max, is_integer=is_integer)            
+            # In order to max sure the min, max is inside the 20 bins, we calculate the range again by the adjusted min/max.
+            return Profiler._calc_distribution_range(min, max, is_integer=is_integer)
         else:
-            return min, max, interval            
+            return min, max, interval
+
+    @staticmethod
+    def _calc_date_range(min_date, max_date):
+        period = relativedelta(max_date, min_date)
+        if period.years > 1 and period.months > 0:
+            # more than 2 years
+            min_date = date(min_date.year, 1, 1)
+            max_date = max_date + relativedelta(years=+1)
+            n_buckets = 20
+            years = relativedelta(max_date, min_date).years
+            n = math.ceil(years / n_buckets)
+            interval = relativedelta(years=+n)
+        elif period.months > 0 and period.days > 0:
+            # more than 1 months
+            min_date = date(min_date.year, min_date.month, 1)
+            max_date = max_date + relativedelta(months=+1)
+            interval = relativedelta(months=+1)
+        else:
+            min_date = date(min_date.year, min_date.month, min_date.day)
+            max_date = date(max_date.year, max_date.month, max_date.day)
+            interval = relativedelta(days=+1)
+        return min_date, max_date, interval
+
 
 if __name__ == '__main__':
     user= os.getenv("SNOWFLAKE_USER")
