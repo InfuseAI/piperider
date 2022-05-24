@@ -39,18 +39,40 @@ class AssertionResult:
     def __init__(self):
         self._success: bool = False
         self._exception: Exception = None
+        self.actual: dict = None
+        self.expected: dict = None
 
-    def success(self):
+    def validate(self):
+        if not self.actual or not self.expected:
+            return self.fail_with_syntax_error()
+        return self
+
+    def success(self, actual=None, expected=None):
+        if actual:
+            self.actual = actual
+        if expected:
+            self.expected = expected
+
         self._success = True
         return self
 
-    def fail(self):
+    def fail(self, actual=None, expected=None):
+        if actual:
+            self.actual = actual
+        if expected:
+            self.expected = expected
+
         self._success = False
         return self
 
     def fail_with_exception(self, exception):
         self._success = False
         self._exception = exception
+        return self
+
+    def fail_with_syntax_error(self):
+        self._success = False
+        self._exception = SyntaxError()
         return self
 
     def __repr__(self):
@@ -215,7 +237,7 @@ class AssertionEngine:
             raise AssertionException(f'Cannot find the assertion: {assertion.name}')
 
         try:
-            func(assertion, assertion.table, assertion.column, metrics_result)
+            func(assertion, assertion.table, assertion.column, metrics_result).validate()
         except Exception as e:
             assertion.result.fail_with_exception(e)
 

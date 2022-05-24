@@ -38,21 +38,24 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
     table_metrics = metrics.get('tables', {}).get(table)
     if not table_metrics:
         # cannot find the table in the metrics
-        return context.result.fail()
+        return context.result.fail_with_syntax_error()
 
     column_metrics = table_metrics.get('columns', {}).get(column)
     if not column_metrics:
         # cannot find the column in the metrics
-        return context.result.fail()
+        return context.result.fail_with_syntax_error()
 
     # Check assertion input
     target_metric = kwargs.get('target_metric')
     values = context.asserts.get(target_metric)
     if not values or len(values) != 2:
-        return context.result.fail()
+        return context.result.fail_with_syntax_error()
 
     if not column_metrics.get(target_metric):
-        return context.result.fail()
+        return context.result.fail_with_syntax_error()
+
+    context.result.actual = dict(target_metric=column_metrics.get(target_metric))
+    context.result.expected = dict(target_metric=values)
 
     if column_metrics.get('type') == 'datetime':
         # TODO: check datetime format. Maybe we can leverage the format checking by YAML parser
@@ -63,7 +66,6 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
         if from_value <= actual <= to_value:
             # TODO: store actual value
             return context.result.success()
-
         return context.result.fail()
     elif column_metrics.get('type') == 'numeric':
         actual = column_metrics.get(target_metric)
@@ -73,6 +75,6 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
         return context.result.fail()
     else:
         # column not support range
-        return context.result.fail()
+        return context.result.fail_with_syntax_error()
 
     pass
