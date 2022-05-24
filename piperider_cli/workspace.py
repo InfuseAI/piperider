@@ -380,7 +380,9 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
         else:
             assertion_engine.generate_assertion_templates()
     else:
-        assertion_engine.evaluate_all(result)
+        results, exceptions = assertion_engine.evaluate_all(result)
+        print(results)
+        print(exceptions)
 
 
 def run(datasource=None, table=None, output=None, interaction=True):

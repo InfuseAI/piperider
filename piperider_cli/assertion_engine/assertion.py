@@ -2,6 +2,7 @@ import os
 
 from ruamel import yaml
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
+from importlib import import_module
 
 
 def safe_load_yaml(file_path):
@@ -33,6 +34,29 @@ def load_yaml_configs(path):
     return passed, failed, content
 
 
+class AssertionResult:
+
+    def __init__(self):
+        self._success: bool = False
+        self._exception: Exception = None
+
+    def success(self):
+        self._success = True
+        return self
+
+    def fail(self):
+        self._success = False
+        return self
+
+    def fail_with_exception(self, exception):
+        self._success = False
+        self._exception = exception
+        return self
+
+    def __repr__(self):
+        return str(dict(success=self._success, exception=str(self._exception)))
+
+
 class Assertion:
     def __init__(self, table_name: str, column_name: str, assertion_name: str, payload: dict):
         self.name: str = assertion_name
@@ -41,6 +65,9 @@ class Assertion:
         self.parameters: dict = {}
         self.asserts: dict = {}
         self.tags: list = []
+
+        # result
+        self.result: AssertionResult = AssertionResult()
 
         self._load(payload)
 
@@ -62,9 +89,12 @@ class Assertion:
         self.tags = assertion.get('tags', [])
         pass
 
-    def evaluate(self, metrics) -> bool:
-        # get some specific metrics and generate the result [true | false]
-        pass
+    def __repr__(self):
+        return str(self.__dict__)
+
+
+class AssertionException(BaseException):
+    pass
 
 
 class AssertionEngine:
@@ -156,7 +186,7 @@ class AssertionEngine:
                 yaml.YAML().dump(assertion, f)
         pass
 
-    def evaluate(self, assertion, metrics_result):
+    def evaluate(self, assertion: Assertion, metrics_result):
         """
         This method is used to evaluate the assertion.
         :param assertion:
@@ -175,12 +205,21 @@ class AssertionEngine:
               outliers: 5 # in get_outliers's verification logic, check outliers parameter and return true if it's less than 5
         """
 
-        # input
-        # [table, column]
-        # parameters (optional)
-        # assert (optional)
+        func = None
+        # locate the builtin assertion from the piperider_cli.assertion_engine
+        try:
+            # fetch the assertion function
+            assertion_module = import_module(f'piperider_cli.assertion_engine')
+            func = getattr(assertion_module, assertion.name)
+        except Exception as e:
+            raise AssertionException(f'Cannot find the assertion: {assertion.name}')
 
-        pass
+        try:
+            func(assertion, assertion.table, assertion.column, metrics_result)
+        except Exception as e:
+            assertion.result.fail_with_exception(e)
+
+        return assertion
 
     def evaluate_all(self, metrics_result):
         results = []
@@ -190,6 +229,9 @@ class AssertionEngine:
             try:
                 assertion_result = self.evaluate(assertion, metrics_result)
                 results.append(assertion_result)
+            except AssertionException as e:
+                # TODO print it to console?
+                print(e)
             except BaseException as e:
                 exceptions.append((assertion, e))
         return results, exceptions
