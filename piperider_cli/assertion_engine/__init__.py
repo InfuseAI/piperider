@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from .assertion import AssertionEngine, AssertionContext, AssertionResult
 
 
@@ -21,3 +23,56 @@ def assert_row_count(context: AssertionContext, table: str, column: str, metrics
         return context.result.success()
 
     return context.result.fail()
+
+
+def assert_column_min_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    return _assert_column_in_range(context, table, column, metrics, target_metric='min')
+
+
+def assert_column_max_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    return _assert_column_in_range(context, table, column, metrics, target_metric='max')
+
+
+def _assert_column_in_range(context: AssertionContext, table: str, column: str, metrics: dict,
+                            **kwargs) -> AssertionResult:
+    table_metrics = metrics.get('tables', {}).get(table)
+    if not table_metrics:
+        # cannot find the table in the metrics
+        return context.result.fail()
+
+    column_metrics = table_metrics.get('columns', {}).get(column)
+    if not column_metrics:
+        # cannot find the column in the metrics
+        return context.result.fail()
+
+    # Check assertion input
+    target_metric = kwargs.get('target_metric')
+    values = context.asserts.get(target_metric)
+    if not values or len(values) != 2:
+        return context.result.fail()
+
+    if not column_metrics.get(target_metric):
+        return context.result.fail()
+
+    if column_metrics.get('type') == 'datetime':
+        # TODO: check datetime format. Maybe we can leverage the format checking by YAML parser
+        actual = datetime.strptime(column_metrics.get(target_metric), '%Y-%m-%d %H:%M:%S.%f')
+        from_value = values[0]
+        to_value = values[1]
+
+        if from_value <= actual <= to_value:
+            # TODO: store actual value
+            return context.result.success()
+
+        return context.result.fail()
+    elif column_metrics.get('type') == 'numeric':
+        actual = column_metrics.get(target_metric)
+        if values[0] <= actual <= values[1]:
+            # TODO: store actual value
+            return context.result.success()
+        return context.result.fail()
+    else:
+        # column not support range
+        return context.result.fail()
+
+    pass
