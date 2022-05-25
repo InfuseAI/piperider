@@ -387,27 +387,19 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
 
 
 def _show_assertion_result(console: Console, datasource_name, results, exceptions):
-    def _show_expected(expected):
-        for k, v in expected.items():
-            if isinstance(v, List):
-                for idx, item in enumerate(v):
-                    if isinstance(item, datetime):
-                        v[idx] = item.strftime('%Y-%m-%d %H:%M:%S')
-
-        return expected
-
     if results:
         for assertion in results:
             table = assertion.table
             column = assertion.column
             test_function = assertion.name
             success = assertion.result.status()
+            target = f'{table}.{column}' if column else table
             if success:
                 console.print(
-                    f'[[bold green]  OK  [/bold green]] {table}.{column}:{test_function} Expected: {_show_expected(assertion.result.expected)} Actual: {assertion.result.actual}')
+                    f'[[bold green]  OK  [/bold green]] {target} : {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
             else:
                 console.print(
-                    f'[[bold red]FAILED[/bold red]] {table}.{column}:{test_function} Expected: {_show_expected(assertion.result.expected)} Actual: {assertion.result.actual}')
+                    f'[[bold red]FAILED[/bold red]] {target} : {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
     # TODO: Handle exceptions
     pass
 

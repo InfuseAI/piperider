@@ -44,30 +44,29 @@ class AssertionResult:
         self._success: bool = False
         self._exception: Exception = None
         self.actual: dict = None
-        self.expected: dict = None
+        self._expected: dict = None
 
     def status(self):
         return self._success
 
+    def expected(self):
+        return self._expected
+
     def validate(self):
-        if not self.actual or not self.expected:
+        if not self.actual or not self._expected:
             return self.fail_with_assertion_implementation_error()
         return self
 
-    def success(self, actual=None, expected=None):
+    def success(self, actual=None):
         if actual:
             self.actual = actual
-        if expected:
-            self.expected = expected
 
         self._success = True
         return self
 
-    def fail(self, actual=None, expected=None):
+    def fail(self, actual=None):
         if actual:
             self.actual = actual
-        if expected:
-            self.expected = expected
 
         self._success = False
         return self
@@ -92,7 +91,7 @@ class AssertionResult:
         return str(dict(success=self._success,
                         exception=str(self._exception),
                         actual=self.actual,
-                        expected=self.expected))
+                        expected=self._expected))
 
 
 class AssertionContext:
@@ -125,6 +124,7 @@ class AssertionContext:
         self.parameters = assertion.get('parameters', {})
         self.asserts = assertion.get('assert', {})
         self.tags = assertion.get('tags', [])
+        self.result._expected = self.asserts
         pass
 
     def __repr__(self):

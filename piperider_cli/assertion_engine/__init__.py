@@ -14,7 +14,6 @@ def assert_row_count(context: AssertionContext, table: str, column: str, metrics
     context.result.actual = row_count
 
     between_criteria = context.asserts.get('count', [])
-    context.result.expected = between_criteria
 
     # TODO check assert args
     # TODO should make sure lower value at the first params
@@ -39,7 +38,6 @@ def assert_column_type(context: AssertionContext, table: str, column: str, metri
     column_type = column_metrics.get('type').lower()
 
     context.result.actual = column_type
-    context.result.expected = assert_type
 
     if column_type == assert_type:
         return context.result.success()
@@ -77,7 +75,6 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
         return context.result.fail_with_syntax_error()
 
     context.result.actual = {target_metric: column_metrics.get(target_metric)}
-    context.result.expected = {target_metric: values}
 
     if column_metrics.get('type') == 'datetime':
         # TODO: check datetime format. Maybe we can leverage the format checking by YAML parser
