@@ -446,6 +446,13 @@ def run(datasource=None, table=None, output=None, interaction=True):
         profiler = Profiler(engine)
         profile_result = profiler.profile(tables)
 
+        output_path = prepare_output_path(created_at, ds, output)
+
+        # output profiling result
+        with open(os.path.join(output_path, f"profiler.json"), "w") as f:
+            f.write(json.dumps(profile_result))
+
+        # TODO stop here if tests was not needed.
         assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
                                                                       profile_result, created_at)
         if assertion_results:
@@ -453,12 +460,7 @@ def run(datasource=None, table=None, output=None, interaction=True):
             _show_assertion_result(console, ds.name, assertion_results, assertion_exceptions)
 
         console.rule(f'Summary')
-        output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
-                                   f"{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}")
-        if output:
-            output_path = output
-        if not os.path.exists(output_path):
-            os.makedirs(output_path, exist_ok=True)
+
         for t in profile_result['tables']:
             output_file = os.path.join(output_path, f"{t}.json")
             # TODO: Handle the assertion result as dict not string
@@ -466,6 +468,16 @@ def run(datasource=None, table=None, output=None, interaction=True):
             with open(output_file, 'w') as f:
                 f.write(json.dumps(profile_result['tables'][t], indent=4, cls=DatetimeEncoder))
         console.print(f'Results saved to {output_path}')
+
+
+def prepare_output_path(created_at, ds, output):
+    output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
+                               f"{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}")
+    if output:
+        output_path = output
+    if not os.path.exists(output_path):
+        os.makedirs(output_path, exist_ok=True)
+    return output_path
 
 
 class DatetimeEncoder(json.JSONEncoder):
