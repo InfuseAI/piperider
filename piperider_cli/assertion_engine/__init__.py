@@ -11,7 +11,10 @@ def assert_row_count(context: AssertionContext, table: str, column: str, metrics
 
     # Get the metric for the current table
     row_count = table_metrics.get('row_count')
+    context.result.actual = row_count
+
     between_criteria = context.asserts.get('count', [])
+    context.result.expected = between_criteria
 
     # TODO check assert args
     # TODO should make sure lower value at the first params

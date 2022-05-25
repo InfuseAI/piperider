@@ -34,6 +34,10 @@ def load_yaml_configs(path):
     return passed, failed, content
 
 
+class IllegalStateAssertionException(BaseException):
+    pass
+
+
 class AssertionResult:
 
     def __init__(self):
@@ -44,7 +48,7 @@ class AssertionResult:
 
     def validate(self):
         if not self.actual or not self.expected:
-            return self.fail_with_syntax_error()
+            return self.fail_with_assertion_implementation_error()
         return self
 
     def success(self, actual=None, expected=None):
@@ -73,6 +77,12 @@ class AssertionResult:
     def fail_with_syntax_error(self):
         self._success = False
         self._exception = SyntaxError()
+        return self
+
+    def fail_with_assertion_implementation_error(self):
+        self._success = False
+        self._exception = IllegalStateAssertionException(
+            "Assertion Function should fill 'actual' and 'expected' fields.")
         return self
 
     def __repr__(self):
@@ -237,7 +247,8 @@ class AssertionEngine:
             raise AssertionException(f'Cannot find the assertion: {assertion.name}')
 
         try:
-            func(assertion, assertion.table, assertion.column, metrics_result).validate()
+            result = func(assertion, assertion.table, assertion.column, metrics_result)
+            result.validate()
         except Exception as e:
             assertion.result.fail_with_exception(e)
 
