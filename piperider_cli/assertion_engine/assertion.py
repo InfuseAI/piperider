@@ -46,6 +46,9 @@ class AssertionResult:
         self.actual: dict = None
         self.expected: dict = None
 
+    def status(self):
+        return self._success
+
     def validate(self):
         if not self.actual or not self.expected:
             return self.fail_with_assertion_implementation_error()

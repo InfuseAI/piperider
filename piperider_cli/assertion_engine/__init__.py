@@ -27,6 +27,7 @@ def assert_row_count(context: AssertionContext, table: str, column: str, metrics
 
     return context.result.fail()
 
+
 def assert_column_type(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
@@ -44,6 +45,7 @@ def assert_column_type(context: AssertionContext, table: str, column: str, metri
         return context.result.success()
 
     return context.result.fail()
+
 
 def assert_column_min_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     return _assert_column_in_range(context, table, column, metrics, target_metric='min')
@@ -74,8 +76,8 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
     if not column_metrics.get(target_metric):
         return context.result.fail_with_syntax_error()
 
-    context.result.actual = dict(target_metric=column_metrics.get(target_metric))
-    context.result.expected = dict(target_metric=values)
+    context.result.actual = {target_metric: column_metrics.get(target_metric)}
+    context.result.expected = {target_metric: values}
 
     if column_metrics.get('type') == 'datetime':
         # TODO: check datetime format. Maybe we can leverage the format checking by YAML parser

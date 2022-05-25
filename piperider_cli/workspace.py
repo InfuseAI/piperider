@@ -379,10 +379,38 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
                 assertion_engine.generate_assertion_templates()
         else:
             assertion_engine.generate_assertion_templates()
+        console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
+        return None, None  # no assertion to run
     else:
         results, exceptions = assertion_engine.evaluate_all(result)
-        print(results)
-        print(exceptions)
+        return results, exceptions
+
+
+def _show_assertion_result(console: Console, datasource_name, results, exceptions):
+    def _show_expected(expected):
+        for k, v in expected.items():
+            if isinstance(v, List):
+                for idx, item in enumerate(v):
+                    if isinstance(item, datetime):
+                        v[idx] = item.strftime('%Y-%m-%d %H:%M:%S')
+
+        return expected
+
+    if results:
+        console.rule(f'Assertion result')
+        for assertion in results:
+            table = assertion.table
+            column = assertion.column
+            test_function = assertion.name
+            success = assertion.result.status()
+            if success:
+                console.print(
+                    f'[[bold green]  OK  [/bold green]] {table}.{column}:{test_function} Expected: {_show_expected(assertion.result.expected)} Actual: {assertion.result.actual}')
+            else:
+                console.print(
+                    f'[[bold red]FAILED[/bold red]] {table}.{column}:{test_function} Expected: {_show_expected(assertion.result.expected)} Actual: {assertion.result.actual}')
+    # TODO: Handle exceptions
+    pass
 
 
 def run(datasource=None, table=None, output=None, interaction=True):
@@ -426,7 +454,9 @@ def run(datasource=None, table=None, output=None, interaction=True):
         profiler = Profiler(engine)
         profile_result = profiler.profile(tables)
 
-        _execute_assertions(console, profiler, ds, interaction, output, profile_result, created_at)
+        assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
+                                                                      profile_result, created_at)
+        _show_assertion_result(console, ds.name, assertion_results, assertion_exceptions)
 
         output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
                                    f"{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}")
@@ -436,9 +466,19 @@ def run(datasource=None, table=None, output=None, interaction=True):
             os.makedirs(output_path, exist_ok=True)
         for t in profile_result['tables']:
             output_file = os.path.join(output_path, f"{t}.json")
+            # TODO: Handle the assertion result as dict not string
+            profile_result['tables'][t]['assertions'] = assertion_results
             with open(output_file, 'w') as f:
-                f.write(json.dumps(profile_result['tables'][t], indent=4))
+                f.write(json.dumps(profile_result['tables'][t], indent=4, cls=DatetimeEncoder))
         console.print(f'Results saved to {output_path}')
+
+
+class DatetimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        try:
+            return super().default(obj)
+        except TypeError:
+            return str(obj)
 
 
 def generate_report():
