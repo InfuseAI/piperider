@@ -7,6 +7,9 @@ endif
 dev-requires:
 	pip install -e .[dev]
 
+test: dev-requires
+	py.test --cov=piperider_cli --cov-report xml tests
+
 pre-release: dev-requires
 	pip install build
 	python3 -m build
