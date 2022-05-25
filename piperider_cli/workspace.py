@@ -415,6 +415,9 @@ def _show_assertion_result(console: Console, datasource_name, results, exception
 
 
 def _transform_assertion_result(results):
+    if not results:
+        return
+
     tests = []
     columns = {}
     for r in results:
