@@ -29,7 +29,6 @@ class TestProfiler:
                     raise Exception(f"not support type: {type(value)}")
                 columns.append(col)
         table = Table(table_name, metadata, *columns)
-        print(table)
         table.create(bind=self.engine)
 
         with self.engine.connect() as conn:
@@ -43,24 +42,70 @@ class TestProfiler:
             
         return table
 
-    def test_answer(self):
+    def test_basic_profile(self):
         engine = self.engine = create_engine('sqlite://')        
 
         data = [
             ("user_id", "user_name","age"),
             (1, "bob", 23),
             (2, "alice",25),
-            (5, "alice",40),
-            (10, "pop",40),
-            (6, "andy",None),
-            (7, None,None),
-            (8, None,None),
         ]
-        self.create_table("user", data)        
+        self.create_table("test1", data)
+        self.create_table("test2", data)
         profiler = Profiler(engine)
         result = profiler.profile()
-        import json
-        print(json.dumps(result, indent=4))
+        assert "test1" in result["tables"]
+        assert "test2" in result["tables"]
+
+        profiler = Profiler(engine)
+        result = profiler.profile(tables=["test1"])
+        assert "test1" in result["tables"]
+        assert "test2" not in result["tables"] 
+
+    def test_numeric_boundary(self):
+        engine = self.engine = create_engine('sqlite://')        
+
+        data = [
+            ("num",),
+            (0,),
+            (20,),
+        ]
+        self.create_table("test", data)
+        profiler = Profiler(engine)
+        result = profiler.profile()
+        assert result["tables"]["test"]['columns']["num"]["distribution"]["counts"][0] == 1
+        assert result["tables"]["test"]['columns']["num"]["distribution"]["counts"][19] == 1
+        assert result["tables"]["test"]['columns']["num"]["distribution"]["counts"][5] == 0
+
+    def test_empty_table(self):
+        engine = self.engine = create_engine('sqlite://')        
+
+        data = [
+            ("num", "str"),
+        ]
+        self.create_table("test", data, columns=[Column("num", Integer), Column("str", String)])
+        profiler = Profiler(engine)
+        result = profiler.profile()
+        assert result["tables"]["test"]['columns']["num"]["distribution"] == None
+        assert result["tables"]["test"]['columns']["str"]["distribution"] == None
+
+    def test_one_row_table(self):
+        engine = self.engine = create_engine('sqlite://')        
+
+        data = [
+            ("num", "str", "num_empty"),
+            (1, "hello", None),
+        ]
+        self.create_table("test", data, columns=[
+            Column("num", Integer), 
+            Column("str", String),
+            Column("num_empty", Integer)
+        ])
+        profiler = Profiler(engine)
+        result = profiler.profile()
+        assert result["tables"]["test"]['columns']["num"]["distribution"]["counts"][0] == 1
+        assert result["tables"]["test"]['columns']["str"]["distribution"]["counts"][0] == 1
+        assert result["tables"]["test"]['columns']["num_empty"]["distribution"] == None
 
         
     def test_range(self):
@@ -85,7 +130,6 @@ class TestProfiler:
         for test in tests:
             low,high, emin, einterval =test
             min, max, interval = Profiler._calc_numeric_range(low,high)
-            print(f"low:{low}\thigh:{high}\trange:({min}, {max})\tinterval:{interval}")        
             assert emin==min
             assert einterval==interval
 
