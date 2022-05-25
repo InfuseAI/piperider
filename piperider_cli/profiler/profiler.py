@@ -103,11 +103,11 @@ class Profiler:
             _total, _non_null, _distinct = result
             stmt = select(
                 t2.c.c,
-                func.count(t2.c.c).label("_count")
+                func.count().label("_count")
             ).group_by(
                 t2.c.c
             ).order_by(
-                func.count(t2.c.c).desc(),
+                func.count().desc(),
 
             ).limit(20)
             result = conn.execute(stmt)
@@ -143,29 +143,35 @@ class Profiler:
                 func.avg(t2.c.c).label("_avg"),
                 func.min(t2.c.c).label("_min"),
                 func.max(t2.c.c).label("_max"),
-                func.median(t2.c.c).label("_median"),
             )
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _distinct, _sum, _avg, _min, _max, _median = result
+            _total, _non_null, _distinct, _sum, _avg, _min, _max = result
             _sum = float(_sum)
             _avg = float(_avg)
             _min = float(_min)
             _max = float(_max)
-            _median = float(_median)
             _num_buckets = 20
 
             def width_bucket(expr, min_value, max_value, num_buckets):
                 interval = (max_value - min_value) / num_buckets
                 cases = []
+                cases += [(expr == None, None)]
                 for i in range(num_buckets):
                     bound = min_value + interval * i
                     cases += [(expr < bound, i)]
-                cases += [(expr <= max_value, num_buckets)]
+                cases += [(expr <= max_value, num_buckets)]                
                 return case(
                     cases, else_=num_buckets+1
                 )
 
-            t2 = select(t.c[column_name].label("c"), width_bucket(t.c[column_name].label("c"), _min, _max, _num_buckets).label("bucket")).cte(name="T")
+            dmin, _, interval = Profiler._calc_numeric_range(_min, _max)
+
+            t2 = select(
+                t.c[column_name].label("c"), 
+                width_bucket(t.c[column_name].label("c"), dmin, dmin + interval*_num_buckets, _num_buckets).label("bucket")
+            ).where(
+                t.c[column_name] != None
+            ).cte(name="T")
             distribution = {
                 "type": "histogram",
                 "labels": [],
@@ -173,16 +179,16 @@ class Profiler:
             }
             stmt = select(
                 t2.c.bucket,
-                func.count(t2.c.bucket).label("_count")
+                func.count().label("_count")                        
             ).group_by(
                 t2.c.bucket
             ).order_by(
                 t2.c.bucket
             )
+            print(stmt)
             result = conn.execute(stmt)
-            for i in range(_num_buckets+1):
-                interval = (_max - _min) / _num_buckets
-                label = f"{i * interval + _min} -  {(i + 1) * interval + _min}"
+            for i in range(_num_buckets):
+                label = f"{i * interval + dmin} -  {(i + 1) * interval + dmin}"
 
                 distribution["labels"].append(label)
                 distribution["counts"].append(0)
@@ -199,7 +205,6 @@ class Profiler:
                 'max': float(_max),
                 'sum': float(_sum),
                 'avg': float(_avg),
-                'median': float(_median),
                 'distribution': distribution,
             }
 
@@ -270,6 +275,34 @@ class Profiler:
             }
 
 
+    @staticmethod
+    def _calc_numeric_range(min, max) :    
+        import math
+        print(f"({min}, {max})")
+        if min > 0 and max / 2 > min:
+            min=0
+        range = max - min
+
+        # find the range
+        base = math.pow(10, math.floor(math.log10(range)))
+        if range / base == 1:
+            range = base
+        elif range / base <= 2:
+            range = base * 2
+        elif range / base <= 4:
+            range = base * 4
+        else:
+            range = base * 10
+
+        interval = range / 20
+        if interval >= 1:
+            min=math.floor(min/interval)*interval
+            max=math.ceil(max/interval)*interval
+        else:
+            min=math.floor(min/interval) / (1 / interval)
+            max=math.ceil(max/interval) / (1 / interval)
+        return min, max, interval            
+
 if __name__ == '__main__':
     user= os.getenv("SNOWFLAKE_USER")
     password= os.getenv("SNOWFLAKE_PASSWORD")
@@ -285,5 +318,4 @@ if __name__ == '__main__':
     print(json.dumps(result, indent=4))
     with open('report.json', 'w') as f:
         f.write(json.dumps(result, indent=4))
-
 
