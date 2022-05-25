@@ -27,6 +27,23 @@ def assert_row_count(context: AssertionContext, table: str, column: str, metrics
 
     return context.result.fail()
 
+def assert_column_type(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
+    if not column_metrics:
+        # cannot find the column in the metrics
+        return context.result.fail_with_syntax_error()
+
+    # Check assertion input
+    assert_type = context.asserts.get('type').lower()
+    column_type = column_metrics.get('type').lower()
+
+    context.result.actual = column_type
+    context.result.expected = assert_type
+
+    if column_type == assert_type:
+        return context.result.success()
+
+    return context.result.fail()
 
 def assert_column_min_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     return _assert_column_in_range(context, table, column, metrics, target_metric='min')
