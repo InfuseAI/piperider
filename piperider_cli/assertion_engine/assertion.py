@@ -86,7 +86,10 @@ class AssertionResult:
         return self
 
     def __repr__(self):
-        return str(dict(success=self._success, exception=str(self._exception)))
+        return str(dict(success=self._success,
+                        exception=str(self._exception),
+                        actual=self.actual,
+                        expected=self.expected))
 
 
 class AssertionContext:
