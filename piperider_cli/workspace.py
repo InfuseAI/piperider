@@ -478,7 +478,7 @@ def run(datasource=None, table=None, output=None, interaction=True):
         output_path = prepare_output_path(created_at, ds, output)
 
         # output profiling result
-        with open(os.path.join(output_path, f"profiler.json"), "w") as f:
+        with open(os.path.join(output_path, f".profiler.json"), "w") as f:
             f.write(json.dumps(profile_result))
 
         # TODO stop here if tests was not needed.
