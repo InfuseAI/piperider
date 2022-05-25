@@ -397,7 +397,6 @@ def _show_assertion_result(console: Console, datasource_name, results, exception
         return expected
 
     if results:
-        console.rule(f'Assertion result')
         for assertion in results:
             table = assertion.table
             column = assertion.column
@@ -449,6 +448,7 @@ def run(datasource=None, table=None, output=None, interaction=True):
         if table:
             tables = [table]
 
+        console.rule(f'Profiling')
         created_at = datetime.now()
         engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
         profiler = Profiler(engine)
@@ -456,8 +456,11 @@ def run(datasource=None, table=None, output=None, interaction=True):
 
         assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
                                                                       profile_result, created_at)
-        _show_assertion_result(console, ds.name, assertion_results, assertion_exceptions)
+        if assertion_results:
+            console.rule(f'Assertion Result')
+            _show_assertion_result(console, ds.name, assertion_results, assertion_exceptions)
 
+        console.rule(f'Summary')
         output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
                                    f"{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}")
         if output:
