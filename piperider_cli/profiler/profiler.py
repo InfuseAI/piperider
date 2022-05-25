@@ -9,19 +9,28 @@ class Profiler:
     metadata = None
 
     def __init__(self, engine):
-        self.engine = engine
-        # reflect the metadata
-        print("fetching metadata")
-        self.metadata = metadata = MetaData()
-        metadata.reflect(bind=engine)
+        self.engine = engine        
 
-    def profile(self):
-        tables = {}
+    def profile(self, tables=None):
+        # reflect the metadata
+        
+        metadata = self.metadata
+        if not metadata:
+            self.metadata = metadata = MetaData()            
+            if not tables:
+                print("fetching metadata")
+                metadata.reflect(bind=self.engine)
+            else:
+                for table in tables:
+                    print(f"fetching metadata for table '{table}'")
+                    Table(table, metadata, autoload_with=self.engine)
+
+        profiled_tables = {}
         for t in self.metadata.tables:
             tresult = self.profile_table(t)
-            tables[t] = tresult
+            profiled_tables[t] = tresult
         return {
-            "tables": tables,
+            "tables": profiled_tables,
         }
 
     def profile_table(self, table_name):
@@ -101,32 +110,39 @@ class Profiler:
             )
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _distinct = result
-            stmt = select(
-                t2.c.c,
-                func.count().label("_count")
-            ).group_by(
-                t2.c.c
-            ).order_by(
-                func.count().desc(),
-
-            ).limit(20)
-            result = conn.execute(stmt)
-            distribution = {
-                "type": "topk", # Top K Items
-                "labels": [],
-                "counts": [],
-            }
-            for row in result:
-                # distribution += [list(row)]
-                k,v = row
-                distribution["labels"].append(k)
-                distribution["counts"].append(v)
+            distribution = None
+            if _non_null > 0:
+                distribution = self._dist_topk(conn, t2.c.c, 20)
             return {
                 'total': _total,
                 'non_nulls': _non_null,
                 'distinct': _distinct,
                 'distribution': distribution,
             }
+
+    def _dist_topk(self, conn, expr, k):
+        stmt = select(
+                expr,
+                func.count().label("_count")
+            ).group_by(
+                expr
+            ).order_by(
+                func.count().desc(),
+            ).limit(k)
+        result = conn.execute(stmt)
+
+        distribution = {
+                "type": "topk", # Top K Items
+                "labels": [],
+                "counts": [],
+            }
+        for row in result:
+            k,v = row
+            if k is not None:
+                k = str(k)
+            distribution["labels"].append(k)
+            distribution["counts"].append(v)
+        return distribution
 
     def profile_numeric_column(self, table_name, column_name):
         metadata = MetaData()
@@ -146,10 +162,10 @@ class Profiler:
             )
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _distinct, _sum, _avg, _min, _max = result
-            _sum = float(_sum)
-            _avg = float(_avg)
-            _min = float(_min)
-            _max = float(_max)
+            _sum = float(_sum) if _sum is not None else None
+            _avg = float(_avg) if _avg is not None else None
+            _min = float(_min) if _min is not None else None
+            _max = float(_max) if _max is not None else None
             _num_buckets = 20
 
             def width_bucket(expr, min_value, max_value, num_buckets):
@@ -164,47 +180,51 @@ class Profiler:
                     cases, else_=num_buckets+1
                 )
 
-            dmin, _, interval = Profiler._calc_numeric_range(_min, _max)
+            
+            distribution=None
+            if _non_null == 1:
+                distribution = self._dist_topk(conn, t2.c.c, 20)            
+            elif _non_null > 0:
+                dmin, _, interval = Profiler._calc_numeric_range(_min, _max)
 
-            t2 = select(
-                t.c[column_name].label("c"), 
-                width_bucket(t.c[column_name].label("c"), dmin, dmin + interval*_num_buckets, _num_buckets).label("bucket")
-            ).where(
-                t.c[column_name] != None
-            ).cte(name="T")
-            distribution = {
-                "type": "histogram",
-                "labels": [],
-                "counts": [],
-            }
-            stmt = select(
-                t2.c.bucket,
-                func.count().label("_count")                        
-            ).group_by(
-                t2.c.bucket
-            ).order_by(
-                t2.c.bucket
-            )
-            print(stmt)
-            result = conn.execute(stmt)
-            for i in range(_num_buckets):
-                label = f"{i * interval + dmin} -  {(i + 1) * interval + dmin}"
+                t2 = select(
+                    t.c[column_name].label("c"), 
+                    width_bucket(t.c[column_name].label("c"), dmin, dmin + interval*_num_buckets, _num_buckets).label("bucket")
+                ).where(
+                    t.c[column_name] != None
+                ).cte(name="T")                
+                stmt = select(
+                    t2.c.bucket,
+                    func.count().label("_count")                        
+                ).group_by(
+                    t2.c.bucket
+                ).order_by(
+                    t2.c.bucket
+                )
+                result = conn.execute(stmt)
+                distribution = {
+                    "type": "histogram",
+                    "labels": [],
+                    "counts": [],
+                }
+                for i in range(_num_buckets):
+                    label = f"{i * interval + dmin} -  {(i + 1) * interval + dmin}"
 
-                distribution["labels"].append(label)
-                distribution["counts"].append(0)
+                    distribution["labels"].append(label)
+                    distribution["counts"].append(0)
 
-            for row in result:
-                _bucket, v = row
-                distribution["counts"][int(_bucket-1)] = v
+                for row in result:
+                    _bucket, v = row
+                    distribution["counts"][int(_bucket-1)] = v
 
             return {
                 'total': _total,
                 'non_nulls': _non_null,
                 'distinct': _distinct,
-                'min': float(_min),
-                'max': float(_max),
-                'sum': float(_sum),
-                'avg': float(_avg),
+                'min': _min,
+                'max': _max,
+                'sum': _sum,
+                'avg': _avg,
                 'distribution': distribution,
             }
 
@@ -278,7 +298,6 @@ class Profiler:
     @staticmethod
     def _calc_numeric_range(min, max) :    
         import math
-        print(f"({min}, {max})")
         if min > 0 and max / 2 > min:
             min=0
         range = max - min
