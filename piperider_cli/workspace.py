@@ -389,18 +389,27 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
 
 def _show_assertion_result(console: Console, datasource_name, results, exceptions):
     if results:
+        max_target_len = 0
+        max_assert_len = 0
+        for assertion in results:
+            if assertion.column:
+                target = f'{assertion.table}.{assertion.column}'
+                max_target_len = max(max_target_len, len(target))
+            max_assert_len = max(max_assert_len, len(assertion.name))
         for assertion in results:
             table = assertion.table
             column = assertion.column
             test_function = assertion.name
+            test_function = test_function.ljust(max_assert_len+1)
             success = assertion.result.status()
             target = f'{table}.{column}' if column else table
+            target = target.ljust(max_target_len+1)
             if success:
                 console.print(
-                    f'[[bold green]  OK  [/bold green]] {target} : {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
+                    f'[[bold green]  OK  [/bold green]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
             else:
                 console.print(
-                    f'[[bold red]FAILED[/bold red]] {target} : {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
+                    f'[[bold red]FAILED[/bold red]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
     # TODO: Handle exceptions
     pass
 
