@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import uuid
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from getpass import getpass
@@ -16,7 +17,7 @@ from piperider_cli.profiler import Profiler
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
 PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'credentials.yml')
-PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'output')
+PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
 
 DBT_PROFILE_DEFAULT_PATH = os.path.join(os.path.expanduser('~'), '.dbt/profiles.yml')
 
@@ -364,6 +365,73 @@ def debug(configuration: Configuration = None):
     return has_error
 
 
+def _execute_assertions(console: Console, profiler, ds: DataSource, interaction: bool, output, result, created_at):
+    # TODO: Implement running test cases based on profiling result
+    assertion_engine = AssertionEngine(profiler)
+    assertion_engine.load_assertions()
+
+    if not assertion_engine.assertions_content:
+        console.print(f'No assertions found for datasource [ {ds.name} ]')
+        if interaction:
+            console.print(f'Do you want to auto generate assertion templates for this datasource \[yes/no]?',
+                          end=' ')
+            confirm = input('').strip().lower()
+            if confirm == 'yes' or confirm == 'y':
+                assertion_engine.generate_assertion_templates()
+        else:
+            assertion_engine.generate_assertion_templates()
+        console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
+        return None, None  # no assertion to run
+    else:
+        results, exceptions = assertion_engine.evaluate_all(result)
+        return results, exceptions
+
+
+def _show_assertion_result(console: Console, datasource_name, results, exceptions):
+    if results:
+        max_target_len = 0
+        max_assert_len = 0
+        for assertion in results:
+            if assertion.column:
+                target = f'{assertion.table}.{assertion.column}'
+                max_target_len = max(max_target_len, len(target))
+            max_assert_len = max(max_assert_len, len(assertion.name))
+        for assertion in results:
+            table = assertion.table
+            column = assertion.column
+            test_function = assertion.name
+            test_function = test_function.ljust(max_assert_len+1)
+            success = assertion.result.status()
+            target = f'{table}.{column}' if column else table
+            target = target.ljust(max_target_len+1)
+            if success:
+                console.print(
+                    f'[[bold green]  OK  [/bold green]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
+            else:
+                console.print(
+                    f'[[bold red]FAILED[/bold red]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
+    # TODO: Handle exceptions
+    pass
+
+
+def _transform_assertion_result(results):
+    if not results:
+        return
+
+    tests = []
+    columns = {}
+    for r in results:
+        entry = r.to_result_entry()
+        if r.column:
+            if not r.column in columns:
+                columns[r.column] = []
+            columns[r.column].append(entry)
+        else:
+            tests.append(entry)
+
+    return dict(tests=tests, columns=columns)
+
+
 def run(datasource=None, table=None, output=None, interaction=True):
     console = Console()
     configuration = Configuration.load()
@@ -400,41 +468,47 @@ def run(datasource=None, table=None, output=None, interaction=True):
         if table:
             tables = [table]
 
+        console.rule(f'Profiling')
+        run_id = uuid.uuid4().hex
         created_at = datetime.now()
         engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
         profiler = Profiler(engine)
-        if tables:
-            result = dict(tables={})
-            for table in tables:
-                result['tables'][table] = profiler.profile_table(table)
-        else:
-            result = profiler.profile()
+        profile_result = profiler.profile(tables)
 
-        # TODO: Implement running test cases based on profiling result
-        assertion_engine = AssertionEngine(profiler)
-        assertion_engine.load_assertions()
-        if len(assertion_engine.assertions_content) == 0:
-            console.print(f'No assertions found for datasource [ {ds.name} ]')
-            if interaction:
-                console.print(f'Do you want to auto generate assertion templates for this datasource \[yes/no]?',
-                              end=' ')
-                confirm = input('').strip().lower()
-                if confirm == 'yes' or confirm == 'y':
-                    assertion_engine.generate_assertion_templates()
-            else:
-                assertion_engine.generate_assertion_templates()
+        output_path = prepare_output_path(created_at, ds, output)
 
-        output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
-                                   f"{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}")
-        if output:
-            output_path = output
-        if not os.path.exists(output_path):
-            os.makedirs(output_path, exist_ok=True)
-        for t in result['tables']:
+        # output profiling result
+        with open(os.path.join(output_path, f".profiler.json"), "w") as f:
+            f.write(json.dumps(profile_result))
+
+        # TODO stop here if tests was not needed.
+        assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
+                                                                      profile_result, created_at)
+        if assertion_results:
+            console.rule(f'Assertion Results')
+            _show_assertion_result(console, ds.name, assertion_results, assertion_exceptions)
+
+        console.rule(f'Summary')
+
+        for t in profile_result['tables']:
             output_file = os.path.join(output_path, f"{t}.json")
+            profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(assertion_results)
+            profile_result['tables'][t]['id'] = run_id
+            profile_result['tables'][t]['created_at'] = created_at.strftime('%Y-%m-%d %H:%M:%S.%f')
+
             with open(output_file, 'w') as f:
-                f.write(json.dumps(result['tables'][t], indent=4))
+                f.write(json.dumps(profile_result['tables'][t], indent=4))
         console.print(f'Results saved to {output_path}')
+
+
+def prepare_output_path(created_at, ds, output):
+    output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
+                               f"{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}")
+    if output:
+        output_path = output
+    if not os.path.exists(output_path):
+        os.makedirs(output_path, exist_ok=True)
+    return output_path
 
 
 def generate_report():

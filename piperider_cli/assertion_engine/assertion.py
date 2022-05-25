@@ -1,4 +1,5 @@
 import os
+from importlib import import_module
 
 from ruamel import yaml
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
@@ -33,6 +34,124 @@ def load_yaml_configs(path):
     return passed, failed, content
 
 
+class IllegalStateAssertionException(BaseException):
+    pass
+
+
+class AssertionResult:
+
+    def __init__(self):
+        self._success: bool = False
+        self._exception: Exception = None
+        self.actual: dict = None
+        self._expected: dict = None
+
+    def status(self):
+        return self._success
+
+    def expected(self):
+        return self._expected
+
+    def validate(self):
+        if not self.actual or not self._expected:
+            return self.fail_with_assertion_implementation_error()
+        return self
+
+    def success(self, actual=None):
+        if actual:
+            self.actual = actual
+
+        self._success = True
+        return self
+
+    def fail(self, actual=None):
+        if actual:
+            self.actual = actual
+
+        self._success = False
+        return self
+
+    def fail_with_exception(self, exception):
+        self._success = False
+        self._exception = exception
+        return self
+
+    def fail_with_syntax_error(self):
+        self._success = False
+        self._exception = SyntaxError()
+        return self
+
+    def fail_with_assertion_implementation_error(self):
+        self._success = False
+        self._exception = IllegalStateAssertionException(
+            "Assertion Function should fill 'actual' and 'expected' fields.")
+        return self
+
+    def __repr__(self):
+        return str(self.to_json())
+
+    def to_json(self):
+        return dict(success=self._success,
+                    exception=str(self._exception),
+                    actual=self.actual,
+                    expected=self._expected)
+
+
+class AssertionContext:
+    def __init__(self, table_name: str, column_name: str, assertion_name: str, payload: dict):
+        self.name: str = assertion_name
+        self.table: str = table_name
+        self.column: str = column_name
+        self.parameters: dict = {}
+        self.asserts: dict = {}
+        self.tags: list = []
+
+        # result
+        self.result: AssertionResult = AssertionResult()
+
+        self._load(payload)
+
+    def _load(self, payload):
+        def _find_name(l: list, name: str):
+            for i in l:
+                if i.get('name') == name:
+                    return i
+
+        table = payload.get(self.table)
+        if self.column:
+            column = table.get('columns', {}).get(self.column, {})
+            assertion = _find_name(column.get('tests', []), self.name)
+        else:
+            assertion = _find_name(table.get('tests', []), self.name)
+
+        self.parameters = assertion.get('parameters', {})
+        self.asserts = assertion.get('assert', {})
+        self.tags = assertion.get('tags', [])
+        self.result._expected = self.asserts
+        pass
+
+    def __repr__(self):
+        return str(self.__dict__)
+
+    def to_json(self):
+        r = dict(**self.__dict__)
+        r['result'] = r['result'].to_json()
+        return r
+
+    def to_result_entry(self):
+        return dict(
+            name=self.name,
+            status='success' if self.result._success == True else 'failed',
+            parameters=self.parameters,
+            expected=self.result._expected,
+            actual=self.result.actual,
+            tags=self.tags,
+        )
+
+class AssertionException(BaseException):
+    pass
+
+
 class AssertionEngine:
     """
     This class is used to evaluate the assertion.
@@ -45,6 +164,7 @@ class AssertionEngine:
         self.profiler = profiler
         self.assertion_search_path = assertion_search_path
         self.assertions_content = {}
+        self.assertions = []
         pass
 
     @staticmethod
@@ -62,8 +182,20 @@ class AssertionEngine:
         :param assertion_search_path:
         :return:
         """
+        """
+        Example:
+        {'nodes': {'tests': [], 'columns': {'uid': {'tests': []}, 'type': {'tests': []}, 'name': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'metadata': {'tests': []}}}, 'edges': {'tests': [], 'columns': {'n1_uid': {'tests': []}, 'n2_uid': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'type': {'tests': []}, 'metadata': {'tests': []}}}}
+        """
         passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
             self.assertion_search_path)
+
+        # Load assertion
+        for t in self.assertions_content:
+            for ta in self.assertions_content[t].get('tests', []):
+                self.assertions.append(AssertionContext(t, None, ta.get('name'), self.assertions_content))
+            for c in self.assertions_content[t].get('columns', {}):
+                for ca in self.assertions_content[t]['columns'][c].get('tests', []):
+                    self.assertions.append(AssertionContext(t, c, ca.get('name'), self.assertions_content))
         pass
 
     def generate_assertion_templates(self):
@@ -109,10 +241,53 @@ class AssertionEngine:
                 yaml.YAML().dump(assertion, f)
         pass
 
-    def evaluate(self, assertion):
+    def evaluate(self, assertion: AssertionContext, metrics_result):
         """
         This method is used to evaluate the assertion.
         :param assertion:
         :return:
         """
-        pass
+
+        """
+        example:
+
+        - name: get_outliers # test method used under distribution metric
+            parameters:
+              method: method1 # get_outliers's input parameter
+              window: 3 # get_outliers's input parameter
+              threshold: [15,100] # get_outliers's input parameter, range from 15 to 100
+		    assert:
+              outliers: 5 # in get_outliers's verification logic, check outliers parameter and return true if it's less than 5
+        """
+
+        func = None
+        # locate the builtin assertion from the piperider_cli.assertion_engine
+        try:
+            # fetch the assertion function
+            assertion_module = import_module(f'piperider_cli.assertion_engine')
+            func = getattr(assertion_module, assertion.name)
+        except Exception as e:
+            raise AssertionException(f'Cannot find the assertion: {assertion.name}')
+
+        try:
+            result = func(assertion, assertion.table, assertion.column, metrics_result)
+            result.validate()
+        except Exception as e:
+            assertion.result.fail_with_exception(e)
+
+        return assertion
+
+    def evaluate_all(self, metrics_result):
+        results = []
+        exceptions = []
+
+        for assertion in self.assertions:
+            try:
+                assertion_result = self.evaluate(assertion, metrics_result)
+                results.append(assertion_result)
+            except AssertionException as e:
+                # TODO print it to console?
+                print(e)
+            except BaseException as e:
+                exceptions.append((assertion, e))
+        return results, exceptions
