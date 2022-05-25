@@ -33,6 +33,40 @@ def load_yaml_configs(path):
     return passed, failed, content
 
 
+class Assertion:
+    def __init__(self, table_name: str, column_name: str, assertion_name: str, payload: dict):
+        self.name: str = assertion_name
+        self.table: str = table_name
+        self.column: str = column_name
+        self.parameters: dict = {}
+        self.asserts: dict = {}
+        self.tags: list = []
+
+        self._load(payload)
+
+    def _load(self, payload):
+        def _find_name(l: list, name: str):
+            for i in l:
+                if i.get('name') == name:
+                    return i
+
+        table = payload.get(self.table)
+        if self.column:
+            column = table.get('columns', {}).get(self.column, {})
+            assertion = _find_name(column.get('tests', []), self.name)
+        else:
+            assertion = _find_name(table.get('tests', []), self.name)
+
+        self.parameters = assertion.get('parameters', {})
+        self.asserts = assertion.get('assert', {})
+        self.tags = assertion.get('tags', [])
+        pass
+
+    def evaluate(self, metrics) -> bool:
+        # get some specific metrics and generate the result [true | false]
+        pass
+
+
 class AssertionEngine:
     """
     This class is used to evaluate the assertion.
@@ -45,6 +79,7 @@ class AssertionEngine:
         self.profiler = profiler
         self.assertion_search_path = assertion_search_path
         self.assertions_content = {}
+        self.assertions = []
         pass
 
     @staticmethod
@@ -62,8 +97,20 @@ class AssertionEngine:
         :param assertion_search_path:
         :return:
         """
+        """
+        Example:
+        {'nodes': {'tests': [], 'columns': {'uid': {'tests': []}, 'type': {'tests': []}, 'name': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'metadata': {'tests': []}}}, 'edges': {'tests': [], 'columns': {'n1_uid': {'tests': []}, 'n2_uid': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'type': {'tests': []}, 'metadata': {'tests': []}}}}
+        """
         passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
             self.assertion_search_path)
+
+        # Load assertion
+        for t in self.assertions_content:
+            for ta in self.assertions_content[t].get('tests', []):
+                self.assertions.append(Assertion(t, None, ta.get('name'), self.assertions_content))
+            for c in self.assertions_content[t].get('columns', {}):
+                for ca in self.assertions_content[t]['columns'][c].get('tests', []):
+                    self.assertions.append(Assertion(t, c, ca.get('name'), self.assertions_content))
         pass
 
     def generate_assertion_templates(self):
@@ -109,10 +156,40 @@ class AssertionEngine:
                 yaml.YAML().dump(assertion, f)
         pass
 
-    def evaluate(self, assertion):
+    def evaluate(self, assertion, metrics_result):
         """
         This method is used to evaluate the assertion.
         :param assertion:
         :return:
         """
+
+        """
+        example:
+
+        - name: get_outliers # test method used under distribution metric
+            parameters:
+              method: method1 # get_outliers's input parameter
+              window: 3 # get_outliers's input parameter
+              threshold: [15,100] # get_outliers's input parameter, range from 15 to 100
+		    assert:
+              outliers: 5 # in get_outliers's verification logic, check outliers parameter and return true if it's less than 5
+        """
+
+        # input
+        # [table, column]
+        # parameters (optional)
+        # assert (optional)
+
         pass
+
+    def evaluate_all(self, metrics_result):
+        results = []
+        exceptions = []
+
+        for assertion in self.assertions:
+            try:
+                assertion_result = self.evaluate(assertion, metrics_result)
+                results.append(assertion_result)
+            except BaseException as e:
+                exceptions.append((assertion, e))
+        return results, exceptions

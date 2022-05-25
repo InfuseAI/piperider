@@ -16,7 +16,7 @@ from piperider_cli.profiler import Profiler
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
 PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'credentials.yml')
-PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'output')
+PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
 
 DBT_PROFILE_DEFAULT_PATH = os.path.join(os.path.expanduser('~'), '.dbt/profiles.yml')
 
@@ -364,6 +364,25 @@ def debug(configuration: Configuration = None):
     return has_error
 
 
+def _execute_assertions(console: Console, profiler, ds: DataSource, interaction: bool, output, result, created_at):
+    # TODO: Implement running test cases based on profiling result
+    assertion_engine = AssertionEngine(profiler)
+    assertion_engine.load_assertions()
+
+    if not assertion_engine.assertions_content:
+        console.print(f'No assertions found for datasource [ {ds.name} ]')
+        if interaction:
+            console.print(f'Do you want to auto generate assertion templates for this datasource \[yes/no]?',
+                          end=' ')
+            confirm = input('').strip().lower()
+            if confirm == 'yes' or confirm == 'y':
+                assertion_engine.generate_assertion_templates()
+        else:
+            assertion_engine.generate_assertion_templates()
+    else:
+        assertion_engine.evaluate_all(result)
+
+
 def run(datasource=None, table=None, output=None, interaction=True):
     console = Console()
     configuration = Configuration.load()
@@ -403,26 +422,9 @@ def run(datasource=None, table=None, output=None, interaction=True):
         created_at = datetime.now()
         engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
         profiler = Profiler(engine)
-        if tables:
-            result = dict(tables={})
-            for table in tables:
-                result['tables'][table] = profiler.profile_table(table)
-        else:
-            result = profiler.profile()
+        profile_result = profiler.profile(tables)
 
-        # TODO: Implement running test cases based on profiling result
-        assertion_engine = AssertionEngine(profiler)
-        assertion_engine.load_assertions()
-        if len(assertion_engine.assertions_content) == 0:
-            console.print(f'No assertions found for datasource [ {ds.name} ]')
-            if interaction:
-                console.print(f'Do you want to auto generate assertion templates for this datasource \[yes/no]?',
-                              end=' ')
-                confirm = input('').strip().lower()
-                if confirm == 'yes' or confirm == 'y':
-                    assertion_engine.generate_assertion_templates()
-            else:
-                assertion_engine.generate_assertion_templates()
+        _execute_assertions(console, profiler, ds, interaction, output, profile_result, created_at)
 
         output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
                                    f"{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}")
@@ -430,10 +432,10 @@ def run(datasource=None, table=None, output=None, interaction=True):
             output_path = output
         if not os.path.exists(output_path):
             os.makedirs(output_path, exist_ok=True)
-        for t in result['tables']:
+        for t in profile_result['tables']:
             output_file = os.path.join(output_path, f"{t}.json")
             with open(output_file, 'w') as f:
-                f.write(json.dumps(result['tables'][t], indent=4))
+                f.write(json.dumps(profile_result['tables'][t], indent=4))
         console.print(f'Results saved to {output_path}')
 
 

@@ -9,14 +9,14 @@ class Profiler:
     metadata = None
 
     def __init__(self, engine):
-        self.engine = engine        
+        self.engine = engine
 
     def profile(self, tables=None):
         # reflect the metadata
-        
+
         metadata = self.metadata
         if not metadata:
-            self.metadata = metadata = MetaData()            
+            self.metadata = metadata = MetaData()
             if not tables:
                 print("fetching metadata")
                 metadata.reflect(bind=self.engine)
@@ -26,7 +26,10 @@ class Profiler:
                     Table(table, metadata, autoload_with=self.engine)
 
         profiled_tables = {}
-        for t in self.metadata.tables:
+        if not tables:
+            tables = self.metadata.tables
+
+        for t in tables:
             tresult = self.profile_table(t)
             profiled_tables[t] = tresult
         return {
@@ -79,7 +82,7 @@ class Profiler:
             # FLOAT
             generic_type = "numeric"
             result = self.profile_numeric_column(table_name, c.name)
-        elif isinstance(c.type, Date) or isinstance(c.type, DateTime) :
+        elif isinstance(c.type, Date) or isinstance(c.type, DateTime):
             # DATE
             # DATETIME
             generic_type = "datetime"
@@ -182,10 +185,10 @@ class Profiler:
                     cases, else_=None
                 )
 
-            
+
             distribution=None
             if _non_null == 1:
-                distribution = self._dist_topk(conn, t2.c.c, 20)            
+                distribution = self._dist_topk(conn, t2.c.c, 20)
             elif _non_null > 0:
                 dmin, dmax, interval = Profiler._calc_numeric_range(_min, _max)
 
@@ -194,10 +197,10 @@ class Profiler:
                     map_bucket(t.c[column_name].label("c"), dmin, dmin + interval*_num_buckets, _num_buckets).label("bucket")
                 ).where(
                     t.c[column_name] != None
-                ).cte(name="T")                
+                ).cte(name="T")
                 stmt = select(
                     t2.c.bucket,
-                    func.count().label("_count")                        
+                    func.count().label("_count")
                 ).group_by(
                     t2.c.bucket
                 ).order_by(
@@ -250,7 +253,7 @@ class Profiler:
                 func.max(t2.c.c).label("_max"),
             )
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _distinct, _min, _max,  = result
+            _total, _non_null, _distinct, _min, _max, = result
 
             t2 = select(func.date_trunc("YEAR", t.c[column_name]).label("d")).cte(name="T")
             distribution = {
@@ -303,7 +306,7 @@ class Profiler:
 
 
     @staticmethod
-    def _calc_numeric_range(min, max) :    
+    def _calc_numeric_range(min, max) :
         import math
         if min > 0 and max / 2 > min:
             min=0
@@ -353,7 +356,7 @@ if __name__ == '__main__':
     profiler = Profiler(engine)
     result = profiler.profile()
     import json
+
     print(json.dumps(result, indent=4))
     with open('report.json', 'w') as f:
         f.write(json.dumps(result, indent=4))
-
