@@ -88,10 +88,13 @@ class AssertionResult:
         return self
 
     def __repr__(self):
-        return str(dict(success=self._success,
-                        exception=str(self._exception),
-                        actual=self.actual,
-                        expected=self._expected))
+        return str(self.to_json())
+
+    def to_json(self):
+        return dict(success=self._success,
+                    exception=str(self._exception),
+                    actual=self.actual,
+                    expected=self._expected)
 
 
 class AssertionContext:
@@ -129,6 +132,11 @@ class AssertionContext:
 
     def __repr__(self):
         return str(self.__dict__)
+
+    def to_json(self):
+        r = dict(**self.__dict__)
+        r['result'] = r['result'].to_json()
+        return r
 
 
 class AssertionException(BaseException):

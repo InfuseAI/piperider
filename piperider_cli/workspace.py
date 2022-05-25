@@ -463,10 +463,9 @@ def run(datasource=None, table=None, output=None, interaction=True):
 
         for t in profile_result['tables']:
             output_file = os.path.join(output_path, f"{t}.json")
-            # TODO: Handle the assertion result as dict not string
-            profile_result['tables'][t]['assertions'] = assertion_results
+            profile_result['tables'][t]['assertions'] = [r.to_json() for r in assertion_results]
             with open(output_file, 'w') as f:
-                f.write(json.dumps(profile_result['tables'][t], indent=4, cls=DatetimeEncoder))
+                f.write(json.dumps(profile_result['tables'][t], indent=4))
         console.print(f'Results saved to {output_path}')
 
 
@@ -478,14 +477,6 @@ def prepare_output_path(created_at, ds, output):
     if not os.path.exists(output_path):
         os.makedirs(output_path, exist_ok=True)
     return output_path
-
-
-class DatetimeEncoder(json.JSONEncoder):
-    def default(self, obj):
-        try:
-            return super().default(obj)
-        except TypeError:
-            return str(obj)
 
 
 def generate_report():
