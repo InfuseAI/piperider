@@ -30,7 +30,7 @@ setup(name='piperider-cli',
           'sqlalchemy',
           'snowflake-sqlalchemy',
           # you need a postgres for m1 to install psycopg2 ^^"
-          'psycopg2',
+          'psycopg2-binary',
           'rich',
           'click',
       ],
