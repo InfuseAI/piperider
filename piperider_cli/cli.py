@@ -34,7 +34,8 @@ def version():
 
 
 @cli.command(short_help='Initialize PipeRider configurations')
-@click.option('--provider', type=click.Choice(['dbt-local']), default=None)
+@click.option('--provider', type=click.Choice(['dbt-local', 'customized']), default='dbt-local',
+              help='Select the provider of datasource')
 @add_options(debug_option)
 def init(**kwargs):
     console = Console()
