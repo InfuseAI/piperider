@@ -168,16 +168,18 @@ class Profiler:
             _max = float(_max) if _max is not None else None
             _num_buckets = 20
 
-            def width_bucket(expr, min_value, max_value, num_buckets):
+            def map_bucket(expr, min_value, max_value, num_buckets):
                 interval = (max_value - min_value) / num_buckets
                 cases = []
-                cases += [(expr == None, None)]
                 for i in range(num_buckets):
-                    bound = min_value + interval * i
-                    cases += [(expr < bound, i)]
-                cases += [(expr <= max_value, num_buckets)]                
+                    bound = min_value + interval * (i+1)
+                    if i != num_buckets-1:
+                        cases += [(expr < bound, i)]
+                    else:
+                        cases += [(expr <= bound, i)]
+                
                 return case(
-                    cases, else_=num_buckets+1
+                    cases, else_=None
                 )
 
             
@@ -185,11 +187,11 @@ class Profiler:
             if _non_null == 1:
                 distribution = self._dist_topk(conn, t2.c.c, 20)            
             elif _non_null > 0:
-                dmin, _, interval = Profiler._calc_numeric_range(_min, _max)
+                dmin, dmax, interval = Profiler._calc_numeric_range(_min, _max)
 
                 t2 = select(
                     t.c[column_name].label("c"), 
-                    width_bucket(t.c[column_name].label("c"), dmin, dmin + interval*_num_buckets, _num_buckets).label("bucket")
+                    map_bucket(t.c[column_name].label("c"), dmin, dmin + interval*_num_buckets, _num_buckets).label("bucket")
                 ).where(
                     t.c[column_name] != None
                 ).cte(name="T")                
@@ -208,14 +210,19 @@ class Profiler:
                     "counts": [],
                 }
                 for i in range(_num_buckets):
-                    label = f"{i * interval + dmin} -  {(i + 1) * interval + dmin}"
+                    if interval >= 1:                
+                        label = f"{i * interval + dmin} -  {(i + 1) * interval + dmin}"
+                    else:
+                        label = f"{i / (1 / interval) + dmin} -  {(i + 1) / (1 / interval) + dmin}"
 
                     distribution["labels"].append(label)
                     distribution["counts"].append(0)
 
-                for row in result:
+                for row in result:                    
                     _bucket, v = row
-                    distribution["counts"][int(_bucket-1)] = v
+                    if _bucket is None:
+                        continue
+                    distribution["counts"][int(_bucket)] = v
 
             return {
                 'total': _total,
@@ -300,6 +307,14 @@ class Profiler:
         import math
         if min > 0 and max / 2 > min:
             min=0
+        elif min == max:
+            if min == 0:
+                min = 0
+                max = 1
+            elif min > 0:
+                min = 0
+            else:
+                max = 0            
         range = max - min
 
         # find the range
@@ -320,13 +335,17 @@ class Profiler:
         else:
             min=math.floor(min/interval) / (1 / interval)
             max=math.ceil(max/interval) / (1 / interval)
-        return min, max, interval            
+
+        if max - min > interval * 20:
+            return Profiler._calc_numeric_range(min, max)            
+        else:
+            return min, max, interval            
 
 if __name__ == '__main__':
     user= os.getenv("SNOWFLAKE_USER")
     password= os.getenv("SNOWFLAKE_PASSWORD")
     account=os.getenv("SNOWFLAKE_ACCOUNT")
-    database="INFUSE_FINANCE"
+    database="DEMO"
     schema="PUBLIC"
     warehouse="COMPUTE_WH"
 
