@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import uuid
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from getpass import getpass
@@ -456,6 +457,7 @@ def run(datasource=None, table=None, output=None, interaction=True):
             tables = [table]
 
         console.rule(f'Profiling')
+        run_id = uuid.uuid4().hex
         created_at = datetime.now()
         engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
         profiler = Profiler(engine)
@@ -471,7 +473,7 @@ def run(datasource=None, table=None, output=None, interaction=True):
         assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
                                                                       profile_result, created_at)
         if assertion_results:
-            console.rule(f'Assertion Result')
+            console.rule(f'Assertion Results')
             _show_assertion_result(console, ds.name, assertion_results, assertion_exceptions)
 
         console.rule(f'Summary')
@@ -479,6 +481,9 @@ def run(datasource=None, table=None, output=None, interaction=True):
         for t in profile_result['tables']:
             output_file = os.path.join(output_path, f"{t}.json")
             profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(assertion_results)
+            profile_result['tables'][t]['id'] = run_id
+            profile_result['tables'][t]['created_at'] = created_at.strftime('%Y-%m-%d %H:%M:%S.%f')
+
             with open(output_file, 'w') as f:
                 f.write(json.dumps(profile_result['tables'][t], indent=4))
         console.print(f'Results saved to {output_path}')
