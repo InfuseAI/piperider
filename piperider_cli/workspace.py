@@ -561,5 +561,51 @@ def prepare_output_path(created_at, ds, output):
     return output_path
 
 
-def generate_report():
-    raise NotImplemented
+def _validate_input_result(result):
+    for f in ['name', 'row_count', 'col_count', 'columns', 'assertion_results', 'id', 'created_at']:
+        if f not in result:
+            return False
+    return True
+
+
+def _generate_static_html(console: Console, result):
+    table = result['name']
+    # TODO load a html template and bind the result
+    console.print(f'table: {table}')
+    pass
+
+
+def generate_report(input=None, base=None):
+    console = Console()
+
+    if input:
+        if not os.path.exists(input):
+            console.print(f'[bold red]Error: {input} not found[/bold red]')
+            return
+
+        with open(input) as f:
+            result = json.loads(f.read())
+        if not _validate_input_result(result):
+            console.print(f'[bold red]Error: invalid input file[/bold red]')
+            return
+        if base:
+            # TODO check base file and generate comparison report
+            pass
+        else:
+            _generate_static_html(console, result)
+    elif base:
+        console.print(f'[bold red]Error: require input file[/bold red]')
+    else:
+        result_dirs = [entry for entry in os.scandir(PIPERIDER_OUTPUT_PATH) if entry.is_dir()]
+        result_dirs.sort(key=lambda x: x.stat().st_ctime, reverse=False)
+        latest = result_dirs.pop()
+        for result_file in os.scandir(latest.path):
+            if not result_file.is_file():
+                continue
+            if result_file.name.endswith('.json') and result_file.name != '.profiler.json':
+                with open(result_file.path) as f:
+                    result = json.loads(f.read())
+                if not _validate_input_result(result):
+                    console.print(f'[bold dark_orange]Warning: {result_file.path} is invalid[/bold dark_orange]')
+                    continue
+                _generate_static_html(console, result)
