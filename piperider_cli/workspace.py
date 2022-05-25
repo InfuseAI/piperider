@@ -404,6 +404,21 @@ def _show_assertion_result(console: Console, datasource_name, results, exception
     pass
 
 
+def _transform_assertion_result(results):
+    tests = []
+    columns = {}
+    for r in results:
+        entry = r.to_result_entry()
+        if r.column:
+            if not r.column in columns:
+                columns[r.column] = []
+            columns[r.column].append(entry)
+        else:
+            tests.append(entry)
+
+    return dict(tests=tests, columns=columns)
+
+
 def run(datasource=None, table=None, output=None, interaction=True):
     console = Console()
     configuration = Configuration.load()
@@ -463,7 +478,7 @@ def run(datasource=None, table=None, output=None, interaction=True):
 
         for t in profile_result['tables']:
             output_file = os.path.join(output_path, f"{t}.json")
-            profile_result['tables'][t]['assertions'] = [r.to_json() for r in assertion_results]
+            profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(assertion_results)
             with open(output_file, 'w') as f:
                 f.write(json.dumps(profile_result['tables'][t], indent=4))
         console.print(f'Results saved to {output_path}')

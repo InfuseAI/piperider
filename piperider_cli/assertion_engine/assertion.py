@@ -138,6 +138,15 @@ class AssertionContext:
         r['result'] = r['result'].to_json()
         return r
 
+    def to_result_entry(self):
+        return dict(
+            name=self.name,
+            status='success' if self.result._success == True else 'failed',
+            parameters=self.parameters,
+            expected=self.result._expected,
+            actual=self.result.actual,
+            tags=self.tags,
+        )
 
 class AssertionException(BaseException):
     pass
