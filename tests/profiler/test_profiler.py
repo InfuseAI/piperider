@@ -1,3 +1,5 @@
+from datetime import date
+
 from piperider_cli.profiler import Profiler
 from sqlalchemy import *
 from typing import List
@@ -17,7 +19,7 @@ class TestProfiler:
             columns = []
             if len(data) == 0:
                 raise Exception("columns is not specified and data is empty")
-            first=data[0]
+            first = data[0]
             for i in range(len(header)):
                 col_name = header[i]
                 value = first[i]
@@ -27,7 +29,9 @@ class TestProfiler:
                 elif isinstance(value, float):
                     col=Column(col_name, Float)
                 elif isinstance(value, int):
-                    col=Column(col_name, Integer)
+                    col = Column(col_name, Integer)
+                elif isinstance(value, date):
+                    col = Column(col_name, DateTime)
                 else:
                     raise Exception(f"not support type: {type(value)}")
                 columns.append(col)
@@ -76,9 +80,9 @@ class TestProfiler:
         profiler = Profiler(engine)
         result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
         assert result["labels"][0] == '0 _ 1'
-        assert result["counts"][0] == 1        
+        assert result["counts"][0] == 1
         assert result["labels"][19] == '19 _'
-        assert result["counts"][19] == 1        
+        assert result["counts"][19] == 1
         assert result["counts"][5] == 0
 
         # number range within 20
@@ -94,7 +98,7 @@ class TestProfiler:
         assert result["labels"][0] == '1'
         assert result["counts"][0] == 1
         assert result["labels"][19] == '20'
-        assert result["counts"][19] == 1        
+        assert result["counts"][19] == 1
         assert result["counts"][5] == 0
 
         #
@@ -105,7 +109,7 @@ class TestProfiler:
             (100,),
             (1000,),
             (500,),
-            (750,),            
+            (750,),
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
@@ -138,7 +142,7 @@ class TestProfiler:
             (100.0,),
             (1000.0,),
             (500.0,),
-            (750.0,),            
+            (750.0,),
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
@@ -156,7 +160,7 @@ class TestProfiler:
             (100.0,),
             (1000.0,),
             (500.0,),
-            (750.0,),            
+            (750.0,),
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
@@ -167,6 +171,23 @@ class TestProfiler:
         assert result["counts"][12] == 1
         assert result["labels"][19] == '1700.0 _'
         assert result["counts"][19] == 0
+
+    def test_date_boundary(self):
+        engine = self.engine = create_engine('sqlite://')
+
+        data = [
+            ("date",),
+            (date(2000, 5, 26),),
+            (date(2022, 6, 26),),
+            (date(2022, 7, 26),),
+        ]
+        self.create_table("test", data)
+        profiler = Profiler(engine)
+        result = profiler.profile()
+        import json
+        print(json.dumps(result, indent=4))
+        assert result["tables"]["test"]['columns']["date"]["distribution"]["counts"][0] == 1
+        assert result["tables"]["test"]['columns']["date"]["distribution"]["counts"][-1] == 2
 
     def test_empty_table(self):
         engine = self.engine = create_engine('sqlite://')

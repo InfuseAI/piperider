@@ -291,20 +291,35 @@ class Profiler:
                     "counts": [],
                 }
 
+                def date_trunc(*args):
+                    if self.engine.url.get_backend_name() == "sqlite":
+                        if args[0] == "YEAR":
+                            return func.strftime("%Y-01-01", args[1])
+                        elif args[0] == "MONTH":
+                            return func.strftime("%Y-%m-01", args[1])
+                        else:
+                            return func.strftime("%Y-%m-%d", args[1])
+                    else:
+                        return func.date_trunc(*args)
+
                 dmin, dmax, interval = Profiler._calc_date_range(_min, _max)
                 if interval.years:
                     distribution["type"] = "yearly"
                     period = relativedelta(dmax, dmin)
                     num_buckets = math.ceil(period.years / interval.years)
-                    t2 = select(func.date_trunc("YEAR", t.c[column_name]).label("d")).cte(name="T")
+                    t2 = select(date_trunc("YEAR", t.c[column_name]).label("d")).cte(name="T")
                 elif interval.months:
-                    num_buckets = 24
+                    # num_buckets = 24
                     distribution["type"] = "monthly"
-                    t2 = select(func.date_trunc("MONTH", t.c[column_name]).label("d")).cte(name="T")
+                    period = relativedelta(dmax, dmin)
+                    num_buckets = period.months // interval.months
+                    t2 = select(date_trunc("MONTH", t.c[column_name]).label("d")).cte(name="T")
                 else:
-                    num_buckets = 30
+                    # num_buckets = 30
                     distribution["type"] = "daily"
-                    t2 = select(func.date_trunc("DAY", t.c[column_name]).label("d")).cte(name="T")
+                    period = relativedelta(dmax, dmin)
+                    num_buckets = (period.days+1) // interval.days
+                    t2 = select(date_trunc("DAY", t.c[column_name]).label("d")).cte(name="T")
 
                 stmt = select(
                     t2.c.d,
@@ -326,6 +341,8 @@ class Profiler:
                     bucket, v = row
                     if bucket is None:
                         continue
+                    elif isinstance(bucket, str):
+                        bucket = date.fromisoformat(bucket)
 
                     for i in range(num_buckets):
                         d = distribution["labels"][i].split(" - ")
@@ -442,7 +459,7 @@ class Profiler:
     @staticmethod
     def _calc_date_range(min_date, max_date):
         period = relativedelta(max_date, min_date)
-        if period.years > 1 and period.months > 0:
+        if period.years > 1 or (period.years == 1 and period.months > 0):
             # more than 2 years
             min_date = date(min_date.year, 1, 1)
             max_date = max_date + relativedelta(years=+1)
@@ -450,7 +467,7 @@ class Profiler:
             years = relativedelta(max_date, min_date).years
             n = math.ceil(years / n_buckets)
             interval = relativedelta(years=+n)
-        elif period.months > 0 and period.days > 0:
+        elif period.months > 1 or (period.months == 1 and period.days > 0):
             # more than 1 months
             min_date = date(min_date.year, min_date.month, 1)
             max_date = max_date + relativedelta(months=+1)
