@@ -621,15 +621,12 @@ def generate_report(input=None, base=None):
     elif base:
         console.print(f'[bold red]Error: require input file[/bold red]')
     else:
-        # TODO just use 'latest' symlink
-        result_dirs = [entry for entry in os.scandir(PIPERIDER_OUTPUT_PATH) if entry.is_dir()]
-        result_dirs.sort(key=lambda x: x.stat().st_ctime, reverse=False)
-        latest = result_dirs.pop()
+        latest = os.path.join(PIPERIDER_OUTPUT_PATH, 'latest')
+        console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {latest}')
 
-        console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {latest.path}')
         report_info = []
         max_table_len = 0
-        for result_file in os.scandir(latest.path):
+        for result_file in os.scandir(latest):
             if not result_file.is_file():
                 continue
             if result_file.name.endswith('.json') and result_file.name != '.profiler.json':
