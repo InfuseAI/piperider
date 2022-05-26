@@ -470,13 +470,14 @@ def _show_table_summary(console: Console, table: str, profiled_result, assertion
     num_of_failed_testcases = 0
     failed_testcases = []
 
-    for r in assertion_results:
-        if r.table == table:
-            num_of_testcases += 1
-            if r.result.status():
-                num_of_passed_testcases += 1
-            else:
-                failed_testcases.append(r)
+    if assertion_results:
+        for r in assertion_results:
+            if r.table == table:
+                num_of_testcases += 1
+                if r.result.status():
+                    num_of_passed_testcases += 1
+                else:
+                    failed_testcases.append(r)
 
     num_of_failed_testcases = num_of_testcases - num_of_passed_testcases
     console.print(f"Table '{table}'")
