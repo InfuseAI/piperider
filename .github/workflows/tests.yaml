@@ -9,7 +9,7 @@ on:
       - main
   pull_request:
     branches:
-      - 'feature/**'
+      - main
 
 
 jobs:
