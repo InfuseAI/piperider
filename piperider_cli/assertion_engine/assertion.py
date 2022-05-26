@@ -143,7 +143,7 @@ class AssertionContext:
     def to_result_entry(self):
         return dict(
             name=self.name,
-            status='success' if self.result._success == True else 'failed',
+            status='passed' if self.result._success == True else 'failed',
             parameters=self.parameters,
             expected=self.result.expected(),
             actual=self.result.actual,

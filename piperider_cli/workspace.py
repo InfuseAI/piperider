@@ -427,16 +427,25 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
         return results, exceptions
 
 
-def _show_assertion_result(console: Console, datasource_name, results, exceptions):
+def _show_assertion_result(console: Console, results, exceptions, failed_only=False, single_table=None):
     if results:
         max_target_len = 0
         max_assert_len = 0
         for assertion in results:
+            if single_table and single_table != assertion.table:
+                continue
             if assertion.column:
+                if failed_only and assertion.result.status():
+                    continue
                 target = f'{assertion.table}.{assertion.column}'
                 max_target_len = max(max_target_len, len(target))
             max_assert_len = max(max_assert_len, len(assertion.name))
+
         for assertion in results:
+            if single_table and single_table != assertion.table:
+                continue
+            if failed_only and assertion.result.status():
+                continue
             table = assertion.table
             column = assertion.column
             test_function = assertion.name
@@ -454,20 +463,50 @@ def _show_assertion_result(console: Console, datasource_name, results, exception
     pass
 
 
-def _transform_assertion_result(results):
+def _show_table_summary(console: Console, table: str, profiled_result, assertion_results):
+    profiled_columns = profiled_result.get('col_count')
+    num_of_testcases = 0
+    num_of_passed_testcases = 0
+    num_of_failed_testcases = 0
+    failed_testcases = []
+
+    for r in assertion_results:
+        if r.table == table:
+            num_of_testcases += 1
+            if r.result.status():
+                num_of_passed_testcases += 1
+            else:
+                failed_testcases.append(r)
+
+    num_of_failed_testcases = num_of_testcases - num_of_passed_testcases
+    console.print(f"Table '{table}'")
+    console.print(f'  {profiled_columns} columns profiled')
+
+    if num_of_testcases > 0:
+        console.print(f'  {num_of_testcases} test executed')
+
+    if (num_of_failed_testcases > 0):
+        console.print(f'  {num_of_failed_testcases} of {num_of_testcases} tests failed:')
+        _show_assertion_result(console, assertion_results, None, failed_only=True, single_table=table)
+    console.print()
+    pass
+
+
+def _transform_assertion_result(table: str, results):
     if not results:
         return
 
     tests = []
     columns = {}
     for r in results:
-        entry = r.to_result_entry()
-        if r.column:
-            if not r.column in columns:
-                columns[r.column] = []
-            columns[r.column].append(entry)
-        else:
-            tests.append(entry)
+        if r.table == table:
+            entry = r.to_result_entry()
+            if r.column:
+                if not r.column in columns:
+                    columns[r.column] = []
+                columns[r.column].append(entry)
+            else:
+                tests.append(entry)
 
     return dict(tests=tests, columns=columns)
 
@@ -526,16 +565,18 @@ def run(datasource=None, table=None, output=None, interaction=True):
                                                                       profile_result, created_at)
         if assertion_results:
             console.rule(f'Assertion Results')
-            _show_assertion_result(console, ds.name, assertion_results, assertion_exceptions)
+            _show_assertion_result(console, assertion_results, assertion_exceptions)
 
         console.rule(f'Summary')
 
         for t in profile_result['tables']:
             output_file = os.path.join(output_path, f"{t}.json")
-            profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(assertion_results)
+            profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(t, assertion_results)
             profile_result['tables'][t]['id'] = run_id
             profile_result['tables'][t]['created_at'] = created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-            profile_result['tables'][t]['datasource'] = dict(name=ds.name,type=ds.type_name)
+            profile_result['tables'][t]['datasource'] = dict(name=ds.name, type=ds.type_name)
+
+            _show_table_summary(console, t, profile_result['tables'][t], assertion_results)
 
             with open(output_file, 'w') as f:
                 f.write(json.dumps(profile_result['tables'][t], indent=4))
@@ -651,5 +692,5 @@ def generate_report(input=None, base=None):
 
         console.rule('Reports')
         for r in report_info:
-            display_table = f"'{r['table']}'".ljust(max_table_len+2)
+            display_table = f"'{r['table']}'".ljust(max_table_len + 2)
             console.print(f"Table {display_table} {r['filename']}")

@@ -91,6 +91,7 @@ def debug():
 @click.option('--table', default=None)
 @click.option('--output', default=None)
 @click.option('--no-interaction', is_flag=True, help='Disable interactive question')
+@click.option('--generate-report', is_flag=True, help='Generate report directly')
 @add_options(debug_option)
 def run(**kwargs):
     console = Console()
@@ -99,12 +100,16 @@ def run(**kwargs):
     output = kwargs.get('output')
     try:
         workspace.run(datasource=datasource, table=table, output=output, interaction=not kwargs.get('no_interaction'))
+        if kwargs.get('generate_report'):
+            console.print('\n')
+            workspace.generate_report()
     except Exception as e:
         if (kwargs.get('debug')):
             console.print_exception(show_locals=True)
         else:
             console.print(f'[bold red]Error:[/bold red] {e}')
         sys.exit(1)
+
 
 @cli.command(short_help='Show report')
 @click.option('--input', default=None)
