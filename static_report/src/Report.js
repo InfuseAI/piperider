@@ -21,6 +21,16 @@ import { useEffect, useRef } from "react";
 export function ExperimentReport() {
   const profileData = window.PIPERIDER_REPORT_DATA;
 
+  if (!!profileData) {
+    return (
+      <Main>
+        <Flex justifyContent="center" alignItems="center" minHeight={"100vh"}>
+          No profile data found.
+        </Flex>
+      </Main>
+    );
+  }
+
   return (
     <Main alignItems={"flex-start"}>
       <Flex direction={"column"} minH={"100vh"} width={"100%"}>
