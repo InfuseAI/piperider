@@ -583,7 +583,7 @@ def generate_report(input=None, base=None):
     console = Console()
 
     from piperider_cli import data
-    report_template_dir = os.path.join(os.path.dirname(data.__file__), 'static-report', 'report')
+    report_template_dir = os.path.join(os.path.dirname(data.__file__), 'report')
     with open(os.path.join(report_template_dir, 'index.html')) as f:
         report_template_html = f.read()
 
