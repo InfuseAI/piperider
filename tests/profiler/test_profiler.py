@@ -109,14 +109,15 @@ class TestProfiler:
         assert result["tables"]["test"]['columns']["num_empty"]["distribution"] == None
 
     def test_range(self):
-        tests = [
+        tests=[
+            # min,max,expected min,expected interval
             (0.1, 200, 0, 10),
             (150, 250, 150, 5),
             (8700, 15000, 8500, 500),
-            (235, 753, 0, 50),
-            (20, 250, 0, 20),
-            (50, 700, 0, 50),
-            (5000, 70000, 0, 5000),
+            (235, 753, 200, 50),
+            (20, 250, 0, 20),        
+            (50, 700, 0, 50),            
+            (5000, 70000, 0, 5000), 
             (0.05, 0.0788, 0.05, 0.002),
             (1, 21, 0, 2),
             (-1, 100, -10, 10),
@@ -125,11 +126,13 @@ class TestProfiler:
             (0.151, 0.16, 0.151, 0.0005),
             (-20, -10, -20, 0.5),
             (-18, -2, -18, 1),
-            (35071105.0, 35075104.0, 35071000, 500)
+            (35071105.0, 35075104.0, 35071000, 250),
+            (499, 699, 480, 20)
         ]
 
         for test in tests:
-            low, high, emin, einterval = test
-            min, max, interval = Profiler._calc_numeric_range(low, high)
-            assert emin == min
-            assert einterval == interval
+            low,high, emin, einterval =test
+            min, max, interval = Profiler._calc_distribution_range(low,high)
+            assert emin==min
+            assert einterval==interval
+

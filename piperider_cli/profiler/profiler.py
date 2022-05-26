@@ -30,17 +30,17 @@ class Profiler:
             tables = self.metadata.tables
 
         for t in tables:
-            tresult = self.profile_table(t)
+            tresult = self._profile_table(t)
             profiled_tables[t] = tresult
         return {
             "tables": profiled_tables,
         }
 
-    def profile_table(self, table_name):
+    def _profile_table(self, table_name):
         t = self.metadata.tables[table_name]
         columns = {}
         for c in t.columns:
-            tresult = self.profile_column(table_name, c.name)
+            tresult = self._profile_column(table_name, c.name)
             columns[c.name] = tresult
 
         row_count = 0
@@ -55,7 +55,7 @@ class Profiler:
             "columns": columns
         }
 
-    def profile_column(self, table_name, column_name):
+    def _profile_column(self, table_name, column_name):
         t = self.metadata.tables[table_name]
         c = t.c[column_name]
 
@@ -69,27 +69,27 @@ class Profiler:
             # TEXT
             # CLOB
             generic_type = "string"
-            result = self.profile_string_column(table_name, c.name)
+            result = self._profile_string_column(table_name, c.name)
         elif isinstance(c.type, Integer):
             # INTEGER
             # BIGINT
             # SMALLINT
             generic_type = "integer"
-            result = self.profile_numeric_column(table_name, c.name)
+            result = self._profile_numeric_column(table_name, c.name, is_integer=True)
         elif isinstance(c.type, Numeric):
             # NUMERIC
             # DECIMAL
             # FLOAT
             generic_type = "numeric"
-            result = self.profile_numeric_column(table_name, c.name)
+            result = self._profile_numeric_column(table_name, c.name, is_integer=False)
         elif isinstance(c.type, Date) or isinstance(c.type, DateTime):
             # DATE
             # DATETIME
             generic_type = "datetime"
-            result = self.profile_datetime_column(table_name, c.name)
+            result = self._profile_datetime_column(table_name, c.name)
         else:
             generic_type = "other"
-            result = self.profile_other_column(table_name, c.name)
+            result = self._profile_other_column(table_name, c.name)
         profile_end = time.perf_counter()
         duration = profile_end - profile_start
 
@@ -99,7 +99,7 @@ class Profiler:
         result["schema_type"] = str(c.type)
         return result
 
-    def profile_string_column(self, table_name, column_name):
+    def _profile_string_column(self, table_name, column_name):
         metadata = MetaData()
         # t = Table(table_name, metadata, Column(column_name, String))
         t = self.metadata.tables[table_name]
@@ -147,7 +147,7 @@ class Profiler:
             distribution["counts"].append(v)
         return distribution
 
-    def profile_numeric_column(self, table_name, column_name):
+    def _profile_numeric_column(self, table_name: str, column_name: str, is_integer: bool):
         metadata = MetaData()
         # t = Table(table_name, metadata, Column(column_name, Numeric))
         t = self.metadata.tables[table_name]
@@ -190,7 +190,7 @@ class Profiler:
             if _non_null == 1:
                 distribution = self._dist_topk(conn, t2.c.c, 20)
             elif _non_null > 0:
-                dmin, dmax, interval = Profiler._calc_numeric_range(_min, _max)
+                dmin, dmax, interval = Profiler._calc_distribution_range(_min, _max, is_integer=is_integer)
 
                 t2 = select(
                     t.c[column_name].label("c"), 
@@ -238,7 +238,7 @@ class Profiler:
                 'distribution': distribution,
             }
 
-    def profile_datetime_column(self, table_name, column_name):
+    def _profile_datetime_column(self, table_name, column_name):
         metadata = MetaData()
         t = Table(table_name, metadata, Column(column_name, DateTime))
         # t = self.metadata.tables[table_name]
@@ -283,7 +283,7 @@ class Profiler:
                 'distribution': distribution,
             }
 
-    def profile_other_column(self, table_name, column_name):
+    def _profile_other_column(self, table_name, column_name):
         metadata = MetaData()
         # t = Table(table_name, metadata, Column(column_name, String))
         t = self.metadata.tables[table_name]
@@ -306,41 +306,74 @@ class Profiler:
 
 
     @staticmethod
-    def _calc_numeric_range(min, max) :
+    def _calc_distribution_range(min, max, is_integer=False) :
         import math
-        if min > 0 and max / 2 > min:
+
+        # make the min align to 0
+        if min > 0 and max / 4 > min:
             min=0
-        elif min == max:
+        
+        # only one value case
+        if min == max:
             if min == 0:
                 min = 0
                 max = 1
             elif min > 0:
                 min = 0
             else:
-                max = 0            
+                max = 0        
         range = max - min
 
-        # find the range
+        # find the base
+        # range = 100, base=100
+        # range = 104, base=100
+        # range = 0.8, base=0.1
+        # range = 0.05, base=0.01
         base = math.pow(10, math.floor(math.log10(range)))
+
+        # range=100 base=100 => range=100, interval=5
+        # range=101 base=100 => range=200, interval=10
+        # range=256 base=100 => range=400, interval=20
+        # range=423 base=100 => range=500, interval=25
+        # range=723 base=100 => range=1000, interval=50
         if range / base == 1:
             range = base
         elif range / base <= 2:
             range = base * 2
         elif range / base <= 4:
             range = base * 4
+        elif range / base <= 5:
+            range = base * 5            
         else:
             range = base * 10
 
         interval = range / 20
+        if is_integer and interval < 1:
+            interval = 1
+        
+        # Adjust the min/max to the grid
+        # interval=10, 235->230
+        # interval=20, 235->220
         if interval >= 1:
             min=math.floor(min/interval)*interval
             max=math.ceil(max/interval)*interval
         else:
+            # fix the truncation issue
+            # 5 * 0.25 => 5 / 4
+            # 5 * 0.05 => 5 / 20
             min=math.floor(min/interval) / (1 / interval)
             max=math.ceil(max/interval) / (1 / interval)
 
         if max - min > interval * 20:
-            return Profiler._calc_numeric_range(min, max)            
+            # Sometimes, the range does not contains in the 20*interval, because we shift min,max to interval grid.
+            # For example
+            #   (499, 699)
+            #   range=200 => range=200,interval=10
+            #   (499, 699) => align to interval grid => (490, 700)
+            #   max-min=210 > interval*20=200
+            #
+            # In order to max sure the min, max is inside the 20 bins, we calculate the range again by the adjusted min/max. 
+            return Profiler._calc_distribution_range(min, max)            
         else:
             return min, max, interval            
 
