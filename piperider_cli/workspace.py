@@ -574,7 +574,7 @@ def _generate_static_html(result, html, output_path):
     table = result['name']
     filename = os.path.join(output_path, f"{table}.html")
     with open(filename, 'w') as f:
-        html = html.replace(r'window.PIPERIDER_REPORT_DATA={}', f'window.PIPERIDER_REPORT_DATA={json.dumps(result)};')
+        html = html.replace(r'window.PIPERIDER_REPORT_DATA=""', f'window.PIPERIDER_REPORT_DATA={json.dumps(result)};')
         f.write(html)
     return table, filename
 

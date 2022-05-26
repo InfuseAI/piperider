@@ -21,7 +21,7 @@ import { useEffect, useRef } from "react";
 export function ExperimentReport() {
   const profileData = window.PIPERIDER_REPORT_DATA;
 
-  if (!!profileData) {
+  if (profileData === '') {
     return (
       <Main>
         <Flex justifyContent="center" alignItems="center" minHeight={"100vh"}>
