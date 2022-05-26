@@ -90,6 +90,10 @@ class Profiler:
             # DATETIME
             generic_type = "datetime"
             result = self._profile_datetime_column(table_name, c.name)
+        elif isinstance(c.type, Boolean):
+            # BOOLEAN
+            generic_type = "boolean"
+            result = self._profile_bool_column(table_name, c.name)
         else:
             generic_type = "other"
             result = self._profile_other_column(table_name, c.name)
@@ -143,7 +147,7 @@ class Profiler:
                 "counts": [],
             }
         for row in result:
-            k,v = row
+            k, v = row
             if k is not None:
                 k = str(k)
             distribution["labels"].append(k)
@@ -356,6 +360,27 @@ class Profiler:
                 'distinct': _distinct,
                 'min': str(_min),
                 'max': str(_max),
+                'distribution': distribution,
+            }
+
+    def _profile_bool_column(self, table_name, column_name):
+        t = self.metadata.tables[table_name]
+
+        with self.engine.connect() as conn:
+            t2 = select(t.c[column_name].label("c")).cte(name="T")
+            stmt = select(
+                func.count().label("_total"),
+                func.count(t2.c.c).label("_non_nulls"),
+            )
+            result = conn.execute(stmt).fetchone()
+            _total, _non_null, = result
+
+            distribution = None
+            if _non_null > 0:
+                distribution = self._dist_topk(conn, t2.c.c, 3)
+            return {
+                'total': _total,
+                'non_nulls': _non_null,
                 'distribution': distribution,
             }
 
