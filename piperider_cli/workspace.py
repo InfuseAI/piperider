@@ -19,6 +19,7 @@ PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
 PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'credentials.yml')
 PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
+PIPERIDER_REPORT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'reports')
 
 DBT_PROFILE_DEFAULT_PATH = os.path.join(os.path.expanduser('~'), '.dbt/profiles.yml')
 
@@ -533,7 +534,8 @@ def run(datasource=None, table=None, output=None, interaction=True):
             output_file = os.path.join(output_path, f"{t}.json")
             profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(assertion_results)
             profile_result['tables'][t]['id'] = run_id
-            profile_result['tables'][t]['created_at'] = created_at.strftime('%Y-%m-%d %H:%M:%S.%f')
+            profile_result['tables'][t]['created_at'] = created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+            profile_result['tables'][t]['datasource'] = dict(name=ds.name,)
 
             with open(output_file, 'w') as f:
                 f.write(json.dumps(profile_result['tables'][t], indent=4))
@@ -561,5 +563,93 @@ def prepare_output_path(created_at, ds, output):
     return output_path
 
 
-def generate_report():
-    raise NotImplemented
+def _validate_input_result(result):
+    for f in ['name', 'row_count', 'col_count', 'columns', 'assertion_results', 'id', 'created_at', 'datasource']:
+        if f not in result:
+            return False
+    return True
+
+
+def _generate_static_html(result, html, output_path):
+    table = result['name']
+    filename = os.path.join(output_path, f"{table}.html")
+    with open(filename, 'w') as f:
+        html = html.replace(r'window.PIPERIDER_REPORT_DATA={}', f'window.PIPERIDER_REPORT_DATA={json.dumps(result)};')
+        f.write(html)
+    return table, filename
+
+
+def generate_report(input=None, base=None):
+    console = Console()
+
+    from piperider_cli import data
+    report_template_dir = os.path.join(os.path.dirname(data.__file__), 'report')
+    with open(os.path.join(report_template_dir, 'index.html')) as f:
+        report_template_html = f.read()
+
+    created_at = datetime.now()
+
+    if input:
+        if not os.path.exists(input):
+            console.print(f'[bold red]Error: {input} not found[/bold red]')
+            return
+
+        with open(input) as f:
+            result = json.loads(f.read())
+        if not _validate_input_result(result):
+            console.print(f'[bold red]Error: invalid input file[/bold red]')
+            return
+        if base:
+            # TODO check base file and generate comparison report
+            pass
+        else:
+            console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {input}')
+
+            datasource = result['datasource']['name']
+            dir = os.path.join(PIPERIDER_REPORT_PATH, f"{datasource}-{created_at.strftime('%Y%m%d%H%M%S')}")
+            if not os.path.exists(dir):
+                os.makedirs(dir, exist_ok=True)
+
+            shutil.copytree(report_template_dir,
+                            dir,
+                            dirs_exist_ok=True,
+                            ignore=shutil.ignore_patterns('index.html'))
+
+            console.rule('Reports')
+            table, filename = _generate_static_html(result, report_template_html, dir)
+            console.print(f"Table '{table}' {filename}")
+    elif base:
+        console.print(f'[bold red]Error: require input file[/bold red]')
+    else:
+        latest = os.path.join(PIPERIDER_OUTPUT_PATH, 'latest')
+        console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {latest}')
+
+        report_info = []
+        max_table_len = 0
+        for result_file in os.scandir(latest):
+            if not result_file.is_file():
+                continue
+            if result_file.name.endswith('.json') and result_file.name != '.profiler.json':
+                with open(result_file.path) as f:
+                    result = json.loads(f.read())
+                if not _validate_input_result(result):
+                    console.print(f'[bold dark_orange]Warning: {result_file.path} is invalid[/bold dark_orange]')
+                    continue
+
+                datasource = result['datasource']['name']
+                dir = os.path.join(PIPERIDER_REPORT_PATH, f"{datasource}-{created_at.strftime('%Y%m%d%H%M%S')}")
+                if not os.path.exists(dir):
+                    os.makedirs(dir, exist_ok=True)
+                shutil.copytree(report_template_dir,
+                                dir,
+                                dirs_exist_ok=True,
+                                ignore=shutil.ignore_patterns('index.html'))
+
+                table, filename = _generate_static_html(result, report_template_html, dir)
+                max_table_len = max(max_table_len, len(table))
+                report_info.append(dict(table=table, filename=filename))
+
+        console.rule('Reports')
+        for r in report_info:
+            display_table = f"'{r['table']}'".ljust(max_table_len+2)
+            console.print(f"Table {display_table} {r['filename']}")

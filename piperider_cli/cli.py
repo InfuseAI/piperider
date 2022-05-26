@@ -86,7 +86,7 @@ def debug():
         sys.exit(1)
 
 
-@cli.command(short_help='Run')
+@cli.command(short_help='Collect data profiles and test results')
 @click.option('--datasource', default=None)
 @click.option('--table', default=None)
 @click.option('--output', default=None)
@@ -105,3 +105,21 @@ def run(**kwargs):
         else:
             console.print(f'[bold red]Error:[/bold red] {e}')
         sys.exit(1)
+
+@cli.command(short_help='Show report')
+@click.option('--input', default=None)
+@click.option('--base', default=None)
+@add_options(debug_option)
+def generate_report(**kwargs):
+    console = Console()
+    input = kwargs.get('input')
+    base = kwargs.get('base')
+    try:
+        workspace.generate_report(input=input, base=base)
+    except Exception as e:
+        if (kwargs.get('debug')):
+            console.print_exception(show_locals=True)
+        else:
+            console.print(f'[bold red]Error:[/bold red] {e}')
+        sys.exit(1)
+    pass
