@@ -78,8 +78,9 @@ def debug():
     console.print(f'[bold dark_orange]PipeRider Version:[/bold dark_orange] {__version__}')
 
     try:
-        if not workspace.debug():
-            return 1
+        has_error = workspace.debug()
+        if has_error:
+            sys.exit(1)
         return 0
     except Exception as e:
         console.print(f'[bold red]Error:[/bold red] {e}')
