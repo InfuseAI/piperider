@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import sys
 import uuid
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
@@ -225,7 +226,13 @@ def _generate_piperider_workspace():
     from piperider_cli import data
     init_template_dir = os.path.join(os.path.dirname(data.__file__), 'piperider-init-template')
     working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
-    shutil.copytree(init_template_dir, working_dir, dirs_exist_ok=True)
+
+    if sys.version_info >= (3, 8):
+        # dirs_exist_ok only available after 3.8
+        shutil.copytree(init_template_dir, working_dir, dirs_exist_ok=True)
+    else:
+        from distutils.dir_util import copy_tree
+        copy_tree(init_template_dir, working_dir)
 
 
 def _ask_user_for_datasource():
