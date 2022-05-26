@@ -400,10 +400,10 @@ def _show_assertion_result(console: Console, datasource_name, results, exception
             table = assertion.table
             column = assertion.column
             test_function = assertion.name
-            test_function = test_function.ljust(max_assert_len+1)
+            test_function = test_function.ljust(max_assert_len + 1)
             success = assertion.result.status()
             target = f'{table}.{column}' if column else table
-            target = target.ljust(max_target_len+1)
+            target = target.ljust(max_target_len + 1)
             if success:
                 console.print(
                     f'[[bold green]  OK  [/bold green]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
@@ -502,12 +502,23 @@ def run(datasource=None, table=None, output=None, interaction=True):
 
 
 def prepare_output_path(created_at, ds, output):
+    latest_symlink_path = os.path.join(PIPERIDER_OUTPUT_PATH, 'latest')
     output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
                                f"{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}")
     if output:
         output_path = output
     if not os.path.exists(output_path):
         os.makedirs(output_path, exist_ok=True)
+
+    # Create a symlink pointing to the latest output directory
+    if os.path.islink(latest_symlink_path):
+        os.unlink(latest_symlink_path)
+    if not os.path.exists(latest_symlink_path):
+        os.symlink(output_path, latest_symlink_path)
+    else:
+        console = Console()
+        console.print(f'[bold yellow]Warning: {latest_symlink_path} already exists[/bold yellow]')
+
     return output_path
 
 
