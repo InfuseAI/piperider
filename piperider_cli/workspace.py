@@ -116,7 +116,27 @@ class SnowflakeDataSource(DataSource):
         return dict(connect_args={'connect_timeout': self._connect_timeout})
 
 
-DATASOURCE_PROVIDERS = dict(postgres=PostgreSQLDataSource, snowflake=SnowflakeDataSource)
+class SqliteDataSource(DataSource):
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, 'sqlite', **kwargs)
+        self.fields = ["dbpath"]
+
+    def validate(self):
+        if self.type_name != 'sqlite':
+            raise ValueError('type name should be sqlite')
+        return self._validate_required_fields()
+
+    def to_database_url(self):
+        credential = self.args.get('credential')
+        dbpath = credential.get('dbpath')
+        sqlite_file = os.path.abspath(dbpath)
+        if not os.path.exists(sqlite_file):
+            raise ValueError(f'Cannot find the sqlite at {sqlite_file}')
+        return f"sqlite:///{sqlite_file}"
+
+
+DATASOURCE_PROVIDERS = dict(postgres=PostgreSQLDataSource, snowflake=SnowflakeDataSource, sqlite=SqliteDataSource)
 
 
 class Configuration(object):
