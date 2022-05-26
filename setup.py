@@ -33,6 +33,7 @@ setup(name='piperider-cli',
           'psycopg2-binary',
           'rich',
           'click',
+          'python-dateutil',
       ],
       extras_require={
           'dev': [
