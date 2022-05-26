@@ -164,12 +164,16 @@ class Profiler:
                 func.max(t2.c.c).label("_max"),
             )
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _distinct, _sum, _avg, _min, _max = result
-            _sum = float(_sum) if _sum is not None else None
-            _avg = float(_avg) if _avg is not None else None
-            _min = float(_min) if _min is not None else None
-            _max = float(_max) if _max is not None else None
-            _num_buckets = 20
+            _total, _non_null, _distinct, _sum, _avg, _min, _max = result            
+            if is_integer:
+                _sum = int(_sum) if _sum is not None else None
+                _min = int(_min) if _min is not None else None
+                _max = int(_max) if _max is not None else None
+            else:
+                _sum = float(_sum) if _sum is not None else None
+                _min = float(_min) if _min is not None else None
+                _max = float(_max) if _max is not None else None
+            _avg = float(_avg) if _avg is not None else None                            
 
             def map_bucket(expr, min_value, max_value, num_buckets):
                 interval = (max_value - min_value) / num_buckets
@@ -191,10 +195,11 @@ class Profiler:
                 distribution = self._dist_topk(conn, t2.c.c, 20)
             elif _non_null > 0:
                 dmin, dmax, interval = Profiler._calc_distribution_range(_min, _max, is_integer=is_integer)
+                _num_buckets = 20
 
                 t2 = select(
                     t.c[column_name].label("c"), 
-                    map_bucket(t.c[column_name].label("c"), dmin, dmin + interval*_num_buckets, _num_buckets).label("bucket")
+                    map_bucket(t.c[column_name].label("c"), dmin, dmin + (interval * _num_buckets), _num_buckets).label("bucket")
                 ).where(
                     t.c[column_name] != None
                 ).cte(name="T")
@@ -213,10 +218,28 @@ class Profiler:
                     "counts": [],
                 }
                 for i in range(_num_buckets):
-                    if interval >= 1:                
-                        label = f"{i * interval + dmin} -  {(i + 1) * interval + dmin}"
+                    if is_integer:
+                        dmin = int(dmin)
+                        dmax = int(dmax)
+                        interval = int(interval)
+
+                        if _max - _min < _num_buckets:
+                            label = f"{i * interval + dmin}"
+                        elif i == _num_buckets - 1:
+                            label = f"{i * interval + dmin} _"
+                        else:
+                            label = f"{i * interval + dmin} _ {(i + 1) * interval + dmin}"
                     else:
-                        label = f"{i / (1 / interval) + dmin} -  {(i + 1) / (1 / interval) + dmin}"
+                        if interval >= 1:
+                            if i == _num_buckets - 1:
+                                label = f"{i * interval + dmin} _"
+                            else:
+                                label = f"{i * interval + dmin} _ {(i + 1) * interval + dmin}"
+                        else:
+                            if i == _num_buckets - 1:
+                                label = f"{i / (1 / interval) + dmin} _"
+                            else:
+                                label = f"{i / (1 / interval) + dmin} _ {(i + 1) / (1 / interval) + dmin}"
 
                     distribution["labels"].append(label)
                     distribution["counts"].append(0)
@@ -306,8 +329,11 @@ class Profiler:
 
 
     @staticmethod
-    def _calc_distribution_range(min, max, is_integer=False) :
+    def _calc_distribution_range(min, max, is_integer) :
         import math
+
+        if is_integer and max - min < 20:
+            return (min, max, 1)
 
         # make the min align to 0
         if min > 0 and max / 4 > min:
@@ -315,13 +341,16 @@ class Profiler:
         
         # only one value case
         if min == max:
-            if min == 0:
-                min = 0
-                max = 1
-            elif min > 0:
-                min = 0
+            if is_integer:
+                max = min + 1
             else:
-                max = 0        
+                if min == 0:
+                    min = 0
+                    max = 1
+                elif min > 0:
+                    min = 0
+                else:
+                    max = 0        
         range = max - min
 
         # find the base
@@ -346,10 +375,7 @@ class Profiler:
             range = base * 5            
         else:
             range = base * 10
-
         interval = range / 20
-        if is_integer and interval < 1:
-            interval = 1
         
         # Adjust the min/max to the grid
         # interval=10, 235->230
@@ -373,7 +399,7 @@ class Profiler:
             #   max-min=210 > interval*20=200
             #
             # In order to max sure the min, max is inside the 20 bins, we calculate the range again by the adjusted min/max. 
-            return Profiler._calc_distribution_range(min, max)            
+            return Profiler._calc_distribution_range(min, max, is_integer=is_integer)            
         else:
             return min, max, interval            
 
