@@ -270,7 +270,7 @@ def _generate_piperider_workspace():
 
 def _ask_user_for_datasource():
     console = Console()
-    # we only support snowfalke and pg only
+    # we only support snowflake and pg only
     # we might consider a sqlite for dev mode?
     console.print(f'\nWhat is your project name? (alphanumeric only)')
     in_source_name = input(':').strip()
@@ -350,6 +350,29 @@ def init(dbt_project_path=None):
     return configuration
 
 
+def _check_dbt_config(dbt, table=None):
+    tables = []
+    if dbt is None:
+        return True, '', []
+
+    dbt_root = dbt.get('root')
+    dbt_catalog = os.path.join(dbt_root, 'target', 'catalog.json')
+    if os.path.exists(dbt_catalog):
+        with open(dbt_catalog) as fd:
+            catalog = json.loads(fd.read())
+        # TODO we should consider the case that the table name is not unique
+        tables += [k.split('.')[-1].lower() for k in catalog.get('nodes', {}).keys()]
+        tables += [k.split('.')[-1].lower() for k in catalog.get('sources', {}).keys()]
+        if not tables:
+            return False, f'No table found in {dbt_catalog}', []
+        if table and table not in tables:
+            return False, f"Table '{table}' doesn't exist in {dbt_catalog}", []
+    else:
+        return False, f"'{dbt_catalog}' not found", []
+
+    return True, '', tables
+
+
 def debug(configuration: Configuration = None):
     console = Console()
     if not configuration:
@@ -393,6 +416,19 @@ def debug(configuration: Configuration = None):
         finally:
             if engine:
                 engine.dispose()
+
+        # Check catalog.json file exist if dbt is used
+        if dbt:
+            console.print(f'Check dbt catalog file:')
+            passed, error_msg, _ = _check_dbt_config(dbt)
+            if not passed:
+                has_error = True
+                console.print(f'[bold red]😱 FAILED[/bold red] : {error_msg}')
+                console.print(
+                    f"  [bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' file")
+                return has_error
+            else:
+                console.print(f'[bold green]✅ PASS[/bold green]')
 
         passed_files, failed_files, content = AssertionEngine.check_assertions_syntax()
         if passed_files and failed_files:
@@ -525,26 +561,15 @@ def run(datasource=None, table=None, output=None, interaction=True):
         if datasource and ds.name != datasource:
             continue
         console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
-        tables = []
-        dbt_root = ds.args.get('dbt', {}).get('root')
-        if dbt_root:
-            dbt_catalog = os.path.join(dbt_root, 'target', 'catalog.json')
-            if os.path.exists(dbt_catalog):
-                with open(dbt_catalog) as fd:
-                    catalog = json.loads(fd.read())
-                # TODO we should consider the case that the table name is not unique
-                tables += [k.split('.')[-1].lower() for k in catalog.get('nodes', {}).keys()]
-                tables += [k.split('.')[-1].lower() for k in catalog.get('sources', {}).keys()]
-                if not tables:
-                    console.print(f'[bold red]Error: no table found in {dbt_catalog}[/bold red]')
-                    return
-                if table and table not in tables:
-                    console.print(f"[bold red]Error: table '{table}' doesn't exist[/bold red]")
-                    return
-            else:
-                console.print(f"[bold red]Error: '{dbt_catalog}' not found[/bold red]")
-                return
 
+        dbt = ds.args.get('dbt')
+        tables = None
+        if dbt:
+            passed, error_msg, tables = _check_dbt_config(dbt, table)
+            if not passed:
+                console.print(
+                    "[bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' files")
+                raise Exception(error_msg)
         if table:
             tables = [table]
 
