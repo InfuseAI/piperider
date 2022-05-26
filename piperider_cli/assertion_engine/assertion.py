@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from importlib import import_module
 
 from ruamel import yaml
@@ -50,7 +51,18 @@ class AssertionResult:
         return self._success
 
     def expected(self):
-        return self._expected
+        def _castDatetimeToString(obj):
+            if isinstance(obj, dict):
+                obj = {k: _castDatetimeToString(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                obj = [_castDatetimeToString(i) for i in obj]
+            elif isinstance(obj, datetime):
+                return str(obj)
+            return obj
+
+        expected = dict(self._expected)
+        expected = _castDatetimeToString(expected)
+        return expected
 
     def validate(self):
         if not self.actual or not self._expected:
@@ -143,10 +155,11 @@ class AssertionContext:
             name=self.name,
             status='success' if self.result._success == True else 'failed',
             parameters=self.parameters,
-            expected=self.result._expected,
+            expected=self.result.expected(),
             actual=self.result.actual,
             tags=self.tags,
         )
+
 
 class AssertionException(BaseException):
     pass
