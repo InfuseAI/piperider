@@ -60,9 +60,7 @@ class AssertionResult:
                 return str(obj)
             return obj
 
-        expected = dict(self._expected)
-        expected = _castDatetimeToString(expected)
-        return expected
+        return _castDatetimeToString(dict(self._expected))
 
     def validate(self):
         if not self.actual or not self._expected:
@@ -100,13 +98,10 @@ class AssertionResult:
         return self
 
     def __repr__(self):
-        return str(self.to_json())
-
-    def to_json(self):
-        return dict(success=self._success,
-                    exception=str(self._exception),
-                    actual=self.actual,
-                    expected=self._expected)
+        return str(dict(success=self._success,
+                        exception=str(self._exception),
+                        actual=self.actual,
+                        expected=self.expected()))
 
 
 class AssertionContext:
@@ -144,11 +139,6 @@ class AssertionContext:
 
     def __repr__(self):
         return str(self.__dict__)
-
-    def to_json(self):
-        r = dict(**self.__dict__)
-        r['result'] = r['result'].to_json()
-        return r
 
     def to_result_entry(self):
         return dict(
