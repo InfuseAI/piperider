@@ -17,15 +17,17 @@ class TestProfiler:
             columns = []
             if len(data) == 0:
                 raise Exception("columns is not specified and data is empty")
-            first = data[0]
+            first=data[0]
             for i in range(len(header)):
                 col_name = header[i]
                 value = first[i]
                 col = None
                 if isinstance(value, str):
-                    col = Column(col_name, String)
+                    col=Column(col_name, String)
+                elif isinstance(value, float):
+                    col=Column(col_name, Float)
                 elif isinstance(value, int):
-                    col = Column(col_name, Integer)
+                    col=Column(col_name, Integer)
                 else:
                     raise Exception(f"not support type: {type(value)}")
                 columns.append(col)
@@ -63,20 +65,108 @@ class TestProfiler:
         assert "test1" in result["tables"]
         assert "test2" not in result["tables"]
 
-    def test_numeric_boundary(self):
+    def test_integer_dist(self):
         engine = self.engine = create_engine('sqlite://')
-
         data = [
-            ("num",),
+            ("col",),
             (0,),
             (20,),
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
-        result = profiler.profile()
-        assert result["tables"]["test"]['columns']["num"]["distribution"]["counts"][0] == 1
-        assert result["tables"]["test"]['columns']["num"]["distribution"]["counts"][19] == 1
-        assert result["tables"]["test"]['columns']["num"]["distribution"]["counts"][5] == 0
+        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+        assert result["labels"][0] == '0 _ 1'
+        assert result["counts"][0] == 1        
+        assert result["labels"][19] == '19 _'
+        assert result["counts"][19] == 1        
+        assert result["counts"][5] == 0
+
+        # number range within 20
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ("col",),
+            (1,),
+            (20,),
+        ]
+        self.create_table("test", data)
+        profiler = Profiler(engine)
+        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+        assert result["labels"][0] == '1'
+        assert result["counts"][0] == 1
+        assert result["labels"][19] == '20'
+        assert result["counts"][19] == 1        
+        assert result["counts"][5] == 0
+
+        #
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ("col",),
+            (10,),
+            (100,),
+            (1000,),
+            (500,),
+            (750,),            
+        ]
+        self.create_table("test", data)
+        profiler = Profiler(engine)
+        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+        assert result["labels"][0] == '0 _ 50'
+        assert result["counts"][0] == 1
+        assert result["labels"][19] == '950 _'
+        assert result["counts"][19] == 1
+
+    def test_numeric_dist(self):
+        engine = self.engine = create_engine('sqlite://')
+
+        data = [
+            ("col",),
+            (0.0,),
+            (20.0,),
+        ]
+        self.create_table("test", data)
+        profiler = Profiler(engine)
+        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+        assert result["counts"][0] == 1
+        assert result["counts"][19] == 1
+        assert result["counts"][5] == 0
+
+        #
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ("col",),
+            (10.0,),
+            (100.0,),
+            (1000.0,),
+            (500.0,),
+            (750.0,),            
+        ]
+        self.create_table("test", data)
+        profiler = Profiler(engine)
+        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+        assert result["labels"][0] == '0.0 _ 50.0'
+        assert result["counts"][0] == 1
+        assert result["labels"][19] == '950.0 _'
+        assert result["counts"][19] == 1
+
+        # negative
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ("col",),
+            (-110.0,),
+            (100.0,),
+            (1000.0,),
+            (500.0,),
+            (750.0,),            
+        ]
+        self.create_table("test", data)
+        profiler = Profiler(engine)
+        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+        assert result["labels"][0] == '-200.0 _ -100.0'
+        assert result["counts"][0] == 1
+        assert result["labels"][12] == '1000.0 _ 1100.0'
+        assert result["counts"][12] == 1
+        assert result["labels"][19] == '1700.0 _'
+        assert result["counts"][19] == 0
 
     def test_empty_table(self):
         engine = self.engine = create_engine('sqlite://')
@@ -109,11 +199,12 @@ class TestProfiler:
         assert result["tables"]["test"]['columns']["num_empty"]["distribution"] == None
 
     def test_range(self):
-        tests = [
+        tests=[
+            # min,max,expected min,expected interval
             (0.1, 200, 0, 10),
             (150, 250, 150, 5),
             (8700, 15000, 8500, 500),
-            (235, 753, 0, 50),
+            (235, 753, 200, 50),
             (20, 250, 0, 20),
             (50, 700, 0, 50),
             (5000, 70000, 0, 5000),
@@ -125,11 +216,13 @@ class TestProfiler:
             (0.151, 0.16, 0.151, 0.0005),
             (-20, -10, -20, 0.5),
             (-18, -2, -18, 1),
-            (35071105.0, 35075104.0, 35071000, 500)
+            (35071105.0, 35075104.0, 35071000, 250),
+            (499, 699, 480, 20)
         ]
 
         for test in tests:
-            low, high, emin, einterval = test
-            min, max, interval = Profiler._calc_numeric_range(low, high)
-            assert emin == min
-            assert einterval == interval
+            low,high, emin, einterval =test
+            min, max, interval = Profiler._calc_distribution_range(low,high,is_integer=False)
+            assert emin==min
+            assert einterval==interval
+
