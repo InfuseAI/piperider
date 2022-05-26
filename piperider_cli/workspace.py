@@ -59,6 +59,9 @@ class DataSource(metaclass=ABCMeta):
         """
         raise NotImplemented
 
+    def engine_args(self):
+        return dict()
+
 
 class PostgreSQLDataSource(DataSource):
     def __init__(self, name, **kwargs):
@@ -79,11 +82,15 @@ class PostgreSQLDataSource(DataSource):
         dbname = credential.get('dbname')
         return f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
 
+    def engine_args(self):
+        return dict(connect_args={'connect_timeout': 5})
+
 
 class SnowflakeDataSource(DataSource):
     def __init__(self, name, **kwargs):
         super().__init__(name, 'snowflake', **kwargs)
         self.fields = ["account", "user", "password", "role", "database", "warehouse", "schema"]
+        self._connect_timeout = 5
 
     def validate(self):
         if self.type_name != 'snowflake':
@@ -101,10 +108,35 @@ class SnowflakeDataSource(DataSource):
         role = credential.get('role')
         from snowflake.sqlalchemy.snowdialect import SnowflakeDialect
         SnowflakeDialect.supports_statement_cache = True
-        return f'snowflake://{user}:{password}@{account}/{database}/{schema}?warehouse={warehouse}&role={role}'
+        return f'snowflake://{user}:{password}@{account}/{database}/{schema}' \
+               f'?warehouse={warehouse}&role={role}' \
+               f'&login_timeout={self._connect_timeout}&network_timeout={self._connect_timeout}'
+
+    def engine_args(self):
+        return dict(connect_args={'connect_timeout': self._connect_timeout})
 
 
-DATASOURCE_PROVIDERS = dict(postgres=PostgreSQLDataSource, snowflake=SnowflakeDataSource)
+class SqliteDataSource(DataSource):
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, 'sqlite', **kwargs)
+        self.fields = ["dbpath"]
+
+    def validate(self):
+        if self.type_name != 'sqlite':
+            raise ValueError('type name should be sqlite')
+        return self._validate_required_fields()
+
+    def to_database_url(self):
+        credential = self.args.get('credential')
+        dbpath = credential.get('dbpath')
+        sqlite_file = os.path.abspath(dbpath)
+        if not os.path.exists(sqlite_file):
+            raise ValueError(f'Cannot find the sqlite at {sqlite_file}')
+        return f"sqlite:///{sqlite_file}"
+
+
+DATASOURCE_PROVIDERS = dict(postgres=PostgreSQLDataSource, snowflake=SnowflakeDataSource, sqlite=SqliteDataSource)
 
 
 class Configuration(object):
@@ -350,7 +382,7 @@ def debug(configuration: Configuration = None):
 
         engine = None
         try:
-            engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
+            engine = create_engine(ds.to_database_url(), **ds.engine_args())
             print(f'  Available Tables: {inspect(engine).get_table_names()}')
             # TODO: show the host & user info based on each dataSources
             console.print(f'[bold green]✅ PASS[/bold green]')
@@ -478,7 +510,7 @@ def run(datasource=None, table=None, output=None, interaction=True):
         console.rule(f'Profiling')
         run_id = uuid.uuid4().hex
         created_at = datetime.now()
-        engine = create_engine(ds.to_database_url(), connect_args={'connect_timeout': 5})
+        engine = create_engine(ds.to_database_url(), **ds.engine_args())
         profiler = Profiler(engine)
         profile_result = profiler.profile(tables)
 
