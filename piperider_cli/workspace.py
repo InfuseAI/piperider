@@ -535,7 +535,7 @@ def run(datasource=None, table=None, output=None, interaction=True):
             profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(assertion_results)
             profile_result['tables'][t]['id'] = run_id
             profile_result['tables'][t]['created_at'] = created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-            profile_result['tables'][t]['datasource'] = dict(name=ds.name,)
+            profile_result['tables'][t]['datasource'] = dict(name=ds.name,type=ds.type_name)
 
             with open(output_file, 'w') as f:
                 f.write(json.dumps(profile_result['tables'][t], indent=4))
