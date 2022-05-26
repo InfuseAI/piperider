@@ -25,9 +25,9 @@ class TestProfiler:
                 value = first[i]
                 col = None
                 if isinstance(value, str):
-                    col=Column(col_name, String)
+                    col = Column(col_name, String)
                 elif isinstance(value, float):
-                    col=Column(col_name, Float)
+                    col = Column(col_name, Float)
                 elif isinstance(value, int):
                     col = Column(col_name, Integer)
                 elif isinstance(value, date):
@@ -242,8 +242,8 @@ class TestProfiler:
         ]
 
         for test in tests:
-            low,high, emin, einterval =test
-            min, max, interval = Profiler._calc_distribution_range(low,high,is_integer=False)
-            assert emin==min
-            assert einterval==interval
+            low, high, emin, einterval = test
+            min, max, interval = Profiler._calc_distribution_range(low, high, is_integer=False)
+            assert emin == min
+            assert einterval == interval
 
