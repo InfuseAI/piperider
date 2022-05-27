@@ -12,11 +12,11 @@ import {
   Th,
   Thead,
   Tr,
-} from "@chakra-ui/react";
-import { Main } from "./Main";
-import * as d3 from "d3";
-import formatDistanceToNow from "date-fns/formatDistanceToNow";
-import { useEffect, useRef } from "react";
+} from '@chakra-ui/react';
+import { Main } from './Main';
+import * as d3 from 'd3';
+import formatDistanceToNow from 'date-fns/formatDistanceToNow';
+import { useEffect, useRef } from 'react';
 
 export function ExperimentReport() {
   const profileData = window.PIPERIDER_REPORT_DATA;
@@ -24,78 +24,96 @@ export function ExperimentReport() {
   if (profileData === '') {
     return (
       <Main>
-        <Flex justifyContent="center" alignItems="center" minHeight={"100vh"}>
+        <Flex justifyContent="center" alignItems="center" minHeight={'100vh'}>
           No profile data found.
         </Flex>
       </Main>
     );
   }
 
+  const assertion = profileData.assertion_results;
+  const overviewStatus = getReportAsserationStatusCounts(assertion);
+
   return (
-    <Main alignItems={"flex-start"}>
-      <Flex direction={"column"} minH={"100vh"} width={"100%"}>
+    <Main alignItems={'flex-start'}>
+      <Flex direction={'column'} minH={'100vh'} width={'100%'}>
         <Flex
-          border={"1px solid"}
-          borderColor={"gray.300"}
-          bg={"white"}
-          borderRadius={"md"}
+          border={'1px solid'}
+          borderColor={'gray.300'}
+          bg={'white'}
+          borderRadius={'md'}
           p={6}
           my={10}
-          mx={"10%"}
-          direction={"column"}
+          mx={'10%'}
+          direction={'column'}
         >
           <Heading>InfuseAI x Finance</Heading>
 
           <Divider my={4} />
 
-          {/* TODO: status, success, failed and freshness values */}
-          <Flex direction={"column"} gap={4}>
-            <Heading size={"lg"}>Overview</Heading>
+          {/* TODO: freshness values */}
+          <Flex direction={'column'} gap={4}>
+            <Heading size={'lg'}>Overview</Heading>
             <Text>
-              Table:{" "}
-              <Text as={"span"} fontWeight={700}>
+              Table:{' '}
+              <Text as={'span'} fontWeight={700}>
                 {profileData?.name}
               </Text>
             </Text>
             <Text>
-              Rows:{" "}
-              <Text as={"span"} fontWeight={700}>
+              Rows:{' '}
+              <Text as={'span'} fontWeight={700}>
                 {profileData?.row_count}
               </Text>
             </Text>
             <Text>
-              Columns:{" "}
-              <Text as={"span"} fontWeight={700}>
+              Columns:{' '}
+              <Text as={'span'} fontWeight={700}>
                 {profileData?.col_count}
               </Text>
             </Text>
             <Text>
-              Status:{" "}
-              <Text as={"span"} fontWeight={700}>
-                #
+              Status: {/* Passed */}
+              {overviewStatus.passed > 0 && overviewStatus.failed === 0 && (
+                <Text as="span" role={'img'}>
+                  ✅
+                </Text>
+              )}
+              {/* Failed */}
+              {overviewStatus.failed > 0 && overviewStatus.passed === 0 && (
+                <Text as="span" role={'img'}>
+                  ❌
+                </Text>
+              )}
+              {/* Warning */}
+              {overviewStatus.failed > 0 && overviewStatus.passed > 0 && (
+                <Text as="span" role={'img'}>
+                  ⚠️
+                </Text>
+              )}
+            </Text>
+
+            <Text>
+              Passed:{' '}
+              <Text as={'span'} fontWeight={700} color={'green.500'}>
+                {overviewStatus.passed}
               </Text>
             </Text>
             <Text>
-              Passed:{" "}
-              <Text as={"span"} fontWeight={700}>
-                #
+              Failed:{' '}
+              <Text as={'span'} fontWeight={700} color={'red.500'}>
+                {overviewStatus.failed}
               </Text>
             </Text>
             <Text>
-              Failed:{" "}
-              <Text as={"span"} fontWeight={700}>
-                #
+              Data Source Type:{' '}
+              <Text as={'span'} fontWeight={700}>
+                {profileData?.datasource.type}
               </Text>
             </Text>
             <Text>
-              Data Source Type:{" "}
-              <Text as={"span"} fontWeight={700}>
-                #
-              </Text>
-            </Text>
-            <Text>
-              Created Date:{" "}
-              <Text as={"span"} fontWeight={700}>
+              Created Date:{' '}
+              <Text as={'span'} fontWeight={700}>
                 {profileData?.created_at &&
                   formatDistanceToNow(new Date(profileData.created_at), {
                     addSuffix: true,
@@ -103,9 +121,9 @@ export function ExperimentReport() {
               </Text>
             </Text>
             <Text>
-              Freshness:{" "}
-              <Text as={"span"} fontWeight={700}>
-                {formatDistanceToNow(new Date("2022-05-10"), {
+              Freshness:{' '}
+              <Text as={'span'} fontWeight={700}>
+                {formatDistanceToNow(new Date('2022-05-10'), {
                   addSuffix: true,
                 })}
               </Text>
@@ -114,7 +132,7 @@ export function ExperimentReport() {
 
           <Divider my={6} />
 
-          <Flex direction={"column"}>
+          <Flex direction={'column'}>
             <ProfilingInformation data={profileData.columns} />
 
             <TestsInformation data={profileData.assertion_results} />
@@ -127,8 +145,8 @@ export function ExperimentReport() {
 
 function ProfilingInformation({ data }) {
   return (
-    <Flex direction={"column"} gap={4}>
-      <Heading size={"lg"}>Profiling</Heading>
+    <Flex direction={'column'} gap={4}>
+      <Heading size={'lg'}>Profiling</Heading>
 
       {Object.keys(data).map((key) => {
         const column = data[key];
@@ -142,29 +160,29 @@ function ProfilingInformation({ data }) {
         const isAllValuesExists = column.non_nulls === column.total;
 
         return (
-          <Flex key={key} direction={"column"}>
-            <Grid my={4} templateColumns={"repeat(4, 1fr)"} gap={3}>
-              <Flex direction={"column"} gap={2}>
+          <Flex key={key} direction={'column'}>
+            <Grid my={4} templateColumns={'repeat(4, 1fr)'} gap={3}>
+              <Flex direction={'column'} gap={2}>
                 <Text>
                   <Text
-                    as={"span"}
+                    as={'span'}
                     fontWeight={700}
-                    color={"gray.900"}
-                    fontSize={"xl"}
+                    color={'gray.900'}
+                    fontSize={'xl'}
                   >
                     {column.name}
                   </Text>
-                  {""}(<Code>{column.type}</Code>)
+                  {''}(<Code>{column.type}</Code>)
                 </Text>
               </Flex>
 
               <BarChart data={chartData} />
 
-              <Flex direction={"column"} gap={2}>
+              <Flex direction={'column'} gap={2}>
                 <Text fontWeight={700}>Missing Values</Text>
-                <Text color={isAllValuesExists ? "green.500" : "red.500"}>
+                <Text color={isAllValuesExists ? 'green.500' : 'red.500'}>
                   {isAllValuesExists
-                    ? "0"
+                    ? '0'
                     : (Number(column.non_nulls / column.total) * 100).toFixed(
                         3
                       )}
@@ -172,10 +190,10 @@ function ProfilingInformation({ data }) {
                 </Text>
               </Flex>
 
-              <Flex direction={"column"} gap={2}>
+              <Flex direction={'column'} gap={2}>
                 <Text fontWeight={700}>Range</Text>
 
-                {column.type === "numeric" ? (
+                {column.type === 'numeric' ? (
                   <>
                     <Text>
                       Min: <Code>{Number(column.min).toFixed(3)}</Code>
@@ -205,11 +223,11 @@ function TestsInformation({ data }) {
   const columnsTests = data?.columns || {};
 
   return (
-    <Flex direction={"column"} gap={4}>
-      <Heading size={"lg"}>Tests</Heading>
+    <Flex direction={'column'} gap={4}>
+      <Heading size={'lg'}>Tests</Heading>
 
       <TableContainer>
-        <Table variant={"simple"}>
+        <Table variant={'simple'}>
           <Thead>
             <Tr>
               <Th>Name</Th>
@@ -222,39 +240,39 @@ function TestsInformation({ data }) {
 
           <Tbody>
             {tabelTests.map((tabelTest) => {
-              const isFailed = tabelTest.status === "failed";
+              const isFailed = tabelTest.status === 'failed';
 
               return (
                 <Tr key={tabelTest.name}>
-                  <Td>{tabelTest.name.replace("assert_", "")}</Td>
+                  <Td>{tabelTest.name.replace('assert_', '')}</Td>
                   <Td>
                     {isFailed ? (
-                      <Text as="span" role={"img"}>
+                      <Text as="span" role={'img'}>
                         ❌
                       </Text>
                     ) : (
-                      <Text as="span" role={"img"}>
+                      <Text as="span" role={'img'}>
                         ✅
                       </Text>
                     )}
                   </Td>
                   <Td>Table</Td>
                   <Td>
-                    {typeof tabelTest.expected === "object"
+                    {typeof tabelTest.expected === 'object'
                       ? Object.keys(tabelTest.expected).map((key) => (
                           <Text key={key}>
-                            {typeof tabelTest.expected[key] === "string"
+                            {typeof tabelTest.expected[key] === 'string'
                               ? tabelTest.expected[key]
                               : JSON.stringify(tabelTest.expected[key])}
                           </Text>
                         ))
                       : tabelTest.expected}
                   </Td>
-                  <Td color={isFailed && "red.500"}>
-                    {typeof tabelTest.actual === "object"
+                  <Td color={isFailed && 'red.500'}>
+                    {typeof tabelTest.actual === 'object'
                       ? Object.keys(tabelTest.actual).map((key) => (
                           <Text key={key}>
-                            {typeof tabelTest.actual[key] === "string"
+                            {typeof tabelTest.actual[key] === 'string'
                               ? tabelTest.actual[key]
                               : JSON.stringify(tabelTest.actual[key])}
                           </Text>
@@ -269,39 +287,39 @@ function TestsInformation({ data }) {
               const columnTests = columnsTests[key];
 
               return columnTests.map((columnTest) => {
-                const isFailed = columnTest.status === "failed";
+                const isFailed = columnTest.status === 'failed';
 
                 return (
                   <Tr key={columnTest.name}>
-                    <Td>{columnTest.name.replace("assert_", "")}</Td>
+                    <Td>{columnTest.name.replace('assert_', '')}</Td>
                     <Td>
                       {isFailed ? (
-                        <Text as="span" role={"img"}>
+                        <Text as="span" role={'img'}>
                           ❌
                         </Text>
                       ) : (
-                        <Text as="span" role={"img"}>
+                        <Text as="span" role={'img'}>
                           ✅
                         </Text>
                       )}
                     </Td>
                     <Td>Column</Td>
                     <Td>
-                      {typeof columnTest.expected === "object"
+                      {typeof columnTest.expected === 'object'
                         ? Object.keys(columnTest.expected).map((key) => (
                             <Text key={key}>
-                              {typeof columnTest.expected[key] === "string"
+                              {typeof columnTest.expected[key] === 'string'
                                 ? columnTest.expected[key]
                                 : JSON.stringify(columnTest.expected[key])}
                             </Text>
                           ))
                         : columnTest.expected}
                     </Td>
-                    <Td color={isFailed && "red.500"}>
-                      {typeof columnTest.actual === "object"
+                    <Td color={isFailed && 'red.500'}>
+                      {typeof columnTest.actual === 'object'
                         ? Object.keys(columnTest.actual).map((key) => (
                             <Text key={key}>
-                              {typeof columnTest.actual[key] === "string"
+                              {typeof columnTest.actual[key] === 'string'
                                 ? columnTest.actual[key]
                                 : JSON.stringify(columnTest.actual[key])}
                             </Text>
@@ -328,27 +346,27 @@ function BarChart({ data }) {
     const height = 200 - margin.top - margin.bottom;
 
     const svgEl = d3.select(svgRef.current);
-    svgEl.selectAll("*").remove();
+    svgEl.selectAll('*').remove();
 
     const svg = svgEl
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
 
     const tooltip = d3
-      .select(".chart")
-      .append("div")
-      .style("visibility", "hidden")
-      .style("position", "absolute")
-      .style("z-index", "9")
-      .style("padding-top", "var(--chakra-space-2)")
-      .style("padding-bottom", "var(--chakra-space-2)")
-      .style("border-radius", "var(--chakra-radii-md)")
-      .style("padding-left", "var(--chakra-space-4)")
-      .style("padding-right", "var(--chakra-space-4)")
-      .style("color", "var(--chakra-colors-white)")
-      .style("background-color", "var(--chakra-colors-blackAlpha-700)");
+      .select('.chart')
+      .append('div')
+      .style('visibility', 'hidden')
+      .style('position', 'absolute')
+      .style('z-index', '9')
+      .style('padding-top', 'var(--chakra-space-2)')
+      .style('padding-bottom', 'var(--chakra-space-2)')
+      .style('border-radius', 'var(--chakra-radii-md)')
+      .style('padding-left', 'var(--chakra-space-4)')
+      .style('padding-right', 'var(--chakra-space-4)')
+      .style('color', 'var(--chakra-colors-white)')
+      .style('background-color', 'var(--chakra-colors-blackAlpha-700)');
 
     function onShowTooltip(event, d) {
       tooltip
@@ -363,21 +381,21 @@ function BarChart({ data }) {
         )
         .transition()
         .duration(500)
-        .style("visibility", "visible");
+        .style('visibility', 'visible');
 
-      d3.select(this).style("fill", "var(--chakra-colors-piperider-300)");
+      d3.select(this).style('fill', 'var(--chakra-colors-piperider-300)');
     }
 
     function onMoveTooltip(event) {
       tooltip
-        .style("top", `${event.pageY - 10}px`)
-        .style("left", `${event.pageX + 10}px`);
+        .style('top', `${event.pageY - 10}px`)
+        .style('left', `${event.pageX + 10}px`);
     }
 
     function onHideTooltip() {
-      tooltip.html("").transition().duration(500).style("visibility", "hidden");
+      tooltip.html('').transition().duration(500).style('visibility', 'hidden');
 
-      d3.select(this).style("fill", "var(--chakra-colors-piperider-500)");
+      d3.select(this).style('fill', 'var(--chakra-colors-piperider-500)');
     }
 
     if (data.length > 0) {
@@ -387,15 +405,15 @@ function BarChart({ data }) {
         .range([0, width])
         .padding(0.5);
       svg
-        .append("g")
-        .attr("transform", `translate(0, ${height})`)
-        .call(d3.axisBottom(x).tickFormat(() => ""));
+        .append('g')
+        .attr('transform', `translate(0, ${height})`)
+        .call(d3.axisBottom(x).tickFormat(() => ''));
 
       const y = d3
         .scaleLinear()
         .domain([0, d3.max(data, ({ value }) => value)])
         .range([height, 0]);
-      svg.append("g").call(
+      svg.append('g').call(
         d3
           .axisLeft(y)
           .tickFormat((d) => `${d}`)
@@ -406,21 +424,60 @@ function BarChart({ data }) {
         .selectAll()
         .data(data)
         .enter()
-        .append("rect")
-        .attr("x", (s) => x(s.label))
-        .attr("y", (s) => y(s.value))
-        .attr("height", (s) => height - y(s.value))
-        .attr("width", x.bandwidth())
-        .style("fill", "var(--chakra-colors-piperider-500)")
-        .on("mouseover", onShowTooltip)
-        .on("mousemove", onMoveTooltip)
-        .on("mouseout", onHideTooltip);
+        .append('rect')
+        .attr('x', (s) => x(s.label))
+        .attr('y', (s) => y(s.value))
+        .attr('height', (s) => height - y(s.value))
+        .attr('width', x.bandwidth())
+        .style('fill', 'var(--chakra-colors-piperider-500)')
+        .on('mouseover', onShowTooltip)
+        .on('mousemove', onMoveTooltip)
+        .on('mouseout', onHideTooltip);
     }
   }, [data]);
 
   return (
-    <Flex className={"chart"}>
+    <Flex className={'chart'}>
       <svg ref={svgRef} />
     </Flex>
   );
+}
+
+export function getReportAsserationStatusCounts(assertion) {
+  if (!assertion) {
+    return { passed: 0, failed: 0 };
+  }
+
+  const tableStatus = assertion.tests.reduce(
+    (acc, curr) => {
+      if (curr.status === 'passed') {
+        acc.passed += 1;
+      } else if (curr.status === 'failed') {
+        acc.failed += 1;
+      }
+
+      return acc;
+    },
+    { passed: 0, failed: 0 }
+  );
+
+  const columnStatus = Object.keys(assertion.columns).reduce(
+    (acc, current) => {
+      assertion.columns[current].forEach((item) => {
+        if (item.status === 'passed') {
+          acc.passed += 1;
+        } else if (item.status === 'failed') {
+          acc.failed += 1;
+        }
+      });
+
+      return acc;
+    },
+    { passed: 0, failed: 0 }
+  );
+
+  return {
+    passed: tableStatus.passed + columnStatus.passed,
+    failed: tableStatus.failed + columnStatus.failed,
+  };
 }
