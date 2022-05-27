@@ -26,6 +26,9 @@ class Profiler:
             else:
                 for table in tables:
                     print(f"fetching metadata for table '{table}'")
+                    if len(table.split('.')) == 2:
+                        schema, table = table.split('.')
+                        metadata.schema = schema
                     Table(table, metadata, autoload_with=self.engine)
 
         profiled_tables = {}
