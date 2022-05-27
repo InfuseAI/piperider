@@ -350,10 +350,10 @@ def init(dbt_project_path=None):
     return configuration
 
 
-def _check_dbt_config(dbt, table=None):
+def _fetch_dbt_catalog(dbt, table=None):
     tables = []
     if dbt is None:
-        return True, '', []
+        return True, '', tables
 
     dbt_root = dbt.get('root')
     dbt_catalog = os.path.join(dbt_root, 'target', 'catalog.json')
@@ -361,14 +361,24 @@ def _check_dbt_config(dbt, table=None):
         with open(dbt_catalog) as fd:
             catalog = json.loads(fd.read())
         # TODO we should consider the case that the table name is not unique
-        tables += [k.split('.')[-1].lower() for k in catalog.get('nodes', {}).keys()]
-        tables += [k.split('.')[-1].lower() for k in catalog.get('sources', {}).keys()]
-        if not tables:
-            return False, f'No table found in {dbt_catalog}', []
-        if table and table not in tables:
-            return False, f"Table '{table}' doesn't exist in {dbt_catalog}", []
+        for k, v in (catalog.get('nodes', {}) | catalog.get('sources', {})).items():
+            metadata = v.get('metadata', {})
+            name = metadata.get('name')
+            schema = metadata.get('schema')
+            if table and name != table:
+                continue
+            if schema == 'public':
+                table_name = name
+            else:
+                table_name = f'{schema}.{name}'
+            tables.append(table_name)
     else:
         return False, f"'{dbt_catalog}' not found", []
+
+    if table and not tables:
+        return False, f"Table '{table}' doesn't exist in {dbt_catalog}", []
+    if not tables:
+        return False, f'No table found in {dbt_catalog}', []
 
     return True, '', tables
 
@@ -420,7 +430,7 @@ def debug(configuration: Configuration = None):
         # Check catalog.json file exist if dbt is used
         if dbt:
             console.print(f'Check dbt catalog file:')
-            passed, error_msg, _ = _check_dbt_config(dbt)
+            passed, error_msg, _ = _fetch_dbt_catalog(dbt)
             if not passed:
                 has_error = True
                 console.print(f'[bold red]😱 FAILED[/bold red] : {error_msg}')
@@ -565,13 +575,14 @@ def run(datasource=None, table=None, output=None, interaction=True):
         dbt = ds.args.get('dbt')
         tables = None
         if dbt:
-            passed, error_msg, tables = _check_dbt_config(dbt, table)
+            passed, error_msg, tables = _fetch_dbt_catalog(dbt, table)
             if not passed:
                 console.print(
                     "[bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' files")
                 raise Exception(error_msg)
-        if table:
-            tables = [table]
+        else:
+            if table:
+                tables = [table]
 
         console.rule(f'Profiling')
         run_id = uuid.uuid4().hex
