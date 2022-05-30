@@ -264,6 +264,134 @@ class Configuration(object):
         raise NotImplemented
 
 
+class AbstractChecker(metaclass=ABCMeta):
+    console = Console()
+
+    @abstractmethod
+    def check_function(self, configurator: Configuration) -> (bool, str):
+        pass
+
+
+class CheckingHandler(object):
+    def __init__(self):
+        self.configurator = None
+        self.checker_chain = []
+        self.console = Console()
+
+    def set_checker(self, name: str, checker: AbstractChecker):
+        self.checker_chain.append({'name': name, 'cls': checker()})
+
+    def execute(self):
+        try:
+            if not self.configurator:
+                try:
+                    self.configurator = Configuration.load()
+                except Exception as e:
+                    pass
+
+            for checker in self.checker_chain:
+                self.console.print(f'Check {checker["name"]}:')
+                passed, error_msg = checker['cls'].check_function(self.configurator)
+                if not passed:
+                    raise ValueError(error_msg)
+                self.console.print(CONSOLE_MSG_PASS)
+
+            self.console.print(CONSOLE_MSG_ALL_SET)
+        except Exception as e:
+            self.console.print(CONSOLE_MSG_FAIL)
+            raise e
+        return True
+
+
+class CheckConfiguration(AbstractChecker):
+    def check_function(self, configurator: Configuration) -> (bool, str):
+        if not configurator:
+            self.console.print(f'  {PIPERIDER_CONFIG_PATH}: [[bold red]FAILED[/bold red]]')
+            return False, 'No configuration found'
+        self.console.print(f'  {PIPERIDER_CONFIG_PATH}: [[bold green]OK[/bold green]]')
+        return True, ''
+
+
+class CheckDataSources(AbstractChecker):
+    def check_function(self, configurator: Configuration) -> (bool, str):
+        all_passed = True
+        for ds in configurator.dataSources:
+            passed, reasons = ds.validate()
+            if passed:
+                self.console.print(f'  {ds.name}: [[bold green]OK[/bold green]]')
+            else:
+                all_passed = False
+                self.console.print(f'  {ds.name}: [[bold red]FAILED[/bold red]]')
+                for reason in reasons:
+                    self.console.print(f'    {reason}')
+        return all_passed, ''
+
+
+class CheckConnections(AbstractChecker):
+    def check_function(self, configurator: Configuration) -> (bool, str):
+        all_passed = True
+        for ds in configurator.dataSources:
+            dbt = ds.args.get('dbt')
+            provider = f'customized'
+            name = ds.name
+            type = ds.type_name
+
+            if dbt:  # dbt provider
+                provider = f'{ds.type_name} > {dbt["project"]} > {dbt["target"]}'
+
+            self.console.print(f'  Provider: {provider}')
+            self.console.print(f'  Name: {name}')
+            self.console.print(f'  Type: {type}')
+
+            engine = None
+            try:
+                engine = create_engine(ds.to_database_url(), **ds.engine_args())
+                self.console.print(f'  Available Tables: {inspect(engine).get_table_names()}')
+                self.console.print(f'  Connection: [[bold green]OK[/bold green]]')
+            except Exception as e:
+                self.console.print(f'  Connection: [[bold red]FAILED[/bold red]] reason: {e}')
+                all_passed = False
+            finally:
+                if engine:
+                    engine.dispose()
+
+        return all_passed, ''
+
+
+class CheckDbtCatalog(AbstractChecker):
+    def check_function(self, configurator: Configuration) -> (bool, str):
+        all_passed = True
+        for ds in configurator.dataSources:
+            dbt = ds.args.get('dbt')
+
+            if not dbt:
+                self.console.print(f'  {ds.name}: [[bold yellow]SKIP[/bold yellow]] provider is not dbt')
+                continue
+
+            self.console.print(f'  {os.path.expanduser(dbt.get("root"))}/target/catalog.json: ', end='')
+            passed, error_msg, _ = _fetch_dbt_catalog(dbt)
+            if not passed:
+                all_passed = False
+                self.console.print(f'{ds.name}: [[bold red]Failed[/bold red]] Error: {error_msg}')
+                self.console.print(
+                    f"  [bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' file")
+            else:
+                self.console.print(f'{ds.name}: [[bold green]OK[/bold green]]')
+        return all_passed, ''
+
+
+class CheckAssertionFiles(AbstractChecker):
+    def check_function(self, configurator: Configuration) -> (bool, str):
+        passed_files, failed_files, content = AssertionEngine.check_assertions_syntax()
+        for file in passed_files:
+            self.console.print(f'  {file}: [[bold green]OK[/bold green]]')
+
+        for file in failed_files:
+            self.console.print(f'  {file}: [[bold red]FAILED[/bold red]]')
+
+        return len(failed_files) == 0, ''
+
+
 def _generate_piperider_workspace():
     from piperider_cli import data
     init_template_dir = os.path.join(os.path.dirname(data.__file__), 'piperider-init-template')
@@ -428,82 +556,14 @@ def _fetch_dbt_catalog(dbt, table=None):
     return True, '', tables
 
 
-def debug(configuration: Configuration = None):
-    console = Console()
-    if not configuration:
-        configuration = Configuration.load()
-
-    has_error = False
-    console.print(f'Check config files:')
-    console.print(f'  {PIPERIDER_CONFIG_PATH}: [[bold green]OK[/bold green]]')
-
-    for ds in configuration.dataSources:
-        console.print(f"Check format of data sources [ {ds.name} ]")
-        result, reasons = ds.validate()
-        if result:
-            console.print(CONSOLE_MSG_PASS)
-        else:
-            has_error = True
-            console.print(CONSOLE_MSG_FAIL)
-            for reason in reasons:
-                console.print(f"\t{reason}")
-
-        if has_error:
-            return has_error
-
-        dbt = ds.args.get('dbt')
-        provider_info = ''
-        if dbt:
-            provider_info = f'(Provider dbt-local : {dbt["project"]} : {dbt["target"]})'
-        console.print(f'Check connection {provider_info}:')
-        console.print(f'  Name: {ds.name}')
-        console.print(f'  Type: {ds.type_name}')
-
-        engine = None
-        try:
-            engine = create_engine(ds.to_database_url(), **ds.engine_args())
-            print(f'  Available Tables: {inspect(engine).get_table_names()}')
-            # TODO: show the host & user info based on each dataSources
-            console.print(CONSOLE_MSG_PASS)
-        except Exception as e:
-            console.print(CONSOLE_MSG_FAIL)
-            raise e
-        finally:
-            if engine:
-                engine.dispose()
-
-        # Check catalog.json file exist if dbt is used
-        if dbt:
-            console.print(f'Check dbt catalog file:')
-            console.print(f'  {os.path.expanduser(dbt.get("root"))}/target/catalog.json: ', end='')
-            passed, error_msg, _ = _fetch_dbt_catalog(dbt)
-            if not passed:
-                has_error = True
-                console.print(f'[[bold red]Failed[/bold red]] Error: {error_msg}')
-                console.print(
-                    f"  [bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' file")
-                console.print(CONSOLE_MSG_FAIL)
-                return has_error
-            else:
-                console.print(f'[[bold green]OK[/bold green]]')
-                console.print(CONSOLE_MSG_PASS)
-
-        passed_files, failed_files, content = AssertionEngine.check_assertions_syntax()
-        if passed_files and failed_files:
-            console.print(f'Check Assertion Files:')
-            for file in passed_files:
-                console.print(f'  {file}: [[bold green]OK[/bold green]]')
-            for file in failed_files:
-                console.print(f'  {file}: [[bold red]Failed[/bold red]]')
-                has_error = True
-            if has_error:
-                console.print(CONSOLE_MSG_FAIL)
-                return has_error
-            else:
-                console.print(CONSOLE_MSG_PASS)
-
-    console.print(CONSOLE_MSG_ALL_SET)
-    return has_error
+def debug():
+    handler = CheckingHandler()
+    handler.set_checker('config files', CheckConfiguration)
+    handler.set_checker('format of data sources', CheckDataSources)
+    handler.set_checker('connections', CheckConnections)
+    handler.set_checker('dbt catalog file', CheckDbtCatalog)
+    handler.set_checker('assertion files', CheckAssertionFiles)
+    return handler.execute()
 
 
 def _execute_assertions(console: Console, profiler, ds: DataSource, interaction: bool, output, result, created_at):
