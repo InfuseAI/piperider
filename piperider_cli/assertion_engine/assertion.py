@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import datetime
 from importlib import import_module
 
@@ -182,7 +183,10 @@ class AssertionEngine:
         self.assertion_search_path = assertion_search_path
         self.assertions_content = {}
         self.assertions = []
-        pass
+
+        self.default_plugins_dir = os.path.abspath(os.path.join(self.assertion_search_path, '../plugins'))
+        if not os.path.isdir(self.default_plugins_dir):
+            self.default_plugins_dir = None
 
     @staticmethod
     def check_assertions_syntax(assertion_search_path=PIPERIDER_ASSERTION_SEARCH_PATH):
@@ -278,13 +282,31 @@ class AssertionEngine:
         """
 
         func = None
-        # locate the builtin assertion from the piperider_cli.assertion_engine
+
+        self.configure_plugins_path()
         try:
-            # fetch the assertion function
-            assertion_module = import_module(f'piperider_cli.assertion_engine')
-            func = getattr(assertion_module, assertion.name)
+            # assertion name with "." suppose to be a user-defined test function
+            is_user_defined_test_function = ("." in assertion.name)
+            if not is_user_defined_test_function:
+                # locate the builtin assertion from the piperider_cli.assertion_engine
+                # fetch the assertion function
+                assertion_module = import_module(f'piperider_cli.assertion_engine')
+                func = getattr(assertion_module, assertion.name)
+            else:
+                assertion_def = assertion.name.split(".")
+                module_name = ".".join(assertion_def[0:-1])
+                function_name = assertion_def[-1]
+                assertion_module = import_module(module_name)
+                func = getattr(assertion_module, function_name)
+        except ModuleNotFoundError as e:
+            assertion.result.fail_with_exception(AssertionException(f'Cannot find the assertion: {assertion.name}', e))
+            return assertion
+        except ImportError as e:
+            assertion.result.fail_with_exception(AssertionException(f'Cannot find the assertion: {assertion.name}', e))
+            return assertion
         except Exception as e:
-            raise AssertionException(f'Cannot find the assertion: {assertion.name}')
+            assertion.result.fail_with_exception(AssertionException(f'Cannot find the assertion: {assertion.name}', e))
+            return assertion
 
         try:
             result = func(assertion, assertion.table, assertion.column, metrics_result)
@@ -308,3 +330,10 @@ class AssertionEngine:
             except BaseException as e:
                 exceptions.append((assertion, e))
         return results, exceptions
+
+    def configure_plugins_path(self):
+        plugin_context = os.environ.get('PIPERIDER_PLUGINS')
+        if plugin_context:
+            sys.path.append(plugin_context)
+        if self.default_plugins_dir:
+            sys.path.append(self.default_plugins_dir)
