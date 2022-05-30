@@ -6,9 +6,11 @@ import uuid
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from getpass import getpass
+from glob import glob
 from typing import List
 
 from rich.console import Console
+from rich.table import Table
 from ruamel import yaml
 from sqlalchemy import create_engine, inspect
 
@@ -343,9 +345,45 @@ def _generate_configuration(dbt_project_path=None):
     return _inherit_datasource_from_dbt_project(dbt_project_path)
 
 
+def search_dbt_project_path():
+    exclude_pattern = 'site-packages'
+    paths = glob(os.path.join(os.getcwd(), '**', 'dbt_project.yml'), recursive=True)
+    paths = list(filter(lambda x: not exclude_pattern in x, paths))
+    dbt_project_path = None
+    if not paths:
+        # No dbt project found
+        return dbt_project_path
+
+    if len(paths) == 1:
+        # Only one dbt project found, use it
+        dbt_project_path = paths[0]
+    else:
+        # Multiple dbt projects found, ask user to select one
+        paths = sorted(paths, key=len)
+        default_index = 0
+        console = Console()
+        console.print(f'\nMultiple dbt projects found. Please select the dbt project: (Default: {default_index})')
+        table = Table(show_header=True, header_style="bold magenta")
+        table.add_column('Index', style="bold", width=5, justify='right')
+        table.add_column('Path', style="bold")
+        for i, p in enumerate(paths):
+            table.add_row(str(i), p)
+        console.print(table)
+        in_index = input('index : ').strip()
+        try:
+            in_index = int(in_index) if in_index else default_index
+            index = int(in_index)
+            dbt_project_path = paths[index]
+        except Exception as e:
+            console.print(f'[bold yellow]Failed to read index![/] Error: {e}')
+            return None
+
+    return dbt_project_path
+
+
 def init(dbt_project_path=None):
     _generate_piperider_workspace()
-    # get Configuration object from dbt or user created configuation
+    # get Configuration object from dbt or user created configuration
     configuration = _generate_configuration(dbt_project_path=dbt_project_path)
     return configuration
 

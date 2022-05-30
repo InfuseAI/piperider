@@ -1,6 +1,5 @@
 import os.path
 import sys
-from glob import glob
 
 import click
 from rich.console import Console
@@ -36,21 +35,27 @@ def version():
 @cli.command(short_help='Initialize PipeRider configurations')
 @click.option('--provider', type=click.Choice(['dbt-local', 'customized']), default='dbt-local',
               help='Select the provider of datasource')
+@click.option('--dbt-project-path', type=click.Path(exists=True), default=None, help='Path of dbt project config')
+@click.option('--dbt-profile-path', type=click.Path(exists=True), default=os.path.expanduser('~/.dbt/profiles.yml'),
+              help='Path of dbt profile config')
 @add_options(debug_option)
 def init(**kwargs):
     console = Console()
-
     piperider_config_dir = os.path.join(os.getcwd(), '.piperider')
     # TODO show the process and message to users
     console.print(f'Initialize piperider to path {piperider_config_dir}')
 
+    # Search dbt project config files
     dbt_project_path = None
     if kwargs.get('provider') == 'dbt-local':
-        pathes = glob(os.path.join(os.getcwd(), '**', 'dbt_project.yml'), recursive=True)
-        if pathes:
-            dbt_project_path = pathes[0]
+        if kwargs.get('dbt_project_path'):
+            dbt_project_path = kwargs.get('dbt_project_path')
+        else:
+            dbt_project_path = workspace.search_dbt_project_path()
 
     try:
+        if dbt_project_path:
+            console.print(f'Use dbt project file: {dbt_project_path}')
         config = workspace.init(dbt_project_path=dbt_project_path)
         if kwargs.get('debug'):
             for ds in config.dataSources:
