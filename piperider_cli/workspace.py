@@ -23,7 +23,11 @@ PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME,
 PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
 PIPERIDER_REPORT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'reports')
 
-DBT_PROFILE_DEFAULT_PATH = os.path.join(os.path.expanduser('~'), '.dbt/profiles.yml')
+DBT_PROFILE_DEFAULT_PATH = '~/.dbt/profiles.yml'  # os.path.join(os.path.expanduser('~'), '.dbt/profiles.yml')
+
+CONSOLE_MSG_PASS = f'[bold green]✅ PASS[/bold green]\n'
+CONSOLE_MSG_FAIL = f'[bold red]😱 FAILED[/bold red]\n'
+CONSOLE_MSG_ALL_SET = f'[bold]🎉 You are all set![/bold]\n'
 
 
 class DataSource(metaclass=ABCMeta):
@@ -168,7 +172,7 @@ class Configuration(object):
         with open(dbt_project_path, 'r') as fd:
             dbt_project = yaml.safe_load(fd)
 
-        with open(dbt_profile_path, 'r') as fd:
+        with open(os.path.expanduser(dbt_profile_path), 'r') as fd:
             dbt_profile = yaml.safe_load(fd)
 
         profile_name = dbt_project.get('profile')
@@ -179,7 +183,7 @@ class Configuration(object):
             'project': profile_name,
             'target': target_name,
             'profile': dbt_profile_path,
-            'root': os.path.dirname(dbt_project_path),
+            'root': os.path.relpath(os.path.dirname(dbt_project_path), os.getcwd()),
         }
 
         if type_name not in DATASOURCE_PROVIDERS:
@@ -210,7 +214,10 @@ class Configuration(object):
             datasource_class = DATASOURCE_PROVIDERS[type_name]
             dbt = ds.get('dbt')
             if dbt:
-                with open(dbt.get('profile'), 'r') as fd:
+                profile_path = dbt.get('profile')
+                if '~' in profile_path:
+                    profile_path = os.path.expanduser(profile_path)
+                with open(profile_path, 'r') as fd:
                     profile = yaml.safe_load(fd)
                 credential = profile.get(dbt.get('project'), {}).get('outputs', {}).get(dbt.get('target', {}))
                 datasource = datasource_class(name=ds.get('name'), dbt=dbt, credential=credential)
@@ -393,7 +400,7 @@ def _fetch_dbt_catalog(dbt, table=None):
     if dbt is None:
         return True, '', tables
 
-    dbt_root = dbt.get('root')
+    dbt_root = os.path.expanduser(dbt.get('root'))
     dbt_catalog = os.path.join(dbt_root, 'target', 'catalog.json')
     if os.path.exists(dbt_catalog):
         with open(dbt_catalog) as fd:
@@ -427,17 +434,17 @@ def debug(configuration: Configuration = None):
         configuration = Configuration.load()
 
     has_error = False
-    console.print(f'Config files:')
+    console.print(f'Check config files:')
     console.print(f'  {PIPERIDER_CONFIG_PATH}: [[bold green]OK[/bold green]]')
 
     for ds in configuration.dataSources:
-        console.print(f"Check format for datasource [ {ds.name} ]")
+        console.print(f"Check format of data sources [ {ds.name} ]")
         result, reasons = ds.validate()
         if result:
-            console.print("[bold green]✅ PASS[/bold green]")
+            console.print(CONSOLE_MSG_PASS)
         else:
             has_error = True
-            console.print("[bold red]😱 FAILED[/bold red]")
+            console.print(CONSOLE_MSG_FAIL)
             for reason in reasons:
                 console.print(f"\t{reason}")
 
@@ -448,7 +455,7 @@ def debug(configuration: Configuration = None):
         provider_info = ''
         if dbt:
             provider_info = f'(Provider dbt-local : {dbt["project"]} : {dbt["target"]})'
-        console.print(f'Connection {provider_info}:')
+        console.print(f'Check connection {provider_info}:')
         console.print(f'  Name: {ds.name}')
         console.print(f'  Type: {ds.type_name}')
 
@@ -457,9 +464,9 @@ def debug(configuration: Configuration = None):
             engine = create_engine(ds.to_database_url(), **ds.engine_args())
             print(f'  Available Tables: {inspect(engine).get_table_names()}')
             # TODO: show the host & user info based on each dataSources
-            console.print(f'[bold green]✅ PASS[/bold green]')
+            console.print(CONSOLE_MSG_PASS)
         except Exception as e:
-            console.print("[bold red]😱 FAILED[/bold red]")
+            console.print(CONSOLE_MSG_FAIL)
             raise e
         finally:
             if engine:
@@ -468,15 +475,18 @@ def debug(configuration: Configuration = None):
         # Check catalog.json file exist if dbt is used
         if dbt:
             console.print(f'Check dbt catalog file:')
+            console.print(f'  {os.path.expanduser(dbt.get("root"))}/target/catalog.json: ', end='')
             passed, error_msg, _ = _fetch_dbt_catalog(dbt)
             if not passed:
                 has_error = True
-                console.print(f'[bold red]😱 FAILED[/bold red] : {error_msg}')
+                console.print(f'[[bold red]Failed[/bold red]] Error: {error_msg}')
                 console.print(
                     f"  [bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' file")
+                console.print(CONSOLE_MSG_FAIL)
                 return has_error
             else:
-                console.print(f'[bold green]✅ PASS[/bold green]')
+                console.print(f'[[bold green]OK[/bold green]]')
+                console.print(CONSOLE_MSG_PASS)
 
         passed_files, failed_files, content = AssertionEngine.check_assertions_syntax()
         if passed_files and failed_files:
@@ -484,8 +494,15 @@ def debug(configuration: Configuration = None):
             for file in passed_files:
                 console.print(f'  {file}: [[bold green]OK[/bold green]]')
             for file in failed_files:
-                console.print(f'  {file}: [[red green]Failed[/red green]]')
+                console.print(f'  {file}: [[bold red]Failed[/bold red]]')
+                has_error = True
+            if has_error:
+                console.print(CONSOLE_MSG_FAIL)
+                return has_error
+            else:
+                console.print(CONSOLE_MSG_PASS)
 
+    console.print(CONSOLE_MSG_ALL_SET)
     return has_error
 
 
