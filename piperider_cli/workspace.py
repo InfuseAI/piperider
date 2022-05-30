@@ -561,7 +561,7 @@ def debug():
     handler.set_checker('config files', CheckConfiguration)
     handler.set_checker('format of data sources', CheckDataSources)
     handler.set_checker('connections', CheckConnections)
-    handler.set_checker('dbt catalog file', CheckDbtCatalog)
+    handler.set_checker('dbt catalog files', CheckDbtCatalog)
     handler.set_checker('assertion files', CheckAssertionFiles)
     return handler.execute()
 
