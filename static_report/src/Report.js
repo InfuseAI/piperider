@@ -183,9 +183,11 @@ function ProfilingInformation({ data }) {
                 <Text color={isAllValuesExists ? 'green.500' : 'red.500'}>
                   {isAllValuesExists
                     ? '0'
-                    : (Number(column.non_nulls / column.total) * 100).toFixed(
-                        3
-                      )}
+                    : (
+                        Number(
+                          (column.total - column.non_nulls) / column.total
+                        ) * 100
+                      ).toFixed(3)}
                   %
                 </Text>
               </Flex>
