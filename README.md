@@ -8,7 +8,7 @@ For data practitioner who wants to trust their data by:
 # Install
 
 ```bash
-$ pip install git+https://github.com/InfuseAI/piperider-cli.git@main
+$ pip install piperider-cli
 ```
 
 # Command
