@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 import uuid
+import warnings
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from getpass import getpass
@@ -13,6 +14,7 @@ from rich.console import Console
 from rich.table import Table
 from ruamel import yaml
 from sqlalchemy import create_engine, inspect
+from sqlalchemy.exc import SAWarning
 
 from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.profiler import Profiler
@@ -127,7 +129,10 @@ class SqliteDataSource(DataSource):
 
     def __init__(self, name, **kwargs):
         super().__init__(name, 'sqlite', **kwargs)
-        self.fields = ["dbpath"]
+        self.fields = ['dbpath']
+        warnings.filterwarnings('ignore',
+                                r'^Dialect sqlite\+pysqlite does \*not\* support Decimal objects natively.*$',
+                                SAWarning)
 
     def validate(self):
         if self.type_name != 'sqlite':
