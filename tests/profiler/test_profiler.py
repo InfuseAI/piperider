@@ -184,8 +184,6 @@ class TestProfiler:
         self.create_table("test", data)
         profiler = Profiler(engine)
         result = profiler.profile()
-        import json
-        print(json.dumps(result, indent=4))
         assert result["tables"]["test"]['columns']["date"]["distribution"]["counts"][0] == 1
         assert result["tables"]["test"]['columns']["date"]["distribution"]["counts"][-1] == 2
 
