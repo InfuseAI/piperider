@@ -97,3 +97,46 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
         return context.result.fail_with_syntax_error()
 
     pass
+
+def assert_column_not_null(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
+    if not column_metrics:
+        # cannot find the column in the metrics
+        return context.result.fail_with_syntax_error()
+
+    total = column_metrics.get('total')
+    non_nulls = column_metrics.get('non_nulls')
+
+    # TODO: store actual value
+
+    if total == non_nulls:
+        return context.result.success()
+
+    return context.result.fail()
+
+def assert_column_null(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
+    if not column_metrics:
+        # cannot find the column in the metrics
+        return context.result.fail_with_syntax_error()
+
+    non_nulls = column_metrics.get('non_nulls')
+
+    # TODO: store actual value
+
+    if non_nulls == 0:
+        return context.result.success()
+
+    return context.result.fail()
+
+def assert_column_exist(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    table_metrics = metrics.get('tables', {}).get(table)
+    if not table_metrics:
+        # cannot find the table in the metrics
+        return context.result.fail_with_syntax_error()
+
+    column_metrics = table_metrics.get('columns', {}).get(column)
+    if column_metrics:
+        return context.result.success()
+
+    return context.result.fail()
