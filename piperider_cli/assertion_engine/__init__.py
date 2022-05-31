@@ -45,6 +45,25 @@ def assert_column_type(context: AssertionContext, table: str, column: str, metri
     return context.result.fail()
 
 
+def assert_column_in_types(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
+    if not column_metrics:
+        # cannot find the column in the metrics
+        return context.result.fail_with_syntax_error()
+
+    # Check assertion input
+    assert_types = context.asserts.get('types', [])
+    assert_types = [x.lower() for x in assert_types]
+    column_type = column_metrics.get('type').lower()
+
+    context.result.actual = column_type
+
+    if column_type in set(assert_types):
+        return context.result.success()
+
+    return context.result.fail()
+
+
 def assert_column_min_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     return _assert_column_in_range(context, table, column, metrics, target_metric='min')
 
@@ -98,6 +117,7 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
 
     pass
 
+
 def assert_column_not_null(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
@@ -114,6 +134,7 @@ def assert_column_not_null(context: AssertionContext, table: str, column: str, m
 
     return context.result.fail()
 
+
 def assert_column_null(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
@@ -128,6 +149,24 @@ def assert_column_null(context: AssertionContext, table: str, column: str, metri
         return context.result.success()
 
     return context.result.fail()
+
+
+def assert_column_unique(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
+    if not column_metrics:
+        # cannot find the column in the metrics
+        return context.result.fail_with_syntax_error()
+
+    total = column_metrics.get('total')
+    distinct = column_metrics.get('distinct')
+
+    # TODO: store actual value
+
+    if total == distinct:
+        return context.result.success()
+
+    return context.result.fail()
+
 
 def assert_column_exist(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     table_metrics = metrics.get('tables', {}).get(table)
