@@ -5,7 +5,7 @@ This is a command line interface for PipeRider.
 # Installation
 
 ```bash
-$ pip install git+https://github.com/InfuseAI/piperider-cli.git@main
+$ pip install piperider-cli
 ```
 
 # Initialization
