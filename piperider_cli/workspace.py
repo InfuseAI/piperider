@@ -4,6 +4,7 @@ import shutil
 import sys
 import uuid
 import warnings
+import math
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from getpass import getpass
@@ -808,6 +809,191 @@ def _generate_static_html(result, html, output_path):
         html = html.replace(r'window.PIPERIDER_REPORT_DATA=""', f'window.PIPERIDER_REPORT_DATA={json.dumps(result)};')
         f.write(html)
     return table, filename
+
+
+def _compare_results(base, input):
+    schema=dict(
+        added=0,
+        deleted=0,
+        type_changed=0,
+    )
+    distribution=dict(changed=0,)
+    missing_values=dict(changed=0, highest=None, highest_value=0)
+    range=dict(changed=0, highest=None, highest_value=0)
+
+    base_col_names = [v['name'] for v in base['columns'].values()]
+    input_col_names = [v['name'] for v in input['columns'].values()]
+
+    base_columns = []
+    input_columns = []
+
+    for n in base_col_names:
+        base_col = base['columns'][n]
+        base_col['changes'] = {}
+        if n not in input_col_names:
+            schema['deleted'] += 1
+            base_col['changes'] = { 'deleted': True }
+            base_columns.append(base_col)
+            input_columns.append(None)
+            continue
+
+        input_col = input['columns'][n]
+        input_col['changes'] = {}
+
+        # check type changed
+        if base_col['type'] != input_col['type']:
+            schema['type_changed'] += 1
+            base_col['changes']['type_changed'] = True
+            input_col['changes']['type_changed'] = True
+            base_columns.append(base_col)
+            input_columns.append(input_col)
+            continue
+
+        # compare ranges
+        if base_col['type'] == 'numeric':
+            base_col_min = base_col['min']
+            base_col_max = base_col['max']
+            input_col_min = input_col['min']
+            input_col_max = input_col['max']
+            if base_col_min != input_col_min or base_col_max != input_col_max:
+                range['changed'] += 1
+                # use Euclidean distance to calculate the distance between two ranges
+                # formula: sqrt( (min1-min2)^2 + (max1-max2)^2 )
+                value = math.sqrt(
+                    math.pow(abs(base_col_min - input_col_min), 2) +
+                    math.pow(abs(base_col_max - input_col_max), 2)
+                )
+                if value > range['highest_value']:
+                    range['highest'] = n
+                    range['highest_value'] = value
+                input_col['changes']['range'] = True
+                base_col['range'] = [base_col_min, base_col_max]
+                input_col['range'] = [input_col_min, input_col_max]
+
+        # compare missing values
+        base_missing_values = base_col['non_nulls'] / base_col['total']
+        input_missing_values = input_col['non_nulls'] / input_col['total']
+        if base_missing_values != input_missing_values:
+            missing_values['changed'] += 1
+            value = abs(base_missing_values - input_missing_values)
+            if value > missing_values['highest_value']:
+                missing_values['highest'] = n
+                missing_values['highest_value'] = value
+            base_col['missing_values'] = 1 - base_missing_values
+            input_col['missing_values'] = 1 - input_missing_values
+            input_col['changes']['missing_values'] = True
+
+        # compare distribution
+        if base_col['distribution'] != input_col['distribution']:
+            distribution['changed'] += 1
+            input_col['changes']['distribution'] = True
+            # TODO the highest of distribution changes
+
+        base_columns.append(base_col)
+        input_columns.append(input_col)
+
+    for n in input_col_names:
+        input_col = input['columns'][n]
+        if n not in base_col_names:
+            schema['added'] += 1
+            input_col['changes'] = { 'added': True }
+            base_columns.append(None)
+            input_columns.append(input_col)
+
+    schema_columns = dict(base=[], input=[])
+    distribution_columns = dict(base=[], input=[])
+    missing_values_columns = dict(base=[], input=[])
+    range_columns = dict(base=[], input=[])
+
+    def _add_column_item(list, target, item, add_null=False):
+        if item.get('key', None) is not None or add_null:
+            list[target].append(item)
+
+    def _transform_item(item, field, change_fields=None):
+        transformed = dict(key=None, value=None, changed=False,)
+        if item and item.get(field, False):
+            transformed['key'] = item['name']
+            transformed['value'] = item[field]
+            changes = item.get('changes', None)
+            if changes:
+                if change_fields is None:
+                    change_fields = [field]
+                for change_field in change_fields:
+                    transformed['changed'] |= changes.get(change_field, False)
+        return transformed
+
+    for i, col in enumerate(base_columns):
+        # add schema changes
+        _add_column_item(schema_columns,
+                         'base',
+                         _transform_item(col, 'type', ['type_changed', 'deleted', 'added']),
+                         add_null=True)
+        _add_column_item(schema_columns,
+                         'input',
+                         _transform_item(input_columns[i], 'type', ['type_changed', 'deleted', 'added']),
+                         add_null=True)
+
+        # TODO: add distribution changes
+
+        # add missing values changes
+        _add_column_item(missing_values_columns,
+                         'base',
+                         _transform_item(col, 'missing_values'))
+        _add_column_item(missing_values_columns,
+                         'input',
+                         _transform_item(input_columns[i], 'missing_values'))
+
+        # add range changes
+        _add_column_item(range_columns, 'base', _transform_item(col, 'range'))
+        _add_column_item(range_columns, 'input', _transform_item(input_columns[i], 'range'))
+
+        if col and input_columns[i]:
+            if missing_values['highest'] == col['name']:
+                missing_values_columns['base'].insert(0, missing_values_columns['base'].pop())
+                missing_values_columns['input'].insert(0, missing_values_columns['input'].pop())
+            if range['highest'] == col['name']:
+                range_columns['base'].insert(0, range_columns['base'].pop())
+                range_columns['input'].insert(0, range_columns['input'].pop())
+
+    output = dict(
+        created_at=datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+        table=dict(
+            base=dict(
+                name=base['name'],
+                created_at=base['created_at']
+            ),
+            input=dict(
+                name=input['name'],
+                created_at=input['created_at']
+            )
+        ),
+        summary=dict(
+            schema=schema,
+            distribution=distribution,
+            missing_values=missing_values,
+            range=range,
+        ),
+        detail=dict(
+            row_count=dict(
+                base=base['row_count'],
+                input=input['row_count'],
+            ),
+            schema=dict(
+                column_count=dict(
+                    base=base['col_count'],
+                    input=input['col_count'],
+                ),
+                columns=schema_columns
+            ),
+            distribution=distribution_columns,
+            missing_values=missing_values_columns,
+            range=range_columns
+        ),
+    )
+
+    # TODO should be bound to the static comparison html
+    with open('compare_output.json', 'w') as f:
+        f.write(json.dumps(output, indent=4))
 
 
 def generate_report(input=None):
