@@ -15,6 +15,7 @@ from ruamel import yaml
 from sqlalchemy import create_engine, inspect
 
 from piperider_cli.assertion_engine import AssertionEngine
+from piperider_cli.compare_report import CompareReport
 from piperider_cli.profiler import Profiler
 
 PIPERIDER_WORKSPACE_NAME = '.piperider'
@@ -772,7 +773,7 @@ def _generate_static_html(result, html, output_path):
     return table, filename
 
 
-def generate_report(input=None, base=None):
+def generate_report(input=None):
     console = Console()
 
     from piperider_cli import data
@@ -792,27 +793,22 @@ def generate_report(input=None, base=None):
         if not _validate_input_result(result):
             console.print(f'[bold red]Error: invalid input file[/bold red]')
             return
-        if base:
-            # TODO check base file and generate comparison report
-            pass
-        else:
-            console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {input}')
 
-            datasource = result['datasource']['name']
-            dir = os.path.join(PIPERIDER_REPORT_PATH, f"{datasource}-{created_at.strftime('%Y%m%d%H%M%S')}")
-            if not os.path.exists(dir):
-                os.makedirs(dir, exist_ok=True)
+        console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {input}')
 
-            shutil.copytree(report_template_dir,
-                            dir,
-                            dirs_exist_ok=True,
-                            ignore=shutil.ignore_patterns('index.html'))
+        datasource = result['datasource']['name']
+        dir = os.path.join(PIPERIDER_REPORT_PATH, f"{datasource}-{created_at.strftime('%Y%m%d%H%M%S')}")
+        if not os.path.exists(dir):
+            os.makedirs(dir, exist_ok=True)
 
-            console.rule('Reports')
-            table, filename = _generate_static_html(result, report_template_html, dir)
-            console.print(f"Table '{table}' {filename}")
-    elif base:
-        console.print(f'[bold red]Error: require input file[/bold red]')
+        shutil.copytree(report_template_dir,
+                        dir,
+                        dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns('index.html'))
+
+        console.rule('Reports')
+        table, filename = _generate_static_html(result, report_template_html, dir)
+        console.print(f"Table '{table}' {filename}")
     else:
         latest = os.path.join(PIPERIDER_OUTPUT_PATH, 'latest')
         console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {latest}')
@@ -846,3 +842,12 @@ def generate_report(input=None, base=None):
         for r in report_info:
             display_table = f"'{r['table']}'".ljust(max_table_len + 2)
             console.print(f"Table {display_table} {r['filename']}")
+
+
+def compare_report(a=None, b=None):
+    report = CompareReport(PIPERIDER_OUTPUT_PATH, a, b)
+    if not report.select_reports():
+        raise Exception('No valid reports found')
+
+    # TODO: generate multiple run reports json object
+    pass
