@@ -272,9 +272,7 @@ class Profiler:
             }
 
     def _profile_datetime_column(self, table_name, column_name):
-        metadata = MetaData()
-        t = Table(table_name, metadata, Column(column_name, DateTime))
-        # t = self.metadata.tables[table_name]
+        t = self.metadata.tables[table_name]
 
         with self.engine.connect() as conn:
             t2 = select(t.c[column_name].label("c")).cte(name="T")
@@ -316,15 +314,13 @@ class Profiler:
                     num_buckets = math.ceil(period.years / interval.years)
                     t2 = select(date_trunc("YEAR", t.c[column_name]).label("d")).cte(name="T")
                 elif interval.months:
-                    # num_buckets = 24
                     distribution["type"] = "monthly"
                     period = relativedelta(dmax, dmin)
-                    num_buckets = period.months // interval.months
+                    num_buckets = (period.years*12 + period.months) // interval.months
                     t2 = select(date_trunc("MONTH", t.c[column_name]).label("d")).cte(name="T")
                 else:
-                    # num_buckets = 30
                     distribution["type"] = "daily"
-                    period = relativedelta(dmax, dmin)
+                    period = dmax - dmin
                     num_buckets = (period.days+1) // interval.days
                     t2 = select(date_trunc("DAY", t.c[column_name]).label("d")).cte(name="T")
 
@@ -486,8 +482,8 @@ class Profiler:
 
     @staticmethod
     def _calc_date_range(min_date, max_date):
-        period = relativedelta(max_date, min_date)
-        if period.years > 1 or (period.years == 1 and period.months > 0):
+        period = max_date - min_date
+        if math.ceil(period.days / 365) > 2:
             # more than 2 years
             min_date = date(min_date.year, 1, 1)
             max_date = max_date + relativedelta(years=+1)
@@ -495,14 +491,14 @@ class Profiler:
             years = relativedelta(max_date, min_date).years
             n = math.ceil(years / n_buckets)
             interval = relativedelta(years=+n)
-        elif period.months > 1 or (period.months == 1 and period.days > 0):
+        elif period.days > 31:
             # more than 1 months
             min_date = date(min_date.year, min_date.month, 1)
             max_date = max_date + relativedelta(months=+1)
             interval = relativedelta(months=+1)
         else:
-            min_date = date(min_date.year, min_date.month, min_date.day)
-            max_date = date(max_date.year, max_date.month, max_date.day)
+            min_date = min_date.date()
+            max_date = max_date.date()
             interval = relativedelta(days=+1)
         return min_date, max_date, interval
 
