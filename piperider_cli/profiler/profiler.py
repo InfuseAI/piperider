@@ -273,7 +273,7 @@ class Profiler:
 
     def _profile_datetime_column(self, table_name, column_name):
         metadata = MetaData()
-        t = Table(table_name, metadata, Column(column_name, DateTime))
+        t = Table(table_name, metadata, Column(column_name, Date))
         # t = self.metadata.tables[table_name]
 
         with self.engine.connect() as conn:

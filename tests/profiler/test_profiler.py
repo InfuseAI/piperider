@@ -31,7 +31,7 @@ class TestProfiler:
                 elif isinstance(value, int):
                     col = Column(col_name, Integer)
                 elif isinstance(value, date):
-                    col = Column(col_name, DateTime)
+                    col = Column(col_name, Date)
                 else:
                     raise Exception(f"not support type: {type(value)}")
                 columns.append(col)
@@ -184,8 +184,6 @@ class TestProfiler:
         self.create_table("test", data)
         profiler = Profiler(engine)
         result = profiler.profile()
-        import json
-        print(json.dumps(result, indent=4))
         assert result["tables"]["test"]['columns']["date"]["distribution"]["counts"][0] == 1
         assert result["tables"]["test"]['columns']["date"]["distribution"]["counts"][-1] == 2
 
