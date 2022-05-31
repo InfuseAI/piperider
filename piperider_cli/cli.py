@@ -117,15 +117,32 @@ def run(**kwargs):
 
 
 @cli.command(short_help='Show report')
-@click.option('--input', default=None)
-@click.option('--base', default=None)
+@click.option('--input', default=None, type=click.Path(exists=True), help='Path of json report file')
 @add_options(debug_option)
 def generate_report(**kwargs):
     console = Console()
     input = kwargs.get('input')
-    base = kwargs.get('base')
     try:
-        workspace.generate_report(input=input, base=base)
+        workspace.generate_report(input=input)
+    except Exception as e:
+        if (kwargs.get('debug')):
+            console.print_exception(show_locals=True)
+        else:
+            console.print(f'[bold red]Error:[/bold red] {e}')
+        sys.exit(1)
+    pass
+
+
+@cli.command(short_help='Compare two existing reports')
+@click.option('--input-a', default=None, type=click.Path(exists=True), help='Path of 1st json report file')
+@click.option('--input-b', default=None, type=click.Path(exists=True), help='Path of 2nd json report file')
+@add_options(debug_option)
+def compare_report(**kwargs):
+    console = Console()
+    a = kwargs.get('input_a')
+    b = kwargs.get('input_b')
+    try:
+        workspace.compare_report(a=a, b=b)
     except Exception as e:
         if (kwargs.get('debug')):
             console.print_exception(show_locals=True)
