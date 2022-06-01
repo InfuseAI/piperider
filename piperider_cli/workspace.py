@@ -365,7 +365,7 @@ class CheckConnections(AbstractChecker):
             type = ds.type_name
 
             if dbt:  # dbt provider
-                provider = f'{ds.type_name} > {dbt["project"]} > {dbt["target"]}'
+                provider = f'{ds.type_name} > {dbt["profile"]} > {dbt["target"]}'
 
             self.console.print(f'  Provider: {provider}')
             self.console.print(f'  Name: {name}')
@@ -396,7 +396,7 @@ class CheckDbtCatalog(AbstractChecker):
                 self.console.print(f'  {ds.name}: [[bold yellow]SKIP[/bold yellow]] provider is not dbt')
                 continue
 
-            self.console.print(f'  {os.path.expanduser(dbt.get("root"))}/target/catalog.json: ', end='')
+            self.console.print(f'  {os.path.expanduser(dbt.get("projectDir"))}/target/catalog.json: ', end='')
             passed, error_msg, _ = _fetch_dbt_catalog(dbt)
             if not passed:
                 all_passed = False
