@@ -513,9 +513,10 @@ def _generate_configuration(dbt_project_path=None):
 
 
 def search_dbt_project_path():
-    exclude_pattern = 'site-packages'
+    exclude_patterns = ['site-packages', 'dbt_packages']
     paths = glob(os.path.join(os.getcwd(), '**', 'dbt_project.yml'), recursive=True)
-    paths = list(filter(lambda x: not exclude_pattern in x, paths))
+    for exclude_pattern in exclude_patterns:
+        paths = list(filter(lambda x: not exclude_pattern in x, paths))
     dbt_project_path = None
     if not paths:
         # No dbt project found
