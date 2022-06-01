@@ -25,7 +25,9 @@ PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME,
 PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
 PIPERIDER_REPORT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'reports')
 
-DBT_PROFILE_DEFAULT_PATH = '~/.dbt/profiles.yml'  # os.path.join(os.path.expanduser('~'), '.dbt/profiles.yml')
+# ref: https://docs.getdbt.com/dbt-cli/configure-your-profile
+DBT_PROFILES_DIR_DEFAULT = '~/.dbt/'
+DBT_PROFILE_FILE = 'profiles.yml'
 
 CONSOLE_MSG_PASS = f'[bold green]✅ PASS[/bold green]\n'
 CONSOLE_MSG_FAIL = f'[bold red]😱 FAILED[/bold red]\n'
@@ -116,10 +118,24 @@ class SnowflakeDataSource(DataSource):
         warehouse = credential.get('warehouse')
         role = credential.get('role')
         from snowflake.sqlalchemy.snowdialect import SnowflakeDialect
+        from snowflake.sqlalchemy import URL
+
         SnowflakeDialect.supports_statement_cache = True
-        return f'snowflake://{user}:{password}@{account}/{database}/{schema}' \
-               f'?warehouse={warehouse}&role={role}' \
-               f'&login_timeout={self._connect_timeout}&network_timeout={self._connect_timeout}'
+        db_parameters = {
+            "account": account,
+            "user": user,
+            "password": password,
+            "database": database,
+            "schema": schema,
+            "warehouse": warehouse,
+            "login_timeout": self._connect_timeout,
+            "network_timeout": self._connect_timeout,
+        }
+
+        if role:
+            db_parameters["role"] = role
+
+        return URL(**db_parameters)
 
     def engine_args(self):
         return dict(connect_args={'connect_timeout': self._connect_timeout})
@@ -162,15 +178,19 @@ class Configuration(object):
         pass
 
     @classmethod
-    def from_dbt_project(cls, dbt_project_path,
-                         dbt_profile_path=DBT_PROFILE_DEFAULT_PATH):
+    def from_dbt_project(cls, dbt_project_path, dbt_profiles_dir=None):
         """
         build configuration from the existing dbt project
 
         :param dbt_project_path:
-        :param dbt_profile_path:
+        :param dbt_profiles_dir:
         :return:
         """
+        if dbt_profiles_dir:
+            dbt_profile_path = os.path.join(dbt_profiles_dir, DBT_PROFILE_FILE)
+        else:
+            dbt_profile_path = os.path.join(DBT_PROFILES_DIR_DEFAULT, DBT_PROFILE_FILE)
+
         if not os.path.exists(dbt_project_path):
             raise ValueError(f"Cannot find dbt project at {dbt_project_path}")
 
@@ -185,11 +205,13 @@ class Configuration(object):
         credential = dbt_profile.get(profile_name, {}).get('outputs', {}).get(target_name, {})
         type_name = credential.get('type')
         dbt = {
-            'project': profile_name,
+            'profile': profile_name,
             'target': target_name,
-            'profile': dbt_profile_path,
-            'root': os.path.relpath(os.path.dirname(dbt_project_path), os.getcwd()),
+            'projectDir': os.path.relpath(os.path.dirname(dbt_project_path), os.getcwd()),
         }
+
+        if dbt_profiles_dir:
+            dbt['profilesDir'] = dbt_profiles_dir
 
         if type_name not in DATASOURCE_PROVIDERS:
             raise ValueError('unknown type name')
@@ -219,12 +241,13 @@ class Configuration(object):
             datasource_class = DATASOURCE_PROVIDERS[type_name]
             dbt = ds.get('dbt')
             if dbt:
-                profile_path = dbt.get('profile')
+                profile_dir = dbt.get('profilesDir', os.getenv('DBT_PROFILES_DIR', DBT_PROFILES_DIR_DEFAULT))
+                profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
                 if '~' in profile_path:
                     profile_path = os.path.expanduser(profile_path)
                 with open(profile_path, 'r') as fd:
                     profile = yaml.safe_load(fd)
-                credential = profile.get(dbt.get('project'), {}).get('outputs', {}).get(dbt.get('target', {}))
+                credential = profile.get(dbt.get('profile'), {}).get('outputs', {}).get(dbt.get('target', {}))
                 datasource = datasource_class(name=ds.get('name'), dbt=dbt, credential=credential)
             else:
                 with open(PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
@@ -537,7 +560,11 @@ def _fetch_dbt_catalog(dbt, table=None):
     if dbt is None:
         return True, '', tables
 
-    dbt_root = os.path.expanduser(dbt.get('root'))
+    for key in ['profile', 'target', 'projectDir']:
+        if key not in dbt:
+            raise Exception(f"'{key}' is not in dbt config")
+
+    dbt_root = os.path.expanduser(dbt.get('projectDir'))
     dbt_catalog = os.path.join(dbt_root, 'target', 'catalog.json')
     if os.path.exists(dbt_catalog):
         with open(dbt_catalog) as fd:
