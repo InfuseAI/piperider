@@ -134,7 +134,7 @@ class AssertionContext:
         self.parameters = assertion.get('parameters', {})
         self.asserts = assertion.get('assert', {})
         self.tags = assertion.get('tags', [])
-        self.result._expected = self.asserts
+        self.result._expected = assertion.get('assert', True)
         pass
 
     def __repr__(self):

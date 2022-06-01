@@ -127,9 +127,9 @@ def assert_column_not_null(context: AssertionContext, table: str, column: str, m
     total = column_metrics.get('total')
     non_nulls = column_metrics.get('non_nulls')
 
-    # TODO: store actual value
+    context.result.actual = (total == non_nulls)
 
-    if total == non_nulls:
+    if context.result.actual:
         return context.result.success()
 
     return context.result.fail()
@@ -143,9 +143,9 @@ def assert_column_null(context: AssertionContext, table: str, column: str, metri
 
     non_nulls = column_metrics.get('non_nulls')
 
-    # TODO: store actual value
+    context.result.actual = (non_nulls == 0)
 
-    if non_nulls == 0:
+    if context.result.actual:
         return context.result.success()
 
     return context.result.fail()
@@ -157,12 +157,12 @@ def assert_column_unique(context: AssertionContext, table: str, column: str, met
         # cannot find the column in the metrics
         return context.result.fail_with_syntax_error()
 
-    total = column_metrics.get('total')
+    non_nulls = column_metrics.get('non_nulls')
     distinct = column_metrics.get('distinct')
 
-    # TODO: store actual value
+    context.result.actual = (non_nulls == distinct)
 
-    if total == distinct:
+    if context.result.actual:
         return context.result.success()
 
     return context.result.fail()
@@ -176,6 +176,8 @@ def assert_column_exist(context: AssertionContext, table: str, column: str, metr
 
     column_metrics = table_metrics.get('columns', {}).get(column)
     if column_metrics:
+        context.result.actual = True
         return context.result.success()
 
+    context.result.actual = False
     return context.result.fail()
