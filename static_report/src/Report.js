@@ -135,7 +135,12 @@ export function ExperimentReport() {
           <Flex direction={'column'}>
             <ProfilingInformation data={profileData.columns} />
 
-            <TestsInformation data={profileData.assertion_results} />
+            <TestsInformation
+                data={{
+                  tableName: profileData.name,
+                  ...profileData.assertion_results,
+                }}
+              />
           </Flex>
         </Flex>
       </Flex>
@@ -246,7 +251,12 @@ function TestsInformation({ data }) {
 
               return (
                 <Tr key={tabelTest.name}>
-                  <Td>{tabelTest.name.replace('assert_', '')}</Td>
+                  <Td>
+                    <Text as={'span'} fontWeight={700}>
+                      {data.tableName}
+                    </Text>{' '}
+                    ({tabelTest.name.replace('assert_', '')})
+                  </Td>
                   <Td>
                     {isFailed ? (
                       <Text as="span" role={'img'}>
@@ -293,7 +303,12 @@ function TestsInformation({ data }) {
 
                 return (
                   <Tr key={columnTest.name}>
-                    <Td>{columnTest.name.replace('assert_', '')}</Td>
+                    <Td>
+                      <Text as={'span'} fontWeight={700}>
+                        {key}
+                      </Text>{' '}
+                      ({columnTest.name.replace('assert_', '')})
+                    </Td>
                     <Td>
                       {isFailed ? (
                         <Text as="span" role={'img'}>
