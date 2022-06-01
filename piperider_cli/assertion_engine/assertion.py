@@ -100,10 +100,10 @@ class AssertionResult:
         self._success = False
         if not column:
             self._exception = IllegalStateAssertionException(
-            f"Table '{table}' metric not found")
+                f"Table '{table}' metric not found")
         else:
             self._exception = IllegalStateAssertionException(
-            f"Column '{column}' metric not found")
+                f"Column '{column}' metric not found")
         return self
 
     def fail_with_assertion_implementation_error(self):
@@ -176,6 +176,7 @@ class AssertionEngine:
     """
     PIPERIDER_WORKSPACE_NAME = '.piperider'
     PIPERIDER_ASSERTION_SEARCH_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'assertions')
+    PIPERIDER_ASSERTION_PLUGIN_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'plugin')
     PIPERIDER_ASSERTION_SUPPORT_METRICS = ['distribution', 'range', 'missing_value']
 
     def __init__(self, profiler, assertion_search_path=PIPERIDER_ASSERTION_SEARCH_PATH):
@@ -184,7 +185,7 @@ class AssertionEngine:
         self.assertions_content = {}
         self.assertions = []
 
-        self.default_plugins_dir = os.path.abspath(os.path.join(self.assertion_search_path, '../plugins'))
+        self.default_plugins_dir = AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH
         if not os.path.isdir(self.default_plugins_dir):
             self.default_plugins_dir = None
 
