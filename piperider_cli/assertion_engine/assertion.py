@@ -63,8 +63,12 @@ class AssertionResult:
         return _castDatetimeToString(dict(self._expected))
 
     def validate(self):
+        if self._exception:
+            return self
+
         if not self.actual or not self._expected:
             return self.fail_with_assertion_implementation_error()
+
         return self
 
     def success(self, actual=None):
@@ -89,6 +93,16 @@ class AssertionResult:
     def fail_with_syntax_error(self):
         self._success = False
         self._exception = SyntaxError()
+        return self
+
+    def fail_with_metric_not_found_error(self, table, column):
+        self._success = False
+        if not column:
+            self._exception = IllegalStateAssertionException(
+            f"Table '{table}' metric not found")
+        else:
+            self._exception = IllegalStateAssertionException(
+            f"Column '{column}' metric not found")
         return self
 
     def fail_with_assertion_implementation_error(self):
