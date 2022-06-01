@@ -415,13 +415,22 @@ def _ask_user_for_datasource():
         raise Exception('project name is empty')
 
     console.print(f'\nWhat data source would you like to connect to?')
-    console.print('1. snowflake')
-    console.print('2. postgres')
-    in_source_type = input(':').strip()
-    fields = {
-        '1': ['account', 'user', 'password', 'role', 'database', 'warehouse', 'schema'],
-        '2': ['host', 'port', 'user', 'password', 'dbname'],
+    source_types = {
+        '1': ('snowflake',
+              SnowflakeDataSource,
+              ['account', 'user', 'password', 'role', 'database', 'warehouse', 'schema']),
+        '2': ('postgres',
+              PostgreSQLDataSource,
+              ['host', 'port', 'user', 'password', 'dbname']),
+        '3': ('sqlite',
+              SqliteDataSource,
+              ['dbpath']),
     }
+    for index, v in source_types.items():
+        name = v[0]
+        console.print(f"{index}. {name}")
+
+    in_source_type = input(':').strip()
     parse_fields = {
         'port': {
             'parser': int,
@@ -429,14 +438,14 @@ def _ask_user_for_datasource():
         }
     }
 
-    if in_source_type not in fields.keys():
+    if in_source_type not in source_types.keys():
         raise Exception('invalid source type')
 
-    source_type = 'snowflake' if in_source_type == '1' else 'postgres'
+    source_type, cls, fields = source_types[in_source_type]
     source_args = dict()
 
     console.print(f'\nPlease enter the following fields for {source_type}')
-    for field in fields[in_source_type]:
+    for field in fields:
         if field == 'password':
             source_args[field] = getpass(f'{field} (hidden): ')
         else:
@@ -447,12 +456,7 @@ def _ask_user_for_datasource():
             except:
                 raise Exception(f'{field} is expected to be {parse_fields[field]["type_desc"]}')
 
-    ds: DataSource = None
-    if source_type == 'snowflake':
-        ds = SnowflakeDataSource(name=in_source_name, **source_args)
-    elif source_type == 'postgres':
-        ds = PostgreSQLDataSource(name=in_source_name, **source_args)
-
+    ds: DataSource = cls(name=in_source_name, **source_args)
     config = Configuration(dataSources=[ds])
 
     config.dump(PIPERIDER_CONFIG_PATH)
