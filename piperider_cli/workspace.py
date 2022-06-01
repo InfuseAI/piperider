@@ -885,6 +885,5 @@ def compare_report(a=None, b=None):
     report = CompareReport(PIPERIDER_OUTPUT_PATH, a, b)
     if not report.select_reports():
         raise Exception('No valid reports found')
-
     # TODO: generate multiple run reports json object
     pass
