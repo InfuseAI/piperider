@@ -8,13 +8,13 @@ $ npm install
 
 ## Development
 
-For the single report:
+### Single Report
 
 ```sh
 $ npm run start:single
 ```
 
-For the comparison report:
+### Comparsion Report
 
 ```sh
 $ npm run start:compare
@@ -22,13 +22,15 @@ $ npm run start:compare
 
 ## Build
 
-For the single report:
+> Generated **single report** and **comparison report** will place into `piperider_cli/data/report`
+
+### Single Report
 
 ```sh
 $ npm run build:single
 ```
 
-For the comparsion report:
+### Comparsion Report
 
 ```sh
 $ npm run build:compare
