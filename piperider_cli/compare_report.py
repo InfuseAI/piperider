@@ -73,7 +73,7 @@ class ComparisonData(object):
             row_count = dict(base=None, input=None),
             column_count = dict(base=None, input=None),
             schema = dict(base=[], input=[]),
-            distribution = dict(base=[], input=[], combined=[]),
+            distribution = [],
             missing_values = dict(base=[], input=[]),
             range = dict(base=[], input=[]),
         )
@@ -152,22 +152,54 @@ class ComparisonData(object):
 
         base_dist = base.get('metrics', {}).get('distribution', None)
         input_dist = input.get('metrics', {}).get('distribution', None)
-        if base_dist and input_dist and base_dist['type'] == input_dist['type']:
-            combined = dict(key=base['name'], value=[])
-            # TODO should handle different types of distribution
 
-            for i, label in enumerate(base_dist.get('labels', [])):
-                try:
-                    input_labels = input_dist.get('labels', [])
-                    input_index = input_labels.index(label)
-                    combined['value'].append(dict(
-                        label=label,
-                        base=base_dist.get('counts')[i],
-                        input=input_dist.get('counts')[input_index],
-                    ))
-                except ValueError:
-                    return
-            return combined
+        if base_dist is None or input_dist is None:
+            return None
+
+        diff_type = base_dist['type'] != input_dist['type']
+        acceptable_type = base_dist['type'] in ['topk', 'yearly', 'monthly', 'daily']
+        if diff_type or not acceptable_type:
+            return dict(
+                column=base['name'],
+                type=base_dist['type'],
+                base=[dict(label=label, count=base_dist['counts'][i]) for i, label in enumerate(base_dist['labels'])],
+                input=[dict(label=label, count=input_dist['counts'][i]) for i, label in enumerate(input_dist['labels'])],
+            )
+
+        # # TODO should handle different types of distribution
+        combined = []
+
+        for i, label in enumerate(base_dist['labels']):
+            input_labels = input_dist.get('labels', [])
+            input_count = 0
+            if label in input_labels:
+                input_index = input_labels.index(label)
+                input_count = input_dist.get('counts')[input_index]
+
+            combined.append(dict(
+                label=label,
+                base=base_dist.get('counts')[i],
+                input=input_count,
+            ))
+
+        for i, label in enumerate(input_dist['labels']):
+            if label in base_dist['labels']:
+                continue
+
+            combined.append(dict(
+                label=label,
+                base=0,
+                input=input_dist.get('counts')[i],
+            ))
+
+        if base_dist['type'] in ['yearly', 'monthly', 'daily']:
+            combined.sort(key=lambda x: x['label'])
+
+        return dict(
+            column=base['name'],
+            type=base_dist['type'],
+            combined=combined,
+        )
 
     def _transform_item(self, item, field, change_fields=None):
         transformed = dict(key=None, value=None, changed=False,)
@@ -210,15 +242,9 @@ class ComparisonData(object):
                                   add_null=True)
 
             # TODO: add distribution changes
-            self._add_column_item('distribution',
-                                  'base',
-                                  self._transform_item(base_col, 'distribution'))
-            self._add_column_item('distribution',
-                                  'input',
-                                  self._transform_item(input_col, 'distribution'))
-            self._add_column_item('distribution',
-                                  'combined',
-                                  self._combine_distribute_item(base_col, input_col))
+            item = self._combine_distribute_item(base_col, input_col)
+            if item:
+                self.detail['distribution'].append(item)
 
             # add missing values changes
             self._add_column_item('missing_values',
