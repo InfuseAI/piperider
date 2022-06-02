@@ -35,7 +35,7 @@ setup(name='piperider-cli',
           'rich',
           'click',
           'python-dateutil',
-          'inquirer@git+https://github.com/InfuseAI/python-inquirer.git@checkbox-add-limited-paramenter-to-set-the-max-selected-items#egg=inquirer',
+          'inquirer',
       ],
       extras_require={
           'dev': [

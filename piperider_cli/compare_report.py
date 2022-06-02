@@ -3,10 +3,11 @@ import os
 import sys
 import math
 
-import inquirer
 import readchar
 from datetime import datetime
 from rich.console import Console
+
+import piperider_cli.hack.inquirer as inquirer_hack
 
 
 class ProfilerOutput(object):
@@ -276,15 +277,15 @@ class CompareReport(object):
             raise Exception("Not enough reports to compare. Please run 'piperider-cli run' first.")
 
         questions = [
-            inquirer.Checkbox('profiler_output',
-                              message="Please select a report to compare",
-                              choices=profiler_outputs,
-                              carousel=True,
-                              validate=_report_validater,
-                              limited=1,
-                              )
+            inquirer_hack.LimitedCheckboxQuestion('profiler_output',
+                                                  message="Please select a report to compare",
+                                                  choices=profiler_outputs,
+                                                  carousel=True,
+                                                  validate=_report_validater,
+                                                  limited=1,
+                                                  )
         ]
-        answers = inquirer.prompt(questions)
+        answers = inquirer_hack.prompt_ex(questions)
 
         if answers:
             return answers['profiler_output'][0]
@@ -311,15 +312,16 @@ class CompareReport(object):
             raise Exception("Not enough reports to compare. Please run 'piperider-cli run' first.")
 
         questions = [
-            inquirer.Checkbox('profiler_outputs',
-                              message="Please select the 2 reports to compare",
-                              choices=profiler_outputs,
-                              carousel=True,
-                              validate=_report_validater,
-                              limited=2,
-                              ),
+            inquirer_hack.LimitedCheckboxQuestion(
+                'profiler_outputs',
+                message="Please select the 2 reports to compare",
+                choices=profiler_outputs,
+                carousel=True,
+                validate=_report_validater,
+                limited=2,
+            ),
         ]
-        answers = inquirer.prompt(questions)
+        answers = inquirer_hack.prompt_ex(questions)
         if answers:
             return answers['profiler_outputs'][0], answers['profiler_outputs'][1]
         return None, None
