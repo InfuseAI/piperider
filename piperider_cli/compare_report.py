@@ -211,7 +211,7 @@ class ComparisonData(object):
             summary = self.summary,
             detail = self.detail
         )
-        return json.dumps(output, indent=4)
+        return json.dumps(output)
 
 class CompareReport(object):
     def __init__(self, profiler_output_path, a=None, b=None):

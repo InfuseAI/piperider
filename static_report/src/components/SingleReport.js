@@ -13,12 +13,14 @@ import {
   Thead,
   Tr,
 } from '@chakra-ui/react';
-import { Main } from './Main';
 import * as d3 from 'd3';
-import formatDistanceToNow from 'date-fns/formatDistanceToNow';
 import { useEffect, useRef } from 'react';
+import formatDistanceToNow from 'date-fns/formatDistanceToNow';
 
-export function ExperimentReport() {
+import { Main } from './Main';
+import { getReportAsserationStatusCounts, getChartTooltip } from '../utils';
+
+export function SingleReport() {
   const profileData = window.PIPERIDER_REPORT_DATA;
 
   if (profileData === '') {
@@ -151,13 +153,7 @@ function ProfilingInformation({ data }) {
 
       {Object.keys(data).map((key) => {
         const column = data[key];
-        const { labels, counts } = column.distribution;
-
-        const chartData = labels.map((label, i) => ({
-          label,
-          value: counts[i],
-          total: column.total,
-        }));
+        const distribution = column.distribution;
         const isAllValuesExists = column.non_nulls === column.total;
 
         return (
@@ -177,7 +173,17 @@ function ProfilingInformation({ data }) {
                 </Text>
               </Flex>
 
-              <BarChart data={chartData} />
+              {distribution ? (
+                <BarChart
+                  data={distribution.labels.map((label, i) => ({
+                    label,
+                    value: distribution.counts[i],
+                    total: column.total,
+                  }))}
+                />
+              ) : (
+                <BarChart data={[]} />
+              )}
 
               <Flex direction={'column'} gap={2}>
                 <Text fontWeight={700}>Missing Values</Text>
@@ -196,7 +202,9 @@ function ProfilingInformation({ data }) {
               <Flex direction={'column'} gap={2}>
                 <Text fontWeight={700}>Range</Text>
 
-                {column.type === 'numeric' ? (
+                {column.type !== 'numeric' && column.type !== 'datetime' && '#'}
+
+                {column.type === 'numeric' && (
                   <>
                     <Text>
                       Min: <Code>{Number(column.min).toFixed(3)}</Code>
@@ -208,8 +216,17 @@ function ProfilingInformation({ data }) {
                       Avg: <Code>{Number(column.avg).toFixed(3)}</Code>
                     </Text>
                   </>
-                ) : (
-                  <Text>#</Text>
+                )}
+
+                {column.type === 'datetime' && (
+                  <>
+                    <Text>
+                      Min: <Code>{column.min}</Code>
+                    </Text>
+                    <Text>
+                      Max: <Code>{column.max}</Code>
+                    </Text>
+                  </>
                 )}
               </Flex>
             </Grid>
@@ -367,19 +384,7 @@ function BarChart({ data }) {
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    const tooltip = d3
-      .select('.chart')
-      .append('div')
-      .style('visibility', 'hidden')
-      .style('position', 'absolute')
-      .style('z-index', '9')
-      .style('padding-top', 'var(--chakra-space-2)')
-      .style('padding-bottom', 'var(--chakra-space-2)')
-      .style('border-radius', 'var(--chakra-radii-md)')
-      .style('padding-left', 'var(--chakra-space-4)')
-      .style('padding-right', 'var(--chakra-space-4)')
-      .style('color', 'var(--chakra-colors-white)')
-      .style('background-color', 'var(--chakra-colors-blackAlpha-700)');
+    const tooltip = getChartTooltip({ target: '.chart' });
 
     function onShowTooltip(event, d) {
       tooltip
@@ -454,43 +459,4 @@ function BarChart({ data }) {
       <svg ref={svgRef} />
     </Flex>
   );
-}
-
-export function getReportAsserationStatusCounts(assertion) {
-  if (!assertion) {
-    return { passed: 0, failed: 0 };
-  }
-
-  const tableStatus = assertion.tests.reduce(
-    (acc, curr) => {
-      if (curr.status === 'passed') {
-        acc.passed += 1;
-      } else if (curr.status === 'failed') {
-        acc.failed += 1;
-      }
-
-      return acc;
-    },
-    { passed: 0, failed: 0 }
-  );
-
-  const columnStatus = Object.keys(assertion.columns).reduce(
-    (acc, current) => {
-      assertion.columns[current].forEach((item) => {
-        if (item.status === 'passed') {
-          acc.passed += 1;
-        } else if (item.status === 'failed') {
-          acc.failed += 1;
-        }
-      });
-
-      return acc;
-    },
-    { passed: 0, failed: 0 }
-  );
-
-  return {
-    passed: tableStatus.passed + columnStatus.passed,
-    failed: tableStatus.failed + columnStatus.failed,
-  };
 }
