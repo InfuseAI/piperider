@@ -153,13 +153,7 @@ function ProfilingInformation({ data }) {
 
       {Object.keys(data).map((key) => {
         const column = data[key];
-        const { labels, counts } = column.distribution;
-
-        const chartData = labels.map((label, i) => ({
-          label,
-          value: counts[i],
-          total: column.total,
-        }));
+        const distribution = column.distribution;
         const isAllValuesExists = column.non_nulls === column.total;
 
         return (
@@ -179,7 +173,15 @@ function ProfilingInformation({ data }) {
                 </Text>
               </Flex>
 
-              <BarChart data={chartData} />
+              {distribution ? (
+                <BarChart
+                  data={distribution.labels.map((label, i) => ({
+                    label,
+                    value: distribution.counts[i],
+                    total: column.total,
+                  }))}
+                />
+              ) : null}
 
               <Flex direction={'column'} gap={2}>
                 <Text fontWeight={700}>Missing Values</Text>
@@ -198,7 +200,9 @@ function ProfilingInformation({ data }) {
               <Flex direction={'column'} gap={2}>
                 <Text fontWeight={700}>Range</Text>
 
-                {column.type === 'numeric' ? (
+                {column.type !== 'numeric' && column.type !== 'datetime' && '#'}
+
+                {column.type === 'numeric' && (
                   <>
                     <Text>
                       Min: <Code>{Number(column.min).toFixed(3)}</Code>
@@ -210,8 +214,17 @@ function ProfilingInformation({ data }) {
                       Avg: <Code>{Number(column.avg).toFixed(3)}</Code>
                     </Text>
                   </>
-                ) : (
-                  <Text>#</Text>
+                )}
+
+                {column.type === 'datetime' && (
+                  <>
+                    <Text>
+                      Min: <Code>{column.min}</Code>
+                    </Text>
+                    <Text>
+                      Max: <Code>{column.max}</Code>
+                    </Text>
+                  </>
                 )}
               </Flex>
             </Grid>
