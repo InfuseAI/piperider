@@ -328,7 +328,11 @@ export function ComparisonReport() {
                                             }
                                           >
                                             <Td>{column.key ?? '-'}</Td>
-                                            <Td>{column.value ?? '-'}</Td>
+                                            <Td>
+                                              {Number(column.value).toFixed(
+                                                5,
+                                              ) ?? '-'}
+                                            </Td>
                                           </Tr>
                                         ),
                                       )}
@@ -360,7 +364,11 @@ export function ComparisonReport() {
                                             }
                                           >
                                             <Td>{column.key ?? '-'}</Td>
-                                            <Td>{column.value ?? '-'}</Td>
+                                            <Td>
+                                              {Number(column.value).toFixed(
+                                                5,
+                                              ) ?? '-'}
+                                            </Td>
                                           </Tr>
                                         ),
                                       )}

@@ -181,7 +181,9 @@ function ProfilingInformation({ data }) {
                     total: column.total,
                   }))}
                 />
-              ) : null}
+              ) : (
+                <BarChart data={[]} />
+              )}
 
               <Flex direction={'column'} gap={2}>
                 <Text fontWeight={700}>Missing Values</Text>
