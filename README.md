@@ -11,6 +11,27 @@ For data practitioner who wants to trust their data by:
 $ pip install piperider-cli
 ```
 
+### Install with connectors
+
+By default, we support the built-in sqlite connector, there are extra connectors:
+
+* snowflake
+* postgres
+
+Install with postgres connector:
+
+```
+pip install piperider-cli[postgres]
+```
+
+It could be more than one connector with comma:
+
+
+```
+pip install piperider-cli[postgres,snowflake]
+```
+
+
 # Command
 
 ## Attach piperider to a dbt project
