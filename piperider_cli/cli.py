@@ -36,7 +36,7 @@ def version():
 @click.option('--provider', type=click.Choice(['dbt-local', 'customized']), default='dbt-local',
               help='Select the provider of datasource')
 @click.option('--dbt-project-path', type=click.Path(exists=True), default=None, help='Path of dbt project config')
-@click.option('--dbt-profile-path', type=click.Path(exists=True), default=os.path.expanduser('~/.dbt/profiles.yml'),
+@click.option('--dbt-profile-path', type=click.Path(exists=False), default=os.path.expanduser('~/.dbt/profiles.yml'),
               help='Path of dbt profile config')
 @add_options(debug_option)
 def init(**kwargs):
