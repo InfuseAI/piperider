@@ -8,9 +8,13 @@ from rich.syntax import Syntax
 
 from piperider_cli import workspace, __version__
 
+sentry_env = 'development' if __version__.endswith('-dev') else 'production'
+sentry_release = __version__
+
 sentry_sdk.init(
     "https://41930bf397884adfb2617fe350231439@o1081482.ingest.sentry.io/6463955",
-
+    release=__version__,
+    environment=sentry_env,
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     # We recommend adjusting this value in production.
@@ -38,7 +42,6 @@ def cli():
 
 @cli.command(short_help='Show the version of piperider-cli')
 def version():
-    from piperider_cli import __version__
     click.echo(__version__)
 
 
