@@ -101,7 +101,7 @@ class PostgreSQLDataSource(DataSource):
 class SnowflakeDataSource(DataSource):
     def __init__(self, name, **kwargs):
         super().__init__(name, 'snowflake', **kwargs)
-        self.fields = ["account", "user", "password", "role", "database", "warehouse", "schema"]
+        self.fields = ["account", "user", "password", "database", "warehouse", "schema"]
         self._connect_timeout = 5
 
     def validate(self):
@@ -197,6 +197,10 @@ class Configuration(object):
 
         with open(dbt_project_path, 'r') as fd:
             dbt_project = yaml.safe_load(fd)
+
+        if not os.path.exists(os.path.expanduser(dbt_profile_path)):
+            raise ValueError(
+                f"Cannot find dbt profiles at {dbt_profile_path}. Please use dbt init to initiate the dbt profiles.")
 
         with open(os.path.expanduser(dbt_profile_path), 'r') as fd:
             dbt_profile = yaml.safe_load(fd)
@@ -361,14 +365,12 @@ class CheckConnections(AbstractChecker):
         all_passed = True
         for ds in configurator.dataSources:
             dbt = ds.args.get('dbt')
-            provider = f'customized'
             name = ds.name
             type = ds.type_name
 
             if dbt:  # dbt provider
-                provider = f'{ds.type_name} > {dbt["profile"]} > {dbt["target"]}'
+                self.console.print(f'  DBT: {ds.type_name} > {dbt["profile"]} > {dbt["target"]}')
 
-            self.console.print(f'  Provider: {provider}')
             self.console.print(f'  Name: {name}')
             self.console.print(f'  Type: {type}')
 
@@ -494,15 +496,15 @@ def _ask_user_for_datasource():
     return config
 
 
-def _inherit_datasource_from_dbt_project(dbt_project_path):
+def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None):
     piperider_config_path = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
-    config = Configuration.from_dbt_project(dbt_project_path)
+    config = Configuration.from_dbt_project(dbt_project_path, dbt_profiles_dir)
     config.dump(piperider_config_path)
 
     return config
 
 
-def _generate_configuration(dbt_project_path=None):
+def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None):
     """
     :param dbt_project_path:
     :return: Configuration object
@@ -510,7 +512,7 @@ def _generate_configuration(dbt_project_path=None):
     if dbt_project_path is None:
         return _ask_user_for_datasource()
 
-    return _inherit_datasource_from_dbt_project(dbt_project_path)
+    return _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir)
 
 
 def search_dbt_project_path():
@@ -550,10 +552,10 @@ def search_dbt_project_path():
     return dbt_project_path
 
 
-def init(dbt_project_path=None):
+def init(dbt_project_path=None, dbt_profiles_dir=None):
     _generate_piperider_workspace()
     # get Configuration object from dbt or user created configuration
-    configuration = _generate_configuration(dbt_project_path=dbt_project_path)
+    configuration = _generate_configuration(dbt_project_path, dbt_profiles_dir)
     return configuration
 
 

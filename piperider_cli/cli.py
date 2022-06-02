@@ -33,11 +33,9 @@ def version():
 
 
 @cli.command(short_help='Initialize PipeRider configurations')
-@click.option('--provider', type=click.Choice(['dbt-local', 'customized']), default='dbt-local',
-              help='Select the provider of datasource')
-@click.option('--dbt-project-path', type=click.Path(exists=True), default=None, help='Path of dbt project config')
-@click.option('--dbt-profile-path', type=click.Path(exists=False), default=os.path.expanduser('~/.dbt/profiles.yml'),
-              help='Path of dbt profile config')
+@click.option('--no-auto-search', type=click.BOOL, default=False, help="Don't search for dbt projects")
+@click.option('--dbt-project-dir', type=click.Path(exists=True), default=None, help='Directory of dbt project config')
+@click.option('--dbt-profiles-dir', type=click.Path(exists=True), default=None, help='Directory of dbt profiles config')
 @add_options(debug_option)
 def init(**kwargs):
     console = Console()
@@ -47,16 +45,19 @@ def init(**kwargs):
 
     # Search dbt project config files
     dbt_project_path = None
-    if kwargs.get('provider') == 'dbt-local':
-        if kwargs.get('dbt_project_path'):
-            dbt_project_path = kwargs.get('dbt_project_path')
+    dbt_project_dir = kwargs.get('dbt_project_dir')
+    dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
+    no_auto_search = kwargs.get('no_auto_search')
+    if not no_auto_search:
+        if dbt_project_dir:
+            dbt_project_path = os.path.join(dbt_project_dir, "dbt_project.yml")
         else:
             dbt_project_path = workspace.search_dbt_project_path()
 
     try:
         if dbt_project_path:
             console.print(f'Use dbt project file: {dbt_project_path}')
-        config = workspace.init(dbt_project_path=dbt_project_path)
+        config = workspace.init(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir)
         if kwargs.get('debug'):
             for ds in config.dataSources:
                 console.rule(f'Configuration')
