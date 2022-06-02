@@ -1,0 +1,69 @@
+#!/usr/bin/env expect
+
+#
+# Test: init a simple project use the fake data
+#
+
+# set timeout 3
+set project init_with_sqlite
+set fake_db [exec find ../ -name "fake.db"]
+
+# start initialize a new project
+spawn piperider init
+
+expect {
+    "What is your project name" {
+        send "ok\n"
+    }
+    "workspace already exist" {
+        fail "$argv0: test should start with a directory without .piperider"
+        exit
+    }
+}
+
+expect {
+    after 1000
+    "  sqlite" {
+        send "\[B"
+        exp_continue
+    }
+    ": sqlite" {
+        send "\r"
+    }
+}
+
+expect {
+    "Path of database file" {
+        after 1000
+        send "$fake_db"
+        send "\n"
+    }
+
+}
+
+# end of init
+expect eof
+
+# verify result with debug
+spawn piperider diagnose
+
+expect {
+    "You are all set!" {
+        pass "init with sqlite pass"
+    }
+    eof {
+        fail "something is broken"
+    }
+}
+
+
+spawn piperider run --no-interaction
+
+expect {
+    "Results saved to" {
+        pass "run finished"
+    }
+    eof {
+        fail "something is broken at run"
+    }
+}
