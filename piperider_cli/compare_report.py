@@ -84,15 +84,28 @@ class ComparisonData(object):
             missing_values = dict(column=None, value=0),
             range = dict(column=None, value=0),
         )
+        self._created_at = datetime.now()
+
+    def id(self):
+        ds_name = self.table['base'].get('datasource', {}).get('name', '')
+        table_name = self.table['base'].get('name', '')
+        _id = f'{self._created_at.strftime("%Y%m%d%H%M%S")}'
+        if table_name:
+            _id = f'{table_name}-{_id}'
+        if ds_name:
+            _id = f'{ds_name}-{_id}'
+        return _id
 
     def add_table(self, base, input):
         self.table['base'] = dict(
             name = base['name'],
             created_at = base['created_at'],
+            datasource = base['datasource'],
         )
         self.table['input'] = dict(
             name = input['name'],
             created_at = input['created_at'],
+            datasource = input['datasource'],
         )
         self.detail['row_count']['base'] = base['row_count']
         self.detail['row_count']['input'] = input['row_count']
@@ -265,7 +278,7 @@ class ComparisonData(object):
                     self._move_highest_to_top('range', col_name)
 
         output = dict(
-            created_at = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+            created_at = self._created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
             table = self.table,
             summary = self.summary,
             detail = self.detail
