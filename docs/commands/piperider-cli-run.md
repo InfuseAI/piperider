@@ -1,14 +1,10 @@
 
-# cli run
-
+# piperider-cli run
 None
-
 ## Usage
-
 ```
-Usage: cli run [OPTIONS]
+Usage: piperider-cli run [OPTIONS]
 ```
-
 ## Options
 * `datasource`: 
   * Type: STRING 
@@ -66,11 +62,9 @@ Usage: cli run [OPTIONS]
   Show this message and exit.
 
 
-
 ## CLI Help
-
 ```
-Usage: cli run [OPTIONS]
+Usage: piperider-cli run [OPTIONS]
 
 Options:
   --datasource TEXT
@@ -81,4 +75,3 @@ Options:
   --debug            Enable debug mode
   --help             Show this message and exit.
 ```
-

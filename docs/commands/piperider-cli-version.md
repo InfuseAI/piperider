@@ -1,14 +1,10 @@
 
-# cli version
-
+# piperider-cli version
 None
-
 ## Usage
-
 ```
-Usage: cli version [OPTIONS]
+Usage: piperider-cli version [OPTIONS]
 ```
-
 ## Options
 * `help`: 
   * Type: BOOL 
@@ -18,13 +14,10 @@ Usage: cli version [OPTIONS]
   Show this message and exit.
 
 
-
 ## CLI Help
-
 ```
-Usage: cli version [OPTIONS]
+Usage: piperider-cli version [OPTIONS]
 
 Options:
   --help  Show this message and exit.
 ```
-

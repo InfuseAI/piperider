@@ -1,14 +1,10 @@
 
-# cli
-
+# piperider-cli
 None
-
 ## Usage
-
 ```
-Usage: cli [OPTIONS] COMMAND [ARGS]...
+Usage: piperider-cli [OPTIONS] COMMAND [ARGS]...
 ```
-
 ## Options
 * `help`: 
   * Type: BOOL 
@@ -18,11 +14,9 @@ Usage: cli [OPTIONS] COMMAND [ARGS]...
   Show this message and exit.
 
 
-
 ## CLI Help
-
 ```
-Usage: cli [OPTIONS] COMMAND [ARGS]...
+Usage: piperider-cli [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
@@ -35,4 +29,3 @@ Commands:
   run              Collect data profiles and test results
   version          Show the version of piperider-cli
 ```
-

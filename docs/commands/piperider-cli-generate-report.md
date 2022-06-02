@@ -1,17 +1,13 @@
 
-# cli generate-report
-
+# piperider-cli generate-report
 None
-
 ## Usage
-
 ```
-Usage: cli generate-report [OPTIONS]
+Usage: piperider-cli generate-report [OPTIONS]
 ```
-
 ## Options
 * `input`: 
-  * Type: <click.types.Path object at 0x102fd2280> 
+  * Type: Path 
   * Default: `none`
   * Usage: `--input`
 
@@ -34,15 +30,12 @@ Usage: cli generate-report [OPTIONS]
   Show this message and exit.
 
 
-
 ## CLI Help
-
 ```
-Usage: cli generate-report [OPTIONS]
+Usage: piperider-cli generate-report [OPTIONS]
 
 Options:
   --input PATH  Path of json report file
   --debug       Enable debug mode
   --help        Show this message and exit.
 ```
-

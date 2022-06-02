@@ -31,7 +31,7 @@ def add_options(options):
     return _add_options
 
 
-@click.group()
+@click.group(name="piperider-cli")
 def cli():
     pass
 

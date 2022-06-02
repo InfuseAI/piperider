@@ -1,17 +1,13 @@
 
-# cli compare-report
-
+# piperider-cli compare-report
 None
-
 ## Usage
-
 ```
-Usage: cli compare-report [OPTIONS]
+Usage: piperider-cli compare-report [OPTIONS]
 ```
-
 ## Options
 * `input_a`: 
-  * Type: <click.types.Path object at 0x102fd2100> 
+  * Type: Path 
   * Default: `none`
   * Usage: `--input-a`
 
@@ -19,7 +15,7 @@ Usage: cli compare-report [OPTIONS]
 
 
 * `input_b`: 
-  * Type: <click.types.Path object at 0x1044d7490> 
+  * Type: Path 
   * Default: `none`
   * Usage: `--input-b`
 
@@ -42,11 +38,9 @@ Usage: cli compare-report [OPTIONS]
   Show this message and exit.
 
 
-
 ## CLI Help
-
 ```
-Usage: cli compare-report [OPTIONS]
+Usage: piperider-cli compare-report [OPTIONS]
 
 Options:
   --input-a PATH  Path of 1st json report file
@@ -54,4 +48,3 @@ Options:
   --debug         Enable debug mode
   --help          Show this message and exit.
 ```
-

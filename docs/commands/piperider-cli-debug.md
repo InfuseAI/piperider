@@ -1,14 +1,10 @@
 
-# cli debug
-
+# piperider-cli debug
 None
-
 ## Usage
-
 ```
-Usage: cli debug [OPTIONS]
+Usage: piperider-cli debug [OPTIONS]
 ```
-
 ## Options
 * `help`: 
   * Type: BOOL 
@@ -18,13 +14,10 @@ Usage: cli debug [OPTIONS]
   Show this message and exit.
 
 
-
 ## CLI Help
-
 ```
-Usage: cli debug [OPTIONS]
+Usage: piperider-cli debug [OPTIONS]
 
 Options:
   --help  Show this message and exit.
 ```
-
