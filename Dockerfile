@@ -3,8 +3,8 @@ FROM python:3.9-slim
 WORKDIR /usr/src/app/
 
 COPY piperider_cli piperider_cli/
-COPY report-sample report-sample/
 COPY tests tests/
+COPY docs docs/
 COPY requirements.txt .
 COPY LICENSE .
 COPY README.md .

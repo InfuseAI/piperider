@@ -2,10 +2,20 @@ import os.path
 import sys
 
 import click
+import sentry_sdk
 from rich.console import Console
 from rich.syntax import Syntax
 
 from piperider_cli import workspace, __version__
+
+sentry_sdk.init(
+    "https://41930bf397884adfb2617fe350231439@o1081482.ingest.sentry.io/6463955",
+
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0
+)
 
 debug_option = [
     click.option('--debug', is_flag=True, help='Enable debug mode')
@@ -66,6 +76,7 @@ def init(**kwargs):
             console.print_exception(show_locals=True)
         else:
             console.print(f'[bold red ]Error:[/bold red] {e}')
+        sentry_sdk.capture_exception(e)
         sys.exit(1)
 
     # Show the content of config.yml
@@ -88,6 +99,7 @@ def debug():
         return 0
     except Exception as e:
         console.print(f'[bold red]Error:[/bold red] {e}')
+        sentry_sdk.capture_exception(e)
         sys.exit(1)
 
 
@@ -113,6 +125,7 @@ def run(**kwargs):
             console.print_exception(show_locals=True)
         else:
             console.print(f'[bold red]Error:[/bold red] {e}')
+        sentry_sdk.capture_exception(e)
         sys.exit(1)
 
 
@@ -129,6 +142,7 @@ def generate_report(**kwargs):
             console.print_exception(show_locals=True)
         else:
             console.print(f'[bold red]Error:[/bold red] {e}')
+        sentry_sdk.capture_exception(e)
         sys.exit(1)
     pass
 
@@ -148,5 +162,6 @@ def compare_report(**kwargs):
             console.print_exception(show_locals=True)
         else:
             console.print(f'[bold red]Error:[/bold red] {e}')
+        sentry_sdk.capture_exception(e)
         sys.exit(1)
     pass
