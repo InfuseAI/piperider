@@ -47,10 +47,6 @@ export function ExperimentReport() {
           mx={'10%'}
           direction={'column'}
         >
-          <Heading>InfuseAI x Finance</Heading>
-
-          <Divider my={4} />
-
           {/* TODO: freshness values */}
           <Flex direction={'column'} gap={4}>
             <Heading size={'lg'}>Overview</Heading>
