@@ -9,17 +9,16 @@ from rich.syntax import Syntax
 from piperider_cli import workspace, __version__
 
 sentry_env = 'development' if __version__.endswith('-dev') else 'production'
-sentry_release = __version__
 
 sentry_sdk.init(
     "https://41930bf397884adfb2617fe350231439@o1081482.ingest.sentry.io/6463955",
-    release=__version__,
     environment=sentry_env,
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     # We recommend adjusting this value in production.
     traces_sample_rate=1.0
 )
+sentry_sdk.set_tag("piperider.version", __version__)
 
 debug_option = [
     click.option('--debug', is_flag=True, help='Enable debug mode')
