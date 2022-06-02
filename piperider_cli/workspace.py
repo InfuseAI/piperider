@@ -25,6 +25,7 @@ PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'con
 PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'credentials.yml')
 PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
 PIPERIDER_REPORT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'reports')
+PIPERIDER_COMPARISON_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'comparisons')
 
 # ref: https://docs.getdbt.com/dbt-cli/configure-your-profile
 DBT_PROFILES_DIR_DEFAULT = '~/.dbt/'
@@ -816,7 +817,7 @@ def generate_report(input=None):
     console = Console()
 
     from piperider_cli import data
-    report_template_dir = os.path.join(os.path.dirname(data.__file__), 'report')
+    report_template_dir = os.path.join(os.path.dirname(data.__file__), 'report', 'single-report')
     with open(os.path.join(report_template_dir, 'index.html')) as f:
         report_template_html = f.read()
 
@@ -887,10 +888,25 @@ def compare_report(a=None, b=None):
     report = CompareReport(PIPERIDER_OUTPUT_PATH, a, b)
     if not report.select_reports():
         raise Exception('No valid reports found')
-    data = report.generate_data()
+    comparison_data = report.generate_data()
 
-    # TODO combine data to html
+    from piperider_cli import data
+    report_template_dir = os.path.join(os.path.dirname(data.__file__), 'report', 'comparison-report')
+    with open(os.path.join(report_template_dir, 'index.html')) as f:
+        report_template_html = f.read()
+
+    dir = os.path.join(PIPERIDER_COMPARISON_PATH, 'test')
+    shutil.copytree(report_template_dir,
+                    dir,
+                    dirs_exist_ok=True,
+                    ignore=shutil.ignore_patterns('index.html'))
+
+    with open(os.path.join(dir, 'comparison.html'), 'w') as f:
+        html = report_template_html.replace(r'window.PIPERIDER_REPORT_DATA=""', f'window.PIPERIDER_REPORT_DATA={comparison_data.to_json()};')
+        f.write(html)
+
+    # TODO remove this
     with open('comparison_data.json', 'w') as f:
-        f.write(data.to_json())
+        f.write(comparison_data.to_json())
 
     pass
