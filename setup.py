@@ -28,6 +28,7 @@ setup(name='piperider-cli',
       install_requires=[
           'ruamel.yaml',
           'sqlalchemy',
+          'sentry-sdk',
           # 'snowflake-sqlalchemy',
           # you need a postgres for m1 to install psycopg2 ^^"
           # 'psycopg2-binary',
