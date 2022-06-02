@@ -134,13 +134,13 @@ def generate_report(**kwargs):
 
 
 @cli.command(short_help='Compare two existing reports')
-@click.option('--input-a', default=None, type=click.Path(exists=True), help='Path of 1st json report file')
-@click.option('--input-b', default=None, type=click.Path(exists=True), help='Path of 2nd json report file')
+@click.option('--base', default=None, type=click.Path(exists=True), help='Path of the base json report file')
+@click.option('--input', default=None, type=click.Path(exists=True), help='Path of the json report file to compare')
 @add_options(debug_option)
 def compare_report(**kwargs):
     console = Console()
-    a = kwargs.get('input_a')
-    b = kwargs.get('input_b')
+    a = kwargs.get('base')
+    b = kwargs.get('input')
     try:
         workspace.compare_report(a=a, b=b)
     except Exception as e:

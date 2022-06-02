@@ -107,8 +107,8 @@ class CompareReport(object):
 
         if self.a and self.b:
             self.console.print(f'Selected reports:')
-            self.console.print(f'  A: {self.a.path}')
-            self.console.print(f'  B: {self.b.path}')
+            self.console.print(f'  Base:  {self.a.path}')
+            self.console.print(f'  Input: {self.b.path}')
             return True
         return False
 
