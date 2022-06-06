@@ -112,6 +112,10 @@ class AssertionResult:
             "Assertion Function should fill 'actual' and 'expected' fields.")
         return self
 
+    def get_internal_error(self):
+        if isinstance(self._exception, AssertionException):
+            return self._exception
+
     def __repr__(self):
         return str(dict(success=self._success,
                         exception=str(self._exception),
@@ -176,7 +180,7 @@ class AssertionEngine:
     """
     PIPERIDER_WORKSPACE_NAME = '.piperider'
     PIPERIDER_ASSERTION_SEARCH_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'assertions')
-    PIPERIDER_ASSERTION_PLUGIN_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'plugin')
+    PIPERIDER_ASSERTION_PLUGIN_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'plugins')
     PIPERIDER_ASSERTION_SUPPORT_METRICS = ['distribution', 'range', 'missing_value']
 
     def __init__(self, profiler, assertion_search_path=PIPERIDER_ASSERTION_SEARCH_PATH):
@@ -323,11 +327,13 @@ class AssertionEngine:
 
         for assertion in self.assertions:
             try:
-                assertion_result = self.evaluate(assertion, metrics_result)
+                assertion_result: AssertionContext = self.evaluate(assertion, metrics_result)
                 results.append(assertion_result)
+
+                if assertion_result.result.get_internal_error():
+                    raise assertion_result.result.get_internal_error()
             except AssertionException as e:
-                # TODO print it to console?
-                print(e)
+                print("Internal Error", e)
             except BaseException as e:
                 exceptions.append((assertion, e))
         return results, exceptions
