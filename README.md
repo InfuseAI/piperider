@@ -25,7 +25,7 @@ Refer to [User defined test functions](https://github.com/InfuseAI/piperider-cli
 ## Compare different test runs
 ![comparison_view](/images/piperider_comparison_view.png)
 
-# Quick start
+# Get started
 ## Install PipeRider
 
 ```bash
@@ -81,3 +81,6 @@ $ piperider-cli compare-report
    o infuse_finance->PUBLIC.PRICE         #pass=0 #fail=0 #row=1492460  #column=11  2022-06-02T15:46:24.464595Z
    o infuse_finance->PUBLIC.PRICE_LATEST  #pass=0 #fail=0 #row=505      #column=11  2022-06-02T15:46:24.464595Z
 ```
+
+# Get involved
+[Work In Progress]
