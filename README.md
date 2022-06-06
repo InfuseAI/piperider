@@ -16,30 +16,27 @@ For data practitioner who wants to trust their data by:
 - Save time on debugging data,**easily discover & discuss any data problems from upstream**
 - Socially **collaborate across teams on the dataset through data catalog and data insights**
 
-# Generate quality assessment in html
+# Key Features
+## Generate quality assessment in html
 ![single_run_view](/images/piperider_single_run.png)
 
-
-# Inject tests to key metrics
+## Inject tests to key metrics
 Refer to [User defined test functions](https://github.com/InfuseAI/piperider-cli/blob/main/docs/user-defined-test-function.md)
 
-# Compare different test runs
+## Compare different test runs
 ![comparison_view](/images/piperider_comparison_view.png)
 
-# Install PipeRider
+# Quick start
+## Install PipeRider
 
 ```bash
 $ pip install piperider-cli
 ```
-
-# Command
-
 ## Attach piperider to a dbt project
 ```bash
 $ piperider-cli init
 ```
 This command creates `/.piperider` under a dbt project root and generate necessary configurations.
-
 
 ## Scan data quality from models
 ```bash
