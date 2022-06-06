@@ -3,331 +3,28 @@ import os
 import shutil
 import sys
 import uuid
-import warnings
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
-from getpass import getpass
 from glob import glob
-from typing import List
 
 from rich.console import Console
 from rich.table import Table
-from ruamel import yaml
 from sqlalchemy import create_engine, inspect
-from sqlalchemy.exc import SAWarning
 
 from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.compare_report import CompareReport
+from piperider_cli.configuration import Configuration, PIPERIDER_WORKSPACE_NAME, PIPERIDER_CONFIG_PATH, \
+    PIPERIDER_CREDENTIALS_PATH
+from piperider_cli.datasource import DataSource
 from piperider_cli.profiler import Profiler
 
-PIPERIDER_WORKSPACE_NAME = '.piperider'
-PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
-PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'credentials.yml')
 PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
 PIPERIDER_REPORT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'reports')
 PIPERIDER_COMPARISON_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'comparisons')
 
-# ref: https://docs.getdbt.com/dbt-cli/configure-your-profile
-DBT_PROFILES_DIR_DEFAULT = '~/.dbt/'
-DBT_PROFILE_FILE = 'profiles.yml'
-
 CONSOLE_MSG_PASS = f'[bold green]✅ PASS[/bold green]\n'
 CONSOLE_MSG_FAIL = f'[bold red]😱 FAILED[/bold red]\n'
 CONSOLE_MSG_ALL_SET = f'[bold]🎉 You are all set![/bold]\n'
-
-
-class DataSource(metaclass=ABCMeta):
-
-    def __init__(self, name, type_name, **kwargs):
-        self.name = name
-        self.type_name = type_name
-        self.args = kwargs
-        self.fields: List[str] = []
-
-    def _validate_required_fields(self):
-        reasons = []
-        # check required fields
-        for f in self.fields:
-            if f not in self.args.get('credential', {}):
-                reasons.append(f"{f} is required")
-
-        return reasons == [], reasons
-
-    @abstractmethod
-    def validate(self):
-        """
-        validate type name and required fields.
-
-        Returns True if everything is fine, False and reasons otherwise.
-
-        :return: bool, []
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def to_database_url(self):
-        """
-        build a database url for sqlalchemy create_engine method
-        :return:
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def verify_connector(self):
-        raise NotImplemented
-
-    def engine_args(self):
-        return dict()
-
-    def show_installation_information(self):
-        from rich.markup import escape
-        if self.verify_connector():
-            console = Console()
-            console.print(f'\n{escape(self.verify_connector())}\n')
-
-
-class PostgreSQLDataSource(DataSource):
-    def __init__(self, name, **kwargs):
-        super().__init__(name, 'postgres', **kwargs)
-        self.fields = ["host", "port", "user", "password", "dbname"]
-
-    def validate(self):
-        if self.type_name != 'postgres':
-            raise ValueError('type name should be snowflake')
-        return self._validate_required_fields()
-
-    def to_database_url(self):
-        credential = self.args.get('credential')
-        host = credential.get('host')
-        port = credential.get('port')
-        user = credential.get('user')
-        password = credential.get('password')
-        dbname = credential.get('dbname')
-        return f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
-
-    def engine_args(self):
-        return dict(connect_args={'connect_timeout': 5})
-
-    def verify_connector(self):
-        try:
-            import psycopg2
-            # do nothing when everything is ok
-            return None
-        except:
-            return "Please run 'pip install piperider-cli[postgres]' to get the postgres connector"
-
-
-class SnowflakeDataSource(DataSource):
-    def __init__(self, name, **kwargs):
-        super().__init__(name, 'snowflake', **kwargs)
-        self.fields = ["account", "user", "password", "database", "warehouse", "schema"]
-        self._connect_timeout = 5
-
-    def validate(self):
-        if self.type_name != 'snowflake':
-            raise ValueError('type name should be snowflake')
-        return self._validate_required_fields()
-
-    def to_database_url(self):
-        credential = self.args.get('credential')
-        account = credential.get('account')
-        password = credential.get('password')
-        user = credential.get('user')
-        database = credential.get('database')
-        schema = credential.get('schema')
-        warehouse = credential.get('warehouse')
-        role = credential.get('role')
-        from snowflake.sqlalchemy.snowdialect import SnowflakeDialect
-        from snowflake.sqlalchemy import URL
-
-        SnowflakeDialect.supports_statement_cache = True
-        db_parameters = {
-            "account": account,
-            "user": user,
-            "password": password,
-            "database": database,
-            "schema": schema,
-            "warehouse": warehouse,
-            "login_timeout": self._connect_timeout,
-            "network_timeout": self._connect_timeout,
-        }
-
-        if role:
-            db_parameters["role"] = role
-
-        return URL(**db_parameters)
-
-    def engine_args(self):
-        return dict(connect_args={'connect_timeout': self._connect_timeout})
-
-    def verify_connector(self):
-        try:
-            import snowflake.connector
-            # do nothing when everything is ok
-            return None
-        except:
-            return "Please run 'pip install piperider-cli[snowflake]' to get the snowflake connector"
-
-
-class SqliteDataSource(DataSource):
-
-    def __init__(self, name, **kwargs):
-        super().__init__(name, 'sqlite', **kwargs)
-        self.fields = ['dbpath']
-        warnings.filterwarnings('ignore',
-                                r'^Dialect sqlite\+pysqlite does \*not\* support Decimal objects natively.*$',
-                                SAWarning)
-
-    def validate(self):
-        if self.type_name != 'sqlite':
-            raise ValueError('type name should be sqlite')
-        return self._validate_required_fields()
-
-    def to_database_url(self):
-        credential = self.args.get('credential')
-        dbpath = credential.get('dbpath')
-        sqlite_file = os.path.abspath(dbpath)
-        if not os.path.exists(sqlite_file):
-            raise ValueError(f'Cannot find the sqlite at {sqlite_file}')
-        return f"sqlite:///{sqlite_file}"
-
-    def verify_connector(self):
-        # sqlite is builtin connector
-        return None
-
-
-DATASOURCE_PROVIDERS = dict(postgres=PostgreSQLDataSource, snowflake=SnowflakeDataSource, sqlite=SqliteDataSource)
-
-
-class Configuration(object):
-    """
-    Configuration represents the config file in the piperider project
-    at $PROJECT_ROOT./piperider/config.yml
-    """
-
-    def __init__(self, dataSources: List[DataSource]):
-        self.dataSources: List[DataSource] = dataSources
-        pass
-
-    @classmethod
-    def from_dbt_project(cls, dbt_project_path, dbt_profiles_dir=None):
-        """
-        build configuration from the existing dbt project
-
-        :param dbt_project_path:
-        :param dbt_profiles_dir:
-        :return:
-        """
-        if dbt_profiles_dir:
-            dbt_profile_path = os.path.join(dbt_profiles_dir, DBT_PROFILE_FILE)
-        else:
-            dbt_profile_path = os.path.join(DBT_PROFILES_DIR_DEFAULT, DBT_PROFILE_FILE)
-
-        if not os.path.exists(dbt_project_path):
-            raise ValueError(f"Cannot find dbt project at {dbt_project_path}")
-
-        with open(dbt_project_path, 'r') as fd:
-            dbt_project = yaml.safe_load(fd)
-
-        if not os.path.exists(os.path.expanduser(dbt_profile_path)):
-            raise ValueError(
-                f"Cannot find dbt profiles at {dbt_profile_path}. Please use dbt init to initiate the dbt profiles.")
-
-        with open(os.path.expanduser(dbt_profile_path), 'r') as fd:
-            dbt_profile = yaml.safe_load(fd)
-
-        profile_name = dbt_project.get('profile')
-        target_name = dbt_profile.get(profile_name, {}).get('target')
-        credential = dbt_profile.get(profile_name, {}).get('outputs', {}).get(target_name, {})
-        type_name = credential.get('type')
-        dbt = {
-            'profile': profile_name,
-            'target': target_name,
-            'projectDir': os.path.relpath(os.path.dirname(dbt_project_path), os.getcwd()),
-        }
-
-        if dbt_profiles_dir:
-            dbt['profilesDir'] = dbt_profiles_dir
-
-        if type_name not in DATASOURCE_PROVIDERS:
-            raise ValueError('unknown type name')
-
-        datasource_class = DATASOURCE_PROVIDERS[type_name]
-        datasource: DataSource = datasource_class(name=profile_name, dbt=dbt, credential=credential)
-        datasource.show_installation_information()
-
-        return cls(dataSources=[datasource])
-
-    @classmethod
-    def load(cls, piperider_config_path=PIPERIDER_CONFIG_PATH):
-        """
-        load from the existing configuration
-
-        :return:
-        """
-        credentials = None
-
-        with open(piperider_config_path, 'r') as fd:
-            config = yaml.safe_load(fd)
-
-        datasources: List[DataSource] = []
-        for ds in config.get('dataSources', []):
-            type_name = ds.get('type')
-            if type_name not in DATASOURCE_PROVIDERS:
-                raise ValueError('unknown type name')
-
-            datasource_class = DATASOURCE_PROVIDERS[type_name]
-            dbt = ds.get('dbt')
-            if dbt:
-                profile_dir = dbt.get('profilesDir', os.getenv('DBT_PROFILES_DIR', DBT_PROFILES_DIR_DEFAULT))
-                profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
-                if '~' in profile_path:
-                    profile_path = os.path.expanduser(profile_path)
-                with open(profile_path, 'r') as fd:
-                    profile = yaml.safe_load(fd)
-                credential = profile.get(dbt.get('profile'), {}).get('outputs', {}).get(dbt.get('target', {}))
-                datasource = datasource_class(name=ds.get('name'), dbt=dbt, credential=credential)
-            else:
-                with open(PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
-                    credentials = yaml.safe_load(fd)
-                credential = credentials.get(ds.get('name'))
-                datasource = datasource_class(name=ds.get('name'), credential=credential)
-            datasources.append(datasource)
-        return cls(dataSources=datasources)
-
-    def dump(self, path):
-        """
-        dump the configuration to the given path
-        :param path:
-        :return:
-        """
-        config = dict(dataSources=[])
-
-        for d in self.dataSources:
-            datasource = dict(name=d.name, type=d.type_name)
-            if d.args.get('dbt'):
-                datasource['dbt'] = d.args.get('dbt')
-            config['dataSources'].append(datasource)
-
-        with open(path, 'w') as fd:
-            yaml.round_trip_dump(config, fd)
-
-    def dump_credentials(self, path):
-        """
-        dump the credentials to the given path
-        :param path:
-        :return:
-        """
-        creds = dict()
-        for d in self.dataSources:
-            creds[d.name] = dict(type=d.type_name, **d.args)
-
-        with open(path, 'w') as fd:
-            yaml.round_trip_dump(creds, fd)
-
-    def to_sqlalchemy_config(self, datasource_name):
-        # TODO we will convert a data source to a sqlalchemy parameters
-        raise NotImplemented
 
 
 class AbstractChecker(metaclass=ABCMeta):
@@ -457,81 +154,66 @@ class CheckAssertionFiles(AbstractChecker):
         return len(failed_files) == 0, ''
 
 
-def _generate_piperider_workspace():
+def _is_piperider_workspace_exist(workspace_path: str) -> bool:
+    if not os.path.exists(workspace_path):
+        return False
+    elif not os.path.exists(os.path.join(workspace_path, 'config.yml')):
+        return False
+
+    return True
+
+
+def _generate_piperider_workspace() -> bool:
     from piperider_cli import data
     init_template_dir = os.path.join(os.path.dirname(data.__file__), 'piperider-init-template')
     working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
 
-    if sys.version_info >= (3, 8):
-        # dirs_exist_ok only available after 3.8
-        shutil.copytree(init_template_dir, working_dir, dirs_exist_ok=True)
-    else:
-        from distutils.dir_util import copy_tree
-        copy_tree(init_template_dir, working_dir)
-
-
-def _ask_user_for_datasource():
-    console = Console()
-    # we only support snowflake and pg only
-    # we might consider a sqlite for dev mode?
-    console.print(f'\nWhat is your project name? (alphanumeric only)')
-    in_source_name = input(':').strip()
-    if in_source_name == '':
-        raise Exception('project name is empty')
-
-    console.print(f'\nWhat data source would you like to connect to?')
-    source_types = {
-        '1': ('snowflake',
-              SnowflakeDataSource,
-              ['account', 'user', 'password', 'role', 'database', 'warehouse', 'schema']),
-        '2': ('postgres',
-              PostgreSQLDataSource,
-              ['host', 'port', 'user', 'password', 'dbname']),
-        '3': ('sqlite',
-              SqliteDataSource,
-              ['dbpath']),
-    }
-    for index, v in source_types.items():
-        name = v[0]
-        console.print(f"{index}. {name}")
-
-    in_source_type = input(':').strip()
-    parse_fields = {
-        'port': {
-            'parser': int,
-            'type_desc': 'an integer',
-        }
-    }
-
-    if in_source_type not in source_types.keys():
-        raise Exception('invalid source type')
-
-    source_type, cls, fields = source_types[in_source_type]
-    source_args = dict()
-
-    console.print(f'\nPlease enter the following fields for {source_type}')
-    for field in fields:
-        if field == 'password':
-            source_args[field] = getpass(f'{field} (hidden): ')
+    if _is_piperider_workspace_exist(working_dir) is False:
+        if sys.version_info >= (3, 8):
+            # dirs_exist_ok only available after 3.8
+            shutil.copytree(init_template_dir, working_dir, dirs_exist_ok=True)
         else:
-            source_args[field] = input(f'{field}: ').strip()
-        if field in parse_fields.keys():
-            try:
-                source_args[field] = parse_fields[field]['parser'](source_args[field])
-            except:
-                raise Exception(f'{field} is expected to be {parse_fields[field]["type_desc"]}')
+            from distutils.dir_util import copy_tree
+            copy_tree(init_template_dir, working_dir)
+        return True
+    else:
+        # Skip if workspace already exists
+        return False
 
-    ds: DataSource = cls(name=in_source_name, **source_args)
+
+def _ask_user_update_credentials(ds: DataSource):
+    console = Console()
+    console.print(f'\nPlease enter the following fields for {ds.type_name}')
+    return ds.ask_credential()
+
+
+def _ask_user_input_datasource(config: Configuration = None):
+    console = Console()
+    if config is None:
+        cls, name = DataSource.ask()
+        ds: DataSource = cls(name=name)
+        config = Configuration([ds])
+        if _ask_user_update_credentials(ds):
+            config.dump(PIPERIDER_CONFIG_PATH)
+            config.dump_credentials(PIPERIDER_CREDENTIALS_PATH)
+    else:
+        if len(config.dataSources) == 1:
+            ds = config.dataSources[0]
+        else:
+            # TODO: ask user select a datasource to update
+            ds = config.dataSources[0]
+        if not ds.credential:
+            console.print(
+                f'[[bold yellow]Warning[/bold yellow]] No credential found for \'{ds.type_name}\' datasource \'{ds.name}\'')
+            if _ask_user_update_credentials(ds):
+                config.dump_credentials(PIPERIDER_CREDENTIALS_PATH)
+
     ds.show_installation_information()
-    config = Configuration(dataSources=[ds])
-
-    config.dump(PIPERIDER_CONFIG_PATH)
-    config.dump_credentials(PIPERIDER_CREDENTIALS_PATH)
-
     return config
 
 
-def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None):
+def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None,
+                                         config: Configuration = None) -> bool:
     piperider_config_path = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
     config = Configuration.from_dbt_project(dbt_project_path, dbt_profiles_dir)
     config.dump(piperider_config_path)
@@ -544,8 +226,12 @@ def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None):
     :param dbt_project_path:
     :return: Configuration object
     """
+    try:
+        config = Configuration.load()
+    except Exception as e:
+        config = None
     if dbt_project_path is None:
-        return _ask_user_for_datasource()
+        return _ask_user_input_datasource(config=config)
 
     return _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir)
 
@@ -588,7 +274,10 @@ def search_dbt_project_path():
 
 
 def init(dbt_project_path=None, dbt_profiles_dir=None):
-    _generate_piperider_workspace()
+    console = Console()
+    if _generate_piperider_workspace() is False:
+        console.print(f'[bold green]Piperinfuseider workspace already exist[/bold green] ')
+
     # get Configuration object from dbt or user created configuration
     configuration = _generate_configuration(dbt_project_path, dbt_profiles_dir)
     return configuration
