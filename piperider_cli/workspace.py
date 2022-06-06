@@ -80,9 +80,10 @@ class DataSource(metaclass=ABCMeta):
         return dict()
 
     def show_installation_information(self):
+        from rich.markup import escape
         if self.verify_connector():
             console = Console()
-            console.print(f'\n{self.verify_connector()}\n')
+            console.print(f'\n{escape(self.verify_connector())}\n')
 
 
 class PostgreSQLDataSource(DataSource):
@@ -939,14 +940,15 @@ def compare_report(a=None, b=None):
 
     filename = os.path.join(dir, 'index.html')
     with open(filename, 'w') as f:
-        html = report_template_html.replace(r'window.PIPERIDER_REPORT_DATA=""', f'window.PIPERIDER_REPORT_DATA={comparison_data.to_json()};')
+        html = report_template_html.replace(r'window.PIPERIDER_REPORT_DATA=""',
+                                            f'window.PIPERIDER_REPORT_DATA={comparison_data.to_json()};')
         f.write(html)
 
     console.print()
     console.print(f"Comparison report: {filename}")
 
     # TODO for debugging intermediate data, remove this
-    #with open('comparison_data.json', 'w') as f:
+    # with open('comparison_data.json', 'w') as f:
     #    f.write(comparison_data.to_json())
 
     pass
