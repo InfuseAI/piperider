@@ -34,6 +34,7 @@ setup(name='piperider',
           'python-dateutil',
           'inquirer',
           'jinja2',
+          'portalocker',
       ],
       extras_require={
           'snowflake': [
