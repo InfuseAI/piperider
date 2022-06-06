@@ -26,6 +26,7 @@ For data practitioner who wants to trust their data by:
 ## Column wise
 
 # Compare different test runs
+![comparison_view](/images/piperider_comparison_view.png)
 
 # Install PipeRider
 
@@ -45,11 +46,44 @@ This command creates `/.piperider` under a dbt project root and generate necessa
 ## Scan data quality from models
 ```bash
 $ piperider-cli run
+───── Summary ─────
+Table 'PUBLIC.PRICE_LATEST'
+  11 columns profiled
+
+Table 'PUBLIC.ACTION'
+  4 columns profiled
+
+Table 'PUBLIC.SYMBOL'
+  11 columns profiled
+
+Table 'PUBLIC.PRICE'
+  11 columns profiled
+
+Results saved to .piperider/outputs/infuse_finance-20220606094031
 ```
 This command scans the models from datasource and create assessment results in `/.piperider/output`
 
 ## Generate reports
 ```bash
-$ piperider-cli generate-report <piperider result file>
+$ piperider-cli generate-report
+───── Summary ─────
+Table 'PUBLIC.SYMBOL'       .piperider/reports/infuse_finance-20220606094618/PUBLIC.SYMBOL.html
+Table 'PUBLIC.ACTION'       .piperider/reports/infuse_finance-20220606094618/PUBLIC.ACTION.html
+Table 'PUBLIC.PRICE'        .piperider/reports/infuse_finance-20220606094618/PUBLIC.PRICE.html
+Table 'PUBLIC.PRICE_LATEST' .piperider/reports/infuse_finance-20220606094618/PUBLIC.PRICE_LATEST.html
 ```
 generate a static html report under current path. 
+
+## Generate comparison view
+```bash
+$ piperider-cli compare-report
+[?] Please select the 2 reports to compare:
+ > o infuse_finance->PUBLIC.SYMBOL        #pass=0 #fail=0 #row=505      #column=11  2022-06-02T16:27:54.115939Z
+   o infuse_finance->PUBLIC.ACTION        #pass=0 #fail=0 #row=18156    #column=4   2022-06-02T16:27:54.115939Z
+   o infuse_finance->PUBLIC.PRICE         #pass=0 #fail=0 #row=1492460  #column=11  2022-06-02T16:27:54.115939Z
+   o infuse_finance->PUBLIC.PRICE_LATEST  #pass=0 #fail=0 #row=505      #column=11  2022-06-02T16:27:54.115939Z
+   o infuse_finance->PUBLIC.SYMBOL        #pass=0 #fail=0 #row=505      #column=11  2022-06-02T15:46:24.464595Z
+   o infuse_finance->PUBLIC.ACTION        #pass=0 #fail=0 #row=18156    #column=4   2022-06-02T15:46:24.464595Z
+   o infuse_finance->PUBLIC.PRICE         #pass=0 #fail=0 #row=1492460  #column=11  2022-06-02T15:46:24.464595Z
+   o infuse_finance->PUBLIC.PRICE_LATEST  #pass=0 #fail=0 #row=505      #column=11  2022-06-02T15:46:24.464595Z
+```
