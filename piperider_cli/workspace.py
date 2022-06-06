@@ -72,8 +72,18 @@ class DataSource(metaclass=ABCMeta):
         """
         raise NotImplemented
 
+    @abstractmethod
+    def verify_connector(self):
+        raise NotImplemented
+
     def engine_args(self):
         return dict()
+
+    def show_installation_information(self):
+        from rich.markup import escape
+        if self.verify_connector():
+            console = Console()
+            console.print(f'\n{escape(self.verify_connector())}\n')
 
 
 class PostgreSQLDataSource(DataSource):
@@ -97,6 +107,14 @@ class PostgreSQLDataSource(DataSource):
 
     def engine_args(self):
         return dict(connect_args={'connect_timeout': 5})
+
+    def verify_connector(self):
+        try:
+            import psycopg2
+            # do nothing when everything is ok
+            return None
+        except:
+            return "Please run 'pip install piperider-cli[postgres]' to get the postgres connector"
 
 
 class SnowflakeDataSource(DataSource):
@@ -142,6 +160,14 @@ class SnowflakeDataSource(DataSource):
     def engine_args(self):
         return dict(connect_args={'connect_timeout': self._connect_timeout})
 
+    def verify_connector(self):
+        try:
+            import snowflake.connector
+            # do nothing when everything is ok
+            return None
+        except:
+            return "Please run 'pip install piperider-cli[snowflake]' to get the snowflake connector"
+
 
 class SqliteDataSource(DataSource):
 
@@ -164,6 +190,10 @@ class SqliteDataSource(DataSource):
         if not os.path.exists(sqlite_file):
             raise ValueError(f'Cannot find the sqlite at {sqlite_file}')
         return f"sqlite:///{sqlite_file}"
+
+    def verify_connector(self):
+        # sqlite is builtin connector
+        return None
 
 
 DATASOURCE_PROVIDERS = dict(postgres=PostgreSQLDataSource, snowflake=SnowflakeDataSource, sqlite=SqliteDataSource)
@@ -223,7 +253,9 @@ class Configuration(object):
             raise ValueError('unknown type name')
 
         datasource_class = DATASOURCE_PROVIDERS[type_name]
-        datasource = datasource_class(name=profile_name, dbt=dbt, credential=credential)
+        datasource: DataSource = datasource_class(name=profile_name, dbt=dbt, credential=credential)
+        datasource.show_installation_information()
+
         return cls(dataSources=[datasource])
 
     @classmethod
@@ -358,6 +390,7 @@ class CheckDataSources(AbstractChecker):
                 self.console.print(f'  {ds.name}: [[bold red]FAILED[/bold red]]')
                 for reason in reasons:
                     self.console.print(f'    {reason}')
+            ds.show_installation_information()
         return all_passed, ''
 
 
@@ -489,6 +522,7 @@ def _ask_user_for_datasource():
                 raise Exception(f'{field} is expected to be {parse_fields[field]["type_desc"]}')
 
     ds: DataSource = cls(name=in_source_name, **source_args)
+    ds.show_installation_information()
     config = Configuration(dataSources=[ds])
 
     config.dump(PIPERIDER_CONFIG_PATH)
@@ -906,14 +940,15 @@ def compare_report(a=None, b=None):
 
     filename = os.path.join(dir, 'index.html')
     with open(filename, 'w') as f:
-        html = report_template_html.replace(r'window.PIPERIDER_REPORT_DATA=""', f'window.PIPERIDER_REPORT_DATA={comparison_data.to_json()};')
+        html = report_template_html.replace(r'window.PIPERIDER_REPORT_DATA=""',
+                                            f'window.PIPERIDER_REPORT_DATA={comparison_data.to_json()};')
         f.write(html)
 
     console.print()
     console.print(f"Comparison report: {filename}")
 
     # TODO for debugging intermediate data, remove this
-    #with open('comparison_data.json', 'w') as f:
+    # with open('comparison_data.json', 'w') as f:
     #    f.write(comparison_data.to_json())
 
     pass
