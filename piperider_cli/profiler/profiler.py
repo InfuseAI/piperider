@@ -135,20 +135,20 @@ class Profiler:
 
     def _dist_topk(self, conn, expr, k):
         stmt = select(
-                expr,
-                func.count().label("_count")
-            ).group_by(
-                expr
-            ).order_by(
-                func.count().desc(),
-            ).limit(k)
+            expr,
+            func.count().label("_count")
+        ).group_by(
+            expr
+        ).order_by(
+            func.count().desc(),
+        ).limit(k)
         result = conn.execute(stmt)
 
         distribution = {
-                "type": "topk", # Top K Items
-                "labels": [],
-                "counts": [],
-            }
+            "type": "topk",  # Top K Items
+            "labels": [],
+            "counts": [],
+        }
         for row in result:
             k, v = row
             if k is not None:
@@ -163,10 +163,33 @@ class Profiler:
         t = self.metadata.tables[table_name]
 
         with self.engine.connect() as conn:
-            t2 = select(t.c[column_name].label("c")).cte(name="T")
+            if self.engine.url.get_backend_name() != "sqlite":
+                t2 = select(
+                    t.c[column_name].label("c"),
+                    case(
+                        (t.c[column_name] == None, None),
+                        else_=0
+                    ).label("mismatched")
+                ).cte(name="T")
+            else:
+                t2 = select(
+                    case(
+                        (func.typeof(t.c[column_name]) == 'text', None),
+                        (func.typeof(t.c[column_name]) == 'blob', None),
+                        else_=t.c[column_name]
+                    ).label("c"),
+                    case(
+                        (func.typeof(t.c[column_name]) == 'text', 1),
+                        (func.typeof(t.c[column_name]) == 'blob', 1),
+                        (func.typeof(t.c[column_name]) == 'null', None),
+                        else_=0
+                    ).label("mismatched")
+                ).cte(name="T")
+
             stmt = select(
                 func.count().label("_total"),
-                func.count(t2.c.c).label("_non_nulls"),
+                func.count(t2.c.mismatched).label("_non_nulls"),
+                func.sum(t2.c.mismatched).label("_mismatched"),
                 func.count(distinct(t2.c.c)).label("_distinct"),
                 func.sum(t2.c.c).label("_sum"),
                 func.avg(t2.c.c).label("_avg"),
@@ -174,7 +197,8 @@ class Profiler:
                 func.max(t2.c.c).label("_max"),
             )
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _distinct, _sum, _avg, _min, _max = result
+            _total, _non_null, _mismatched, _distinct, _sum, _avg, _min, _max = result
+            _mismatched = int(_mismatched)
             if is_integer:
                 _sum = int(_sum) if _sum is not None else None
                 _min = int(_min) if _min is not None else None
@@ -189,8 +213,8 @@ class Profiler:
                 interval = (max_value - min_value) / num_buckets
                 cases = []
                 for i in range(num_buckets):
-                    bound = min_value + interval * (i+1)
-                    if i != num_buckets-1:
+                    bound = min_value + interval * (i + 1)
+                    if i != num_buckets - 1:
                         cases += [(expr < bound, i)]
                     else:
                         cases += [(expr <= bound, i)]
@@ -199,8 +223,7 @@ class Profiler:
                     cases, else_=None
                 )
 
-
-            distribution=None
+            distribution = None
             if _non_null == 1:
                 distribution = self._dist_topk(conn, t2.c.c, 20)
             elif _non_null > 0:
@@ -209,7 +232,8 @@ class Profiler:
 
                 t2 = select(
                     t.c[column_name].label("c"),
-                    map_bucket(t.c[column_name].label("c"), dmin, dmin + (interval * _num_buckets), _num_buckets).label("bucket")
+                    map_bucket(t.c[column_name].label("c"), dmin, dmin + (interval * _num_buckets), _num_buckets).label(
+                        "bucket")
                 ).where(
                     t.c[column_name] != None
                 ).cte(name="T")
@@ -263,6 +287,7 @@ class Profiler:
             return {
                 'total': _total,
                 'non_nulls': _non_null,
+                'mismatched': _mismatched,
                 'distinct': _distinct,
                 'min': _min,
                 'max': _max,
@@ -316,12 +341,12 @@ class Profiler:
                 elif interval.months:
                     distribution["type"] = "monthly"
                     period = relativedelta(dmax, dmin)
-                    num_buckets = (period.years*12 + period.months) // interval.months
+                    num_buckets = (period.years * 12 + period.months) // interval.months
                     t2 = select(date_trunc("MONTH", t.c[column_name]).label("d")).cte(name="T")
                 else:
                     distribution["type"] = "daily"
                     period = dmax - dmin
-                    num_buckets = (period.days+1) // interval.days
+                    num_buckets = (period.days + 1) // interval.days
                     t2 = select(date_trunc("DAY", t.c[column_name]).label("d")).cte(name="T")
 
                 stmt = select(
@@ -356,6 +381,7 @@ class Profiler:
             return {
                 'total': _total,
                 'non_nulls': _non_null,
+                'mismatched': 0,
                 'distinct': _distinct,
                 'min': str(_min),
                 'max': str(_max),
@@ -380,6 +406,7 @@ class Profiler:
             return {
                 'total': _total,
                 'non_nulls': _non_null,
+                'mismatched': 0,
                 'distribution': distribution,
             }
 
@@ -400,13 +427,13 @@ class Profiler:
             return {
                 'total': _total,
                 'non_nulls': _non_null,
+                'mismatched': 0,
                 'distinct': _distinct,
                 'distribution': None,
             }
 
-
     @staticmethod
-    def _calc_distribution_range(min, max, is_integer) :
+    def _calc_distribution_range(min, max, is_integer):
         import math
 
         if is_integer and max - min < 20:
@@ -414,7 +441,7 @@ class Profiler:
 
         # make the min align to 0
         if min > 0 and max / 4 > min:
-            min=0
+            min = 0
 
         # only one value case
         if min == max:
@@ -458,14 +485,14 @@ class Profiler:
         # interval=10, 235->230
         # interval=20, 235->220
         if interval >= 1:
-            min=math.floor(min/interval)*interval
-            max=math.ceil(max/interval)*interval
+            min = math.floor(min / interval) * interval
+            max = math.ceil(max / interval) * interval
         else:
             # fix the truncation issue
             # 5 * 0.25 => 5 / 4
             # 5 * 0.05 => 5 / 20
-            min=math.floor(min/interval) / (1 / interval)
-            max=math.ceil(max/interval) / (1 / interval)
+            min = math.floor(min / interval) / (1 / interval)
+            max = math.ceil(max / interval) / (1 / interval)
 
         if max - min > interval * 20:
             # Sometimes, the range does not contains in the 20*interval, because we shift min,max to interval grid.
@@ -501,21 +528,3 @@ class Profiler:
             max_date = max_date.date()
             interval = relativedelta(days=+1)
         return min_date, max_date, interval
-
-
-if __name__ == '__main__':
-    user= os.getenv("SNOWFLAKE_USER")
-    password= os.getenv("SNOWFLAKE_PASSWORD")
-    account=os.getenv("SNOWFLAKE_ACCOUNT")
-    database="DEMO"
-    schema="PUBLIC"
-    warehouse="COMPUTE_WH"
-
-    engine = create_engine(f"snowflake://{user}:{password}@{account}/{database}/{schema}?warehouse={warehouse}")
-    profiler = Profiler(engine)
-    result = profiler.profile()
-    import json
-
-    print(json.dumps(result, indent=4))
-    with open('report.json', 'w') as f:
-        f.write(json.dumps(result, indent=4))
