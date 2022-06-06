@@ -9,7 +9,7 @@
   </a>
 </p>
 
-# Catch data problems where they start
+# Automates data quality management
 For data practitioner who wants to trust their data by:  
 - Defining the shape of data, so they can **make sure the data will be expected in the future** 
 - Save time on debugging data,**easily discover & discuss any data problems from upstream**
