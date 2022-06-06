@@ -10,15 +10,24 @@
 [![release](https://img.shields.io/github/release/infuseAI/piperider-cli/all.svg?style=flat-square)](https://github.com/infuseAI/piperider-cli/releases)
 [![InfuseAI Discord Invite](https://img.shields.io/discord/664381609771925514?color=%237289DA&label=chat&logo=discord&logoColor=white)](https://discord.com/invite/5zb2aK9KBV)
 
-
-# PipeRider
-
+# Catch data problems where they start
 For data practitioner who wants to trust their data by:  
 - Defining the shape of data, so they can **make sure the data will be expected in the future** 
 - Save time on debugging data,**easily discover & discuss any data problems from upstream**
 - Socially **collaborate across teams on the dataset through data catalog and data insights**
 
-# Install
+# Generate quality assessment in html
+## Data distribution
+## Min/Max range
+## Missing value
+
+# Inject tests to key metrics
+## Table wise
+## Column wise
+
+# Compare different test runs
+
+# Install PipeRider
 
 ```bash
 $ pip install piperider-cli
@@ -33,7 +42,7 @@ $ piperider-cli init
 This command creates `/.piperider` under a dbt project root and generate necessary configurations.
 
 
-## Scan models
+## Scan data quality from models
 ```bash
 $ piperider-cli run
 ```
