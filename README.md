@@ -17,13 +17,11 @@ For data practitioner who wants to trust their data by:
 - Socially **collaborate across teams on the dataset through data catalog and data insights**
 
 # Generate quality assessment in html
-## Data distribution
-## Min/Max range
-## Missing value
+![single_run_view](/images/piperider_single_run.png)
+
 
 # Inject tests to key metrics
-## Table wise
-## Column wise
+Refer to [User defined test functions](https://github.com/InfuseAI/piperider-cli/blob/main/docs/user-defined-test-function.md)
 
 # Compare different test runs
 ![comparison_view](/images/piperider_comparison_view.png)
