@@ -885,6 +885,8 @@ def generate_report(input=None):
 
 
 def compare_report(a=None, b=None):
+    console = Console()
+
     report = CompareReport(PIPERIDER_OUTPUT_PATH, a, b)
     if not report.select_reports():
         raise Exception('No valid reports found')
@@ -895,18 +897,23 @@ def compare_report(a=None, b=None):
     with open(os.path.join(report_template_dir, 'index.html')) as f:
         report_template_html = f.read()
 
-    dir = os.path.join(PIPERIDER_COMPARISON_PATH, 'test')
+    data_id = comparison_data.id()
+    dir = os.path.join(PIPERIDER_COMPARISON_PATH, data_id)
     shutil.copytree(report_template_dir,
                     dir,
                     dirs_exist_ok=True,
                     ignore=shutil.ignore_patterns('index.html'))
 
-    with open(os.path.join(dir, 'comparison.html'), 'w') as f:
+    filename = os.path.join(dir, 'index.html')
+    with open(filename, 'w') as f:
         html = report_template_html.replace(r'window.PIPERIDER_REPORT_DATA=""', f'window.PIPERIDER_REPORT_DATA={comparison_data.to_json()};')
         f.write(html)
 
-    # TODO remove this
-    with open('comparison_data.json', 'w') as f:
-        f.write(comparison_data.to_json())
+    console.print()
+    console.print(f"Comparison report: {filename}")
+
+    # TODO for debugging intermediate data, remove this
+    #with open('comparison_data.json', 'w') as f:
+    #    f.write(comparison_data.to_json())
 
     pass

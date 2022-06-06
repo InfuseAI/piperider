@@ -73,7 +73,7 @@ class ComparisonData(object):
             row_count = dict(base=None, input=None),
             column_count = dict(base=None, input=None),
             schema = dict(base=[], input=[]),
-            distribution = dict(base=[], input=[]),
+            distribution = [],
             missing_values = dict(base=[], input=[]),
             range = dict(base=[], input=[]),
         )
@@ -84,15 +84,28 @@ class ComparisonData(object):
             missing_values = dict(column=None, value=0),
             range = dict(column=None, value=0),
         )
+        self._created_at = datetime.now()
+
+    def id(self):
+        ds_name = self.table['base'].get('datasource', {}).get('name', '')
+        table_name = self.table['base'].get('name', '')
+        _id = f'{self._created_at.strftime("%Y%m%d%H%M%S")}'
+        if table_name:
+            _id = f'{table_name}-{_id}'
+        if ds_name:
+            _id = f'{ds_name}-{_id}'
+        return _id
 
     def add_table(self, base, input):
         self.table['base'] = dict(
             name = base['name'],
             created_at = base['created_at'],
+            datasource = base['datasource'],
         )
         self.table['input'] = dict(
             name = input['name'],
             created_at = input['created_at'],
+            datasource = input['datasource'],
         )
         self.detail['row_count']['base'] = base['row_count']
         self.detail['row_count']['input'] = input['row_count']
@@ -143,8 +156,63 @@ class ComparisonData(object):
             self._highest[metric]['column'] = col_name
 
     def _add_column_item(self, name, target, item, add_null=False):
-        if item.get('value', None) is not None or add_null:
+        if item and item.get('value', None) is not None or add_null:
             self.detail[name][target].append(item)
+
+    def _combine_distribute_item(self, base, input):
+        if base is None or input is None:
+            return
+
+        base_dist = base.get('metrics', {}).get('distribution', None)
+        input_dist = input.get('metrics', {}).get('distribution', None)
+
+        if base_dist is None or input_dist is None:
+            return None
+
+        diff_type = base_dist['type'] != input_dist['type']
+        acceptable_type = base_dist['type'] in ['topk', 'yearly', 'monthly', 'daily']
+        if diff_type or not acceptable_type:
+            return dict(
+                column=base['name'],
+                type=base_dist['type'],
+                base=[dict(label=label, base=base_dist['counts'][i], input=0) for i, label in enumerate(base_dist['labels'])],
+                input=[dict(label=label, base=0, input=input_dist['counts'][i]) for i, label in enumerate(input_dist['labels'])],
+            )
+
+        # # TODO should handle different types of distribution
+        combined = []
+
+        for i, label in enumerate(base_dist['labels']):
+            input_labels = input_dist.get('labels', [])
+            input_count = 0
+            if label in input_labels:
+                input_index = input_labels.index(label)
+                input_count = input_dist.get('counts')[input_index]
+
+            combined.append(dict(
+                label=label,
+                base=base_dist.get('counts')[i],
+                input=input_count,
+            ))
+
+        for i, label in enumerate(input_dist['labels']):
+            if label in base_dist['labels']:
+                continue
+
+            combined.append(dict(
+                label=label,
+                base=0,
+                input=input_dist.get('counts')[i],
+            ))
+
+        if base_dist['type'] in ['yearly', 'monthly', 'daily']:
+            combined.sort(key=lambda x: x['label'])
+
+        return dict(
+            column=base['name'],
+            type=base_dist['type'],
+            combined=combined,
+        )
 
     def _transform_item(self, item, field, change_fields=None):
         transformed = dict(key=None, value=None, changed=False,)
@@ -187,6 +255,9 @@ class ComparisonData(object):
                                   add_null=True)
 
             # TODO: add distribution changes
+            item = self._combine_distribute_item(base_col, input_col)
+            if item:
+                self.detail['distribution'].append(item)
 
             # add missing values changes
             self._add_column_item('missing_values',
@@ -207,6 +278,7 @@ class ComparisonData(object):
                     self._move_highest_to_top('range', col_name)
 
         output = dict(
+            created_at = self._created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
             table = self.table,
             summary = self.summary,
             detail = self.detail
@@ -379,7 +451,7 @@ class CompareReport(object):
             # compare distribution
             if base_col['distribution'] != input_col['distribution']:
                 # TODO the highest of distribution changes
-                data.metrics_changed('distribution', n, None, None)
+                data.metrics_changed('distribution', n, base_col['distribution'], input_col['distribution'])
 
         for n in input_col_names:
             input_col = input['columns'].get(n, None)
