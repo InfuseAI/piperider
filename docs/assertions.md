@@ -24,44 +24,7 @@ mytable:
           max: [0, 100000]
 ```
 
-# Built-in Tests
-
-## assert_row_count (table)
-Check if the row count is in a range
-
-```
-mytable:
-  tests:
-  - name: assert_row_count
-    assert:
-      count: [1, 10000000]
-```      
-
-## assert_column_min_in_range (column)
-Check if the row count is in a range
-
-```
-mytable:
-  columns:
-    col1:
-      tests:
-      - name: assert_column_min_in_range
-        assert:
-            min: [0, 50]
-```
-
-## assert_column_max_in_range (column)
-Check if the row count is in a range
-
-```
-mytable:
-  columns:
-    col1:
-      tests:
-      - name: assert_column_max_in_range
-        assert:
-            min: [0, 50]
-```
+To find the built-in tests, please see [assertions](./assertions/)
 
 # Range Semantic
 
