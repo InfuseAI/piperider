@@ -45,7 +45,7 @@ def version():
 
 
 @cli.command(short_help='Initialize PipeRider configurations')
-@click.option('--no-auto-search', type=click.BOOL, default=False, help="Don't search for dbt projects")
+@click.option('--no-auto-search', type=click.BOOL, default=False, is_flag=True, help="Don't search for dbt projects")
 @click.option('--dbt-project-dir', type=click.Path(exists=True), default=None, help='Directory of dbt project config')
 @click.option('--dbt-profiles-dir', type=click.Path(exists=True), default=None, help='Directory of dbt profiles config')
 @add_options(debug_option)
