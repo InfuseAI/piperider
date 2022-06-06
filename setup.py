@@ -36,6 +36,7 @@ setup(name='piperider-cli',
           'click',
           'python-dateutil',
           'inquirer',
+          'portalocker',
       ],
       extras_require={
           'dev': [

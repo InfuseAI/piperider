@@ -6,7 +6,11 @@ import sentry_sdk
 from rich.console import Console
 from rich.syntax import Syntax
 
-from piperider_cli import workspace, __version__
+from piperider_cli import workspace, __version__, event
+
+# TODO: set api_key
+event.init("<api_key>")
+event.log_event()
 
 sentry_env = 'development' if __version__.endswith('-dev') else 'production'
 
