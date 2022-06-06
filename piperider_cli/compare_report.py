@@ -175,8 +175,8 @@ class ComparisonData(object):
             return dict(
                 column=base['name'],
                 type=base_dist['type'],
-                base=[dict(label=label, count=base_dist['counts'][i]) for i, label in enumerate(base_dist['labels'])],
-                input=[dict(label=label, count=input_dist['counts'][i]) for i, label in enumerate(input_dist['labels'])],
+                base=[dict(label=label, base=base_dist['counts'][i], input=0) for i, label in enumerate(base_dist['labels'])],
+                input=[dict(label=label, base=0, input=input_dist['counts'][i]) for i, label in enumerate(input_dist['labels'])],
             )
 
         # # TODO should handle different types of distribution
