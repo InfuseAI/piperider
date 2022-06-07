@@ -158,96 +158,115 @@ export function ComparisonReport() {
                           Schema
                         </Box>
                       </Td>
-                      <Td colSpan={2} whiteSpace={'normal'}>
-                        <Accordion allowToggle>
-                          <AccordionItem borderColor={'transparent'}>
-                            <AccordionButton
-                              px={0}
-                              _focus={{ boxShadow: 'transparent' }}
-                            >
-                              Added:
-                              <Text as={'span'} fontWeight={700} ml={1}>
-                                {data.summary.schema.added}
-                              </Text>
-                              , Deleted:
-                              <Text as={'span'} fontWeight={700} ml={1}>
-                                {data.summary.schema.deleted}
-                              </Text>
-                              , Changed:{' '}
-                              <Text as={'span'} fontWeight={700} ml={1}>
-                                {data.summary.schema.type_changed}
-                              </Text>
-                              <Box flex="1" textAlign="left" />
-                              <AccordionIcon />
-                            </AccordionButton>
-
-                            <AccordionPanel px={0}>
-                              <Flex
-                                width={'100%'}
-                                justifyContent={'space-evenly'}
+                      {Object.keys(data.detail.schema).length > 0 ? (
+                        <Td colSpan={2} whiteSpace={'normal'}>
+                          <Accordion allowToggle>
+                            <AccordionItem borderColor={'transparent'}>
+                              <AccordionButton
+                                px={0}
+                                _focus={{ boxShadow: 'transparent' }}
                               >
-                                <TableContainer>
-                                  <Table variant="simple" width={'350px'}>
-                                    <Thead>
-                                      <Tr>
-                                        <Th>Column</Th>
-                                        <Th>Value</Th>
-                                      </Tr>
-                                    </Thead>
-                                    <Tbody>
-                                      {data.detail.schema.base.map((column) => (
-                                        <Tr
-                                          key={nanoid(10)}
-                                          color={
-                                            column.changed
-                                              ? 'red.500'
-                                              : 'inherit'
-                                          }
-                                        >
-                                          <Td>{column.key ?? '-'}</Td>
-                                          <Td>{column.value ?? '-'}</Td>
+                                Added:
+                                <Text as={'span'} fontWeight={700} ml={1}>
+                                  {data.summary.schema.added}
+                                </Text>
+                                , Deleted:
+                                <Text as={'span'} fontWeight={700} ml={1}>
+                                  {data.summary.schema.deleted}
+                                </Text>
+                                , Changed:{' '}
+                                <Text as={'span'} fontWeight={700} ml={1}>
+                                  {data.summary.schema.type_changed}
+                                </Text>
+                                <Box flex="1" textAlign="left" />
+                                <AccordionIcon />
+                              </AccordionButton>
+
+                              <AccordionPanel px={0}>
+                                <Flex
+                                  width={'100%'}
+                                  justifyContent={'space-evenly'}
+                                >
+                                  <TableContainer>
+                                    <Table variant="simple" width={'350px'}>
+                                      <Thead>
+                                        <Tr>
+                                          <Th>Column</Th>
+                                          <Th>Value</Th>
                                         </Tr>
-                                      ))}
-                                    </Tbody>
-                                  </Table>
-                                </TableContainer>
+                                      </Thead>
+                                      <Tbody>
+                                        {data.detail.schema.base.map(
+                                          (column) => (
+                                            <Tr
+                                              key={nanoid(10)}
+                                              color={
+                                                column.changed
+                                                  ? 'red.500'
+                                                  : 'inherit'
+                                              }
+                                            >
+                                              <Td>{column.key ?? '-'}</Td>
+                                              <Td>{column.value ?? '-'}</Td>
+                                            </Tr>
+                                          ),
+                                        )}
+                                      </Tbody>
+                                    </Table>
+                                  </TableContainer>
 
-                                <Flex justifyContent={'center'}>
-                                  <Divider orientation={'vertical'} />
+                                  <Flex justifyContent={'center'}>
+                                    <Divider orientation={'vertical'} />
+                                  </Flex>
+
+                                  <TableContainer>
+                                    <Table variant="simple" width={'350px'}>
+                                      <Thead>
+                                        <Tr>
+                                          <Th>Column</Th>
+                                          <Th>Value</Th>
+                                        </Tr>
+                                      </Thead>
+                                      <Tbody>
+                                        {data.detail.schema.input.map(
+                                          (column) => (
+                                            <Tr
+                                              key={nanoid(10)}
+                                              color={
+                                                column.changed
+                                                  ? 'red.500'
+                                                  : 'inherit'
+                                              }
+                                            >
+                                              <Td>{column.key ?? '-'}</Td>
+                                              <Td>{column.value ?? '-'}</Td>
+                                            </Tr>
+                                          ),
+                                        )}
+                                      </Tbody>
+                                    </Table>
+                                  </TableContainer>
                                 </Flex>
-
-                                <TableContainer>
-                                  <Table variant="simple" width={'350px'}>
-                                    <Thead>
-                                      <Tr>
-                                        <Th>Column</Th>
-                                        <Th>Value</Th>
-                                      </Tr>
-                                    </Thead>
-                                    <Tbody>
-                                      {data.detail.schema.input.map(
-                                        (column) => (
-                                          <Tr
-                                            key={nanoid(10)}
-                                            color={
-                                              column.changed
-                                                ? 'red.500'
-                                                : 'inherit'
-                                            }
-                                          >
-                                            <Td>{column.key ?? '-'}</Td>
-                                            <Td>{column.value ?? '-'}</Td>
-                                          </Tr>
-                                        )
-                                      )}
-                                    </Tbody>
-                                  </Table>
-                                </TableContainer>
-                              </Flex>
-                            </AccordionPanel>
-                          </AccordionItem>
-                        </Accordion>
-                      </Td>
+                              </AccordionPanel>
+                            </AccordionItem>
+                          </Accordion>
+                        </Td>
+                      ) : (
+                        <Td colSpan={2}>
+                          Added:
+                          <Text as={'span'} fontWeight={700} ml={1}>
+                            {data.summary.schema.added}
+                          </Text>
+                          , Deleted:
+                          <Text as={'span'} fontWeight={700} ml={1}>
+                            {data.summary.schema.deleted}
+                          </Text>
+                          , Changed:{' '}
+                          <Text as={'span'} fontWeight={700} ml={1}>
+                            {data.summary.schema.type_changed}
+                          </Text>
+                        </Td>
+                      )}
                     </Tr>
 
                     <Tr>
@@ -262,48 +281,54 @@ export function ComparisonReport() {
                           Distribution
                         </Box>
                       </Td>
-                      <Td colSpan={2}>
-                        {data.detail.distribution.map((distribution) => {
-                          if (distribution['combined']) {
-                            return (
-                              <Flex key={nanoid(10)} direction={'column'}>
-                                <Text fontWeight={700}>
-                                  {distribution.column}
-                                </Text>
-                                <ComparisonBarChart
-                                  data={distribution['combined']}
-                                />
-                              </Flex>
-                            );
-                          } else if (
-                            distribution['base'] &&
-                            distribution['input']
-                          ) {
-                            return (
-                              <Flex
-                                key={nanoid(10)}
-                                gap={2}
-                                direction={'column'}
-                              >
-                                <Text fontWeight={700}>
-                                  {distribution.column}
-                                </Text>
-                                <Flex>
+
+                      {data.detail.distribution.length > 0 ? (
+                        <Td colSpan={2}>
+                          {data.detail.distribution.map((distribution) => {
+                            if (distribution['combined']) {
+                              return (
+                                <Flex key={nanoid(10)} direction={'column'}>
+                                  <Text fontWeight={700}>
+                                    {distribution.column}
+                                  </Text>
                                   <ComparisonBarChart
-                                    hideXAxis
-                                    data={distribution['base']}
-                                  />
-                                  <ComparisonBarChart
-                                    hideXAxis
-                                    data={distribution['input']}
+                                    data={distribution['combined']}
                                   />
                                 </Flex>
-                              </Flex>
-                            );
-                          }
-                          return null;
-                        })}
-                      </Td>
+                              );
+                            } else if (
+                              distribution['base'] &&
+                              distribution['input']
+                            ) {
+                              return (
+                                <Flex
+                                  key={nanoid(10)}
+                                  gap={2}
+                                  direction={'column'}
+                                >
+                                  <Text fontWeight={700}>
+                                    {distribution.column}
+                                  </Text>
+                                  <Flex>
+                                    <ComparisonBarChart
+                                      hideXAxis
+                                      data={distribution['base']}
+                                    />
+                                    <ComparisonBarChart
+                                      hideXAxis
+                                      data={distribution['input']}
+                                    />
+                                  </Flex>
+                                </Flex>
+                              );
+                            }
+                          })}
+                        </Td>
+                      ) : (
+                        <Td colSpan={2} textAlign={'center'}>
+                          -
+                        </Td>
+                      )}
                     </Tr>
 
                     <Tr>
@@ -312,94 +337,101 @@ export function ComparisonReport() {
                           Missing Value
                         </Box>
                       </Td>
-                      <Td colSpan={2} whiteSpace={'normal'}>
-                        <Accordion allowToggle>
-                          <AccordionItem borderColor={'transparent'}>
-                            <AccordionButton
-                              px={0}
-                              _focus={{ boxShadow: 'transparent' }}
-                            >
-                              <Box flex="1" textAlign="left" />
-                              <AccordionIcon />
-                            </AccordionButton>
 
-                            <AccordionPanel px={0}>
-                              <Flex
-                                width={'100%'}
-                                justifyContent={'space-evenly'}
+                      {Object.keys(data.detail.missing_values).length > 0 ? (
+                        <Td colSpan={2} whiteSpace={'normal'}>
+                          <Accordion allowToggle>
+                            <AccordionItem borderColor={'transparent'}>
+                              <AccordionButton
+                                px={0}
+                                _focus={{ boxShadow: 'transparent' }}
                               >
-                                <TableContainer>
-                                  <Table variant="simple" width={'350px'}>
-                                    <Thead>
-                                      <Tr>
-                                        <Th>Column</Th>
-                                        <Th>Value</Th>
-                                      </Tr>
-                                    </Thead>
-                                    <Tbody>
-                                      {data.detail.missing_values.base.map(
-                                        (column) => (
-                                          <Tr
-                                            key={nanoid(10)}
-                                            color={
-                                              column.changed
-                                                ? 'red.500'
-                                                : 'inherit'
-                                            }
-                                          >
-                                            <Td>{column.key ?? '-'}</Td>
-                                            <Td>
-                                              {Number(column.value).toFixed(
-                                                5,
-                                              ) ?? '-'}
-                                            </Td>
-                                          </Tr>
-                                        ),
-                                      )}
-                                    </Tbody>
-                                  </Table>
-                                </TableContainer>
+                                <Box flex="1" textAlign="left" />
+                                <AccordionIcon />
+                              </AccordionButton>
 
-                                <Flex justifyContent={'center'}>
-                                  <Divider orientation={'vertical'} />
+                              <AccordionPanel px={0}>
+                                <Flex
+                                  width={'100%'}
+                                  justifyContent={'space-evenly'}
+                                >
+                                  <TableContainer>
+                                    <Table variant="simple" width={'350px'}>
+                                      <Thead>
+                                        <Tr>
+                                          <Th>Column</Th>
+                                          <Th>Value</Th>
+                                        </Tr>
+                                      </Thead>
+                                      <Tbody>
+                                        {data.detail.missing_values.base.map(
+                                          (column) => (
+                                            <Tr
+                                              key={nanoid(10)}
+                                              color={
+                                                column.changed
+                                                  ? 'red.500'
+                                                  : 'inherit'
+                                              }
+                                            >
+                                              <Td>{column.key ?? '-'}</Td>
+                                              <Td>
+                                                {Number(column.value).toFixed(
+                                                  5,
+                                                ) ?? '-'}
+                                              </Td>
+                                            </Tr>
+                                          ),
+                                        )}
+                                      </Tbody>
+                                    </Table>
+                                  </TableContainer>
+
+                                  <Flex justifyContent={'center'}>
+                                    <Divider orientation={'vertical'} />
+                                  </Flex>
+
+                                  <TableContainer>
+                                    <Table variant="simple" width={'350px'}>
+                                      <Thead>
+                                        <Tr>
+                                          <Th>Column</Th>
+                                          <Th>Value</Th>
+                                        </Tr>
+                                      </Thead>
+                                      <Tbody>
+                                        {data.detail.missing_values.input.map(
+                                          (column) => (
+                                            <Tr
+                                              key={nanoid(10)}
+                                              color={
+                                                column.changed
+                                                  ? 'red.500'
+                                                  : 'inherit'
+                                              }
+                                            >
+                                              <Td>{column.key ?? '-'}</Td>
+                                              <Td>
+                                                {Number(column.value).toFixed(
+                                                  5,
+                                                ) ?? '-'}
+                                              </Td>
+                                            </Tr>
+                                          ),
+                                        )}
+                                      </Tbody>
+                                    </Table>
+                                  </TableContainer>
                                 </Flex>
-
-                                <TableContainer>
-                                  <Table variant="simple" width={'350px'}>
-                                    <Thead>
-                                      <Tr>
-                                        <Th>Column</Th>
-                                        <Th>Value</Th>
-                                      </Tr>
-                                    </Thead>
-                                    <Tbody>
-                                      {data.detail.missing_values.input.map(
-                                        (column) => (
-                                          <Tr
-                                            key={nanoid(10)}
-                                            color={
-                                              column.changed
-                                                ? 'red.500'
-                                                : 'inherit'
-                                            }
-                                          >
-                                            <Td>{column.key ?? '-'}</Td>
-                                            <Td>
-                                              {Number(column.value).toFixed(
-                                                5,
-                                              ) ?? '-'}
-                                            </Td>
-                                          </Tr>
-                                        ),
-                                      )}
-                                    </Tbody>
-                                  </Table>
-                                </TableContainer>
-                              </Flex>
-                            </AccordionPanel>
-                          </AccordionItem>
-                        </Accordion>
-                      </Td>
+                              </AccordionPanel>
+                            </AccordionItem>
+                          </Accordion>
+                        </Td>
+                      ) : (
+                        <Td colSpan={2} textAlign={'center'}>
+                          -
+                        </Td>
+                      )}
                     </Tr>
 
                     <Tr>
@@ -408,88 +440,98 @@ export function ComparisonReport() {
                           Range
                         </Box>
                       </Td>
-                      <Td colSpan={2} whiteSpace={'normal'}>
-                        <Accordion allowToggle>
-                          <AccordionItem borderColor={'transparent'}>
-                            <AccordionButton
-                              px={0}
-                              _focus={{ boxShadow: 'transparent' }}
-                            >
-                              <Box flex="1" textAlign="left" />
-                              <AccordionIcon />
-                            </AccordionButton>
-
-                            <AccordionPanel px={0}>
-                              <Flex
-                                width={'100%'}
-                                justifyContent={'space-evenly'}
+                      {Object.keys(data.detail.range).length > 0 ? (
+                        <Td colSpan={2} whiteSpace={'normal'}>
+                          <Accordion allowToggle>
+                            <AccordionItem borderColor={'transparent'}>
+                              <AccordionButton
+                                px={0}
+                                _focus={{ boxShadow: 'transparent' }}
                               >
-                                <TableContainer>
-                                  <Table variant="simple" width={'350px'}>
-                                    <Thead>
-                                      <Tr>
-                                        <Th>Column</Th>
-                                        <Th>Range</Th>
-                                      </Tr>
-                                    </Thead>
-                                    <Tbody>
-                                      {data.detail.range.base.map((column) => (
-                                        <Tr
-                                          key={nanoid(10)}
-                                          color={
-                                            column.changed
-                                              ? 'red.500'
-                                              : 'inherit'
-                                          }
-                                        >
-                                          <Td>{column.key ?? '-'}</Td>
-                                          <Td>
-                                            {JSON.stringify(column.value) ??
-                                              '-'}
-                                          </Td>
-                                        </Tr>
-                                      ))}
-                                    </Tbody>
-                                  </Table>
-                                </TableContainer>
+                                <Box flex="1" textAlign="left" />
+                                <AccordionIcon />
+                              </AccordionButton>
 
-                                <Flex justifyContent={'center'}>
-                                  <Divider orientation={'vertical'} />
+                              <AccordionPanel px={0}>
+                                <Flex
+                                  width={'100%'}
+                                  justifyContent={'space-evenly'}
+                                >
+                                  <TableContainer>
+                                    <Table variant="simple" width={'350px'}>
+                                      <Thead>
+                                        <Tr>
+                                          <Th>Column</Th>
+                                          <Th>Range</Th>
+                                        </Tr>
+                                      </Thead>
+                                      <Tbody>
+                                        {data.detail.range.base.map(
+                                          (column) => (
+                                            <Tr
+                                              key={nanoid(10)}
+                                              color={
+                                                column.changed
+                                                  ? 'red.500'
+                                                  : 'inherit'
+                                              }
+                                            >
+                                              <Td>{column.key ?? '-'}</Td>
+                                              <Td>
+                                                {JSON.stringify(column.value) ??
+                                                  '-'}
+                                              </Td>
+                                            </Tr>
+                                          ),
+                                        )}
+                                      </Tbody>
+                                    </Table>
+                                  </TableContainer>
+
+                                  <Flex justifyContent={'center'}>
+                                    <Divider orientation={'vertical'} />
+                                  </Flex>
+
+                                  <TableContainer>
+                                    <Table variant="simple" width={'350px'}>
+                                      <Thead>
+                                        <Tr>
+                                          <Th>Column</Th>
+                                          <Th>Range</Th>
+                                        </Tr>
+                                      </Thead>
+                                      <Tbody>
+                                        {data.detail.range.input.map(
+                                          (column) => (
+                                            <Tr
+                                              key={nanoid(10)}
+                                              color={
+                                                column.changed
+                                                  ? 'red.500'
+                                                  : 'inherit'
+                                              }
+                                            >
+                                              <Td>{column.key ?? '-'}</Td>
+                                              <Td>
+                                                {JSON.stringify(column.value) ??
+                                                  '-'}
+                                              </Td>
+                                            </Tr>
+                                          ),
+                                        )}
+                                      </Tbody>
+                                    </Table>
+                                  </TableContainer>
                                 </Flex>
-
-                                <TableContainer>
-                                  <Table variant="simple" width={'350px'}>
-                                    <Thead>
-                                      <Tr>
-                                        <Th>Column</Th>
-                                        <Th>Range</Th>
-                                      </Tr>
-                                    </Thead>
-                                    <Tbody>
-                                      {data.detail.range.input.map((column) => (
-                                        <Tr
-                                          key={nanoid(10)}
-                                          color={
-                                            column.changed
-                                              ? 'red.500'
-                                              : 'inherit'
-                                          }
-                                        >
-                                          <Td>{column.key ?? '-'}</Td>
-                                          <Td>
-                                            {JSON.stringify(column.value) ??
-                                              '-'}
-                                          </Td>
-                                        </Tr>
-                                      ))}
-                                    </Tbody>
-                                  </Table>
-                                </TableContainer>
-                              </Flex>
-                            </AccordionPanel>
-                          </AccordionItem>
-                        </Accordion>
-                      </Td>
+                              </AccordionPanel>
+                            </AccordionItem>
+                          </Accordion>
+                        </Td>
+                      ) : (
+                        <Td colSpan={2} textAlign={'center'}>
+                          -
+                        </Td>
+                      )}
                     </Tr>
                   </Tbody>
                 </Table>
