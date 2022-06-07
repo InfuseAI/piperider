@@ -16,14 +16,14 @@ For data practitioner who wants to trust their data by:
 - Socially **collaborate across teams on the dataset through data catalog and data insights**
 
 # Key Features
-## Generate quality assessment in html
-![single_run_view](/images/piperider_single_run.png)
+## Instant quality assessment in html
+Check [single run view](/images/piperider_single_run.png)
 
 ## Inject tests to key metrics
 Refer to [User defined test functions](https://github.com/InfuseAI/piperider-cli/blob/main/docs/user-defined-test-function.md)
 
-## Compare different test runs
-![comparison_view](/images/piperider_comparison_view.png)
+## Compare different test assessments
+Check [comparison view](/images/piperider_comparison_view.png)
 
 # Get started
 ## Install PipeRider
