@@ -226,7 +226,7 @@ class SnowflakeDataSource(DataSource):
             TextField('account', description='Account'),
             TextField('user', description='Username'),
             PasswordField('password', description='Password'),
-            TextField('role', description='role', optional=True),
+            TextField('role', description='Role', optional=True),
             TextField('database', description='Database'),
             TextField('warehouse', description='Warehouse'),
             TextField('schema', default='PUBLIC', description='Schema'),

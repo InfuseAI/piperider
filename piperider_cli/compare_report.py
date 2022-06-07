@@ -1,10 +1,10 @@
 import json
+import math
 import os
 import sys
-import math
+from datetime import datetime
 
 import readchar
-from datetime import datetime
 from rich.console import Console
 
 import piperider_cli.hack.inquirer as inquirer_hack
@@ -60,29 +60,30 @@ class ProfilerOutput(object):
     def __str__(self):
         return f'{self.datasource}->{self.name:20} #pass={self.pass_count:3} #fail={self.fail_count:<3} #row={self.row_count:<8} #column={self.col_count:<3} {self.created_at}'
 
+
 class ComparisonData(object):
     def __init__(self):
         self.table = dict(base=None, input=None)
         self.summary = dict(
-            schema = dict(added=0, deleted=0, type_changed=0),
-            distribution = dict(changed=0, highest=None),
-            missing_values = dict(changed=0, highest=None),
-            range = dict(changed=0, highest=None),
+            schema=dict(added=0, deleted=0, type_changed=0),
+            distribution=dict(changed=0, highest=None),
+            missing_values=dict(changed=0, highest=None),
+            range=dict(changed=0, highest=None),
         )
         self.detail = dict(
-            row_count = dict(base=None, input=None),
-            column_count = dict(base=None, input=None),
-            schema = dict(base=[], input=[]),
-            distribution = [],
-            missing_values = dict(base=[], input=[]),
-            range = dict(base=[], input=[]),
+            row_count=dict(base=None, input=None),
+            column_count=dict(base=None, input=None),
+            schema=dict(base=[], input=[]),
+            distribution=[],
+            missing_values=dict(base=[], input=[]),
+            range=dict(base=[], input=[]),
         )
         self._columns = dict(base={}, input={})
         self._column_names = dict(base=[], input=[])
         self._highest = dict(
-            distribution = dict(column=None, value=0),
-            missing_values = dict(column=None, value=0),
-            range = dict(column=None, value=0),
+            distribution=dict(column=None, value=0),
+            missing_values=dict(column=None, value=0),
+            range=dict(column=None, value=0),
         )
         self._created_at = datetime.now()
 
@@ -98,14 +99,14 @@ class ComparisonData(object):
 
     def add_table(self, base, input):
         self.table['base'] = dict(
-            name = base['name'],
-            created_at = base['created_at'],
-            datasource = base['datasource'],
+            name=base['name'],
+            created_at=base['created_at'],
+            datasource=base['datasource'],
         )
         self.table['input'] = dict(
-            name = input['name'],
-            created_at = input['created_at'],
-            datasource = input['datasource'],
+            name=input['name'],
+            created_at=input['created_at'],
+            datasource=input['datasource'],
         )
         self.detail['row_count']['base'] = base['row_count']
         self.detail['row_count']['input'] = input['row_count']
@@ -175,8 +176,10 @@ class ComparisonData(object):
             return dict(
                 column=base['name'],
                 type=base_dist['type'],
-                base=[dict(label=label, base=base_dist['counts'][i], input=0) for i, label in enumerate(base_dist['labels'])],
-                input=[dict(label=label, base=0, input=input_dist['counts'][i]) for i, label in enumerate(input_dist['labels'])],
+                base=[dict(label=label, base=base_dist['counts'][i], input=0) for i, label in
+                      enumerate(base_dist['labels'])],
+                input=[dict(label=label, base=0, input=input_dist['counts'][i]) for i, label in
+                       enumerate(input_dist['labels'])],
             )
 
         # # TODO should handle different types of distribution
@@ -215,7 +218,7 @@ class ComparisonData(object):
         )
 
     def _transform_item(self, item, field, change_fields=None):
-        transformed = dict(key=None, value=None, changed=False,)
+        transformed = dict(key=None, value=None, changed=False, )
         if item:
             transformed['key'] = item['name']
             if change_fields:
@@ -235,7 +238,6 @@ class ComparisonData(object):
             self.detail[metric]['input'].insert(0, self.detail[metric]['input'].pop())
             self.summary[metric]['highest'] = col_name
 
-
     def to_json(self):
         for i, col_name in enumerate(self._column_names['base']):
             base_col = self._columns['base'].get(col_name, None)
@@ -246,12 +248,12 @@ class ComparisonData(object):
             self._add_column_item('schema',
                                   'base',
                                   self._transform_item(base_col, 'type', [
-                                                       'type_changed', 'deleted', 'added']),
+                                      'type_changed', 'deleted', 'added']),
                                   add_null=True)
             self._add_column_item('schema',
                                   'input',
                                   self._transform_item(input_col, 'type', [
-                                                       'type_changed', 'deleted', 'added']),
+                                      'type_changed', 'deleted', 'added']),
                                   add_null=True)
 
             # TODO: add distribution changes
@@ -278,12 +280,13 @@ class ComparisonData(object):
                     self._move_highest_to_top('range', col_name)
 
         output = dict(
-            created_at = self._created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-            table = self.table,
-            summary = self.summary,
-            detail = self.detail
+            created_at=self._created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+            table=self.table,
+            summary=self.summary,
+            detail=self.detail
         )
         return json.dumps(output)
+
 
 class CompareReport(object):
     def __init__(self, profiler_output_path, a=None, b=None):
@@ -315,7 +318,7 @@ class CompareReport(object):
                     if dir != 'latest':
                         tables = _walk_throw_tables(os.path.join(root, dir))
                         outputs.extend(tables)
-            outputs.sort(key=lambda x: x.created_at, reverse=True)
+            outputs.sort(key=lambda x: (x.name, x.created_at), reverse=True)
             return outputs
 
         if output_search_path is None:
@@ -357,7 +360,7 @@ class CompareReport(object):
                                                   limited=1,
                                                   )
         ]
-        answers = inquirer_hack.prompt_ex(questions)
+        answers = inquirer_hack.prompt_ex(questions, raise_keyboard_interrupt=True)
 
         if answers:
             return answers['profiler_output'][0]
@@ -393,7 +396,7 @@ class CompareReport(object):
                 limited=2,
             ),
         ]
-        answers = inquirer_hack.prompt_ex(questions)
+        answers = inquirer_hack.prompt_ex(questions, raise_keyboard_interrupt=True)
         if answers:
             return answers['profiler_outputs'][0], answers['profiler_outputs'][1]
         return None, None
