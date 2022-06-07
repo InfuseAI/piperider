@@ -15,8 +15,7 @@ RUN apt-get update && \
     && apt-get purge -y --auto-remove \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir dbt-snowflake==1.1.0 snowflake-sqlalchemy==1.3.4 psycopg2-binary
+RUN pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /usr/src/github/
 
