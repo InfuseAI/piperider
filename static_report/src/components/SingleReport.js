@@ -15,7 +15,7 @@ import {
 } from '@chakra-ui/react';
 import * as d3 from 'd3';
 import { useEffect, useRef } from 'react';
-import formatDistanceToNow from 'date-fns/formatDistanceToNow';
+import { format } from 'date-fns';
 
 import { Main } from './Main';
 import { getReportAsserationStatusCounts, getChartTooltip } from '../utils';
@@ -49,7 +49,6 @@ export function SingleReport() {
           mx={'10%'}
           direction={'column'}
         >
-          {/* TODO: freshness values */}
           <Flex direction={'column'} gap={4}>
             <Heading size={'lg'}>Overview</Heading>
             <Text>
@@ -71,38 +70,21 @@ export function SingleReport() {
               </Text>
             </Text>
             <Text>
-              Status: {/* Passed */}
-              {overviewStatus.passed > 0 && overviewStatus.failed === 0 && (
-                <Text as="span" role={'img'}>
-                  ✅
-                </Text>
-              )}
-              {/* Failed */}
-              {overviewStatus.failed > 0 && overviewStatus.passed === 0 && (
-                <Text as="span" role={'img'}>
-                  ❌
-                </Text>
-              )}
-              {/* Warning */}
-              {overviewStatus.failed > 0 && overviewStatus.passed > 0 && (
-                <Text as="span" role={'img'}>
-                  ⚠️
-                </Text>
-              )}
+              Test Status:{' '}
+              <Text as={'span'} fontWeight={700}>
+                {overviewStatus.passed}
+              </Text>{' '}
+              Passed,{' '}
+              <Text
+                as={'span'}
+                fontWeight={700}
+                color={overviewStatus.failed > 0 ? 'red.500' : 'inherit'}
+              >
+                {overviewStatus.failed}
+              </Text>{' '}
+              Failed
             </Text>
 
-            <Text>
-              Passed:{' '}
-              <Text as={'span'} fontWeight={700} color={'green.500'}>
-                {overviewStatus.passed}
-              </Text>
-            </Text>
-            <Text>
-              Failed:{' '}
-              <Text as={'span'} fontWeight={700} color={'red.500'}>
-                {overviewStatus.failed}
-              </Text>
-            </Text>
             <Text>
               Data Source Type:{' '}
               <Text as={'span'} fontWeight={700}>
@@ -113,17 +95,16 @@ export function SingleReport() {
               Created Date:{' '}
               <Text as={'span'} fontWeight={700}>
                 {profileData?.created_at &&
-                  formatDistanceToNow(new Date(profileData.created_at), {
-                    addSuffix: true,
-                  })}
+                  format(
+                    new Date(profileData.created_at),
+                    'yyyy/MM/dd HH:mm:ss',
+                  )}
               </Text>
             </Text>
             <Text>
               Freshness:{' '}
               <Text as={'span'} fontWeight={700}>
-                {formatDistanceToNow(new Date('2022-05-10'), {
-                  addSuffix: true,
-                })}
+                Not applicable
               </Text>
             </Text>
           </Flex>
@@ -131,14 +112,14 @@ export function SingleReport() {
           <Divider my={6} />
 
           <Flex direction={'column'}>
-            <ProfilingInformation data={profileData.columns} />
-
             <TestsInformation
                 data={{
                   tableName: profileData.name,
                   ...profileData.assertion_results,
                 }}
               />
+
+            <ProfilingInformation data={profileData.columns} />
           </Flex>
         </Flex>
       </Flex>
@@ -148,7 +129,7 @@ export function SingleReport() {
 
 function ProfilingInformation({ data }) {
   return (
-    <Flex direction={'column'} gap={4}>
+    <Flex direction={'column'} gap={4} mt={4}>
       <Heading size={'lg'}>Profiling</Heading>
 
       {Object.keys(data).map((key) => {
@@ -166,6 +147,7 @@ function ProfilingInformation({ data }) {
                     fontWeight={700}
                     color={'gray.900'}
                     fontSize={'xl'}
+                    mr={1}
                   >
                     {column.name}
                   </Text>
@@ -192,7 +174,7 @@ function ProfilingInformation({ data }) {
                     ? '0'
                     : (
                         Number(
-                          (column.total - column.non_nulls) / column.total
+                          (column.total - column.non_nulls) / column.total,
                         ) * 100
                       ).toFixed(3)}
                   %
@@ -202,7 +184,7 @@ function ProfilingInformation({ data }) {
               <Flex direction={'column'} gap={2}>
                 <Text fontWeight={700}>Range</Text>
 
-                {column.type !== 'numeric' && column.type !== 'datetime' && '#'}
+                {column.type !== 'numeric' && column.type !== 'datetime' && '-'}
 
                 {column.type === 'numeric' && (
                   <>
@@ -253,6 +235,7 @@ function TestsInformation({ data }) {
               <Th>Name</Th>
               <Th>Status</Th>
               <Th>Level</Th>
+              <Th>Assertion</Th>
               <Th>Expected</Th>
               <Th>Actual</Th>
             </Tr>
@@ -268,7 +251,6 @@ function TestsInformation({ data }) {
                     <Text as={'span'} fontWeight={700}>
                       {data.tableName}
                     </Text>{' '}
-                    ({tabelTest.name.replace('assert_', '')})
                   </Td>
                   <Td>
                     {isFailed ? (
@@ -282,6 +264,7 @@ function TestsInformation({ data }) {
                     )}
                   </Td>
                   <Td>Table</Td>
+                  <Td>{tabelTest.name.replace('assert_', '')}</Td>
                   <Td>
                     {typeof tabelTest.expected === 'object'
                       ? Object.keys(tabelTest.expected).map((key) => (
@@ -320,7 +303,6 @@ function TestsInformation({ data }) {
                       <Text as={'span'} fontWeight={700}>
                         {key}
                       </Text>{' '}
-                      ({columnTest.name.replace('assert_', '')})
                     </Td>
                     <Td>
                       {isFailed ? (
@@ -334,6 +316,7 @@ function TestsInformation({ data }) {
                       )}
                     </Td>
                     <Td>Column</Td>
+                    <Td>{columnTest.name.replace('assert_', '')}</Td>
                     <Td>
                       {typeof columnTest.expected === 'object'
                         ? Object.keys(columnTest.expected).map((key) => (
@@ -401,7 +384,7 @@ function BarChart({ data }) {
         .duration(500)
         .style('visibility', 'visible');
 
-      d3.select(this).style('fill', 'var(--chakra-colors-piperider-300)');
+      d3.select(this).style('fill', 'var(--chakra-colors-blue-100)');
     }
 
     function onMoveTooltip(event) {
@@ -413,7 +396,7 @@ function BarChart({ data }) {
     function onHideTooltip() {
       tooltip.html('').transition().duration(500).style('visibility', 'hidden');
 
-      d3.select(this).style('fill', 'var(--chakra-colors-piperider-500)');
+      d3.select(this).style('fill', 'var(--chakra-colors-blue-300)');
     }
 
     if (data.length > 0) {
@@ -447,7 +430,7 @@ function BarChart({ data }) {
         .attr('y', (s) => y(s.value))
         .attr('height', (s) => height - y(s.value))
         .attr('width', x.bandwidth())
-        .style('fill', 'var(--chakra-colors-piperider-500)')
+        .style('fill', 'var(--chakra-colors-blue-300)')
         .on('mouseover', onShowTooltip)
         .on('mousemove', onMoveTooltip)
         .on('mouseout', onHideTooltip);
