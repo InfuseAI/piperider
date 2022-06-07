@@ -172,6 +172,24 @@ class TestProfiler:
         assert result["labels"][19] == '1700.0 _'
         assert result["counts"][19] == 0
 
+    def test_numeric_mismatched(self):
+        engine = self.engine = create_engine('sqlite://')
+
+        data = [
+            ("col",),
+            (0,),
+            (0.0,),
+            ("abc",),
+            (b"abc",),
+            (None,),
+        ]
+        self.create_table("test", data, columns=[Column("col", Integer)])
+        profiler = Profiler(engine)
+        result = profiler.profile()["tables"]["test"]['columns']["col"]
+        assert result["total"] == 5
+        assert result["non_nulls"] == 4
+        assert result["mismatched"] == 2
+
     def test_date_boundary(self):
         engine = self.engine = create_engine('sqlite://')
 
@@ -218,7 +236,7 @@ class TestProfiler:
         assert result["tables"]["test"]['columns']["num_empty"]["distribution"] == None
 
     def test_range(self):
-        tests=[
+        tests = [
             # min,max,expected min,expected interval
             (0.1, 200, 0, 10),
             (150, 250, 150, 5),
@@ -244,4 +262,3 @@ class TestProfiler:
             min, max, interval = Profiler._calc_distribution_range(low, high, is_integer=False)
             assert emin == min
             assert einterval == interval
-
