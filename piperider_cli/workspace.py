@@ -276,7 +276,7 @@ def search_dbt_project_path():
 def init(dbt_project_path=None, dbt_profiles_dir=None):
     console = Console()
     if _generate_piperider_workspace() is False:
-        console.print(f'[bold green]Piperinfuseider workspace already exist[/bold green] ')
+        console.print(f'[bold green]Piperider workspace already exist[/bold green] ')
 
     # get Configuration object from dbt or user created configuration
     configuration = _generate_configuration(dbt_project_path, dbt_profiles_dir)
