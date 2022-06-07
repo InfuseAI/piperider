@@ -1,6 +1,7 @@
 import os
 from typing import List
 
+import inquirer
 from ruamel import yaml
 
 from piperider_cli.datasource import DATASOURCE_PROVIDERS, DataSource
@@ -149,3 +150,18 @@ class Configuration(object):
     def to_sqlalchemy_config(self, datasource_name):
         # TODO we will convert a data source to a sqlalchemy parameters
         raise NotImplemented
+
+    def ask_for_datasource(self):
+        if len(self.dataSources) == 0:
+            return None
+        elif len(self.dataSources) == 1:
+            return self.dataSources[0]
+        else:
+            questions = [
+                inquirer.List('datasource',
+                              message="Please select a datasource",
+                              choices=[(f'{d.name:20} (type: {d.type_name})', d) for d in self.dataSources],
+                              carousel=True)
+            ]
+            answers = inquirer.prompt(questions, raise_keyboard_interrupt=True)
+            return answers['datasource']

@@ -200,8 +200,7 @@ def _ask_user_input_datasource(config: Configuration = None):
         if len(config.dataSources) == 1:
             ds = config.dataSources[0]
         else:
-            # TODO: ask user select a datasource to update
-            ds = config.dataSources[0]
+            ds = config.ask_for_datasource()
         if not ds.credential:
             console.print(
                 f'[[bold yellow]Warning[/bold yellow]] No credential found for \'{ds.type_name}\' datasource \'{ds.name}\'')
