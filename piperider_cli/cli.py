@@ -7,9 +7,10 @@ from rich.console import Console
 from rich.syntax import Syntax
 
 from piperider_cli import workspace, __version__, event
+from piperider_cli.event.track import TrackCommand
 
 event.init()
-#event.log_event()
+# event.log_event()
 
 sentry_env = 'development' if __version__.endswith('-dev') else 'production'
 
@@ -40,6 +41,10 @@ def add_options(options):
 @click.group()
 def cli():
     pass
+
+
+cli.command_class = TrackCommand
+
 
 @cli.command(short_help='Show the version of piperider-cli')
 def version():
