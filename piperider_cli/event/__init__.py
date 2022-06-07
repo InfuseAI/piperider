@@ -3,11 +3,12 @@ import uuid
 from ruamel import yaml
 from piperider_cli.event.collector import Collector
 
-PIPERIDER_USER_HOME = '~/.piperider'
+PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
 PIPERIDER_USER_PROFILE = os.path.join(PIPERIDER_USER_HOME, 'profile.yml')
 
 _collector = Collector()
 _yml = yaml.YAML(typ='safe')
+
 
 def init():
     api_key = os.environ['PIPERIDER_EVENT_API_KEY']
@@ -26,13 +27,22 @@ def init():
     _collector.set_api_key(api_key)
     _collector.set_user_id(user_id)
 
+
 def _generate_user_id():
-    # TODO: handle mkdir error
-    os.makedirs(PIPERIDER_USER_HOME)
+    try:
+        os.makedirs(PIPERIDER_USER_HOME)
+    except FileExistsError:
+        print('PipeRider User Home already existed.')
+        pass
+    except Exception:
+        print('Please disable command tracking to continue.')
+        exit(1)
+
     user_id = uuid.uuid4().hex
     with open(PIPERIDER_USER_PROFILE, 'w+') as f:
         _yml.dump({'user_id': user_id}, f)
     return user_id
+
 
 def log_event():
     _collector.log_event('test')
