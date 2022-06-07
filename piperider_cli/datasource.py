@@ -187,7 +187,7 @@ class PostgreSQLDataSource(DataSource):
             TextField('host', description='Host URL'),
             NumberField('port', default=5432, description='Port'),
             TextField('user', description='Username'),
-            PasswordField('password', description='Password (hidden)'),
+            PasswordField('password', description='Password'),
             TextField('dbname', description='Database'),
             TextField('schema', default='public', description='Schema', optional=True),
         ]
@@ -225,7 +225,7 @@ class SnowflakeDataSource(DataSource):
         self.fields = [
             TextField('account', description='Account'),
             TextField('user', description='Username'),
-            PasswordField('password', description='Password (hidden)'),
+            PasswordField('password', description='Password'),
             TextField('role', description='role', optional=True),
             TextField('database', description='Database'),
             TextField('warehouse', description='Warehouse'),
