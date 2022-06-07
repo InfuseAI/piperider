@@ -151,99 +151,105 @@ export function ComparisonReport() {
                     </Tr>
                   </Thead>
 
-                  <Tr>
-                    <Td position={'relative'}>
-                      <Box position={'absolute'} top={6}>
-                        Schema
-                      </Box>
-                    </Td>
-                    <Td colSpan={2} whiteSpace={'normal'}>
-                      <Accordion allowToggle>
-                        <AccordionItem borderColor={'transparent'}>
-                          <AccordionButton
-                            px={0}
-                            _focus={{ boxShadow: 'transparent' }}
-                          >
-                            Added:
-                            <Text as={'span'} fontWeight={700} ml={1}>
-                              {data.summary.schema.added}
-                            </Text>
-                            , Deleted:
-                            <Text as={'span'} fontWeight={700} ml={1}>
-                              {data.summary.schema.deleted}
-                            </Text>
-                            , Changed:{' '}
-                            <Text as={'span'} fontWeight={700} ml={1}>
-                              {data.summary.schema.type_changed}
-                            </Text>
-                            <Box flex="1" textAlign="left" />
-                            <AccordionIcon />
-                          </AccordionButton>
-
-                          <AccordionPanel px={0}>
-                            <Flex
-                              width={'100%'}
-                              justifyContent={'space-evenly'}
-                            >
-                              <TableContainer>
-                                <Table variant="simple" width={'350px'}>
-                                  <Thead>
-                                    <Tr>
-                                      <Th>Column</Th>
-                                      <Th>Value</Th>
-                                    </Tr>
-                                  </Thead>
-                                  <Tbody>
-                                    {data.detail.schema.base.map((column) => (
-                                      <Tr
-                                        key={nanoid(10)}
-                                        color={
-                                          column.changed ? 'red.500' : 'inherit'
-                                        }
-                                      >
-                                        <Td>{column.key ?? '-'}</Td>
-                                        <Td>{column.value ?? '-'}</Td>
-                                      </Tr>
-                                    ))}
-                                  </Tbody>
-                                </Table>
-                              </TableContainer>
-
-                              <Flex justifyContent={'center'}>
-                                <Divider orientation={'vertical'} />
-                              </Flex>
-
-                              <TableContainer>
-                                <Table variant="simple" width={'350px'}>
-                                  <Thead>
-                                    <Tr>
-                                      <Th>Column</Th>
-                                      <Th>Value</Th>
-                                    </Tr>
-                                  </Thead>
-                                  <Tbody>
-                                    {data.detail.schema.input.map((column) => (
-                                      <Tr
-                                        key={nanoid(10)}
-                                        color={
-                                          column.changed ? 'red.500' : 'inherit'
-                                        }
-                                      >
-                                        <Td>{column.key ?? '-'}</Td>
-                                        <Td>{column.value ?? '-'}</Td>
-                                      </Tr>
-                                    ))}
-                                  </Tbody>
-                                </Table>
-                              </TableContainer>
-                            </Flex>
-                          </AccordionPanel>
-                        </AccordionItem>
-                      </Accordion>
-                    </Td>
-                  </Tr>
-
                   <Tbody>
+                    <Tr>
+                      <Td position={'relative'}>
+                        <Box position={'absolute'} top={6}>
+                          Schema
+                        </Box>
+                      </Td>
+                      <Td colSpan={2} whiteSpace={'normal'}>
+                        <Accordion allowToggle>
+                          <AccordionItem borderColor={'transparent'}>
+                            <AccordionButton
+                              px={0}
+                              _focus={{ boxShadow: 'transparent' }}
+                            >
+                              Added:
+                              <Text as={'span'} fontWeight={700} ml={1}>
+                                {data.summary.schema.added}
+                              </Text>
+                              , Deleted:
+                              <Text as={'span'} fontWeight={700} ml={1}>
+                                {data.summary.schema.deleted}
+                              </Text>
+                              , Changed:{' '}
+                              <Text as={'span'} fontWeight={700} ml={1}>
+                                {data.summary.schema.type_changed}
+                              </Text>
+                              <Box flex="1" textAlign="left" />
+                              <AccordionIcon />
+                            </AccordionButton>
+
+                            <AccordionPanel px={0}>
+                              <Flex
+                                width={'100%'}
+                                justifyContent={'space-evenly'}
+                              >
+                                <TableContainer>
+                                  <Table variant="simple" width={'350px'}>
+                                    <Thead>
+                                      <Tr>
+                                        <Th>Column</Th>
+                                        <Th>Value</Th>
+                                      </Tr>
+                                    </Thead>
+                                    <Tbody>
+                                      {data.detail.schema.base.map((column) => (
+                                        <Tr
+                                          key={nanoid(10)}
+                                          color={
+                                            column.changed
+                                              ? 'red.500'
+                                              : 'inherit'
+                                          }
+                                        >
+                                          <Td>{column.key ?? '-'}</Td>
+                                          <Td>{column.value ?? '-'}</Td>
+                                        </Tr>
+                                      ))}
+                                    </Tbody>
+                                  </Table>
+                                </TableContainer>
+
+                                <Flex justifyContent={'center'}>
+                                  <Divider orientation={'vertical'} />
+                                </Flex>
+
+                                <TableContainer>
+                                  <Table variant="simple" width={'350px'}>
+                                    <Thead>
+                                      <Tr>
+                                        <Th>Column</Th>
+                                        <Th>Value</Th>
+                                      </Tr>
+                                    </Thead>
+                                    <Tbody>
+                                      {data.detail.schema.input.map(
+                                        (column) => (
+                                          <Tr
+                                            key={nanoid(10)}
+                                            color={
+                                              column.changed
+                                                ? 'red.500'
+                                                : 'inherit'
+                                            }
+                                          >
+                                            <Td>{column.key ?? '-'}</Td>
+                                            <Td>{column.value ?? '-'}</Td>
+                                          </Tr>
+                                        )
+                                      )}
+                                    </Tbody>
+                                  </Table>
+                                </TableContainer>
+                              </Flex>
+                            </AccordionPanel>
+                          </AccordionItem>
+                        </Accordion>
+                      </Td>
+                    </Tr>
+
                     <Tr>
                       <Td>Rows</Td>
                       <Td>{data.detail.row_count.base}</Td>
@@ -496,7 +502,7 @@ export function ComparisonReport() {
   );
 }
 
-function ComparisonBarChart({ data, hideXAxis = false}) {
+function ComparisonBarChart({ data, hideXAxis = false }) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
 
