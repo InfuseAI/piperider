@@ -8,14 +8,17 @@ from rich.syntax import Syntax
 
 from piperider_cli import workspace, __version__
 
+sentry_env = 'development' if __version__.endswith('-dev') else 'production'
+
 sentry_sdk.init(
     "https://41930bf397884adfb2617fe350231439@o1081482.ingest.sentry.io/6463955",
-
+    environment=sentry_env,
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     # We recommend adjusting this value in production.
     traces_sample_rate=1.0
 )
+sentry_sdk.set_tag("piperider.version", __version__)
 
 debug_option = [
     click.option('--debug', is_flag=True, help='Enable debug mode')
@@ -31,19 +34,18 @@ def add_options(options):
     return _add_options
 
 
-@click.group()
+@click.group(name="piperider-cli")
 def cli():
     pass
 
 
 @cli.command(short_help='Show the version of piperider-cli')
 def version():
-    from piperider_cli import __version__
     click.echo(__version__)
 
 
 @cli.command(short_help='Initialize PipeRider configurations')
-@click.option('--no-auto-search', type=click.BOOL, default=False, help="Don't search for dbt projects")
+@click.option('--no-auto-search', type=click.BOOL, default=False, is_flag=True, help="Don't search for dbt projects")
 @click.option('--dbt-project-dir', type=click.Path(exists=True), default=None, help='Directory of dbt project config')
 @click.option('--dbt-profiles-dir', type=click.Path(exists=True), default=None, help='Directory of dbt profiles config')
 @add_options(debug_option)
@@ -149,13 +151,13 @@ def generate_report(**kwargs):
 
 
 @cli.command(short_help='Compare two existing reports')
-@click.option('--input-a', default=None, type=click.Path(exists=True), help='Path of 1st json report file')
-@click.option('--input-b', default=None, type=click.Path(exists=True), help='Path of 2nd json report file')
+@click.option('--base', default=None, type=click.Path(exists=True), help='Path of the base json report file')
+@click.option('--input', default=None, type=click.Path(exists=True), help='Path of the json report file to compare')
 @add_options(debug_option)
 def compare_report(**kwargs):
     console = Console()
-    a = kwargs.get('input_a')
-    b = kwargs.get('input_b')
+    a = kwargs.get('base')
+    b = kwargs.get('input')
     try:
         workspace.compare_report(a=a, b=b)
     except Exception as e:

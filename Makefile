@@ -36,3 +36,6 @@ docker-build:
 docker-deploy: docker-build
 	docker tag piperider-cli:$$(cat piperider_cli/VERSION) infuseai/piperider-cli:$$(cat piperider_cli/VERSION)
 	docker push infuseai/piperider-cli:$$(cat piperider_cli/VERSION)
+
+generate-cli-docs:
+	@python3 -m piperider_cli.docgen

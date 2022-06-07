@@ -31,6 +31,21 @@ Refer to [User defined test functions](https://github.com/InfuseAI/piperider-cli
 ```bash
 $ pip install piperider-cli
 ```
+
+By default, PipeRider supports built-in sqlite connector, extra connectors are available:
+
+| connectors  | install  |
+|---|---|
+| snowflake | pip install piperider-cli[snowflake]  |
+| postgres  | pip install piperider-cli[postgres]  |
+
+Use comma to install multiple connectors in one line:
+```
+pip install piperider-cli[postgres,snowflake]
+```
+
+# Command
+
 ## Attach piperider to a dbt project
 ```bash
 $ piperider-cli init
