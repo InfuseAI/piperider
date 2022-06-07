@@ -44,8 +44,6 @@ Use comma to install multiple connectors in one line:
 pip install piperider-cli[postgres,snowflake]
 ```
 
-# Command
-
 ## Attach piperider to a dbt project
 ```bash
 $ piperider-cli init
