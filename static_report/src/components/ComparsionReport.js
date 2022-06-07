@@ -19,13 +19,12 @@ import {
   Thead,
   Tr,
 } from '@chakra-ui/react';
-import * as d3 from 'd3';
 import { format } from 'date-fns';
 import { nanoid } from 'nanoid';
 import { useEffect, useRef } from 'react';
 
 import { Main } from './Main';
-import { getChartTooltip } from '../utils';
+import { drawComparsionChart } from '../utils';
 
 export function ComparisonReport() {
   const data = window.PIPERIDER_REPORT_DATA;
@@ -60,60 +59,32 @@ export function ComparisonReport() {
             <>
               <TableContainer>
                 <Table variant={'simple'}>
-                  <Thead>
-                    <Tr>
-                      <Th width={'10%'} />
-                      <Th width={'45%'}>{data.table.base.name}</Th>
-                      <Th width={'45%'}>{data.table.input.name}</Th>
-                    </Tr>
-                  </Thead>
-
                   <Tbody>
                     <Tr>
-                      <Td>Generated Time</Td>
+                      <Td>Base</Td>
                       <Td>
+                        {data.table.base.name} at{' '}
                         {format(
                           new Date(data.table.base.created_at),
-                          'yyyy-MM-dd',
-                        )}
-                      </Td>
-                      <Td>
-                        {format(
-                          new Date(data.table.input.created_at),
-                          'yyyy-MM-dd',
+                          'yyyy/MM/dd HH:mm:ss',
                         )}
                       </Td>
                     </Tr>
 
                     <Tr>
-                      <Td>Schema</Td>
-                      <Td colSpan={2}>
-                        <List display={'flex'} gap={3}>
-                          <ListItem>
-                            Added:{' '}
-                            <Text as={'span'} fontWeight={700}>
-                              {data.summary.schema.added}
-                            </Text>
-                          </ListItem>
-                          <ListItem>
-                            Deleted:{' '}
-                            <Text as={'span'} fontWeight={700}>
-                              {data.summary.schema.deleted}
-                            </Text>
-                          </ListItem>
-                          <ListItem>
-                            Type Changed:{' '}
-                            <Text as={'span'} fontWeight={700}>
-                              {data.summary.schema.type_changed}
-                            </Text>
-                          </ListItem>
-                        </List>
+                      <Td>Input</Td>
+                      <Td>
+                        {data.table.input.name} at{' '}
+                        {format(
+                          new Date(data.table.input.created_at),
+                          'yyyy/MM/dd HH:mm:ss',
+                        )}
                       </Td>
                     </Tr>
 
                     <Tr>
                       <Td>Distribution</Td>
-                      <Td colSpan={2}>
+                      <Td>
                         <List display={'flex'} gap={3}>
                           <ListItem>
                             Changed:{' '}
@@ -127,7 +98,7 @@ export function ComparisonReport() {
 
                     <Tr>
                       <Td>Missing Values</Td>
-                      <Td colSpan={2}>
+                      <Td>
                         <List display={'flex'} gap={3}>
                           <ListItem>
                             Changed:{' '}
@@ -141,7 +112,7 @@ export function ComparisonReport() {
 
                     <Tr>
                       <Td>Range</Td>
-                      <Td colSpan={2}>
+                      <Td>
                         <List display={'flex'} gap={3}>
                           <ListItem>
                             Changed:{' '}
@@ -175,123 +146,166 @@ export function ComparisonReport() {
                   <Thead>
                     <Tr>
                       <Th width={'10%'} />
-                      <Th width={'45%'}>Table A</Th>
-                      <Th width={'45%'}>Table B</Th>
+                      <Th width={'45%'}>Base</Th>
+                      <Th width={'45%'}>Input</Th>
                     </Tr>
                   </Thead>
 
+                  <Tr>
+                    <Td position={'relative'}>
+                      <Box position={'absolute'} top={6}>
+                        Schema
+                      </Box>
+                    </Td>
+                    <Td colSpan={2} whiteSpace={'normal'}>
+                      <Accordion allowToggle>
+                        <AccordionItem borderColor={'transparent'}>
+                          <AccordionButton
+                            px={0}
+                            _focus={{ boxShadow: 'transparent' }}
+                          >
+                            Added:
+                            <Text as={'span'} fontWeight={700} ml={1}>
+                              {data.summary.schema.added}
+                            </Text>
+                            , Deleted:
+                            <Text as={'span'} fontWeight={700} ml={1}>
+                              {data.summary.schema.deleted}
+                            </Text>
+                            , Changed:{' '}
+                            <Text as={'span'} fontWeight={700} ml={1}>
+                              {data.summary.schema.type_changed}
+                            </Text>
+                            <Box flex="1" textAlign="left" />
+                            <AccordionIcon />
+                          </AccordionButton>
+
+                          <AccordionPanel px={0}>
+                            <Flex
+                              width={'100%'}
+                              justifyContent={'space-evenly'}
+                            >
+                              <TableContainer>
+                                <Table variant="simple" width={'350px'}>
+                                  <Thead>
+                                    <Tr>
+                                      <Th>Column</Th>
+                                      <Th>Value</Th>
+                                    </Tr>
+                                  </Thead>
+                                  <Tbody>
+                                    {data.detail.schema.base.map((column) => (
+                                      <Tr
+                                        key={nanoid(10)}
+                                        color={
+                                          column.changed ? 'red.500' : 'inherit'
+                                        }
+                                      >
+                                        <Td>{column.key ?? '-'}</Td>
+                                        <Td>{column.value ?? '-'}</Td>
+                                      </Tr>
+                                    ))}
+                                  </Tbody>
+                                </Table>
+                              </TableContainer>
+
+                              <Flex justifyContent={'center'}>
+                                <Divider orientation={'vertical'} />
+                              </Flex>
+
+                              <TableContainer>
+                                <Table variant="simple" width={'350px'}>
+                                  <Thead>
+                                    <Tr>
+                                      <Th>Column</Th>
+                                      <Th>Value</Th>
+                                    </Tr>
+                                  </Thead>
+                                  <Tbody>
+                                    {data.detail.schema.input.map((column) => (
+                                      <Tr
+                                        key={nanoid(10)}
+                                        color={
+                                          column.changed ? 'red.500' : 'inherit'
+                                        }
+                                      >
+                                        <Td>{column.key ?? '-'}</Td>
+                                        <Td>{column.value ?? '-'}</Td>
+                                      </Tr>
+                                    ))}
+                                  </Tbody>
+                                </Table>
+                              </TableContainer>
+                            </Flex>
+                          </AccordionPanel>
+                        </AccordionItem>
+                      </Accordion>
+                    </Td>
+                  </Tr>
+
                   <Tbody>
                     <Tr>
-                      <Td>
-                        Rows <Text as={'span'}>#️⃣</Text>
-                      </Td>
+                      <Td>Rows</Td>
                       <Td>{data.detail.row_count.base}</Td>
                       <Td>{data.detail.row_count.input}</Td>
                     </Tr>
 
                     <Tr>
-                      <Td>
-                        Distribution <Text as={'span'}>📈</Text>
+                      <Td position={'relative'}>
+                        <Box position={'absolute'} top={4}>
+                          Distribution
+                        </Box>
                       </Td>
                       <Td colSpan={2}>
-                        <ComparisonBarChart />
-                      </Td>
-                    </Tr>
-
-                    <Tr>
-                      <Td>Schema</Td>
-                      <Td colSpan={2} whiteSpace={'normal'}>
-                        <Accordion allowToggle>
-                          <AccordionItem borderColor={'transparent'}>
-                            <AccordionButton
-                              px={0}
-                              _focus={{ boxShadow: 'transparent' }}
-                            >
-                              <Flex
-                                width={'100%'}
-                                justifyContent={'space-around'}
-                              >
-                                <Text>
-                                  {data.detail.column_count.base} Columns
+                        {data.detail.distribution.map((distribution) => {
+                          if (distribution['combined']) {
+                            return (
+                              <Flex key={nanoid(10)} direction={'column'}>
+                                <Text fontWeight={700}>
+                                  {distribution.column}
                                 </Text>
-                                <Text>
-                                  {data.detail.column_count.input} Columns
-                                </Text>
+                                <ComparisonBarChart
+                                  data={distribution['combined']}
+                                />
                               </Flex>
-                              <AccordionIcon />
-                            </AccordionButton>
-
-                            <AccordionPanel px={0}>
+                            );
+                          } else if (
+                            distribution['base'] &&
+                            distribution['input']
+                          ) {
+                            return (
                               <Flex
-                                width={'100%'}
-                                justifyContent={'space-evenly'}
+                                key={nanoid(10)}
+                                gap={2}
+                                direction={'column'}
                               >
-                                <TableContainer>
-                                  <Table variant="simple" width={'350px'}>
-                                    <Thead>
-                                      <Tr>
-                                        <Th>Column</Th>
-                                        <Th>Type</Th>
-                                      </Tr>
-                                    </Thead>
-                                    <Tbody>
-                                      {data.detail.schema.base.map((column) => (
-                                        <Tr
-                                          key={nanoid(10)}
-                                          color={
-                                            column.changed
-                                              ? 'red.500'
-                                              : 'inherit'
-                                          }
-                                        >
-                                          <Td>{column.key ?? '-'}</Td>
-                                          <Td>{column.value ?? '-'}</Td>
-                                        </Tr>
-                                      ))}
-                                    </Tbody>
-                                  </Table>
-                                </TableContainer>
-
-                                <Flex justifyContent={'center'}>
-                                  <Divider orientation={'vertical'} />
+                                <Text fontWeight={700}>
+                                  {distribution.column}
+                                </Text>
+                                <Flex>
+                                  <ComparisonBarChart
+                                    hideXAxis
+                                    data={distribution['base']}
+                                  />
+                                  <ComparisonBarChart
+                                    hideXAxis
+                                    data={distribution['input']}
+                                  />
                                 </Flex>
-
-                                <TableContainer>
-                                  <Table variant="simple" width={'350px'}>
-                                    <Thead>
-                                      <Tr>
-                                        <Th>Column</Th>
-                                        <Th>Type</Th>
-                                      </Tr>
-                                    </Thead>
-                                    <Tbody>
-                                      {data.detail.schema.input.map(
-                                        (column) => (
-                                          <Tr
-                                            key={nanoid(10)}
-                                            color={
-                                              column.changed
-                                                ? 'red.500'
-                                                : 'inherit'
-                                            }
-                                          >
-                                            <Td>{column.key ?? '-'}</Td>
-                                            <Td>{column.value ?? '-'}</Td>
-                                          </Tr>
-                                        ),
-                                      )}
-                                    </Tbody>
-                                  </Table>
-                                </TableContainer>
                               </Flex>
-                            </AccordionPanel>
-                          </AccordionItem>
-                        </Accordion>
+                            );
+                          }
+                          return null;
+                        })}
                       </Td>
                     </Tr>
 
                     <Tr>
-                      <Td>Missing Values</Td>
+                      <Td position={'relative'}>
+                        <Box position={'absolute'} top={6}>
+                          Missing Value
+                        </Box>
+                      </Td>
                       <Td colSpan={2} whiteSpace={'normal'}>
                         <Accordion allowToggle>
                           <AccordionItem borderColor={'transparent'}>
@@ -383,7 +397,11 @@ export function ComparisonReport() {
                     </Tr>
 
                     <Tr>
-                      <Td>Range</Td>
+                      <Td position={'relative'}>
+                        <Box position={'absolute'} top={6}>
+                          Range
+                        </Box>
+                      </Td>
                       <Td colSpan={2} whiteSpace={'normal'}>
                         <Accordion allowToggle>
                           <AccordionItem borderColor={'transparent'}>
@@ -478,109 +496,24 @@ export function ComparisonReport() {
   );
 }
 
-function ComparisonBarChart() {
+function ComparisonBarChart({ data, hideXAxis = false}) {
   const svgRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    const data = [
-      {
-        label: 'NYSE',
-        base: 353,
-        input: 400,
-      },
-      {
-        label: 'NASDAQ',
-        base: 151,
-        input: 140,
-      },
-    ];
-    const margin = { top: 10, right: 30, bottom: 30, left: 50 };
-    const width = 450 - margin.left - margin.right;
-    const height = 200 - margin.top - margin.bottom;
-
-    const svgEl = d3.select(svgRef.current);
-    svgEl.selectAll('*').remove();
-
-    const svg = svgEl
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-      .append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
-
-    const tooltip = getChartTooltip({ target: '.chart' });
-
-    function onShowTooltip(event, d) {
-      tooltip
-        .html(`<p>Value: ${d.value}</p>`)
-        .transition()
-        .duration(500)
-        .style('visibility', 'visible');
-    }
-
-    function onMoveTooltip(event) {
-      tooltip
-        .style('top', `${event.pageY - 10}px`)
-        .style('left', `${event.pageX + 10}px`);
-    }
-
-    function onHideTooltip() {
-      tooltip.html('').transition().duration(500).style('visibility', 'hidden');
-    }
-
     if (data.length > 0) {
-      const groups = d3.map(data, (d) => d.label);
-
-      const x = d3.scaleBand().domain(groups).range([0, width]).padding(0.2);
-      svg
-        .append('g')
-        .attr('transform', `translate(0, ${height})`)
-        .call(d3.axisBottom(x).tickSize(0));
-
-      const y = d3
-        .scaleLinear()
-        .domain([0, d3.max(data, ({ base, input }) => Math.max(base, input))])
-        .range([height, 0]);
-      svg.append('g').call(d3.axisLeft(y));
-
-      const xSubGroup = d3
-        .scaleBand()
-        .domain(['base', 'input'])
-        .range([0, x.bandwidth()])
-        .padding(0.05);
-      const color = d3
-        .scaleOrdinal()
-        .domain(['base', 'input'])
-        .range([
-          'var(--chakra-colors-piperider-100)',
-          'var(--chakra-colors-piperider-500)',
-        ]);
-
-      svg
-        .append('g')
-        .selectAll('g')
-        .data(data)
-        .join('g')
-        .attr('transform', (d) => `translate(${x(d.label)}, 0)`)
-        .selectAll('rect')
-        .data(function (d) {
-          return ['base', 'input'].map(function (key) {
-            return { key: key, value: d[key] };
-          });
-        })
-        .join('rect')
-        .attr('x', (d) => xSubGroup(d.key))
-        .attr('y', (d) => y(d.value))
-        .attr('width', xSubGroup.bandwidth())
-        .attr('height', (d) => height - y(d.value))
-        .attr('fill', (d) => color(d.key))
-        .on('mouseover', onShowTooltip)
-        .on('mousemove', onMoveTooltip)
-        .on('mouseout', onHideTooltip);
+      drawComparsionChart({
+        containerWidth: containerRef.current.getBoundingClientRect().width,
+        svgTarget: svgRef.current,
+        tooltipTarget: '.chart',
+        hideXAxis,
+        data,
+      });
     }
-  }, []);
+  }, [data, hideXAxis]);
 
   return (
-    <Flex className={'chart'}>
+    <Flex className={'chart'} ref={containerRef}>
       <svg ref={svgRef} />
     </Flex>
   );
