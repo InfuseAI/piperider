@@ -13,16 +13,19 @@ class Collector:
     def __init__(self):
         self._api_endpoint = 'https://api.amplitude.com/2/httpapi'
         self._api_key = None
-        # TODO: auto generate user_id and write to somewhere
-        self._user_id = 'foobar'
+        self._user_id = None
+
         self._unsend_events_file = PIPERIDER_EVENT_PATH
         self._upload_threshold = 3
         if not os.path.exists(self._unsend_events_file):
             with portalocker.Lock(self._unsend_events_file, 'w+', timeout=5) as f:
                 f.write(json.dumps({'unsend_events': []}))
-    
+
     def set_api_key(self, api_key):
         self._api_key = api_key
+
+    def set_user_id(self, user_id):
+        self._user_id = user_id
 
     def log_event(self, event_type):
         created_at = datetime.now()
