@@ -198,7 +198,6 @@ class Profiler:
             )
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _mismatched, _distinct, _sum, _avg, _min, _max = result
-            _mismatched = int(_mismatched)
             if is_integer:
                 _sum = int(_sum) if _sum is not None else None
                 _min = int(_min) if _min is not None else None
