@@ -349,7 +349,7 @@ class CompareReport(object):
         profiler_outputs = self.list_existing_outputs()
 
         if len(profiler_outputs) < 1:
-            raise Exception("Not enough reports to compare. Please run 'piperider-cli run' first.")
+            raise Exception("Not enough reports to compare. Please run 'piperider run' first.")
 
         questions = [
             inquirer_hack.LimitedCheckboxQuestion('profiler_output',
@@ -384,7 +384,7 @@ class CompareReport(object):
             readchar.key.BACKSPACE = '\x7F'
 
         if len(profiler_outputs) < 2:
-            raise Exception("Not enough reports to compare. Please run 'piperider-cli run' first.")
+            raise Exception("Not enough reports to compare. Please run 'piperider run' first.")
 
         questions = [
             inquirer_hack.LimitedCheckboxQuestion(

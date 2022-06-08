@@ -1,3 +1,3 @@
 #!/bin/sh -l
 
-eval piperider-cli $1
+eval piperider $1

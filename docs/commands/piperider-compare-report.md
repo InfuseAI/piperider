@@ -1,17 +1,25 @@
 
-# piperider-cli generate-report
+# piperider compare-report
 None
 ## Usage
 ```
-Usage: piperider-cli generate-report [OPTIONS]
+Usage: piperider compare-report [OPTIONS]
 ```
 ## Options
+* `base`: 
+  * Type: Path 
+  * Default: `none`
+  * Usage: `--base`
+
+  Path of the base json report file
+
+
 * `input`: 
   * Type: Path 
   * Default: `none`
   * Usage: `--input`
 
-  Path of json report file
+  Path of the json report file to compare
 
 
 * `debug`: 
@@ -32,10 +40,11 @@ Usage: piperider-cli generate-report [OPTIONS]
 
 ## CLI Help
 ```
-Usage: piperider-cli generate-report [OPTIONS]
+Usage: piperider compare-report [OPTIONS]
 
 Options:
-  --input PATH  Path of json report file
+  --base PATH   Path of the base json report file
+  --input PATH  Path of the json report file to compare
   --debug       Enable debug mode
   --help        Show this message and exit.
 ```

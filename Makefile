@@ -31,11 +31,11 @@ bump-version: require-VERSION
 	@echo "${VERSION}" > piperider_cli/VERSION
 
 docker-build:
-	$(DOCKER_BUILD_CMD) -t piperider-cli:$$(cat piperider_cli/VERSION) .
+	$(DOCKER_BUILD_CMD) -t piperider:$$(cat piperider_cli/VERSION) .
 
 docker-deploy: docker-build
-	docker tag piperider-cli:$$(cat piperider_cli/VERSION) infuseai/piperider-cli:$$(cat piperider_cli/VERSION)
-	docker push infuseai/piperider-cli:$$(cat piperider_cli/VERSION)
+	docker tag piperider:$$(cat piperider_cli/VERSION) infuseai/piperider:$$(cat piperider_cli/VERSION)
+	docker push infuseai/piperider:$$(cat piperider_cli/VERSION)
 
 generate-cli-docs:
 	@python3 -m piperider_cli.docgen
