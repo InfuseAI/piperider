@@ -1,6 +1,9 @@
 [![ci-tests](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)
 [![release](https://img.shields.io/github/release/infuseAI/piperider-cli/all.svg?style=flat-square)](https://github.com/infuseAI/piperider-cli/releases)
-[![InfuseAI Discord Invite](https://img.shields.io/discord/664381609771925514?color=%237289DA&label=chat&logo=discord&logoColor=white)](https://discord.com/invite/5zb2aK9KBV)
+[![pipy](https://img.shields.io/pypi/v/piperider?style=flat-square)](https://pypi.org/project/piperider/)
+[![downloads](https://img.shields.io/pypi/dw/piperider?style=flat-square)](https://pypi.org/project/piperider/#files)
+[![license](https://img.shields.io/github/license/infuseai/piperider?style=flat-square)](https://github.com/InfuseAI/piperider/blob/main/LICENSE)
+[![InfuseAI Discord Invite](https://img.shields.io/discord/664381609771925514?color=%237289DA&label=chat&logo=discord&logoColor=white&style=flat-square)](https://discord.com/invite/5zb2aK9KBV)
 
 <p align="center">
   <a href="https://piperider.io">
@@ -10,22 +13,30 @@
 </p>
 
 # Automates data quality management
-For data practitioner who wants to trust their data by:  
-- Defining the shape of data, so they can **make sure the data will be expected in the future** 
+
+For data practitioner who wants to trust their data by:
+
+- Defining the shape of data, so they can **make sure the data will be expected in the future**
 - Save time on debugging data,**easily discover & discuss any data problems from upstream**
 - Socially **collaborate across teams on the dataset through data catalog and data insights**
 
 # Key Features
+
 ## Instant quality assessment in html
+
 Check [single run view](/images/piperider_single_run.png)
 
 ## Inject tests to key metrics
-Refer to [User defined test functions](https://github.com/InfuseAI/piperider-cli/blob/main/docs/user-defined-test-function.md)
+
+Refer
+to [User defined test functions](https://github.com/InfuseAI/piperider-cli/blob/main/docs/user-defined-test-function.md)
 
 ## Compare different test assessments
+
 Check [comparison view](/images/piperider_comparison_view.png)
 
 # Get started
+
 ## Install PipeRider
 
 ```bash
@@ -40,6 +51,7 @@ By default, PipeRider supports built-in sqlite connector, extra connectors are a
 | postgres  | pip install piperider[postgres]  |
 
 Use comma to install multiple connectors in one line:
+
 ```
 $ pip install piperider[postgres,snowflake]
 ```
@@ -57,7 +69,9 @@ This command scans the models from datasource and create assessment results in `
 ## Generate reports
 ![piperider_report](/images/report_pipe.gif)  
 
-generate a static html report under current path. 
+![piperider_report](/images/cmd_report.gif)
+
+generate a static html report under current path.
 
 ## Generate comparison view
 ![piperider_compare](/images/compare_pipe.gif)  
@@ -65,4 +79,5 @@ generate a static html report under current path.
 The generated report in html will be placed in the path shown in console
 
 # Get involved
+
 [Work In Progress]
