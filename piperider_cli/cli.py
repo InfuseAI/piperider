@@ -72,7 +72,7 @@ def init(**kwargs):
         config = workspace.init(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir)
         if kwargs.get('debug'):
             for ds in config.dataSources:
-                console.rule(f'Configuration')
+                console.rule('Configuration')
                 console.print(ds.__dict__)
     except Exception as e:
         if kwargs.get('debug'):
@@ -84,7 +84,7 @@ def init(**kwargs):
 
     # Show the content of config.yml
     with open(os.path.join(piperider_config_dir, 'config.yml'), 'r') as f:
-        console.rule(f'.piperider/config.yml')
+        console.rule('.piperider/config.yml')
         config = Syntax(f.read(), "yaml", theme="monokai", line_numbers=True)
         console.print(config)
 
@@ -92,7 +92,7 @@ def init(**kwargs):
 @cli.command(short_help='Test Configuration')
 def debug():
     console = Console()
-    console.print(f'Debugging...')
+    console.print('Debugging...')
 
     console.print(f'[bold dark_orange]PipeRider Version:[/bold dark_orange] {__version__}')
 

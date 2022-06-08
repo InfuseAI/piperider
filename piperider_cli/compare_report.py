@@ -58,7 +58,11 @@ class ProfilerOutput(object):
         return data
 
     def __str__(self):
-        return f'{self.datasource}->{self.name:20} #pass={self.pass_count:3} #fail={self.fail_count:<3} #row={self.row_count:<8} #column={self.col_count:<3} {self.created_at}'
+        return f'{self.datasource}->{self.name:20} ' \
+               f'#pass={self.pass_count:3} ' \
+               f'#fail={self.fail_count:<3} ' \
+               f'#row={self.row_count:<8} ' \
+               f'#column={self.col_count:<3} {self.created_at}'
 
 
 class ComparisonData(object):
@@ -307,7 +311,7 @@ class CompareReport(object):
                     if file.endswith(".json") and not file.startswith("."):
                         try:
                             tables.append(ProfilerOutput(os.path.join(root, file)))
-                        except:
+                        except Exception:
                             pass
             return tables
 
@@ -336,7 +340,7 @@ class CompareReport(object):
             self.a = self.select_one_report()
 
         if self.a and self.b:
-            self.console.print(f'Selected reports:')
+            self.console.print('Selected reports:')
             self.console.print(f'  Base:  {self.a.path}')
             self.console.print(f'  Input: {self.b.path}')
             return True
@@ -437,8 +441,7 @@ class CompareReport(object):
                     # use Euclidean distance to calculate the distance between two ranges
                     # formula: sqrt( (min1-min2)^2 + (max1-max2)^2 )
                     value = math.sqrt(
-                        math.pow(abs(base_col_min - input_col_min), 2) +
-                        math.pow(abs(base_col_max - input_col_max), 2)
+                        math.pow(abs(base_col_min - input_col_min), 2) + math.pow(abs(base_col_max - input_col_max), 2)
                     )
                     data.record_highest('range', n, value)
                     data.metrics_changed('range', n, [base_col_min, base_col_max], [input_col_min, input_col_max])

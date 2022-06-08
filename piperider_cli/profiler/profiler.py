@@ -1,10 +1,9 @@
 import math
-import os
 import time
 from datetime import date
 
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import *
+from sqlalchemy import MetaData, Table, String, Integer, Numeric, Date, DateTime, Boolean, select, func, distinct, case
 
 
 class Profiler:
@@ -110,7 +109,7 @@ class Profiler:
         return result
 
     def _profile_string_column(self, table_name, column_name):
-        metadata = MetaData()
+        # metadata = MetaData()
         # t = Table(table_name, metadata, Column(column_name, String))
         t = self.metadata.tables[table_name]
 
@@ -158,7 +157,7 @@ class Profiler:
         return distribution
 
     def _profile_numeric_column(self, table_name: str, column_name: str, is_integer: bool):
-        metadata = MetaData()
+        # metadata = MetaData()
         # t = Table(table_name, metadata, Column(column_name, Numeric))
         t = self.metadata.tables[table_name]
 
@@ -167,7 +166,7 @@ class Profiler:
                 t2 = select(
                     t.c[column_name].label("c"),
                     case(
-                        (t.c[column_name] == None, None),
+                        (t.c[column_name] is None, None),
                         else_=0
                     ).label("mismatched")
                 ).cte(name="T")
@@ -234,7 +233,7 @@ class Profiler:
                     map_bucket(t.c[column_name].label("c"), dmin, dmin + (interval * _num_buckets), _num_buckets).label(
                         "bucket")
                 ).where(
-                    t.c[column_name] != None
+                    t.c[column_name] is not None
                 ).cte(name="T")
                 stmt = select(
                     t2.c.bucket,
@@ -410,7 +409,7 @@ class Profiler:
             }
 
     def _profile_other_column(self, table_name, column_name):
-        metadata = MetaData()
+        # metadata = MetaData()
         # t = Table(table_name, metadata, Column(column_name, String))
         t = self.metadata.tables[table_name]
 
