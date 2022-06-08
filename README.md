@@ -28,8 +28,8 @@ Check [comparison view](/images/piperider_comparison_view.png)
 # Get started
 ## Install PipeRider
 
-```
-pip install piperider
+```bash
+$ pip install piperider
 ```
 
 By default, PipeRider supports built-in sqlite connector, extra connectors are available:
@@ -41,7 +41,7 @@ By default, PipeRider supports built-in sqlite connector, extra connectors are a
 
 Use comma to install multiple connectors in one line:
 ```
-pip install piperider[postgres,snowflake]
+$ pip install piperider[postgres,snowflake]
 ```
 
 ## Attach piperider to a dbt project
