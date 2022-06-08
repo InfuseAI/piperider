@@ -168,8 +168,8 @@ class Configuration(object):
 def _load_dbt_profile(path):
     from jinja2 import Environment, FileSystemLoader
 
-    def env_var(var):
-        return os.getenv(var)
+    def env_var(var, default=None):
+        return os.getenv(var, default)
 
     def as_bool(var):
         return var.lower() in ('true', 'yes', '1')
