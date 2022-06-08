@@ -29,7 +29,7 @@ class DataSourceField(metaclass=ABCMeta):
         if optional:
             self.validate = validate
         else:
-            self.validate = _default_validate_func if validate == True else validate
+            self.validate = _default_validate_func if validate is True else validate
 
     def get(self):
         return self.value
@@ -115,7 +115,7 @@ class DataSource(metaclass=ABCMeta):
 
         :return: bool, []
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def to_database_url(self):
@@ -123,11 +123,11 @@ class DataSource(metaclass=ABCMeta):
         build a database url for sqlalchemy create_engine method
         :return:
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def verify_connector(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def engine_args(self):
         return dict()
@@ -214,7 +214,7 @@ class PostgreSQLDataSource(DataSource):
             import psycopg2
             # do nothing when everything is ok
             return None
-        except:
+        except Exception:
             return "Please run 'pip install piperider[postgres]' to get the postgres connector"
 
 
@@ -275,7 +275,7 @@ class SnowflakeDataSource(DataSource):
             import snowflake.connector
             # do nothing when everything is ok
             return None
-        except:
+        except Exception:
             return "Please run 'pip install piperider[snowflake]' to get the snowflake connector"
 
 

@@ -7,6 +7,11 @@ endif
 dev-requires:
 	pip install -e .[dev]
 
+flake8:
+	@echo "Check Python coding style by flake8 ..."
+	@flake8
+	@echo "Passed"
+
 test: dev-requires
 	py.test --cov=piperider_cli --cov-report xml tests
 

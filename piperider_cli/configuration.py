@@ -109,7 +109,7 @@ class Configuration(object):
                     with open(PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
                         credentials = yaml.safe_load(fd)
                     credential = credentials.get(ds.get('name'))
-                except:
+                except Exception:
                     credential = None
                 data_source = datasource_class(name=ds.get('name'), credential=credential)
             data_sources.append(data_source)
@@ -147,7 +147,7 @@ class Configuration(object):
 
     def to_sqlalchemy_config(self, datasource_name):
         # TODO we will convert a data source to a sqlalchemy parameters
-        raise NotImplemented
+        raise NotImplementedError
 
     def ask_for_datasource(self):
         if len(self.dataSources) == 0:

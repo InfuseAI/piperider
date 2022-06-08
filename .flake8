@@ -1,0 +1,4 @@
+[flake8]
+ignore = W605, F401, E501
+max-line-length = 120
+exclude = tests, docs, .git , debug, build, dist, images, static_report, *.egg-info, piperider, piperider_cli/data/piperider-init-template/plugins/customized_assertions.py

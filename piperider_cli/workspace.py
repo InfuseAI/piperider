@@ -22,9 +22,9 @@ PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'out
 PIPERIDER_REPORT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'reports')
 PIPERIDER_COMPARISON_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'comparisons')
 
-CONSOLE_MSG_PASS = f'[bold green]✅ PASS[/bold green]\n'
-CONSOLE_MSG_FAIL = f'[bold red]😱 FAILED[/bold red]\n'
-CONSOLE_MSG_ALL_SET = f'[bold]🎉 You are all set![/bold]\n'
+CONSOLE_MSG_PASS = '[bold green]✅ PASS[/bold green]\n'
+CONSOLE_MSG_FAIL = '[bold red]😱 FAILED[/bold red]\n'
+CONSOLE_MSG_ALL_SET = '[bold]🎉 You are all set![/bold]\n'
 
 
 class AbstractChecker(metaclass=ABCMeta):
@@ -49,7 +49,7 @@ class CheckingHandler(object):
             if not self.configurator:
                 try:
                     self.configurator = Configuration.load()
-                except Exception as e:
+                except Exception:
                     pass
 
             for checker in self.checker_chain:
@@ -109,7 +109,7 @@ class CheckConnections(AbstractChecker):
             try:
                 engine = create_engine(ds.to_database_url(), **ds.engine_args())
                 self.console.print(f'  Available Tables: {inspect(engine).get_table_names()}')
-                self.console.print(f'  Connection: [[bold green]OK[/bold green]]')
+                self.console.print('  Connection: [[bold green]OK[/bold green]]')
             except Exception as e:
                 self.console.print(f'  Connection: [[bold red]FAILED[/bold red]] reason: {e}')
                 all_passed = False
@@ -136,7 +136,7 @@ class CheckDbtCatalog(AbstractChecker):
                 all_passed = False
                 self.console.print(f'{ds.name}: [[bold red]Failed[/bold red]] Error: {error_msg}')
                 self.console.print(
-                    f"  [bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' file")
+                    "  [bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' file")
             else:
                 self.console.print(f'{ds.name}: [[bold green]OK[/bold green]]')
         return all_passed, ''
@@ -227,7 +227,7 @@ def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None):
     """
     try:
         config = Configuration.load()
-    except Exception as e:
+    except Exception:
         config = None
     if dbt_project_path is None:
         return _ask_user_input_datasource(config=config)
@@ -239,7 +239,7 @@ def search_dbt_project_path():
     exclude_patterns = ['site-packages', 'dbt_packages']
     paths = glob(os.path.join(os.getcwd(), '**', 'dbt_project.yml'), recursive=True)
     for exclude_pattern in exclude_patterns:
-        paths = list(filter(lambda x: not exclude_pattern in x, paths))
+        paths = list(filter(lambda x: exclude_pattern not in x, paths))
     dbt_project_path = None
     if not paths:
         # No dbt project found
@@ -275,7 +275,7 @@ def search_dbt_project_path():
 def init(dbt_project_path=None, dbt_profiles_dir=None):
     console = Console()
     if _generate_piperider_workspace() is False:
-        console.print(f'[bold green]Piperider workspace already exist[/bold green] ')
+        console.print('[bold green]Piperider workspace already exist[/bold green] ')
 
     # get Configuration object from dbt or user created configuration
     configuration = _generate_configuration(dbt_project_path, dbt_profiles_dir)
@@ -337,7 +337,7 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
     if not assertion_engine.assertions_content:
         console.print(f'No assertions found for datasource [ {ds.name} ]')
         if interaction:
-            console.print(f'Do you want to auto generate assertion templates for this datasource \[yes/no]?',
+            console.print('Do you want to auto generate assertion templates for this datasource \[yes/no]?',
                           end=' ')
             confirm = input('').strip().lower()
             if confirm == 'yes' or confirm == 'y':
@@ -427,7 +427,7 @@ def _transform_assertion_result(table: str, results):
         if r.table == table:
             entry = r.to_result_entry()
             if r.column:
-                if not r.column in columns:
+                if r.column not in columns:
                     columns[r.column] = []
                 columns[r.column].append(entry)
             else:
@@ -462,7 +462,7 @@ def run(datasource=None, table=None, output=None, interaction=True):
             if table:
                 tables = [table]
 
-        console.rule(f'Profiling')
+        console.rule('Profiling')
         run_id = uuid.uuid4().hex
         created_at = datetime.now()
         engine = create_engine(ds.to_database_url(), **ds.engine_args())
@@ -472,17 +472,17 @@ def run(datasource=None, table=None, output=None, interaction=True):
         output_path = prepare_output_path(created_at, ds, output)
 
         # output profiling result
-        with open(os.path.join(output_path, f".profiler.json"), "w") as f:
+        with open(os.path.join(output_path, ".profiler.json"), "w") as f:
             f.write(json.dumps(profile_result))
 
         # TODO stop here if tests was not needed.
         assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
                                                                       profile_result, created_at)
         if assertion_results:
-            console.rule(f'Assertion Results')
+            console.rule('Assertion Results')
             _show_assertion_result(console, assertion_results, assertion_exceptions)
 
-        console.rule(f'Summary')
+        console.rule('Summary')
 
         for t in profile_result['tables']:
             output_file = os.path.join(output_path, f"{t}.json")
@@ -553,7 +553,7 @@ def generate_report(input=None):
         with open(input) as f:
             result = json.loads(f.read())
         if not _validate_input_result(result):
-            console.print(f'[bold red]Error: invalid input file[/bold red]')
+            console.print('[bold red]Error: invalid input file[/bold red]')
             return
 
         console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {input}')

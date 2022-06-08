@@ -138,8 +138,8 @@ class AssertionContext:
         self._load(payload)
 
     def _load(self, payload):
-        def _find_name(l: list, name: str):
-            for i in l:
+        def _find_name(r: list, name: str):
+            for i in r:
                 if i.get('name') == name:
                     return i
 
@@ -162,7 +162,7 @@ class AssertionContext:
     def to_result_entry(self):
         return dict(
             name=self.name,
-            status='passed' if self.result._success == True else 'failed',
+            status='passed' if self.result._success is True else 'failed',
             parameters=self.parameters,
             expected=self.result.expected(),
             actual=self.result.actual,
@@ -282,7 +282,7 @@ class AssertionEngine:
               method: method1 # get_outliers's input parameter
               window: 3 # get_outliers's input parameter
               threshold: [15,100] # get_outliers's input parameter, range from 15 to 100
-		    assert:
+            assert:
               outliers: 5 # in get_outliers's verification logic, check outliers parameter and return true if it's less than 5
         """
 
@@ -295,7 +295,7 @@ class AssertionEngine:
             if not is_user_defined_test_function:
                 # locate the builtin assertion from the piperider_cli.assertion_engine
                 # fetch the assertion function
-                assertion_module = import_module(f'piperider_cli.assertion_engine')
+                assertion_module = import_module('piperider_cli.assertion_engine')
                 func = getattr(assertion_module, assertion.name)
             else:
                 assertion_def = assertion.name.split(".")
