@@ -33,6 +33,7 @@ setup(name='piperider',
           'click',
           'python-dateutil',
           'inquirer',
+          'jinja2',
       ],
       extras_require={
           'snowflake': [
