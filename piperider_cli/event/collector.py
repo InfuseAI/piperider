@@ -48,7 +48,6 @@ class Collector:
 
         # TODO: handle exception when writing to file
         self._store_to_file(event)
-        self._send_events_if_ready()
 
     def _check_required_files(self):
         if not os.path.exists(PIPERIDER_WORKING_DIR):
@@ -57,7 +56,7 @@ class Collector:
             with portalocker.Lock(self._unsend_events_file, 'w+', timeout=5) as f:
                 f.write(json.dumps({'unsend_events': []}))
 
-    def _send_events_if_ready(self):
+    def send_events_if_ready(self):
         with portalocker.Lock(self._unsend_events_file, 'r+', timeout=5) as f:
             o = json.loads(f.read())
             if len(o.get('unsend_events', [])) < self._upload_threshold:
@@ -66,15 +65,18 @@ class Collector:
                 api_key=self._api_key,
                 events=o['unsend_events'],
             )
-            ret = requests.post(self._api_endpoint, json=payload)
-            if ret.status_code == 200:
-                o['unsend_events'] = []
-                f.seek(0)
-                f.truncate()
-                f.write(json.dumps(o))
-            else:
-                # TODO: handle error
-                print(ret.text)
+            # TODO: handle exception when sending events
+            try:
+                ret = requests.post(self._api_endpoint, json=payload)
+                if ret.status_code == 200:
+                    o['unsend_events'] = []
+                    f.seek(0)
+                    f.truncate()
+                    f.write(json.dumps(o))
+                else:
+                    # TODO: handle error
+                    pass
+            except:
                 pass
 
     def _store_to_file(self, event):
