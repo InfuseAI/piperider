@@ -103,7 +103,7 @@ class Configuration(object):
                     profile_path = os.path.expanduser(profile_path)
                 profile = _load_dbt_profile(profile_path)
                 credential = profile.get(dbt.get('profile'), {}).get('outputs', {}).get(dbt.get('target', {}))
-                data_source = datasource_class(name=ds.get('name'), dbt=dbt, credential=credential)
+                data_source = datasource_class(name=ds.get('name'), dbt=dbt, credential=credential, id=ds.get('id'))
             else:
                 try:
                     with open(PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
@@ -111,7 +111,7 @@ class Configuration(object):
                     credential = credentials.get(ds.get('name'))
                 except Exception:
                     credential = None
-                data_source = datasource_class(name=ds.get('name'), credential=credential)
+                data_source = datasource_class(name=ds.get('name'), credential=credential, id=ds.get('id'))
             data_sources.append(data_source)
         return cls(dataSources=data_sources)
 
@@ -124,7 +124,7 @@ class Configuration(object):
         config = dict(dataSources=[])
 
         for d in self.dataSources:
-            datasource = dict(name=d.name, type=d.type_name)
+            datasource = dict(name=d.name, type=d.type_name, id=d.get_id())
             if d.args.get('dbt'):
                 datasource['dbt'] = d.args.get('dbt')
             config['dataSources'].append(datasource)

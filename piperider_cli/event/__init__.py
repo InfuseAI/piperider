@@ -1,6 +1,7 @@
 import os
 import uuid
 from ruamel import yaml
+from piperider_cli.workspace import Configuration
 from piperider_cli.event.collector import Collector
 
 PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
@@ -42,15 +43,26 @@ def _generate_user_id():
     return user_id
 
 
-def log_event(command, status):
+def _obtain_project_info():
+    info = dict(project_id=[], project_type=[], datasource=[],)
+    try:
+        configuration = Configuration.load()
+        for ds in configuration.dataSources:
+            dbt = ds.args.get('dbt')
+            info['project_id'].append(ds.get_id())
+            info['project_type'].append('dbt' if dbt else '-')
+            info['datasource'].append(ds.type_name)
+        return info
+    except:
+        return {}
+
+def log_event(command, params, status):
     if not _collector.is_ready():
         return
 
-    # TODO: log project info
+    project_info = _obtain_project_info()
     prop = dict(
-        project_id='',
-        project_type='',
-        datasource='',
+        **project_info,
         command=command,
         status=status,
     )

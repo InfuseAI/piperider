@@ -34,5 +34,5 @@ class TrackCommand(Command):
             raise
         finally:
             # TODO finally we keep the event
-            event.log_event(ctx.command.name, status)
+            event.log_event(ctx.command.name, ctx.params, status)
             pass

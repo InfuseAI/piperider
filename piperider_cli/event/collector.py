@@ -51,7 +51,9 @@ class Collector:
         self._send_events_if_ready()
 
     def _check_required_files(self):
-        if os.path.exists(PIPERIDER_WORKING_DIR) and not os.path.exists(self._unsend_events_file):
+        if not os.path.exists(PIPERIDER_WORKING_DIR):
+            os.makedirs(PIPERIDER_WORKING_DIR, exist_ok=True)
+        if not os.path.exists(self._unsend_events_file):
             with portalocker.Lock(self._unsend_events_file, 'w+', timeout=5) as f:
                 f.write(json.dumps({'unsend_events': []}))
 
