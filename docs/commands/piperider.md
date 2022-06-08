@@ -1,22 +1,26 @@
+# piperider
 
-# piperider-cli
 None
+
 ## Usage
+
 ```
-Usage: piperider-cli [OPTIONS] COMMAND [ARGS]...
+Usage: piperider [OPTIONS] COMMAND [ARGS]...
 ```
+
 ## Options
-* `help`: 
-  * Type: BOOL 
+
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
   Show this message and exit.
 
-
 ## CLI Help
+
 ```
-Usage: piperider-cli [OPTIONS] COMMAND [ARGS]...
+Usage: piperider [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
@@ -27,5 +31,5 @@ Commands:
   generate-report  Show report
   init             Initialize PipeRider configurations
   run              Collect data profiles and test results
-  version          Show the version of piperider-cli
+  version          Show the version of piperider
 ```

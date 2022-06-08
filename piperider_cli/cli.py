@@ -34,12 +34,12 @@ def add_options(options):
     return _add_options
 
 
-@click.group(name="piperider-cli")
+@click.group(name="piperider")
 def cli():
     pass
 
 
-@cli.command(short_help='Show the version of piperider-cli')
+@cli.command(short_help='Show the version of piperider')
 def version():
     click.echo(__version__)
 

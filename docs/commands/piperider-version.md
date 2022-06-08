@@ -1,9 +1,9 @@
 
-# piperider-cli debug
+# piperider version
 None
 ## Usage
 ```
-Usage: piperider-cli debug [OPTIONS]
+Usage: piperider version [OPTIONS]
 ```
 ## Options
 * `help`: 
@@ -16,7 +16,7 @@ Usage: piperider-cli debug [OPTIONS]
 
 ## CLI Help
 ```
-Usage: piperider-cli debug [OPTIONS]
+Usage: piperider version [OPTIONS]
 
 Options:
   --help  Show this message and exit.
