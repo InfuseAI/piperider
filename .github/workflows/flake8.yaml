@@ -1,12 +1,6 @@
 name: Lint by Flake8
 
-on:
-  push:
-    paths:
-      - '*.py'
-  pull_request:
-    paths:
-      - '*.py'
+on: [ push, pull_request ]
 
 jobs:
   flake8:
