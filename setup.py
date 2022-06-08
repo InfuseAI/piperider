@@ -56,7 +56,9 @@ setup(name='piperider',
           "Bug Tracker": "https://github.com/InfuseAI/piperider/issues",
       },
       classifiers=[
-          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.7",
+          "Programming Language :: Python :: 3.8",
+          "Programming Language :: Python :: 3.9",
           "License :: OSI Approved :: Apache Software License",
           "Operating System :: OS Independent",
           "Development Status :: 4 - Beta"
