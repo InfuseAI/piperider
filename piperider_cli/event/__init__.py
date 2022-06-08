@@ -43,7 +43,7 @@ def _generate_user_profile():
 
 def _obtain_project_info(datasource=None):
     try:
-        datasource_types=[]
+        datasource_types = []
         project_type = '-'
         configuration = Configuration.load()
         for ds in configuration.dataSources:
@@ -58,8 +58,9 @@ def _obtain_project_info(datasource=None):
             project_type=project_type,
             datasource_types=datasource_types,
         )
-    except:
+    except Exception:
         return {}
+
 
 def log_event(command, params, status):
     with open(PIPERIDER_USER_PROFILE, 'r') as f:
@@ -82,5 +83,5 @@ def log_event(command, params, status):
     )
     _collector.log_event(prop, 'usage')
     whitelist = ['run', 'generate-report', 'compare-report']
-    if command in whitelist or status == False:
+    if command in whitelist or status is False:
         _collector.send_events_if_ready()

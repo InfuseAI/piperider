@@ -10,7 +10,7 @@ class TrackCommand(Command):
         name: t.Optional[str],
         context_settings: t.Optional[t.Dict[str, t.Any]] = None,
         callback: t.Optional[t.Callable[..., t.Any]] = None,
-        params: t.Optional[t.List["Parameter"]] = None,
+        params: t.Any = None,
         help: t.Optional[str] = None,
         epilog: t.Optional[str] = None,
         short_help: t.Optional[str] = None,
@@ -29,7 +29,7 @@ class TrackCommand(Command):
             ret = super(TrackCommand, self).invoke(ctx)
             status = True
             return ret
-        except:
+        except Exception:
             # TODO errors
             raise
         finally:

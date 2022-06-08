@@ -11,6 +11,7 @@ from piperider_cli.workspace import PIPERIDER_WORKSPACE_NAME
 PIPERIDER_WORKING_DIR = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
 PIPERIDER_EVENT_PATH = os.path.join(PIPERIDER_WORKING_DIR, '.unsend_events.json')
 
+
 class Collector:
     def __init__(self):
         self._api_endpoint = 'https://api.amplitude.com/2/httpapi'
@@ -84,7 +85,7 @@ class Collector:
                 else:
                     # TODO: handle error
                     pass
-            except:
+            except Exception:
                 pass
 
     def _store_to_file(self, event):
