@@ -1,4 +1,5 @@
 from click.core import Command, Context
+from piperider_cli import event
 import typing as t
 
 
@@ -23,13 +24,15 @@ class TrackCommand(Command):
                                            options_metavar, add_help_option, no_args_is_help, hidden, deprecated)
 
     def invoke(self, ctx: Context) -> t.Any:
+        status = False
         try:
-            print(f"Before {ctx}")
-            return super(TrackCommand, self).invoke(ctx)
+            ret = super(TrackCommand, self).invoke(ctx)
+            status = True
+            return ret
         except:
             # TODO errors
             raise
         finally:
-            # TODO finally we keep the evetn
-            print(f"After {ctx}")
+            # TODO finally we keep the event
+            event.log_event(ctx.command.name, status)
             pass

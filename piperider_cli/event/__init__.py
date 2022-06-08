@@ -11,7 +11,7 @@ _yml = yaml.YAML(typ='safe')
 
 
 def init():
-    api_key = os.environ['PIPERIDER_EVENT_API_KEY']
+    api_key = os.environ.get('PIPERIDER_EVENT_API_KEY', None)
     user_id = None
 
     if not os.path.exists(PIPERIDER_USER_PROFILE):
@@ -30,11 +30,9 @@ def init():
 
 def _generate_user_id():
     try:
-        os.makedirs(PIPERIDER_USER_HOME)
-    except FileExistsError:
-        print('PipeRider User Home already existed.')
-        pass
+        os.makedirs(PIPERIDER_USER_HOME, exist_ok=True)
     except Exception:
+        # TODO: should show warning message but not raise exception
         print('Please disable command tracking to continue.')
         exit(1)
 
@@ -44,5 +42,16 @@ def _generate_user_id():
     return user_id
 
 
-def log_event():
-    _collector.log_event('test')
+def log_event(command, status):
+    if not _collector.is_ready():
+        return
+
+    # TODO: log project info
+    prop = dict(
+        project_id='',
+        project_type='',
+        datasource='',
+        command=command,
+        status=status,
+    )
+    _collector.log_event(prop, 'usage')
