@@ -1,4 +1,5 @@
 import os
+import uuid
 from typing import List
 
 import inquirer
@@ -24,9 +25,13 @@ class Configuration(object):
     at $PROJECT_ROOT./piperider/config.yml
     """
 
-    def __init__(self, dataSources: List[DataSource]):
+    def __init__(self, dataSources: List[DataSource], id=None):
         self.dataSources: List[DataSource] = dataSources
+        self._id = id if id else uuid.uuid4().hex
         pass
+
+    def get_id(self):
+        return self._id
 
     @classmethod
     def from_dbt_project(cls, dbt_project_path, dbt_profiles_dir=None):
@@ -103,7 +108,7 @@ class Configuration(object):
                     profile_path = os.path.expanduser(profile_path)
                 profile = _load_dbt_profile(profile_path)
                 credential = profile.get(dbt.get('profile'), {}).get('outputs', {}).get(dbt.get('target', {}))
-                data_source = datasource_class(name=ds.get('name'), dbt=dbt, credential=credential, id=ds.get('id'))
+                data_source = datasource_class(name=ds.get('name'), dbt=dbt, credential=credential)
             else:
                 try:
                     with open(PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
@@ -111,9 +116,9 @@ class Configuration(object):
                     credential = credentials.get(ds.get('name'))
                 except Exception:
                     credential = None
-                data_source = datasource_class(name=ds.get('name'), credential=credential, id=ds.get('id'))
+                data_source = datasource_class(name=ds.get('name'), credential=credential)
             data_sources.append(data_source)
-        return cls(dataSources=data_sources)
+        return cls(dataSources=data_sources, id=config.get('id'))
 
     def dump(self, path):
         """
@@ -121,10 +126,10 @@ class Configuration(object):
         :param path:
         :return:
         """
-        config = dict(dataSources=[])
+        config = dict(dataSources=[], id=self.get_id())
 
         for d in self.dataSources:
-            datasource = dict(name=d.name, type=d.type_name, id=d.get_id())
+            datasource = dict(name=d.name, type=d.type_name)
             if d.args.get('dbt'):
                 datasource['dbt'] = d.args.get('dbt')
             config['dataSources'].append(datasource)

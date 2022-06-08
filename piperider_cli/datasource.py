@@ -2,7 +2,6 @@ import os
 import re
 import sys
 import warnings
-import uuid
 from abc import ABCMeta, abstractmethod
 from typing import List, Dict
 
@@ -97,12 +96,6 @@ class DataSource(metaclass=ABCMeta):
         self.args = kwargs
         self.fields: List[DataSourceField] = []
         self.credential: Dict = credential or {}
-
-        _id = kwargs.get('id', None)
-        self._id = _id if _id else uuid.uuid4().hex
-
-    def get_id(self):
-        return self._id
 
     def _validate_required_fields(self):
         reasons = []

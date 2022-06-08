@@ -44,17 +44,22 @@ def _generate_user_id():
 
 
 def _obtain_project_info(datasource=None):
-    info = dict(project_id=[], project_type=[], datasource=[],)
     try:
+        datasource_types=[]
+        project_type = '-'
         configuration = Configuration.load()
         for ds in configuration.dataSources:
             if datasource and ds.name != datasource:
                 continue
             dbt = ds.args.get('dbt')
-            info['project_id'].append(ds.get_id())
-            info['project_type'].append('dbt' if dbt else '-')
-            info['datasource'].append(ds.type_name)
-        return info
+            if project_type == '-' and dbt is not None:
+                project_type = 'dbt'
+            datasource_types.append(ds.type_name)
+        return dict(
+            project_id=configuration.get_id(),
+            project_type=project_type,
+            datasource_types=datasource_types,
+        )
     except:
         return {}
 
