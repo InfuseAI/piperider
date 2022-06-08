@@ -1,9 +1,9 @@
 
-# piperider-cli run
+# piperider run
 None
 ## Usage
 ```
-Usage: piperider-cli run [OPTIONS]
+Usage: piperider run [OPTIONS]
 ```
 ## Options
 * `datasource`: 
@@ -64,7 +64,7 @@ Usage: piperider-cli run [OPTIONS]
 
 ## CLI Help
 ```
-Usage: piperider-cli run [OPTIONS]
+Usage: piperider run [OPTIONS]
 
 Options:
   --datasource TEXT

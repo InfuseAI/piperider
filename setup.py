@@ -12,18 +12,18 @@ def _get_version():
         return version
 
 
-setup(name='piperider-cli',
+setup(name='piperider',
       version=_get_version(),
       description='PiperRider CLI',
       long_description=open('README.md').read(),
       long_description_content_type='text/markdown',
       author='InfuseAI Dev Team',
       author_email='dev@infuseai.io',
-      url='https://github.com/InfuseAI/piperider-cli',
+      url='https://github.com/InfuseAI/piperider',
       entry_points={
-          'console_scripts': ['piperider-cli = piperider_cli.cli:cli']
+          'console_scripts': ['piperider = piperider_cli.cli:cli']
       },
-      python_requires=">=3.6",
+      python_requires=">=3.7",
       packages=find_packages(),
       install_requires=[
           'ruamel.yaml',
@@ -52,7 +52,7 @@ setup(name='piperider-cli',
           ],
       },
       project_urls={
-          "Bug Tracker": "https://github.com/InfuseAI/piperider-cli/issues",
+          "Bug Tracker": "https://github.com/InfuseAI/piperider/issues",
       },
       classifiers=[
           "Programming Language :: Python :: 3",

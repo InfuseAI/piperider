@@ -1,9 +1,9 @@
 
-# piperider-cli init
+# piperider init
 None
 ## Usage
 ```
-Usage: piperider-cli init [OPTIONS]
+Usage: piperider init [OPTIONS]
 ```
 ## Options
 * `no_auto_search`: 
@@ -48,12 +48,12 @@ Usage: piperider-cli init [OPTIONS]
 
 ## CLI Help
 ```
-Usage: piperider-cli init [OPTIONS]
+Usage: piperider init [OPTIONS]
 
 Options:
-  --no-auto-search BOOLEAN  Don't search for dbt projects
-  --dbt-project-dir PATH    Directory of dbt project config
-  --dbt-profiles-dir PATH   Directory of dbt profiles config
-  --debug                   Enable debug mode
-  --help                    Show this message and exit.
+  --no-auto-search         Don't search for dbt projects
+  --dbt-project-dir PATH   Directory of dbt project config
+  --dbt-profiles-dir PATH  Directory of dbt profiles config
+  --debug                  Enable debug mode
+  --help                   Show this message and exit.
 ```

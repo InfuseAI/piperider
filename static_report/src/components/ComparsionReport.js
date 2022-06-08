@@ -8,8 +8,6 @@ import {
   Divider,
   Flex,
   Heading,
-  List,
-  ListItem,
   Table,
   TableContainer,
   Tbody,
@@ -85,50 +83,48 @@ export function ComparisonReport() {
                     <Tr>
                       <Td>Distribution</Td>
                       <Td>
-                        <List display={'flex'} gap={3}>
-                          <ListItem>
+                        {data.summary.distribution.changed === 0 ? (
+                          'No changes detected'
+                        ) : (
+                          <Text>
                             Changed:{' '}
                             <Text as={'span'} fontWeight={700}>
                               {data.summary.distribution.changed}
                             </Text>
-                          </ListItem>
-                        </List>
+                          </Text>
+                        )}
                       </Td>
                     </Tr>
 
                     <Tr>
                       <Td>Missing Values</Td>
                       <Td>
-                        <List display={'flex'} gap={3}>
-                          <ListItem>
+                        {data.summary.missing_values.changed === 0 ? (
+                          'No changes detected'
+                        ) : (
+                          <Text>
                             Changed:{' '}
                             <Text as={'span'} fontWeight={700}>
                               {data.summary.missing_values.changed}
                             </Text>
-                          </ListItem>
-                        </List>
+                          </Text>
+                        )}
                       </Td>
                     </Tr>
 
                     <Tr>
                       <Td>Range</Td>
                       <Td>
-                        <List display={'flex'} gap={3}>
-                          <ListItem>
+                        {data.summary.range.changed === 0 ? (
+                          'No changes detected'
+                        ) : (
+                          <Text>
                             Changed:{' '}
                             <Text as={'span'} fontWeight={700}>
                               {data.summary.range.changed}
                             </Text>
-                          </ListItem>
-                          {data.summary.range.first_index && (
-                            <ListItem>
-                              First Index:{' '}
-                              <Text as={'span'} fontWeight={700}>
-                                {data.summary.range.first_index}
-                              </Text>
-                            </ListItem>
-                          )}
-                        </List>
+                          </Text>
+                        )}
                       </Td>
                     </Tr>
                   </Tbody>
@@ -311,11 +307,9 @@ export function ComparisonReport() {
                                   </Text>
                                   <Flex>
                                     <ComparisonBarChart
-                                      hideXAxis
                                       data={distribution['base']}
                                     />
                                     <ComparisonBarChart
-                                      hideXAxis
                                       data={distribution['input']}
                                     />
                                   </Flex>
@@ -544,7 +538,7 @@ export function ComparisonReport() {
   );
 }
 
-function ComparisonBarChart({ data, hideXAxis = false }) {
+function ComparisonBarChart({ data }) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -554,11 +548,10 @@ function ComparisonBarChart({ data, hideXAxis = false }) {
         containerWidth: containerRef.current.getBoundingClientRect().width,
         svgTarget: svgRef.current,
         tooltipTarget: '.chart',
-        hideXAxis,
         data,
       });
     }
-  }, [data, hideXAxis]);
+  }, [data]);
 
   return (
     <Flex className={'chart'} ref={containerRef}>
