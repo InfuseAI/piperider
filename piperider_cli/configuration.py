@@ -52,8 +52,7 @@ class Configuration(object):
             raise ValueError(
                 f"Cannot find dbt profiles at {dbt_profile_path}. Please use dbt init to initiate the dbt profiles.")
 
-        with open(os.path.expanduser(dbt_profile_path), 'r') as fd:
-            dbt_profile = yaml.safe_load(fd)
+        dbt_profile = _load_dbt_profile(os.path.expanduser(dbt_profile_path))
 
         profile_name = dbt_project.get('profile')
         target_name = dbt_profile.get(profile_name, {}).get('target')
@@ -102,8 +101,7 @@ class Configuration(object):
                 profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
                 if '~' in profile_path:
                     profile_path = os.path.expanduser(profile_path)
-                with open(profile_path, 'r') as fd:
-                    profile = yaml.safe_load(fd)
+                profile = _load_dbt_profile(profile_path)
                 credential = profile.get(dbt.get('profile'), {}).get('outputs', {}).get(dbt.get('target', {}))
                 data_source = datasource_class(name=ds.get('name'), dbt=dbt, credential=credential)
             else:
@@ -165,3 +163,29 @@ class Configuration(object):
             ]
             answers = inquirer.prompt(questions, raise_keyboard_interrupt=True)
             return answers['datasource']
+
+
+def _load_dbt_profile(path):
+    from jinja2 import Environment, FileSystemLoader
+
+    def env_var(var, default=None):
+        return os.getenv(var, default)
+
+    def as_bool(var):
+        return var.lower() in ('true', 'yes', '1')
+
+    def as_number(var):
+        if var.isnumeric():
+            return int(var)
+        return float(var)
+
+    def as_text(var):
+        return str(var)
+
+    env = Environment(loader=FileSystemLoader(searchpath=os.path.dirname(path)))
+    env.globals['env_var'] = env_var
+    env.filters['as_bool'] = as_bool
+    env.filters['as_number'] = as_number
+    env.filters['as_text'] = as_text
+    template = env.get_template(os.path.basename(path))
+    return yaml.safe_load(template.render())
