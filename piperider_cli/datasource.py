@@ -215,7 +215,7 @@ class PostgreSQLDataSource(DataSource):
             # do nothing when everything is ok
             return None
         except:
-            return "Please run 'pip install piperider-cli[postgres]' to get the postgres connector"
+            return "Please run 'pip install piperider[postgres]' to get the postgres connector"
 
 
 class SnowflakeDataSource(DataSource):
@@ -276,7 +276,7 @@ class SnowflakeDataSource(DataSource):
             # do nothing when everything is ok
             return None
         except:
-            return "Please run 'pip install piperider-cli[snowflake]' to get the snowflake connector"
+            return "Please run 'pip install piperider[snowflake]' to get the snowflake connector"
 
 
 class SqliteDataSource(DataSource):
