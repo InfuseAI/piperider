@@ -1,4 +1,4 @@
-# assert_row_count
+# assert_row_count_in_range
 
 - Description: The row count should be between min_count and max_count.
 - Assert:
@@ -9,7 +9,7 @@
 ```
 your_table_name:
   tests:
-  - name: assert_row_count
+  - name: assert_row_count_in_range
     assert:
       count: [10, 20]
     tags:

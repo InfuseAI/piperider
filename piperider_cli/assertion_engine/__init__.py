@@ -3,7 +3,7 @@ from datetime import datetime
 from .assertion import AssertionEngine, AssertionContext, AssertionResult
 
 
-def assert_row_count(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+def assert_row_count_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     table_metrics = metrics.get('tables', {}).get(table)
     if not table_metrics:
         # cannot find the table in the metrics

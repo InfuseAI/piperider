@@ -24,12 +24,12 @@ class BuiltinAssertionsTests(TestCase):
         with open(metrics_file) as fh:
             self.metrics = json.loads(fh.read())
 
-    def test_assert_row_count(self):
+    def test_assert_row_count_in_range(self):
         assertions = """
         orders_1k:  # Table Name
           # Test Cases for Table
           tests:
-          - name: assert_row_count
+          - name: assert_row_count_in_range
             assert:
               count: [1000, 200000]
             tags:
