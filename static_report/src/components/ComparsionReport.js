@@ -307,11 +307,9 @@ export function ComparisonReport() {
                                   </Text>
                                   <Flex>
                                     <ComparisonBarChart
-                                      hideXAxis
                                       data={distribution['base']}
                                     />
                                     <ComparisonBarChart
-                                      hideXAxis
                                       data={distribution['input']}
                                     />
                                   </Flex>
@@ -540,7 +538,7 @@ export function ComparisonReport() {
   );
 }
 
-function ComparisonBarChart({ data, hideXAxis = false }) {
+function ComparisonBarChart({ data }) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -550,11 +548,10 @@ function ComparisonBarChart({ data, hideXAxis = false }) {
         containerWidth: containerRef.current.getBoundingClientRect().width,
         svgTarget: svgRef.current,
         tooltipTarget: '.chart',
-        hideXAxis,
         data,
       });
     }
-  }, [data, hideXAxis]);
+  }, [data]);
 
   return (
     <Flex className={'chart'} ref={containerRef}>

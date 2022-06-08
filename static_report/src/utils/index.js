@@ -86,7 +86,6 @@ export function drawComparsionChart({
   containerWidth,
   svgTarget,
   tooltipTarget,
-  hideXAxis,
   data,
 }) {
   const margin = { top: 10, right: 30, bottom: 30, left: 55 };
@@ -109,7 +108,7 @@ export function drawComparsionChart({
       .html(
         `
         <div>
-          <p>Lable: ${d.label}</p>
+          <p>Label: ${d.label}</p>
           <p>Value: ${d.value}</p>
         </div>
       `,
@@ -129,21 +128,22 @@ export function drawComparsionChart({
     tooltip.html('').transition().duration(500).style('visibility', 'hidden');
   }
 
-  const groups = d3.map(data, (d) => d.label);
-
+  const groups = d3.map(data, ({ label }) => label);
   const x = d3.scaleBand().domain(groups).range([0, width]).padding(0.3);
 
-  if (hideXAxis) {
-    svg
-      .append('g')
-      .attr('transform', `translate(0, ${height})`)
-      .call(d3.axisBottom(x).tickFormat(() => ''));
-  } else {
-    svg
-      .append('g')
-      .attr('transform', `translate(0, ${height})`)
-      .call(d3.axisBottom(x));
-  }
+  svg
+    .append('g')
+    .attr('transform', `translate(0, ${height})`)
+    .call(
+      d3.axisBottom(x).tickFormat((value, i) => {
+        const xAxisItemLength = x.domain().length - 1;
+
+        if (i === 0 || i === xAxisItemLength / 2 || i === xAxisItemLength) {
+          return value;
+        }
+        return null;
+      }),
+    );
 
   const y = d3
     .scaleLinear()

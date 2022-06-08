@@ -408,7 +408,16 @@ function BarChart({ data }) {
       svg
         .append('g')
         .attr('transform', `translate(0, ${height})`)
-        .call(d3.axisBottom(x).tickFormat(() => ''));
+        .call(
+          d3.axisBottom(x).tickFormat((value, i) => {
+            const xAxisItemLength = x.domain().length - 1;
+
+            if (i === 0 || i === xAxisItemLength / 2 || i === xAxisItemLength) {
+              return value;
+            }
+            return null;
+          }),
+        );
 
       const y = d3
         .scaleLinear()
