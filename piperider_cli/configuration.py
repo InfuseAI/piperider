@@ -1,3 +1,4 @@
+import errno
 import os
 from typing import List
 
@@ -5,6 +6,11 @@ import inquirer
 from ruamel import yaml
 
 from piperider_cli.datasource import DATASOURCE_PROVIDERS, DataSource
+from piperider_cli.error import \
+    PipeRiderConfigError, \
+    PipeRiderInvalidDataSourceError, \
+    DbtProjectNotFoundError, \
+    DbtProfileNotFoundError
 
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
@@ -43,14 +49,13 @@ class Configuration(object):
             dbt_profile_path = os.path.join(DBT_PROFILES_DIR_DEFAULT, DBT_PROFILE_FILE)
 
         if not os.path.exists(dbt_project_path):
-            raise ValueError(f"Cannot find dbt project at {dbt_project_path}")
+            raise DbtProjectNotFoundError(dbt_project_path)
 
         with open(dbt_project_path, 'r') as fd:
             dbt_project = yaml.safe_load(fd)
 
         if not os.path.exists(os.path.expanduser(dbt_profile_path)):
-            raise ValueError(
-                f"Cannot find dbt profiles at {dbt_profile_path}. Please use dbt init to initiate the dbt profiles.")
+            raise DbtProfileNotFoundError(dbt_profile_path)
 
         dbt_profile = _load_dbt_profile(os.path.expanduser(dbt_profile_path))
 
@@ -68,7 +73,7 @@ class Configuration(object):
             dbt['profilesDir'] = dbt_profiles_dir
 
         if type_name not in DATASOURCE_PROVIDERS:
-            raise ValueError('unknown type name')
+            raise PipeRiderInvalidDataSourceError(type_name, dbt_profile_path)
 
         datasource_class = DATASOURCE_PROVIDERS[type_name]
         datasource: DataSource = datasource_class(name=profile_name, dbt=dbt, credential=credential)
@@ -85,14 +90,19 @@ class Configuration(object):
         """
         credentials = None
 
-        with open(piperider_config_path, 'r') as fd:
-            config = yaml.safe_load(fd)
+        try:
+            with open(piperider_config_path, 'r') as fd:
+                config = yaml.safe_load(fd)
+                if config is None:
+                    raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), piperider_config_path)
+        except FileNotFoundError as e:
+            raise PipeRiderConfigError(e.filename)
 
         data_sources: List[DataSource] = []
         for ds in config.get('dataSources', []):
             type_name = ds.get('type')
             if type_name not in DATASOURCE_PROVIDERS:
-                raise ValueError('unknown type name')
+                raise PipeRiderInvalidDataSourceError(type_name, piperider_config_path)
 
             datasource_class = DATASOURCE_PROVIDERS[type_name]
             dbt = ds.get('dbt')

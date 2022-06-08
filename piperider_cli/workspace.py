@@ -16,6 +16,7 @@ from piperider_cli.compare_report import CompareReport
 from piperider_cli.configuration import Configuration, PIPERIDER_WORKSPACE_NAME, PIPERIDER_CONFIG_PATH, \
     PIPERIDER_CREDENTIALS_PATH
 from piperider_cli.datasource import DataSource
+from piperider_cli.error import PipeRiderCredentialError, DbtCatalogError, PipeRiderDiagnosticError
 from piperider_cli.profiler import Profiler
 
 PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
@@ -56,7 +57,7 @@ class CheckingHandler(object):
                 self.console.print(f'Check {checker["name"]}:')
                 passed, error_msg = checker['cls'].check_function(self.configurator)
                 if not passed:
-                    raise ValueError(error_msg)
+                    raise PipeRiderDiagnosticError(checker['cls'].__class__.__name__, error_msg)
                 self.console.print(CONSOLE_MSG_PASS)
 
             self.console.print(CONSOLE_MSG_ALL_SET)
@@ -123,6 +124,7 @@ class CheckConnections(AbstractChecker):
 class CheckDbtCatalog(AbstractChecker):
     def check_function(self, configurator: Configuration) -> (bool, str):
         all_passed = True
+        error_msg = ''
         for ds in configurator.dataSources:
             dbt = ds.args.get('dbt')
 
@@ -139,7 +141,7 @@ class CheckDbtCatalog(AbstractChecker):
                     "  [bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' file")
             else:
                 self.console.print(f'{ds.name}: [[bold green]OK[/bold green]]')
-        return all_passed, ''
+        return all_passed, error_msg
 
 
 class CheckAssertionFiles(AbstractChecker):
@@ -289,7 +291,7 @@ def _fetch_dbt_catalog(dbt, table=None):
 
     for key in ['profile', 'target', 'projectDir']:
         if key not in dbt:
-            raise Exception(f"'{key}' is not in dbt config")
+            raise DbtCatalogError(f"'{key}' is not in dbt config")
 
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     dbt_catalog = os.path.join(dbt_root, 'target', 'catalog.json')
@@ -448,6 +450,10 @@ def run(datasource=None, table=None, output=None, interaction=True):
     for ds in configuration.dataSources:
         if datasource and ds.name != datasource:
             continue
+        passed, _ = ds.validate()
+        if passed is not True:
+            raise PipeRiderCredentialError(ds.name)
+
         console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
 
         dbt = ds.args.get('dbt')
@@ -457,7 +463,7 @@ def run(datasource=None, table=None, output=None, interaction=True):
             if not passed:
                 console.print(
                     "[bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' files")
-                raise Exception(error_msg)
+                raise DbtCatalogError(error_msg)
         else:
             if table:
                 tables = [table]

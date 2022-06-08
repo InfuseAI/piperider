@@ -34,6 +34,14 @@ def add_options(options):
     return _add_options
 
 
+def show_error_message(msg, **kwargs):
+    console = Console()
+    if kwargs.get('debug'):
+        console.print_exception(show_locals=True)
+    else:
+        console.print(f'[bold red]Error:[/bold red] {msg}')
+
+
 @click.group(name="piperider")
 def cli():
     pass
@@ -75,11 +83,9 @@ def init(**kwargs):
                 console.rule('Configuration')
                 console.print(ds.__dict__)
     except Exception as e:
-        if kwargs.get('debug'):
-            console.print_exception(show_locals=True)
-        else:
-            console.print(f'[bold red ]Error:[/bold red] {e}')
+        show_error_message(e, **kwargs)
         sentry_sdk.capture_exception(e)
+        sentry_sdk.flush()
         sys.exit(1)
 
     # Show the content of config.yml
@@ -90,7 +96,8 @@ def init(**kwargs):
 
 
 @cli.command(short_help='Test Configuration')
-def debug():
+@add_options(debug_option)
+def debug(**kwargs):
     console = Console()
     console.print('Debugging...')
 
@@ -101,8 +108,9 @@ def debug():
             sys.exit(1)
         return 0
     except Exception as e:
-        console.print(f'[bold red]Error:[/bold red] {e}')
+        show_error_message(e, **kwargs)
         sentry_sdk.capture_exception(e)
+        sentry_sdk.flush()
         sys.exit(1)
 
 
@@ -124,11 +132,9 @@ def run(**kwargs):
             console.print('\n')
             workspace.generate_report()
     except Exception as e:
-        if (kwargs.get('debug')):
-            console.print_exception(show_locals=True)
-        else:
-            console.print(f'[bold red]Error:[/bold red] {e}')
+        show_error_message(e, **kwargs)
         sentry_sdk.capture_exception(e)
+        sentry_sdk.flush()
         sys.exit(1)
 
 
@@ -136,16 +142,13 @@ def run(**kwargs):
 @click.option('--input', default=None, type=click.Path(exists=True), help='Path of json report file')
 @add_options(debug_option)
 def generate_report(**kwargs):
-    console = Console()
     input = kwargs.get('input')
     try:
         workspace.generate_report(input=input)
     except Exception as e:
-        if (kwargs.get('debug')):
-            console.print_exception(show_locals=True)
-        else:
-            console.print(f'[bold red]Error:[/bold red] {e}')
+        show_error_message(e, **kwargs)
         sentry_sdk.capture_exception(e)
+        sentry_sdk.flush()
         sys.exit(1)
     pass
 
@@ -155,16 +158,13 @@ def generate_report(**kwargs):
 @click.option('--input', default=None, type=click.Path(exists=True), help='Path of the json report file to compare')
 @add_options(debug_option)
 def compare_report(**kwargs):
-    console = Console()
     a = kwargs.get('base')
     b = kwargs.get('input')
     try:
         workspace.compare_report(a=a, b=b)
     except Exception as e:
-        if (kwargs.get('debug')):
-            console.print_exception(show_locals=True)
-        else:
-            console.print(f'[bold red]Error:[/bold red] {e}')
+        show_error_message(e, **kwargs)
         sentry_sdk.capture_exception(e)
+        sentry_sdk.flush()
         sys.exit(1)
     pass
