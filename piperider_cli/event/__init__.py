@@ -43,11 +43,13 @@ def _generate_user_id():
     return user_id
 
 
-def _obtain_project_info():
+def _obtain_project_info(datasource=None):
     info = dict(project_id=[], project_type=[], datasource=[],)
     try:
         configuration = Configuration.load()
         for ds in configuration.dataSources:
+            if datasource and ds.name != datasource:
+                continue
             dbt = ds.args.get('dbt')
             info['project_id'].append(ds.get_id())
             info['project_type'].append('dbt' if dbt else '-')
@@ -60,7 +62,8 @@ def log_event(command, params, status):
     if not _collector.is_ready():
         return
 
-    project_info = _obtain_project_info()
+    ds = params.get('datasource')
+    project_info = _obtain_project_info(datasource=ds)
     prop = dict(
         **project_info,
         command=command,
