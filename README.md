@@ -1,6 +1,7 @@
 [![ci-tests](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)
 [![release](https://img.shields.io/github/release/infuseAI/piperider-cli/all.svg?style=flat-square)](https://github.com/infuseAI/piperider-cli/releases)
 [![pipy](https://img.shields.io/pypi/v/piperider?style=flat-square)](https://pypi.org/project/piperider/)
+[![python](https://img.shields.io/pypi/pyversions/piperider?style=flat-square)](https://pypi.org/project/piperider/)
 [![downloads](https://img.shields.io/pypi/dw/piperider?style=flat-square)](https://pypi.org/project/piperider/#files)
 [![license](https://img.shields.io/github/license/infuseai/piperider?style=flat-square)](https://github.com/InfuseAI/piperider/blob/main/LICENSE)
 [![InfuseAI Discord Invite](https://img.shields.io/discord/664381609771925514?color=%237289DA&label=chat&logo=discord&logoColor=white&style=flat-square)](https://discord.com/invite/5zb2aK9KBV)
@@ -57,24 +58,28 @@ $ pip install piperider[postgres,snowflake]
 ```
 
 ## Attach piperider to a dbt project
+
 ![piperider_init](/images/init_pipe.gif)
 
 This command creates `/.piperider` under a dbt project root and generate necessary configurations.
 
 ## Scan data quality from models
-![piperider_run](/images/run_pipe.gif)  
+
+![piperider_run](/images/run_pipe.gif)
 
 This command scans the models from datasource and create assessment results in `/.piperider/output`
 
 ## Generate reports
-![piperider_report](/images/report_pipe.gif)  
+
+![piperider_report](/images/report_pipe.gif)
 
 ![piperider_report](/images/cmd_report.gif)
 
 generate a static html report under current path.
 
 ## Generate comparison view
-![piperider_compare](/images/compare_pipe.gif)  
+
+![piperider_compare](/images/compare_pipe.gif)
 
 The generated report in html will be placed in the path shown in console
 
