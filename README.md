@@ -29,7 +29,7 @@ Check [comparison view](/images/piperider_comparison_view.png)
 ## Install PipeRider
 
 ```bash
-$ pip install piperider-cli
+$ pip install piperider
 ```
 
 By default, PipeRider supports built-in sqlite connector, extra connectors are available:
