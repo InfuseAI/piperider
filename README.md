@@ -45,22 +45,22 @@ $ pip install piperider[postgres,snowflake]
 ```
 
 ## Attach piperider to a dbt project
-![piperider_init](/images/cmd_init.gif)
+![piperider_init](/images/init_pipe.gif)
 
 This command creates `/.piperider` under a dbt project root and generate necessary configurations.
 
 ## Scan data quality from models
-![piperider_run](/images/cmd_run.gif)  
+![piperider_run](/images/run_pipe.gif)  
 
 This command scans the models from datasource and create assessment results in `/.piperider/output`
 
 ## Generate reports
-![piperider_report](/images/cmd_report.gif)  
+![piperider_report](/images/report_pipe.gif)  
 
 generate a static html report under current path. 
 
 ## Generate comparison view
-![piperider_compare](/images/cmd_compare.gif)  
+![piperider_compare](/images/compare_pipe.gif)  
 
 The generated report in html will be placed in the path shown in console
 
