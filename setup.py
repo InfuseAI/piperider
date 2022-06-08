@@ -12,7 +12,7 @@ def _get_version():
         return version
 
 
-setup(name='piperider-cli',
+setup(name='piperider',
       version=_get_version(),
       description='PiperRider CLI',
       long_description=open('README.md').read(),
@@ -23,7 +23,7 @@ setup(name='piperider-cli',
       entry_points={
           'console_scripts': ['piperider-cli = piperider_cli.cli:cli']
       },
-      python_requires=">=3.6",
+      python_requires=">=3.7",
       packages=find_packages(),
       install_requires=[
           'ruamel.yaml',

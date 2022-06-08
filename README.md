@@ -8,7 +8,7 @@ For data practitioner who wants to trust their data by:
 # Install
 
 ```bash
-$ pip install piperider-cli
+$ pip install piperider
 ```
 
 ### Install with connectors
@@ -21,14 +21,14 @@ By default, we support the built-in sqlite connector, there are extra connectors
 Install with postgres connector:
 
 ```
-pip install piperider-cli[postgres]
+pip install piperider[postgres]
 ```
 
 It could be more than one connector with comma:
 
 
 ```
-pip install piperider-cli[postgres,snowflake]
+pip install piperider[postgres,snowflake]
 ```
 
 
