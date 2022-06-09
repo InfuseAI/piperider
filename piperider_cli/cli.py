@@ -37,14 +37,6 @@ def add_options(options):
     return _add_options
 
 
-def show_error_message(msg, **kwargs):
-    console = Console()
-    if kwargs.get('debug'):
-        console.print_exception(show_locals=True)
-    else:
-        console.print(f'[bold red]Error:[/bold red] {msg}')
-
-
 @click.group(name="piperider")
 def cli():
     pass
@@ -80,19 +72,13 @@ def init(**kwargs):
         else:
             dbt_project_path = workspace.search_dbt_project_path()
 
-    try:
-        if dbt_project_path:
-            console.print(f'Use dbt project file: {dbt_project_path}')
-        config = workspace.init(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir)
-        if kwargs.get('debug'):
-            for ds in config.dataSources:
-                console.rule('Configuration')
-                console.print(ds.__dict__)
-    except Exception as e:
-        show_error_message(e, **kwargs)
-        sentry_sdk.capture_exception(e)
-        sentry_sdk.flush()
-        sys.exit(1)
+    if dbt_project_path:
+        console.print(f'Use dbt project file: {dbt_project_path}')
+    config = workspace.init(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir)
+    if kwargs.get('debug'):
+        for ds in config.dataSources:
+            console.rule('Configuration')
+            console.print(ds.__dict__)
 
     # Show the content of config.yml
     with open(os.path.join(piperider_config_dir, 'config.yml'), 'r') as f:
@@ -109,14 +95,7 @@ def diagnose(**kwargs):
 
     console.print(f'[bold dark_orange]PipeRider Version:[/bold dark_orange] {__version__}')
 
-    try:
-        if not workspace.debug():
-            sys.exit(1)
-        return 0
-    except Exception as e:
-        show_error_message(e, **kwargs)
-        sentry_sdk.capture_exception(e)
-        sentry_sdk.flush()
+    if not workspace.debug():
         sys.exit(1)
 
 
@@ -132,16 +111,10 @@ def run(**kwargs):
     datasource = kwargs.get('datasource')
     table = kwargs.get('table')
     output = kwargs.get('output')
-    try:
-        workspace.run(datasource=datasource, table=table, output=output, interaction=not kwargs.get('no_interaction'))
-        if kwargs.get('generate_report'):
-            console.print('\n')
-            workspace.generate_report()
-    except Exception as e:
-        show_error_message(e, **kwargs)
-        sentry_sdk.capture_exception(e)
-        sentry_sdk.flush()
-        sys.exit(1)
+    workspace.run(datasource=datasource, table=table, output=output, interaction=not kwargs.get('no_interaction'))
+    if kwargs.get('generate_report'):
+        console.print('\n')
+        workspace.generate_report()
 
 
 @cli.command(short_help='Show report')
@@ -149,14 +122,7 @@ def run(**kwargs):
 @add_options(debug_option)
 def generate_report(**kwargs):
     input = kwargs.get('input')
-    try:
-        workspace.generate_report(input=input)
-    except Exception as e:
-        show_error_message(e, **kwargs)
-        sentry_sdk.capture_exception(e)
-        sentry_sdk.flush()
-        sys.exit(1)
-    pass
+    workspace.generate_report(input=input)
 
 
 @cli.command(short_help='Compare two existing reports')
@@ -166,11 +132,4 @@ def generate_report(**kwargs):
 def compare_report(**kwargs):
     a = kwargs.get('base')
     b = kwargs.get('input')
-    try:
-        workspace.compare_report(a=a, b=b)
-    except Exception as e:
-        show_error_message(e, **kwargs)
-        sentry_sdk.capture_exception(e)
-        sentry_sdk.flush()
-        sys.exit(1)
-    pass
+    workspace.compare_report(a=a, b=b)
