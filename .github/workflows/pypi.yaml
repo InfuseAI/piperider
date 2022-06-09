@@ -35,6 +35,8 @@ jobs:
 
           # update version number
           echo "${GITHUB_REF:11}" > ./piperider_cli/VERSION
+          # put config includes tracking api key
+          echo "$CONFIG" > ./piperider_cli/data/CONFIG
 
           # generate pypirc
           echo "$PYPIRC" > $HOME/.pypirc
@@ -43,6 +45,7 @@ jobs:
           make release
         env:
           PYPIRC: ${{ secrets.PYPI }}
+          CONFIG: ${{ secrets.CONFIG }}
       - name: Mark Sentry Release
         uses: getsentry/action-release@v1
         env:

@@ -30,9 +30,12 @@ def init():
 def _get_api_key():
     from piperider_cli import data
     config_file = os.path.abspath(os.path.join(os.path.dirname(data.__file__), 'CONFIG'))
-    with open(config_file) as fh:
-        config = _yml.load(fh)
-        return config.get('event_api_key')
+    try:
+        with open(config_file) as fh:
+            config = _yml.load(fh)
+            return config.get('event_api_key')
+    except Exception:
+        return None
 
 
 def _generate_user_profile():
