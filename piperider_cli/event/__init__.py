@@ -12,7 +12,7 @@ _yml = yaml.YAML()
 
 
 def init():
-    api_key = os.environ.get('PIPERIDER_EVENT_API_KEY', None)
+    api_key = _get_api_key()
     user_profile = None
 
     if not os.path.exists(PIPERIDER_USER_PROFILE):
@@ -25,6 +25,14 @@ def init():
 
     _collector.set_api_key(api_key)
     _collector.set_user_id(user_profile.get('user_id'))
+
+
+def _get_api_key():
+    from piperider_cli import data
+    config_file = os.path.abspath(os.path.join(os.path.dirname(data.__file__), 'CONFIG'))
+    with open(config_file) as fh:
+        config = _yml.load(fh)
+        return config.get('event_api_key')
 
 
 def _generate_user_profile():
