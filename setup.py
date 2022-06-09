@@ -35,6 +35,7 @@ setup(name='piperider',
           'inquirer',
           'jinja2',
           'portalocker',
+          'requests',
       ],
       extras_require={
           'snowflake': [
