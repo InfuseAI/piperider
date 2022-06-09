@@ -249,7 +249,7 @@ def _warning_if_search_path_too_widely(search_path):
         console = Console()
         console.print(
             f"[[bold yellow]Warning[/bold yellow]] Search path '{search_path}' is too widely. It will take some time to parse directories and may need extra permissions.")
-        if inquirer.confirm(message=f"Do you still want to keep going?", default=True) is not True:
+        if inquirer.confirm(message="Do you still want to keep going?", default=True) is not True:
             raise KeyboardInterrupt()
 
 
