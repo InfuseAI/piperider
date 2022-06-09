@@ -10,10 +10,12 @@ from piperider_cli import workspace, __version__, event
 from piperider_cli.event.track import TrackCommand
 
 sentry_env = 'development' if __version__.endswith('-dev') else 'production'
+release_version = __version__ if sentry_env == 'production' else None
 
 sentry_sdk.init(
     "https://41930bf397884adfb2617fe350231439@o1081482.ingest.sentry.io/6463955",
     environment=sentry_env,
+    release=release_version,
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     # We recommend adjusting this value in production.
