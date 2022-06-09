@@ -67,3 +67,7 @@ When run a project, use the `--datasource` to specify the data source to run.
 ```
 piperider run --datasource my_dbt_project_prod
 ```
+
+# Example Project
+
+[dbt-infuse-finance](https://github.com/InfuseAI/dbt-infuse-finance)
