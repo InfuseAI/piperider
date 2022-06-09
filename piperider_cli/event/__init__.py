@@ -94,5 +94,5 @@ def log_event(command, params, status):
     )
     _collector.log_event(prop, 'usage')
     whitelist = ['run', 'generate-report', 'compare-report']
-    if command in whitelist or status is False:
-        _collector.send_events_if_ready()
+    if command in whitelist:
+        _collector.send_events()
