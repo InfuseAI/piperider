@@ -1,8 +1,0 @@
-**.log
-__pycache__/
-logs/
-outputs/
-reports/
-comparisons/
-credentials.yml
-.unsend_events.json
