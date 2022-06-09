@@ -179,13 +179,7 @@ def _generate_piperider_workspace() -> bool:
             from distutils.dir_util import copy_tree
             copy_tree(init_template_dir, working_dir)
         # prepare .gitignore file
-        try:
-            if not os.path.exists(os.path.join(working_dir, '.gitignore')):
-                os.rename(os.path.join(working_dir, 'gitignore'), os.path.join(working_dir, '.gitignore'))
-            else:
-                os.remove(os.path.join(working_dir, 'gitignore'))
-        except Exception:
-            pass
+        os.rename(os.path.join(working_dir, 'gitignore'), os.path.join(working_dir, '.gitignore'))
         return True
     else:
         # Skip if workspace already exists
