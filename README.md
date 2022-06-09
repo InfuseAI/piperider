@@ -73,8 +73,6 @@ This command scans the models from datasource and create assessment results in `
 
 ![piperider_report](/images/report_pipe.gif)
 
-![piperider_report](/images/cmd_report.gif)
-
 generate a static html report under current path.
 
 ## Generate comparison view
