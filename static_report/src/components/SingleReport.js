@@ -113,10 +113,8 @@ export function SingleReport() {
 
           <Flex direction={'column'}>
             <TestsInformation
-                data={{
-                  tableName: profileData.name,
-                  ...profileData.assertion_results,
-                }}
+                tableName={profileData.name}
+                data={profileData.assertion_results}
               />
 
             <ProfilingInformation data={profileData.columns} />
@@ -220,7 +218,7 @@ function ProfilingInformation({ data }) {
   );
 }
 
-function TestsInformation({ data }) {
+function TestsInformation({ tableName, data }) {
   const tabelTests = data?.tests || [];
   const columnsTests = data?.columns || {};
 
@@ -249,7 +247,7 @@ function TestsInformation({ data }) {
                 <Tr key={tabelTest.name}>
                   <Td>
                     <Text as={'span'} fontWeight={700}>
-                      {data.tableName}
+                      {tableName}
                     </Text>{' '}
                   </Td>
                   <Td>

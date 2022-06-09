@@ -316,6 +316,7 @@ export function ComparisonReport() {
                                 </Flex>
                               );
                             }
+                            return null;
                           })}
                         </Td>
                       ) : (
