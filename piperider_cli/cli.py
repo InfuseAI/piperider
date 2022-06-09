@@ -97,9 +97,9 @@ def init(**kwargs):
 
 @cli.command(short_help='Test Configuration')
 @add_options(debug_option)
-def debug(**kwargs):
+def diagnose(**kwargs):
     console = Console()
-    console.print('Debugging...')
+    console.print('Diagnosing...')
 
     console.print(f'[bold dark_orange]PipeRider Version:[/bold dark_orange] {__version__}')
 
