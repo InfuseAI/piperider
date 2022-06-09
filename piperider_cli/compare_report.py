@@ -357,7 +357,7 @@ class CompareReport(object):
 
         questions = [
             inquirer_hack.LimitedCheckboxQuestion('profiler_output',
-                                                  message="Please select a report to compare",
+                                                  message="Please select a report to compare ( SPACE to select, and ENTER to confirm )",
                                                   choices=profiler_outputs,
                                                   carousel=True,
                                                   validate=_report_validater,
@@ -393,7 +393,7 @@ class CompareReport(object):
         questions = [
             inquirer_hack.LimitedCheckboxQuestion(
                 'profiler_outputs',
-                message="Please select the 2 reports to compare",
+                message="Please select the 2 reports to compare ( SPACE to select, and ENTER to confirm )",
                 choices=profiler_outputs,
                 carousel=True,
                 validate=_report_validater,
