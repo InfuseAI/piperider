@@ -170,7 +170,7 @@ class DataSource(metaclass=ABCMeta):
                           message='What is your project name? (alphanumeric only)',
                           validate=lambda ans, x: re.match(r'^[a-zA-Z0-9]+$', x) is not None),
             inquirer.List('type',
-                          message='What data source would you like to connect to?',
+                          message='Which data source would you like to connect to?',
                           choices=source_choices,
                           ),
         ]
