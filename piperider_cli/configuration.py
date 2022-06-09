@@ -1,5 +1,6 @@
 import errno
 import os
+import uuid
 from typing import List
 
 import inquirer
@@ -30,9 +31,13 @@ class Configuration(object):
     at $PROJECT_ROOT./piperider/config.yml
     """
 
-    def __init__(self, dataSources: List[DataSource]):
+    def __init__(self, dataSources: List[DataSource], id=None):
         self.dataSources: List[DataSource] = dataSources
+        self._id = id if id else uuid.uuid4().hex
         pass
+
+    def get_id(self):
+        return self._id
 
     @classmethod
     def from_dbt_project(cls, dbt_project_path, dbt_profiles_dir=None):
@@ -123,7 +128,7 @@ class Configuration(object):
                     credential = None
                 data_source = datasource_class(name=ds.get('name'), credential=credential)
             data_sources.append(data_source)
-        return cls(dataSources=data_sources)
+        return cls(dataSources=data_sources, id=config.get('id'))
 
     def dump(self, path):
         """
@@ -131,7 +136,7 @@ class Configuration(object):
         :param path:
         :return:
         """
-        config = dict(dataSources=[])
+        config = dict(dataSources=[], id=self.get_id())
 
         for d in self.dataSources:
             datasource = dict(name=d.name, type=d.type_name)

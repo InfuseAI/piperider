@@ -6,7 +6,8 @@ import sentry_sdk
 from rich.console import Console
 from rich.syntax import Syntax
 
-from piperider_cli import workspace, __version__
+from piperider_cli import workspace, __version__, event
+from piperider_cli.event.track import TrackCommand
 
 sentry_env = 'development' if __version__.endswith('-dev') else 'production'
 
@@ -19,6 +20,8 @@ sentry_sdk.init(
     traces_sample_rate=1.0
 )
 sentry_sdk.set_tag("piperider.version", __version__)
+
+event.init()
 
 debug_option = [
     click.option('--debug', is_flag=True, help='Enable debug mode')
@@ -45,6 +48,9 @@ def show_error_message(msg, **kwargs):
 @click.group(name="piperider")
 def cli():
     pass
+
+
+cli.command_class = TrackCommand
 
 
 @cli.command(short_help='Show the version of piperider')
