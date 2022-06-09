@@ -7,6 +7,7 @@ from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from glob import glob
 
+import inquirer
 from rich.console import Console
 from rich.table import Table
 from sqlalchemy import create_engine, inspect
@@ -237,8 +238,26 @@ def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None):
     return _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir)
 
 
+def _warning_if_search_path_too_widely(search_path):
+    # Only warning user on macOS platform
+    if sys.platform != "darwin":
+        return
+
+    home_dir = os.path.expanduser('~')
+
+    if search_path in home_dir:
+        console = Console()
+        console.print(
+            f"[[bold yellow]Warning[/bold yellow]] Search path '{search_path}' is too widely. It will take some time to parse directories and may need extra permissions.")
+        if inquirer.confirm(message=f"Do you still want to keep going?", default=True) is not True:
+            raise KeyboardInterrupt()
+
+
 def search_dbt_project_path():
     exclude_patterns = ['site-packages', 'dbt_packages']
+    console = Console()
+    _warning_if_search_path_too_widely(os.getcwd())
+    console.print('Start to search dbt project ...')
     paths = glob(os.path.join(os.getcwd(), '**', 'dbt_project.yml'), recursive=True)
     for exclude_pattern in exclude_patterns:
         paths = list(filter(lambda x: exclude_pattern not in x, paths))
@@ -254,7 +273,6 @@ def search_dbt_project_path():
         # Multiple dbt projects found, ask user to select one
         paths = sorted(paths, key=len)
         default_index = 0
-        console = Console()
         console.print(f'\nMultiple dbt projects found. Please select the dbt project: (Default: {default_index})')
         table = Table(show_header=True, header_style="bold magenta")
         table.add_column('Index', style="bold", width=5, justify='right')
