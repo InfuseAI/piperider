@@ -74,6 +74,8 @@ def init(**kwargs):
 
     if dbt_project_path:
         console.print(f'Use dbt project file: {dbt_project_path}')
+    else:
+        console.print('[[bold yellow]Skip[/bold yellow]] No dbt project found')
     config = workspace.init(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir)
     if kwargs.get('debug'):
         for ds in config.dataSources:
