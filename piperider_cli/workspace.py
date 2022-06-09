@@ -297,7 +297,11 @@ def _fetch_dbt_catalog(dbt, table=None):
         with open(dbt_catalog) as fd:
             catalog = json.loads(fd.read())
         # TODO we should consider the case that the table name is not unique
-        for k, v in (catalog.get('nodes', {}) | catalog.get('sources', {})).items():
+        # syntax after py3.9:
+        # content = catalog.get('nodes', {}) | catalog.get('sources', {})
+        content = catalog.get('nodes', {})
+        content.update(catalog.get('sources', {}))
+        for k, v in content.items():
             metadata = v.get('metadata', {})
             name = metadata.get('name')
             schema = metadata.get('schema')
