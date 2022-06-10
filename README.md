@@ -48,13 +48,13 @@ By default, PipeRider supports built-in sqlite connector, extra connectors are a
 
 | connectors  | install  |
 |---|---|
-| snowflake | pip install piperider[snowflake]  |
-| postgres  | pip install piperider[postgres]  |
+| snowflake | pip install 'piperider[snowflake]'  |
+| postgres  | pip install 'piperider[postgres]'  |
 
 Use comma to install multiple connectors in one line:
 
 ```
-$ pip install piperider[postgres,snowflake]
+$ pip install 'piperider[postgres,snowflake]'
 ```
 
 ## Attach piperider to a dbt project
