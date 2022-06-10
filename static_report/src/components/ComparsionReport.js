@@ -555,7 +555,7 @@ function ComparisonBarChart({ data }) {
   }, [data]);
 
   return (
-    <Flex className={'chart'} ref={containerRef}>
+    <Flex className={'chart'} ref={containerRef} width={'100%'}>
       <svg ref={svgRef} />
     </Flex>
   );

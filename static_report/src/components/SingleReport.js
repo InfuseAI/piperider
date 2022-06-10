@@ -445,7 +445,7 @@ function BarChart({ data }) {
   }, [data]);
 
   return (
-    <Flex className={'chart'}>
+    <Flex className={'chart'} width={'100%'}>
       <svg ref={svgRef} />
     </Flex>
   );
