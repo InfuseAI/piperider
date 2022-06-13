@@ -9,7 +9,7 @@ from rich.syntax import Syntax
 from piperider_cli import workspace, __version__, event
 from piperider_cli.event.track import TrackCommand
 
-sentry_env = 'development' if __version__.endswith('-dev') else 'production'
+sentry_env = 'development' if '.dev' in __version__ else 'production'
 release_version = __version__ if sentry_env == 'production' else None
 
 sentry_sdk.init(
