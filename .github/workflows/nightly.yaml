@@ -1,0 +1,45 @@
+name: Release PipeRider CLI Nightly Build
+on:
+  schedule:
+    - cron: '0 2 * * 1-5' # run at 2 AM UTC every working day
+jobs:
+  build-nightly-release:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Release to PyPi
+        run: |
+          # put config includes tracking api key
+          echo "$CONFIG" > ./piperider_cli/data/CONFIG
+
+          # generate pypirc
+          echo "$PYPIRC" > $HOME/.pypirc
+
+          # change package name to piperider-nightly
+          sed -i.bak "s/name='piperider'/name='piperider-nightly'/" setup.py
+
+          # update version number
+          sed -i.bak "s/\$/$(date '+%Y%m%d')/" piperider_cli/VERSION
+          echo ::set-output name=nightly_version::$(cat piperider_cli/VERSION)
+
+          # release to PyPI
+          make release
+        env:
+          PYPIRC: ${{ secrets.PYPI }}
+          CONFIG: ${{ secrets.CONFIG }}
+
+      - name: Mark Sentry Release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        with:
+          environment: development
+          ignore_empty: true
+          ignore_missing: true
+          version: ${{ steps.vars.outputs.nightly_version }}
