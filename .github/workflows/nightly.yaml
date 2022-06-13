@@ -1,7 +1,7 @@
 name: Release PipeRider CLI Nightly Build
 on:
   schedule:
-    - cron: '0 2 * * 1-5' # run at 2 AM UTC every working day
+    - cron: '0 18 * * 7,1,2,3,4' # run at 2 AM (UTC + 8) every working day
 jobs:
   build-nightly-release:
     runs-on: ubuntu-latest
