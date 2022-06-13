@@ -23,11 +23,14 @@ import { useEffect, useRef } from 'react';
 
 import { Main } from './Main';
 import { drawComparsionChart } from '../utils';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
-export function ComparisonReport() {
+export default function ComparisonReport({ params }) {
   const data = window.PIPERIDER_REPORT_DATA;
 
-  if (data === '') {
+  useDocumentTitle(params.reportName);
+
+  if (!data) {
     return (
       <Main>
         <Flex justifyContent="center" alignItems="center" minHeight={'100vh'}>
