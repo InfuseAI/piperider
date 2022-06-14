@@ -61,8 +61,7 @@ spawn piperider run --no-interaction
 
 expect {
     "Results saved to" {
-        # pass "run finished"
-        fail "xd"
+        pass "run finished"
     }
     eof {
         fail "something is broken at run"
