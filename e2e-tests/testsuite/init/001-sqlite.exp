@@ -27,12 +27,15 @@ expect {
         send "\[B"
         exp_continue
     }
-    ": sqlite" {
+    "> sqlite" {
         send "\r"
+        exp_continue
     }
 }
 
 expect {
+
+    after 1000
     "Path of database file" {
         after 1000
         send "$fake_db"
