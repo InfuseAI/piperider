@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://piperider.io">
-    <img  src="/.github/images/logo.svg"
+    <img  src=".github/images/logo.svg"
       width="284" border="0" alt="PipeRider">
   </a>
 </p>
@@ -25,7 +25,7 @@ For data practitioner who wants to trust their data by:
 
 ## Instant quality assessment in html
 
-Check [single run view](/images/piperider_single_run.png)
+Check [single run view](images/piperider_single_run.png)
 
 ## Inject tests to key metrics
 
@@ -34,7 +34,7 @@ to [User defined test functions](https://github.com/InfuseAI/piperider-cli/blob/
 
 ## Compare different test assessments
 
-Check [comparison view](/images/piperider_comparison_view.png)
+Check [comparison view](images/piperider_comparison_view.png)
 
 # Get started
 
@@ -59,25 +59,25 @@ $ pip install 'piperider[postgres,snowflake]'
 
 ## Attach piperider to a dbt project
 
-![piperider_init](/images/init_pipe.gif)
+![piperider_init](images/init_pipe.gif)
 
 This command creates `/.piperider` under a dbt project root and generate necessary configurations.
 
 ## Scan data quality from models
 
-![piperider_run](/images/run_pipe.gif)
+![piperider_run](images/run_pipe.gif)
 
 This command scans the models from datasource and create assessment results in `/.piperider/output`
 
 ## Generate reports
 
-![piperider_report](/images/report_pipe.gif)
+![piperider_report](images/report_pipe.gif)
 
 generate a static html report under current path.
 
 ## Generate comparison view
 
-![piperider_compare](/images/compare_pipe.gif)
+![piperider_compare](images/compare_pipe.gif)
 
 The generated report in html will be placed in the path shown in console
 
