@@ -6,6 +6,7 @@ import uuid
 from unittest import TestCase
 
 from piperider_cli.assertion_engine import AssertionContext, AssertionResult, AssertionEngine
+from piperider_cli.profiler import Profiler
 
 
 def prepare_project_structure():
@@ -28,7 +29,7 @@ def generate_random_directory():
     return tmp.name
 
 
-def build_assertion_engine(project_dir, assertions):
+def build_assertion_engine(project_dir, table, assertions):
     assertion_file = f'{uuid.uuid4().hex}.yml'
     assertion_path = os.path.join(f'{project_dir}/{AssertionEngine.PIPERIDER_WORKSPACE_NAME}/assertions',
                                   assertion_file)
@@ -36,7 +37,10 @@ def build_assertion_engine(project_dir, assertions):
     with open(assertion_path, 'w') as fh:
         fh.write(assertions)
 
-    engine = AssertionEngine(None, project_dir)
+    profiler = Profiler(None)
+    profiler.profile([table])
+
+    engine = AssertionEngine(profiler, project_dir)
     engine.load_assertions()
     return engine
 
@@ -74,7 +78,7 @@ class UserDefinedTestAssertionsTests(TestCase):
               param1: a
               param2: b
         """
-        engine = build_assertion_engine(self.project_dir, assertions)
+        engine = build_assertion_engine(self.project_dir, 'foobarbar', assertions)
 
         # invoke customized assertion
         results, exceptions = engine.evaluate_all({})
@@ -107,7 +111,7 @@ class UserDefinedTestAssertionsTests(TestCase):
               param1: a
               param2: b
         """
-        engine = build_assertion_engine(self.project_dir, assertions)
+        engine = build_assertion_engine(self.project_dir, 'foobarbar', assertions)
 
         # invoke customized assertion
         results, exceptions = engine.evaluate_all({})
