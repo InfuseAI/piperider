@@ -11,6 +11,10 @@ from piperider_cli.error import \
     IllegalStateAssertionError
 
 
+def _dict_key_to_lower(d: dict):
+    return dict((k.lower(), v) for k, v in d.items())
+
+
 def safe_load_yaml(file_path):
     payload = None
     with open(file_path, 'r') as f:
@@ -34,6 +38,11 @@ def load_yaml_configs(path):
                 if not payload:
                     failed.append(file_path)
                 else:
+                    # transform tables' key and columns' key to lower case
+                    payload = _dict_key_to_lower(payload)
+                    for t in payload:
+                        if payload[t].get('columns', {}):
+                            payload[t]['columns'] = _dict_key_to_lower(payload[t]['columns'])
                     passed.append(file_path)
                     content.update(payload)
 
@@ -222,12 +231,13 @@ class AssertionEngine:
 
         # Load assertion
         for t in self.assertions_content:
-            for ta in self.assertions_content[t].get('tests', []):
-                self.assertions.append(AssertionContext(t, None, ta.get('name'), self.assertions_content))
-            for c in self.assertions_content[t].get('columns', {}):
-                for ca in self.assertions_content[t]['columns'][c].get('tests', []):
-                    self.assertions.append(AssertionContext(t, c, ca.get('name'), self.assertions_content))
-        pass
+            # only append specified table's assertions
+            if t in set(table.lower() for table in list(self.profiler.metadata.tables)):
+                for ta in self.assertions_content[t].get('tests', []):
+                    self.assertions.append(AssertionContext(t, None, ta.get('name'), self.assertions_content))
+                for c in self.assertions_content[t].get('columns', {}):
+                    for ca in self.assertions_content[t]['columns'][c].get('tests', []):
+                        self.assertions.append(AssertionContext(t, c, ca.get('name'), self.assertions_content))
 
     def generate_assertion_templates(self):
         """
@@ -329,6 +339,13 @@ class AssertionEngine:
     def evaluate_all(self, metrics_result):
         results = []
         exceptions = []
+
+        # transform tables' key and columns' key to lower case
+        if metrics_result.get('tables', {}):
+            metrics_result['tables'] = _dict_key_to_lower(metrics_result['tables'])
+            for t in metrics_result['tables']:
+                if metrics_result['tables'][t].get('columns', {}):
+                    metrics_result['tables'][t]['columns'] = _dict_key_to_lower(metrics_result['tables'][t]['columns'])
 
         for assertion in self.assertions:
             try:
