@@ -512,12 +512,12 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
         console.rule('Summary')
 
+        profile_result['id'] = run_id
+        profile_result['created_at'] = created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        profile_result['datasource'] = dict(name=ds.name, type=ds.type_name)
+        output_file = os.path.join(output_path, 'run.json')
         for t in profile_result['tables']:
-            output_file = os.path.join(output_path, f"{t}.json")
             profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(t, assertion_results)
-            profile_result['tables'][t]['id'] = run_id
-            profile_result['tables'][t]['created_at'] = created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-            profile_result['tables'][t]['datasource'] = dict(name=ds.name, type=ds.type_name)
 
             _show_table_summary(console, t, profile_result['tables'][t], assertion_results)
 
