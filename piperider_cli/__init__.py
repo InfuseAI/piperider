@@ -39,4 +39,14 @@ def get_version():
         return version
 
 
+def clone_directory(src, dst):
+    if sys.version_info >= (3, 8):
+        # dirs_exist_ok only available after 3.8
+        import shutil
+        shutil.copytree(src, dst, dirs_exist_ok=True)
+    else:
+        from distutils.dir_util import copy_tree
+        copy_tree(src, dst)
+
+
 __version__ = get_version()

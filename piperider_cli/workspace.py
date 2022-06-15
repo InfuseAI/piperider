@@ -12,6 +12,7 @@ from rich.console import Console
 from rich.table import Table
 from sqlalchemy import create_engine, inspect
 
+from piperider_cli import clone_directory
 from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.compare_report import CompareReport
 from piperider_cli.configuration import Configuration, PIPERIDER_WORKSPACE_NAME, PIPERIDER_CONFIG_PATH, \
@@ -172,12 +173,7 @@ def _generate_piperider_workspace() -> bool:
     working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
 
     if _is_piperider_workspace_exist(working_dir) is False:
-        if sys.version_info >= (3, 8):
-            # dirs_exist_ok only available after 3.8
-            shutil.copytree(init_template_dir, working_dir, dirs_exist_ok=True)
-        else:
-            from distutils.dir_util import copy_tree
-            copy_tree(init_template_dir, working_dir)
+        clone_directory(init_template_dir, working_dir)
         # prepare .gitignore file
         os.rename(os.path.join(working_dir, 'gitignore'), os.path.join(working_dir, '.gitignore'))
         return True
@@ -596,10 +592,7 @@ def generate_report(input=None):
         if not os.path.exists(dir):
             os.makedirs(dir, exist_ok=True)
 
-        shutil.copytree(report_template_dir,
-                        dir,
-                        dirs_exist_ok=True,
-                        ignore=shutil.ignore_patterns('index.html'))
+        clone_directory(report_template_dir, dir)
 
         console.rule('Reports')
         table, filename = _generate_static_html(result, report_template_html, dir)
@@ -624,10 +617,7 @@ def generate_report(input=None):
                 dir = os.path.join(PIPERIDER_REPORT_PATH, f"{datasource}-{created_at.strftime('%Y%m%d%H%M%S')}")
                 if not os.path.exists(dir):
                     os.makedirs(dir, exist_ok=True)
-                shutil.copytree(report_template_dir,
-                                dir,
-                                dirs_exist_ok=True,
-                                ignore=shutil.ignore_patterns('index.html'))
+                clone_directory(report_template_dir, dir)
 
                 table, filename = _generate_static_html(result, report_template_html, dir)
                 max_table_len = max(max_table_len, len(table))
@@ -654,10 +644,7 @@ def compare_report(a=None, b=None):
 
     data_id = comparison_data.id()
     dir = os.path.join(PIPERIDER_COMPARISON_PATH, data_id)
-    shutil.copytree(report_template_dir,
-                    dir,
-                    dirs_exist_ok=True,
-                    ignore=shutil.ignore_patterns('index.html'))
+    clone_directory(report_template_dir, dir)
 
     filename = os.path.join(dir, 'index.html')
     with open(filename, 'w') as f:
