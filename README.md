@@ -1,10 +1,3 @@
-[![ci-tests](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)
-[![release](https://img.shields.io/github/release/infuseAI/piperider-cli/all.svg?style=flat-square)](https://github.com/infuseAI/piperider-cli/releases)
-[![pipy](https://img.shields.io/pypi/v/piperider?style=flat-square)](https://pypi.org/project/piperider/)
-[![python](https://img.shields.io/pypi/pyversions/piperider?style=flat-square)](https://pypi.org/project/piperider/)
-[![downloads](https://img.shields.io/pypi/dw/piperider?style=flat-square)](https://pypi.org/project/piperider/#files)
-[![license](https://img.shields.io/github/license/infuseai/piperider?style=flat-square)](https://github.com/InfuseAI/piperider/blob/main/LICENSE)
-[![InfuseAI Discord Invite](https://img.shields.io/discord/664381609771925514?color=%237289DA&label=chat&logo=discord&logoColor=white&style=flat-square)](https://discord.com/invite/5zb2aK9KBV)
 
 <p align="center">
   <a href="https://piperider.io">
@@ -13,30 +6,58 @@
   </a>
 </p>
 
-# Automates data quality management
+# PipeRider: Data Reliability Automated
 
-For data practitioner who wants to trust their data by:
+# What is PipeRider?
 
-- Defining the shape of data, so they can **make sure the data will be expected in the future**
-- Save time on debugging data,**easily discover & discuss any data problems from upstream**
-- Socially **collaborate across teams on the dataset through data catalog and data insights**
+PipeRider is an open-source toolkit for detecting data issues across pipelines that works with CI systems for continuous data quality assessment. PipeRider makes it easy for teams to have visibility about how data are being tested, and ensure errors are caught before they cause outages of downstream data applications like business intelligence dashboards or ML systems.
+# Why PipeRider?
+
+Ensuring consistent quality of data used to be difficult. Missing values, schema changes, data drift (to name just a few), could be introduced to your data at any time. Without effective data quality tools these errors will affect downstream operations and result in countless lost hours to debugging and missed revenue opportunities from unexpected downtime.
+PipeRider allows you to define the shape of your data once, and then use the data checking functionality to alert you to changes in your data quality.
+
+[![ci-tests](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)
+[![release](https://img.shields.io/github/release/infuseAI/piperider-cli/all.svg?style=flat-square)](https://github.com/infuseAI/piperider-cli/releases)
+[![pipy](https://img.shields.io/pypi/v/piperider?style=flat-square)](https://pypi.org/project/piperider/)
+[![python](https://img.shields.io/pypi/pyversions/piperider?style=flat-square)](https://pypi.org/project/piperider/)
+[![downloads](https://img.shields.io/pypi/dw/piperider?style=flat-square)](https://pypi.org/project/piperider/#files)
+[![license](https://img.shields.io/github/license/infuseai/piperider?style=flat-square)](https://github.com/InfuseAI/piperider/blob/main/LICENSE)
+[![InfuseAI Discord Invite](https://img.shields.io/discord/664381609771925514?color=%237289DA&label=chat&logo=discord&logoColor=white&style=flat-square)](https://discord.com/invite/5zb2aK9KBV)
+
+
+# Learn More
+
+| PipeRider Resources | Description |
+| [Documentation] | PipeRider Main Doc Site |
+| [Sample_Project] | Sample Project with with sqlite |
+| [dbt_Sample_Project] | Sample Project with dbt |
+| [Roadmap] | PipeRider Roadmap |
+
+[Documentation]: https://docs.piperider.io/
+[Sample_Project]: https://github.com/InfuseAI/infuse-finance
+[dbt_Sample_Project]: https://github.com/InfuseAI/dbt-infuse-finance
+[Roadmap]: https://github.com/orgs/InfuseAI/projects/1/views/1
+
 
 # Key Features
 
-## Instant quality assessment in html
+## Instant quality assessment in html report
 
 Check [single run view](images/piperider_single_run.png)
 
-## Inject tests to key metrics
-
-Refer
-to [User defined test functions](https://github.com/InfuseAI/piperider-cli/blob/main/docs/user-defined-test-function.md)
-
-## Compare different test assessments
+## Report Comparison
 
 Check [comparison view](images/piperider_comparison_view.png)
 
-# Get started
+## Extensible custom assertions
+
+Refer
+to [custom assertions](https://docs.piperider.io/data-quality-assertions/custom-assertions)
+## Works with existing dbt projects
+
+## Automatic Test Recommendations (Coming Soon)
+
+# Getting started
 
 ## Install PipeRider
 
@@ -61,13 +82,13 @@ $ pip install 'piperider[postgres,snowflake]'
 
 ![piperider_init](images/init_pipe.gif)
 
-This command creates `/.piperider` under a dbt project root and generate necessary configurations.
+This command creates `/.piperider` under a dbt project root and generates necessary configurations.
 
 ## Scan data quality from models
 
 ![piperider_run](images/run_pipe.gif)
 
-This command scans the models from datasource and create assessment results in `/.piperider/output`
+This command scans the models from datasource and creates assessment results in `/.piperider/output`
 
 ## Generate reports
 
@@ -82,5 +103,6 @@ generate a static html report under current path.
 The generated report in html will be placed in the path shown in console
 
 # Get involved
+## Contributions
 
-[Work In Progress]
+We welcome contributions. See the [Set up dev environment](DEVELOP.md) and the [Contributing guildline](CONTRIBUTING.md) to get started.
