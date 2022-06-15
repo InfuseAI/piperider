@@ -464,68 +464,82 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     console = Console()
     configuration = Configuration.load()
 
-    datasource_names = [ds.name for ds in configuration.dataSources]
-    if datasource and datasource not in datasource_names:
-        console.print(f"[bold red]Error: datasource '{datasource}' doesn't exist[/bold red]")
+    datasources = {}
+    datasource_names = []
+    for ds in configuration.dataSources:
+        datasource_names.append(ds.name)
+        datasources[ds.name] = ds
+
+    if len(datasource_names) == 0:
+        console.print(f"[bold red]Error: no datasource found[/bold red]")
         return
 
-    for ds in configuration.dataSources:
-        if datasource and ds.name != datasource:
-            continue
-        passed, _ = ds.validate()
-        if passed is not True:
-            raise PipeRiderCredentialError(ds.name)
+    if datasource and datasource not in datasource_names:
+        console.print(f"[bold red]Error: datasource '{datasource}' doesn't exist[/bold red]")
+        console.print(f"Available datasources: {', '.join(datasource_names)}")
+        return
 
-        console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
+    # Use the fisrt datasource if no datasource is specified
+    ds_name = datasource if datasource else datasource_names[0]
+    ds = datasources[ds_name]
 
-        dbt = ds.args.get('dbt')
-        tables = None
-        if dbt:
-            passed, error_msg, tables = _fetch_dbt_catalog(dbt, table)
-            if not passed:
-                console.print(
-                    "[bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' files")
-                raise DbtCatalogError(error_msg)
-        else:
-            if table:
-                tables = [table]
+    passed, _ = ds.validate()
+    if passed is not True:
+        raise PipeRiderCredentialError(ds.name)
 
-        console.rule('Profiling')
-        run_id = uuid.uuid4().hex
-        created_at = datetime.now()
-        engine = create_engine(ds.to_database_url(), **ds.engine_args())
-        profiler = Profiler(engine)
-        profile_result = profiler.profile(tables)
+    if not datasource and len(datasource_names) > 1:
+        console.print(f"[bold yellow]Warning: multiple datasources found ({', '.join(datasource_names)}), using '{ds_name}'[/bold yellow]\n")
 
-        output_path = prepare_output_path(created_at, ds, output)
+    console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
 
-        # output profiling result
-        with open(os.path.join(output_path, ".profiler.json"), "w") as f:
-            f.write(json.dumps(profile_result))
+    dbt = ds.args.get('dbt')
+    tables = None
+    if dbt:
+        passed, error_msg, tables = _fetch_dbt_catalog(dbt, table)
+        if not passed:
+            console.print(
+                "[bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' files")
+            raise DbtCatalogError(error_msg)
+    else:
+        if table:
+            tables = [table]
 
-        # TODO stop here if tests was not needed.
-        assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
-                                                                      profile_result, created_at)
-        if assertion_results:
-            console.rule('Assertion Results')
-            _show_assertion_result(console, assertion_results, assertion_exceptions)
+    console.rule('Profiling')
+    run_id = uuid.uuid4().hex
+    created_at = datetime.now()
+    engine = create_engine(ds.to_database_url(), **ds.engine_args())
+    profiler = Profiler(engine)
+    profile_result = profiler.profile(tables)
 
-        console.rule('Summary')
+    output_path = prepare_output_path(created_at, ds, output)
 
-        profile_result['id'] = run_id
-        profile_result['created_at'] = created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-        profile_result['datasource'] = dict(name=ds.name, type=ds.type_name)
+    # output profiling result
+    with open(os.path.join(output_path, ".profiler.json"), "w") as f:
+        f.write(json.dumps(profile_result))
 
-        output_file = os.path.join(output_path, 'run.json')
-        for t in profile_result['tables']:
-            profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(t, assertion_results)
+    # TODO stop here if tests was not needed.
+    assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
+                                                                  profile_result, created_at)
+    if assertion_results:
+        console.rule('Assertion Results')
+        _show_assertion_result(console, assertion_results, assertion_exceptions)
 
-            _show_table_summary(console, t, profile_result['tables'][t], assertion_results)
+    console.rule('Summary')
 
-            with open(output_file, 'w') as f:
-                f.write(json.dumps(profile_result['tables'][t], indent=4))
-        if skip_report:
-            console.print(f'Results saved to {output_path}')
+    profile_result['id'] = run_id
+    profile_result['created_at'] = created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+    profile_result['datasource'] = dict(name=ds.name, type=ds.type_name)
+
+    output_file = os.path.join(output_path, 'run.json')
+    for t in profile_result['tables']:
+        profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(t, assertion_results)
+
+        _show_table_summary(console, t, profile_result['tables'][t], assertion_results)
+
+    with open(output_file, 'w') as f:
+        f.write(json.dumps(profile_result, indent=4))
+    if skip_report:
+        console.print(f'Results saved to {output_path}')
 
 
 def prepare_output_path(created_at, ds, output):
