@@ -178,7 +178,7 @@ def assert_column_unique(context: AssertionContext, table: str, column: str, met
     success = (non_nulls == distinct)
     context.result.actual = dict(success=success)
 
-    if context.result.actual:
+    if success:
         return context.result.success()
 
     return context.result.fail()
