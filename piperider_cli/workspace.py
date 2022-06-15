@@ -409,6 +409,8 @@ def _show_assertion_result(console: Console, results, exceptions, failed_only=Fa
             else:
                 console.print(
                     f'[[bold red]FAILED[/bold red]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
+                if assertion.result.exception:
+                    console.print(f'         [bold white]Reason[/bold white]: {assertion.result.exception}')
     # TODO: Handle exceptions
     pass
 
