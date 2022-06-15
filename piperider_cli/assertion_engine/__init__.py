@@ -3,10 +3,12 @@ from datetime import datetime
 from .assertion import AssertionEngine, AssertionContext, AssertionResult
 
 
+COLUMN_TYPES = ['string', 'integer', 'numeric', 'datetime', 'date', 'time', 'boolean', 'other']
+
+
 def assert_row_count_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     table_metrics = metrics.get('tables', {}).get(table)
     if not table_metrics:
-        # cannot find the table in the metrics
         return context.result.fail_with_metric_not_found_error(table, column)
 
     # Get the metric for the current table
@@ -15,12 +17,16 @@ def assert_row_count_in_range(context: AssertionContext, table: str, column: str
 
     between_criteria = context.asserts.get('count', [])
 
-    # TODO check assert args
-    # TODO should make sure lower value at the first params
     if len(between_criteria) != 2:
-        return context.result.fail()
+        return context.result.fail_with_assertion_error('Expect a range [min_value, max_value].')
 
-    # TODO would we follow inclusive exclusive convention [m,n) ?
+    valid_type = isinstance(between_criteria[0], int) and isinstance(between_criteria[1], int)
+    if not valid_type:
+        return context.result.fail_with_assertion_error('The range should be integers.')
+
+    if between_criteria[0] > between_criteria[1]:
+        return context.result.fail_with_assertion_error('The minimun value of the range should be the first number.')
+
     if between_criteria[0] <= row_count <= between_criteria[1]:
         return context.result.success()
 
@@ -30,12 +36,17 @@ def assert_row_count_in_range(context: AssertionContext, table: str, column: str
 def assert_column_type(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
-        # cannot find the column in the metrics
         return context.result.fail_with_metric_not_found_error(table, column)
 
     # Check assertion input
     assert_type = context.asserts.get('type').lower()
-    column_type = column_metrics.get('type').lower()
+    if not assert_type:
+        return context.result.fail_with_assertion_error(f'Expect a type in {COLUMN_TYPES}')
+
+    if assert_type not in COLUMN_TYPES:
+        return context.result.fail_with_assertion_error(f'The column type should one of {COLUMN_TYPES}.')
+
+    column_type = column_metrics.get('type')
 
     context.result.actual = column_type
 
@@ -48,13 +59,19 @@ def assert_column_type(context: AssertionContext, table: str, column: str, metri
 def assert_column_in_types(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
-        # cannot find the column in the metrics
         return context.result.fail_with_metric_not_found_error(table, column)
 
     # Check assertion input
     assert_types = context.asserts.get('types', [])
     assert_types = [x.lower() for x in assert_types]
-    column_type = column_metrics.get('type').lower()
+    if not assert_types:
+        return context.result.fail_with_assertion_error(f'Expect a list of types in {COLUMN_TYPES}')
+
+    invalid_types = [t for t in assert_types if t not in COLUMN_TYPES]
+    if invalid_types:
+        return context.result.fail_with_assertion_error(f'Invalid types {invalid_types}. The column type should one of {COLUMN_TYPES}.')
+
+    column_type = column_metrics.get('type')
 
     context.result.actual = column_type
 
@@ -76,19 +93,17 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
                             **kwargs) -> AssertionResult:
     table_metrics = metrics.get('tables', {}).get(table)
     if not table_metrics:
-        # cannot find the table in the metrics
         return context.result.fail_with_metric_not_found_error(table, None)
 
     column_metrics = table_metrics.get('columns', {}).get(column)
     if not column_metrics:
-        # cannot find the column in the metrics
         return context.result.fail_with_metric_not_found_error(table, column)
 
     # Check assertion input
     target_metric = kwargs.get('target_metric')
     values = context.asserts.get(target_metric)
     if not values or len(values) != 2:
-        return context.result.fail_with_assertion_error('Invalid assert.')
+        return context.result.fail_with_assertion_error('Expect a range [min_value, max_value].')
 
     if not column_metrics.get(target_metric):
         return context.result.fail_with_metric_not_found_error(table, column)
@@ -98,29 +113,19 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
     if column_metrics.get('type') == 'datetime':
         # TODO: check datetime format. Maybe we can leverage the format checking by YAML parser
         actual = datetime.strptime(column_metrics.get(target_metric), '%Y-%m-%d %H:%M:%S.%f')
-        from_value = values[0]
-        to_value = values[1]
-
-        if from_value <= actual <= to_value:
-            # TODO: store actual value
-            return context.result.success()
-        return context.result.fail()
-    elif column_metrics.get('type') == 'numeric':
+    elif column_metrics.get('type') in ['integer', 'numeric']:
         actual = column_metrics.get(target_metric)
-        if values[0] <= actual <= values[1]:
-            # TODO: store actual value
-            return context.result.success()
-        return context.result.fail()
     else:
         return context.result.fail_with_assertion_error('Column not support range.')
 
-    pass
+    if values[0] <= actual <= values[1]:
+        return context.result.success()
+    return context.result.fail()
 
 
 def assert_column_not_null(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
-        # cannot find the column in the metrics
         return context.result.fail_with_metric_not_found_error(table, column)
 
     if context.asserts:
