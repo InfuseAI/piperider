@@ -1,0 +1,37 @@
+name: Run tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Install dependencies
+        run: |
+          sudo apt-get install expect dejagnu
+          pip install piperider-nightly
+
+      - name: Run tests
+        continue-on-error: true
+        run: |
+          cd e2e-tests
+          runtest --tool=testsuite/init
+
+      - name: Archive e2e artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: e2e-data
+          path: |
+            e2e-tests
