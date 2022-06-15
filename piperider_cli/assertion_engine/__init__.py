@@ -9,7 +9,7 @@ COLUMN_TYPES = ['string', 'integer', 'numeric', 'datetime', 'date', 'time', 'boo
 def assert_row_count_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     table_metrics = metrics.get('tables', {}).get(table)
     if not table_metrics:
-        return context.result.fail_with_metric_not_found_error(table, column)
+        return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
     # Get the metric for the current table
     row_count = table_metrics.get('row_count')
@@ -36,7 +36,7 @@ def assert_row_count_in_range(context: AssertionContext, table: str, column: str
 def assert_column_type(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
-        return context.result.fail_with_metric_not_found_error(table, column)
+        return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
     # Check assertion input
     assert_type = context.asserts.get('type').lower()
@@ -59,7 +59,7 @@ def assert_column_type(context: AssertionContext, table: str, column: str, metri
 def assert_column_in_types(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
-        return context.result.fail_with_metric_not_found_error(table, column)
+        return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
     # Check assertion input
     assert_types = context.asserts.get('types', [])
@@ -93,11 +93,11 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
                             **kwargs) -> AssertionResult:
     table_metrics = metrics.get('tables', {}).get(table)
     if not table_metrics:
-        return context.result.fail_with_metric_not_found_error(table, None)
+        return context.result.fail_with_metric_not_found_error(context.table, None)
 
     column_metrics = table_metrics.get('columns', {}).get(column)
     if not column_metrics:
-        return context.result.fail_with_metric_not_found_error(table, column)
+        return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
     # Check assertion input
     target_metric = kwargs.get('target_metric')
@@ -106,7 +106,7 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
         return context.result.fail_with_assertion_error('Expect a range [min_value, max_value].')
 
     if not column_metrics.get(target_metric):
-        return context.result.fail_with_metric_not_found_error(table, column)
+        return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
     context.result.actual = {target_metric: column_metrics.get(target_metric)}
 
@@ -126,7 +126,7 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
 def assert_column_not_null(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
-        return context.result.fail_with_metric_not_found_error(table, column)
+        return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
     if context.asserts:
         return context.result.fail_with_no_assert_is_required()
@@ -147,7 +147,7 @@ def assert_column_null(context: AssertionContext, table: str, column: str, metri
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
         # cannot find the column in the metrics
-        return context.result.fail_with_metric_not_found_error(table, column)
+        return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
     if context.asserts:
         return context.result.fail_with_no_assert_is_required()
@@ -167,7 +167,7 @@ def assert_column_unique(context: AssertionContext, table: str, column: str, met
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
         # cannot find the column in the metrics
-        return context.result.fail_with_metric_not_found_error(table, column)
+        return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
     if context.asserts:
         return context.result.fail_with_no_assert_is_required()
@@ -188,7 +188,7 @@ def assert_column_exist(context: AssertionContext, table: str, column: str, metr
     table_metrics = metrics.get('tables', {}).get(table)
     if not table_metrics:
         # cannot find the table in the metrics
-        return context.result.fail_with_metric_not_found_error(table, None)
+        return context.result.fail_with_metric_not_found_error(context.table, None)
 
     if context.asserts:
         return context.result.fail_with_no_assert_is_required()
