@@ -464,7 +464,7 @@ def _transform_assertion_result(table: str, results):
     return dict(tests=tests, columns=columns)
 
 
-def run(datasource=None, table=None, output=None, interaction=True):
+def run(datasource=None, table=None, output=None, interaction=True, skip_report=False):
     console = Console()
     configuration = Configuration.load()
 
@@ -527,7 +527,8 @@ def run(datasource=None, table=None, output=None, interaction=True):
 
             with open(output_file, 'w') as f:
                 f.write(json.dumps(profile_result['tables'][t], indent=4))
-        console.print(f'Results saved to {output_path}')
+        if skip_report:
+            console.print(f'Results saved to {output_path}')
 
 
 def prepare_output_path(created_at, ds, output):
