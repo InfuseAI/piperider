@@ -515,7 +515,6 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
         profile_result['id'] = run_id
         profile_result['created_at'] = created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         profile_result['datasource'] = dict(name=ds.name, type=ds.type_name)
-        profile_result['run_type'] = 'single'
 
         output_file = os.path.join(output_path, 'run.json')
         for t in profile_result['tables']:
@@ -551,7 +550,7 @@ def prepare_output_path(created_at, ds, output):
 
 
 def _validate_input_result(result):
-    for f in ['run_type', 'tables', 'id', 'created_at', 'datasource']:
+    for f in ['tables', 'id', 'created_at', 'datasource']:
         if f not in result:
             return False
     return True
