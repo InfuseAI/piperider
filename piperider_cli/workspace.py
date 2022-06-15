@@ -471,7 +471,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
         datasources[ds.name] = ds
 
     if len(datasource_names) == 0:
-        console.print(f"[bold red]Error: no datasource found[/bold red]")
+        console.print("[bold red]Error: no datasource found[/bold red]")
         return
 
     if datasource and datasource not in datasource_names:
