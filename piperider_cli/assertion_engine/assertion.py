@@ -38,11 +38,6 @@ def load_yaml_configs(path):
                 if not payload:
                     failed.append(file_path)
                 else:
-                    # transform tables' key and columns' key to lower case
-                    payload = _dict_key_to_lower(payload)
-                    for t in payload:
-                        if payload[t].get('columns', {}):
-                            payload[t]['columns'] = _dict_key_to_lower(payload[t]['columns'])
                     passed.append(file_path)
                     content.update(payload)
 
@@ -234,7 +229,7 @@ class AssertionEngine:
         # Load assertion
         for t in self.assertions_content:
             # only append specified table's assertions
-            if t in specified_tables:
+            if t.lower() in specified_tables:
                 for ta in self.assertions_content[t].get('tests', []):
                     self.assertions.append(AssertionContext(t, None, ta.get('name'), self.assertions_content))
                 for c in self.assertions_content[t].get('columns', {}):
@@ -331,7 +326,10 @@ class AssertionEngine:
             return assertion
 
         try:
-            result = func(assertion, assertion.table, assertion.column, metrics_result)
+            # search table and column in metrics_result in case insensitive way
+            table = assertion.table.lower() if assertion.table else assertion.table
+            column = assertion.column.lower() if assertion.column else assertion.column
+            result = func(assertion, table, column, metrics_result)
             result.validate()
         except Exception as e:
             assertion.result.fail_with_exception(e)
