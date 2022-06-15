@@ -572,7 +572,6 @@ def generate_report(input=None):
     with open(os.path.join(report_template_dir, 'index.html')) as f:
         report_template_html = f.read()
 
-    created_at = datetime.now()
     run_json = None
 
     if input:
