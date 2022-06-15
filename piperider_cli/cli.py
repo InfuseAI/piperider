@@ -108,16 +108,20 @@ def diagnose(**kwargs):
 @click.option('--table', default=None)
 @click.option('--output', default=None)
 @click.option('--no-interaction', is_flag=True, help='Disable interactive question')
-@click.option('--generate-report', is_flag=True, help='Generate report directly')
+@click.option('--skip-report', is_flag=True, help='Skip generating report')
 @add_options(debug_option)
 def run(**kwargs):
     console = Console()
     datasource = kwargs.get('datasource')
     table = kwargs.get('table')
     output = kwargs.get('output')
-    workspace.run(datasource=datasource, table=table, output=output, interaction=not kwargs.get('no_interaction'))
-    if kwargs.get('generate_report'):
-        console.print('\n')
+    skip_report = kwargs.get('skip_report')
+    workspace.run(datasource=datasource,
+                  table=table,
+                  output=output,
+                  interaction=not kwargs.get('no_interaction'),
+                  skip_report=skip_report)
+    if not skip_report:
         workspace.generate_report()
 
 
