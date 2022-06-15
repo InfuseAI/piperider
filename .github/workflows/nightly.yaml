@@ -29,7 +29,7 @@ jobs:
           # release to PyPI
           make release
         env:
-          PYPIRC: ${{ secrets.PYPI }}
+          PYPIRC: ${{ secrets.PYPI_NIGHTLY }}
           CONFIG: ${{ secrets.CONFIG }}
 
       - name: Mark Sentry Release
