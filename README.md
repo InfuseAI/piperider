@@ -44,11 +44,11 @@ PipeRider allows you to define the shape of your data once, and then use the dat
 
 ## Instant quality assessment in html report
 
-Check [single run view](images/piperider_single_run.png)
+Check [single run view](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/single-run/global_mobility_report.html)
 
 ## Report Comparison
 
-Check [comparison view](images/piperider_comparison_view.png)
+Check [comparison view](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/compare-report/index.html)
 
 ## Extensible custom assertions
 
