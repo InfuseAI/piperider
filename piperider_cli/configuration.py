@@ -31,13 +31,14 @@ class Configuration(object):
     at $PROJECT_ROOT./piperider/config.yml
     """
 
-    def __init__(self, dataSources: List[DataSource], id=None):
+    def __init__(self, dataSources: List[DataSource], **kwargs):
         self.dataSources: List[DataSource] = dataSources
-        self._id = id if id else uuid.uuid4().hex
-        pass
+        self.telemetry_id = kwargs.get('telemetry_id', None)
+        if self.telemetry_id is None:
+            self.telemetry_id = uuid.uuid4().hex
 
-    def get_id(self):
-        return self._id
+    def get_telemetry_id(self):
+        return self.telemetry_id
 
     @classmethod
     def from_dbt_project(cls, dbt_project_path, dbt_profiles_dir=None):
@@ -128,7 +129,7 @@ class Configuration(object):
                     credential = None
                 data_source = datasource_class(name=ds.get('name'), credential=credential)
             data_sources.append(data_source)
-        return cls(dataSources=data_sources, id=config.get('id'))
+        return cls(dataSources=data_sources, telemetry_id=config.get('telemetry', {}).get('id'))
 
     def dump(self, path):
         """
@@ -136,7 +137,7 @@ class Configuration(object):
         :param path:
         :return:
         """
-        config = dict(dataSources=[], id=self.get_id())
+        config = dict(dataSources=[], telemetry=dict(id=self.telemetry_id))
 
         for d in self.dataSources:
             datasource = dict(name=d.name, type=d.type_name)

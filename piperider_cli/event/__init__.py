@@ -65,7 +65,7 @@ def _obtain_project_info(datasource=None):
                 project_type = 'dbt'
             datasource_types.append(ds.type_name)
         return dict(
-            project_id=configuration.get_id(),
+            project_id=configuration.get_telemetry_id(),
             project_type=project_type,
             datasource_types=datasource_types,
         )
