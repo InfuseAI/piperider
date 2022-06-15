@@ -55,7 +55,7 @@ expect {
         pass "init with sqlite pass"
     }
     eof {
-        fail "something is broken"
+        fail "something is broken at diagnose"
     }
 }
 
@@ -63,7 +63,7 @@ expect {
 spawn piperider run --no-interaction
 
 expect {
-    "Results saved to" {
+    "Reports" {
         pass "run finished"
     }
     eof {
