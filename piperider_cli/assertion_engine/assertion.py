@@ -6,6 +6,10 @@ from importlib import import_module
 from ruamel import yaml
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
+from piperider_cli.error import \
+    AssertionError, \
+    IllegalStateAssertionError
+
 
 def safe_load_yaml(file_path):
     payload = None
@@ -36,10 +40,6 @@ def load_yaml_configs(path):
     return passed, failed, content
 
 
-class IllegalStateAssertionException(BaseException):
-    pass
-
-
 class AssertionResult:
 
     def __init__(self):
@@ -62,6 +62,10 @@ class AssertionResult:
             return obj
 
         return _castDatetimeToString(dict(self._expected))
+
+    @property
+    def exception(self):
+        return self._exception
 
     def validate(self):
         if self._exception:
@@ -91,29 +95,34 @@ class AssertionResult:
         self._exception = exception
         return self
 
-    def fail_with_syntax_error(self):
+    def fail_with_assertion_error(self, message):
         self._success = False
-        self._exception = SyntaxError()
+        self._exception = AssertionError(message)
         return self
 
     def fail_with_metric_not_found_error(self, table, column):
         self._success = False
         if not column:
-            self._exception = IllegalStateAssertionException(
-                f"Table '{table}' metric not found")
+            self._exception = AssertionError(
+                f"Table '{table}' metric not found.")
         else:
-            self._exception = IllegalStateAssertionException(
-                f"Column '{column}' metric not found")
+            self._exception = AssertionError(
+                f"Column '{column}' metric not found.")
+        return self
+
+    def fail_with_no_assert_is_required(self):
+        self._success = False
+        self._exception = AssertionError("No assert is required.")
         return self
 
     def fail_with_assertion_implementation_error(self):
         self._success = False
-        self._exception = IllegalStateAssertionException(
+        self._exception = IllegalStateAssertionError(
             "Assertion Function should fill 'actual' and 'expected' fields.")
         return self
 
     def get_internal_error(self):
-        if isinstance(self._exception, AssertionException):
+        if isinstance(self._exception, AssertionError):
             return self._exception
 
     def __repr__(self):
@@ -168,10 +177,6 @@ class AssertionContext:
             actual=self.result.actual,
             tags=self.tags,
         )
-
-
-class AssertionException(BaseException):
-    pass
 
 
 class AssertionEngine:
@@ -304,13 +309,13 @@ class AssertionEngine:
                 assertion_module = import_module(module_name)
                 func = getattr(assertion_module, function_name)
         except ModuleNotFoundError as e:
-            assertion.result.fail_with_exception(AssertionException(f'Cannot find the assertion: {assertion.name}', e))
+            assertion.result.fail_with_exception(AssertionError(f'Cannot find the assertion: {assertion.name}', e))
             return assertion
         except ImportError as e:
-            assertion.result.fail_with_exception(AssertionException(f'Cannot find the assertion: {assertion.name}', e))
+            assertion.result.fail_with_exception(AssertionError(f'Cannot find the assertion: {assertion.name}', e))
             return assertion
         except Exception as e:
-            assertion.result.fail_with_exception(AssertionException(f'Cannot find the assertion: {assertion.name}', e))
+            assertion.result.fail_with_exception(AssertionError(f'Cannot find the assertion: {assertion.name}', e))
             return assertion
 
         try:
@@ -332,8 +337,10 @@ class AssertionEngine:
 
                 if assertion_result.result.get_internal_error():
                     raise assertion_result.result.get_internal_error()
-            except AssertionException as e:
-                print("Internal Error", e)
+            except AssertionError as e:
+                exceptions.append((assertion, e))
+            except IllegalStateAssertionError as e:
+                exceptions.append((assertion, e))
             except BaseException as e:
                 exceptions.append((assertion, e))
         return results, exceptions

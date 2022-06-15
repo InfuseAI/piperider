@@ -51,3 +51,15 @@ class DbtCatalogError(PipeRiderError):
     def __init__(self, error_msg, **kwargs):
         self.message = error_msg
         pass
+
+
+class AssertionError(PipeRiderError):
+    def __init__(self, error_msg):
+        self.message = error_msg
+        pass
+
+
+class IllegalStateAssertionError(PipeRiderError):
+    def __init__(self, error_msg):
+        self.message = error_msg
+        pass
