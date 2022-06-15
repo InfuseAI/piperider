@@ -28,6 +28,7 @@ PipeRider allows you to define the shape of your data once, and then use the dat
 # Learn More
 
 | PipeRider Resources | Description |
+| -------------------- | ----------- |
 | [Documentation] | PipeRider Main Doc Site |
 | [Sample_Project] | Sample Project with with sqlite |
 | [dbt_Sample_Project] | Sample Project with dbt |
