@@ -111,7 +111,6 @@ def diagnose(**kwargs):
 @click.option('--skip-report', is_flag=True, help='Skip generating report')
 @add_options(debug_option)
 def run(**kwargs):
-    console = Console()
     datasource = kwargs.get('datasource')
     table = kwargs.get('table')
     output = kwargs.get('output')
