@@ -314,9 +314,6 @@ def _fetch_dbt_manifest(dbt, table=None):
     if os.path.exists(dbt_manifest):
         with open(dbt_manifest) as fd:
             manifest = json.loads(fd.read())
-        # TODO we should consider the case that the table name is not unique
-        # syntax after py3.9:
-        # content = manifest.get('nodes', {}) | manifest.get('sources', {})
         content = manifest.get('nodes', {})
         content.update(manifest.get('sources', {}))
         for k, v in content.items():
