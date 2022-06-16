@@ -1,9 +1,15 @@
-from click.core import Command, Context
-from piperider_cli import event
-from rich.console import Console
-import typing as t
-import sentry_sdk
+import os
 import sys
+import traceback
+import typing as t
+
+import sentry_sdk
+from click.core import Command, Context
+from rich.console import Console
+
+from piperider_cli import event
+
+_enable_trackback: bool = os.environ.get('PIPERIDER_PRINT_TRACKBACK') == '1'
 
 
 class TrackCommand(Command):
@@ -40,6 +46,8 @@ class TrackCommand(Command):
             status = True
             return ret
         except Exception as e:
+            if _enable_trackback:
+                print(traceback.format_exc())
             self._show_error_message(e, ctx.params)
             sentry_sdk.capture_exception(e)
             sentry_sdk.flush()
