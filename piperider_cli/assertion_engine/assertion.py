@@ -211,10 +211,10 @@ class AssertionEngine:
         """
         return load_yaml_configs(assertion_search_path)
 
-    def load_assertions(self):
+    def load_assertions(self, assertions_content={}):
         """
         This method is used to load assertions from the specific path.
-        :param assertion_search_path:
+        :param assertions_content:
         :return:
         """
         """
@@ -223,6 +223,9 @@ class AssertionEngine:
         """
         passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
             self.assertion_search_path)
+
+        if assertions_content:
+            self.assertions_content.update(assertions_content)
 
         specified_tables = set(table.lower() for table in list(self.profiler.metadata.tables))
 
@@ -236,19 +239,18 @@ class AssertionEngine:
                     for ca in self.assertions_content[t]['columns'][c].get('tests', []):
                         self.assertions.append(AssertionContext(t, c, ca.get('name'), self.assertions_content))
 
-    def generate_assertion_templates(self):
+    def generate_assertion_templates(self, assertions_content={}):
         """
         This method is used to generate assertion templates.
-        :param assertion_search_path:
+        :param assertions_content:
         :return:
         """
 
         if not self.assertions_content:
-            self.load_assertions()
+            self.load_assertions(assertions_content)
 
+        suggest_assertion_add = False
         for table in list(self.profiler.metadata.tables):
-            if table in self.assertions_content:
-                continue
             assertion = CommentedMap({
                 table: CommentedMap({
                     'tests': CommentedSeq(),
@@ -271,13 +273,28 @@ class AssertionEngine:
                 assertion[table]['columns'][column_name].yaml_set_comment_before_after_key('tests',
                                                                                            indent=6,
                                                                                            before='Test Cases for Column')
+                for context in self.assertions:
+                    if context.table == table and context.column == column_name:
+                        assertion[table]['columns'][column_name]['tests'].append(
+                            {
+                                'name': context.name,
+                                'assert': context.asserts
+                            }
+                        )
+                        print(f'Add suggested assertion {context.name} for {context.table}.{context.column}')
+                        suggest_assertion_add = True
 
             file_path = os.path.join(self.assertion_search_path, f'{table}.yml')
             with open(file_path, 'w') as f:
-                print(
-                    f'Generating assertion template for table "{table}" -> {file_path}')
+                if suggest_assertion_add:
+                    print(
+                        f'Add suggested assertions for table "{table}" -> {file_path}')
+                else:
+                    print(
+                        f'Generating assertion template for table "{table}" -> {file_path}')
                 yaml.YAML().dump(assertion, f)
-        pass
+
+            suggest_assertion_add = False
 
     def evaluate(self, assertion: AssertionContext, metrics_result):
         """

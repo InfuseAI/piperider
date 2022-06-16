@@ -363,14 +363,65 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
                           end=' ')
             confirm = input('').strip().lower()
             if confirm == 'yes' or confirm == 'y':
-                assertion_engine.generate_assertion_templates()
+                suggest_assertions_content = _suggest_tests(result)
+                assertion_engine.generate_assertion_templates(suggest_assertions_content)
         else:
-            assertion_engine.generate_assertion_templates()
-        console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
-        return None, None  # no assertion to run
+            suggest_assertions_content = _suggest_tests(result)
+            assertion_engine.generate_assertion_templates(suggest_assertions_content)
+
+        if suggest_assertions_content:
+            # TODO: hold here to let user review template
+            results, exceptions = assertion_engine.evaluate_all(result)
+            return results, exceptions
+        else:
+            console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
+            return None, None  # no assertion to run
     else:
         results, exceptions = assertion_engine.evaluate_all(result)
         return results, exceptions
+
+
+_suggest_test = {
+        'PRICE':
+            {
+                'columns':
+                    {
+                        'OPEN':
+                            {
+                                'tests': [
+                                    {
+                                        'name': 'assert_column_min_in_range',
+                                        'assert':
+                                            {
+                                                'min': [0, 50]
+                                            }
+                                    },
+                                    {
+                                        'name': 'assert_column_max_in_range',
+                                        'assert':
+                                            {
+                                                'max': [0, 100000]
+                                            }
+                                    }
+                                ]
+                            }
+                    }
+            }
+        }
+
+
+def _suggest_tests(profile_result):
+
+    # return a assertion_content format
+    if profile_result:
+        for t in profile_result.get('tables', []):
+            for c in profile_result['tables'][t].get('columns', []):
+                if profile_result['tables'][t]['columns'][c]['type'] == 'numeric':
+                    pass
+                elif profile_result['tables'][t]['columns'][c]['type'] == 'string':
+                    pass
+
+    return _suggest_test
 
 
 def _show_assertion_result(console: Console, results, exceptions, failed_only=False, single_table=None):
