@@ -63,7 +63,7 @@ expect {
 spawn piperider run --no-interaction
 
 expect {
-    "Reports" {
+    "Summary" {
         pass "run finished"
     }
     eof {
