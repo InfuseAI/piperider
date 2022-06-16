@@ -613,10 +613,7 @@ def generate_report(input=None):
     console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {run_json}')
 
     dir = os.path.dirname(run_json)
-    shutil.copytree(report_template_dir,
-                    dir,
-                    dirs_exist_ok=True,
-                    ignore=shutil.ignore_patterns('index.html'))
+    clone_directory(report_template_dir, dir)
 
     _generate_static_html(result, report_template_html, dir)
     console.print(f"Report generated in {dir}/index.html")
