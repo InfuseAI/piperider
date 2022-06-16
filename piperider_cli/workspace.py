@@ -18,7 +18,7 @@ from piperider_cli.compare_report import CompareReport
 from piperider_cli.configuration import Configuration, PIPERIDER_WORKSPACE_NAME, PIPERIDER_CONFIG_PATH, \
     PIPERIDER_CREDENTIALS_PATH
 from piperider_cli.datasource import DataSource
-from piperider_cli.error import PipeRiderCredentialError, DbtCatalogError, PipeRiderDiagnosticError
+from piperider_cli.error import PipeRiderCredentialError, DbtManifestError, PipeRiderDiagnosticError
 from piperider_cli.profiler import Profiler
 
 PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
@@ -123,7 +123,7 @@ class CheckConnections(AbstractChecker):
         return all_passed, ''
 
 
-class CheckDbtCatalog(AbstractChecker):
+class CheckDbtManifest(AbstractChecker):
     def check_function(self, configurator: Configuration) -> (bool, str):
         all_passed = True
         error_msg = ''
@@ -134,13 +134,13 @@ class CheckDbtCatalog(AbstractChecker):
                 self.console.print(f'  {ds.name}: [[bold yellow]SKIP[/bold yellow]] provider is not dbt')
                 continue
 
-            self.console.print(f'  {os.path.expanduser(dbt.get("projectDir"))}/target/catalog.json: ', end='')
-            passed, error_msg, _ = _fetch_dbt_catalog(dbt)
+            self.console.print(f'  {os.path.expanduser(dbt.get("projectDir"))}/target/manifest.json: ', end='')
+            passed, error_msg, _ = _fetch_dbt_manifest(dbt)
             if not passed:
                 all_passed = False
                 self.console.print(f'{ds.name}: [[bold red]Failed[/bold red]] Error: {error_msg}')
                 self.console.print(
-                    "  [bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' file")
+                    "  [bold yellow]Note:[/bold yellow] Please run command 'dbt build/run/test' to update 'manifest.json' file")
             else:
                 self.console.print(f'{ds.name}: [[bold green]OK[/bold green]]')
         return all_passed, error_msg
@@ -300,45 +300,44 @@ def init(dbt_project_path=None, dbt_profiles_dir=None):
     return configuration
 
 
-def _fetch_dbt_catalog(dbt, table=None):
-    tables = []
+def _fetch_dbt_manifest(dbt, table=None):
+    tables = set()
     if dbt is None:
-        return True, '', tables
+        return True, '', []
 
     for key in ['profile', 'target', 'projectDir']:
         if key not in dbt:
-            raise DbtCatalogError(f"'{key}' is not in dbt config")
+            raise DbtManifestError(f"'{key}' is not in dbt config")
 
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
-    dbt_catalog = os.path.join(dbt_root, 'target', 'catalog.json')
-    if os.path.exists(dbt_catalog):
-        with open(dbt_catalog) as fd:
-            catalog = json.loads(fd.read())
+    dbt_manifest = os.path.join(dbt_root, 'target', 'manifest.json')
+    if os.path.exists(dbt_manifest):
+        with open(dbt_manifest) as fd:
+            manifest = json.loads(fd.read())
         # TODO we should consider the case that the table name is not unique
         # syntax after py3.9:
-        # content = catalog.get('nodes', {}) | catalog.get('sources', {})
-        content = catalog.get('nodes', {})
-        content.update(catalog.get('sources', {}))
+        # content = manifest.get('nodes', {}) | manifest.get('sources', {})
+        content = manifest.get('nodes', {})
+        content.update(manifest.get('sources', {}))
         for k, v in content.items():
-            metadata = v.get('metadata', {})
-            name = metadata.get('name')
-            schema = metadata.get('schema')
+            name = v.get('name')
+            schema = v.get('schema')
             if table and name != table:
                 continue
             if schema == 'public':
                 table_name = name
             else:
                 table_name = f'{schema}.{name}'
-            tables.append(table_name)
+            tables.add(table_name)
     else:
-        return False, f"'{dbt_catalog}' not found", []
+        return False, f"'{dbt_manifest}' not found", []
 
     if table and not tables:
-        return False, f"Table '{table}' doesn't exist in {dbt_catalog}", []
+        return False, f"Table '{table}' doesn't exist in {dbt_manifest}", []
     if not tables:
-        return False, f'No table found in {dbt_catalog}', []
+        return False, f'No table found in {dbt_manifest}', []
 
-    return True, '', tables
+    return True, '', list(tables)
 
 
 def debug():
@@ -346,7 +345,7 @@ def debug():
     handler.set_checker('config files', CheckConfiguration)
     handler.set_checker('format of data sources', CheckDataSources)
     handler.set_checker('connections', CheckConnections)
-    handler.set_checker('dbt catalog files', CheckDbtCatalog)
+    handler.set_checker('dbt manifest files', CheckDbtManifest)
     handler.set_checker('assertion files', CheckAssertionFiles)
     return handler.execute()
 
@@ -495,11 +494,11 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     dbt = ds.args.get('dbt')
     tables = None
     if dbt:
-        passed, error_msg, tables = _fetch_dbt_catalog(dbt, table)
+        passed, error_msg, tables = _fetch_dbt_manifest(dbt, table)
         if not passed:
             console.print(
-                "[bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' files")
-            raise DbtCatalogError(error_msg)
+                "[bold yellow]Note:[/bold yellow] Please run command 'dbt build/run/test' to update 'manifest.json' files")
+            raise DbtManifestError(error_msg)
     else:
         if table:
             tables = [table]
