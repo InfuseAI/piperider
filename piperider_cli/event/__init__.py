@@ -12,6 +12,7 @@ _yml = yaml.YAML()
 
 
 def init():
+    print('event init begin')
     api_key = _get_api_key()
     user_profile = None
 
@@ -23,15 +24,19 @@ def init():
             if user_profile.get('user_id') is None:
                 user_profile = _generate_user_profile()
 
+    print('user id:', user_profile.get('user_id'))
     _collector.set_api_key(api_key)
     _collector.set_user_id(user_profile.get('user_id'))
+    print('event init end')
 
 
 def _get_api_key():
+    print('get api key')
     from piperider_cli import data
     config_file = os.path.abspath(os.path.join(os.path.dirname(data.__file__), 'CONFIG'))
     with open(config_file) as fh:
         config = _yml.load(fh)
+        print('api key:', config.get('api_key'))
         return config.get('event_api_key')
 
 
@@ -71,19 +76,25 @@ def _obtain_project_info(datasource=None):
 
 
 def log_event(command, params, status):
+    print('log event begin')
     with open(PIPERIDER_USER_PROFILE, 'r') as f:
         user_profile = _yml.load(f)
     # TODO: default anonymous_tracking to false if field is not present
     tracking = user_profile.get('anonymous_tracking', False)
     tracking = tracking and isinstance(tracking, bool)
+    print('tracking: ', tracking)
     if not tracking:
         return
 
+    print('check if event collector is ready')
     if not _collector.is_ready():
         return
 
+    print('get datasource info')
     ds = params.get('datasource')
     project_info = _obtain_project_info(datasource=ds)
+    print('project info:', project_info)
+
     prop = dict(
         **project_info,
         command=command,
@@ -93,3 +104,4 @@ def log_event(command, params, status):
     whitelist = ['run', 'generate-report', 'compare-report']
     if command in whitelist:
         _collector.send_events()
+    print('log event end')
