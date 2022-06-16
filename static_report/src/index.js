@@ -1,6 +1,6 @@
 import { ChakraProvider } from '@chakra-ui/react';
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import theme from './theme';
@@ -13,7 +13,7 @@ root.render(
     <ChakraProvider resetCSS theme={theme}>
       <App />
     </ChakraProvider>
-  </StrictMode>
+  </StrictMode>,
 );
 
 // If you want to start measuring performance in your app, pass a function

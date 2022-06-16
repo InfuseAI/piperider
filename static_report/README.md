@@ -16,22 +16,30 @@ $ npm run start:single
 
 ### Comparsion Report
 
-```sh
-$ npm run start:compare
-```
+> **Warning**
+> _Under constructions_
 
 ## Build
 
+> **Note**
 > Generated **single report** and **comparison report** will place into `piperider_cli/data/report`
+
+You can use npm script running build scripts, or just use below `make` commands.
 
 ### Single Report
 
 ```sh
-$ npm run build:single
+$ make build-single
 ```
 
 ### Comparsion Report
 
 ```sh
-$ npm run build:compare
+$ make build-comparison
+```
+
+### Build Single & Comparison Reports
+
+```sh
+$ make build-all
 ```
