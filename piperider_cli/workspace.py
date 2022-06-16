@@ -355,7 +355,14 @@ def debug():
     handler.set_checker('assertion files', CheckAssertionFiles)
     return handler.execute()
 
-
+def _agreed_to_generate_recommended_assertions(console: Console, interactive: bool):
+    if interactive:
+        console.print('Do you want to auto generate assertion templates for this datasource \[yes/no]?',
+                      end=' ')
+        confirm = input('').strip().lower()
+        return confirm == 'yes' or confirm == 'y'
+    else:
+        return True
 def _execute_assertions(console: Console, profiler, ds: DataSource, interaction: bool, output, result, created_at):
     # TODO: Implement running test cases based on profiling result
     assertion_engine = AssertionEngine(profiler)
@@ -363,14 +370,13 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
 
     if not assertion_engine.assertions_content:
         console.print(f'No assertions found for datasource [ {ds.name} ]')
-        if interaction:
-            console.print('Do you want to auto generate assertion templates for this datasource \[yes/no]?',
-                          end=' ')
-            confirm = input('').strip().lower()
-            if confirm == 'yes' or confirm == 'y':
-                assertion_engine.generate_assertion_templates()
-        else:
-            assertion_engine.generate_assertion_templates()
+
+        if _agreed_to_generate_recommended_assertions(console, interaction):
+            recommended_assertions = assertion_engine.generate_recommended_assertions(result)
+            for f in recommended_assertions:
+                console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
+            assertion_engine.load_assertions()
+
         console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
         return None, None  # no assertion to run
     else:
