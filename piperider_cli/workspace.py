@@ -472,12 +472,12 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
     if len(datasource_names) == 0:
         console.print("[bold red]Error: no datasource found[/bold red]")
-        return
+        return 1
 
     if datasource and datasource not in datasource_names:
         console.print(f"[bold red]Error: datasource '{datasource}' doesn't exist[/bold red]")
         console.print(f"Available datasources: {', '.join(datasource_names)}")
-        return
+        return 1
 
     # Use the fisrt datasource if no datasource is specified
     ds_name = datasource if datasource else datasource_names[0]
@@ -540,7 +540,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
         f.write(json.dumps(profile_result, indent=4))
     if skip_report:
         console.print(f'Results saved to {output_path}')
-
+    return 0
 
 def prepare_output_path(created_at, ds, output):
     latest_symlink_path = os.path.join(PIPERIDER_OUTPUT_PATH, 'latest')
