@@ -169,6 +169,7 @@ function ProfilingInformation({ data }) {
                   </Text>
                   {''}(<Code>{column.type}</Code>)
                 </Text>
+
                 <Flex direction="column">
                   <Flex justifyContent="space-between">
                     <Text fontWeight={700}>Total:</Text>
@@ -229,17 +230,19 @@ function ProfilingInformation({ data }) {
                 )}
               </Flex>
 
-              {distribution ? (
-                <BarChart
-                  data={distribution.labels.map((label, i) => ({
-                    label,
-                    value: distribution.counts[i],
-                    total: column.total,
-                  }))}
-                />
-              ) : (
-                <BarChart data={[]} />
-              )}
+              <Flex mt={8}>
+                {distribution ? (
+                  <BarChart
+                    data={distribution.labels.map((label, i) => ({
+                      label,
+                      value: distribution.counts[i],
+                      total: column.total,
+                    }))}
+                  />
+                ) : (
+                  <BarChart data={[]} />
+                )}
+              </Flex>
             </Grid>
 
             <Divider my={4} />

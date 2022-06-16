@@ -23,7 +23,6 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "start:single": "REACT_APP_SINGLE_REPORT=true react-scripts start",
     "start:compare": "REACT_APP_SINGLE_REPORT=false react-scripts start",
     "build:single": "rimraf ../piperider_cli/data/report/single-report && REACT_APP_SINGLE_REPORT=true react-scripts build && mv build ../piperider_cli/data/report/single-report",
     "build:comparison": "rimraf ../piperider_cli/data/report/comparison-report && REACT_APP_SINGLE_REPORT=false react-scripts build && mv build ../piperider_cli/data/report/comparison-report",
