@@ -7,10 +7,10 @@ on:
       - main
     inputs:
       version_postfix:
-        description: 'Version postfix'
+        description: 'Version postfix serial number'
         required: true
-        type: string
-        default: 'manually'
+        type: number
+        default: '0'
 
 jobs:
   build-nightly-release:
@@ -46,8 +46,8 @@ jobs:
           # update version number
           echo "Nightly build version: $(date '+%Y%m%d')"
           if [ "$VERSION_POSTFIX" != "" ]; then
-            echo "Manually version postfix: $VERSION_POSTFIX"
-            sed -i.bak "s/\$/$(date '+%Y%m%d')-$VERSION_POSTFIX/" piperider_cli/VERSION
+            echo "Manually version postfix serial number: $VERSION_POSTFIX"
+            sed -i.bak "s/\$/$(date '+%Y%m%d')$VERSION_POSTFIX/" piperider_cli/VERSION
           else
             sed -i.bak "s/\$/$(date '+%Y%m%d')/" piperider_cli/VERSION
           fi
