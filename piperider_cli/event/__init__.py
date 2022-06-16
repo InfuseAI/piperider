@@ -36,7 +36,7 @@ def _get_api_key():
     config_file = os.path.abspath(os.path.join(os.path.dirname(data.__file__), 'CONFIG'))
     with open(config_file) as fh:
         config = _yml.load(fh)
-        print('api key:', config.get('api_key'))
+        print('api key:', config.get('event_api_key'))
         return config.get('event_api_key')
 
 
