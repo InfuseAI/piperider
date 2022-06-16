@@ -542,6 +542,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
         console.print(f'Results saved to {output_path}')
     return 0
 
+
 def prepare_output_path(created_at, ds, output):
     latest_symlink_path = os.path.join(PIPERIDER_OUTPUT_PATH, 'latest')
     output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
