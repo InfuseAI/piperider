@@ -31,7 +31,7 @@ jobs:
 
       - name: Archive e2e artifacts
         uses: actions/upload-artifact@v3
-        if: steps.RunTests.outcome == 'failure'
+        if: failure()
         with:
           name: e2e-data
           path: |

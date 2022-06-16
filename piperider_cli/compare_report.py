@@ -14,34 +14,33 @@ class ProfilerOutput(object):
     def __init__(self, path):
         self.path = path
         self.name = None
-        self.datasource = None
         self.created_at = None
 
+        self.table_count = 0
         self.pass_count = 0
         self.fail_count = 0
-        self.row_count = 0
-        self.col_count = 0
 
         try:
             with open(path, 'r') as f:
                 profile = json.load(f)
-                self.name = profile['name']
-                self.datasource = profile['datasource']['name']
-                self.row_count = profile['row_count']
-                self.col_count = profile['col_count']
+                self.name = profile['datasource']['name']
                 self.created_at = profile['created_at']
-                if profile.get('assertion_results'):
-                    for t in profile['assertion_results'].get('tests', []):
-                        if t.get('status') == 'passed':
-                            self.pass_count += 1
-                        else:
-                            self.fail_count += 1
-                    for col in profile['assertion_results'].get('columns', {}).keys():
-                        for t in profile['assertion_results']['columns'][col]:
+
+                tables = profile.get('tables', {})
+                self.table_count = len(tables.keys())
+                for table in tables.values():
+                    if table.get('assertion_results'):
+                        for t in table['assertion_results'].get('tests', []):
                             if t.get('status') == 'passed':
                                 self.pass_count += 1
                             else:
                                 self.fail_count += 1
+                        for col in table['assertion_results'].get('columns', {}).keys():
+                            for t in table['assertion_results']['columns'][col]:
+                                if t.get('status') == 'passed':
+                                    self.pass_count += 1
+                                else:
+                                    self.fail_count += 1
         except Exception as e:
             if isinstance(e, json.decoder.JSONDecodeError):
                 raise json.decoder.JSONDecodeError(
@@ -58,11 +57,11 @@ class ProfilerOutput(object):
         return data
 
     def __str__(self):
-        return f'{self.datasource}->{self.name:20} ' \
-               f'#pass={self.pass_count:3} ' \
-               f'#fail={self.fail_count:<3} ' \
-               f'#row={self.row_count:<8} ' \
-               f'#column={self.col_count:<3} {self.created_at}'
+        return f'{self.name:12} ' \
+               f'#table={self.table_count:<6} ' \
+               f'#pass={self.pass_count:<5} ' \
+               f'#fail={self.fail_count:<5} ' \
+               f'{self.created_at}'
 
 
 class ComparisonData(object):
@@ -304,31 +303,23 @@ class CompareReport(object):
         List existing profiler outputs.
         """
 
-        def _walk_throw_tables(path):
-            tables = []
-            for root, dirs, files in os.walk(path):
-                for file in files:
-                    if file.endswith(".json") and not file.startswith("."):
-                        try:
-                            tables.append(ProfilerOutput(os.path.join(root, file)))
-                        except Exception:
-                            pass
-            return tables
-
-        def _walk_throw_data_sources(path):
+        def _walk_throw_runs(path):
             outputs = []
-            for root, dirs, files in os.walk(path):
+            for root, dirs, _ in os.walk(path):
                 for dir in dirs:
-                    if dir != 'latest':
-                        tables = _walk_throw_tables(os.path.join(root, dir))
-                        outputs.extend(tables)
+                    if dir == 'latest':
+                        continue
+                    run_json = os.path.join(root, dir, 'run.json')
+                    if not os.path.exists(run_json):
+                        continue
+                    outputs.append(ProfilerOutput(run_json))
             outputs.sort(key=lambda x: (x.name, x.created_at), reverse=True)
             return outputs
 
         if output_search_path is None:
             output_search_path = self.profiler_output_path
 
-        return _walk_throw_data_sources(output_search_path)
+        return _walk_throw_runs(output_search_path)
 
     def select_reports(self):
         if self.a is None and self.b is None:

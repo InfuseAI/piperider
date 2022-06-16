@@ -18,23 +18,20 @@
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "wouter": "2.8.0-alpha.2"
   },
   "scripts": {
-    "start:single": "REACT_APP_SINGLE_REPORT=true react-scripts start",
+    "start": "react-scripts start",
     "start:compare": "REACT_APP_SINGLE_REPORT=false react-scripts start",
     "build:single": "rimraf ../piperider_cli/data/report/single-report && REACT_APP_SINGLE_REPORT=true react-scripts build && mv build ../piperider_cli/data/report/single-report",
-    "build:compare": "rimraf ../piperider_cli/data/report/comparison-report && REACT_APP_SINGLE_REPORT=false react-scripts build && mv build ../piperider_cli/data/report/comparison-report",
-    "build:all": "npm run build:single && npm run build:compare",
+    "build:comparison": "rimraf ../piperider_cli/data/report/comparison-report && REACT_APP_SINGLE_REPORT=false react-scripts build && mv build ../piperider_cli/data/report/comparison-report",
+    "build:all": "npm run build:single && npm run build:comparison",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "cleanup": "rimraf ../piperider_cli/data/report/single-report && rimraf ../piperider_cli/data/report/comparison-report"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "cleanup": "rimraf ../piperider_cli/data/report/single-report && rimraf ../piperider_cli/data/report/comparison-report",
+    "lint": "eslint src/",
+    "lint:fix": "npm run lint -- --fix"
   },
   "browserslist": {
     "production": [
@@ -50,6 +47,22 @@
   },
   "devDependencies": {
     "@babel/core": "^7.18.2",
+    "eslint": "^8.17.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.6.2",
     "rimraf": "^3.0.2"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest",
+      "plugin:prettier/recommended"
+    ]
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "all"
   }
 }

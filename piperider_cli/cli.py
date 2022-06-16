@@ -115,12 +115,12 @@ def run(**kwargs):
     table = kwargs.get('table')
     output = kwargs.get('output')
     skip_report = kwargs.get('skip_report')
-    workspace.run(datasource=datasource,
-                  table=table,
-                  output=output,
-                  interaction=not kwargs.get('no_interaction'),
-                  skip_report=skip_report)
-    if not skip_report:
+    ret = workspace.run(datasource=datasource,
+                        table=table,
+                        output=output,
+                        interaction=not kwargs.get('no_interaction'),
+                        skip_report=skip_report)
+    if not skip_report and ret == 0:
         workspace.generate_report()
 
 

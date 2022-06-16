@@ -464,67 +464,83 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     console = Console()
     configuration = Configuration.load()
 
-    datasource_names = [ds.name for ds in configuration.dataSources]
+    datasources = {}
+    datasource_names = []
+    for ds in configuration.dataSources:
+        datasource_names.append(ds.name)
+        datasources[ds.name] = ds
+
+    if len(datasource_names) == 0:
+        console.print("[bold red]Error: no datasource found[/bold red]")
+        return 1
+
     if datasource and datasource not in datasource_names:
         console.print(f"[bold red]Error: datasource '{datasource}' doesn't exist[/bold red]")
-        return
+        console.print(f"Available datasources: {', '.join(datasource_names)}")
+        return 1
 
-    for ds in configuration.dataSources:
-        if datasource and ds.name != datasource:
-            continue
-        passed, _ = ds.validate()
-        if passed is not True:
-            raise PipeRiderCredentialError(ds.name)
+    # Use the fisrt datasource if no datasource is specified
+    ds_name = datasource if datasource else datasource_names[0]
+    ds = datasources[ds_name]
 
-        console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
+    passed, _ = ds.validate()
+    if passed is not True:
+        raise PipeRiderCredentialError(ds.name)
 
-        dbt = ds.args.get('dbt')
-        tables = None
-        if dbt:
-            passed, error_msg, tables = _fetch_dbt_catalog(dbt, table)
-            if not passed:
-                console.print(
-                    "[bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' files")
-                raise DbtCatalogError(error_msg)
-        else:
-            if table:
-                tables = [table]
+    if not datasource and len(datasource_names) > 1:
+        console.print(f"[bold yellow]Warning: multiple datasources found ({', '.join(datasource_names)}), using '{ds_name}'[/bold yellow]\n")
 
-        console.rule('Profiling')
-        run_id = uuid.uuid4().hex
-        created_at = datetime.now()
-        engine = create_engine(ds.to_database_url(), **ds.engine_args())
-        profiler = Profiler(engine)
-        profile_result = profiler.profile(tables)
+    console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
 
-        output_path = prepare_output_path(created_at, ds, output)
+    dbt = ds.args.get('dbt')
+    tables = None
+    if dbt:
+        passed, error_msg, tables = _fetch_dbt_catalog(dbt, table)
+        if not passed:
+            console.print(
+                "[bold yellow]Note:[/bold yellow] Please run command 'dbt docs generate' to update 'catalog.json' files")
+            raise DbtCatalogError(error_msg)
+    else:
+        if table:
+            tables = [table]
 
-        # output profiling result
-        with open(os.path.join(output_path, ".profiler.json"), "w") as f:
-            f.write(json.dumps(profile_result))
+    console.rule('Profiling')
+    run_id = uuid.uuid4().hex
+    created_at = datetime.now()
+    engine = create_engine(ds.to_database_url(), **ds.engine_args())
+    profiler = Profiler(engine)
+    profile_result = profiler.profile(tables)
 
-        # TODO stop here if tests was not needed.
-        assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
-                                                                      profile_result, created_at)
-        if assertion_results:
-            console.rule('Assertion Results')
-            _show_assertion_result(console, assertion_results, assertion_exceptions)
+    output_path = prepare_output_path(created_at, ds, output)
 
-        console.rule('Summary')
+    # output profiling result
+    with open(os.path.join(output_path, ".profiler.json"), "w") as f:
+        f.write(json.dumps(profile_result))
 
-        for t in profile_result['tables']:
-            output_file = os.path.join(output_path, f"{t}.json")
-            profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(t, assertion_results)
-            profile_result['tables'][t]['id'] = run_id
-            profile_result['tables'][t]['created_at'] = created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-            profile_result['tables'][t]['datasource'] = dict(name=ds.name, type=ds.type_name)
+    # TODO stop here if tests was not needed.
+    assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
+                                                                  profile_result, created_at)
+    if assertion_results:
+        console.rule('Assertion Results')
+        _show_assertion_result(console, assertion_results, assertion_exceptions)
 
-            _show_table_summary(console, t, profile_result['tables'][t], assertion_results)
+    console.rule('Summary')
 
-            with open(output_file, 'w') as f:
-                f.write(json.dumps(profile_result['tables'][t], indent=4))
-        if skip_report:
-            console.print(f'Results saved to {output_path}')
+    profile_result['id'] = run_id
+    profile_result['created_at'] = created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+    profile_result['datasource'] = dict(name=ds.name, type=ds.type_name)
+
+    output_file = os.path.join(output_path, 'run.json')
+    for t in profile_result['tables']:
+        profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(t, assertion_results)
+
+        _show_table_summary(console, t, profile_result['tables'][t], assertion_results)
+
+    with open(output_file, 'w') as f:
+        f.write(json.dumps(profile_result, indent=4))
+    if skip_report:
+        console.print(f'Results saved to {output_path}')
+    return 0
 
 
 def prepare_output_path(created_at, ds, output):
@@ -549,19 +565,17 @@ def prepare_output_path(created_at, ds, output):
 
 
 def _validate_input_result(result):
-    for f in ['name', 'row_count', 'col_count', 'columns', 'assertion_results', 'id', 'created_at', 'datasource']:
+    for f in ['tables', 'id', 'created_at', 'datasource']:
         if f not in result:
             return False
     return True
 
 
 def _generate_static_html(result, html, output_path):
-    table = result['name']
-    filename = os.path.join(output_path, f"{table}.html")
+    filename = os.path.join(output_path, "index.html")
     with open(filename, 'w') as f:
         html = html.replace(r'window.PIPERIDER_REPORT_DATA=""', f'window.PIPERIDER_REPORT_DATA={json.dumps(result)};')
         f.write(html)
-    return table, filename
 
 
 def generate_report(input=None):
@@ -572,61 +586,37 @@ def generate_report(input=None):
     with open(os.path.join(report_template_dir, 'index.html')) as f:
         report_template_html = f.read()
 
-    created_at = datetime.now()
+    run_json = None
 
     if input:
         if not os.path.exists(input):
             console.print(f'[bold red]Error: {input} not found[/bold red]')
             return
-
-        with open(input) as f:
-            result = json.loads(f.read())
-        if not _validate_input_result(result):
-            console.print('[bold red]Error: invalid input file[/bold red]')
-            return
-
-        console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {input}')
-
-        datasource = result['datasource']['name']
-        dir = os.path.join(PIPERIDER_REPORT_PATH, f"{datasource}-{created_at.strftime('%Y%m%d%H%M%S')}")
-        if not os.path.exists(dir):
-            os.makedirs(dir, exist_ok=True)
-
-        clone_directory(report_template_dir, dir)
-
-        console.rule('Reports')
-        table, filename = _generate_static_html(result, report_template_html, dir)
-        console.print(f"Table '{table}' {filename}")
+        if os.path.isdir(input):
+            run_json = os.path.join(input, 'run.json')
+        else:
+            run_json = input
     else:
         latest = os.path.join(PIPERIDER_OUTPUT_PATH, 'latest')
-        console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {latest}')
+        run_json = os.path.join(latest, 'run.json')
 
-        report_info = []
-        max_table_len = 0
-        for result_file in os.scandir(latest):
-            if not result_file.is_file():
-                continue
-            if result_file.name.endswith('.json') and result_file.name != '.profiler.json':
-                with open(result_file.path) as f:
-                    result = json.loads(f.read())
-                if not _validate_input_result(result):
-                    console.print(f'[bold dark_orange]Warning: {result_file.path} is invalid[/bold dark_orange]')
-                    continue
+    if not os.path.isfile(run_json):
+        console.print(f'[bold red]Error: {run_json} is not a file[/bold red]')
+        return
 
-                datasource = result['datasource']['name']
-                dir = os.path.join(PIPERIDER_REPORT_PATH, f"{datasource}-{created_at.strftime('%Y%m%d%H%M%S')}")
-                if not os.path.exists(dir):
-                    os.makedirs(dir, exist_ok=True)
-                clone_directory(report_template_dir, dir)
+    with open(run_json) as f:
+        result = json.loads(f.read())
+    if not _validate_input_result(result):
+        console.print(f'[bold red]Error: {run_json} is invalid[/bold red]')
+        return
 
-                table, filename = _generate_static_html(result, report_template_html, dir)
-                max_table_len = max(max_table_len, len(table))
-                report_info.append(dict(table=table, filename=filename))
+    console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {run_json}')
 
-        console.rule('Reports')
-        for r in report_info:
-            display_table = f"'{r['table']}'".ljust(max_table_len + 2)
-            console.print(f"Table {display_table} {r['filename']}")
+    dir = os.path.dirname(run_json)
+    clone_directory(report_template_dir, dir)
+
+    _generate_static_html(result, report_template_html, dir)
+    console.print(f"Report generated in {dir}/index.html")
 
 
 def compare_report(a=None, b=None):

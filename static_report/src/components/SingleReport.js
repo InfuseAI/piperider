@@ -1,4 +1,7 @@
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Code,
   Divider,
   Flex,
@@ -13,17 +16,21 @@ import {
   Thead,
   Tr,
 } from '@chakra-ui/react';
-import * as d3 from 'd3';
 import { useEffect, useRef } from 'react';
 import { format } from 'date-fns';
+import { Link } from 'wouter';
 
 import { Main } from './Main';
-import { getReportAsserationStatusCounts, getChartTooltip } from '../utils';
+import {
+  getReportAsserationStatusCounts,
+  drawSingleReportChart,
+} from '../utils';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
-export function SingleReport() {
-  const profileData = window.PIPERIDER_REPORT_DATA;
+export default function SingleReport({ source, data, reportName }) {
+  useDocumentTitle(reportName);
 
-  if (profileData === '') {
+  if (!data) {
     return (
       <Main>
         <Flex justifyContent="center" alignItems="center" minHeight={'100vh'}>
@@ -33,19 +40,33 @@ export function SingleReport() {
     );
   }
 
-  const assertion = profileData.assertion_results;
+  const assertion = data.assertion_results;
   const overviewStatus = getReportAsserationStatusCounts(assertion);
 
   return (
     <Main alignItems={'flex-start'}>
       <Flex direction={'column'} minH={'100vh'} width={'100%'}>
+        <Flex mx={'10%'} mt={4}>
+          <Breadcrumb fontSize="lg">
+            <BreadcrumbItem>
+              <Link href="/">
+                <BreadcrumbLink href="/">{source.name}</BreadcrumbLink>
+              </Link>
+            </BreadcrumbItem>
+
+            <BreadcrumbItem isCurrentPage>
+              <BreadcrumbLink href="#">{data.name}</BreadcrumbLink>
+            </BreadcrumbItem>
+          </Breadcrumb>
+        </Flex>
+
         <Flex
           border={'1px solid'}
           borderColor={'gray.300'}
           bg={'white'}
           borderRadius={'md'}
           p={6}
-          my={10}
+          mt={3}
           mx={'10%'}
           direction={'column'}
         >
@@ -54,19 +75,19 @@ export function SingleReport() {
             <Text>
               Table:{' '}
               <Text as={'span'} fontWeight={700}>
-                {profileData?.name}
+                {data.name}
               </Text>
             </Text>
             <Text>
               Rows:{' '}
               <Text as={'span'} fontWeight={700}>
-                {profileData?.row_count}
+                {data.row_count}
               </Text>
             </Text>
             <Text>
               Columns:{' '}
               <Text as={'span'} fontWeight={700}>
-                {profileData?.col_count}
+                {data.col_count}
               </Text>
             </Text>
             <Text>
@@ -88,17 +109,14 @@ export function SingleReport() {
             <Text>
               Data Source Type:{' '}
               <Text as={'span'} fontWeight={700}>
-                {profileData?.datasource.type}
+                {source.type}
               </Text>
             </Text>
             <Text>
               Created Date:{' '}
               <Text as={'span'} fontWeight={700}>
-                {profileData?.created_at &&
-                  format(
-                    new Date(profileData.created_at),
-                    'yyyy/MM/dd HH:mm:ss',
-                  )}
+                {data?.created_at &&
+                  format(new Date(data.created_at), 'yyyy/MM/dd HH:mm:ss')}
               </Text>
             </Text>
             <Text>
@@ -113,11 +131,11 @@ export function SingleReport() {
 
           <Flex direction={'column'}>
             <TestsInformation
-                tableName={profileData.name}
-                data={profileData.assertion_results}
-              />
+              tableName={data.name}
+              data={data.assertion_results}
+            />
 
-            <ProfilingInformation data={profileData.columns} />
+            <ProfilingInformation data={data.columns} />
           </Flex>
         </Flex>
       </Flex>
@@ -136,8 +154,8 @@ function ProfilingInformation({ data }) {
         const isAllValuesExists = column.non_nulls === column.total;
 
         return (
-          <Flex key={key} direction={'column'}>
-            <Grid my={4} templateColumns={'repeat(4, 1fr)'} gap={3}>
+          <Flex key={key} direction={'column'} px={4}>
+            <Grid my={4} templateColumns="300px 1fr" gap={4}>
               <Flex direction={'column'} gap={2}>
                 <Text>
                   <Text
@@ -151,65 +169,82 @@ function ProfilingInformation({ data }) {
                   </Text>
                   {''}(<Code>{column.type}</Code>)
                 </Text>
-              </Flex>
 
-              {distribution ? (
-                <BarChart
-                  data={distribution.labels.map((label, i) => ({
-                    label,
-                    value: distribution.counts[i],
-                    total: column.total,
-                  }))}
-                />
-              ) : (
-                <BarChart data={[]} />
-              )}
+                <Flex direction="column">
+                  <Flex justifyContent="space-between">
+                    <Text fontWeight={700}>Total:</Text>
+                    <Text>{column.total}</Text>
+                  </Flex>
 
-              <Flex direction={'column'} gap={2}>
-                <Text fontWeight={700}>Missing Values</Text>
-                <Text color={isAllValuesExists ? 'green.500' : 'red.500'}>
-                  {isAllValuesExists
-                    ? '0'
-                    : (
-                        Number(
-                          (column.total - column.non_nulls) / column.total,
-                        ) * 100
-                      ).toFixed(3)}
-                  %
-                </Text>
-              </Flex>
+                  <Flex justifyContent="space-between">
+                    <Text fontWeight={700}>Missing:</Text>
+                    <Text color={isAllValuesExists ? 'green.500' : 'red.500'}>
+                      {isAllValuesExists
+                        ? '0'
+                        : (
+                            Number(
+                              (column.total - column.non_nulls) / column.total,
+                            ) * 100
+                          ).toFixed(3)}
+                      %
+                    </Text>
+                  </Flex>
 
-              <Flex direction={'column'} gap={2}>
-                <Text fontWeight={700}>Range</Text>
-
-                {column.type !== 'numeric' && column.type !== 'datetime' && '-'}
+                  <Flex justifyContent="space-between">
+                    <Text fontWeight={700}>Distinct:</Text>
+                    <Text>{column.distinct}</Text>
+                  </Flex>
+                </Flex>
 
                 {column.type === 'numeric' && (
-                  <>
-                    <Text>
-                      Min: <Code>{Number(column.min).toFixed(3)}</Code>
-                    </Text>
-                    <Text>
-                      Max: <Code>{Number(column.max).toFixed(3)}</Code>
-                    </Text>
-                    <Text>
-                      Avg: <Code>{Number(column.avg).toFixed(3)}</Code>
-                    </Text>
-                  </>
+                  <Flex direction="column">
+                    <Flex justifyContent="space-between">
+                      <Text fontWeight={700}>Min:</Text>
+                      <Text>{Number(column.min).toFixed(3)}</Text>
+                    </Flex>
+
+                    <Flex justifyContent="space-between">
+                      <Text fontWeight={700}>Max:</Text>
+                      <Text>{Number(column.max).toFixed(3)}</Text>
+                    </Flex>
+
+                    <Flex justifyContent="space-between">
+                      <Text fontWeight={700}>Avg:</Text>
+                      <Text>{Number(column.avg).toFixed(3)}</Text>
+                    </Flex>
+                  </Flex>
                 )}
 
                 {column.type === 'datetime' && (
-                  <>
-                    <Text>
-                      Min: <Code>{column.min}</Code>
-                    </Text>
-                    <Text>
-                      Max: <Code>{column.max}</Code>
-                    </Text>
-                  </>
+                  <Flex direction="column">
+                    <Flex justifyContent="space-between">
+                      <Text fontWeight={700}>Min:</Text>
+                      <Text>{column.min}</Text>
+                    </Flex>
+
+                    <Flex justifyContent="space-between">
+                      <Text fontWeight={700}>Max:</Text>
+                      <Text>{column.max}</Text>
+                    </Flex>
+                  </Flex>
+                )}
+              </Flex>
+
+              <Flex mt={8}>
+                {distribution ? (
+                  <BarChart
+                    data={distribution.labels.map((label, i) => ({
+                      label,
+                      value: distribution.counts[i],
+                      total: column.total,
+                    }))}
+                  />
+                ) : (
+                  <BarChart data={[]} />
                 )}
               </Flex>
             </Grid>
+
             <Divider my={4} />
           </Flex>
         );
@@ -350,102 +385,22 @@ function TestsInformation({ tableName, data }) {
 
 function BarChart({ data }) {
   const svgRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    const margin = { top: 10, right: 30, bottom: 30, left: 50 };
-    const width = 450 - margin.left - margin.right;
-    const height = 200 - margin.top - margin.bottom;
-
-    const svgEl = d3.select(svgRef.current);
-    svgEl.selectAll('*').remove();
-
-    const svg = svgEl
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-      .append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
-
-    const tooltip = getChartTooltip({ target: '.chart' });
-
-    function onShowTooltip(event, d) {
-      tooltip
-        .html(
-          `
-          <div>
-            <p>Label: ${d.label}</p>
-            <p>Value: ${d.value}</p>
-            <p>Percentage: ${Number((d.value / d.total) * 100).toFixed(3)}%</p>
-          </div>
-        `
-        )
-        .transition()
-        .duration(500)
-        .style('visibility', 'visible');
-
-      d3.select(this).style('fill', 'var(--chakra-colors-blue-100)');
-    }
-
-    function onMoveTooltip(event) {
-      tooltip
-        .style('top', `${event.pageY - 10}px`)
-        .style('left', `${event.pageX + 10}px`);
-    }
-
-    function onHideTooltip() {
-      tooltip.html('').transition().duration(500).style('visibility', 'hidden');
-
-      d3.select(this).style('fill', 'var(--chakra-colors-blue-300)');
-    }
-
     if (data.length > 0) {
-      const x = d3
-        .scaleBand()
-        .domain(data.map((d) => d.label))
-        .range([0, width])
-        .padding(0.5);
-      svg
-        .append('g')
-        .attr('transform', `translate(0, ${height})`)
-        .call(
-          d3.axisBottom(x).tickFormat((value, i) => {
-            const xAxisItemLength = x.domain().length - 1;
-
-            if (i === 0 || i === xAxisItemLength / 2 || i === xAxisItemLength) {
-              return value;
-            }
-            return null;
-          }),
-        );
-
-      const y = d3
-        .scaleLinear()
-        .domain([0, d3.max(data, ({ value }) => value)])
-        .range([height, 0]);
-      svg.append('g').call(
-        d3
-          .axisLeft(y)
-          .tickFormat((d) => `${d}`)
-          .ticks(8)
-      );
-
-      svg
-        .selectAll()
-        .data(data)
-        .enter()
-        .append('rect')
-        .attr('x', (s) => x(s.label))
-        .attr('y', (s) => y(s.value))
-        .attr('height', (s) => height - y(s.value))
-        .attr('width', x.bandwidth())
-        .style('fill', 'var(--chakra-colors-blue-300)')
-        .on('mouseover', onShowTooltip)
-        .on('mousemove', onMoveTooltip)
-        .on('mouseout', onHideTooltip);
+      drawSingleReportChart({
+        containerWidth: containerRef.current.getBoundingClientRect().width,
+        containerHeight: containerRef.current.getBoundingClientRect().height,
+        svgTarget: svgRef.current,
+        tooltipTarget: '.chart',
+        data,
+      });
     }
   }, [data]);
 
   return (
-    <Flex className={'chart'} width={'100%'}>
+    <Flex className="chart" width="100%" ref={containerRef}>
       <svg ref={svgRef} />
     </Flex>
   );
