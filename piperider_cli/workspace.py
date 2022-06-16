@@ -355,6 +355,7 @@ def debug():
     handler.set_checker('assertion files', CheckAssertionFiles)
     return handler.execute()
 
+
 def _agreed_to_generate_recommended_assertions(console: Console, interactive: bool):
     if interactive:
         console.print('Do you want to auto generate assertion templates for this datasource \[yes/no]?',
@@ -363,6 +364,8 @@ def _agreed_to_generate_recommended_assertions(console: Console, interactive: bo
         return confirm == 'yes' or confirm == 'y'
     else:
         return True
+
+
 def _execute_assertions(console: Console, profiler, ds: DataSource, interaction: bool, output, result, created_at):
     # TODO: Implement running test cases based on profiling result
     assertion_engine = AssertionEngine(profiler)
@@ -376,12 +379,13 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
             for f in recommended_assertions:
                 console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
             assertion_engine.load_assertions()
+        else:
+            console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
+            return None, None  # no assertion to run
 
-        console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
-        return None, None  # no assertion to run
-    else:
-        results, exceptions = assertion_engine.evaluate_all(result)
-        return results, exceptions
+    # Execute assertions
+    results, exceptions = assertion_engine.evaluate_all(result)
+    return results, exceptions
 
 
 def _show_assertion_result(console: Console, results, exceptions, failed_only=False, single_table=None):
@@ -589,7 +593,8 @@ def setup_report_variables(template_html: str, is_single: bool, data):
         variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA={output};window.PIPERIDER_COMPARISON_REPORT_DATA="";</script>'
     else:
         variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA="";window.PIPERIDER_COMPARISON_REPORT_DATA={output};</script>'
-    html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#', template_html).split('#PLACEHOLDER#')
+    html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#', template_html).split(
+        '#PLACEHOLDER#')
     html = html_parts[0] + variables + html_parts[1]
     return html
 

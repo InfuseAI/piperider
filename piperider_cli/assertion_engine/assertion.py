@@ -24,9 +24,9 @@ def safe_load_yaml(file_path):
 
 
 def load_yaml_configs(path):
-    passed : List[str] = []
-    failed : List[str] = []
-    content : Dict = {}
+    passed: List[str] = []
+    failed: List[str] = []
+    content: Dict = {}
     for root, dirs, files in os.walk(path):
         for file in files:
             if file.endswith('.yml') or file.endswith('.yaml'):
@@ -192,8 +192,8 @@ class AssertionEngine:
     def __init__(self, profiler, assertion_search_path=PIPERIDER_ASSERTION_SEARCH_PATH):
         self.profiler = profiler
         self.assertion_search_path = assertion_search_path
-        self.assertions_content : Dict = {}
-        self.assertions : List[AssertionContext] = []
+        self.assertions_content: Dict = {}
+        self.assertions: List[AssertionContext] = []
 
         self.default_plugins_dir = AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH
         if not os.path.isdir(self.default_plugins_dir):
@@ -218,6 +218,7 @@ class AssertionEngine:
         Example:
         {'nodes': {'tests': [], 'columns': {'uid': {'tests': []}, 'type': {'tests': []}, 'name': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'metadata': {'tests': []}}}, 'edges': {'tests': [], 'columns': {'n1_uid': {'tests': []}, 'n2_uid': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'type': {'tests': []}, 'metadata': {'tests': []}}}}
         """
+        self.assertions = []
         passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
             self.assertion_search_path)
 
@@ -230,7 +231,6 @@ class AssertionEngine:
                 for c in self.assertions_content[t].get('columns', {}):
                     for ca in self.assertions_content[t]['columns'][c].get('tests', []):
                         self.assertions.append(AssertionContext(t, c, ca.get('name'), self.assertions_content))
-
 
     def generate_recommended_assertions(self, profiling_result, selected_tables=None):
         # Load existing assertions
@@ -246,7 +246,8 @@ class AssertionEngine:
         recommended_assertions = self._generate_assertion_template(tables)
 
         # TODO: Generate recommended assertions
-        self._mock_recommended_assertions(recommended_assertions, profiling_result)
+        self._mock_recommended_table_assertions(recommended_assertions, profiling_result)
+        self._mock_recommended_column_assertions(recommended_assertions, profiling_result)
 
         # Dump recommended assertions
         return self._dump_assertions_files(recommended_assertions)
@@ -291,7 +292,7 @@ class AssertionEngine:
                 paths.append(file_path)
         return paths
 
-    def _mock_recommended_assertions(self, assertions, profiling_result):
+    def _mock_recommended_table_assertions(self, assertions, profiling_result):
         for table, assertion in assertions.items():
             # Add table assertion
             row_count = profiling_result['tables'][table]['row_count']
@@ -303,6 +304,21 @@ class AssertionEngine:
                 'tags': ['PIPERIDER_RECOMMENDED_ASSERTION'],
             })
             assertion[table]['tests'].append(assert_row_count_in_range)
+        pass
+
+    def _mock_recommended_column_assertions(self, assertions, profiling_result):
+        for table, assertion in assertions.items():
+            for column, column_assertion in assertion[table]['columns'].items():
+                # Add column assertion
+                column_type = profiling_result['tables'][table]['columns'][column]['type']
+                assert_column_type = CommentedMap({
+                    'name': 'assert_column_type',
+                    'assert': CommentedMap({
+                        'type': column_type,
+                    }),
+                    'tags': ['PIPERIDER_RECOMMENDED_ASSERTION'],
+                })
+                column_assertion['tests'].append(assert_column_type)
         pass
 
     def evaluate(self, assertion: AssertionContext, metrics_result):
