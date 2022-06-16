@@ -2,6 +2,16 @@ name: Release PipeRider CLI Nightly Build
 on:
   schedule:
     - cron: '0 18 * * 0,1,2,3,4' # run at 2 AM (UTC + 8) every working day
+  workflow_dispatch:
+    branches:
+      - main
+    inputs:
+      version_postfix:
+        description: 'Version postfix'
+        required: true
+        type: string
+        default: 'manually'
+
 jobs:
   build-nightly-release:
     runs-on: ubuntu-latest
@@ -32,8 +42,15 @@ jobs:
           # change package name to piperider-nightly
           sed -i.bak "s/name='piperider'/name='piperider-nightly'/" setup.py
 
+
           # update version number
-          sed -i.bak "s/\$/$(date '+%Y%m%d')/" piperider_cli/VERSION
+          echo "Nightly build version: $(date '+%Y%m%d')"
+          if [ "$VERSION_POSTFIX" != "" ]; then
+            echo "Manually version postfix: $VERSION_POSTFIX"
+            sed -i.bak "s/\$/$(date '+%Y%m%d')-$VERSION_POSTFIX/" piperider_cli/VERSION
+          else
+            sed -i.bak "s/\$/$(date '+%Y%m%d')/" piperider_cli/VERSION
+          fi
           echo ::set-output name=nightly_version::$(cat piperider_cli/VERSION)
 
           # release to PyPI
@@ -41,6 +58,7 @@ jobs:
         env:
           PYPIRC: ${{ secrets.PYPI_NIGHTLY }}
           CONFIG: ${{ secrets.CONFIG }}
+          VERSION_POSTFIX: ${{ inputs.version_postfix || '' }}
 
       - name: Mark Sentry Release
         uses: getsentry/action-release@v1
