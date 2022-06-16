@@ -34,16 +34,27 @@ class TrackCommand(Command):
             console.print(f'[bold red]Error:[/bold red] {msg}')
 
     def invoke(self, ctx: Context) -> t.Any:
+        print('invoke begin')
         status = False
         try:
+            print('executing command: ', ctx.command.name)
             ret = super(TrackCommand, self).invoke(ctx)
+            print('finished command: ', ctx.command.name)
             status = True
+            print('command status: ', status)
             return ret
         except Exception as e:
+            print('entered command exception')
+            print('show error message')
             self._show_error_message(e, ctx.params)
+            print('sentry capture exception')
             sentry_sdk.capture_exception(e)
+            print('sentry flush')
             sentry_sdk.flush()
+            print('sys.exit(1)')
             sys.exit(1)
         finally:
+            print('call event.log_event begin')
             event.log_event(ctx.command.name, ctx.params, status)
+            print('call event.log_event end')
             pass
