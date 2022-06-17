@@ -136,7 +136,7 @@ function CompareTest({ base = [], input = [] }) {
         <Tbody>
           {Object.values(tests).map((test) => {
             return (
-              <Tr>
+              <Tr key={nanoid()}>
                 <Td>{test.level}</Td>
                 <Td>{test.column}</Td>
                 <Td>{test.name}</Td>
@@ -501,6 +501,7 @@ function CompareProfile({ base, input }) {
       {Object.entries(transformedData).map(([key, value]) => {
         return (
           <CompareProfileColumn
+            key={key}
             name={key}
             base={value.left}
             input={value.right}
