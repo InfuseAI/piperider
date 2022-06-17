@@ -7,6 +7,7 @@ from datetime import datetime
 import readchar
 from rich.console import Console
 
+from piperider_cli import datetime_to_str, str_to_datetime
 import piperider_cli.hack.inquirer as inquirer_hack
 
 
@@ -57,18 +58,19 @@ class ProfilerOutput(object):
         return data
 
     def __str__(self):
+        created_at_str = datetime_to_str(str_to_datetime(self.created_at),
+                                         to_tzlocal=True)
+
         return f'{self.name:12} ' \
                f'#table={self.table_count:<6} ' \
                f'#pass={self.pass_count:<5} ' \
                f'#fail={self.fail_count:<5} ' \
-               f'{self.created_at}'
+               f'{created_at_str}'
 
 
 class ComparisonData(object):
     def __init__(self, base, input):
-        now = datetime.now()
-        self._id = now.strftime("%Y%m%d%H%M%S")
-        self._created_at = now.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        self._id = datetime.now().strftime("%Y%m%d%H%M%S")
         self._base = base
         self._input = input
 
@@ -77,7 +79,7 @@ class ComparisonData(object):
 
     def to_json(self):
         output = dict(
-            created_at=datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+            created_at=datetime_to_str(datetime.utcnow()),
             base=self._base,
             input=self._input,
         )
