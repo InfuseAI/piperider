@@ -1,11 +1,11 @@
 import json
 import os
-import shutil
 import sys
 import uuid
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from glob import glob
+from subprocess import Popen
 
 import inquirer
 from rich.console import Console
@@ -465,7 +465,7 @@ def _transform_assertion_result(table: str, results):
     return dict(tests=tests, columns=columns)
 
 
-def run(datasource=None, table=None, output=None, interaction=True, skip_report=False):
+def run(datasource=None, table=None, output=None, interaction=True, skip_report=False, skip_dbt=False):
     console = Console()
     configuration = Configuration.load()
 
@@ -508,6 +508,19 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     else:
         if table:
             tables = [table]
+
+    if dbt and not skip_dbt:
+        dbt_root = os.path.expanduser(dbt.get('projectDir'))
+        run_cmd = dbt.get('run_cmd', 'test')
+        if not run_cmd in ['build', 'run', 'test']:
+            # TODO: show an error if dbt cmd is invalid
+            pass
+
+        console.rule('Running dbt')
+        console.print(f'[bold yellow]dbt working dir:[/bold yellow] {dbt_root}')
+        console.print(f'Execute command: dbt {run_cmd}')
+        proc = Popen(['dbt', run_cmd], cwd=dbt_root)
+        proc.communicate()
 
     console.rule('Profiling')
     run_id = uuid.uuid4().hex
