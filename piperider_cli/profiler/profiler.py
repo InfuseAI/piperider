@@ -522,7 +522,7 @@ class Profiler:
             max_date = max_date + relativedelta(months=+1)
             interval = relativedelta(months=+1)
         else:
-            min_date = min_date.date()
-            max_date = max_date.date()
+            min_date = date(min_date.year, min_date.month, min_date.day)
+            max_date = date(max_date.year, max_date.month, max_date.day)
             interval = relativedelta(days=+1)
         return min_date, max_date, interval
