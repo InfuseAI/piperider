@@ -11,10 +11,6 @@ from piperider_cli.error import \
     IllegalStateAssertionError
 
 
-def _dict_key_to_lower(d: dict):
-    return dict((k.lower(), v) for k, v in d.items())
-
-
 def safe_load_yaml(file_path):
     payload = None
     with open(file_path, 'r') as f:
@@ -326,10 +322,7 @@ class AssertionEngine:
             return assertion
 
         try:
-            # search table and column in metrics_result in case insensitive way
-            table = assertion.table.lower() if assertion.table else assertion.table
-            column = assertion.column.lower() if assertion.column else assertion.column
-            result = func(assertion, table, column, metrics_result)
+            result = func(assertion, assertion.table, assertion.column, metrics_result)
             result.validate()
         except Exception as e:
             assertion.result.fail_with_exception(e)
@@ -339,13 +332,6 @@ class AssertionEngine:
     def evaluate_all(self, metrics_result):
         results = []
         exceptions = []
-
-        # transform tables' key and columns' key to lower case
-        if metrics_result.get('tables', {}):
-            metrics_result['tables'] = _dict_key_to_lower(metrics_result['tables'])
-            for t in metrics_result['tables']:
-                if metrics_result['tables'][t].get('columns', {}):
-                    metrics_result['tables'][t]['columns'] = _dict_key_to_lower(metrics_result['tables'][t]['columns'])
 
         for assertion in self.assertions:
             try:
