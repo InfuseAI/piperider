@@ -21,6 +21,11 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get install expect dejagnu
+          mkdir -p ~/.piperider
+          cat << EOF > ~/.piperider/profile.yml
+          user_id: 00000000000000000000000000000000
+          anonymous_tracking: true
+          EOF
           pip install -r requirements.txt
           piperider version
 
