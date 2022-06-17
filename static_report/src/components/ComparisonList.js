@@ -48,6 +48,8 @@ export function ComparisonReportList({ data }) {
 
   useDocumentTitle('Report List');
 
+  const f = (value) => (value != undefined ? value : '-');
+
   return (
     <Flex direction={'column'} minH={'100vh'} width={'100%'}>
       <Flex
@@ -60,13 +62,6 @@ export function ComparisonReportList({ data }) {
         mx={'10%'}
         direction={'column'}
       >
-        {/* <Flex direction="column" mb={6} gap={3}>
-          <Heading size={'lg'}>Data Source: {datasource.name}</Heading>
-          <Text fontWeight={500}>ID: {id}</Text>
-          <Text fontWeight={500}>
-            Generated at: {format(new Date(created_at), 'yyyy/MM/dd HH:mm:ss')}
-          </Text>
-        </Flex> */}
         <Flex direction="column" gap={4}>
           <Heading>Comparison Summary</Heading>
           <TableContainer>
@@ -109,10 +104,10 @@ export function ComparisonReportList({ data }) {
                 {Object.keys(tables).map((key) => {
                   const table = tables[key];
                   const baseOverview = getReportAsserationStatusCounts(
-                    table.base.assertion_results,
+                    table.base?.assertion_results,
                   );
                   const inputOverview = getReportAsserationStatusCounts(
-                    table.input.assertion_results,
+                    table.input?.assertion_results,
                   );
 
                   return (
@@ -123,16 +118,24 @@ export function ComparisonReportList({ data }) {
                       >
                         <Td>{key}</Td>
                         <Td>
-                          {baseOverview.passed} / {inputOverview.passed}
+                          {f(baseOverview?.passed)}
+                          {' | '}
+                          {f(inputOverview?.passed)}
                         </Td>
                         <Td>
-                          {baseOverview.failed} / {inputOverview.failed}
+                          {f(baseOverview?.failed)}
+                          {' | '}
+                          {f(inputOverview?.failed)}
                         </Td>
                         <Td>
-                          {table.base.row_count} / {table.input.row_count}
+                          {f(table.base?.row_count)}
+                          {' | '}
+                          {f(table.input?.row_count)}
                         </Td>
                         <Td>
-                          {table.base.col_count} / {table.input.col_count}
+                          {f(table.base?.col_count)}
+                          {' | '}
+                          {f(table.input?.col_count)}
                         </Td>
                       </Tr>
                     </Link>

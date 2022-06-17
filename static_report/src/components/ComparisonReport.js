@@ -37,6 +37,10 @@ function transformTest(data, from) {
   let passed = 0;
   let failed = 0;
 
+  if (!data) {
+    return undefined;
+  }
+
   data.assertion_results.tests.forEach((test) => {
     if (test.status === 'passed') {
       passed++;
@@ -76,7 +80,7 @@ function transformTest(data, from) {
   };
 }
 
-function CompareTest({ base, input }) {
+function CompareTest({ base = [], input = [] }) {
   // group by "level", "column", "name"
   let tests = groupBy(
     [].concat(base, input),
@@ -159,7 +163,7 @@ function CompareSchema({ base, input }) {
   let deleted = 0;
   let changed = 0;
 
-  Object.entries(base.columns).forEach(([name, column]) => {
+  Object.entries(base?.columns || []).forEach(([name, column]) => {
     mapIndex[column.name] = i;
     columns.push({
       name,
@@ -171,7 +175,7 @@ function CompareSchema({ base, input }) {
     deleted++;
   });
 
-  Object.entries(input.columns).forEach(([name, column]) => {
+  Object.entries(input?.columns || []).forEach(([name, column]) => {
     if (mapIndex.hasOwnProperty(column.name)) {
       const index = mapIndex[column.name];
       const isChanged = columns[index].base.schema_type !== column.schema_type;
@@ -271,6 +275,10 @@ function CompareSchema({ base, input }) {
   );
 }
 
+function f(value) {
+  return value != undefined ? value : '-';
+}
+
 function CompareProfileColumn({ name, base, input }) {
   let column = base ? base : input;
   const isAllValuesExists = false;
@@ -287,9 +295,10 @@ function CompareProfileColumn({ name, base, input }) {
     </Flex>
   );
 
-  const NumberCell = ({ value }) => (value ? Number(value).toFixed(3) : '-');
+  const NumberCell = ({ value }) =>
+    value != undefined ? Number(value).toFixed(3) : '-';
 
-  const GeneralCell = ({ value }) => (value ? value : '-');
+  const GeneralCell = ({ value }) => (value != undefined ? value : '-');
 
   const Missing = ({ column }) =>
     column
@@ -331,8 +340,8 @@ function CompareProfileColumn({ name, base, input }) {
       ></MetricRow>
       <MetricRow
         name="Distinct"
-        base={base?.distinct || '-'}
-        input={input?.distinct || '-'}
+        base={f(base?.distinct)}
+        input={f(input?.distinct)}
       ></MetricRow>
       <Box height={2}></Box>
 
@@ -464,7 +473,7 @@ function CompareProfileColumn({ name, base, input }) {
 }
 
 function CompareProfile({ base, input }) {
-  function joinBykey(left, right) {
+  function joinBykey(left = {}, right = {}) {
     const result = {};
 
     Object.entries(left).map(([key, value]) => {
@@ -485,7 +494,7 @@ function CompareProfile({ base, input }) {
     return result;
   }
 
-  let transformedData = joinBykey(base.columns, input.columns);
+  let transformedData = joinBykey(base?.columns, input?.columns);
 
   return (
     <>
@@ -536,41 +545,39 @@ export function ComparisonReport({ base, input }) {
 
               <Tbody>
                 <Tr>
-                  <Td>Tables</Td>
-                  <Td>
-                    {base.name}
-                    {base.created_at
-                      ? ` at ${formatTime(base.created_at)}`
-                      : ''}
-                  </Td>
-                  <Td>
-                    {input.name}
-                    {input.created_at
-                      ? ` at ${formatTime(input.created_at)}`
-                      : ''}
-                  </Td>
+                  <Td>Table</Td>
+                  <Td>{f(base?.name)}</Td>
+                  <Td>{f(input?.name)}</Td>
                 </Tr>
                 <Tr>
                   <Td>Rows</Td>
-                  <Td>{base.row_count}</Td>
-                  <Td>{input.row_count}</Td>
+                  <Td>{f(base?.row_count)}</Td>
+                  <Td>{f(input?.row_count)}</Td>
                 </Tr>
                 <Tr>
                   <Td>Columns</Td>
-                  <Td>{base.col_count}</Td>
-                  <Td>{input.col_count}</Td>
+                  <Td>{f(base?.col_count)}</Td>
+                  <Td>{f(input?.col_count)}</Td>
                 </Tr>
                 <Tr>
                   <Td>Test status</Td>
-                  <Td>{`${tBase.passed} Passed, ${tBase.failed} Failed`}</Td>
-                  <Td>{`${tInput.passed} Passed, ${tInput.failed} Failed`}</Td>
+                  <Td>
+                    {tBase
+                      ? `${f(tBase.passed)} Passed, ${f(tBase.failed)} Failed`
+                      : '-'}
+                  </Td>
+                  <Td>
+                    {tInput
+                      ? `${f(tInput.passed)} Passed, ${f(tInput.failed)} Failed`
+                      : '-'}
+                  </Td>
                 </Tr>
               </Tbody>
             </Table>
           </TableContainer>
 
           <Heading fontSize={24}>Tests</Heading>
-          <CompareTest base={tBase.tests} input={tInput.tests} />
+          <CompareTest base={tBase?.tests} input={tInput?.tests} />
 
           <Heading fontSize={24}>Schema</Heading>
           <CompareSchema base={base} input={input} />
