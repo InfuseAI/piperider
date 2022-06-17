@@ -220,12 +220,10 @@ class AssertionEngine:
         passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
             self.assertion_search_path)
 
-        specified_tables = set(table.lower() for table in list(self.profiler.metadata.tables))
-
         # Load assertion
         for t in self.assertions_content:
             # only append specified table's assertions
-            if t.lower() in specified_tables:
+            if t in list(self.profiler.metadata.tables):
                 for ta in self.assertions_content[t].get('tests', []):
                     self.assertions.append(AssertionContext(t, None, ta.get('name'), self.assertions_content))
                 for c in self.assertions_content[t].get('columns', {}):
