@@ -301,7 +301,6 @@ def init(dbt_project_path=None, dbt_profiles_dir=None):
 
 
 def _fetch_dbt_manifest(dbt, table=None):
-    tables = set()
     if dbt is None:
         return True, '', []
 
@@ -309,6 +308,8 @@ def _fetch_dbt_manifest(dbt, table=None):
         if key not in dbt:
             raise DbtManifestError(f"'{key}' is not in dbt config")
 
+    tables = set()
+    available_tables = []
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     dbt_manifest = os.path.join(dbt_root, 'target', 'manifest.json')
     if os.path.exists(dbt_manifest):
@@ -317,11 +318,14 @@ def _fetch_dbt_manifest(dbt, table=None):
         content = manifest.get('nodes', {})
         content.update(manifest.get('sources', {}))
         for k, v in content.items():
+            if not v.get('resource_type', '') in ['source', 'model']:
+                continue
             name = v.get('name')
             schema = v.get('schema')
+            available_tables.append(name)
             if table and name != table:
                 continue
-            if schema == 'public':
+            if schema in ['public', 'PUBLIC']:
                 table_name = name
             else:
                 table_name = f'{schema}.{name}'
@@ -330,7 +334,12 @@ def _fetch_dbt_manifest(dbt, table=None):
         return False, f"'{dbt_manifest}' not found", []
 
     if table and not tables:
-        return False, f"Table '{table}' doesn't exist in {dbt_manifest}", []
+        suggestion = ''
+        lower_tables = [t.lower() for t in available_tables]
+        if table.lower() in lower_tables:
+            index = lower_tables.index(table.lower())
+            suggestion = f". Do you mean '{available_tables[index]}'?"
+        return False, f"Table '{table}' doesn't exist in {dbt_manifest}{suggestion}", []
     if not tables:
         return False, f'No table found in {dbt_manifest}', []
 
