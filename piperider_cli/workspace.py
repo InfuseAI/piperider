@@ -317,11 +317,13 @@ def _fetch_dbt_manifest(dbt, table=None):
         content = manifest.get('nodes', {})
         content.update(manifest.get('sources', {}))
         for k, v in content.items():
+            if not v.get('resource_type', '') in ['source', 'model']:
+                continue
             name = v.get('name')
             schema = v.get('schema')
             if table and name != table:
                 continue
-            if schema == 'public':
+            if schema in ['public', 'PUBLIC']:
                 table_name = name
             else:
                 table_name = f'{schema}.{name}'
