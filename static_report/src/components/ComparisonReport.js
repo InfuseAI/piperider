@@ -18,18 +18,18 @@ import {
   Th,
   Thead,
   Tr,
-} from "@chakra-ui/react";
-import { format } from "date-fns";
-import { nanoid } from "nanoid";
-import { useEffect, useRef } from "react";
+} from '@chakra-ui/react';
+import { format } from 'date-fns';
+import { nanoid } from 'nanoid';
+import { useEffect, useRef } from 'react';
 
-import { Main } from "./Main";
-import { drawComparsionChart } from "../utils";
-import { fill, groupBy, zip } from "lodash";
+import { Main } from './Main';
+import { drawComparsionChart } from '../utils';
+import { fill, groupBy, zip } from 'lodash';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 function formatTime(time) {
-  return format(new Date(time), "yyyy/MM/dd HH:mm:ss");
+  return format(new Date(time), 'yyyy/MM/dd HH:mm:ss');
 }
 
 function transformTest(data, from) {
@@ -38,7 +38,7 @@ function transformTest(data, from) {
   let failed = 0;
 
   data.assertion_results.tests.forEach((test) => {
-    if (test.status === "passed") {
+    if (test.status === 'passed') {
       passed++;
     } else {
       failed++;
@@ -46,8 +46,8 @@ function transformTest(data, from) {
 
     tests.push({
       ...test,
-      level: "Table",
-      column: "-",
+      level: 'Table',
+      column: '-',
       from,
     });
   });
@@ -55,14 +55,14 @@ function transformTest(data, from) {
   Object.keys(data.assertion_results.columns).forEach((column) => {
     let columnTests = data.assertion_results.columns[column];
     columnTests.forEach((test) => {
-      if (test.status === "passed") {
+      if (test.status === 'passed') {
         passed++;
       } else {
         failed++;
       }
       tests.push({
         ...test,
-        level: "Column",
+        level: 'Column',
         column,
         from,
       });
@@ -80,7 +80,7 @@ function CompareTest({ base, input }) {
   // group by "level", "column", "name"
   let tests = groupBy(
     [].concat(base, input),
-    (test) => `${test.level}_${test.column}_${test.name}`
+    (test) => `${test.level}_${test.column}_${test.name}`,
   );
   tests = Object.values(tests).map((groupedTest) => {
     let row = {
@@ -90,7 +90,7 @@ function CompareTest({ base, input }) {
     };
 
     groupedTest.forEach((test) => {
-      if (test.from === "base") {
+      if (test.from === 'base') {
         row.base = test;
       } else {
         row.input = test;
@@ -103,15 +103,14 @@ function CompareTest({ base, input }) {
   const TestStatus = ({ test }) => {
     let content;
     if (!test) {
-      content = "-";
-    } else if (test.status === "passed") {
-      content = "✅";
+      content = '-';
+    } else if (test.status === 'passed') {
+      content = '✅';
     } else {
-      content = "❌";
+      content = '❌';
     }
->>>>>>> 0496c48 (Relayout the comparison report):static_report/src/components/ComparsionReport.js
     return (
-      <Text as="span" role={"img"}>
+      <Text as="span" role={'img'}>
         {content}
       </Text>
     );
@@ -120,7 +119,7 @@ function CompareTest({ base, input }) {
   // render
   return (
     <TableContainer>
-      <Table variant={"simple"}>
+      <Table variant={'simple'}>
         <Thead>
           <Tr>
             <Th>Level</Th>
@@ -198,18 +197,18 @@ function CompareSchema({ base, input }) {
 
   return (
     <Accordion allowToggle>
-      <AccordionItem borderColor={"transparent"}>
-        <AccordionButton px={0} _focus={{ boxShadow: "transparent" }}>
+      <AccordionItem borderColor={'transparent'}>
+        <AccordionButton px={0} _focus={{ boxShadow: 'transparent' }}>
           Added:
-          <Text as={"span"} fontWeight={700} ml={1}>
+          <Text as={'span'} fontWeight={700} ml={1}>
             {added}
           </Text>
           , Deleted:
-          <Text as={"span"} fontWeight={700} ml={1}>
+          <Text as={'span'} fontWeight={700} ml={1}>
             {deleted}
           </Text>
-          , Changed:{" "}
-          <Text as={"span"} fontWeight={700} ml={1}>
+          , Changed:{' '}
+          <Text as={'span'} fontWeight={700} ml={1}>
             {changed}
           </Text>
           <Box flex="1" textAlign="left" />
@@ -217,9 +216,9 @@ function CompareSchema({ base, input }) {
         </AccordionButton>
 
         <AccordionPanel px={0}>
-          <Flex width={"100%"} justifyContent={"space-evenly"}>
+          <Flex width={'100%'} justifyContent={'space-evenly'}>
             <TableContainer>
-              <Table variant="simple" width={"350px"}>
+              <Table variant="simple" width={'350px'}>
                 <Thead>
                   <Tr>
                     <Th>Column</Th>
@@ -230,22 +229,22 @@ function CompareSchema({ base, input }) {
                   {columns.map((column) => (
                     <Tr
                       key={nanoid(10)}
-                      color={column.changed ? "red.500" : "inherit"}
+                      color={column.changed ? 'red.500' : 'inherit'}
                     >
-                      <Td>{column.base?.name ?? "-"}</Td>
-                      <Td>{column.base?.schema_type ?? "-"}</Td>
+                      <Td>{column.base?.name ?? '-'}</Td>
+                      <Td>{column.base?.schema_type ?? '-'}</Td>
                     </Tr>
                   ))}
                 </Tbody>
               </Table>
             </TableContainer>
 
-            <Flex justifyContent={"center"}>
-              <Divider orientation={"vertical"} />
+            <Flex justifyContent={'center'}>
+              <Divider orientation={'vertical'} />
             </Flex>
 
             <TableContainer>
-              <Table variant="simple" width={"350px"}>
+              <Table variant="simple" width={'350px'}>
                 <Thead>
                   <Tr>
                     <Th>Column</Th>
@@ -256,10 +255,10 @@ function CompareSchema({ base, input }) {
                   {columns.map((column) => (
                     <Tr
                       key={nanoid(10)}
-                      color={column.changed ? "red.500" : "inherit"}
+                      color={column.changed ? 'red.500' : 'inherit'}
                     >
-                      <Td>{column.input?.name ?? "-"}</Td>
-                      <Td>{column.input?.schema_type ?? "-"}</Td>
+                      <Td>{column.input?.name ?? '-'}</Td>
+                      <Td>{column.input?.schema_type ?? '-'}</Td>
                     </Tr>
                   ))}
                 </Tbody>
@@ -279,25 +278,25 @@ function CompareProfileColumn({ name, base, input }) {
   const MetricRow = ({ name, base, input }) => (
     <Flex gap="2">
       <Box flex="1">{<b>{name}</b>}</Box>
-      <Flex justifyContent={"flex-end"} alignItems={"center"} w="100px">
+      <Flex justifyContent={'flex-end'} alignItems={'center'} w="100px">
         {base}
       </Flex>
-      <Flex justifyContent={"flex-end"} alignItems={"center"} w="100px">
+      <Flex justifyContent={'flex-end'} alignItems={'center'} w="100px">
         {input}
       </Flex>
     </Flex>
   );
 
-  const NumberCell = ({ value }) => (value ? Number(value).toFixed(3) : "-");
+  const NumberCell = ({ value }) => (value ? Number(value).toFixed(3) : '-');
 
-  const GeneralCell = ({ value }) => (value ? value : "-");
+  const GeneralCell = ({ value }) => (value ? value : '-');
 
   const Missing = ({ column }) =>
     column
       ? (
           Number((column.total - column.non_nulls) / column.total) * 100
-        ).toFixed(1) + "%"
-      : "-";
+        ).toFixed(1) + '%'
+      : '-';
 
   const metrics = (
     <>
@@ -305,15 +304,15 @@ function CompareProfileColumn({ name, base, input }) {
         name={
           <Text>
             <Text
-              as={"span"}
+              as={'span'}
               fontWeight={700}
-              color={"gray.900"}
-              fontSize={"xl"}
+              color={'gray.900'}
+              fontSize={'xl'}
               mr={1}
             >
               {column.name}
             </Text>
-            {""}(<Code>{column.type}</Code>)
+            {''}(<Code>{column.type}</Code>)
           </Text>
         }
         base="Base"
@@ -322,8 +321,8 @@ function CompareProfileColumn({ name, base, input }) {
 
       <MetricRow
         name="Total"
-        base={base?.total || "-"}
-        input={input?.total || "-"}
+        base={base?.total || '-'}
+        input={input?.total || '-'}
       ></MetricRow>
       <MetricRow
         name="Missing"
@@ -332,12 +331,12 @@ function CompareProfileColumn({ name, base, input }) {
       ></MetricRow>
       <MetricRow
         name="Distinct"
-        base={base?.distinct || "-"}
-        input={input?.distinct || "-"}
+        base={base?.distinct || '-'}
+        input={input?.distinct || '-'}
       ></MetricRow>
       <Box height={2}></Box>
 
-      {column.type === "numeric" && (
+      {column.type === 'numeric' && (
         <>
           <MetricRow
             name="Min"
@@ -357,7 +356,7 @@ function CompareProfileColumn({ name, base, input }) {
         </>
       )}
 
-      {column.type === "datetime" && (
+      {column.type === 'datetime' && (
         <>
           <MetricRow
             name="Min"
@@ -379,7 +378,7 @@ function CompareProfileColumn({ name, base, input }) {
 
   if (
     base?.type === input?.type &&
-    (base?.type == "string" || base?.type == "datetime")
+    (base?.type == 'string' || base?.type == 'datetime')
   ) {
     const transformDist = (base, input) => {
       let i = 0;
@@ -453,9 +452,9 @@ function CompareProfileColumn({ name, base, input }) {
     );
   }
   return (
-    <Flex key={name} direction={"column"}>
+    <Flex key={name} direction={'column'}>
       <Grid my={4} templateColumns="1fr 600px" gap={3}>
-        <Flex direction={"column"} gap={1}>
+        <Flex direction={'column'} gap={1}>
           {metrics}
         </Flex>
         <CompareDistribution />
@@ -503,22 +502,22 @@ function CompareProfile({ base, input }) {
   );
 }
 
-export function ComparisonReportMain({ base, input }) {
-  let tBase = transformTest(base, "base");
-  let tInput = transformTest(input, "input");
+export function ComparisonReport({ base, input }) {
+  let tBase = transformTest(base, 'base');
+  let tInput = transformTest(input, 'input');
 
   return (
     <Main>
-      <Flex direction={"column"} minH={"100vh"} width={"100%"}>
+      <Flex direction={'column'} minH={'100vh'} width={'100%'}>
         <Flex
-          border={"1px solid"}
-          borderColor={"gray.300"}
-          bg={"white"}
-          borderRadius={"md"}
+          border={'1px solid'}
+          borderColor={'gray.300'}
+          bg={'white'}
+          borderRadius={'md'}
           p={6}
           my={10}
-          mx={"10%"}
-          direction={"column"}
+          mx={'10%'}
+          direction={'column'}
           gap={8}
         >
           <Heading>Comparison Summary</Heading>
@@ -526,12 +525,12 @@ export function ComparisonReportMain({ base, input }) {
           {/* overview */}
           <Heading fontSize={24}>Overview</Heading>
           <TableContainer>
-            <Table variant={"simple"}>
+            <Table variant={'simple'}>
               <Thead>
                 <Tr>
-                  <Th width={"10%"} />
-                  <Th width={"45%"}>Base</Th>
-                  <Th width={"45%"}>Input</Th>
+                  <Th width={'10%'} />
+                  <Th width={'45%'}>Base</Th>
+                  <Th width={'45%'}>Input</Th>
                 </Tr>
               </Thead>
 
@@ -542,13 +541,13 @@ export function ComparisonReportMain({ base, input }) {
                     {base.name}
                     {base.created_at
                       ? ` at ${formatTime(base.created_at)}`
-                      : ""}
+                      : ''}
                   </Td>
                   <Td>
                     {input.name}
                     {input.created_at
                       ? ` at ${formatTime(input.created_at)}`
-                      : ""}
+                      : ''}
                   </Td>
                 </Tr>
                 <Tr>
@@ -584,24 +583,6 @@ export function ComparisonReportMain({ base, input }) {
   );
 }
 
-export default function ComparisonReport({ params }) {
-  const data = window.PIPERIDER_REPORT_DATA;
-
-  useDocumentTitle(params.reportName);
-
-  if (data === "") {
-    return (
-      <Main>
-        <Flex justifyContent="center" alignItems="center" minHeight={"100vh"}>
-          No profile data found.
-        </Flex>
-      </Main>
-    );
-  }
-
-  return <ComparisonReportMain base={data.base} input={data.input} />;
-}
-
 function ComparisonBarChart({ data }) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
@@ -611,14 +592,14 @@ function ComparisonBarChart({ data }) {
       drawComparsionChart({
         containerWidth: containerRef.current.getBoundingClientRect().width,
         svgTarget: svgRef.current,
-        tooltipTarget: ".chart",
+        tooltipTarget: '.chart',
         data,
       });
     }
   }, [data]);
 
   return (
-    <Flex className={"chart"} ref={containerRef} width={"100%"}>
+    <Flex className={'chart'} ref={containerRef} width={'100%'}>
       <svg ref={svgRef} />
     </Flex>
   );
