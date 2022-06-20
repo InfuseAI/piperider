@@ -6,10 +6,10 @@ import { Loading } from './components/Loading';
 import { ReportList } from './components/ReportList';
 import { NotFound } from './components/NotFound';
 import { useHashLocation } from './hooks/useHashLcocation';
-import { ComparisonReport } from './components/ComparisonReport';
 import { ComparisonReportList } from './components/ComparisonList';
 
 const SingleReport = lazy(() => import('./components/SingleReport'));
+const ComparisonReport = lazy(() => import('./components/ComparisonReport'));
 
 function AppSingle() {
   const { tables, datasource, id, created_at } =
@@ -49,6 +49,7 @@ function AppSingle() {
 function AppComparison() {
   const data = window.PIPERIDER_COMPARISON_REPORT_DATA;
   const { base, input } = data;
+
   return (
     <Suspense fallback={<Loading />}>
       <Main alignItems="flex-start">

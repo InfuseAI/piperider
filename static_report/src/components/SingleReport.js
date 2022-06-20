@@ -21,10 +21,8 @@ import { format } from 'date-fns';
 import { Link } from 'wouter';
 
 import { Main } from './Main';
-import {
-  getReportAsserationStatusCounts,
-  drawSingleReportChart,
-} from '../utils';
+import { getReportAsserationStatusCounts } from '../utils';
+import { drawSingleReportChart } from '../utils/singleReport';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function SingleReport({ source, data, reportName }) {

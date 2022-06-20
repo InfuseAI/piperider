@@ -30,7 +30,9 @@ import groupBy from 'lodash/groupBy';
 import zip from 'lodash/zip';
 
 import { Main } from './Main';
-import { drawComparsionChart } from '../utils';
+import { getFixedValue, getMissingValue } from '../utils';
+import { drawComparsionChart, joinBykey } from '../utils/comparisonReport';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 function transformTest(data, from) {
   let tests = [];
@@ -275,112 +277,26 @@ function CompareSchema({ base, input }) {
   );
 }
 
-function f(value) {
-  return value !== undefined ? value : '-';
+function MetricsInfo({ name, base, input }) {
+  return (
+    <Flex justifyContent="space-between">
+      <Text fontWeight={700}>{name}</Text>
+      <Flex gap={8}>
+        <Text textAlign="right" width="100px">
+          {base}
+        </Text>
+        <Text textAlign="right" width="100px">
+          {input}
+        </Text>
+      </Flex>
+    </Flex>
+  );
 }
 
 function CompareProfileColumn({ name, base, input }) {
   let column = base ? base : input;
 
-  const MetricRow = ({ name, base, input }) => (
-    <Flex gap="2">
-      <Box flex="1">{<b>{name}</b>}</Box>
-      <Flex justifyContent={'flex-end'} alignItems={'center'} w="100px">
-        {base}
-      </Flex>
-      <Flex justifyContent={'flex-end'} alignItems={'center'} w="100px">
-        {input}
-      </Flex>
-    </Flex>
-  );
-
-  const NumberCell = ({ value }) =>
-    value !== undefined ? Number(value).toFixed(3) : '-';
-
-  const GeneralCell = ({ value }) => (value !== undefined ? value : '-');
-
-  const Missing = ({ column }) =>
-    column
-      ? (
-          Number((column.total - column.non_nulls) / column.total) * 100
-        ).toFixed(1) + '%'
-      : '-';
-
-  const metrics = (
-    <>
-      <MetricRow
-        name={
-          <Text>
-            <Text
-              as={'span'}
-              fontWeight={700}
-              color={'gray.900'}
-              fontSize={'xl'}
-              mr={1}
-            >
-              {column.name}
-            </Text>
-            {''}(<Code>{column.type}</Code>)
-          </Text>
-        }
-        base="Base"
-        input="Input"
-      ></MetricRow>
-
-      <MetricRow
-        name="Total"
-        base={base?.total || '-'}
-        input={input?.total || '-'}
-      ></MetricRow>
-      <MetricRow
-        name="Missing"
-        base={<Missing column={base} />}
-        input={<Missing column={input} />}
-      ></MetricRow>
-      <MetricRow
-        name="Distinct"
-        base={f(base?.distinct)}
-        input={f(input?.distinct)}
-      ></MetricRow>
-      <Box height={2}></Box>
-
-      {column.type === 'numeric' && (
-        <>
-          <MetricRow
-            name="Min"
-            base={<NumberCell value={base?.min}></NumberCell>}
-            input={<NumberCell value={input?.min}></NumberCell>}
-          ></MetricRow>
-          <MetricRow
-            name="Max"
-            base={<NumberCell value={base?.max}></NumberCell>}
-            input={<NumberCell value={input?.max}></NumberCell>}
-          ></MetricRow>
-          <MetricRow
-            name="Average"
-            base={<NumberCell value={base?.avg}></NumberCell>}
-            input={<NumberCell value={input?.avg}></NumberCell>}
-          ></MetricRow>
-        </>
-      )}
-
-      {column.type === 'datetime' && (
-        <>
-          <MetricRow
-            name="Min"
-            base={<GeneralCell value={base?.min}></GeneralCell>}
-            input={<GeneralCell value={input?.min}></GeneralCell>}
-          ></MetricRow>
-          <MetricRow
-            name="Max"
-            base={<GeneralCell value={base?.max}></GeneralCell>}
-            input={<GeneralCell value={input?.max}></GeneralCell>}
-          ></MetricRow>
-        </>
-      )}
-    </>
-  );
-
+  // FIXME:
   // distribution
   let CompareDistribution;
 
@@ -462,8 +378,74 @@ function CompareProfileColumn({ name, base, input }) {
   return (
     <Flex key={name} direction={'column'}>
       <Grid my={4} templateColumns="1fr 600px" gap={3}>
-        <Flex direction={'column'} gap={1}>
-          {metrics}
+        <Flex direction={'column'} gap={2}>
+          <Flex direction="column">
+            <MetricsInfo
+              name={
+                <>
+                  <Text as="span" color="gray.900" fontSize={'xl'} mr={1}>
+                    {column.name}
+                  </Text>{' '}
+                  (<Code>{column.type}</Code>)
+                </>
+              }
+              base="Base"
+              input="Input"
+            />
+
+            <MetricsInfo
+              name="Total"
+              base={base?.total || '-'}
+              input={input?.total || '-'}
+            />
+
+            <MetricsInfo
+              name="Missing"
+              base={getMissingValue(base)}
+              input={getMissingValue(input)}
+            />
+
+            <MetricsInfo
+              name="Distinct"
+              base={base?.distinct ?? '-'}
+              input={input?.distinct ?? '-'}
+            />
+          </Flex>
+
+          {column.type === 'numeric' && (
+            <Flex direction="column">
+              <MetricsInfo
+                name="Min"
+                base={getFixedValue(base?.min)}
+                input={getFixedValue(input?.min)}
+              />
+              <MetricsInfo
+                name="Max"
+                base={getFixedValue(base?.max)}
+                input={getFixedValue(input?.max)}
+              />
+              <MetricsInfo
+                name="Average"
+                base={getFixedValue(base?.avg)}
+                input={getFixedValue(input?.avg)}
+              />
+            </Flex>
+          )}
+
+          {column.type === 'datetime' && (
+            <Flex direction="column">
+              <MetricsInfo
+                name="Min"
+                base={base?.min ?? '-'}
+                input={input?.min ?? '-'}
+              />
+              <MetricsInfo
+                name="Max"
+                base={base?.max ?? '-'}
+                input={input?.max ?? '-'}
+              />
+            </Flex>
+          )}
         </Flex>
         <CompareDistribution />
       </Grid>
@@ -472,48 +454,23 @@ function CompareProfileColumn({ name, base, input }) {
 }
 
 function CompareProfile({ base, input }) {
-  function joinBykey(left = {}, right = {}) {
-    const result = {};
+  const transformedData = joinBykey(base?.columns, input?.columns);
 
-    Object.entries(left).forEach(([key, value]) => {
-      if (!result[key]) {
-        result[key] = {};
-      }
-
-      result[key].left = value;
-    });
-
-    Object.entries(right).forEach(([key, value]) => {
-      if (!result[key]) {
-        result[key] = {};
-      }
-      result[key].right = value;
-    });
-
-    return result;
-  }
-
-  let transformedData = joinBykey(base?.columns, input?.columns);
-
-  return (
-    <>
-      {Object.entries(transformedData).map(([key, value]) => {
-        return (
-          <CompareProfileColumn
-            key={key}
-            name={key}
-            base={value.left}
-            input={value.right}
-          />
-        );
-      })}
-    </>
-  );
+  return Object.entries(transformedData).map(([key, value]) => (
+    <CompareProfileColumn
+      key={key}
+      name={key}
+      base={value.base}
+      input={value.input}
+    />
+  ));
 }
 
-export function ComparisonReport({ base, input, reportName }) {
-  let tBase = transformTest(base, 'base');
-  let tInput = transformTest(input, 'input');
+export default function ComparisonReport({ base, input, reportName }) {
+  const tBase = transformTest(base, 'base');
+  const tInput = transformTest(input, 'input');
+
+  useDocumentTitle(reportName);
 
   return (
     <Main>
@@ -558,29 +515,33 @@ export function ComparisonReport({ base, input, reportName }) {
               <Tbody>
                 <Tr>
                   <Td>Table</Td>
-                  <Td>{f(base?.name)}</Td>
-                  <Td>{f(input?.name)}</Td>
+                  <Td>{base?.name ?? '-'}</Td>
+                  <Td>{input?.name ?? '-'}</Td>
                 </Tr>
                 <Tr>
                   <Td>Rows</Td>
-                  <Td>{f(base?.row_count)}</Td>
-                  <Td>{f(input?.row_count)}</Td>
+                  <Td>{base?.row_count ?? '-'}</Td>
+                  <Td>{input?.row_count ?? '-'}</Td>
                 </Tr>
                 <Tr>
                   <Td>Columns</Td>
-                  <Td>{f(base?.col_count)}</Td>
-                  <Td>{f(input?.col_count)}</Td>
+                  <Td>{base?.col_count ?? '-'}</Td>
+                  <Td>{input?.col_count ?? '-'}</Td>
                 </Tr>
                 <Tr>
                   <Td>Test status</Td>
                   <Td>
                     {tBase
-                      ? `${f(tBase.passed)} Passed, ${f(tBase.failed)} Failed`
+                      ? `${tBase.passed ?? '-'} Passed, ${
+                          tBase.failed ?? '-'
+                        } Failed`
                       : '-'}
                   </Td>
                   <Td>
                     {tInput
-                      ? `${f(tInput.passed)} Passed, ${f(tInput.failed)} Failed`
+                      ? `${tInput.passed ?? '-'} Passed, ${
+                          tInput.failed ?? '-'
+                        } Failed`
                       : '-'}
                   </Td>
                 </Tr>

@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { nanoid } from 'nanoid';
 
 import { getReportAsserationStatusCounts } from '../utils';
+import { joinBykey } from '../utils/comparisonReport';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 function formatTime(time) {
@@ -22,27 +23,6 @@ function formatTime(time) {
 
 export function ComparisonReportList({ data }) {
   const { base, input } = data;
-
-  function joinBykey(base, input) {
-    const result = {};
-
-    Object.entries(base).forEach(([key, value]) => {
-      if (!result[key]) {
-        result[key] = {};
-      }
-
-      result[key].base = value;
-    });
-
-    Object.entries(input).forEach(([key, value]) => {
-      if (!result[key]) {
-        result[key] = {};
-      }
-      result[key].input = value;
-    });
-
-    return result;
-  }
 
   const tables = joinBykey(base.tables, input.tables);
 
