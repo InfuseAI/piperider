@@ -12,7 +12,8 @@ import { ComparisonReportList } from './components/ComparisonList';
 const SingleReport = lazy(() => import('./components/SingleReport'));
 
 function AppSingle() {
-  const { tables, datasource, id, created_at } = window.PIPERIDER_SINGLE_REPORT_DATA;
+  const { tables, datasource, id, created_at } =
+    window.PIPERIDER_SINGLE_REPORT_DATA;
   return (
     <Suspense fallback={<Loading />}>
       <Main alignItems="flex-start">
