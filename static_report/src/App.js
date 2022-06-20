@@ -47,7 +47,7 @@ function AppSingle() {
 
 function AppComparison() {
   const data = window.PIPERIDER_REPORT_DATA;
-  const { base, input, datasource } = data;
+  const { base, input } = data;
   return (
     <Suspense fallback={<Loading />}>
       <Main alignItems="flex-start">
@@ -61,7 +61,6 @@ function AppComparison() {
             <Route path="/tables/:reportName">
               {(params) => (
                 <ComparisonReport
-                  source={datasource}
                   reportName={params.reportName}
                   base={base.tables[params.reportName]}
                   input={input.tables[params.reportName]}

@@ -5,6 +5,9 @@ import {
   AccordionItem,
   AccordionPanel,
   Box,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Code,
   Divider,
   Flex,
@@ -25,6 +28,7 @@ import { useEffect, useRef } from 'react';
 import { Main } from './Main';
 import { drawComparsionChart } from '../utils';
 import { fill, groupBy, zip } from 'lodash';
+import { Link } from 'wouter';
 
 function transformTest(data, from) {
   let tests = [];
@@ -505,26 +509,38 @@ function CompareProfile({ base, input }) {
   );
 }
 
-export function ComparisonReport({ base, input }) {
+export function ComparisonReport({ base, input, reportName }) {
   let tBase = transformTest(base, 'base');
   let tInput = transformTest(input, 'input');
 
   return (
     <Main>
       <Flex direction={'column'} minH={'100vh'} width={'100%'}>
+        <Flex mx={'10%'} mt={4}>
+          <Breadcrumb fontSize="lg">
+            <BreadcrumbItem>
+              <Link href="/">
+                <BreadcrumbLink href="/">Tables</BreadcrumbLink>
+              </Link>
+            </BreadcrumbItem>
+
+            <BreadcrumbItem isCurrentPage>
+              <BreadcrumbLink href="#">{reportName}</BreadcrumbLink>
+            </BreadcrumbItem>
+          </Breadcrumb>
+        </Flex>
+
         <Flex
           border={'1px solid'}
           borderColor={'gray.300'}
           bg={'white'}
           borderRadius={'md'}
           p={6}
-          my={10}
+          mt={3}
           mx={'10%'}
           direction={'column'}
           gap={8}
         >
-          <Heading>Comparison Summary</Heading>
-
           {/* overview */}
           <Heading fontSize={24}>Overview</Heading>
           <TableContainer>
