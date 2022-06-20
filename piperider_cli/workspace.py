@@ -511,15 +511,15 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
     if dbt and not skip_dbt:
         dbt_root = os.path.expanduser(dbt.get('projectDir'))
-        run_cmd = dbt.get('run_cmd', 'test')
-        if not run_cmd in ['build', 'run', 'test']:
+        cmd = dbt.get('cmd', 'test')
+        if not cmd in ['build', 'run', 'test']:
             # TODO: show an error if dbt cmd is invalid
             pass
 
         console.rule('Running dbt')
         console.print(f'[bold yellow]dbt working dir:[/bold yellow] {dbt_root}')
-        console.print(f'Execute command: dbt {run_cmd}')
-        proc = Popen(['dbt', run_cmd], cwd=dbt_root)
+        console.print(f'Execute command: dbt {cmd}')
+        proc = Popen(['dbt', cmd], cwd=dbt_root)
         proc.communicate()
 
     console.rule('Profiling')
