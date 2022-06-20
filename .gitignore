@@ -324,3 +324,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 *.sum
+
+piperider-getting-started
+.piperider
