@@ -555,12 +555,12 @@ def _run_dbt_command(dbt, table, console):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     try:
         check_output(['command', '-v', 'dbt'], cwd=dbt_root)
-    except CalledProcessError as e:
-        console.print(f"[bold yellow]Warning: dbt command not found. Skip running dbt[/bold yellow]")
+    except CalledProcessError:
+        console.print('[bold yellow]Warning: dbt command not found. Skip running dbt[/bold yellow]')
         return
 
     cmd = dbt.get('cmd', 'test')
-    if not cmd in ['build', 'run', 'test']:
+    if cmd not in ['build', 'run', 'test']:
         message = f"'dbt {cmd}' is invalid, only support 'dbt build/run/test'."
         message += " Please check the dbt command in '.piperider/config.yml'."
         message += ' Skip running dbt'
