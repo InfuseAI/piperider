@@ -60,7 +60,7 @@ export function ReportList({ data }) {
                 );
 
                 return (
-                  <Link key={report.name} href={`/single-run/${key}`}>
+                  <Link key={report.name} href={`/tables/${key}`}>
                     <Tr
                       cursor={'pointer'}
                       _hover={{ bgColor: 'blackAlpha.50' }}

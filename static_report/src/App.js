@@ -6,12 +6,13 @@ import { Loading } from './components/Loading';
 import { ReportList } from './components/ReportList';
 import { NotFound } from './components/NotFound';
 import { useHashLocation } from './hooks/useHashLcocation';
+import { ComparisonReport } from './components/ComparisonReport';
+import { ComparisonReportList } from './components/ComparisonList';
 
 const SingleReport = lazy(() => import('./components/SingleReport'));
 
-function App() {
+function AppSingle() {
   const { tables, datasource, id, created_at } = window.PIPERIDER_REPORT_DATA;
-
   return (
     <Suspense fallback={<Loading />}>
       <Main alignItems="flex-start">
@@ -24,7 +25,7 @@ function App() {
               )}
             />
 
-            <Route path="/single-run/:reportName">
+            <Route path="/tables/:reportName">
               {(params) => (
                 <SingleReport
                   source={datasource}
@@ -34,8 +35,6 @@ function App() {
               )}
             </Route>
 
-            {/* TODO: comparison route */}
-
             <Route>
               <NotFound />
             </Route>
@@ -44,6 +43,46 @@ function App() {
       </Main>
     </Suspense>
   );
+}
+
+function AppComparison() {
+  const data = window.PIPERIDER_REPORT_DATA;
+  const { base, input } = data;
+  return (
+    <Suspense fallback={<Loading />}>
+      <Main alignItems="flex-start">
+        <Router hook={useHashLocation}>
+          <Switch>
+            <Route
+              path="/"
+              component={() => <ComparisonReportList data={data} />}
+            />
+
+            <Route path="/tables/:reportName">
+              {(params) => (
+                <ComparisonReport
+                  reportName={params.reportName}
+                  base={base.tables[params.reportName]}
+                  input={input.tables[params.reportName]}
+                />
+              )}
+            </Route>
+            <Route>
+              <NotFound />
+            </Route>
+          </Switch>
+        </Router>
+      </Main>
+    </Suspense>
+  );
+}
+
+function App() {
+  if (process.env.REACT_APP_SINGLE_REPORT === 'true') {
+    return <AppSingle />;
+  } else {
+    return <AppComparison />;
+  }
 }
 
 export default App;
