@@ -32,7 +32,17 @@ jobs:
       - name: RunTests
         run: |
           cd e2e-tests
-          runtest --tool=testsuite/init
+          runtest --tool=testsuite/getting-started
+
+          # show logs
+          for x in $(find . -name "*.log")
+          do
+            echo "log file: $x"
+            echo "=== start ==="
+            cat $x
+            echo "=== end   ==="
+            echo ""
+          done
 
       - name: Archive e2e artifacts
         uses: actions/upload-artifact@v3
