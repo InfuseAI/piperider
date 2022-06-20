@@ -8,7 +8,6 @@ import {
   Th,
   Thead,
   Tr,
-  Text,
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
 import { format } from 'date-fns';
@@ -21,12 +20,12 @@ function formatTime(time) {
 }
 
 export function ComparisonReportList({ data }) {
-  const { id, created_at, datasource, base, input } = data;
+  const { base, input } = data;
 
   function joinBykey(base, input) {
     const result = {};
 
-    Object.entries(base).map(([key, value]) => {
+    Object.entries(base).forEach(([key, value]) => {
       if (!result[key]) {
         result[key] = {};
       }
@@ -34,7 +33,7 @@ export function ComparisonReportList({ data }) {
       result[key].base = value;
     });
 
-    Object.entries(input).map(([key, value]) => {
+    Object.entries(input).forEach(([key, value]) => {
       if (!result[key]) {
         result[key] = {};
       }
@@ -48,7 +47,7 @@ export function ComparisonReportList({ data }) {
 
   useDocumentTitle('Report List');
 
-  const f = (value) => (value != undefined ? value : '-');
+  const f = (value) => (value !== undefined ? value : '-');
 
   return (
     <Flex direction={'column'} minH={'100vh'} width={'100%'}>

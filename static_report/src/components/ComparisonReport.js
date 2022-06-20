@@ -19,18 +19,12 @@ import {
   Thead,
   Tr,
 } from '@chakra-ui/react';
-import { format } from 'date-fns';
 import { nanoid } from 'nanoid';
 import { useEffect, useRef } from 'react';
 
 import { Main } from './Main';
 import { drawComparsionChart } from '../utils';
 import { fill, groupBy, zip } from 'lodash';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
-
-function formatTime(time) {
-  return format(new Date(time), 'yyyy/MM/dd HH:mm:ss');
-}
 
 function transformTest(data, from) {
   let tests = [];
@@ -276,12 +270,11 @@ function CompareSchema({ base, input }) {
 }
 
 function f(value) {
-  return value != undefined ? value : '-';
+  return value !== undefined ? value : '-';
 }
 
 function CompareProfileColumn({ name, base, input }) {
   let column = base ? base : input;
-  const isAllValuesExists = false;
 
   const MetricRow = ({ name, base, input }) => (
     <Flex gap="2">
@@ -296,9 +289,9 @@ function CompareProfileColumn({ name, base, input }) {
   );
 
   const NumberCell = ({ value }) =>
-    value != undefined ? Number(value).toFixed(3) : '-';
+    value !== undefined ? Number(value).toFixed(3) : '-';
 
-  const GeneralCell = ({ value }) => (value != undefined ? value : '-');
+  const GeneralCell = ({ value }) => (value !== undefined ? value : '-');
 
   const Missing = ({ column }) =>
     column
@@ -387,7 +380,7 @@ function CompareProfileColumn({ name, base, input }) {
 
   if (
     base?.type === input?.type &&
-    (base?.type == 'string' || base?.type == 'datetime')
+    (base?.type === 'string' || base?.type === 'datetime')
   ) {
     const transformDist = (base, input) => {
       let i = 0;
@@ -476,7 +469,7 @@ function CompareProfile({ base, input }) {
   function joinBykey(left = {}, right = {}) {
     const result = {};
 
-    Object.entries(left).map(([key, value]) => {
+    Object.entries(left).forEach(([key, value]) => {
       if (!result[key]) {
         result[key] = {};
       }
@@ -484,7 +477,7 @@ function CompareProfile({ base, input }) {
       result[key].left = value;
     });
 
-    Object.entries(right).map(([key, value]) => {
+    Object.entries(right).forEach(([key, value]) => {
       if (!result[key]) {
         result[key] = {};
       }

@@ -47,7 +47,7 @@ function AppSingle() {
 
 function AppComparison() {
   const data = window.PIPERIDER_REPORT_DATA;
-  const { base, input, datasource, id, created_at } = data;
+  const { base, input, datasource } = data;
   return (
     <Suspense fallback={<Loading />}>
       <Main alignItems="flex-start">
