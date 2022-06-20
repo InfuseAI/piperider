@@ -11,6 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
 import { format } from 'date-fns';
+import { nanoid } from 'nanoid';
 
 import { getReportAsserationStatusCounts } from '../utils';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -110,7 +111,7 @@ export function ComparisonReportList({ data }) {
                   );
 
                   return (
-                    <Link key={table.name} href={`/tables/${key}`}>
+                    <Link key={nanoid()} href={`/tables/${key}`}>
                       <Tr
                         cursor={'pointer'}
                         _hover={{ bgColor: 'blackAlpha.50' }}

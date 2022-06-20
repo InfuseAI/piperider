@@ -22,13 +22,15 @@ import {
   Thead,
   Tr,
 } from '@chakra-ui/react';
+import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
 import { useEffect, useRef } from 'react';
+import fill from 'lodash/fill';
+import groupBy from 'lodash/groupBy';
+import zip from 'lodash/zip';
 
 import { Main } from './Main';
 import { drawComparsionChart } from '../utils';
-import { fill, groupBy, zip } from 'lodash';
-import { Link } from 'wouter';
 
 function transformTest(data, from) {
   let tests = [];
