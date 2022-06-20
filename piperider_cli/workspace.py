@@ -5,7 +5,7 @@ import uuid
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from glob import glob
-from subprocess import Popen
+from subprocess import Popen, check_output, CalledProcessError
 
 import inquirer
 from rich.console import Console
@@ -510,17 +510,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
             tables = [table]
 
     if dbt and not skip_dbt:
-        dbt_root = os.path.expanduser(dbt.get('projectDir'))
-        cmd = dbt.get('cmd', 'test')
-        if not cmd in ['build', 'run', 'test']:
-            # TODO: show an error if dbt cmd is invalid
-            pass
-
-        console.rule('Running dbt')
-        console.print(f'[bold yellow]dbt working dir:[/bold yellow] {dbt_root}')
-        console.print(f'Execute command: dbt {cmd}')
-        proc = Popen(['dbt', cmd], cwd=dbt_root)
-        proc.communicate()
+        _run_dbt_command(dbt, table, console)
 
     console.rule('Profiling')
     run_id = uuid.uuid4().hex
@@ -559,6 +549,34 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     if skip_report:
         console.print(f'Results saved to {output_path}')
     return 0
+
+
+def _run_dbt_command(dbt, table, console):
+    dbt_root = os.path.expanduser(dbt.get('projectDir'))
+    try:
+        check_output(['command', '-v', 'dbt'], cwd=dbt_root)
+    except CalledProcessError as e:
+        console.print(f"[bold yellow]Warning: dbt command not found. Skip running dbt[/bold yellow]")
+        return
+
+    cmd = dbt.get('cmd', 'test')
+    if not cmd in ['build', 'run', 'test']:
+        message = f"'dbt {cmd}' is invalid, only support 'dbt build/run/test'."
+        message += " Please check the dbt command in '.piperider/config.yml'."
+        message += ' Skip running dbt'
+        console.print(f"[bold yellow]Warning: {message}[/bold yellow]")
+        return
+
+    full_cmd_arr = ['dbt', cmd]
+    if table:
+        full_cmd_arr.append('-s')
+        full_cmd_arr.append(table)
+
+    console.rule('Running dbt')
+    console.print(f'[bold yellow]dbt working dir:[/bold yellow] {dbt_root}')
+    console.print(f"Execute command: {' '.join(full_cmd_arr)}")
+    proc = Popen(full_cmd_arr, cwd=dbt_root)
+    proc.communicate()
 
 
 def prepare_output_path(created_at, ds, output):
