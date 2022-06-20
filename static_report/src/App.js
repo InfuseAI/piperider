@@ -10,7 +10,9 @@ import { useHashLocation } from './hooks/useHashLcocation';
 const SingleReport = lazy(() => import('./components/SingleReport'));
 
 function App() {
-  const { tables, datasource, id, created_at } = window.PIPERIDER_REPORT_DATA;
+  const { tables, datasource, id, created_at } =
+    window.PIPERIDER_SINGLE_REPORT_DATA;
+  console.log(window.PIPERIDER_SINGLE_REPORT_DATA);
 
   return (
     <Suspense fallback={<Loading />}>

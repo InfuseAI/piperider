@@ -26,7 +26,7 @@ import { drawComparsionChart } from '../utils';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function ComparisonReport({ params }) {
-  const data = window.PIPERIDER_REPORT_DATA;
+  const data = window.PIPERIDER_COMPARISON_REPORT_DATA;
 
   useDocumentTitle(params.reportName);
 

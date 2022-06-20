@@ -19,6 +19,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 export function ReportList({ data }) {
   const { id, created_at, datasource, tables } = data;
 
+  console.log(data);
   useDocumentTitle('Report List');
 
   return (

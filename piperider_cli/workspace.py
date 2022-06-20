@@ -579,7 +579,7 @@ def _validate_input_result(result):
 def _generate_static_html(result, html, output_path):
     filename = os.path.join(output_path, "index.html")
     with open(filename, 'w') as f:
-        html = html.replace(r'window.PIPERIDER_REPORT_DATA=""', f'window.PIPERIDER_REPORT_DATA={json.dumps(result)};')
+        html = html.replace(r'window.PIPERIDER_SINGLE_REPORT_DATA=""', f'window.PIPERIDER_SINGLE_REPORT_DATA={json.dumps(result)};')
         f.write(html)
 
 
@@ -643,8 +643,8 @@ def compare_report(a=None, b=None):
 
     filename = os.path.join(dir, 'index.html')
     with open(filename, 'w') as f:
-        html = report_template_html.replace(r'window.PIPERIDER_REPORT_DATA=""',
-                                            f'window.PIPERIDER_REPORT_DATA={comparison_data.to_json()};')
+        html = report_template_html.replace(r'window.PIPERIDER_COMPARE_REPORT_DATA=""',
+                                            f'window.PIPERIDER_COMPARE_REPORT_DATA={comparison_data.to_json()};')
         f.write(html)
 
     console.print()
