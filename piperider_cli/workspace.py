@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import uuid
+import re
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from glob import glob
@@ -312,6 +313,7 @@ def _fetch_dbt_manifest(dbt, table=None):
     available_tables = []
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     dbt_manifest = os.path.join(dbt_root, 'target', 'manifest.json')
+    manifest = None
     if os.path.exists(dbt_manifest):
         with open(dbt_manifest) as fd:
             manifest = json.loads(fd.read())
@@ -339,11 +341,11 @@ def _fetch_dbt_manifest(dbt, table=None):
         if table.lower() in lower_tables:
             index = lower_tables.index(table.lower())
             suggestion = f". Do you mean '{available_tables[index]}'?"
-        return False, f"Table '{table}' doesn't exist in {dbt_manifest}{suggestion}", []
+        return False, f"Table '{table}' doesn't exist in {dbt_manifest}{suggestion}", [], None
     if not tables:
-        return False, f'No table found in {dbt_manifest}', []
+        return False, f'No table found in {dbt_manifest}', [], None
 
-    return True, '', list(tables)
+    return True, '', list(tables), manifest
 
 
 def debug():
@@ -500,7 +502,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     dbt = ds.args.get('dbt')
     tables = None
     if dbt:
-        passed, error_msg, tables = _fetch_dbt_manifest(dbt, table)
+        passed, error_msg, tables, dbt_manifest = _fetch_dbt_manifest(dbt, table)
         if not passed:
             console.print(
                 "[bold yellow]Note:[/bold yellow] Please run command 'dbt build/run/test' to update 'manifest.json' files")
@@ -510,7 +512,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
             tables = [table]
 
     if dbt and not skip_dbt:
-        _run_dbt_command(dbt, table, console)
+        dbt_test_results = _run_dbt_command(dbt, table, dbt_manifest, console)
 
     console.rule('Profiling')
     run_id = uuid.uuid4().hex
@@ -538,6 +540,13 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     profile_result['created_at'] = created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     profile_result['datasource'] = dict(name=ds.name, type=ds.type_name)
 
+    # Include dbt test results
+    if dbt_test_results:
+        for k, v in dbt_test_results.items():
+            if k not in profile_result['tables']:
+                continue
+            profile_result['tables'][k]['dbt_test_results'] = v
+
     output_file = os.path.join(output_path, 'run.json')
     for t in profile_result['tables']:
         profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(t, assertion_results)
@@ -551,7 +560,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     return 0
 
 
-def _run_dbt_command(dbt, table, console):
+def _run_dbt_command(dbt, table, manifest, console):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     try:
         check_output(['command', '-v', 'dbt'], cwd=dbt_root)
@@ -577,6 +586,51 @@ def _run_dbt_command(dbt, table, console):
     console.print(f"Execute command: {' '.join(full_cmd_arr)}")
     proc = Popen(full_cmd_arr, cwd=dbt_root)
     proc.communicate()
+
+    run_results_path = os.path.join(dbt_root, 'target/run_results.json')
+    with open(run_results_path) as f:
+        run_results = json.load(f)
+
+    output = {}
+    unique_tests = {}
+
+    for result in run_results.get('results', []):
+        unique_id = result.get('unique_id')
+        if unique_id is None:
+            continue
+        unique_tests[unique_id] = dict(
+            status=result.get('status'),
+            failures=result.get('failures'),
+        )
+
+    for node in manifest.get('nodes', []).values():
+        unique_id = result.get('unique_id')
+        if unique_id not in unique_tests:
+            continue
+
+        parent_nodes = node.get('depends_on', {}).get('nodes', [])
+        if not parent_nodes:
+            continue
+        first_parent_node = parent_nodes[0]
+        parent_table = first_parent_node.split('.')[-1]
+        if parent_table not in output:
+            output[parent_table] = dict(columns={})
+
+        # TODO: need a better way to get parent table and column
+        parent_type = 'source' if len(node.get('sources', [])) > 0 else 'model'
+        package_name = node.get('package_name')
+        table_with_schema = re.sub(f'^{parent_type}\.{package_name}\.', '', first_parent_node).replace('.', '_')
+
+        test_name = node.get('test_metadata', {}).get('name')
+        fqn = node.get('fqn')[1]
+        column = re.sub(f"^{'source_' if parent_type == 'source' else ''}{test_name}_{table_with_schema}_", '', fqn)
+
+        output[parent_table]['columns'][column] = dict(
+            name=fqn,
+            status='passed' if unique_tests[unique_id]['status'] == 'pass' else 'failed',
+        )
+
+    return output
 
 
 def prepare_output_path(created_at, ds, output):
