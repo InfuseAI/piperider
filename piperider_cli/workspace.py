@@ -380,6 +380,33 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
         return results, exceptions
 
 
+def _show_dbt_test_result(console: Console, dbt_test_results):
+    max_target_len = 0
+    max_assert_len = 0
+    for table, v in dbt_test_results.items():
+        for column, result in v['columns'].items():
+            target = f'{table}.{column}'
+            test_name = result.get('name')
+            max_target_len = max(max_target_len, len(target))
+            max_assert_len = max(max_assert_len, len(test_name))
+
+    for table, v in dbt_test_results.items():
+        for column, result in v['columns'].items():
+            success = True if result.get('status') == 'passed' else False
+            test_name = result.get('name')
+            test_name = test_name.ljust(max_assert_len + 1)
+            target = f'{table}.{column}'
+            target = target.ljust(max_target_len + 1)
+            message = result.get('message')
+
+            if success:
+                console.print(
+                    f'[[bold green]  OK  [/bold green]] {target} {test_name} Message: {message}')
+            else:
+                console.print(
+                    f'[[bold red]FAILED[/bold red]] {target} {test_name} Message: {message}')
+
+
 def _show_assertion_result(console: Console, results, exceptions, failed_only=False, single_table=None):
     if results:
         max_target_len = 0
@@ -532,6 +559,10 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
                                                                   profile_result, created_at)
     if assertion_results:
         console.rule('Assertion Results')
+        if dbt_test_results:
+            console.rule('dbt')
+            _show_dbt_test_result(console, dbt_test_results)
+            console.rule('PipeRider')
         _show_assertion_result(console, assertion_results, assertion_exceptions)
 
     console.rule('Summary')
@@ -601,10 +632,11 @@ def _run_dbt_command(dbt, table, manifest, console):
         unique_tests[unique_id] = dict(
             status=result.get('status'),
             failures=result.get('failures'),
+            message=result.get('message'),
         )
 
     for node in manifest.get('nodes', []).values():
-        unique_id = result.get('unique_id')
+        unique_id = node.get('unique_id')
         if unique_id not in unique_tests:
             continue
 
@@ -626,8 +658,9 @@ def _run_dbt_command(dbt, table, manifest, console):
         column = re.sub(f"^{'source_' if parent_type == 'source' else ''}{test_name}_{table_with_schema}_", '', fqn)
 
         output[parent_table]['columns'][column] = dict(
-            name=fqn,
+            name=unique_id,
             status='passed' if unique_tests[unique_id]['status'] == 'pass' else 'failed',
+            message=unique_tests[unique_id]['message'],
         )
 
     return output
