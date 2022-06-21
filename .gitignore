@@ -327,3 +327,4 @@ yarn-error.log*
 
 piperider-getting-started
 .piperider
+*.db

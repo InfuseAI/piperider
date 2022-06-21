@@ -579,16 +579,16 @@ def _validate_input_result(result):
     return True
 
 
-def setup_report_varaibles(template_html: str, is_single: bool, data):
+def setup_report_variables(template_html: str, is_single: bool, data):
     if isinstance(data, dict):
         output = json.dumps(data)
     else:
         output = data
     if is_single:
-        variables = f'<script>\nwindow.PIPERIDER_SINGLE_REPORT_DATA={output};window.PIPERIDER_COMPARISON_REPORT_DATA="";</script>'
+        variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA={output};window.PIPERIDER_COMPARISON_REPORT_DATA="";</script>'
     else:
-        variables = f'<script>\nwindow.PIPERIDER_SINGLE_REPORT_DATA="";window.PIPERIDER_COMPARISON_REPORT_DATA={output};</script>'
-    html_parts = re.sub(r'<script>.+</script>', '#PLACEHOLDER#', template_html).split('#PLACEHOLDER#')
+        variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA="";window.PIPERIDER_COMPARISON_REPORT_DATA={output};</script>'
+    html_parts = re.sub(r'<script id="piperider-report-variables">.+</script>', '#PLACEHOLDER#', template_html).split('#PLACEHOLDER#')
     html = html_parts[0] + variables + html_parts[1]
     return html
 
@@ -596,7 +596,7 @@ def setup_report_varaibles(template_html: str, is_single: bool, data):
 def _generate_static_html(result, html, output_path):
     filename = os.path.join(output_path, "index.html")
     with open(filename, 'w') as f:
-        html = setup_report_varaibles(html, True, result)
+        html = setup_report_variables(html, True, result)
         f.write(html)
 
 
@@ -660,7 +660,7 @@ def compare_report(a=None, b=None):
 
     filename = os.path.join(dir, 'index.html')
     with open(filename, 'w') as f:
-        html = setup_report_varaibles(report_template_html, False, comparison_data.to_json())
+        html = setup_report_variables(report_template_html, False, comparison_data.to_json())
         f.write(html)
 
     console.print()
