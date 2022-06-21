@@ -588,7 +588,7 @@ def setup_report_variables(template_html: str, is_single: bool, data):
         variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA={output};window.PIPERIDER_COMPARISON_REPORT_DATA="";</script>'
     else:
         variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA="";window.PIPERIDER_COMPARISON_REPORT_DATA={output};</script>'
-    html_parts = re.sub(r'<script id="piperider-report-variables">.+</script>', '#PLACEHOLDER#', template_html).split('#PLACEHOLDER#')
+    html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#', template_html).split('#PLACEHOLDER#')
     html = html_parts[0] + variables + html_parts[1]
     return html
 
