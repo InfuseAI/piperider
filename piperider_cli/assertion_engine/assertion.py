@@ -286,7 +286,7 @@ class AssertionEngine:
     def _dump_assertions_files(self, assertions):
         paths = []
         for name, assertion in assertions.items():
-            file_path = os.path.join(self.assertion_search_path, f'{name}.yml')
+            file_path = os.path.join(self.assertion_search_path, f'recommended_{name}.yml')
             with open(file_path, 'w') as f:
                 yaml.YAML().dump(assertion, f)
                 paths.append(file_path)

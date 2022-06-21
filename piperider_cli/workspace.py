@@ -356,6 +356,16 @@ def debug():
     return handler.execute()
 
 
+def _agreed_to_run_recommended_assertions(console: Console, interactive: bool):
+    if interactive:
+        console.print('Do you want to run above reommanded assertions for this datasource \[yes/no]?',
+                      end=' ')
+        confirm = input('').strip().lower()
+        return confirm == 'yes' or confirm == 'y'
+    else:
+        return True
+
+
 def _agreed_to_generate_recommended_assertions(console: Console, interactive: bool):
     if interactive:
         console.print('Do you want to auto generate assertion templates for this datasource \[yes/no]?',
@@ -372,16 +382,29 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
     assertion_engine.load_assertions()
 
     if not assertion_engine.assertions_content:
+        assertion_exist = False
         console.print(f'No assertions found for datasource [ {ds.name} ]')
 
         if _agreed_to_generate_recommended_assertions(console, interaction):
-            recommended_assertions = assertion_engine.generate_recommended_assertions(result)
+            recommended_assertions = assertion_engine.generate_recommended_assertions(result, assertion_exist)
             for f in recommended_assertions:
                 console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
-            assertion_engine.load_assertions()
+            if _agreed_to_run_recommended_assertions(console, interaction):
+                assertion_engine.load_assertions()
+            else:
+                console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
+                return None, None
         else:
             console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
             return None, None  # no assertion to run
+    else:
+        assertion_exist = True
+        if _agreed_to_generate_recommended_assertions(console, interaction):
+            recommended_assertions = assertion_engine.generate_recommended_assertions(result, assertion_exist)
+            for f in recommended_assertions:
+                console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
+            if _agreed_to_run_recommended_assertions(console, interaction):
+                assertion_engine.load_assertions()
 
     # Execute assertions
     results, exceptions = assertion_engine.evaluate_all(result)
