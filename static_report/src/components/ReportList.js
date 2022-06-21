@@ -11,9 +11,8 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
-import { format } from 'date-fns';
 
-import { getReportAsserationStatusCounts } from '../utils';
+import { getReportAsserationStatusCounts, formatReportTime } from '../utils';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export function ReportList({ data }) {
@@ -37,7 +36,7 @@ export function ReportList({ data }) {
           <Heading size={'lg'}>Data Source: {datasource.name}</Heading>
           <Text fontWeight={500}>ID: {id}</Text>
           <Text fontWeight={500}>
-            Generated at: {format(new Date(created_at), 'yyyy/MM/dd HH:mm:ss')}
+            Generated at: {formatReportTime(created_at)}
           </Text>
         </Flex>
 

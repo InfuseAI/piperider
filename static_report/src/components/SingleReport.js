@@ -17,7 +17,6 @@ import {
   Tr,
 } from '@chakra-ui/react';
 import { useEffect, useRef } from 'react';
-import { format } from 'date-fns';
 import { Link } from 'wouter';
 
 import { Main } from './Main';
@@ -102,26 +101,6 @@ export default function SingleReport({ source, data, reportName }) {
                 {overviewStatus.failed}
               </Text>{' '}
               Failed
-            </Text>
-
-            <Text>
-              Data Source Type:{' '}
-              <Text as={'span'} fontWeight={700}>
-                {source.type}
-              </Text>
-            </Text>
-            <Text>
-              Created Date:{' '}
-              <Text as={'span'} fontWeight={700}>
-                {data?.created_at &&
-                  format(new Date(data.created_at), 'yyyy/MM/dd HH:mm:ss')}
-              </Text>
-            </Text>
-            <Text>
-              Freshness:{' '}
-              <Text as={'span'} fontWeight={700}>
-                Not applicable
-              </Text>
             </Text>
           </Flex>
 
@@ -295,7 +274,7 @@ function TestsInformation({ tableName, data }) {
                     )}
                   </Td>
                   <Td>Table</Td>
-                  <Td>{tabelTest.name.replace('assert_', '')}</Td>
+                  <Td>{tabelTest.name}</Td>
                   <Td>
                     {typeof tabelTest.expected === 'object'
                       ? Object.keys(tabelTest.expected).map((key) => (
@@ -347,7 +326,7 @@ function TestsInformation({ tableName, data }) {
                       )}
                     </Td>
                     <Td>Column</Td>
-                    <Td>{columnTest.name.replace('assert_', '')}</Td>
+                    <Td>{columnTest.name}</Td>
                     <Td>
                       {typeof columnTest.expected === 'object'
                         ? Object.keys(columnTest.expected).map((key) => (
