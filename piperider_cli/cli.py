@@ -109,17 +109,20 @@ def diagnose(**kwargs):
 @click.option('--output', default=None)
 @click.option('--no-interaction', is_flag=True, help='Disable interactive question')
 @click.option('--skip-report', is_flag=True, help='Skip generating report')
+@click.option('--skip-recommend', is_flag=True, help='Skip recommend assertions')
 @add_options(debug_option)
 def run(**kwargs):
     datasource = kwargs.get('datasource')
     table = kwargs.get('table')
     output = kwargs.get('output')
     skip_report = kwargs.get('skip_report')
+    skip_recommend = kwargs.get('skip_recommend')
     ret = workspace.run(datasource=datasource,
                         table=table,
                         output=output,
                         interaction=not kwargs.get('no_interaction'),
-                        skip_report=skip_report)
+                        skip_report=skip_report,
+                        skip_recommend=skip_recommend)
     if not skip_report and ret == 0:
         workspace.generate_report()
 
