@@ -144,7 +144,7 @@ function ProfilingInformation({ data }) {
                   >
                     {column.name}
                   </Text>
-                  {''}(<Code>{column.type}</Code>)
+                  {''}(<Code>{column.schema_type}</Code>)
                 </Text>
 
                 <Flex direction="column">
