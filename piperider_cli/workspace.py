@@ -380,31 +380,37 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
         return results, exceptions
 
 
-def _show_dbt_test_result(console: Console, dbt_test_results):
+def _show_dbt_test_result(console: Console, dbt_test_results, failed_only=False):
     max_target_len = 0
     max_assert_len = 0
     for table, v in dbt_test_results.items():
-        for column, result in v['columns'].items():
-            target = f'{table}.{column}'
-            test_name = result.get('name')
-            max_target_len = max(max_target_len, len(target))
-            max_assert_len = max(max_assert_len, len(test_name))
+        for column, results in v['columns'].items():
+            for r in results:
+                if failed_only and r.get('status') == 'passed':
+                    continue
+                target = f'{table}.{column}'
+                test_name = r.get('name')
+                max_target_len = max(max_target_len, len(target))
+                max_assert_len = max(max_assert_len, len(test_name))
 
     for table, v in dbt_test_results.items():
-        for column, result in v['columns'].items():
-            success = True if result.get('status') == 'passed' else False
-            test_name = result.get('name')
-            test_name = test_name.ljust(max_assert_len + 1)
-            target = f'{table}.{column}'
-            target = target.ljust(max_target_len + 1)
-            message = result.get('message')
+        for column, results in v['columns'].items():
+            for r in results:
+                if failed_only and r.get('status') == 'passed':
+                    continue
+                success = True if r.get('status') == 'passed' else False
+                test_name = r.get('name')
+                test_name = test_name.ljust(max_assert_len + 1)
+                target = f'{table}.{column}'
+                target = target.ljust(max_target_len + 1)
+                message = r.get('message')
 
-            if success:
-                console.print(
-                    f'[[bold green]  OK  [/bold green]] {target} {test_name} Message: {message}')
-            else:
-                console.print(
-                    f'[[bold red]FAILED[/bold red]] {target} {test_name} Message: {message}')
+                if success:
+                    console.print(
+                        f'[[bold green]  OK  [/bold green]] {target} {test_name} Message: {message}')
+                else:
+                    console.print(
+                        f'[[bold red]FAILED[/bold red]] {target} {test_name} Message: {message}')
 
 
 def _show_assertion_result(console: Console, results, exceptions, failed_only=False, single_table=None):
@@ -445,7 +451,35 @@ def _show_assertion_result(console: Console, results, exceptions, failed_only=Fa
     pass
 
 
-def _show_table_summary(console: Console, table: str, profiled_result, assertion_results):
+def _show_dbt_test_result_summary(console: Console, table: str, dbt_test_results):
+    if not dbt_test_results:
+        return False
+
+    num_of_testcases = 0
+    num_of_passed_testcases = 0
+    num_of_failed_testcases = 0
+
+    for k, v in dbt_test_results.items():
+        if k == table:
+            for column, results in v['columns'].items():
+                for r in results:
+                    num_of_testcases += 1
+                    if r.get('status') == 'passed':
+                        num_of_passed_testcases += 1
+
+            num_of_failed_testcases = num_of_testcases - num_of_passed_testcases
+            if num_of_testcases > 0:
+                console.print(f'  {num_of_testcases} dbt test executed')
+
+            if (num_of_failed_testcases > 0):
+                console.print(f'  {num_of_failed_testcases} of {num_of_testcases} dbt tests failed:')
+                _show_dbt_test_result(console, {k: v}, failed_only=True)
+                console.print()
+                return True
+    return False
+
+
+def _show_table_summary(console: Console, table: str, profiled_result, assertion_results, dbt_test_results):
     profiled_columns = profiled_result.get('col_count')
     num_of_testcases = 0
     num_of_passed_testcases = 0
@@ -462,14 +496,18 @@ def _show_table_summary(console: Console, table: str, profiled_result, assertion
                     failed_testcases.append(r)
 
     num_of_failed_testcases = num_of_testcases - num_of_passed_testcases
+
     console.print(f"Table '{table}'")
     console.print(f'  {profiled_columns} columns profiled')
 
+    dbt_showed = _show_dbt_test_result_summary(console, table, dbt_test_results)
+    pr = ' PipeRider' if dbt_showed else ''
+
     if num_of_testcases > 0:
-        console.print(f'  {num_of_testcases} test executed')
+        console.print(f'  {num_of_testcases}{pr} test executed')
 
     if (num_of_failed_testcases > 0):
-        console.print(f'  {num_of_failed_testcases} of {num_of_testcases} tests failed:')
+        console.print(f'  {num_of_failed_testcases} of {num_of_testcases}{pr} tests failed:')
         _show_assertion_result(console, assertion_results, None, failed_only=True, single_table=table)
     console.print()
     pass
@@ -538,6 +576,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
         if table:
             tables = [table]
 
+    dbt_test_results = None
     if dbt and not skip_dbt:
         dbt_test_results = _run_dbt_command(dbt, table, dbt_manifest, console)
 
@@ -557,13 +596,15 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     # TODO stop here if tests was not needed.
     assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
                                                                   profile_result, created_at)
-    if assertion_results:
+    if assertion_results or dbt_test_results:
         console.rule('Assertion Results')
         if dbt_test_results:
             console.rule('dbt')
             _show_dbt_test_result(console, dbt_test_results)
-            console.rule('PipeRider')
-        _show_assertion_result(console, assertion_results, assertion_exceptions)
+            if assertion_results:
+                console.rule('PipeRider')
+        if assertion_results:
+            _show_assertion_result(console, assertion_results, assertion_exceptions)
 
     console.rule('Summary')
 
@@ -582,7 +623,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     for t in profile_result['tables']:
         profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(t, assertion_results)
 
-        _show_table_summary(console, t, profile_result['tables'][t], assertion_results)
+        _show_table_summary(console, t, profile_result['tables'][t], assertion_results, dbt_test_results)
 
     with open(output_file, 'w') as f:
         f.write(json.dumps(profile_result, indent=4))
@@ -657,11 +698,13 @@ def _run_dbt_command(dbt, table, manifest, console):
         fqn = node.get('fqn')[1]
         column = re.sub(f"^{'source_' if parent_type == 'source' else ''}{test_name}_{table_with_schema}_", '', fqn)
 
-        output[parent_table]['columns'][column] = dict(
+        if column not in output[parent_table]['columns']:
+            output[parent_table]['columns'][column] = []
+        output[parent_table]['columns'][column].append(dict(
             name=unique_id,
             status='passed' if unique_tests[unique_id]['status'] == 'pass' else 'failed',
             message=unique_tests[unique_id]['message'],
-        )
+        ))
 
     return output
 
