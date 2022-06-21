@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 const tooltipDefaultStyle = {
   paddingTop: 'var(--chakra-space-2)',
@@ -94,7 +94,18 @@ export function getMissingValue(column) {
 }
 
 export function formatReportTime(time) {
-  return format(new Date(time), 'yyyy/MM/dd HH:mm:ss');
+  const adjustForUTCOffset = (date) => {
+    return new Date(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds(),
+    );
+  };
+
+  return format(adjustForUTCOffset(parseISO(time)), 'yyyy/MM/dd HH:mm:ss');
 }
 
 export function formatNumber(num, locales = 'en-US', notation = 'compact') {
