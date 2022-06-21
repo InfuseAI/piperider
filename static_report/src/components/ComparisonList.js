@@ -53,7 +53,7 @@ export function ComparisonReportList({ data }) {
                   <Td>{input.id}</Td>
                 </Tr>
                 <Tr>
-                  <Td>Created At</Td>
+                  <Td>Generated At</Td>
                   <Td>{formatReportTime(base.created_at)}</Td>
                   <Td>{formatReportTime(input.created_at)}</Td>
                 </Tr>
