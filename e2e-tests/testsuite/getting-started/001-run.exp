@@ -24,7 +24,7 @@ expect {
 }
 
 set title "run with the first dataset"
-spawn piperider run
+spawn piperider run --no-interaction
 
 expect {
     "Report generated in" {
@@ -40,7 +40,7 @@ expect {
 exec -ignorestderr -- curl -o data/sp500.db https://piperider-data.s3.ap-northeast-1.amazonaws.com/getting-started/sp500_20220527.db
 
 set title "run with the second dataset"
-spawn piperider run
+spawn piperider run --no-interaction
 
 expect {
     "Report generated in" {
