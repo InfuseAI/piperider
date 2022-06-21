@@ -447,9 +447,6 @@ def _show_table_summary(console: Console, table: str, profiled_result, assertion
 
 
 def _transform_assertion_result(table: str, results):
-    if not results:
-        return
-
     tests = []
     columns = {}
     for r in results:
