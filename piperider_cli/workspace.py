@@ -385,6 +385,7 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
 def _show_dbt_test_result(console: Console, dbt_test_results, failed_only=False):
     max_target_len = 0
     max_assert_len = 0
+    indent = '  ' if failed_only else ''
     for table, v in dbt_test_results.items():
         for column, results in v['columns'].items():
             for r in results:
@@ -409,16 +410,17 @@ def _show_dbt_test_result(console: Console, dbt_test_results, failed_only=False)
 
                 if success:
                     console.print(
-                        f'[[bold green]  OK  [/bold green]] {target} {test_name} Message: {message}')
+                        f'{indent}[[bold green]  OK  [/bold green]] {target} {test_name} Message: {message}')
                 else:
                     console.print(
-                        f'[[bold red]FAILED[/bold red]] {target} {test_name} Message: {message}')
+                        f'{indent}[[bold red]FAILED[/bold red]] {target} {test_name} Message: {message}')
 
 
 def _show_assertion_result(console: Console, results, exceptions, failed_only=False, single_table=None):
     if results:
         max_target_len = 0
         max_assert_len = 0
+        indent = '  ' if failed_only else ''
         for assertion in results:
             if single_table and single_table != assertion.table:
                 continue
@@ -443,12 +445,12 @@ def _show_assertion_result(console: Console, results, exceptions, failed_only=Fa
             target = target.ljust(max_target_len + 1)
             if success:
                 console.print(
-                    f'[[bold green]  OK  [/bold green]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
+                    f'{indent}[[bold green]  OK  [/bold green]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
             else:
                 console.print(
-                    f'[[bold red]FAILED[/bold red]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
+                    f'{indent}[[bold red]FAILED[/bold red]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
                 if assertion.result.exception:
-                    console.print(f'         [bold white]Reason[/bold white]: {assertion.result.exception}')
+                    console.print(f'         {indent}[bold white]Reason[/bold white]: {assertion.result.exception}')
     # TODO: Handle exceptions
     pass
 
