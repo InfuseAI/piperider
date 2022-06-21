@@ -1,0 +1,1 @@
+from piperider_cli.assertion_engine.recommended_rules import table_assertions

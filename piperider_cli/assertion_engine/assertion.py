@@ -8,6 +8,7 @@ from typing import List, Dict
 from ruamel import yaml
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
+from piperider_cli.assertion_engine.recommender import AssertionRecommender
 from piperider_cli.error import \
     AssertionError, \
     IllegalStateAssertionError
@@ -248,8 +249,11 @@ class AssertionEngine:
         recommended_assertions = self._generate_assertion_template(tables)
 
         # TODO: Generate recommended assertions
-        self._mock_recommended_table_assertions(recommended_assertions, profiling_result)
-        self._mock_recommended_column_assertions(recommended_assertions, profiling_result)
+        recommender = AssertionRecommender(recommended_assertions, profiling_result)
+        recommender.recommend()
+
+        # self._mock_recommended_table_assertions(recommended_assertions, profiling_result)
+        # self._mock_recommended_column_assertions(recommended_assertions, profiling_result)
 
         # Update existing recommended assertions
         if is_assertions_exist:
@@ -443,3 +447,9 @@ class AssertionEngine:
             sys.path.append(plugin_context)
         if self.default_plugins_dir:
             sys.path.append(self.default_plugins_dir)
+
+
+if __name__ == '__main__':
+    r = AssertionRecommender(None, None)
+    r.load_recommended_rules()
+    pass
