@@ -17,6 +17,9 @@ expect {
     }
 }
 
+
+set title "compare-report step ended"
+
 expect {
     "> o" {
         send " "
@@ -34,7 +37,12 @@ expect {
         send "\r"
         exp_continue
     }
-    eof
+    "Comparison report" {
+        pass $title
+    }
+    eof {
+        fail $title
+    }
 }
 
 puts "Finished."
