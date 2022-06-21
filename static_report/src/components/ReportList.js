@@ -54,9 +54,9 @@ export function ReportList({ data }) {
             <Tbody>
               {Object.keys(tables).map((key) => {
                 const report = tables[key];
-                const overview = getReportAsserationStatusCounts(
-                  report.assertion_results,
-                );
+                const overview =
+                  getReportAsserationStatusCounts(report?.assertion_results) ||
+                  {};
 
                 return (
                   <Link key={report.name} href={`/tables/${key}`}>
@@ -65,8 +65,8 @@ export function ReportList({ data }) {
                       _hover={{ bgColor: 'blackAlpha.50' }}
                     >
                       <Td>{report.name}</Td>
-                      <Td>{overview.passed}</Td>
-                      <Td>{overview.failed}</Td>
+                      <Td>{overview?.passed ?? '-'}</Td>
+                      <Td>{overview?.failed ?? '-'}</Td>
                       <Td>{report.row_count}</Td>
                       <Td>{report.col_count}</Td>
                     </Tr>

@@ -37,8 +37,8 @@ export default function SingleReport({ source, data, reportName }) {
     );
   }
 
-  const assertion = data.assertion_results;
-  const overviewStatus = getReportAsserationStatusCounts(assertion);
+  const overviewStatus =
+    getReportAsserationStatusCounts(data?.assertion_results) || {};
 
   return (
     <Main alignItems={'flex-start'}>
@@ -90,7 +90,7 @@ export default function SingleReport({ source, data, reportName }) {
             <Text>
               Test Status:{' '}
               <Text as={'span'} fontWeight={700}>
-                {overviewStatus.passed}
+                {overviewStatus?.passed ?? '-'}
               </Text>{' '}
               Passed,{' '}
               <Text
@@ -98,7 +98,7 @@ export default function SingleReport({ source, data, reportName }) {
                 fontWeight={700}
                 color={overviewStatus.failed > 0 ? 'red.500' : 'inherit'}
               >
-                {overviewStatus.failed}
+                {overviewStatus?.failed ?? '-'}
               </Text>{' '}
               Failed
             </Text>
