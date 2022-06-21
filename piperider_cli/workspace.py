@@ -7,6 +7,7 @@ from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from glob import glob
 from subprocess import Popen, check_output, CalledProcessError
+from ruamel import yaml
 
 import inquirer
 from rich.console import Console
@@ -314,6 +315,7 @@ def _fetch_dbt_manifest(dbt, table=None):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     dbt_manifest = os.path.join(dbt_root, 'target', 'manifest.json')
     manifest = None
+
     if os.path.exists(dbt_manifest):
         with open(dbt_manifest) as fd:
             manifest = json.loads(fd.read())
@@ -324,13 +326,13 @@ def _fetch_dbt_manifest(dbt, table=None):
                 continue
             name = v.get('name')
             schema = v.get('schema')
-            available_tables.append(name)
-            if table and name != table:
-                continue
             if schema in ['public', 'PUBLIC']:
                 table_name = name
             else:
                 table_name = f'{schema}.{name}'
+            available_tables.append(table_name)
+            if table and table_name != table:
+                continue
             tables.add(table_name)
     else:
         return False, f"'{dbt_manifest}' not found", []
@@ -474,7 +476,6 @@ def _show_dbt_test_result_summary(console: Console, table: str, dbt_test_results
             if (num_of_failed_testcases > 0):
                 console.print(f'  {num_of_failed_testcases} of {num_of_testcases} dbt tests failed:')
                 _show_dbt_test_result(console, {k: v}, failed_only=True)
-                console.print()
                 return True
     return False
 
@@ -502,6 +503,8 @@ def _show_table_summary(console: Console, table: str, profiled_result, assertion
 
     dbt_showed = _show_dbt_test_result_summary(console, table, dbt_test_results)
     pr = ' PipeRider' if dbt_showed else ''
+    if assertion_results and dbt_showed:
+        console.print()
 
     if num_of_testcases > 0:
         console.print(f'  {num_of_testcases}{pr} test executed')
@@ -566,6 +569,10 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
     dbt = ds.args.get('dbt')
     tables = None
+
+    if table:
+        table = re.sub('^(PUBLIC|public)\.', '', table)
+
     if dbt:
         passed, error_msg, tables, dbt_manifest = _fetch_dbt_manifest(dbt, table)
         if not passed:
@@ -650,8 +657,24 @@ def _run_dbt_command(dbt, table, manifest, console):
 
     full_cmd_arr = ['dbt', cmd]
     if table:
+        table_dict = dict()
+        schema_path = os.path.join(dbt_root, 'models', 'schema.yml')
+        with open(schema_path) as f:
+            schema = yaml.YAML(typ='safe').load(f)
+            for m in schema.get('models', []):
+                table_dict[m['name']] = m['name']
+            for s in schema.get('sources', []):
+                schema_name = s['name']
+                for t in s.get('tables', []):
+                    source_name = f"source:{schema_name}.{t['name']}"
+                    table_key = t['name'] if schema_name in ['public', 'PUBLIC'] else f"{schema_name}.{t['name']}"
+                    table_dict[table_key] = source_name
+        if table not in table_dict:
+            console.print(f"[bold yellow]Warning: '{table}' doesn't exist in dbt schema. Skip running dbt[/bold yellow]")
+            return
+        select = table_dict[table]
         full_cmd_arr.append('-s')
-        full_cmd_arr.append(table)
+        full_cmd_arr.append(select)
 
     console.rule('Running dbt')
     console.print(f'[bold yellow]dbt working dir:[/bold yellow] {dbt_root}')
