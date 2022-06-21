@@ -1,9 +1,4 @@
 import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
   Box,
   Breadcrumb,
   BreadcrumbItem,
@@ -165,78 +160,72 @@ function CompareSchema({ base, input }) {
   });
 
   return (
-    <Accordion allowToggle>
-      <AccordionItem borderColor={'transparent'}>
-        <AccordionButton px={0} _focus={{ boxShadow: 'transparent' }}>
-          Added:
-          <Text as={'span'} fontWeight={700} ml={1}>
-            {added}
-          </Text>
-          , Deleted:
-          <Text as={'span'} fontWeight={700} ml={1}>
-            {deleted}
-          </Text>
-          , Changed:{' '}
-          <Text as={'span'} fontWeight={700} ml={1}>
-            {changed}
-          </Text>
-          <Box flex="1" textAlign="left" />
-          <AccordionIcon />
-        </AccordionButton>
+    <Flex direction="column">
+      <Text mb={4} p={2}>
+        Added:
+        <Text as={'span'} fontWeight={700} ml={1}>
+          {added}
+        </Text>
+        , Deleted:
+        <Text as={'span'} fontWeight={700} ml={1}>
+          {deleted}
+        </Text>
+        , Changed:{' '}
+        <Text as={'span'} fontWeight={700} ml={1}>
+          {changed}
+        </Text>
+      </Text>
 
-        <AccordionPanel px={0}>
-          <Flex width={'100%'} justifyContent={'space-evenly'}>
-            <TableContainer>
-              <Table variant="simple" width={'350px'}>
-                <Thead>
-                  <Tr>
-                    <Th>Column</Th>
-                    <Th>Type</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {columns.map((column) => (
-                    <Tr
-                      key={nanoid(10)}
-                      color={column.changed ? 'red.500' : 'inherit'}
-                    >
-                      <Td>{column.base?.name ?? '-'}</Td>
-                      <Td>{column.base?.schema_type ?? '-'}</Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            </TableContainer>
+      <Flex justifyContent={'space-evenly'}>
+        <TableContainer width="50%">
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>Column</Th>
+                <Th>Type</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {columns.map((column) => (
+                <Tr
+                  key={nanoid(10)}
+                  color={column.changed ? 'red.500' : 'inherit'}
+                >
+                  <Td>{column.base?.name ?? '-'}</Td>
+                  <Td>{column.base?.schema_type ?? '-'}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
 
-            <Flex justifyContent={'center'}>
-              <Divider orientation={'vertical'} />
-            </Flex>
+        <Flex justifyContent={'center'}>
+          <Divider orientation={'vertical'} />
+        </Flex>
 
-            <TableContainer>
-              <Table variant="simple" width={'350px'}>
-                <Thead>
-                  <Tr>
-                    <Th>Column</Th>
-                    <Th>Value</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {columns.map((column) => (
-                    <Tr
-                      key={nanoid(10)}
-                      color={column.changed ? 'red.500' : 'inherit'}
-                    >
-                      <Td>{column.input?.name ?? '-'}</Td>
-                      <Td>{column.input?.schema_type ?? '-'}</Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            </TableContainer>
-          </Flex>
-        </AccordionPanel>
-      </AccordionItem>
-    </Accordion>
+        <TableContainer width="50%">
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>Column</Th>
+                <Th>Value</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {columns.map((column) => (
+                <Tr
+                  key={nanoid(10)}
+                  color={column.changed ? 'red.500' : 'inherit'}
+                >
+                  <Td>{column.input?.name ?? '-'}</Td>
+                  <Td>{column.input?.schema_type ?? '-'}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      </Flex>
+    </Flex>
   );
 }
 
