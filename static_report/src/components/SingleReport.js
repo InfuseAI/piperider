@@ -20,7 +20,11 @@ import { useEffect, useRef } from 'react';
 import { Link } from 'wouter';
 
 import { Main } from './Main';
-import { getReportAsserationStatusCounts } from '../utils';
+import {
+  getReportAsserationStatusCounts,
+  formatNumber,
+  getMissingValue,
+} from '../utils';
 import { drawSingleReportChart } from '../utils/singleReport';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
@@ -78,13 +82,13 @@ export default function SingleReport({ source, data, reportName }) {
             <Text>
               Rows:{' '}
               <Text as={'span'} fontWeight={700}>
-                {data.row_count}
+                {formatNumber(data.row_count)}
               </Text>
             </Text>
             <Text>
               Columns:{' '}
               <Text as={'span'} fontWeight={700}>
-                {data.col_count}
+                {formatNumber(data.col_count)}
               </Text>
             </Text>
             <Text>
@@ -150,26 +154,19 @@ function ProfilingInformation({ data }) {
                 <Flex direction="column">
                   <Flex justifyContent="space-between">
                     <Text fontWeight={700}>Total:</Text>
-                    <Text>{column.total}</Text>
+                    <Text>{formatNumber(column.total)}</Text>
                   </Flex>
 
                   <Flex justifyContent="space-between">
                     <Text fontWeight={700}>Missing:</Text>
                     <Text color={isAllValuesExists ? 'green.500' : 'red.500'}>
-                      {isAllValuesExists
-                        ? '0'
-                        : (
-                            Number(
-                              (column.total - column.non_nulls) / column.total,
-                            ) * 100
-                          ).toFixed(3)}
-                      %
+                      {isAllValuesExists ? '0%' : getMissingValue(column)}
                     </Text>
                   </Flex>
 
                   <Flex justifyContent="space-between">
                     <Text fontWeight={700}>Distinct:</Text>
-                    <Text>{column.distinct}</Text>
+                    <Text>{formatNumber(column.distinct)}</Text>
                   </Flex>
                 </Flex>
 
@@ -177,17 +174,17 @@ function ProfilingInformation({ data }) {
                   <Flex direction="column">
                     <Flex justifyContent="space-between">
                       <Text fontWeight={700}>Min:</Text>
-                      <Text>{Number(column.min).toFixed(3)}</Text>
+                      <Text>{formatNumber(column.min)}</Text>
                     </Flex>
 
                     <Flex justifyContent="space-between">
                       <Text fontWeight={700}>Max:</Text>
-                      <Text>{Number(column.max).toFixed(3)}</Text>
+                      <Text>{formatNumber(column.max)}</Text>
                     </Flex>
 
                     <Flex justifyContent="space-between">
                       <Text fontWeight={700}>Avg:</Text>
-                      <Text>{Number(column.avg).toFixed(3)}</Text>
+                      <Text>{formatNumber(column.avg)}</Text>
                     </Flex>
                   </Flex>
                 )}

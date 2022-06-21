@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { getChartTooltip } from './';
+import { getChartTooltip, formatNumber } from './';
 
 export function drawSingleReportChart({
   containerWidth,
@@ -29,7 +29,7 @@ export function drawSingleReportChart({
         `
           <div>
             <p>Label: ${d.label}</p>
-            <p>Count: ${d.value}</p>
+            <p>Count: ${formatNumber(d.value)}</p>
             <p>Percentage: ${Number((d.value / d.total) * 100).toFixed(3)}%</p>
           </div>
         `,

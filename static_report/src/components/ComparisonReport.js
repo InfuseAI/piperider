@@ -30,7 +30,7 @@ import groupBy from 'lodash/groupBy';
 import zip from 'lodash/zip';
 
 import { Main } from './Main';
-import { getFixedValue, getMissingValue } from '../utils';
+import { getMissingValue, formatNumber } from '../utils';
 import {
   drawComparsionChart,
   joinBykey,
@@ -358,8 +358,8 @@ function CompareProfileColumn({ name, base, input }) {
 
             <MetricsInfo
               name="Total"
-              base={base?.total || '-'}
-              input={input?.total || '-'}
+              base={base?.total ? formatNumber(base?.total) : '-'}
+              input={input?.total ? formatNumber(input?.total) : '-'}
             />
 
             <MetricsInfo
@@ -370,8 +370,8 @@ function CompareProfileColumn({ name, base, input }) {
 
             <MetricsInfo
               name="Distinct"
-              base={base?.distinct ?? '-'}
-              input={input?.distinct ?? '-'}
+              base={base?.distinct ? formatNumber(base.distinct) : '-'}
+              input={input?.distinct ? formatNumber(input.distinct) : '-'}
             />
           </Flex>
 
@@ -379,18 +379,18 @@ function CompareProfileColumn({ name, base, input }) {
             <Flex direction="column">
               <MetricsInfo
                 name="Min"
-                base={getFixedValue(base?.min)}
-                input={getFixedValue(input?.min)}
+                base={base?.min ? formatNumber(base.min) : '-'}
+                input={input?.min ? formatNumber(input.min) : '-'}
               />
               <MetricsInfo
                 name="Max"
-                base={getFixedValue(base?.max)}
-                input={getFixedValue(input?.max)}
+                base={base?.max ? formatNumber(base.max) : '-'}
+                input={input?.max ? formatNumber(input.max) : '-'}
               />
               <MetricsInfo
                 name="Average"
-                base={getFixedValue(base?.avg)}
-                input={getFixedValue(input?.avg)}
+                base={base?.avg ? formatNumber(base.avg) : '-'}
+                input={input?.avg ? formatNumber(input.avg) : '-'}
               />
             </Flex>
           )}

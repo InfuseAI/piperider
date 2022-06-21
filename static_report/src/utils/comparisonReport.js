@@ -1,5 +1,9 @@
 import * as d3 from 'd3';
-import { getChartTooltip, getReportAsserationStatusCounts } from './';
+import {
+  getChartTooltip,
+  getReportAsserationStatusCounts,
+  formatNumber,
+} from './';
 
 export function drawComparsionChart({
   containerWidth,
@@ -28,7 +32,7 @@ export function drawComparsionChart({
         `
         <div>
           <p>Label: ${d.label}</p>
-          <p>Count: ${d.value}</p>
+          <p>Count: ${formatNumber(d.value)}</p>
         </div>
       `,
       )

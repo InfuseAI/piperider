@@ -12,7 +12,11 @@ import {
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
 
-import { getReportAsserationStatusCounts, formatReportTime } from '../utils';
+import {
+  getReportAsserationStatusCounts,
+  formatReportTime,
+  formatNumber,
+} from '../utils';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export function ReportList({ data }) {
@@ -67,8 +71,8 @@ export function ReportList({ data }) {
                       <Td>{report.name}</Td>
                       <Td>{overview?.passed ?? '-'}</Td>
                       <Td>{overview?.failed ?? '-'}</Td>
-                      <Td>{report.row_count}</Td>
-                      <Td>{report.col_count}</Td>
+                      <Td>{formatNumber(report.row_count)}</Td>
+                      <Td>{formatNumber(report.col_count)}</Td>
                     </Tr>
                   </Link>
                 );

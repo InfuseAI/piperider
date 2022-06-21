@@ -12,7 +12,11 @@ import {
 import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
 
-import { getReportAsserationStatusCounts, formatReportTime } from '../utils';
+import {
+  getReportAsserationStatusCounts,
+  formatReportTime,
+  formatNumber,
+} from '../utils';
 import { joinBykey } from '../utils/comparisonReport';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
@@ -101,14 +105,22 @@ export function ComparisonReportList({ data }) {
                           {inputOverview?.failed ?? '-'}
                         </Td>
                         <Td>
-                          {table.base?.row_count ?? '-'}
+                          {table.base?.row_count
+                            ? formatNumber(table.base.row_count)
+                            : '-'}
                           {' | '}
-                          {table.input?.row_count ?? '-'}
+                          {table.input?.row_count
+                            ? formatNumber(table.input.row_count)
+                            : '-'}
                         </Td>
                         <Td>
-                          {table.base?.col_count ?? '-'}
+                          {table.base?.col_count
+                            ? formatNumber(table.base.col_count)
+                            : '-'}
                           {' | '}
-                          {table.input?.col_count ?? '-'}
+                          {table.input?.col_count
+                            ? formatNumber(table.input?.col_count)
+                            : '-'}
                         </Td>
                       </Tr>
                     </Link>

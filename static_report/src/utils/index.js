@@ -83,14 +83,6 @@ export function getReportAsserationStatusCounts(assertion) {
   };
 }
 
-export function getFixedValue(value) {
-  if (!value) {
-    return '-';
-  }
-
-  return Number(value).toFixed(3);
-}
-
 export function getMissingValue(column) {
   if (!column) {
     return '-';
@@ -103,4 +95,8 @@ export function getMissingValue(column) {
 
 export function formatReportTime(time) {
   return format(new Date(time), 'yyyy/MM/dd HH:mm:ss');
+}
+
+export function formatNumber(num, locales = 'en-US', notation = 'compact') {
+  return new Intl.NumberFormat(locales, { notation }).format(num);
 }
