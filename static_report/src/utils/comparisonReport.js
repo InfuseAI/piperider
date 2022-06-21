@@ -130,10 +130,6 @@ export function joinBykey(base = {}, input = {}) {
 }
 
 export function getComparisonTests(assertion, from) {
-  if (!assertion) {
-    return undefined;
-  }
-
   const { passed, failed } = getReportAsserationStatusCounts(assertion);
 
   const table = assertion.tests.map((test) => ({

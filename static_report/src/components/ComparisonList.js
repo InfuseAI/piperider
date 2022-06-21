@@ -104,14 +104,14 @@ export function ComparisonReportList({ data }) {
                       >
                         <Td>{key}</Td>
                         <Td>
-                          {baseOverview?.passed ?? '-'}
+                          {baseOverview.passed}
                           {' | '}
-                          {inputOverview?.passed ?? '-'}
+                          {inputOverview.passed}
                         </Td>
                         <Td>
-                          {baseOverview?.failed ?? '-'}
+                          {baseOverview.failed}
                           {' | '}
-                          {inputOverview?.failed ?? '-'}
+                          {inputOverview.failed}
                         </Td>
                         <Td>
                           {table.base?.row_count
