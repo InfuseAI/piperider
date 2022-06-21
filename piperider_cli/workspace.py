@@ -1,6 +1,6 @@
 import json
 import os
-import shutil
+import re
 import sys
 import uuid
 from abc import ABCMeta, abstractmethod
@@ -493,7 +493,8 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
         raise PipeRiderCredentialError(ds.name)
 
     if not datasource and len(datasource_names) > 1:
-        console.print(f"[bold yellow]Warning: multiple datasources found ({', '.join(datasource_names)}), using '{ds_name}'[/bold yellow]\n")
+        console.print(
+            f"[bold yellow]Warning: multiple datasources found ({', '.join(datasource_names)}), using '{ds_name}'[/bold yellow]\n")
 
     console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
 
@@ -576,10 +577,24 @@ def _validate_input_result(result):
     return True
 
 
+def setup_report_variables(template_html: str, is_single: bool, data):
+    if isinstance(data, dict):
+        output = json.dumps(data)
+    else:
+        output = data
+    if is_single:
+        variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA={output};window.PIPERIDER_COMPARISON_REPORT_DATA="";</script>'
+    else:
+        variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA="";window.PIPERIDER_COMPARISON_REPORT_DATA={output};</script>'
+    html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#', template_html).split('#PLACEHOLDER#')
+    html = html_parts[0] + variables + html_parts[1]
+    return html
+
+
 def _generate_static_html(result, html, output_path):
     filename = os.path.join(output_path, "index.html")
     with open(filename, 'w') as f:
-        html = html.replace(r'window.PIPERIDER_REPORT_DATA=""', f'window.PIPERIDER_REPORT_DATA={json.dumps(result)};')
+        html = setup_report_variables(html, True, result)
         f.write(html)
 
 
@@ -643,8 +658,7 @@ def compare_report(a=None, b=None):
 
     filename = os.path.join(dir, 'index.html')
     with open(filename, 'w') as f:
-        html = report_template_html.replace(r'window.PIPERIDER_REPORT_DATA=""',
-                                            f'window.PIPERIDER_REPORT_DATA={comparison_data.to_json()};')
+        html = setup_report_variables(report_template_html, False, comparison_data.to_json())
         f.write(html)
 
     console.print()
