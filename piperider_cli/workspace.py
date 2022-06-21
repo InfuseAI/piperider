@@ -12,7 +12,7 @@ from rich.console import Console
 from rich.table import Table
 from sqlalchemy import create_engine, inspect
 
-from piperider_cli import clone_directory
+from piperider_cli import clone_directory, convert_to_tzlocal, datetime_to_str
 from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.compare_report import CompareReport
 from piperider_cli.configuration import Configuration, PIPERIDER_WORKSPACE_NAME, PIPERIDER_CONFIG_PATH, \
@@ -511,7 +511,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
     console.rule('Profiling')
     run_id = uuid.uuid4().hex
-    created_at = datetime.now()
+    created_at = datetime.utcnow()
     engine = create_engine(ds.to_database_url(), **ds.engine_args())
     profiler = Profiler(engine)
     profile_result = profiler.profile(tables)
@@ -532,7 +532,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     console.rule('Summary')
 
     profile_result['id'] = run_id
-    profile_result['created_at'] = created_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+    profile_result['created_at'] = datetime_to_str(created_at)
     profile_result['datasource'] = dict(name=ds.name, type=ds.type_name)
 
     output_file = os.path.join(output_path, 'run.json')
@@ -551,7 +551,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 def prepare_output_path(created_at, ds, output):
     latest_symlink_path = os.path.join(PIPERIDER_OUTPUT_PATH, 'latest')
     output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
-                               f"{ds.name}-{created_at.strftime('%Y%m%d%H%M%S')}")
+                               f"{ds.name}-{convert_to_tzlocal(created_at).strftime('%Y%m%d%H%M%S')}")
     if output:
         output_path = output
     if not os.path.exists(output_path):

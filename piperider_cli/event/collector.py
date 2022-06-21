@@ -36,6 +36,7 @@ class Collector:
         self._user_id = user_id
 
     def log_event(self, prop, event_type):
+        # Use local timezone
         created_at = datetime.now()
         python_version = f'{sys.version_info.major}.{sys.version_info.minor}'
         event = dict(
