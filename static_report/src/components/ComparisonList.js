@@ -57,6 +57,15 @@ export function ComparisonReportList({ data }) {
                   <Td>{input.id}</Td>
                 </Tr>
                 <Tr>
+                  <Td>Data Source</Td>
+                  <Td>
+                    {base.datasource.name}: {base.datasource.type}
+                  </Td>
+                  <Td>
+                    {input.datasource.name}: {input.datasource.type}
+                  </Td>
+                </Tr>
+                <Tr>
                   <Td>Generated At</Td>
                   <Td>{formatReportTime(base.created_at)}</Td>
                   <Td>{formatReportTime(input.created_at)}</Td>
