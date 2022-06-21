@@ -1,0 +1,40 @@
+#!/usr/bin/env expect
+
+set project piperider-getting-started
+set timeout 60
+cd $project
+
+set title "compare-report step started"
+spawn piperider compare-report
+expect {
+    "Please select the 2 reports to compare" {
+        # wait for list
+        after 3000
+        pass $title
+    }
+    eof {
+        fail $title
+    }
+}
+
+expect {
+    "> o" {
+        send " "
+        send "\[B"
+        set timeout 2
+        exp_continue
+    }
+    "not a valid profiler_outputs" {
+        send " "
+        send "\[B"
+        set timeout 2
+        exp_continue
+    }
+    timeout {
+        send "\r"
+        exp_continue
+    }
+    eof
+}
+
+puts "Finished."
