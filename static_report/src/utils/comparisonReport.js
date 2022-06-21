@@ -28,7 +28,7 @@ export function drawComparsionChart({
         `
         <div>
           <p>Label: ${d.label}</p>
-          <p>Value: ${d.value}</p>
+          <p>Count: ${d.value}</p>
         </div>
       `,
       )

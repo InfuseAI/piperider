@@ -29,7 +29,7 @@ export function drawSingleReportChart({
         `
           <div>
             <p>Label: ${d.label}</p>
-            <p>Value: ${d.value}</p>
+            <p>Count: ${d.value}</p>
             <p>Percentage: ${Number((d.value / d.total) * 100).toFixed(3)}%</p>
           </div>
         `,
