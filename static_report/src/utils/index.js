@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { format } from 'date-fns';
 
 const tooltipDefaultStyle = {
   paddingTop: 'var(--chakra-space-2)',
@@ -98,4 +99,8 @@ export function getMissingValue(column) {
   return `${(
     Number((column.total - column.non_nulls) / column.total) * 100
   ).toFixed(1)}%`;
+}
+
+export function formatReportTime(time) {
+  return format(new Date(time), 'yyyy/MM/dd HH:mm:ss');
 }

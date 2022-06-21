@@ -10,16 +10,11 @@ import {
   Tr,
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
-import { format } from 'date-fns';
 import { nanoid } from 'nanoid';
 
-import { getReportAsserationStatusCounts } from '../utils';
+import { getReportAsserationStatusCounts, formatReportTime } from '../utils';
 import { joinBykey } from '../utils/comparisonReport';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-
-function formatTime(time) {
-  return format(new Date(time), 'yyyy/MM/dd HH:mm:ss');
-}
 
 export function ComparisonReportList({ data }) {
   const { base, input } = data;
@@ -27,8 +22,6 @@ export function ComparisonReportList({ data }) {
   const tables = joinBykey(base.tables, input.tables);
 
   useDocumentTitle('Report List');
-
-  const f = (value) => (value !== undefined ? value : '-');
 
   return (
     <Flex direction={'column'} minH={'100vh'} width={'100%'}>
@@ -61,8 +54,8 @@ export function ComparisonReportList({ data }) {
                 </Tr>
                 <Tr>
                   <Td>Created At</Td>
-                  <Td>{formatTime(base.created_at)}</Td>
-                  <Td>{formatTime(input.created_at)}</Td>
+                  <Td>{formatReportTime(base.created_at)}</Td>
+                  <Td>{formatReportTime(input.created_at)}</Td>
                 </Tr>
               </Tbody>
             </Table>
@@ -98,24 +91,24 @@ export function ComparisonReportList({ data }) {
                       >
                         <Td>{key}</Td>
                         <Td>
-                          {f(baseOverview?.passed)}
+                          {baseOverview?.passed ?? '-'}
                           {' | '}
-                          {f(inputOverview?.passed)}
+                          {inputOverview?.passed ?? '-'}
                         </Td>
                         <Td>
-                          {f(baseOverview?.failed)}
+                          {baseOverview?.failed ?? '-'}
                           {' | '}
-                          {f(inputOverview?.failed)}
+                          {inputOverview?.failed ?? '-'}
                         </Td>
                         <Td>
-                          {f(table.base?.row_count)}
+                          {table.base?.row_count ?? '-'}
                           {' | '}
-                          {f(table.input?.row_count)}
+                          {table.input?.row_count ?? '-'}
                         </Td>
                         <Td>
-                          {f(table.base?.col_count)}
+                          {table.base?.col_count ?? '-'}
                           {' | '}
-                          {f(table.input?.col_count)}
+                          {table.input?.col_count ?? '-'}
                         </Td>
                       </Tr>
                     </Link>

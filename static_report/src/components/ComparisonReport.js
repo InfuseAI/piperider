@@ -31,64 +31,44 @@ import zip from 'lodash/zip';
 
 import { Main } from './Main';
 import { getFixedValue, getMissingValue } from '../utils';
-import { drawComparsionChart, joinBykey } from '../utils/comparisonReport';
+import {
+  drawComparsionChart,
+  joinBykey,
+  getComparisonTests,
+} from '../utils/comparisonReport';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
-function transformTest(data, from) {
-  let tests = [];
-  let passed = 0;
-  let failed = 0;
-
-  if (!data) {
-    return undefined;
+function TestStatus({ status }) {
+  switch (status) {
+    case 'passed':
+      return (
+        <Text as="span" role={'img'}>
+          ✅
+        </Text>
+      );
+    case 'failed':
+      return (
+        <Text as="span" role={'img'}>
+          ❌
+        </Text>
+      );
+    default:
+      return (
+        <Text as="span" role={'img'}>
+          -
+        </Text>
+      );
   }
-
-  data.assertion_results.tests.forEach((test) => {
-    if (test.status === 'passed') {
-      passed++;
-    } else {
-      failed++;
-    }
-
-    tests.push({
-      ...test,
-      level: 'Table',
-      column: '-',
-      from,
-    });
-  });
-
-  Object.keys(data.assertion_results.columns).forEach((column) => {
-    let columnTests = data.assertion_results.columns[column];
-    columnTests.forEach((test) => {
-      if (test.status === 'passed') {
-        passed++;
-      } else {
-        failed++;
-      }
-      tests.push({
-        ...test,
-        level: 'Column',
-        column,
-        from,
-      });
-    });
-  });
-
-  return {
-    tests: tests,
-    passed,
-    failed,
-  };
 }
 
 function CompareTest({ base = [], input = [] }) {
   // group by "level", "column", "name"
-  let tests = groupBy(
-    [].concat(base, input),
+  const groupedTests = groupBy(
+    [...base, ...input],
     (test) => `${test.level}_${test.column}_${test.name}`,
   );
-  tests = Object.values(tests).map((groupedTest) => {
+
+  const tests = Object.values(groupedTests).map((groupedTest) => {
     let row = {
       level: groupedTest[0].level,
       column: groupedTest[0].column,
@@ -106,23 +86,6 @@ function CompareTest({ base = [], input = [] }) {
     return row;
   });
 
-  const TestStatus = ({ test }) => {
-    let content;
-    if (!test) {
-      content = '-';
-    } else if (test.status === 'passed') {
-      content = '✅';
-    } else {
-      content = '❌';
-    }
-    return (
-      <Text as="span" role={'img'}>
-        {content}
-      </Text>
-    );
-  };
-
-  // render
   return (
     <TableContainer>
       <Table variant={'simple'}>
@@ -143,10 +106,10 @@ function CompareTest({ base = [], input = [] }) {
                 <Td>{test.column}</Td>
                 <Td>{test.name}</Td>
                 <Td>
-                  <TestStatus test={test.base} />
+                  <TestStatus status={test.base?.status} />
                 </Td>
                 <Td>
-                  <TestStatus test={test.input} />
+                  <TestStatus status={test.input?.status} />
                 </Td>
               </Tr>
             );
@@ -467,8 +430,8 @@ function CompareProfile({ base, input }) {
 }
 
 export default function ComparisonReport({ base, input, reportName }) {
-  const tBase = transformTest(base, 'base');
-  const tInput = transformTest(input, 'input');
+  const tBase = getComparisonTests(base?.assertion_results, 'base');
+  const tInput = getComparisonTests(input?.assertion_results, 'input');
 
   useDocumentTitle(reportName);
 

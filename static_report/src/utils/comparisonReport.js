@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { getChartTooltip } from './';
+import { getChartTooltip, getReportAsserationStatusCounts } from './';
 
 export function drawComparsionChart({
   containerWidth,
@@ -104,12 +104,10 @@ export function drawComparsionChart({
     .on('mouseout', onHideTooltip);
 }
 
-export function joinBykey(left = {}, right = {}) {
+export function joinBykey(base = {}, input = {}) {
   const result = {};
 
-  console.log({ left, right });
-
-  Object.entries(left).forEach(([key, value]) => {
+  Object.entries(base).forEach(([key, value]) => {
     if (!result[key]) {
       result[key] = {};
     }
@@ -117,7 +115,7 @@ export function joinBykey(left = {}, right = {}) {
     result[key]['base'] = value;
   });
 
-  Object.entries(right).forEach(([key, value]) => {
+  Object.entries(input).forEach(([key, value]) => {
     if (!result[key]) {
       result[key] = {};
     }
@@ -125,4 +123,37 @@ export function joinBykey(left = {}, right = {}) {
   });
 
   return result;
+}
+
+export function getComparisonTests(assertion, from) {
+  if (!assertion) {
+    return undefined;
+  }
+
+  const { passed, failed } = getReportAsserationStatusCounts(assertion);
+
+  const table = assertion.tests.map((test) => ({
+    ...test,
+    level: 'Table',
+    column: '-',
+    from,
+  }));
+
+  const columns = Object.keys(assertion.columns).map((column) => {
+    const columnAssertion = assertion.columns[column];
+    return columnAssertion.map((test) => ({
+      ...test,
+      level: 'Column',
+      column,
+      from,
+    }));
+  });
+
+  const tests = [...table, ...columns.flat()];
+
+  return {
+    passed,
+    failed,
+    tests,
+  };
 }
