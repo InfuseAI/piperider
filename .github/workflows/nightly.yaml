@@ -47,9 +47,9 @@ jobs:
           echo "Nightly build version: $(date '+%Y%m%d')"
           if [ "$VERSION_POSTFIX" != "" ]; then
             echo "Manually version postfix serial number: $VERSION_POSTFIX"
-            sed -i.bak "s/\$/$(date '+%Y%m%d')$VERSION_POSTFIX/" piperider_cli/VERSION
+            sed -i.bak "s/\.dev\$/.$(date '+%Y%m%d').post$VERSION_POSTFIX.dev/" piperider_cli/VERSION
           else
-            sed -i.bak "s/\$/$(date '+%Y%m%d')/" piperider_cli/VERSION
+            sed -i.bak "s/\.dev\$/.$(date '+%Y%m%d').dev/" piperider_cli/VERSION
           fi
           echo ::set-output name=nightly_version::$(cat piperider_cli/VERSION)
 
