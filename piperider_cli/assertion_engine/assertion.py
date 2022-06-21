@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from datetime import datetime
@@ -37,6 +38,7 @@ def load_yaml_configs(path):
                 else:
                     passed.append(file_path)
                     content.update(payload)
+    # TODO: Handle multiple assertion defined
 
     return passed, failed, content
 
@@ -232,7 +234,7 @@ class AssertionEngine:
                     for ca in self.assertions_content[t]['columns'][c].get('tests', []):
                         self.assertions.append(AssertionContext(t, c, ca.get('name'), self.assertions_content))
 
-    def generate_recommended_assertions(self, profiling_result, selected_tables=None):
+    def generate_recommended_assertions(self, profiling_result, is_assertions_exist, selected_tables=None):
         # Load existing assertions
         if not self.assertions_content:
             self.load_assertions()
@@ -248,6 +250,10 @@ class AssertionEngine:
         # TODO: Generate recommended assertions
         self._mock_recommended_table_assertions(recommended_assertions, profiling_result)
         self._mock_recommended_column_assertions(recommended_assertions, profiling_result)
+
+        # Update existing recommended assertions
+        if is_assertions_exist:
+            self._update_existing_recommended_assertions(recommended_assertions)
 
         # Dump recommended assertions
         return self._dump_assertions_files(recommended_assertions)
@@ -283,10 +289,47 @@ class AssertionEngine:
             recommended_assertions[name] = recommended_assertion
         return recommended_assertions
 
+    def _update_existing_recommended_assertions(self, recommended_assertions):
+        def merge_assertions(existed: List, new_generating: List):
+            for existed_assertion in existed:
+                for new_assertion in new_generating:
+                    if new_assertion['name'] == existed_assertion['name'] and \
+                        dict(new_assertion['assert']) != existed_assertion['assert']:
+                        # Update new generating assertion with new assert in comment
+                        recommended_assertion_value = json.dumps(new_assertion["assert"]).replace('\"', '')
+                        new_assertion.yaml_add_eol_comment(
+                            f'TODO: {recommended_assertion_value} (new recommended assert)',
+                            'assert')
+                        new_assertion['assert'] = existed_assertion['assert']
+            pass
+
+        for name, recommended_assertion in recommended_assertions.items():
+            existing_assertion_path = os.path.join(self.assertion_search_path, self._recommend_assertion_filename(name))
+            if os.path.exists(existing_assertion_path):
+                existing_assertion = safe_load_yaml(existing_assertion_path)
+                if existing_assertion:
+                    # Table assertions
+                    merge_assertions(existing_assertion[name]['tests'], recommended_assertion[name]['tests'])
+
+                    # Column assertions
+                    for ca in recommended_assertion[name]['columns']:
+                        merge_assertions(existing_assertion[name]['columns'][ca]['tests'],
+                                         recommended_assertion[name]['columns'][ca]['tests'])
+            elif self.assertions_content.get(name):
+                print(
+                    f'Skip recommended assertions for table "{name}" because it already exists user-defined assertions.')
+                recommended_assertions[name]['skip'] = True
+        pass
+
+    def _recommend_assertion_filename(self, name):
+        return f'recommended_{name}.yml'
+
     def _dump_assertions_files(self, assertions):
         paths = []
         for name, assertion in assertions.items():
             file_path = os.path.join(self.assertion_search_path, f'recommended_{name}.yml')
+            if assertion.get('skip'):  # skip if it already exists user-defined assertions
+                continue
             with open(file_path, 'w') as f:
                 yaml.YAML().dump(assertion, f)
                 paths.append(file_path)
