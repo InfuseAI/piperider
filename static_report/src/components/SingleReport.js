@@ -234,6 +234,15 @@ function TestsInformation({ tableName, data }) {
   const tabelTests = data?.tests || [];
   const columnsTests = data?.columns || {};
 
+  if (tabelTests.length === 0 && Object.keys(columnsTests).length === 0) {
+    return (
+      <Flex direction="column" height="100px">
+        <Heading size={'lg'}>Tests</Heading>
+        <Text textAlign="center">No more tests!</Text>
+      </Flex>
+    );
+  }
+
   return (
     <Flex direction={'column'} gap={4}>
       <Heading size={'lg'}>Tests</Heading>
