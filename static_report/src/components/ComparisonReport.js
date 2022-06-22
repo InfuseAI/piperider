@@ -16,6 +16,11 @@ import {
   Th,
   Thead,
   Tr,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
@@ -25,6 +30,7 @@ import groupBy from 'lodash/groupBy';
 import zip from 'lodash/zip';
 
 import { Main } from './Main';
+import { MetricsInfo } from './shared/MetrisInfo';
 import { getMissingValue, formatNumber } from '../utils';
 import {
   drawComparsionChart,
@@ -91,7 +97,7 @@ function CompareTest({ base = [], input = [] }) {
 
   return (
     <TableContainer>
-      <Table variant={'simple'}>
+      <Table variant="simple">
         <Thead>
           <Tr>
             <Th>Level</Th>
@@ -237,22 +243,6 @@ function CompareSchema({ base, input }) {
   );
 }
 
-function MetricsInfo({ name, base, input }) {
-  return (
-    <Flex justifyContent="space-between">
-      <Text fontWeight={700}>{name}</Text>
-      <Flex gap={8}>
-        <Text textAlign="right" width="100px">
-          {base}
-        </Text>
-        <Text textAlign="right" width="100px">
-          {input}
-        </Text>
-      </Flex>
-    </Flex>
-  );
-}
-
 function CompareProfileColumn({ name, base, input }) {
   let column = base ? base : input;
 
@@ -336,76 +326,89 @@ function CompareProfileColumn({ name, base, input }) {
     );
   }
   return (
-    <Flex key={name} direction={'column'}>
-      <Grid my={4} templateColumns="1fr 600px" gap={3}>
-        <Flex direction={'column'} gap={2}>
-          <Flex direction="column">
-            <MetricsInfo
-              name={
-                <>
-                  <Text as="span" color="gray.900" fontSize={'xl'} mr={1}>
-                    {column.name}
-                  </Text>{' '}
-                  (<Code>{column.type}</Code>)
-                </>
-              }
-              base="Base"
-              input="Input"
-            />
+    <Flex key={name} direction="column">
+      <Grid my={4} templateColumns="500px 1fr" gap={3}>
+        <Flex direction="column" gap={2}>
+          <Flex direction="column" gap={3}>
+            <Flex justifyContent="space-between">
+              <Text>
+                <Text
+                  as="span"
+                  fontWeight={700}
+                  color="gray.900"
+                  fontSize="lg"
+                  mr={1}
+                >
+                  {column.name}
+                </Text>
+                {''}(<Code>{column.schema_type}</Code>)
+              </Text>
 
-            <MetricsInfo
-              name="Total"
-              base={base?.total ? formatNumber(base?.total) : '-'}
-              input={input?.total ? formatNumber(input?.total) : '-'}
-            />
+              <Flex gap={8}>
+                <Text fontWeight={700} textAlign="right" width="100px">
+                  Base
+                </Text>
+                <Text fontWeight={700} textAlign="right" width="100px">
+                  Input
+                </Text>
+              </Flex>
+            </Flex>
 
-            <MetricsInfo
-              name="Missing"
-              base={getMissingValue(base)}
-              input={getMissingValue(input)}
-            />
+            <Flex direction="column">
+              <MetricsInfo
+                name="Total"
+                base={base?.total ? formatNumber(base?.total) : '-'}
+                input={input?.total ? formatNumber(input?.total) : '-'}
+              />
 
-            <MetricsInfo
-              name="Distinct"
-              base={base?.distinct ? formatNumber(base.distinct) : '-'}
-              input={input?.distinct ? formatNumber(input.distinct) : '-'}
-            />
+              <MetricsInfo
+                name="Missing"
+                base={getMissingValue(base)}
+                input={getMissingValue(input)}
+              />
+
+              <MetricsInfo
+                name="Distinct"
+                base={base?.distinct ? formatNumber(base.distinct) : '-'}
+                input={input?.distinct ? formatNumber(input.distinct) : '-'}
+              />
+            </Flex>
+
+            {column.type === 'numeric' && (
+              <Flex direction="column">
+                <MetricsInfo
+                  name="Min"
+                  base={base?.min ? formatNumber(base.min) : '-'}
+                  input={input?.min ? formatNumber(input.min) : '-'}
+                />
+                <MetricsInfo
+                  name="Max"
+                  base={base?.max ? formatNumber(base.max) : '-'}
+                  input={input?.max ? formatNumber(input.max) : '-'}
+                />
+                <MetricsInfo
+                  name="Average"
+                  base={base?.avg ? formatNumber(base.avg) : '-'}
+                  input={input?.avg ? formatNumber(input.avg) : '-'}
+                />
+              </Flex>
+            )}
+
+            {column.type === 'datetime' && (
+              <Flex direction="column">
+                <MetricsInfo
+                  name="Min"
+                  base={base?.min ?? '-'}
+                  input={input?.min ?? '-'}
+                />
+                <MetricsInfo
+                  name="Max"
+                  base={base?.max ?? '-'}
+                  input={input?.max ?? '-'}
+                />
+              </Flex>
+            )}
           </Flex>
-
-          {column.type === 'numeric' && (
-            <Flex direction="column">
-              <MetricsInfo
-                name="Min"
-                base={base?.min ? formatNumber(base.min) : '-'}
-                input={input?.min ? formatNumber(input.min) : '-'}
-              />
-              <MetricsInfo
-                name="Max"
-                base={base?.max ? formatNumber(base.max) : '-'}
-                input={input?.max ? formatNumber(input.max) : '-'}
-              />
-              <MetricsInfo
-                name="Average"
-                base={base?.avg ? formatNumber(base.avg) : '-'}
-                input={input?.avg ? formatNumber(input.avg) : '-'}
-              />
-            </Flex>
-          )}
-
-          {column.type === 'datetime' && (
-            <Flex direction="column">
-              <MetricsInfo
-                name="Min"
-                base={base?.min ?? '-'}
-                input={input?.min ?? '-'}
-              />
-              <MetricsInfo
-                name="Max"
-                base={base?.max ?? '-'}
-                input={input?.max ?? '-'}
-              />
-            </Flex>
-          )}
         </Flex>
         <CompareDistribution />
       </Grid>
@@ -434,8 +437,8 @@ export default function ComparisonReport({ base, input, reportName }) {
 
   return (
     <Main>
-      <Flex direction={'column'} minH={'100vh'} width={'100%'}>
-        <Flex mx={'10%'} mt={4}>
+      <Flex direction="column" minH="calc(100vh + 1px)" width="100%">
+        <Flex mx="10%" mt={4}>
           <Breadcrumb fontSize="lg">
             <BreadcrumbItem>
               <Link href="/">
@@ -450,25 +453,25 @@ export default function ComparisonReport({ base, input, reportName }) {
         </Flex>
 
         <Flex
-          border={'1px solid'}
-          borderColor={'gray.300'}
-          bg={'white'}
-          borderRadius={'md'}
+          border="1px solid"
+          borderColor="gray.300"
+          bg="white"
+          borderRadius="md"
           p={6}
           mt={3}
-          mx={'10%'}
-          direction={'column'}
+          mx="10%"
+          direction="column"
           gap={8}
         >
           {/* overview */}
           <Heading fontSize={24}>Overview</Heading>
           <TableContainer>
-            <Table variant={'simple'}>
+            <Table variant="simple">
               <Thead>
                 <Tr>
-                  <Th width={'10%'} />
-                  <Th width={'45%'}>Base</Th>
-                  <Th width={'45%'}>Input</Th>
+                  <Th width="10%" />
+                  <Th width="45%">Base</Th>
+                  <Th width="45%">Input</Th>
                 </Tr>
               </Thead>
 
@@ -491,32 +494,65 @@ export default function ComparisonReport({ base, input, reportName }) {
                 <Tr>
                   <Td>Test status</Td>
                   <Td>
-                    {tBase
-                      ? `${tBase.passed ?? '-'} Passed, ${
-                          tBase.failed ?? '-'
-                        } Failed`
-                      : '-'}
+                    <Text>
+                      <Text as="span" fontWeight={700}>
+                        {tBase.passed}{' '}
+                      </Text>
+                      Passed
+                      {', '}
+                      <Text
+                        as="span"
+                        fontWeight={700}
+                        color={tBase.failed > 0 ? 'red.500' : 'inherit'}
+                      >
+                        {tBase.failed}{' '}
+                      </Text>
+                      Failed
+                    </Text>
                   </Td>
                   <Td>
-                    {tInput
-                      ? `${tInput.passed ?? '-'} Passed, ${
-                          tInput.failed ?? '-'
-                        } Failed`
-                      : '-'}
+                    <Text>
+                      <Text as="span" fontWeight={700}>
+                        {tInput.passed}{' '}
+                      </Text>
+                      Passed
+                      {', '}
+                      <Text
+                        as="span"
+                        fontWeight={700}
+                        color={tInput.failed > 0 ? 'red.500' : 'inherit'}
+                      >
+                        {tInput.failed}{' '}
+                      </Text>
+                      Failed
+                    </Text>
                   </Td>
                 </Tr>
               </Tbody>
             </Table>
           </TableContainer>
 
-          <Heading fontSize={24}>Tests</Heading>
-          <CompareTest base={tBase?.tests} input={tInput?.tests} />
+          <Tabs isLazy>
+            <TabList>
+              <Tab>Schema</Tab>
+              <Tab>Profiling</Tab>
+              <Tab>Tests</Tab>
+            </TabList>
 
-          <Heading fontSize={24}>Schema</Heading>
-          <CompareSchema base={base} input={input} />
+            <TabPanels>
+              <TabPanel>
+                <CompareSchema base={base} input={input} />
+              </TabPanel>
 
-          <Heading fontSize={24}>Profiling</Heading>
-          <CompareProfile base={base} input={input} />
+              <TabPanel>
+                <CompareProfile base={base} input={input} />
+              </TabPanel>
+
+              <TabPanel>
+                <CompareTest base={tBase?.tests} input={tInput?.tests} />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
         </Flex>
       </Flex>
     </Main>
@@ -539,7 +575,7 @@ function ComparisonBarChart({ data }) {
   }, [data]);
 
   return (
-    <Flex className={'chart'} ref={containerRef} width={'100%'}>
+    <Flex className="chart" ref={containerRef} width="100%">
       <svg ref={svgRef} />
     </Flex>
   );

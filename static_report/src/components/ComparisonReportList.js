@@ -44,12 +44,12 @@ export function ComparisonReportList({ data }) {
         <Flex direction="column" gap={4}>
           <Heading>Comparison Summary</Heading>
           <TableContainer>
-            <Table variant={'simple'}>
+            <Table variant="simple">
               <Thead>
                 <Tr>
-                  <Th width={'10%'} />
-                  <Th width={'45%'}>Base</Th>
-                  <Th width={'45%'}>Input</Th>
+                  <Th width="10%" />
+                  <Th width="45%">Base</Th>
+                  <Th width="45%">Input</Th>
                 </Tr>
               </Thead>
               <Tbody>
