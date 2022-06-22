@@ -28,16 +28,16 @@ export function ComparisonReportList({ data }) {
   useDocumentTitle('Report List');
 
   return (
-    <Flex direction={'column'} minH={'100vh'} width={'100%'}>
+    <Flex direction="column" minH="100vh" width="100%">
       <Flex
-        border={'1px solid'}
-        borderColor={'gray.300'}
-        bg={'white'}
-        borderRadius={'md'}
+        border="1px solid"
+        borderColor="gray.300"
+        bg="white"
+        borderRadius="md"
         p={6}
         my={10}
-        mx={'10%'}
-        direction={'column'}
+        mx="10%"
+        direction="column"
       >
         <Flex direction="column" gap={4}>
           <Heading>Comparison Summary</Heading>
@@ -74,9 +74,12 @@ export function ComparisonReportList({ data }) {
             </Table>
           </TableContainer>
 
-          <Heading size={'lg'}>Tables</Heading>
+          <Heading size="lg" mb={1}>
+            Tables
+          </Heading>
+
           <TableContainer>
-            <Table variant={'simple'}>
+            <Table variant="simple">
               <Thead>
                 <Tr>
                   <Th>Name</Th>
@@ -99,7 +102,7 @@ export function ComparisonReportList({ data }) {
                   return (
                     <Link key={nanoid()} href={`/tables/${key}`}>
                       <Tr
-                        cursor={'pointer'}
+                        cursor="pointer"
                         _hover={{ bgColor: 'blackAlpha.50' }}
                       >
                         <Td>{key}</Td>

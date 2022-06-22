@@ -25,27 +25,31 @@ export function ReportList({ data }) {
   useDocumentTitle('Report List');
 
   return (
-    <Flex direction={'column'} minH={'100vh'} width={'100%'}>
+    <Flex direction="column" minH="100vh" width="100%">
       <Flex
-        border={'1px solid'}
-        borderColor={'gray.300'}
-        bg={'white'}
-        borderRadius={'md'}
+        border="1px solid"
+        borderColor="gray.300"
+        bg="white"
+        borderRadius="md"
         p={6}
         my={10}
-        mx={'10%'}
-        direction={'column'}
+        mx="10%"
+        direction="column"
       >
         <Flex direction="column" mb={6} gap={3}>
-          <Heading size={'lg'}>Data Source: {datasource.name}</Heading>
+          <Heading size="lg">Data Source: {datasource.name}</Heading>
           <Text fontWeight={500}>ID: {id}</Text>
           <Text fontWeight={500}>
             Generated at: {formatReportTime(created_at)}
           </Text>
         </Flex>
 
+        <Heading size="lg" mb={1}>
+          Runs
+        </Heading>
+
         <TableContainer>
-          <Table variant={'simple'}>
+          <Table variant="simple">
             <Thead>
               <Tr>
                 <Th>Name</Th>
@@ -64,10 +68,7 @@ export function ReportList({ data }) {
 
                 return (
                   <Link key={report.name} href={`/tables/${key}`}>
-                    <Tr
-                      cursor={'pointer'}
-                      _hover={{ bgColor: 'blackAlpha.50' }}
-                    >
+                    <Tr cursor="pointer" _hover={{ bgColor: 'blackAlpha.50' }}>
                       <Td>{report.name}</Td>
                       <Td>{overview.passed}</Td>
                       <Td>{overview.failed}</Td>
