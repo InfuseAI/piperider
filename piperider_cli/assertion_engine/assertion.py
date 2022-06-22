@@ -5,8 +5,8 @@ from datetime import datetime
 from importlib import import_module
 from typing import List, Dict
 
+from deepmerge import always_merger
 from ruamel import yaml
-from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from piperider_cli.assertion_engine.recommender import AssertionRecommender
 from piperider_cli.error import \
@@ -38,8 +38,7 @@ def load_yaml_configs(path):
                     failed.append(file_path)
                 else:
                     passed.append(file_path)
-                    content.update(payload)
-    # TODO: Handle multiple assertion defined
+                    always_merger.merge(content, payload)
 
     return passed, failed, content
 
@@ -137,8 +136,8 @@ class AssertionResult:
 
 
 class AssertionContext:
-    def __init__(self, table_name: str, column_name: str, assertion_name: str, payload: dict):
-        self.name: str = assertion_name
+    def __init__(self, table_name: str, column_name: str, payload: dict):
+        self.name: str = payload.get('name')
         self.table: str = table_name
         self.column: str = column_name
         self.parameters: dict = {}
@@ -151,22 +150,10 @@ class AssertionContext:
         self._load(payload)
 
     def _load(self, payload):
-        def _find_name(r: list, name: str):
-            for i in r:
-                if i.get('name') == name:
-                    return i
-
-        table = payload.get(self.table)
-        if self.column:
-            column = table.get('columns', {}).get(self.column, {})
-            assertion = _find_name(column.get('tests', []), self.name)
-        else:
-            assertion = _find_name(table.get('tests', []), self.name)
-
-        self.parameters = assertion.get('parameters', {})
-        self.asserts = assertion.get('assert', {})
-        self.tags = assertion.get('tags', [])
-        self.result._expected = assertion.get('assert', dict(success=True))
+        self.parameters = payload.get('parameters', {})
+        self.asserts = payload.get('assert', {})
+        self.tags = payload.get('tags', [])
+        self.result._expected = payload.get('assert', dict(success=True))
         pass
 
     def __repr__(self):
@@ -197,6 +184,7 @@ class AssertionEngine:
         self.assertion_search_path = assertion_search_path
         self.assertions_content: Dict = {}
         self.assertions: List[AssertionContext] = []
+        self.recommender: AssertionRecommender = AssertionRecommender()
 
         self.default_plugins_dir = AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH
         if not os.path.isdir(self.default_plugins_dir):
@@ -230,27 +218,21 @@ class AssertionEngine:
             # only append specified table's assertions
             if t in list(self.profiler.metadata.tables):
                 for ta in self.assertions_content[t].get('tests', []):
-                    self.assertions.append(AssertionContext(t, None, ta.get('name'), self.assertions_content))
+                    self.assertions.append(AssertionContext(t, None, ta))
                 for c in self.assertions_content[t].get('columns', {}):
                     for ca in self.assertions_content[t]['columns'][c].get('tests', []):
-                        self.assertions.append(AssertionContext(t, c, ca.get('name'), self.assertions_content))
+                        self.assertions.append(AssertionContext(t, c, ca))
 
-    def generate_recommended_assertions(self, profiling_result, is_assertions_exist, selected_tables=None):
+    def generate_recommended_assertions(self, profiling_result, is_assertions_exist, ):
         # Load existing assertions
         if not self.assertions_content:
             self.load_assertions()
 
-        tables = self.profiler.metadata.tables
-        if isinstance(selected_tables, str):
-            tables = {selected_tables: tables[selected_tables]}
-        elif isinstance(selected_tables, list):
-            tables = {t: tables[t] for t in selected_tables}
+        # Generate recommended assertions based on the profiling result
+        self.recommender.prepare_assertion_template(profiling_result)
+        self.recommender.run(profiling_result)
 
-        recommended_assertions = self._generate_assertion_template(tables)
-
-        # TODO: Generate recommended assertions
-        recommender = AssertionRecommender(recommended_assertions, profiling_result)
-        recommender.recommend()
+        recommended_assertions = self.recommender.assertions
 
         # Update existing recommended assertions
         if is_assertions_exist:
@@ -259,45 +241,15 @@ class AssertionEngine:
         # Dump recommended assertions
         return self._dump_assertions_files(recommended_assertions)
 
-    def _generate_assertion_template(self, tables):
-        recommended_assertions: Dict[CommentedMap] = {}
-        for name, table in tables.items():
-            # Generate template of assertions
-            table_assertions = CommentedSeq()
-            columns = CommentedMap()
-
-            # Generate assertions for columns
-            for column in table.columns:
-                column_name = str(column.name)
-                column_assertions = CommentedSeq()
-                columns[column_name] = CommentedMap({
-                    'tests': column_assertions,
-                })
-                columns[column_name].yaml_set_comment_before_after_key('tests', indent=6,
-                                                                       before='Test Cases for Column')
-                columns.yaml_add_eol_comment('Column Name', column_name)
-
-            # Generate assertions for table
-            recommended_assertion = CommentedMap({
-                name: CommentedMap({
-                    'tests': table_assertions,
-                    'columns': columns,
-                })})
-            recommended_assertion.yaml_set_start_comment(f'# Auto-generated by Piperider based on table "{table}"')
-            recommended_assertion.yaml_add_eol_comment('Table Name', name)
-            recommended_assertion[name].yaml_set_comment_before_after_key('tests', indent=2,
-                                                                          before='Test Cases for Table')
-            recommended_assertions[name] = recommended_assertion
-        return recommended_assertions
-
     def _update_existing_recommended_assertions(self, recommended_assertions):
         def merge_assertions(existed: List, new_generating: List):
             for existed_assertion in existed:
+                is_new_assertion_found = False
                 for new_assertion in new_generating:
                     if new_assertion['name'] == existed_assertion['name']:
+                        is_new_assertion_found = True
                         if existed_assertion.get('assert') is None:
                             continue
-
                         if dict(new_assertion['assert']) != existed_assertion['assert']:
                             # Update new generating assertion with new assert in comment
                             recommended_assertion_value = json.dumps(new_assertion['assert']).replace('\"', '')
@@ -305,6 +257,20 @@ class AssertionEngine:
                                 f'TODO: {recommended_assertion_value} (new recommended assert)',
                                 'assert')
                             new_assertion['assert'] = existed_assertion['assert']
+
+                if is_new_assertion_found is False:
+                    # Add existing assertion to new generating assertion
+                    new_generating.append(existed_assertion)
+                pass
+            pass
+
+        def skip_assertions(existed: List, new_generating: List):
+            for existed_assertion in existed:
+                for new_assertion in new_generating:
+                    if new_assertion['name'] == existed_assertion['name']:
+                        new_generating.remove(new_assertion)
+                        break
+                pass
             pass
 
         for name, recommended_assertion in recommended_assertions.items():
@@ -316,13 +282,22 @@ class AssertionEngine:
                     merge_assertions(existing_assertion[name]['tests'], recommended_assertion[name]['tests'])
 
                     # Column assertions
-                    for ca in recommended_assertion[name]['columns']:
+                    for ca in existing_assertion[name]['columns']:
                         merge_assertions(existing_assertion[name]['columns'][ca]['tests'],
                                          recommended_assertion[name]['columns'][ca]['tests'])
             elif self.assertions_content.get(name):
                 print(
                     f'Skip recommended assertions for table "{name}" because it already exists user-defined assertions.')
                 recommended_assertions[name]['skip'] = True
+
+                # Table assertions
+                # skip_assertions(self.assertions_content[name]['tests'], recommended_assertion[name]['tests'])
+                #
+                # # Column assertions
+                # for ca in self.assertions_content[name].get('columns', {}).keys():
+                #     skip_assertions(self.assertions_content[name]['columns'][ca]['tests'],
+                #                     recommended_assertion[name]['columns'][ca]['tests'])
+
         pass
 
     def _recommend_assertion_filename(self, name):

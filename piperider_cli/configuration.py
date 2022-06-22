@@ -25,6 +25,14 @@ DBT_PROFILES_DIR_DEFAULT = '~/.dbt/'
 DBT_PROFILE_FILE = 'profiles.yml'
 
 
+class RecommenderConfig(object):
+    enabled = None
+
+    def __init__(self):
+        # TBD: design the configuration for recommended assertions
+        pass
+
+
 class Configuration(object):
     """
     Configuration represents the config file in the piperider project
@@ -36,6 +44,8 @@ class Configuration(object):
         self.telemetry_id = kwargs.get('telemetry_id', None)
         if self.telemetry_id is None:
             self.telemetry_id = uuid.uuid4().hex
+        self.recommender = RecommenderConfig()
+        self.recommender.enabled = kwargs.get('recommender_enabled', None)
 
     def get_telemetry_id(self):
         return self.telemetry_id
@@ -130,7 +140,13 @@ class Configuration(object):
                     credential = None
                 data_source = datasource_class(name=ds.get('name'), credential=credential)
             data_sources.append(data_source)
-        return cls(dataSources=data_sources, telemetry_id=config.get('telemetry', {}).get('id'))
+
+        recommender_enabled = config.get('recommender', {}).get('enabled') if config.get('recommender', {}) else None
+        return cls(
+            dataSources=data_sources,
+            telemetry_id=config.get('telemetry', {}).get('id'),
+            recommender_enabled=recommender_enabled
+        )
 
     def dump(self, path):
         """
@@ -138,13 +154,19 @@ class Configuration(object):
         :param path:
         :return:
         """
-        config = dict(dataSources=[], telemetry=dict(id=self.telemetry_id))
+        config = dict(
+            dataSources=[],
+            telemetry=dict(id=self.telemetry_id)
+        )
 
         for d in self.dataSources:
             datasource = dict(name=d.name, type=d.type_name)
             if d.args.get('dbt'):
                 datasource['dbt'] = d.args.get('dbt')
             config['dataSources'].append(datasource)
+
+        if self.recommender.enabled is not None:
+            config['recommender'] = dict(enabled=self.recommender.enabled)
 
         with open(path, 'w') as fd:
             yaml.round_trip_dump(config, fd)
