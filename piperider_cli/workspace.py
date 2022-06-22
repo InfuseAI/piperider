@@ -1,11 +1,13 @@
 import json
 import os
-import re
 import sys
 import uuid
+import re
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from glob import glob
+from subprocess import Popen, check_output, CalledProcessError
+from ruamel import yaml
 
 import inquirer
 from rich.console import Console
@@ -312,6 +314,8 @@ def _fetch_dbt_manifest(dbt, table=None):
     available_tables = []
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     dbt_manifest = os.path.join(dbt_root, 'target', 'manifest.json')
+    manifest = None
+
     if os.path.exists(dbt_manifest):
         with open(dbt_manifest) as fd:
             manifest = json.loads(fd.read())
@@ -322,13 +326,13 @@ def _fetch_dbt_manifest(dbt, table=None):
                 continue
             name = v.get('name')
             schema = v.get('schema')
-            available_tables.append(name)
-            if table and name != table:
-                continue
             if schema in ['public', 'PUBLIC']:
                 table_name = name
             else:
                 table_name = f'{schema}.{name}'
+            available_tables.append(table_name)
+            if table and table_name != table:
+                continue
             tables.add(table_name)
     else:
         return False, f"'{dbt_manifest}' not found", []
@@ -339,11 +343,11 @@ def _fetch_dbt_manifest(dbt, table=None):
         if table.lower() in lower_tables:
             index = lower_tables.index(table.lower())
             suggestion = f". Do you mean '{available_tables[index]}'?"
-        return False, f"Table '{table}' doesn't exist in {dbt_manifest}{suggestion}", []
+        return False, f"Table '{table}' doesn't exist in {dbt_manifest}{suggestion}", [], None
     if not tables:
-        return False, f'No table found in {dbt_manifest}', []
+        return False, f'No table found in {dbt_manifest}', [], None
 
-    return True, '', list(tables)
+    return True, '', list(tables), manifest
 
 
 def debug():
@@ -415,10 +419,45 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
     return results, exceptions
 
 
+def _show_dbt_test_result(console: Console, dbt_test_results, failed_only=False):
+    max_target_len = 0
+    max_assert_len = 0
+    indent = '  ' if failed_only else ''
+    for table, v in dbt_test_results.items():
+        for column, results in v['columns'].items():
+            for r in results:
+                if failed_only and r.get('status') == 'passed':
+                    continue
+                target = f'{table}.{column}'
+                test_name = r.get('name')
+                max_target_len = max(max_target_len, len(target))
+                max_assert_len = max(max_assert_len, len(test_name))
+
+    for table, v in dbt_test_results.items():
+        for column, results in v['columns'].items():
+            for r in results:
+                if failed_only and r.get('status') == 'passed':
+                    continue
+                success = True if r.get('status') == 'passed' else False
+                test_name = r.get('name')
+                test_name = test_name.ljust(max_assert_len + 1)
+                target = f'{table}.{column}'
+                target = target.ljust(max_target_len + 1)
+                message = r.get('message')
+
+                if success:
+                    console.print(
+                        f'{indent}[[bold green]  OK  [/bold green]] {target} {test_name} Message: {message}')
+                else:
+                    console.print(
+                        f'{indent}[[bold red]FAILED[/bold red]] {target} {test_name} Message: {message}')
+
+
 def _show_assertion_result(console: Console, results, exceptions, failed_only=False, single_table=None):
     if results:
         max_target_len = 0
         max_assert_len = 0
+        indent = '  ' if failed_only else ''
         for assertion in results:
             if single_table and single_table != assertion.table:
                 continue
@@ -443,17 +482,44 @@ def _show_assertion_result(console: Console, results, exceptions, failed_only=Fa
             target = target.ljust(max_target_len + 1)
             if success:
                 console.print(
-                    f'[[bold green]  OK  [/bold green]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
+                    f'{indent}[[bold green]  OK  [/bold green]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
             else:
                 console.print(
-                    f'[[bold red]FAILED[/bold red]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
+                    f'{indent}[[bold red]FAILED[/bold red]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
                 if assertion.result.exception:
-                    console.print(f'         [bold white]Reason[/bold white]: {assertion.result.exception}')
+                    console.print(f'         {indent}[bold white]Reason[/bold white]: {assertion.result.exception}')
     # TODO: Handle exceptions
     pass
 
 
-def _show_table_summary(console: Console, table: str, profiled_result, assertion_results):
+def _show_dbt_test_result_summary(console: Console, table: str, dbt_test_results):
+    if not dbt_test_results:
+        return False
+
+    num_of_testcases = 0
+    num_of_passed_testcases = 0
+    num_of_failed_testcases = 0
+
+    for k, v in dbt_test_results.items():
+        if k == table:
+            for column, results in v['columns'].items():
+                for r in results:
+                    num_of_testcases += 1
+                    if r.get('status') == 'passed':
+                        num_of_passed_testcases += 1
+
+            num_of_failed_testcases = num_of_testcases - num_of_passed_testcases
+            if num_of_testcases > 0:
+                console.print(f'  {num_of_testcases} dbt test executed')
+
+            if (num_of_failed_testcases > 0):
+                console.print(f'  {num_of_failed_testcases} of {num_of_testcases} dbt tests failed:')
+                _show_dbt_test_result(console, {k: v}, failed_only=True)
+                return True
+    return False
+
+
+def _show_table_summary(console: Console, table: str, profiled_result, assertion_results, dbt_test_results):
     profiled_columns = profiled_result.get('col_count')
     num_of_testcases = 0
     num_of_passed_testcases = 0
@@ -470,14 +536,20 @@ def _show_table_summary(console: Console, table: str, profiled_result, assertion
                     failed_testcases.append(r)
 
     num_of_failed_testcases = num_of_testcases - num_of_passed_testcases
+
     console.print(f"Table '{table}'")
     console.print(f'  {profiled_columns} columns profiled')
 
+    dbt_showed = _show_dbt_test_result_summary(console, table, dbt_test_results)
+    pr = ' PipeRider' if dbt_showed else ''
+    if assertion_results and dbt_showed:
+        console.print()
+
     if num_of_testcases > 0:
-        console.print(f'  {num_of_testcases} test executed')
+        console.print(f'  {num_of_testcases}{pr} test executed')
 
     if (num_of_failed_testcases > 0):
-        console.print(f'  {num_of_failed_testcases} of {num_of_testcases} tests failed:')
+        console.print(f'  {num_of_failed_testcases} of {num_of_testcases}{pr} tests failed:')
         _show_assertion_result(console, assertion_results, None, failed_only=True, single_table=table)
     console.print()
     pass
@@ -499,7 +571,7 @@ def _transform_assertion_result(table: str, results):
     return dict(tests=tests, columns=columns)
 
 
-def run(datasource=None, table=None, output=None, interaction=True, skip_report=False, skip_recommend=False):
+def run(datasource=None, table=None, output=None, interaction=True, skip_report=False, skip_dbt=False, skip_recommend=False):
     console = Console()
     configuration = Configuration.load()
 
@@ -534,8 +606,12 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
     dbt = ds.args.get('dbt')
     tables = None
+
+    if table:
+        table = re.sub('^(PUBLIC|public)\.', '', table)
+
     if dbt:
-        passed, error_msg, tables = _fetch_dbt_manifest(dbt, table)
+        passed, error_msg, tables, dbt_manifest = _fetch_dbt_manifest(dbt, table)
         if not passed:
             console.print(
                 "[bold yellow]Note:[/bold yellow] Please run command 'dbt build/run/test' to update 'manifest.json' files")
@@ -543,6 +619,10 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     else:
         if table:
             tables = [table]
+
+    dbt_test_results = None
+    if dbt and not skip_dbt:
+        dbt_test_results = _run_dbt_command(dbt, table, dbt_manifest, console)
 
     console.rule('Profiling')
     run_id = uuid.uuid4().hex
@@ -560,9 +640,15 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     # TODO stop here if tests was not needed.
     assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
                                                                   profile_result, created_at, skip_recommend)
-    if assertion_results:
+    if assertion_results or dbt_test_results:
         console.rule('Assertion Results')
-        _show_assertion_result(console, assertion_results, assertion_exceptions)
+        if dbt_test_results:
+            console.rule('dbt')
+            _show_dbt_test_result(console, dbt_test_results)
+            if assertion_results:
+                console.rule('PipeRider')
+        if assertion_results:
+            _show_assertion_result(console, assertion_results, assertion_exceptions)
 
     console.rule('Summary')
 
@@ -570,17 +656,117 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     profile_result['created_at'] = datetime_to_str(created_at)
     profile_result['datasource'] = dict(name=ds.name, type=ds.type_name)
 
+    # Include dbt test results
+    if dbt_test_results:
+        for k, v in dbt_test_results.items():
+            if k not in profile_result['tables']:
+                continue
+            profile_result['tables'][k]['dbt_test_results'] = v
+
     output_file = os.path.join(output_path, 'run.json')
     for t in profile_result['tables']:
         profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(t, assertion_results)
 
-        _show_table_summary(console, t, profile_result['tables'][t], assertion_results)
+        _show_table_summary(console, t, profile_result['tables'][t], assertion_results, dbt_test_results)
 
     with open(output_file, 'w') as f:
         f.write(json.dumps(profile_result, indent=4))
     if skip_report:
         console.print(f'Results saved to {output_path}')
     return 0
+
+
+def _run_dbt_command(dbt, table, manifest, console):
+    dbt_root = os.path.expanduser(dbt.get('projectDir'))
+    try:
+        check_output(['command', '-v', 'dbt'], cwd=dbt_root)
+    except CalledProcessError:
+        console.print('[bold yellow]Warning: dbt command not found. Skip running dbt[/bold yellow]')
+        return
+
+    cmd = dbt.get('cmd', 'test')
+    if cmd not in ['build', 'run', 'test']:
+        message = f"'dbt {cmd}' is invalid, only support 'dbt build/run/test'."
+        message += " Please check the dbt command in '.piperider/config.yml'."
+        message += ' Skip running dbt'
+        console.print(f"[bold yellow]Warning: {message}[/bold yellow]")
+        return
+
+    full_cmd_arr = ['dbt', cmd]
+    if table:
+        table_dict = dict()
+        schema_path = os.path.join(dbt_root, 'models', 'schema.yml')
+        with open(schema_path) as f:
+            schema = yaml.YAML(typ='safe').load(f)
+            for m in schema.get('models', []):
+                table_dict[m['name']] = m['name']
+            for s in schema.get('sources', []):
+                schema_name = s['name']
+                for t in s.get('tables', []):
+                    source_name = f"source:{schema_name}.{t['name']}"
+                    table_key = t['name'] if schema_name in ['public', 'PUBLIC'] else f"{schema_name}.{t['name']}"
+                    table_dict[table_key] = source_name
+        if table not in table_dict:
+            console.print(f"[bold yellow]Warning: '{table}' doesn't exist in dbt schema. Skip running dbt[/bold yellow]")
+            return
+        select = table_dict[table]
+        full_cmd_arr.append('-s')
+        full_cmd_arr.append(select)
+
+    console.rule('Running dbt')
+    console.print(f'[bold yellow]dbt working dir:[/bold yellow] {dbt_root}')
+    console.print(f"Execute command: {' '.join(full_cmd_arr)}")
+    proc = Popen(full_cmd_arr, cwd=dbt_root)
+    proc.communicate()
+
+    run_results_path = os.path.join(dbt_root, 'target/run_results.json')
+    with open(run_results_path) as f:
+        run_results = json.load(f)
+
+    output = {}
+    unique_tests = {}
+
+    for result in run_results.get('results', []):
+        unique_id = result.get('unique_id')
+        if unique_id is None:
+            continue
+        unique_tests[unique_id] = dict(
+            status=result.get('status'),
+            failures=result.get('failures'),
+            message=result.get('message'),
+        )
+
+    for node in manifest.get('nodes', []).values():
+        unique_id = node.get('unique_id')
+        if unique_id not in unique_tests:
+            continue
+
+        parent_nodes = node.get('depends_on', {}).get('nodes', [])
+        if not parent_nodes:
+            continue
+        first_parent_node = parent_nodes[0]
+        parent_table = first_parent_node.split('.')[-1]
+        if parent_table not in output:
+            output[parent_table] = dict(columns={})
+
+        # TODO: need a better way to get parent table and column
+        parent_type = 'source' if len(node.get('sources', [])) > 0 else 'model'
+        package_name = node.get('package_name')
+        table_with_schema = re.sub(f'^{parent_type}\.{package_name}\.', '', first_parent_node).replace('.', '_')
+
+        test_name = node.get('test_metadata', {}).get('name')
+        fqn = node.get('fqn')[1]
+        column = re.sub(f"^{'source_' if parent_type == 'source' else ''}{test_name}_{table_with_schema}_", '', fqn)
+
+        if column not in output[parent_table]['columns']:
+            output[parent_table]['columns'][column] = []
+        output[parent_table]['columns'][column].append(dict(
+            name=unique_id,
+            status='passed' if unique_tests[unique_id]['status'] == 'pass' else 'failed',
+            message=unique_tests[unique_id]['message'],
+        ))
+
+    return output
 
 
 def prepare_output_path(created_at, ds, output):

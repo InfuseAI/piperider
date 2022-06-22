@@ -9,8 +9,23 @@ from rich.syntax import Syntax
 from piperider_cli import workspace, __version__, event
 from piperider_cli.event.track import TrackCommand
 
-sentry_env = 'development' if '.dev' in __version__ else 'production'
-release_version = __version__ if sentry_env == 'production' else None
+
+def set_sentry_env():
+    if '.dev' in __version__:
+        return 'development'
+    elif 'nightly' in os.path.basename(sys.argv[0]):
+        return 'nightly'
+    elif 'a' in __version__:
+        return 'alpha'
+    elif 'b' in __version__:
+        return 'beta'
+    elif 'rc' in __version__:
+        return 'release-candidate'
+    return 'production'
+
+
+sentry_env = set_sentry_env()
+release_version = __version__ if sentry_env != 'development' else None
 
 sentry_sdk.init(
     "https://41930bf397884adfb2617fe350231439@o1081482.ingest.sentry.io/6463955",
@@ -110,6 +125,7 @@ def diagnose(**kwargs):
 @click.option('--no-interaction', is_flag=True, help='Disable interactive question')
 @click.option('--skip-report', is_flag=True, help='Skip generating report')
 @click.option('--skip-recommend', is_flag=True, help='Skip recommend assertions')
+@click.option('--skip-dbt', is_flag=True, help='Skip running dbt')
 @add_options(debug_option)
 def run(**kwargs):
     datasource = kwargs.get('datasource')
@@ -117,12 +133,14 @@ def run(**kwargs):
     output = kwargs.get('output')
     skip_report = kwargs.get('skip_report')
     skip_recommend = kwargs.get('skip_recommend')
+    skip_dbt = kwargs.get('skip_dbt')
     ret = workspace.run(datasource=datasource,
                         table=table,
                         output=output,
                         interaction=not kwargs.get('no_interaction'),
                         skip_report=skip_report,
                         skip_recommend=skip_recommend)
+                        skip_dbt=skip_dbt)
     if not skip_report and ret == 0:
         workspace.generate_report()
 

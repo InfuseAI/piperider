@@ -283,6 +283,12 @@ class SqliteDataSource(DataSource):
 
     def __init__(self, name, **kwargs):
         super().__init__(name, 'sqlite', **kwargs)
+
+        # in dbt case, we should push the dbpath back to the credential
+        if 'dbt' in kwargs:
+            dbpath = kwargs.get('credential', {}).get('schemas_and_paths', {}).get('main')
+            kwargs.get('credential', {})['dbpath'] = dbpath
+
         self.fields = [
             PathField('dbpath', description='Path of database file'),
         ]
