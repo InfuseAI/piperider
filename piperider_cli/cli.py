@@ -41,7 +41,7 @@ sentry_sdk.set_tag("piperider.version", __version__)
 event.init()
 
 debug_option = [
-    click.option('--debug', is_flag=True, help='Enable debug mode')
+    click.option('--debug', is_flag=True, help='Enable debug mode.')
 ]
 
 
@@ -56,23 +56,27 @@ def add_options(options):
 
 @click.group(name="piperider")
 def cli():
+    'An open-source toolkit for detecting data issues across pipelines that works with CI systems for continuous data quality assessment.'
     pass
 
 
 cli.command_class = TrackCommand
 
 
-@cli.command(short_help='Show the version of piperider')
+@cli.command(short_help='Show version information.')
 def version():
+    'Show version information.'
     click.echo(__version__)
 
 
-@cli.command(short_help='Initialize PipeRider configurations')
-@click.option('--no-auto-search', type=click.BOOL, default=False, is_flag=True, help="Don't search for dbt projects")
-@click.option('--dbt-project-dir', type=click.Path(exists=True), default=None, help='Directory of dbt project config')
-@click.option('--dbt-profiles-dir', type=click.Path(exists=True), default=None, help='Directory of dbt profiles config')
+@cli.command(short_help='Initialize a PipeRider project.')
+@click.option('--no-auto-search', type=click.BOOL, default=False, is_flag=True, help="Disable auto detection of dbt projects.")
+@click.option('--dbt-project-dir', type=click.Path(exists=True), default=None, help='Directory to search for dbt_project.yml.')
+@click.option('--dbt-profiles-dir', type=click.Path(exists=True), default=None, help='Directory to search for dbt profiles.yml.')
 @add_options(debug_option)
 def init(**kwargs):
+    'Initialize a PipeRider project in interactive mode. The configurations are saved in ".piperider".'
+
     console = Console()
     piperider_config_dir = os.path.join(os.getcwd(), '.piperider')
     # TODO show the process and message to users
@@ -106,9 +110,11 @@ def init(**kwargs):
         console.print(config)
 
 
-@cli.command(short_help='Test Configuration')
+@cli.command(short_help='Check project configuration.')
 @add_options(debug_option)
 def diagnose(**kwargs):
+    'Check project configuration, datasource, connections, assertion configuration and dbt manifest.'
+
     console = Console()
     console.print('Diagnosing...')
 
@@ -118,16 +124,18 @@ def diagnose(**kwargs):
         sys.exit(1)
 
 
-@cli.command(short_help='Collect data profiles and test results')
-@click.option('--datasource', default=None)
-@click.option('--table', default=None)
-@click.option('--output', default=None)
-@click.option('--no-interaction', is_flag=True, help='Disable interactive question')
-@click.option('--skip-report', is_flag=True, help='Skip generating report')
-@click.option('--skip-recommend', is_flag=True, help='Skip recommend assertions')
-@click.option('--skip-dbt', is_flag=True, help='Skip running dbt')
+@cli.command(short_help='Profile data source, run assertions, and generate report(s).')
+@click.option('--datasource', default=None, type=click.STRING, help='Datasource to use.', metavar='DATASOURCE_NAME')
+@click.option('--table', default=None, type=click.STRING, help='Table to use.', metavar='TABLE_NAME')
+@click.option('--output', default=None, type=click.Path(), help='Directory to save the results.')
+@click.option('--no-interaction', is_flag=True, help='Disable interactive mode.')
+@click.option('--skip-report', is_flag=True, help='Skip generating report.')
+@click.option('--skip-recommend', is_flag=True, help='Skip recommending assertions.')
+@click.option('--skip-dbt', is_flag=True, help='Skip running dbt.')
 @add_options(debug_option)
 def run(**kwargs):
+    'Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
+
     datasource = kwargs.get('datasource')
     table = kwargs.get('table')
     output = kwargs.get('output')
@@ -145,19 +153,23 @@ def run(**kwargs):
         workspace.generate_report()
 
 
-@cli.command(short_help='Show report')
-@click.option('--input', default=None, type=click.Path(exists=True), help='Path of json report file')
+@cli.command(short_help='Generate a report.')
+@click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
 @add_options(debug_option)
 def generate_report(**kwargs):
+    'Generate a report from the latest raw result or specified result. By default, the raw results are saved in ".piperider/outputs".'
+
     input = kwargs.get('input')
     workspace.generate_report(input=input)
 
 
-@cli.command(short_help='Compare two existing reports')
-@click.option('--base', default=None, type=click.Path(exists=True), help='Path of the base json report file')
-@click.option('--input', default=None, type=click.Path(exists=True), help='Path of the json report file to compare')
+@cli.command(short_help='Compare two existing reports.')
+@click.option('--base', default=None, type=click.Path(exists=True), help='Specify the base report file.')
+@click.option('--input', default=None, type=click.Path(exists=True), help='Specify the report file to be compared.')
 @add_options(debug_option)
 def compare_report(**kwargs):
+    'Compare two existing reports selected in interactive mode or by option.'
+
     a = kwargs.get('base')
     b = kwargs.get('input')
     workspace.compare_report(a=a, b=b)
