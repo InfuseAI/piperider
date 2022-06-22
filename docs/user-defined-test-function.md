@@ -90,7 +90,7 @@ Column level metric:
 
 ```python
 column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
-if not column_metrics:
+if column_metrics is None:
   # cannot find the column in the metrics
   return context.result.fail()
 ```
