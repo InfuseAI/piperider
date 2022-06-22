@@ -1,4 +1,7 @@
 import * as d3 from 'd3';
+import fill from 'lodash/fill';
+import zip from 'lodash/zip';
+
 import {
   getChartTooltip,
   getReportAsserationStatusCounts,
@@ -162,4 +165,57 @@ export function getComparisonTests(assertion, from) {
     failed,
     tests: [],
   };
+}
+
+// for `type` equal to string, datetime
+export function transformDistribution({ base, input }) {
+  const mapIndex = {};
+  const result = [];
+
+  for (let i = 0; i < base.labels.length; i++) {
+    let label = base.labels[i];
+    let count = base.counts[i];
+    mapIndex[label] = i;
+    result.push({
+      label: label,
+      base: count,
+      input: 0,
+    });
+  }
+
+  for (let i = 0; i < input.labels.length; i++) {
+    let label = input.labels[i];
+    let count = input.counts[i];
+
+    if (mapIndex.hasOwnProperty(label)) {
+      result[mapIndex[label]].input = count;
+    } else {
+      result.push({
+        label: label,
+        base: 0,
+        input: count,
+      });
+    }
+  }
+
+  return result;
+}
+
+export function transformDistributionWithLabels({ base, input, labels }) {
+  if (!base) {
+    base = fill(Array(labels.length), 0);
+  }
+
+  if (!input) {
+    input = fill(Array(labels.length), 0);
+  }
+
+  const z = zip(labels, base, input);
+  const m = z.map(([label, base, input]) => ({
+    label,
+    base,
+    input,
+  }));
+
+  return m;
 }

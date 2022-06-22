@@ -1,5 +1,4 @@
 import {
-  Box,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -24,10 +23,8 @@ import {
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
-import { useEffect, useRef } from 'react';
-import fill from 'lodash/fill';
+import { useEffect, useRef, useState } from 'react';
 import groupBy from 'lodash/groupBy';
-import zip from 'lodash/zip';
 
 import { Main } from './Main';
 import { MetricsInfo } from './shared/MetrisInfo';
@@ -36,6 +33,8 @@ import {
   drawComparsionChart,
   joinBykey,
   getComparisonTests,
+  transformDistribution,
+  transformDistributionWithLabels,
 } from '../utils/comparisonReport';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
@@ -244,91 +243,45 @@ function CompareSchema({ base, input }) {
 }
 
 function CompareProfileColumn({ name, base, input }) {
-  let column = base ? base : input;
+  const column = base ? base : input;
+  const [data, setData] = useState([]);
 
-  // FIXME:
-  // distribution
-  let CompareDistribution;
+  useEffect(() => {
+    if (
+      base?.type === input?.type &&
+      (base?.type === 'string' || base?.type === 'datetime')
+    ) {
+      const transformResult = transformDistribution({
+        base: base.distribution,
+        input: input.distribution,
+      });
 
-  if (
-    base?.type === input?.type &&
-    (base?.type === 'string' || base?.type === 'datetime')
-  ) {
-    const transformDist = (base, input) => {
-      let i = 0;
-      let mapIndex = {};
-      let result = [];
+      setData([transformResult]);
+    } else {
+      const baseData = base
+        ? transformDistributionWithLabels({
+            base: base.distribution.counts,
+            input: null,
+            labels: base.distribution.labels,
+          })
+        : null;
 
-      for (i = 0; i < base.labels.length; i++) {
-        let label = base.labels[i];
-        let count = base.counts[i];
-        mapIndex[label] = i;
-        result.push({
-          label: label,
-          base: count,
-          input: 0,
-        });
-      }
+      const inputData = input
+        ? transformDistributionWithLabels({
+            base: input.distribution.counts,
+            input: null,
+            labels: input.distribution.labels,
+          })
+        : null;
 
-      for (i = 0; i < input.labels.length; i++) {
-        let label = input.labels[i];
-        let count = input.counts[i];
+      setData([baseData, inputData]);
+    }
+  }, [base, input]);
 
-        if (mapIndex.hasOwnProperty(label)) {
-          result[mapIndex[label]].input = count;
-        } else {
-          result.push({
-            label: label,
-            base: 0,
-            input: count,
-          });
-        }
-      }
-
-      return result;
-    };
-
-    let data = transformDist(base.distribution, input.distribution);
-
-    CompareDistribution = () => <ComparisonBarChart data={data} />;
-  } else {
-    const transformDist = (labels, base, input) => {
-      if (!base) {
-        base = fill(Array(labels.length), 0);
-      }
-
-      if (!input) {
-        input = fill(Array(labels.length), 0);
-      }
-
-      let z = zip(labels, base, input);
-      let m = z.map(([label, base, input]) => ({
-        label,
-        base,
-        input,
-      }));
-
-      return m;
-    };
-
-    let dataBase =
-      base &&
-      transformDist(base.distribution.labels, base.distribution.counts, null);
-    let dataInput =
-      input &&
-      transformDist(input.distribution.labels, null, input.distribution.counts);
-
-    CompareDistribution = () => (
-      <Grid my={4} templateColumns="1fr 1fr" gap={3}>
-        {dataBase ? <ComparisonBarChart data={dataBase} /> : <Box />}
-        {dataInput ? <ComparisonBarChart data={dataInput} /> : <Box />}
-      </Grid>
-    );
-  }
   return (
     <Flex key={name} direction="column">
       <Grid my={4} templateColumns="500px 1fr" gap={3}>
-        <Flex direction="column" gap={2}>
+        <Flex direction="column" gap={2} minH="250px">
           <Flex direction="column" gap={3}>
             <Flex justifyContent="space-between">
               <Text>
@@ -410,7 +363,34 @@ function CompareProfileColumn({ name, base, input }) {
             )}
           </Flex>
         </Flex>
-        <CompareDistribution />
+
+        {data.length === 1 && <ComparisonBarChart data={data[0]} />}
+        {data.length === 2 && (
+          <Grid my={4} templateColumns="1fr 1fr" gap={3}>
+            {data[0] ? (
+              <ComparisonBarChart data={data[0]} />
+            ) : (
+              <Flex
+                alignItems="center"
+                justifyContent="center"
+                color="gray.500"
+              >
+                No data available
+              </Flex>
+            )}
+            {data[1] ? (
+              <ComparisonBarChart data={data[1]} />
+            ) : (
+              <Flex
+                alignItems="center"
+                justifyContent="center"
+                color="gray.500"
+              >
+                No data available
+              </Flex>
+            )}
+          </Grid>
+        )}
       </Grid>
     </Flex>
   );
