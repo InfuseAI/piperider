@@ -1,5 +1,4 @@
-from typing import Dict
-from . import RecommendedAssertion
+from piperider_cli.assertion_engine.recommended_rules.recommender_assertion import RecommendedAssertion
 
 
 def recommended_row_count_in_range_table_assertion(table, column, profiling_result) -> RecommendedAssertion:
@@ -82,7 +81,7 @@ def recommended_column_unique_assertion(table, column, profiling_result) -> Reco
         non_nulls = column_metric['non_nulls']
         distinct = column_metric['distinct']
 
-        if distinct / non_nulls == 1:
+        if non_nulls > 0 and distinct / non_nulls == 1:
             test_function_name = 'assert_column_unique'
             assertion = RecommendedAssertion(test_function_name, None)
             return assertion
