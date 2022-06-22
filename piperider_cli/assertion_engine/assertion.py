@@ -295,9 +295,12 @@ class AssertionEngine:
             for existed_assertion in existed:
                 for new_assertion in new_generating:
                     if new_assertion['name'] == existed_assertion['name']:
+                        if existed_assertion.get('assert') is None:
+                            continue
+
                         if dict(new_assertion['assert']) != existed_assertion['assert']:
                             # Update new generating assertion with new assert in comment
-                            recommended_assertion_value = json.dumps(new_assertion["assert"]).replace('\"', '')
+                            recommended_assertion_value = json.dumps(new_assertion['assert']).replace('\"', '')
                             new_assertion.yaml_add_eol_comment(
                                 f'TODO: {recommended_assertion_value} (new recommended assert)',
                                 'assert')

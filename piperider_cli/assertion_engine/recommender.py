@@ -1,5 +1,5 @@
 import inspect
-from typing import Callable
+from typing import Callable, List
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
@@ -16,7 +16,8 @@ class AssertionRecommender:
         self.load_recommended_rules()
         pass
 
-    def recommend(self):
+    def recommend(self) -> List[RecommendedAssertion]:
+        assertions = []
         for table, ta in self.assertions.items():
             table_assertions: CommentedSeq = ta[table]['tests']
             for callback in self.recommended_rule_callbacks:
@@ -27,18 +28,30 @@ class AssertionRecommender:
                         'assert': CommentedMap(assertion.asserts),
                         'tags': ['PIPERIDER_RECOMMENDED_ASSERTION']
                     }))
+                    assertion.table = table
+                    assertions.append(assertion)
             for column, col in ta[table]['columns'].items():
                 column_assertions = col['tests']
                 for callback in self.recommended_rule_callbacks:
                     assertion: RecommendedAssertion = callback(table, column, self.profiling_result)
-                    if assertion:
+                    if not assertion:
+                        continue
+
+                    assertion.table = table
+                    assertion.column = column
+                    if assertion.asserts:
                         column_assertions.append(CommentedMap({
                             'name': assertion.name,
                             'assert': CommentedMap(assertion.asserts),
                             'tags': ['PIPERIDER_RECOMMENDED_ASSERTION']
                         }))
-        # TODO: Return the summary of recommended assertions
-        pass
+                    else:
+                        column_assertions.append(CommentedMap({
+                            'name': assertion.name,
+                            'tags': ['PIPERIDER_RECOMMENDED_ASSERTION']
+                        }))
+                    assertions.append(assertion)
+        return assertions
 
     def load_recommended_rules(self):
         for k, callback in table_assertions.__dict__.items():
