@@ -3,7 +3,7 @@ from piperider_cli.assertion_engine.assertion import AssertionContext, Assertion
 
 def assert_nothing_table_example(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     table_metrics = metrics.get('tables', {}).get(table)
-    if not table_metrics:
+    if table_metrics is None:
         # cannot find the table in the metrics
         return context.result.fail()
 
@@ -30,7 +30,7 @@ def assert_nothing_table_example(context: AssertionContext, table: str, column: 
 
 def assert_nothing_column_example(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
-    if not column_metrics:
+    if column_metrics is None:
         # cannot find the column in the metrics
         return context.result.fail()
 
