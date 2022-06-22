@@ -102,7 +102,7 @@ function CompareTest({ base = [], input = [], ...props }) {
   if (tests.length === 0) {
     return (
       <Flex direction="column">
-        <Text textAlign="center">No more tests!</Text>
+        <Text textAlign="center">No tests available</Text>
       </Flex>
     );
   }

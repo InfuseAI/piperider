@@ -170,7 +170,10 @@ function ProfilingInformation({ data }) {
                   <MetricsInfo
                     name="Missing"
                     base={
-                      <Text color={isAllValuesExists ? 'green.500' : 'red.500'}>
+                      <Text
+                        as="span"
+                        color={isAllValuesExists ? 'green.500' : 'red.500'}
+                      >
                         {isAllValuesExists ? '0%' : getMissingValue(column)}
                       </Text>
                     }
@@ -201,7 +204,7 @@ function ProfilingInformation({ data }) {
                 )}
               </Flex>
 
-              <Flex mt={8}>
+              <Flex mt={8} justifyContent="center" alignItems="center">
                 {distribution ? (
                   <BarChart
                     data={distribution.labels.map((label, i) => ({
@@ -211,7 +214,7 @@ function ProfilingInformation({ data }) {
                     }))}
                   />
                 ) : (
-                  <BarChart data={[]} />
+                  <Text>No data available</Text>
                 )}
               </Flex>
             </Grid>
@@ -231,7 +234,7 @@ function TestsInformation({ tableName, data }) {
   if (tabelTests.length === 0 && Object.keys(columnsTests).length === 0) {
     return (
       <Flex direction="column">
-        <Text textAlign="center">No more tests!</Text>
+        <Text textAlign="center">No tests available</Text>
       </Flex>
     );
   }
