@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 from re import I
 import time
 import requests
@@ -35,7 +36,9 @@ class Collector:
         self._user_id = user_id
 
     def log_event(self, prop, event_type):
+        # Use local timezone
         created_at = datetime.now()
+        python_version = f'{sys.version_info.major}.{sys.version_info.minor}'
         event = dict(
             user_id=self._user_id,
             event_type=event_type,
@@ -43,6 +46,7 @@ class Collector:
             time=int(time.mktime(created_at.timetuple())),
             user_properties=dict(
                 version=__version__,
+                python_version=python_version,
             ),
             event_properties=prop,
         )

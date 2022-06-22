@@ -3,7 +3,14 @@ import time
 from datetime import date
 
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import MetaData, Table, String, Integer, Numeric, Date, DateTime, Boolean, select, func, distinct, case
+from sqlalchemy import MetaData, Table, String, Integer, Numeric, Date, DateTime, Boolean, select as select_orig, func, \
+    distinct, case
+
+
+# To comaptible with sqlalchemy 1.3
+# select(col1, col2, col3) does not work in 1.3
+def select(*args):
+    return select_orig(args)
 
 
 class Profiler:
@@ -166,21 +173,21 @@ class Profiler:
                 t2 = select(
                     t.c[column_name].label("c"),
                     case(
-                        (t.c[column_name] is None, None),
+                        [(t.c[column_name].is_(None), None)],
                         else_=0
                     ).label("mismatched")
                 ).cte(name="T")
             else:
                 t2 = select(
                     case(
-                        (func.typeof(t.c[column_name]) == 'text', None),
-                        (func.typeof(t.c[column_name]) == 'blob', None),
+                        [(func.typeof(t.c[column_name]) == 'text', None),
+                         (func.typeof(t.c[column_name]) == 'blob', None)],
                         else_=t.c[column_name]
                     ).label("c"),
                     case(
-                        (func.typeof(t.c[column_name]) == 'text', 1),
-                        (func.typeof(t.c[column_name]) == 'blob', 1),
-                        (func.typeof(t.c[column_name]) == 'null', None),
+                        [(func.typeof(t.c[column_name]) == 'text', 1),
+                         (func.typeof(t.c[column_name]) == 'blob', 1),
+                         (func.typeof(t.c[column_name]) == 'null', None)],
                         else_=0
                     ).label("mismatched")
                 ).cte(name="T")

@@ -6,6 +6,10 @@ dev:
 	@npm run start
 .PHONY: dev
 
+dev-compare:
+	@npm run start:compare
+.PHONY: dev-compare
+
 cleanup:
 	@npm run cleanup
 .PHONY: cleanup

@@ -45,7 +45,7 @@ export function getChartTooltip({ target, style }) {
 
 export function getReportAsserationStatusCounts(assertion) {
   if (!assertion) {
-    return { passed: 0, failed: 0 };
+    return undefined;
   }
 
   const tableStatus = assertion.tests.reduce(

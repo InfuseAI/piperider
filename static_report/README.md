@@ -11,20 +11,22 @@ $ npm install
 ### Single Report
 
 ```sh
-$ npm run start:single
+$ npm run start # make dev
 ```
 
 ### Comparsion Report
 
-> **Warning**
-> _Under constructions_
+```sh
+$ npm run start:compare # make dev-compare
+```
 
 ## Build
 
 > **Note**
-> Generated **single report** and **comparison report** will place into `piperider_cli/data/report`
+>
+> Generated **single report** and **comparison report** will place into [piperider_cli/data/report](https://github.com/InfuseAI/piperider/tree/main/piperider_cli/data/report).
 
-You can use npm script running build scripts, or just use below `make` commands.
+You can use npm running build scripts, or use below `make` commands.
 
 ### Single Report
 

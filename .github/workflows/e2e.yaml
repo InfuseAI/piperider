@@ -1,4 +1,4 @@
-name: Run tests
+name: E2E tests
 
 on:
   push:
@@ -32,7 +32,17 @@ jobs:
       - name: RunTests
         run: |
           cd e2e-tests
-          runtest --tool=testsuite/init
+          origin=$(pwd)
+          echo "current directory is $origin"
+          touch testrun.log
+          nohup tail -F testrun.log &
+
+          cd $origin
+          runtest testsuite/getting-started/001-run.exp
+
+          cd $origin
+          runtest testsuite/getting-started/002-compare.exp
+          echo "Finish"
 
       - name: Archive e2e artifacts
         uses: actions/upload-artifact@v3
@@ -40,4 +50,4 @@ jobs:
         with:
           name: e2e-data
           path: |
-            e2e-tests
+            e2e-tests/testsuite

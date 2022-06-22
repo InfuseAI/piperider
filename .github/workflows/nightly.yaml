@@ -1,4 +1,4 @@
-name: Release PipeRider CLI Nightly Build
+name: Nightly Build
 on:
   schedule:
     - cron: '0 18 * * 0,1,2,3,4' # run at 2 AM (UTC + 8) every working day
@@ -33,8 +33,8 @@ jobs:
 
       - name: Release to PyPi
         run: |
-          # put config includes tracking api key
-          echo "$CONFIG" > ./piperider_cli/data/CONFIG
+          # remove tracking config for nightly build
+          echo "" > ./piperider_cli/data/CONFIG
 
           # generate pypirc
           echo "$PYPIRC" > $HOME/.pypirc
@@ -47,9 +47,9 @@ jobs:
           echo "Nightly build version: $(date '+%Y%m%d')"
           if [ "$VERSION_POSTFIX" != "" ]; then
             echo "Manually version postfix serial number: $VERSION_POSTFIX"
-            sed -i.bak "s/\$/$(date '+%Y%m%d')$VERSION_POSTFIX/" piperider_cli/VERSION
+            sed -i.bak "s/\.dev\$/.$(date '+%Y%m%d').post$VERSION_POSTFIX.dev/" piperider_cli/VERSION
           else
-            sed -i.bak "s/\$/$(date '+%Y%m%d')/" piperider_cli/VERSION
+            sed -i.bak "s/\.dev\$/.$(date '+%Y%m%d').dev/" piperider_cli/VERSION
           fi
           echo ::set-output name=nightly_version::$(cat piperider_cli/VERSION)
 
@@ -57,7 +57,6 @@ jobs:
           make release
         env:
           PYPIRC: ${{ secrets.PYPI_NIGHTLY }}
-          CONFIG: ${{ secrets.CONFIG }}
           VERSION_POSTFIX: ${{ inputs.version_postfix || '' }}
 
       - name: Mark Sentry Release
