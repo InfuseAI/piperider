@@ -46,7 +46,7 @@ jobs:
           # update version number
           echo "Nightly build version: $(date '+%Y%m%d')"
           if [ "ALPHA_VERSION" != "" ]; then
-            echo "Manually alpha version serial number: ALPHA_VERSION"
+            echo "Manually alpha version serial number: $ALPHA_VERSION"
             sed -i.bak "s/\.dev\$/\.$(date '+%Y%m%d')a$ALPHA_VERSION/" piperider_cli/VERSION
           else
             sed -i.bak "s/\.dev\$/\.$(date '+%Y%m%d')/" piperider_cli/VERSION
