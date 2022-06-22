@@ -8,7 +8,9 @@ import {
   Th,
   Thead,
   Tr,
+  Tooltip,
 } from '@chakra-ui/react';
+import { InfoIcon } from '@chakra-ui/icons';
 import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
 
@@ -74,9 +76,18 @@ export function ComparisonReportList({ data }) {
             </Table>
           </TableContainer>
 
-          <Heading size="lg" mb={1}>
-            Tables
-          </Heading>
+          <Flex alignItems="center" gap={2}>
+            <Heading size="lg" mb={1}>
+              Tables
+            </Heading>
+            <Tooltip
+              label={
+                'The numbers of passed tests, failed tests, rows, and columns are displayed in a side-by-side comparison (left: BASE; right: INPUT). When the table does not exist in the BASE or INPUT source, it will display "-".'
+              }
+            >
+              <InfoIcon />
+            </Tooltip>
+          </Flex>
 
           <TableContainer>
             <Table variant="simple">
