@@ -1,5 +1,5 @@
 import inspect
-from typing import Callable
+from typing import Callable, List
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
@@ -16,7 +16,7 @@ class AssertionRecommender:
         self.load_recommended_rules()
         pass
 
-    def recommend(self) -> list[RecommendedAssertion]:
+    def recommend(self) -> List[RecommendedAssertion]:
         assertions = []
         for table, ta in self.assertions.items():
             table_assertions: CommentedSeq = ta[table]['tests']
