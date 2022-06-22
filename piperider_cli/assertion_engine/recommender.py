@@ -28,6 +28,7 @@ class AssertionRecommender:
                         'assert': CommentedMap(assertion.asserts),
                         'tags': ['PIPERIDER_RECOMMENDED_ASSERTION']
                     }))
+                    assertion.table = table
                     assertions.append(assertion)
             for column, col in ta[table]['columns'].items():
                 column_assertions = col['tests']
@@ -36,6 +37,8 @@ class AssertionRecommender:
                     if not assertion:
                         continue
 
+                    assertion.table = table
+                    assertion.column = column
                     if assertion.asserts:
                         column_assertions.append(CommentedMap({
                             'name': assertion.name,

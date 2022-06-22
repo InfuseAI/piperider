@@ -2,9 +2,9 @@ import json
 
 
 class RecommendedAssertion:
-    def __init__(self, table: str, column: str, name: str, asserts: dict):
-        self.table: str = table
-        self.column: str = column
+    def __init__(self, name: str, asserts: dict):
+        self.table: str = None
+        self.column: str = None
         self.name: str = name
         self.asserts: dict = asserts
 
