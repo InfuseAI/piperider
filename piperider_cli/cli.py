@@ -134,7 +134,7 @@ def diagnose(**kwargs):
 @click.option('--skip-dbt', is_flag=True, help='Skip running dbt.')
 @add_options(debug_option)
 def run(**kwargs):
-    'Profile data source, run assertions, and generate report(s). By default, the raw results are saved in ".piperider/outputs" and the reports are saved in ".piperider/reports".'
+    'Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
 
     datasource = kwargs.get('datasource')
     table = kwargs.get('table')
