@@ -9,7 +9,7 @@
 ```
 your_table_name:
   columns:
-    your_coluumn_name:
+    your_column_name:
       tests:
       - name: assert_column_min_in_range
         assert:
