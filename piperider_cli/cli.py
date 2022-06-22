@@ -33,7 +33,7 @@ sentry_sdk.init(
     release=release_version,
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
-    # We recommend adjusting this value in production.
+    # We run adjusting this value in production.
     traces_sample_rate=1.0
 )
 sentry_sdk.set_tag("piperider.version", __version__)
@@ -70,9 +70,12 @@ def version():
 
 
 @cli.command(short_help='Initialize a PipeRider project.')
-@click.option('--no-auto-search', type=click.BOOL, default=False, is_flag=True, help="Disable auto detection of dbt projects.")
-@click.option('--dbt-project-dir', type=click.Path(exists=True), default=None, help='Directory to search for dbt_project.yml.')
-@click.option('--dbt-profiles-dir', type=click.Path(exists=True), default=None, help='Directory to search for dbt profiles.yml.')
+@click.option('--no-auto-search', type=click.BOOL, default=False, is_flag=True,
+              help="Disable auto detection of dbt projects.")
+@click.option('--dbt-project-dir', type=click.Path(exists=True), default=None,
+              help='Directory to search for dbt_project.yml.')
+@click.option('--dbt-profiles-dir', type=click.Path(exists=True), default=None,
+              help='Directory to search for dbt profiles.yml.')
 @add_options(debug_option)
 def init(**kwargs):
     'Initialize a PipeRider project in interactive mode. The configurations are saved in ".piperider".'
@@ -130,7 +133,7 @@ def diagnose(**kwargs):
 @click.option('--output', default=None, type=click.Path(), help='Directory to save the results.')
 @click.option('--no-interaction', is_flag=True, help='Disable interactive mode.')
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
-@click.option('--skip-recommend', is_flag=True, help='Skip recommending assertions.')
+@click.option('--skip-run', is_flag=True, help='Skip recommending assertions.')
 @click.option('--skip-dbt', is_flag=True, help='Skip running dbt.')
 @add_options(debug_option)
 def run(**kwargs):
@@ -151,6 +154,12 @@ def run(**kwargs):
                         skip_dbt=skip_dbt)
     if not skip_report and ret == 0:
         workspace.generate_report()
+
+
+@cli.command(short_help='Generate recommended assertions.')
+@add_options(debug_option)
+def generate_assertions(**kwargs):
+    pass
 
 
 @cli.command(short_help='Generate a report.')

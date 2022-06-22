@@ -36,6 +36,7 @@ setup(name='piperider',
           'jinja2',
           'portalocker',
           'requests',
+          'deepmerge',
       ],
       extras_require={
           'snowflake': [

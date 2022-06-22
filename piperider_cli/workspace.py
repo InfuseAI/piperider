@@ -1,17 +1,17 @@
 import json
 import os
+import re
 import sys
 import uuid
-import re
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from glob import glob
 from subprocess import Popen, check_output, CalledProcessError
-from ruamel import yaml
 
 import inquirer
 from rich.console import Console
 from rich.table import Table
+from ruamel import yaml
 from sqlalchemy import create_engine, inspect
 
 from piperider_cli import clone_directory, convert_to_tzlocal, datetime_to_str
@@ -216,9 +216,8 @@ def _ask_user_input_datasource(config: Configuration = None):
 
 def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None,
                                          config: Configuration = None) -> bool:
-    piperider_config_path = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
     config = Configuration.from_dbt_project(dbt_project_path, dbt_profiles_dir)
-    config.dump(piperider_config_path)
+    config.dump(PIPERIDER_CONFIG_PATH)
 
     return config
 
@@ -362,10 +361,10 @@ def debug():
 
 def _agreed_to_run_recommended_assertions(console: Console, interactive: bool):
     if interactive:
-        console.print('Do you want to run above recommanded assertions for this datasource \[yes/no]?',
+        console.print('Do you want to run above recommanded assertions for this datasource \[Yes/no]?',
                       end=' ')
         confirm = input('').strip().lower()
-        return confirm == 'yes' or confirm == 'y'
+        return confirm == 'yes' or confirm == 'y' or confirm == ''  # default yes
     else:
         return True
 
@@ -374,13 +373,21 @@ def _agreed_to_generate_recommended_assertions(console: Console, interactive: bo
     if skip_recommend:
         return False
 
-    if interactive:
-        console.print('Do you want to auto generate assertion templates for this datasource \[yes/no]?',
-                      end=' ')
-        confirm = input('').strip().lower()
-        return confirm == 'yes' or confirm == 'y'
+    config = Configuration.load()
+
+    if config.recommender.enabled is None:
+        if interactive:
+            console.print('Do you want to auto generate assertion templates for this datasource \[Yes/no]?',
+                          end=' ')
+            confirm = input('').strip().lower()
+            is_confirm = confirm == 'yes' or confirm == 'y' or confirm == ''  # default yes
+            config.recommender.enabled = is_confirm
+            config.dump(PIPERIDER_CONFIG_PATH)
+            return is_confirm
+        else:
+            return True
     else:
-        return True
+        return config.recommender.enabled
 
 
 def _execute_assertions(console: Console, profiler, ds: DataSource, interaction: bool,
@@ -394,6 +401,7 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
         console.print(f'No assertions found for datasource [ {ds.name} ]')
 
         if _agreed_to_generate_recommended_assertions(console, interaction, skip_recommend):
+            console.rule('Generating Recommended Assertions')
             recommended_assertions = assertion_engine.generate_recommended_assertions(result, assertion_exist)
             for f in recommended_assertions:
                 console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
@@ -408,6 +416,7 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
     else:
         assertion_exist = True
         if _agreed_to_generate_recommended_assertions(console, interaction, skip_recommend):
+            console.rule('Updating Recommended Assertions')
             recommended_assertions = assertion_engine.generate_recommended_assertions(result, assertion_exist)
             for f in recommended_assertions:
                 console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
@@ -574,7 +583,8 @@ def _transform_assertion_result(table: str, results):
     return dict(tests=tests, columns=columns)
 
 
-def run(datasource=None, table=None, output=None, interaction=True, skip_report=False, skip_dbt=False, skip_recommend=False):
+def run(datasource=None, table=None, output=None, interaction=True, skip_report=False, skip_dbt=False,
+        skip_recommend=False):
     console = Console()
     configuration = Configuration.load()
 
@@ -710,7 +720,8 @@ def _run_dbt_command(dbt, table, manifest, console):
                     table_key = t['name'] if schema_name in ['public', 'PUBLIC'] else f"{schema_name}.{t['name']}"
                     table_dict[table_key] = source_name
         if table not in table_dict:
-            console.print(f"[bold yellow]Warning: '{table}' doesn't exist in dbt schema. Skip running dbt[/bold yellow]")
+            console.print(
+                f"[bold yellow]Warning: '{table}' doesn't exist in dbt schema. Skip running dbt[/bold yellow]")
             return
         select = table_dict[table]
         full_cmd_arr.append('-s')
