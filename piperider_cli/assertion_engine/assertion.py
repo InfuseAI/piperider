@@ -289,15 +289,6 @@ class AssertionEngine:
                 print(
                     f'Skip recommended assertions for table "{name}" because it already exists user-defined assertions.')
                 recommended_assertions[name]['skip'] = True
-
-                # Table assertions
-                # skip_assertions(self.assertions_content[name]['tests'], recommended_assertion[name]['tests'])
-                #
-                # # Column assertions
-                # for ca in self.assertions_content[name].get('columns', {}).keys():
-                #     skip_assertions(self.assertions_content[name]['columns'][ca]['tests'],
-                #                     recommended_assertion[name]['columns'][ca]['tests'])
-
         pass
 
     def _recommend_assertion_filename(self, name):
