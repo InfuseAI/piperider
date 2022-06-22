@@ -6,8 +6,8 @@ on:
     branches:
       - main
     inputs:
-      version_postfix:
-        description: 'Version postfix serial number'
+      alpha_version:
+        description: 'Alpha version serial number'
         required: true
         type: number
         default: '0'
@@ -45,19 +45,20 @@ jobs:
 
           # update version number
           echo "Nightly build version: $(date '+%Y%m%d')"
-          if [ "$VERSION_POSTFIX" != "" ]; then
-            echo "Manually version postfix serial number: $VERSION_POSTFIX"
-            sed -i.bak "s/\.dev\$/.$(date '+%Y%m%d').post$VERSION_POSTFIX.dev/" piperider_cli/VERSION
+          if [ "ALPHA_VERSION" != "" ]; then
+            echo "Manually alpha version serial number: ALPHA_VERSION"
+            sed -i.bak "s/\.dev\$/\.$(date '+%Y%m%d')a$ALPHA_VERSION/" piperider_cli/VERSION
           else
-            sed -i.bak "s/\.dev\$/.$(date '+%Y%m%d').dev/" piperider_cli/VERSION
+            sed -i.bak "s/\.dev\$/\.$(date '+%Y%m%d')/" piperider_cli/VERSION
           fi
+          echo "Nightly build version: $(cat piperider_cli/VERSION)"
           echo ::set-output name=nightly_version::$(cat piperider_cli/VERSION)
 
           # release to PyPI
           make release
         env:
           PYPIRC: ${{ secrets.PYPI_NIGHTLY }}
-          VERSION_POSTFIX: ${{ inputs.version_postfix || '' }}
+          ALPHA_VERSION: ${{ inputs.alpha_version || '' }}
 
       - name: Mark Sentry Release
         uses: getsentry/action-release@v1
@@ -66,7 +67,7 @@ jobs:
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         with:
-          environment: development
+          environment: nightly
           ignore_empty: true
           ignore_missing: true
           version: ${{ steps.vars.outputs.nightly_version }}
