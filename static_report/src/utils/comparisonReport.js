@@ -132,28 +132,34 @@ export function joinBykey(base = {}, input = {}) {
 export function getComparisonTests(assertion, from) {
   const { passed, failed } = getReportAsserationStatusCounts(assertion);
 
-  const table = assertion.tests.map((test) => ({
-    ...test,
-    level: 'Table',
-    column: '-',
-    from,
-  }));
-
-  const columns = Object.keys(assertion.columns).map((column) => {
-    const columnAssertion = assertion.columns[column];
-    return columnAssertion.map((test) => ({
+  if (assertion) {
+    const table = assertion.tests.map((test) => ({
       ...test,
-      level: 'Column',
-      column,
+      level: 'Table',
+      column: '-',
       from,
     }));
-  });
 
-  const tests = [...table, ...columns.flat()];
+    const columns = Object.keys(assertion.columns).map((column) => {
+      const columnAssertion = assertion.columns[column];
+      return columnAssertion.map((test) => ({
+        ...test,
+        level: 'Column',
+        column,
+        from,
+      }));
+    });
+
+    return {
+      passed,
+      failed,
+      tests: [...table, ...columns.flat()],
+    };
+  }
 
   return {
     passed,
     failed,
-    tests,
+    tests: [],
   };
 }

@@ -81,6 +81,14 @@ function CompareTest({ base = [], input = [] }) {
     return row;
   });
 
+  if (tests.length === 0) {
+    return (
+      <Flex direction="column">
+        <Text textAlign="center">No more tests!</Text>
+      </Flex>
+    );
+  }
+
   return (
     <TableContainer>
       <Table variant={'simple'}>
