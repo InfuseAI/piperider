@@ -75,7 +75,7 @@ def version():
 @click.option('--dbt-profiles-dir', type=click.Path(exists=True), default=None, help='Directory to search for dbt profiles.yml.')
 @add_options(debug_option)
 def init(**kwargs):
-    'Initialize a PipeRider project in interactive mode.'
+    'Initialize a PipeRider project in interactive mode. The configurations are saved in ".piperider".'
 
     console = Console()
     piperider_config_dir = os.path.join(os.getcwd(), '.piperider')
@@ -113,7 +113,7 @@ def init(**kwargs):
 @cli.command(short_help='Check project configuration.')
 @add_options(debug_option)
 def diagnose(**kwargs):
-    'Check project configuration, datasource, connections, assertion config and dbt manifest.'
+    'Check project configuration, datasource, connections, assertion configuration and dbt manifest.'
 
     console = Console()
     console.print('Diagnosing...')
@@ -134,7 +134,7 @@ def diagnose(**kwargs):
 @click.option('--skip-dbt', is_flag=True, help='Skip running dbt.')
 @add_options(debug_option)
 def run(**kwargs):
-    'Profile data source, run assertions, and generate report(s).'
+    'Profile data source, run assertions, and generate report(s). By default, the raw results are saved in ".piperider/outputs" and the reports are saved in ".piperider/reports".'
 
     datasource = kwargs.get('datasource')
     table = kwargs.get('table')
@@ -157,7 +157,7 @@ def run(**kwargs):
 @click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
 @add_options(debug_option)
 def generate_report(**kwargs):
-    'Generate a report from the latest raw result or specified result.'
+    'Generate a report from the latest raw result or specified result. By default, the raw results are saved in ".piperider/outputs".'
 
     input = kwargs.get('input')
     workspace.generate_report(input=input)
@@ -165,7 +165,7 @@ def generate_report(**kwargs):
 
 @cli.command(short_help='Compare two existing reports.')
 @click.option('--base', default=None, type=click.Path(exists=True), help='Specify the base report file.')
-@click.option('--input', default=None, type=click.Path(exists=True), help='Specift the report file to be compared.')
+@click.option('--input', default=None, type=click.Path(exists=True), help='Specify the report file to be compared.')
 @add_options(debug_option)
 def compare_report(**kwargs):
     'Compare two existing reports selected in interactive mode or by option.'
