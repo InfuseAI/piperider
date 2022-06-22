@@ -2,7 +2,7 @@
 
 - Description: The maximum value of column should be between min_value and max_value.
 - Assert:
-	- max: [max_value, max_value]
+	- max: [min_value, max_value]
 - Tags:
 
 ### YAML

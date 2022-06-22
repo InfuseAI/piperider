@@ -89,36 +89,79 @@ def assert_column_max_in_range(context: AssertionContext, table: str, column: st
     return _assert_column_in_range(context, table, column, metrics, target_metric='max')
 
 
+def assert_column_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    return _assert_column_in_range(context, table, column, metrics, target_metric='range')
+
+
 def _assert_column_in_range(context: AssertionContext, table: str, column: str, metrics: dict,
                             **kwargs) -> AssertionResult:
     table_metrics = metrics.get('tables', {}).get(table)
-    if not table_metrics:
+    if table_metrics is None:
         return context.result.fail_with_metric_not_found_error(context.table, None)
 
     column_metrics = table_metrics.get('columns', {}).get(column)
-    if not column_metrics:
+    if column_metrics is None:
         return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
     # Check assertion input
     target_metric = kwargs.get('target_metric')
     values = context.asserts.get(target_metric)
-    if not values or len(values) != 2:
+    if values is None or len(values) != 2:
         return context.result.fail_with_assertion_error('Expect a range [min_value, max_value].')
 
-    if column_metrics.get(target_metric) is None:
+    class Observed(object):
+        def __init__(self, column_metrics: dict, target_metric: str):
+            self.column_metrics = column_metrics
+            self.target_metric = target_metric
+            self.column_type = column_metrics.get('type')
+            self.actual = []
+
+            if self.target_metric == 'range':
+                self.actual = [column_metrics.get('min'), column_metrics.get('max')]
+            else:
+                self.actual = [column_metrics.get(target_metric)]
+
+        def is_metric_available(self):
+            return [x for x in self.actual if x is None] == []
+
+        def check_range(self, min_value, max_value):
+            for metric in self.actual:
+                metric = self.to_numeric(metric)
+                if metric is None:
+                    yield context.result.fail_with_assertion_error('Column not support range.')
+                else:
+                    yield min_value <= metric <= max_value
+
+        def to_numeric(self, metric):
+            if self.column_type == 'datetime':
+                # TODO: check datetime format. Maybe we can leverage the format checking by YAML parser
+                return datetime.strptime(metric, '%Y-%m-%d %H:%M:%S.%f')
+            elif self.column_type in ['integer', 'numeric']:
+                return metric
+            else:
+                return None
+
+        def actual_value(self):
+            if len(self.actual) == 1:
+                return self.actual[0]
+            return self.actual
+
+    observed = Observed(column_metrics, target_metric)
+    if not observed.is_metric_available():
         return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
-    context.result.actual = {target_metric: column_metrics.get(target_metric)}
+    context.result.actual = {target_metric: observed.actual_value()}
 
-    if column_metrics.get('type') == 'datetime':
-        # TODO: check datetime format. Maybe we can leverage the format checking by YAML parser
-        actual = datetime.strptime(column_metrics.get(target_metric), '%Y-%m-%d %H:%M:%S.%f')
-    elif column_metrics.get('type') in ['integer', 'numeric']:
-        actual = column_metrics.get(target_metric)
-    else:
-        return context.result.fail_with_assertion_error('Column not support range.')
+    results = []
+    for result in observed.check_range(values[0], values[1]):
+        results.append(result)
 
-    if values[0] <= actual <= values[1]:
+    non_bools = [x for x in results if not isinstance(x, bool)]
+    if non_bools:
+        return non_bools[0]
+
+    bools = [x for x in results if isinstance(x, bool)]
+    if set(bools) == set([True]):
         return context.result.success()
     return context.result.fail()
 

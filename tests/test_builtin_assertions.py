@@ -109,6 +109,11 @@ class BuiltinAssertionsTests(TestCase):
                   max: [440000, 450000]
                 tags:
                 - OPTIONAL
+              - name: assert_column_in_range
+                assert:
+                  range: [0, 450000]
+                tags:
+                - OPTIONAL
         """
         engine = build_assertion_engine('orders_1k', assertions)
 
