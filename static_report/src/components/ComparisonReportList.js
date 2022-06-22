@@ -8,69 +8,48 @@ import {
   Th,
   Thead,
   Tr,
+  Tooltip,
 } from '@chakra-ui/react';
+import { InfoIcon } from '@chakra-ui/icons';
 import { Link } from 'wouter';
-import { format } from 'date-fns';
 import { nanoid } from 'nanoid';
 
-import { getReportAsserationStatusCounts } from '../utils';
+import {
+  getReportAsserationStatusCounts,
+  formatReportTime,
+  formatNumber,
+} from '../utils';
+import { joinBykey } from '../utils/comparisonReport';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-
-function formatTime(time) {
-  return format(new Date(time), 'yyyy/MM/dd HH:mm:ss');
-}
 
 export function ComparisonReportList({ data }) {
   const { base, input } = data;
-
-  function joinBykey(base, input) {
-    const result = {};
-
-    Object.entries(base).forEach(([key, value]) => {
-      if (!result[key]) {
-        result[key] = {};
-      }
-
-      result[key].base = value;
-    });
-
-    Object.entries(input).forEach(([key, value]) => {
-      if (!result[key]) {
-        result[key] = {};
-      }
-      result[key].input = value;
-    });
-
-    return result;
-  }
 
   const tables = joinBykey(base.tables, input.tables);
 
   useDocumentTitle('Report List');
 
-  const f = (value) => (value !== undefined ? value : '-');
-
   return (
-    <Flex direction={'column'} minH={'100vh'} width={'100%'}>
+    <Flex direction="column" minH="100vh" width="100%">
       <Flex
-        border={'1px solid'}
-        borderColor={'gray.300'}
-        bg={'white'}
-        borderRadius={'md'}
+        border="1px solid"
+        borderColor="gray.300"
+        bg="white"
+        borderRadius="md"
         p={6}
         my={10}
-        mx={'10%'}
-        direction={'column'}
+        mx="10%"
+        direction="column"
       >
         <Flex direction="column" gap={4}>
           <Heading>Comparison Summary</Heading>
           <TableContainer>
-            <Table variant={'simple'}>
+            <Table variant="simple">
               <Thead>
                 <Tr>
-                  <Th width={'10%'} />
-                  <Th width={'45%'}>Base</Th>
-                  <Th width={'45%'}>Input</Th>
+                  <Th width="10%" />
+                  <Th width="45%">Base</Th>
+                  <Th width="45%">Input</Th>
                 </Tr>
               </Thead>
               <Tbody>
@@ -80,17 +59,38 @@ export function ComparisonReportList({ data }) {
                   <Td>{input.id}</Td>
                 </Tr>
                 <Tr>
-                  <Td>Created At</Td>
-                  <Td>{formatTime(base.created_at)}</Td>
-                  <Td>{formatTime(input.created_at)}</Td>
+                  <Td>Data Source</Td>
+                  <Td>
+                    {base.datasource.name}: {base.datasource.type}
+                  </Td>
+                  <Td>
+                    {input.datasource.name}: {input.datasource.type}
+                  </Td>
+                </Tr>
+                <Tr>
+                  <Td>Generated At</Td>
+                  <Td>{formatReportTime(base.created_at)}</Td>
+                  <Td>{formatReportTime(input.created_at)}</Td>
                 </Tr>
               </Tbody>
             </Table>
           </TableContainer>
 
-          <Heading size={'lg'}>Tables</Heading>
+          <Flex gap={2}>
+            <Heading size="lg" mb={1}>
+              Tables
+            </Heading>
+            <Tooltip
+              label={
+                'The numbers of passed tests, failed tests, rows, and columns are displayed in a side-by-side comparison (left: BASE; right: INPUT). When the table does not exist in the BASE or INPUT source, it will display "-".'
+              }
+            >
+              <InfoIcon mt={1} color="gray.400" boxSize={'14px'} />
+            </Tooltip>
+          </Flex>
+
           <TableContainer>
-            <Table variant={'simple'}>
+            <Table variant="simple">
               <Thead>
                 <Tr>
                   <Th>Name</Th>
@@ -113,29 +113,37 @@ export function ComparisonReportList({ data }) {
                   return (
                     <Link key={nanoid()} href={`/tables/${key}`}>
                       <Tr
-                        cursor={'pointer'}
+                        cursor="pointer"
                         _hover={{ bgColor: 'blackAlpha.50' }}
                       >
                         <Td>{key}</Td>
                         <Td>
-                          {f(baseOverview?.passed)}
+                          {baseOverview.passed}
                           {' | '}
-                          {f(inputOverview?.passed)}
+                          {inputOverview.passed}
                         </Td>
                         <Td>
-                          {f(baseOverview?.failed)}
+                          {baseOverview.failed}
                           {' | '}
-                          {f(inputOverview?.failed)}
+                          {inputOverview.failed}
                         </Td>
                         <Td>
-                          {f(table.base?.row_count)}
+                          {table.base?.row_count
+                            ? formatNumber(table.base.row_count)
+                            : '-'}
                           {' | '}
-                          {f(table.input?.row_count)}
+                          {table.input?.row_count
+                            ? formatNumber(table.input.row_count)
+                            : '-'}
                         </Td>
                         <Td>
-                          {f(table.base?.col_count)}
+                          {table.base?.col_count
+                            ? formatNumber(table.base.col_count)
+                            : '-'}
                           {' | '}
-                          {f(table.input?.col_count)}
+                          {table.input?.col_count
+                            ? formatNumber(table.input?.col_count)
+                            : '-'}
                         </Td>
                       </Tr>
                     </Link>

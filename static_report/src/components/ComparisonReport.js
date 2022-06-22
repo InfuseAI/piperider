@@ -1,10 +1,4 @@
 import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Box,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -21,72 +15,73 @@ import {
   Th,
   Thead,
   Tr,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+  Modal,
+  ModalHeader,
+  ModalOverlay,
+  ModalContent,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
-import { useEffect, useRef } from 'react';
-import fill from 'lodash/fill';
+import { useEffect, useRef, useState } from 'react';
 import groupBy from 'lodash/groupBy';
-import zip from 'lodash/zip';
 
 import { Main } from './Main';
-import { drawComparsionChart } from '../utils';
+import { MetricsInfo } from './shared/MetrisInfo';
+import {
+  getMissingValue,
+  formatNumber,
+  extractExpectedOrActual,
+} from '../utils';
+import {
+  drawComparsionChart,
+  joinBykey,
+  getComparisonTests,
+  transformDistribution,
+  transformDistributionWithLabels,
+} from '../utils/comparisonReport';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { Button } from '@chakra-ui/react';
 
-function transformTest(data, from) {
-  let tests = [];
-  let passed = 0;
-  let failed = 0;
-
-  if (!data) {
-    return undefined;
+function TestStatus({ status }) {
+  switch (status) {
+    case 'passed':
+      return (
+        <Text as="span" role={'img'}>
+          ✅
+        </Text>
+      );
+    case 'failed':
+      return (
+        <Text as="span" role={'img'}>
+          ❌
+        </Text>
+      );
+    default:
+      return (
+        <Text as="span" role={'img'}>
+          -
+        </Text>
+      );
   }
-
-  data.assertion_results.tests.forEach((test) => {
-    if (test.status === 'passed') {
-      passed++;
-    } else {
-      failed++;
-    }
-
-    tests.push({
-      ...test,
-      level: 'Table',
-      column: '-',
-      from,
-    });
-  });
-
-  Object.keys(data.assertion_results.columns).forEach((column) => {
-    let columnTests = data.assertion_results.columns[column];
-    columnTests.forEach((test) => {
-      if (test.status === 'passed') {
-        passed++;
-      } else {
-        failed++;
-      }
-      tests.push({
-        ...test,
-        level: 'Column',
-        column,
-        from,
-      });
-    });
-  });
-
-  return {
-    tests: tests,
-    passed,
-    failed,
-  };
 }
 
-function CompareTest({ base = [], input = [] }) {
+function CompareTest({ base = [], input = [], ...props }) {
   // group by "level", "column", "name"
-  let tests = groupBy(
-    [].concat(base, input),
+  const groupedTests = groupBy(
+    [...base, ...input],
     (test) => `${test.level}_${test.column}_${test.name}`,
   );
-  tests = Object.values(tests).map((groupedTest) => {
+
+  const tests = Object.values(groupedTests).map((groupedTest) => {
     let row = {
       level: groupedTest[0].level,
       column: groupedTest[0].column,
@@ -104,26 +99,17 @@ function CompareTest({ base = [], input = [] }) {
     return row;
   });
 
-  const TestStatus = ({ test }) => {
-    let content;
-    if (!test) {
-      content = '-';
-    } else if (test.status === 'passed') {
-      content = '✅';
-    } else {
-      content = '❌';
-    }
+  if (tests.length === 0) {
     return (
-      <Text as="span" role={'img'}>
-        {content}
-      </Text>
+      <Flex direction="column">
+        <Text textAlign="center">No tests available</Text>
+      </Flex>
     );
-  };
+  }
 
-  // render
   return (
     <TableContainer>
-      <Table variant={'simple'}>
+      <Table variant="simple">
         <Thead>
           <Tr>
             <Th>Level</Th>
@@ -131,6 +117,7 @@ function CompareTest({ base = [], input = [] }) {
             <Th>Assertion</Th>
             <Th>Base Status</Th>
             <Th>Input Status</Th>
+            <Th />
           </Tr>
         </Thead>
         <Tbody>
@@ -141,10 +128,15 @@ function CompareTest({ base = [], input = [] }) {
                 <Td>{test.column}</Td>
                 <Td>{test.name}</Td>
                 <Td>
-                  <TestStatus test={test.base} />
+                  <TestStatus status={test.base?.status} />
                 </Td>
                 <Td>
-                  <TestStatus test={test.input} />
+                  <TestStatus status={test.input?.status} />
+                </Td>
+                <Td onClick={() => props?.onDetailVisible(test)}>
+                  <Text as="span" cursor="pointer">
+                    🔍
+                  </Text>
                 </Td>
               </Tr>
             );
@@ -200,325 +192,255 @@ function CompareSchema({ base, input }) {
   });
 
   return (
-    <Accordion allowToggle>
-      <AccordionItem borderColor={'transparent'}>
-        <AccordionButton px={0} _focus={{ boxShadow: 'transparent' }}>
-          Added:
-          <Text as={'span'} fontWeight={700} ml={1}>
-            {added}
-          </Text>
-          , Deleted:
-          <Text as={'span'} fontWeight={700} ml={1}>
-            {deleted}
-          </Text>
-          , Changed:{' '}
-          <Text as={'span'} fontWeight={700} ml={1}>
-            {changed}
-          </Text>
-          <Box flex="1" textAlign="left" />
-          <AccordionIcon />
-        </AccordionButton>
+    <Flex direction="column">
+      <Text mb={4} p={2}>
+        Added:
+        <Text as={'span'} fontWeight={700} ml={1}>
+          {added}
+        </Text>
+        , Deleted:
+        <Text as={'span'} fontWeight={700} ml={1}>
+          {deleted}
+        </Text>
+        , Changed:{' '}
+        <Text as={'span'} fontWeight={700} ml={1}>
+          {changed}
+        </Text>
+      </Text>
 
-        <AccordionPanel px={0}>
-          <Flex width={'100%'} justifyContent={'space-evenly'}>
-            <TableContainer>
-              <Table variant="simple" width={'350px'}>
-                <Thead>
-                  <Tr>
-                    <Th>Column</Th>
-                    <Th>Type</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {columns.map((column) => (
-                    <Tr
-                      key={nanoid(10)}
-                      color={column.changed ? 'red.500' : 'inherit'}
-                    >
-                      <Td>{column.base?.name ?? '-'}</Td>
-                      <Td>{column.base?.schema_type ?? '-'}</Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            </TableContainer>
+      <Flex justifyContent={'space-evenly'}>
+        <TableContainer width="50%">
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>Column</Th>
+                <Th>Type</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {columns.map((column) => (
+                <Tr
+                  key={nanoid(10)}
+                  color={column.changed ? 'red.500' : 'inherit'}
+                >
+                  <Td>{column.base?.name ?? '-'}</Td>
+                  <Td>{column.base?.schema_type ?? '-'}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
 
-            <Flex justifyContent={'center'}>
-              <Divider orientation={'vertical'} />
-            </Flex>
+        <Flex justifyContent={'center'}>
+          <Divider orientation={'vertical'} />
+        </Flex>
 
-            <TableContainer>
-              <Table variant="simple" width={'350px'}>
-                <Thead>
-                  <Tr>
-                    <Th>Column</Th>
-                    <Th>Value</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {columns.map((column) => (
-                    <Tr
-                      key={nanoid(10)}
-                      color={column.changed ? 'red.500' : 'inherit'}
-                    >
-                      <Td>{column.input?.name ?? '-'}</Td>
-                      <Td>{column.input?.schema_type ?? '-'}</Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            </TableContainer>
-          </Flex>
-        </AccordionPanel>
-      </AccordionItem>
-    </Accordion>
-  );
-}
-
-function f(value) {
-  return value !== undefined ? value : '-';
-}
-
-function CompareProfileColumn({ name, base, input }) {
-  let column = base ? base : input;
-
-  const MetricRow = ({ name, base, input }) => (
-    <Flex gap="2">
-      <Box flex="1">{<b>{name}</b>}</Box>
-      <Flex justifyContent={'flex-end'} alignItems={'center'} w="100px">
-        {base}
-      </Flex>
-      <Flex justifyContent={'flex-end'} alignItems={'center'} w="100px">
-        {input}
+        <TableContainer width="50%">
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>Column</Th>
+                <Th>Value</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {columns.map((column) => (
+                <Tr
+                  key={nanoid(10)}
+                  color={column.changed ? 'red.500' : 'inherit'}
+                >
+                  <Td>{column.input?.name ?? '-'}</Td>
+                  <Td>{column.input?.schema_type ?? '-'}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
       </Flex>
     </Flex>
   );
+}
 
-  const NumberCell = ({ value }) =>
-    value !== undefined ? Number(value).toFixed(3) : '-';
+function CompareProfileColumn({ name, base, input }) {
+  const column = base ? base : input;
+  const [data, setData] = useState([]);
 
-  const GeneralCell = ({ value }) => (value !== undefined ? value : '-');
+  useEffect(() => {
+    if (
+      base?.type === input?.type &&
+      (base?.type === 'string' || base?.type === 'datetime')
+    ) {
+      const transformResult = transformDistribution({
+        base: base.distribution,
+        input: input.distribution,
+      });
 
-  const Missing = ({ column }) =>
-    column
-      ? (
-          Number((column.total - column.non_nulls) / column.total) * 100
-        ).toFixed(1) + '%'
-      : '-';
+      setData([transformResult]);
+    } else {
+      const baseData = base
+        ? transformDistributionWithLabels({
+            base: base.distribution.counts,
+            input: null,
+            labels: base.distribution.labels,
+          })
+        : null;
 
-  const metrics = (
-    <>
-      <MetricRow
-        name={
-          <Text>
-            <Text
-              as={'span'}
-              fontWeight={700}
-              color={'gray.900'}
-              fontSize={'xl'}
-              mr={1}
-            >
-              {column.name}
-            </Text>
-            {''}(<Code>{column.type}</Code>)
-          </Text>
-        }
-        base="Base"
-        input="Input"
-      ></MetricRow>
+      const inputData = input
+        ? transformDistributionWithLabels({
+            base: input.distribution.counts,
+            input: null,
+            labels: input.distribution.labels,
+          })
+        : null;
 
-      <MetricRow
-        name="Total"
-        base={base?.total || '-'}
-        input={input?.total || '-'}
-      ></MetricRow>
-      <MetricRow
-        name="Missing"
-        base={<Missing column={base} />}
-        input={<Missing column={input} />}
-      ></MetricRow>
-      <MetricRow
-        name="Distinct"
-        base={f(base?.distinct)}
-        input={f(input?.distinct)}
-      ></MetricRow>
-      <Box height={2}></Box>
+      setData([baseData, inputData]);
+    }
+  }, [base, input]);
 
-      {column.type === 'numeric' && (
-        <>
-          <MetricRow
-            name="Min"
-            base={<NumberCell value={base?.min}></NumberCell>}
-            input={<NumberCell value={input?.min}></NumberCell>}
-          ></MetricRow>
-          <MetricRow
-            name="Max"
-            base={<NumberCell value={base?.max}></NumberCell>}
-            input={<NumberCell value={input?.max}></NumberCell>}
-          ></MetricRow>
-          <MetricRow
-            name="Average"
-            base={<NumberCell value={base?.avg}></NumberCell>}
-            input={<NumberCell value={input?.avg}></NumberCell>}
-          ></MetricRow>
-        </>
-      )}
-
-      {column.type === 'datetime' && (
-        <>
-          <MetricRow
-            name="Min"
-            base={<GeneralCell value={base?.min}></GeneralCell>}
-            input={<GeneralCell value={input?.min}></GeneralCell>}
-          ></MetricRow>
-          <MetricRow
-            name="Max"
-            base={<GeneralCell value={base?.max}></GeneralCell>}
-            input={<GeneralCell value={input?.max}></GeneralCell>}
-          ></MetricRow>
-        </>
-      )}
-    </>
-  );
-
-  // distribution
-  let CompareDistribution;
-
-  if (
-    base?.type === input?.type &&
-    (base?.type === 'string' || base?.type === 'datetime')
-  ) {
-    const transformDist = (base, input) => {
-      let i = 0;
-      let mapIndex = {};
-      let result = [];
-
-      for (i = 0; i < base.labels.length; i++) {
-        let label = base.labels[i];
-        let count = base.counts[i];
-        mapIndex[label] = i;
-        result.push({
-          label: label,
-          base: count,
-          input: 0,
-        });
-      }
-
-      for (i = 0; i < input.labels.length; i++) {
-        let label = input.labels[i];
-        let count = input.counts[i];
-
-        if (mapIndex.hasOwnProperty(label)) {
-          result[mapIndex[label]].input = count;
-        } else {
-          result.push({
-            label: label,
-            base: 0,
-            input: count,
-          });
-        }
-      }
-
-      return result;
-    };
-
-    let data = transformDist(base.distribution, input.distribution);
-
-    CompareDistribution = () => <ComparisonBarChart data={data} />;
-  } else {
-    const transformDist = (labels, base, input) => {
-      if (!base) {
-        base = fill(Array(labels.length), 0);
-      }
-
-      if (!input) {
-        input = fill(Array(labels.length), 0);
-      }
-
-      let z = zip(labels, base, input);
-      let m = z.map(([label, base, input]) => ({
-        label,
-        base,
-        input,
-      }));
-
-      return m;
-    };
-
-    let dataBase =
-      base &&
-      transformDist(base.distribution.labels, base.distribution.counts, null);
-    let dataInput =
-      input &&
-      transformDist(input.distribution.labels, null, input.distribution.counts);
-
-    CompareDistribution = () => (
-      <Grid my={4} templateColumns="1fr 1fr" gap={3}>
-        {dataBase ? <ComparisonBarChart data={dataBase} /> : <Box />}
-        {dataInput ? <ComparisonBarChart data={dataInput} /> : <Box />}
-      </Grid>
-    );
-  }
   return (
-    <Flex key={name} direction={'column'}>
-      <Grid my={4} templateColumns="1fr 600px" gap={3}>
-        <Flex direction={'column'} gap={1}>
-          {metrics}
+    <Flex key={name} direction="column">
+      <Grid my={4} templateColumns="500px 1fr" gap={3}>
+        <Flex direction="column" gap={2} minH="250px">
+          <Flex direction="column" gap={3}>
+            <Flex justifyContent="space-between">
+              <Text>
+                <Text
+                  as="span"
+                  fontWeight={700}
+                  color="gray.900"
+                  fontSize="lg"
+                  mr={1}
+                >
+                  {column.name}
+                </Text>
+                {''}(<Code>{column.schema_type}</Code>)
+              </Text>
+
+              <Flex gap={8}>
+                <Text fontWeight={700} textAlign="right" width="100px">
+                  Base
+                </Text>
+                <Text fontWeight={700} textAlign="right" width="100px">
+                  Input
+                </Text>
+              </Flex>
+            </Flex>
+
+            <Flex direction="column">
+              <MetricsInfo
+                name="Total"
+                base={base?.total ? formatNumber(base?.total) : '-'}
+                input={input?.total ? formatNumber(input?.total) : '-'}
+              />
+
+              <MetricsInfo
+                name="Missing"
+                base={getMissingValue(base)}
+                input={getMissingValue(input)}
+              />
+
+              <MetricsInfo
+                name="Distinct"
+                base={base?.distinct ? formatNumber(base.distinct) : '-'}
+                input={input?.distinct ? formatNumber(input.distinct) : '-'}
+              />
+            </Flex>
+
+            {column.type === 'numeric' && (
+              <Flex direction="column">
+                <MetricsInfo
+                  name="Min"
+                  base={base?.min ? formatNumber(base.min) : '-'}
+                  input={input?.min ? formatNumber(input.min) : '-'}
+                />
+                <MetricsInfo
+                  name="Max"
+                  base={base?.max ? formatNumber(base.max) : '-'}
+                  input={input?.max ? formatNumber(input.max) : '-'}
+                />
+                <MetricsInfo
+                  name="Average"
+                  base={base?.avg ? formatNumber(base.avg) : '-'}
+                  input={input?.avg ? formatNumber(input.avg) : '-'}
+                />
+              </Flex>
+            )}
+
+            {column.type === 'datetime' && (
+              <Flex direction="column">
+                <MetricsInfo
+                  name="Min"
+                  base={base?.min ?? '-'}
+                  input={input?.min ?? '-'}
+                />
+                <MetricsInfo
+                  name="Max"
+                  base={base?.max ?? '-'}
+                  input={input?.max ?? '-'}
+                />
+              </Flex>
+            )}
+          </Flex>
         </Flex>
-        <CompareDistribution />
+
+        {data.length === 1 && <ComparisonBarChart data={data[0]} />}
+        {data.length === 2 && (
+          <Grid my={4} templateColumns="1fr 1fr" gap={3}>
+            {data[0] ? (
+              <ComparisonBarChart data={data[0]} />
+            ) : (
+              <Flex
+                alignItems="center"
+                justifyContent="center"
+                color="gray.500"
+              >
+                No data available
+              </Flex>
+            )}
+            {data[1] ? (
+              <ComparisonBarChart data={data[1]} />
+            ) : (
+              <Flex
+                alignItems="center"
+                justifyContent="center"
+                color="gray.500"
+              >
+                No data available
+              </Flex>
+            )}
+          </Grid>
+        )}
       </Grid>
     </Flex>
   );
 }
 
 function CompareProfile({ base, input }) {
-  function joinBykey(left = {}, right = {}) {
-    const result = {};
+  const transformedData = joinBykey(base?.columns, input?.columns);
 
-    Object.entries(left).forEach(([key, value]) => {
-      if (!result[key]) {
-        result[key] = {};
-      }
-
-      result[key].left = value;
-    });
-
-    Object.entries(right).forEach(([key, value]) => {
-      if (!result[key]) {
-        result[key] = {};
-      }
-      result[key].right = value;
-    });
-
-    return result;
-  }
-
-  let transformedData = joinBykey(base?.columns, input?.columns);
-
-  return (
-    <>
-      {Object.entries(transformedData).map(([key, value]) => {
-        return (
-          <CompareProfileColumn
-            key={key}
-            name={key}
-            base={value.left}
-            input={value.right}
-          />
-        );
-      })}
-    </>
-  );
+  return Object.entries(transformedData).map(([key, value]) => (
+    <CompareProfileColumn
+      key={key}
+      name={key}
+      base={value.base}
+      input={value.input}
+    />
+  ));
 }
 
-export function ComparisonReport({ base, input, reportName }) {
-  let tBase = transformTest(base, 'base');
-  let tInput = transformTest(input, 'input');
+export default function ComparisonReport({ base, input, reportName }) {
+  const tBase = getComparisonTests(base?.assertion_results, 'base');
+  const tInput = getComparisonTests(input?.assertion_results, 'input');
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [testDetail, setTestDetail] = useState(null);
+
+  useDocumentTitle(reportName);
+  // console.log(testDetail);
 
   return (
     <Main>
-      <Flex direction={'column'} minH={'100vh'} width={'100%'}>
-        <Flex mx={'10%'} mt={4}>
+      <Flex direction="column" minH="calc(100vh + 1px)" width="100%">
+        <Flex mx="10%" mt={4}>
           <Breadcrumb fontSize="lg">
             <BreadcrumbItem>
               <Link href="/">
@@ -533,71 +455,172 @@ export function ComparisonReport({ base, input, reportName }) {
         </Flex>
 
         <Flex
-          border={'1px solid'}
-          borderColor={'gray.300'}
-          bg={'white'}
-          borderRadius={'md'}
+          border="1px solid"
+          borderColor="gray.300"
+          bg="white"
+          borderRadius="md"
           p={6}
           mt={3}
-          mx={'10%'}
-          direction={'column'}
+          mx="10%"
+          direction="column"
           gap={8}
         >
           {/* overview */}
           <Heading fontSize={24}>Overview</Heading>
           <TableContainer>
-            <Table variant={'simple'}>
+            <Table variant="simple">
               <Thead>
                 <Tr>
-                  <Th width={'10%'} />
-                  <Th width={'45%'}>Base</Th>
-                  <Th width={'45%'}>Input</Th>
+                  <Th width="10%" />
+                  <Th width="45%">Base</Th>
+                  <Th width="45%">Input</Th>
                 </Tr>
               </Thead>
 
               <Tbody>
                 <Tr>
                   <Td>Table</Td>
-                  <Td>{f(base?.name)}</Td>
-                  <Td>{f(input?.name)}</Td>
+                  <Td>{base?.name ?? '-'}</Td>
+                  <Td>{input?.name ?? '-'}</Td>
                 </Tr>
                 <Tr>
                   <Td>Rows</Td>
-                  <Td>{f(base?.row_count)}</Td>
-                  <Td>{f(input?.row_count)}</Td>
+                  <Td>{base?.row_count ?? '-'}</Td>
+                  <Td>{input?.row_count ?? '-'}</Td>
                 </Tr>
                 <Tr>
                   <Td>Columns</Td>
-                  <Td>{f(base?.col_count)}</Td>
-                  <Td>{f(input?.col_count)}</Td>
+                  <Td>{base?.col_count ?? '-'}</Td>
+                  <Td>{input?.col_count ?? '-'}</Td>
                 </Tr>
                 <Tr>
                   <Td>Test status</Td>
                   <Td>
-                    {tBase
-                      ? `${f(tBase.passed)} Passed, ${f(tBase.failed)} Failed`
-                      : '-'}
+                    <Text>
+                      <Text as="span" fontWeight={700}>
+                        {tBase.passed}{' '}
+                      </Text>
+                      Passed
+                      {', '}
+                      <Text
+                        as="span"
+                        fontWeight={700}
+                        color={tBase.failed > 0 ? 'red.500' : 'inherit'}
+                      >
+                        {tBase.failed}{' '}
+                      </Text>
+                      Failed
+                    </Text>
                   </Td>
                   <Td>
-                    {tInput
-                      ? `${f(tInput.passed)} Passed, ${f(tInput.failed)} Failed`
-                      : '-'}
+                    <Text>
+                      <Text as="span" fontWeight={700}>
+                        {tInput.passed}{' '}
+                      </Text>
+                      Passed
+                      {', '}
+                      <Text
+                        as="span"
+                        fontWeight={700}
+                        color={tInput.failed > 0 ? 'red.500' : 'inherit'}
+                      >
+                        {tInput.failed}{' '}
+                      </Text>
+                      Failed
+                    </Text>
                   </Td>
                 </Tr>
               </Tbody>
             </Table>
           </TableContainer>
 
-          <Heading fontSize={24}>Tests</Heading>
-          <CompareTest base={tBase?.tests} input={tInput?.tests} />
+          <Tabs isLazy>
+            <TabList>
+              <Tab>Schema</Tab>
+              <Tab>Profiling</Tab>
+              <Tab>Tests</Tab>
+            </TabList>
 
-          <Heading fontSize={24}>Schema</Heading>
-          <CompareSchema base={base} input={input} />
+            <TabPanels>
+              <TabPanel>
+                <CompareSchema base={base} input={input} />
+              </TabPanel>
 
-          <Heading fontSize={24}>Profiling</Heading>
-          <CompareProfile base={base} input={input} />
+              <TabPanel>
+                <CompareProfile base={base} input={input} />
+              </TabPanel>
+
+              <TabPanel>
+                <CompareTest
+                  base={tBase?.tests}
+                  input={tInput?.tests}
+                  onDetailVisible={(data) => {
+                    setTestDetail(data);
+                    onOpen();
+                  }}
+                />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
         </Flex>
       </Flex>
+
+      <Modal
+        isOpen={isOpen}
+        size="2xl"
+        onClose={() => {
+          onClose();
+          setTestDetail(null);
+        }}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>{testDetail?.name}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <TableContainer>
+              <Table variant="simple">
+                <Thead>
+                  <Tr>
+                    <Th />
+                    <Th>Status</Th>
+                    <Th>Expected</Th>
+                    <Th>Actual</Th>
+                  </Tr>
+                </Thead>
+
+                <Tbody>
+                  <Tr>
+                    <Td fontWeight={700}>Base</Td>
+                    <Td>
+                      <TestStatus status={testDetail?.base.status} />
+                    </Td>
+                    <Td>
+                      {extractExpectedOrActual(testDetail?.base.expected)}
+                    </Td>
+                    <Td>{extractExpectedOrActual(testDetail?.base.actual)}</Td>
+                  </Tr>
+
+                  <Tr>
+                    <Td fontWeight={700}>Input</Td>
+                    <Td>
+                      <TestStatus status={testDetail?.input.status} />
+                    </Td>
+                    <Td>
+                      {extractExpectedOrActual(testDetail?.input.expected)}
+                    </Td>
+                    <Td>{extractExpectedOrActual(testDetail?.base.actual)}</Td>
+                  </Tr>
+                </Tbody>
+              </Table>
+            </TableContainer>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button onClick={onClose}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Main>
   );
 }
@@ -618,7 +641,7 @@ function ComparisonBarChart({ data }) {
   }, [data]);
 
   return (
-    <Flex className={'chart'} ref={containerRef} width={'100%'}>
+    <Flex className="chart" ref={containerRef} width="100%">
       <svg ref={svgRef} />
     </Flex>
   );
