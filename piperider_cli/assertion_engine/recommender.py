@@ -49,7 +49,3 @@ class AssertionRecommender:
                     self.recommended_rule_callbacks.append(callback)
                     pass
         pass
-
-
-if __name__ == '__main__':
-    pass

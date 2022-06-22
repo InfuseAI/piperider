@@ -252,9 +252,6 @@ class AssertionEngine:
         recommender = AssertionRecommender(recommended_assertions, profiling_result)
         recommender.recommend()
 
-        # self._mock_recommended_table_assertions(recommended_assertions, profiling_result)
-        # self._mock_recommended_column_assertions(recommended_assertions, profiling_result)
-
         # Update existing recommended assertions
         if is_assertions_exist:
             self._update_existing_recommended_assertions(recommended_assertions)
@@ -339,35 +336,6 @@ class AssertionEngine:
                 paths.append(file_path)
         return paths
 
-    def _mock_recommended_table_assertions(self, assertions, profiling_result):
-        for table, assertion in assertions.items():
-            # Add table assertion
-            row_count = profiling_result['tables'][table]['row_count']
-            assert_row_count_in_range = CommentedMap({
-                'name': 'assert_row_count_in_range',
-                'assert': CommentedMap({
-                    'count': [int(row_count * 0.9), int(row_count * 1.1)],
-                }),
-                'tags': ['PIPERIDER_RECOMMENDED_ASSERTION'],
-            })
-            assertion[table]['tests'].append(assert_row_count_in_range)
-        pass
-
-    def _mock_recommended_column_assertions(self, assertions, profiling_result):
-        for table, assertion in assertions.items():
-            for column, column_assertion in assertion[table]['columns'].items():
-                # Add column assertion
-                column_type = profiling_result['tables'][table]['columns'][column]['type']
-                assert_column_type = CommentedMap({
-                    'name': 'assert_column_type',
-                    'assert': CommentedMap({
-                        'type': column_type,
-                    }),
-                    'tags': ['PIPERIDER_RECOMMENDED_ASSERTION'],
-                })
-                column_assertion['tests'].append(assert_column_type)
-        pass
-
     def evaluate(self, assertion: AssertionContext, metrics_result):
         """
         This method is used to evaluate the assertion.
@@ -447,9 +415,3 @@ class AssertionEngine:
             sys.path.append(plugin_context)
         if self.default_plugins_dir:
             sys.path.append(self.default_plugins_dir)
-
-
-if __name__ == '__main__':
-    r = AssertionRecommender(None, None)
-    r.load_recommended_rules()
-    pass
