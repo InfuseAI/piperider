@@ -3,17 +3,16 @@ import { Switch, Route, Router } from 'wouter';
 
 import { Main } from './components/Main';
 import { Loading } from './components/Loading';
-import { ReportList } from './components/ReportList';
+import { SingleReportList } from './components/SingleReportList';
 import { NotFound } from './components/NotFound';
 import { useHashLocation } from './hooks/useHashLcocation';
-import { ComparisonReportList } from './components/ComparisonList';
+import { ComparisonReportList } from './components/ComparisonReportList';
 
 const SingleReport = lazy(() => import('./components/SingleReport'));
 const ComparisonReport = lazy(() => import('./components/ComparisonReport'));
 
 function AppSingle() {
-  const { tables, datasource, id, created_at } =
-    window.PIPERIDER_SINGLE_REPORT_DATA;
+  const { tables, datasource } = window.PIPERIDER_SINGLE_REPORT_DATA;
 
   return (
     <Suspense fallback={<Loading />}>
@@ -23,7 +22,7 @@ function AppSingle() {
             <Route
               path="/"
               component={() => (
-                <ReportList data={{ id, created_at, datasource, tables }} />
+                <SingleReportList data={window.PIPERIDER_SINGLE_REPORT_DATA} />
               )}
             />
 

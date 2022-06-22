@@ -19,7 +19,7 @@ import {
 } from '../utils';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
-export function ReportList({ data }) {
+export function SingleReportList({ data }) {
   const { id, created_at, datasource, tables } = data;
 
   useDocumentTitle('Report List');
