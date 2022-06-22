@@ -139,7 +139,7 @@ def run(**kwargs):
                         output=output,
                         interaction=not kwargs.get('no_interaction'),
                         skip_report=skip_report,
-                        skip_recommend=skip_recommend)
+                        skip_recommend=skip_recommend,
                         skip_dbt=skip_dbt)
     if not skip_report and ret == 0:
         workspace.generate_report()
