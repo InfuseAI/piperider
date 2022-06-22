@@ -30,6 +30,7 @@ import {
   getReportAsserationStatusCounts,
   formatNumber,
   getMissingValue,
+  extractExpectedOrActual,
 } from '../utils';
 import { drawSingleReportChart } from '../utils/singleReport';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -270,27 +271,9 @@ function TestsInformation({ tableName, data }) {
                     )}
                   </Td>
                   <Td>{tabelTest.name}</Td>
-                  <Td>
-                    {typeof tabelTest.expected === 'object'
-                      ? Object.keys(tabelTest.expected).map((key) => (
-                          <Text key={key}>
-                            {typeof tabelTest.expected[key] === 'string'
-                              ? tabelTest.expected[key]
-                              : JSON.stringify(tabelTest.expected[key])}
-                          </Text>
-                        ))
-                      : tabelTest.expected}
-                  </Td>
+                  <Td>{extractExpectedOrActual(tabelTest.expected)}</Td>
                   <Td color={isFailed && 'red.500'}>
-                    {typeof tabelTest.actual === 'object'
-                      ? Object.keys(tabelTest.actual).map((key) => (
-                          <Text key={key}>
-                            {typeof tabelTest.actual[key] === 'string'
-                              ? tabelTest.actual[key]
-                              : JSON.stringify(tabelTest.actual[key])}
-                          </Text>
-                        ))
-                      : tabelTest.actual}
+                    {extractExpectedOrActual(tabelTest.actual)}
                   </Td>
                 </Tr>
               );
@@ -318,27 +301,9 @@ function TestsInformation({ tableName, data }) {
                       )}
                     </Td>
                     <Td>{columnTest.name}</Td>
-                    <Td>
-                      {typeof columnTest.expected === 'object'
-                        ? Object.keys(columnTest.expected).map((key) => (
-                            <Text key={key}>
-                              {typeof columnTest.expected[key] === 'string'
-                                ? columnTest.expected[key]
-                                : JSON.stringify(columnTest.expected[key])}
-                            </Text>
-                          ))
-                        : columnTest.expected}
-                    </Td>
+                    <Td>{extractExpectedOrActual(columnTest.expected)}</Td>
                     <Td color={isFailed && 'red.500'}>
-                      {typeof columnTest.actual === 'object'
-                        ? Object.keys(columnTest.actual).map((key) => (
-                            <Text key={key}>
-                              {typeof columnTest.actual[key] === 'string'
-                                ? columnTest.actual[key]
-                                : JSON.stringify(columnTest.actual[key])}
-                            </Text>
-                          ))
-                        : columnTest.actual}
+                      {extractExpectedOrActual(columnTest.actual)}
                     </Td>
                   </Tr>
                 );

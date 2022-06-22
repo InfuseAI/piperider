@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 
 const tooltipDefaultStyle = {
@@ -110,4 +111,18 @@ export function formatReportTime(time) {
 
 export function formatNumber(num, locales = 'en-US', notation = 'compact') {
   return new Intl.NumberFormat(locales, { notation }).format(num);
+}
+
+export function extractExpectedOrActual(value) {
+  if (typeof value === 'object') {
+    return Object.keys(value).map((key) => (
+      <Text key={key}>
+        {typeof value[key] === 'string'
+          ? value[key]
+          : JSON.stringify(value[key])}
+      </Text>
+    ));
+  }
+
+  return value;
 }

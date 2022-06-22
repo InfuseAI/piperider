@@ -76,7 +76,7 @@ export function ComparisonReportList({ data }) {
             </Table>
           </TableContainer>
 
-          <Flex alignItems="center" gap={2}>
+          <Flex gap={2}>
             <Heading size="lg" mb={1}>
               Tables
             </Heading>
@@ -85,7 +85,7 @@ export function ComparisonReportList({ data }) {
                 'The numbers of passed tests, failed tests, rows, and columns are displayed in a side-by-side comparison (left: BASE; right: INPUT). When the table does not exist in the BASE or INPUT source, it will display "-".'
               }
             >
-              <InfoIcon />
+              <InfoIcon mt={1} color="gray.400" boxSize={'14px'} />
             </Tooltip>
           </Flex>
 

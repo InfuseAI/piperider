@@ -20,6 +20,14 @@ import {
   TabPanels,
   Tab,
   TabPanel,
+  Modal,
+  ModalHeader,
+  ModalOverlay,
+  ModalContent,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
@@ -28,7 +36,11 @@ import groupBy from 'lodash/groupBy';
 
 import { Main } from './Main';
 import { MetricsInfo } from './shared/MetrisInfo';
-import { getMissingValue, formatNumber } from '../utils';
+import {
+  getMissingValue,
+  formatNumber,
+  extractExpectedOrActual,
+} from '../utils';
 import {
   drawComparsionChart,
   joinBykey,
@@ -37,6 +49,7 @@ import {
   transformDistributionWithLabels,
 } from '../utils/comparisonReport';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { Button } from '@chakra-ui/react';
 
 function TestStatus({ status }) {
   switch (status) {
@@ -61,7 +74,7 @@ function TestStatus({ status }) {
   }
 }
 
-function CompareTest({ base = [], input = [] }) {
+function CompareTest({ base = [], input = [], ...props }) {
   // group by "level", "column", "name"
   const groupedTests = groupBy(
     [...base, ...input],
@@ -104,6 +117,7 @@ function CompareTest({ base = [], input = [] }) {
             <Th>Assertion</Th>
             <Th>Base Status</Th>
             <Th>Input Status</Th>
+            <Th />
           </Tr>
         </Thead>
         <Tbody>
@@ -118,6 +132,11 @@ function CompareTest({ base = [], input = [] }) {
                 </Td>
                 <Td>
                   <TestStatus status={test.input?.status} />
+                </Td>
+                <Td onClick={() => props?.onDetailVisible(test)}>
+                  <Text as="span" cursor="pointer">
+                    🔍
+                  </Text>
                 </Td>
               </Tr>
             );
@@ -412,8 +431,11 @@ function CompareProfile({ base, input }) {
 export default function ComparisonReport({ base, input, reportName }) {
   const tBase = getComparisonTests(base?.assertion_results, 'base');
   const tInput = getComparisonTests(input?.assertion_results, 'input');
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [testDetail, setTestDetail] = useState(null);
 
   useDocumentTitle(reportName);
+  // console.log(testDetail);
 
   return (
     <Main>
@@ -529,12 +551,76 @@ export default function ComparisonReport({ base, input, reportName }) {
               </TabPanel>
 
               <TabPanel>
-                <CompareTest base={tBase?.tests} input={tInput?.tests} />
+                <CompareTest
+                  base={tBase?.tests}
+                  input={tInput?.tests}
+                  onDetailVisible={(data) => {
+                    setTestDetail(data);
+                    onOpen();
+                  }}
+                />
               </TabPanel>
             </TabPanels>
           </Tabs>
         </Flex>
       </Flex>
+
+      <Modal
+        isOpen={isOpen}
+        size="2xl"
+        onClose={() => {
+          onClose();
+          setTestDetail(null);
+        }}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>{testDetail?.name}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <TableContainer>
+              <Table variant="simple">
+                <Thead>
+                  <Tr>
+                    <Th />
+                    <Th>Status</Th>
+                    <Th>Expected</Th>
+                    <Th>Actual</Th>
+                  </Tr>
+                </Thead>
+
+                <Tbody>
+                  <Tr>
+                    <Td fontWeight={700}>Base</Td>
+                    <Td>
+                      <TestStatus status={testDetail?.base.status} />
+                    </Td>
+                    <Td>
+                      {extractExpectedOrActual(testDetail?.base.expected)}
+                    </Td>
+                    <Td>{extractExpectedOrActual(testDetail?.base.actual)}</Td>
+                  </Tr>
+
+                  <Tr>
+                    <Td fontWeight={700}>Input</Td>
+                    <Td>
+                      <TestStatus status={testDetail?.input.status} />
+                    </Td>
+                    <Td>
+                      {extractExpectedOrActual(testDetail?.input.expected)}
+                    </Td>
+                    <Td>{extractExpectedOrActual(testDetail?.base.actual)}</Td>
+                  </Tr>
+                </Tbody>
+              </Table>
+            </TableContainer>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button onClick={onClose}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Main>
   );
 }
