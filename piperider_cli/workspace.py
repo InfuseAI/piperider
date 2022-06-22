@@ -558,6 +558,9 @@ def _show_table_summary(console: Console, table: str, profiled_result, assertion
 def _transform_assertion_result(table: str, results):
     tests = []
     columns = {}
+    if results is None:
+        return dict(tests=tests, columns=columns)
+
     for r in results:
         if r.table == table:
             entry = r.to_result_entry()
