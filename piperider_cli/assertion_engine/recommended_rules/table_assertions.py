@@ -11,7 +11,7 @@ def recommended_row_count_in_range_table_assertion(table, column, profiling_resu
     assertion_values = {
         'count': [int(row_count * 0.9), int(row_count * 1.1)]
     }
-    assertion = RecommendedAssertion(test_function_name, assertion_values)
+    assertion = RecommendedAssertion(table, column, test_function_name, assertion_values)
     return assertion
 
 
@@ -24,11 +24,11 @@ def recommended_column_type_assertion(table, column, profiling_result) -> Recomm
     assertion_values = {
         'type': column_type
     }
-    assertion = RecommendedAssertion(test_function_name, assertion_values)
+    assertion = RecommendedAssertion(table, column, test_function_name, assertion_values)
     return assertion
 
 
-def recommended_column_min_assertion(table, column, profiling_result) -> (str, Dict):
+def recommended_column_min_assertion(table, column, profiling_result) -> RecommendedAssertion:
     if column is None:
         return None
 
@@ -39,7 +39,52 @@ def recommended_column_min_assertion(table, column, profiling_result) -> (str, D
         assertion_values = {
             'min': [int(column_min * 0.9), int(column_min * 1.1)]
         }
-        assertion = RecommendedAssertion(test_function_name, assertion_values)
+        assertion = RecommendedAssertion(table, column, test_function_name, assertion_values)
         return assertion
+    else:
+        return None
+
+
+def recommended_column_max_assertion(table, column, profiling_result) -> RecommendedAssertion:
+    if column is None:
+        return None
+
+    column_metric = profiling_result['tables'][table]['columns'][column]
+    column_type = column_metric['type']
+    if column_type == 'numeric':
+        total = column_metric['total']
+        column_max = column_metric['max']
+
+        count = 0
+        for i, v in enumerate(column_metric['distribution']['counts']):
+            count = count + v
+            if i == len(column_metric['distribution']['counts']) // 2:
+                break
+
+        if count / total > 0.95:
+            test_function_name = 'assert_column_max_in_range'
+            assertion_values = {
+                'max': [int(column_max * 0.9), int(column_max * 1.1)]
+            }
+            assertion = RecommendedAssertion(table, column, test_function_name, assertion_values)
+            return assertion
+    else:
+        return None
+
+
+def recommended_column_unique_assertion(table, column, profiling_result) -> RecommendedAssertion:
+    if column is None:
+        return None
+
+    column_metric = profiling_result['tables'][table]['columns'][column]
+    column_type = column_metric['type']
+    if column_type == 'string':
+        non_nulls = column_metric['non_nulls']
+        distinct = column_metric['distinct']
+
+        if distinct / non_nulls == 1:
+            test_function_name = 'assert_column_unique'
+            assertion = RecommendedAssertion(table, column, test_function_name, None)
+            return assertion
     else:
         return None
