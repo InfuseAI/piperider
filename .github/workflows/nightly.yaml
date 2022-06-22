@@ -52,7 +52,7 @@ jobs:
             sed -i.bak "s/\.dev\$/\.$(date '+%Y%m%d')/" piperider_cli/VERSION
           fi
           echo "Nightly build version: $(cat piperider_cli/VERSION)"
-          echo ::set-output name=nightly_version::$(cat piperider_cli/VERSION)
+          echo "::set-output name=nightly_version::$(cat piperider_cli/VERSION)"
 
           # release to PyPI
           make release
