@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from .assertion import AssertionEngine, AssertionContext, AssertionResult
-
+from piperider_cli.assertion_engine.assertion import AssertionEngine, AssertionContext, AssertionResult
 
 COLUMN_TYPES = ['string', 'integer', 'numeric', 'datetime', 'date', 'time', 'boolean', 'other']
 
@@ -69,7 +68,8 @@ def assert_column_in_types(context: AssertionContext, table: str, column: str, m
 
     invalid_types = [t for t in assert_types if t not in COLUMN_TYPES]
     if invalid_types:
-        return context.result.fail_with_assertion_error(f'Invalid types {invalid_types}. The column type should one of {COLUMN_TYPES}.')
+        return context.result.fail_with_assertion_error(
+            f'Invalid types {invalid_types}. The column type should one of {COLUMN_TYPES}.')
 
     column_type = column_metrics.get('type')
 
@@ -105,7 +105,7 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
     if not values or len(values) != 2:
         return context.result.fail_with_assertion_error('Expect a range [min_value, max_value].')
 
-    if not column_metrics.get(target_metric):
+    if column_metrics.get(target_metric) is None:
         return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
     context.result.actual = {target_metric: column_metrics.get(target_metric)}

@@ -360,26 +360,63 @@ def debug():
     return handler.execute()
 
 
-def _execute_assertions(console: Console, profiler, ds: DataSource, interaction: bool, output, result, created_at):
+def _agreed_to_run_recommended_assertions(console: Console, interactive: bool):
+    if interactive:
+        console.print('Do you want to run above recommanded assertions for this datasource \[yes/no]?',
+                      end=' ')
+        confirm = input('').strip().lower()
+        return confirm == 'yes' or confirm == 'y'
+    else:
+        return True
+
+
+def _agreed_to_generate_recommended_assertions(console: Console, interactive: bool, skip_recommend: bool):
+    if skip_recommend:
+        return False
+
+    if interactive:
+        console.print('Do you want to auto generate assertion templates for this datasource \[yes/no]?',
+                      end=' ')
+        confirm = input('').strip().lower()
+        return confirm == 'yes' or confirm == 'y'
+    else:
+        return True
+
+
+def _execute_assertions(console: Console, profiler, ds: DataSource, interaction: bool,
+                        output, result, created_at, skip_recommend: bool):
     # TODO: Implement running test cases based on profiling result
     assertion_engine = AssertionEngine(profiler)
     assertion_engine.load_assertions()
 
     if not assertion_engine.assertions_content:
+        assertion_exist = False
         console.print(f'No assertions found for datasource [ {ds.name} ]')
-        if interaction:
-            console.print('Do you want to auto generate assertion templates for this datasource \[yes/no]?',
-                          end=' ')
-            confirm = input('').strip().lower()
-            if confirm == 'yes' or confirm == 'y':
-                assertion_engine.generate_assertion_templates()
+
+        if _agreed_to_generate_recommended_assertions(console, interaction, skip_recommend):
+            recommended_assertions = assertion_engine.generate_recommended_assertions(result, assertion_exist)
+            for f in recommended_assertions:
+                console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
+            if _agreed_to_run_recommended_assertions(console, interaction):
+                assertion_engine.load_assertions()
+            else:
+                console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
+                return None, None
         else:
-            assertion_engine.generate_assertion_templates()
-        console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
-        return None, None  # no assertion to run
+            console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
+            return None, None  # no assertion to run
     else:
-        results, exceptions = assertion_engine.evaluate_all(result)
-        return results, exceptions
+        assertion_exist = True
+        if _agreed_to_generate_recommended_assertions(console, interaction, skip_recommend):
+            recommended_assertions = assertion_engine.generate_recommended_assertions(result, assertion_exist)
+            for f in recommended_assertions:
+                console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
+            if _agreed_to_run_recommended_assertions(console, interaction):
+                assertion_engine.load_assertions()
+
+    # Execute assertions
+    results, exceptions = assertion_engine.evaluate_all(result)
+    return results, exceptions
 
 
 def _show_dbt_test_result(console: Console, dbt_test_results, failed_only=False):
@@ -521,6 +558,9 @@ def _show_table_summary(console: Console, table: str, profiled_result, assertion
 def _transform_assertion_result(table: str, results):
     tests = []
     columns = {}
+    if results is None:
+        return dict(tests=tests, columns=columns)
+
     for r in results:
         if r.table == table:
             entry = r.to_result_entry()
@@ -534,7 +574,7 @@ def _transform_assertion_result(table: str, results):
     return dict(tests=tests, columns=columns)
 
 
-def run(datasource=None, table=None, output=None, interaction=True, skip_report=False, skip_dbt=False):
+def run(datasource=None, table=None, output=None, interaction=True, skip_report=False, skip_dbt=False, skip_recommend=False):
     console = Console()
     configuration = Configuration.load()
 
@@ -602,7 +642,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
     # TODO stop here if tests was not needed.
     assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
-                                                                  profile_result, created_at)
+                                                                  profile_result, created_at, skip_recommend)
     if assertion_results or dbt_test_results:
         console.rule('Assertion Results')
         if dbt_test_results:
@@ -769,7 +809,8 @@ def setup_report_variables(template_html: str, is_single: bool, data):
         variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA={output};window.PIPERIDER_COMPARISON_REPORT_DATA="";</script>'
     else:
         variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA="";window.PIPERIDER_COMPARISON_REPORT_DATA={output};</script>'
-    html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#', template_html).split('#PLACEHOLDER#')
+    html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#', template_html).split(
+        '#PLACEHOLDER#')
     html = html_parts[0] + variables + html_parts[1]
     return html
 
