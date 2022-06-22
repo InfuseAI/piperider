@@ -33,7 +33,7 @@ sentry_sdk.init(
     release=release_version,
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
-    # We run adjusting this value in production.
+    # We recommend adjusting this value in production.
     traces_sample_rate=1.0
 )
 sentry_sdk.set_tag("piperider.version", __version__)
@@ -133,7 +133,7 @@ def diagnose(**kwargs):
 @click.option('--output', default=None, type=click.Path(), help='Directory to save the results.')
 @click.option('--no-interaction', is_flag=True, help='Disable interactive mode.')
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
-@click.option('--skip-run', is_flag=True, help='Skip recommending assertions.')
+@click.option('--skip-recommend', is_flag=True, help='Skip recommending assertions.')
 @click.option('--skip-dbt', is_flag=True, help='Skip running dbt.')
 @add_options(debug_option)
 def run(**kwargs):
