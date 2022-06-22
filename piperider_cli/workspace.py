@@ -358,7 +358,7 @@ def debug():
 
 def _agreed_to_run_recommended_assertions(console: Console, interactive: bool):
     if interactive:
-        console.print('Do you want to run above reommanded assertions for this datasource \[yes/no]?',
+        console.print('Do you want to run above recommanded assertions for this datasource \[yes/no]?',
                       end=' ')
         confirm = input('').strip().lower()
         return confirm == 'yes' or confirm == 'y'

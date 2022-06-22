@@ -3,7 +3,7 @@ from typing import Callable
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
-import piperider_cli.assertion_engine.recommended_rules as recommended_rule_functions
+from piperider_cli.assertion_engine.recommended_rules import table_assertions, RecommendedAssertion
 
 recommended_rule_parameter_keys = ['table', 'column', 'profiling_result']
 
@@ -20,28 +20,28 @@ class AssertionRecommender:
         for table, ta in self.assertions.items():
             table_assertions: CommentedSeq = ta[table]['tests']
             for callback in self.recommended_rule_callbacks:
-                function_name, assertion_values = callback(table, None, self.profiling_result)
-                if function_name:
+                assertion: RecommendedAssertion = callback(table, None, self.profiling_result)
+                if assertion:
                     table_assertions.append(CommentedMap({
-                        'name': function_name,
-                        'assert': CommentedMap(assertion_values),
+                        'name': assertion.name,
+                        'assert': CommentedMap(assertion.asserts),
                         'tags': ['PIPERIDER_RECOMMENDED_ASSERTION']
                     }))
             for column, col in ta[table]['columns'].items():
                 column_assertions = col['tests']
                 for callback in self.recommended_rule_callbacks:
-                    function_name, assertion_values = callback(table, column, self.profiling_result)
-                    if function_name:
+                    assertion: RecommendedAssertion = callback(table, column, self.profiling_result)
+                    if assertion:
                         column_assertions.append(CommentedMap({
-                            'name': function_name,
-                            'assert': CommentedMap(assertion_values),
+                            'name': assertion.name,
+                            'assert': CommentedMap(assertion.asserts),
                             'tags': ['PIPERIDER_RECOMMENDED_ASSERTION']
                         }))
         # TODO: Return the summary of recommended assertions
         pass
 
     def load_recommended_rules(self):
-        for k, callback in recommended_rule_functions.table_assertions.__dict__.items():
+        for k, callback in table_assertions.__dict__.items():
             if isinstance(callback, Callable):
                 args = inspect.signature(callback)
                 parameters = list(args.parameters.keys())

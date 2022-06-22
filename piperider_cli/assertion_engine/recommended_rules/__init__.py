@@ -1,1 +1,4 @@
-from piperider_cli.assertion_engine.recommended_rules import table_assertions
+class RecommendedAssertion:
+    def __init__(self, name: str, asserts: dict):
+        self.name: str = name
+        self.asserts: dict = asserts
