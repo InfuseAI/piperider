@@ -16,6 +16,7 @@ from sqlalchemy import create_engine, inspect
 
 from piperider_cli import clone_directory, convert_to_tzlocal, datetime_to_str
 from piperider_cli.assertion_engine import AssertionEngine
+from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.compare_report import CompareReport
 from piperider_cli.configuration import Configuration, PIPERIDER_WORKSPACE_NAME, PIPERIDER_CONFIG_PATH, \
     PIPERIDER_CREDENTIALS_PATH
@@ -487,6 +488,16 @@ def _show_assertion_result(console: Console, results, exceptions, failed_only=Fa
     pass
 
 
+def _show_recommended_assertion_notice_message(console: Console, results):
+    for assertion in results:
+        if assertion.result.status() is False and RECOMMENDED_ASSERTION_TAG in assertion.tags:
+            console.print(
+                f'\n[[bold yellow]Notice[/bold yellow]] You can use command '
+                f'"{os.path.basename(sys.argv[0])} generate-assertions" '
+                f'to re-generate recommended assertions with new profiling results.')
+            break
+
+
 def _show_dbt_test_result_summary(console: Console, table: str, dbt_test_results):
     if not dbt_test_results:
         return False
@@ -668,6 +679,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
         _show_table_summary(console, t, profile_result['tables'][t], assertion_results, dbt_test_results)
 
+    _show_recommended_assertion_notice_message(console, assertion_results)
     with open(output_file, 'w') as f:
         f.write(json.dumps(profile_result, indent=4))
     if skip_report:
@@ -819,16 +831,9 @@ def _generate_static_html(result, html, output_path):
         f.write(html)
 
 
-def generate_report(input=None):
+def _get_run_json_path(input=None):
     console = Console()
-
-    from piperider_cli import data
-    report_template_dir = os.path.join(os.path.dirname(data.__file__), 'report', 'single-report')
-    with open(os.path.join(report_template_dir, 'index.html')) as f:
-        report_template_html = f.read()
-
     run_json = None
-
     if input:
         if not os.path.exists(input):
             console.print(f'[bold red]Error: {input} not found[/bold red]')
@@ -840,20 +845,78 @@ def generate_report(input=None):
     else:
         latest = os.path.join(PIPERIDER_OUTPUT_PATH, 'latest')
         run_json = os.path.join(latest, 'run.json')
+    return run_json
 
-    if not os.path.isfile(run_json):
-        console.print(f'[bold red]Error: {run_json} is not a file[/bold red]')
+
+def generate_recommended_assertions(input=None, interaction=True):
+    console = Console()
+
+    run_json_path = _get_run_json_path(input)
+    if not os.path.isfile(run_json_path):
+        console.print(f'[bold red]Error: {run_json_path} is not a file[/bold red]')
         return
 
-    with open(run_json) as f:
+    with open(run_json_path) as f:
+        profiling_result = json.loads(f.read())
+    if not _validate_input_result(profiling_result):
+        console.print(f'[bold red]Error: {run_json_path} is invalid[/bold red]')
+        return
+    console.print(f'[bold dark_orange]Generating recommended assertions from:[/bold dark_orange] {run_json_path}')
+
+    # Generate recommended assertions
+    assertion_engine = AssertionEngine(None)
+    assertion_engine.load_assertions(profiling_result=profiling_result)
+    assertion_exist = True if assertion_engine.assertions_content else False
+    console.rule('Generating Recommended Assertions')
+    recommended_assertions = assertion_engine.generate_recommended_assertions(profiling_result,
+                                                                              assertion_exist=assertion_exist)
+    # Show the generated recommended assertions
+    ascii_table = Table(show_header=True, header_style="bold magenta")
+    ascii_table.add_column('Table Name', style="bold yellow")
+    ascii_table.add_column('Column Name', style="bold blue")
+    ascii_table.add_column('Test Function', style="bold green")
+    ascii_table.add_column('Asserts', style="bold")
+
+    for assertion in assertion_engine.recommender.generated_assertions:
+        assert_values = str(assertion.asserts) if assertion.asserts else ''
+        ascii_table.add_row(
+            assertion.table,
+            assertion.column,
+            assertion.name,
+            assert_values,
+        )
+
+    console.print(ascii_table)
+
+    # Show the recommended assertions files
+    console.rule('Generated Recommended Assertions')
+    for f in recommended_assertions:
+        console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
+    pass
+
+
+def generate_report(input=None):
+    console = Console()
+
+    from piperider_cli import data
+    report_template_dir = os.path.join(os.path.dirname(data.__file__), 'report', 'single-report')
+    with open(os.path.join(report_template_dir, 'index.html')) as f:
+        report_template_html = f.read()
+
+    run_json_path = _get_run_json_path(input)
+    if not os.path.isfile(run_json_path):
+        console.print(f'[bold red]Error: {run_json_path} is not a file[/bold red]')
+        return
+
+    with open(run_json_path) as f:
         result = json.loads(f.read())
     if not _validate_input_result(result):
-        console.print(f'[bold red]Error: {run_json} is invalid[/bold red]')
+        console.print(f'[bold red]Error: {run_json_path} is invalid[/bold red]')
         return
 
-    console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {run_json}')
+    console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {run_json_path}')
 
-    dir = os.path.dirname(run_json)
+    dir = os.path.dirname(run_json_path)
     clone_directory(report_template_dir, dir)
 
     _generate_static_html(result, report_template_html, dir)
