@@ -71,7 +71,7 @@ def assert_column_schema_type(context: AssertionContext, table: str, column: str
     # Check assertion input
     assert_schema_type = context.asserts.get('schema_type').upper()
     if not assert_schema_type:
-        return context.result.fail_with_assertion_error(f'Expect a SQL schema type')
+        return context.result.fail_with_assertion_error('Expect a SQL schema type')
 
     schema_type = column_metrics.get('schema_type')
     context.result.actual = schema_type
