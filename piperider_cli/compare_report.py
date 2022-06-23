@@ -1,5 +1,4 @@
 import json
-import math
 import os
 import sys
 from datetime import datetime
@@ -7,8 +6,8 @@ from datetime import datetime
 import readchar
 from rich.console import Console
 
-from piperider_cli import datetime_to_str, str_to_datetime
 import piperider_cli.hack.inquirer as inquirer_hack
+from piperider_cli import datetime_to_str, str_to_datetime
 
 
 class ProfilerOutput(object):
@@ -169,7 +168,7 @@ class CompareReport(object):
 
         profiler_outputs = self.list_existing_outputs()
 
-        if sys.platform == "darwin":
+        if sys.platform == "darwin" or sys.platform == "linux":
             # change readchar key backspace
             readchar.key.BACKSPACE = '\x7F'
 
