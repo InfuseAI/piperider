@@ -81,7 +81,7 @@ def recommended_column_unique_assertion(table, column, profiling_result) -> Reco
         non_nulls = column_metric['non_nulls']
         distinct = column_metric['distinct']
 
-        if non_nulls > 0 and distinct / non_nulls == 1:
+        if non_nulls > 0 and distinct == non_nulls:
             test_function_name = 'assert_column_unique'
             assertion = RecommendedAssertion(test_function_name, None)
             return assertion
@@ -97,7 +97,7 @@ def recommended_column_not_null_assertion(table, column, profiling_result) -> Re
     non_nulls = column_metric['non_nulls']
     total = column_metric['total']
 
-    if total > 0 and non_nulls / total == 1:
+    if total > 0 and non_nulls == total:
         test_function_name = 'assert_column_not_null'
         assertion = RecommendedAssertion(test_function_name, None)
         return assertion
