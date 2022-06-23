@@ -402,7 +402,7 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
                 assertion_engine.load_assertions()
             else:
                 console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
-                return None, None
+                return [], []
         else:
             # Generate assertion templates
             console.rule('Generating Assertion Templates')
