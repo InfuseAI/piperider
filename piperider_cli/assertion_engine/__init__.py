@@ -58,6 +58,9 @@ def assert_row_count(context: AssertionContext, table: str, column: str, metrics
     else:
         if not isinstance(max, int):
             return context.result.fail_with_assertion_error('The max value should be an integer.')
+        if max < min:
+            return context.result.fail_with_assertion_error(
+                'The max value should be greater than or equal to the min value.')
         if min <= row_count <= max:
             return context.result.success()
     return context.result.fail()
