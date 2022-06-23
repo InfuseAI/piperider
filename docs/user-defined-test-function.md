@@ -81,7 +81,7 @@ Table level metric:
 
 ```python
 table_metrics = metrics.get('tables', {}).get(table)
-if not table_metrics:
+if table_metrics is None:
   # cannot find the table in the metrics
   return context.result.fail()
 ```
