@@ -223,7 +223,12 @@ class AssertionEngine:
                     for ca in self.assertions_content[t]['columns'][c].get('tests', []):
                         self.assertions.append(AssertionContext(t, c, ca))
 
-    def generate_recommended_assertions(self, profiling_result, is_assertions_exist, ):
+    def generate_template_assertions(self, profiling_result):
+        self.recommender.prepare_assertion_template(profiling_result)
+        template_assertions = self.recommender.assertions
+        return self._dump_assertions_files(template_assertions)
+
+    def generate_recommended_assertions(self, profiling_result, assertion_exist=False):
         # Load existing assertions
         if not self.assertions_content:
             self.load_assertions()
@@ -235,11 +240,11 @@ class AssertionEngine:
         recommended_assertions = self.recommender.assertions
 
         # Update existing recommended assertions
-        if is_assertions_exist:
+        if assertion_exist:
             self._update_existing_recommended_assertions(recommended_assertions)
 
         # Dump recommended assertions
-        return self._dump_assertions_files(recommended_assertions)
+        return self._dump_assertions_files(recommended_assertions, prefix='recommended')
 
     def _update_existing_recommended_assertions(self, recommended_assertions):
         def merge_assertions(existed: List, new_generating: List):
@@ -294,10 +299,11 @@ class AssertionEngine:
     def _recommend_assertion_filename(self, name):
         return f'recommended_{name}.yml'
 
-    def _dump_assertions_files(self, assertions):
+    def _dump_assertions_files(self, assertions, prefix=''):
         paths = []
         for name, assertion in assertions.items():
-            file_path = os.path.join(self.assertion_search_path, f'recommended_{name}.yml')
+            filename = f'{prefix}_{name}.yml' if prefix else f'{name}.yml'
+            file_path = os.path.join(self.assertion_search_path, filename)
             if assertion.get('skip'):  # skip if it already exists user-defined assertions
                 continue
             with open(file_path, 'w') as f:
