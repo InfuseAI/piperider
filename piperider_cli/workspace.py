@@ -361,7 +361,7 @@ def debug():
 
 def _agreed_to_run_recommended_assertions(console: Console, interactive: bool):
     if interactive:
-        console.print('Do you want to run above recommanded assertions for this datasource \[Yes/no]?',
+        console.print('Do you want run above recommanded assertions for this datasource \[Yes/no]?',
                       end=' ')
         confirm = input('').strip().lower()
         return confirm == 'yes' or confirm == 'y' or confirm == ''  # default yes
@@ -373,21 +373,13 @@ def _agreed_to_generate_recommended_assertions(console: Console, interactive: bo
     if skip_recommend:
         return False
 
-    config = Configuration.load()
-
-    if config.recommender.enabled is None:
-        if interactive:
-            console.print('Do you want to auto generate assertion templates for this datasource \[Yes/no]?',
-                          end=' ')
-            confirm = input('').strip().lower()
-            is_confirm = confirm == 'yes' or confirm == 'y' or confirm == ''  # default yes
-            config.recommender.enabled = is_confirm
-            config.dump(PIPERIDER_CONFIG_PATH)
-            return is_confirm
-        else:
-            return True
+    if interactive:
+        console.print('Do you want to auto generate recommended assertions for this datasource \[Yes/no]?',
+                      end=' ')
+        confirm = input('').strip().lower()
+        return confirm == 'yes' or confirm == 'y' or confirm == ''  # default yes
     else:
-        return config.recommender.enabled
+        return True
 
 
 def _execute_assertions(console: Console, profiler, ds: DataSource, interaction: bool,
@@ -395,14 +387,14 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
     # TODO: Implement running test cases based on profiling result
     assertion_engine = AssertionEngine(profiler)
     assertion_engine.load_assertions()
+    assertion_exist = True if assertion_engine.assertions_content else False
 
-    if not assertion_engine.assertions_content:
-        assertion_exist = False
-        console.print(f'No assertions found for datasource [ {ds.name} ]')
-
+    if not assertion_exist:
+        console.print('[bold yellow]No assertion found[/]')
         if _agreed_to_generate_recommended_assertions(console, interaction, skip_recommend):
+            # Generate recommended assertions
             console.rule('Generating Recommended Assertions')
-            recommended_assertions = assertion_engine.generate_recommended_assertions(result, assertion_exist)
+            recommended_assertions = assertion_engine.generate_recommended_assertions(result)
             for f in recommended_assertions:
                 console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
             if _agreed_to_run_recommended_assertions(console, interaction):
@@ -411,17 +403,11 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
                 console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
                 return None, None
         else:
-            console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
-            return None, None  # no assertion to run
-    else:
-        assertion_exist = True
-        if _agreed_to_generate_recommended_assertions(console, interaction, skip_recommend):
-            console.rule('Updating Recommended Assertions')
-            recommended_assertions = assertion_engine.generate_recommended_assertions(result, assertion_exist)
-            for f in recommended_assertions:
-                console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
-            if _agreed_to_run_recommended_assertions(console, interaction):
-                assertion_engine.load_assertions()
+            # Generate assertion templates
+            console.rule('Generating Assertion Templates')
+            template_assertions = assertion_engine.generate_template_assertions(result)
+            for f in template_assertions:
+                console.print(f'[bold green]Template Assertion[/bold green]: {f}')
 
     # Execute assertions
     results, exceptions = assertion_engine.evaluate_all(result)
