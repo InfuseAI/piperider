@@ -157,8 +157,11 @@ def run(**kwargs):
 
 
 @cli.command(short_help='Generate recommended assertions.')
+@click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
 @add_options(debug_option)
 def generate_assertions(**kwargs):
+    input = kwargs.get('input')
+    workspace.generate_recommended_assertions(input=input)
     pass
 
 

@@ -199,7 +199,7 @@ class AssertionEngine:
         """
         return load_yaml_configs(assertion_search_path)
 
-    def load_assertions(self):
+    def load_assertions(self, profiling_result=None):
         """
         This method is used to load assertions from the specific path.
         :param assertion_search_path:
@@ -213,10 +213,14 @@ class AssertionEngine:
         passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
             self.assertion_search_path)
 
-        # Load assertion
+        # Load assertio
+        if profiling_result:
+            selected_tables = profiling_result.get('tables').keys()
+        else:
+            selected_tables = list(self.profiler.metadata.tables)
         for t in self.assertions_content:
             # only append specified table's assertions
-            if t in list(self.profiler.metadata.tables):
+            if t in selected_tables:
                 for ta in self.assertions_content[t].get('tests', []):
                     self.assertions.append(AssertionContext(t, None, ta))
                 for c in self.assertions_content[t].get('columns', {}):
@@ -231,7 +235,7 @@ class AssertionEngine:
     def generate_recommended_assertions(self, profiling_result, assertion_exist=False):
         # Load existing assertions
         if not self.assertions_content:
-            self.load_assertions()
+            self.load_assertions(profiling_result=profiling_result)
 
         # Generate recommended assertions based on the profiling result
         self.recommender.prepare_assertion_template(profiling_result)
@@ -242,6 +246,7 @@ class AssertionEngine:
         # Update existing recommended assertions
         if assertion_exist:
             self._update_existing_recommended_assertions(recommended_assertions)
+            self._backup_assertion_file(recommended_assertions, prefix='recommended')
 
         # Dump recommended assertions
         return self._dump_assertions_files(recommended_assertions, prefix='recommended')
@@ -269,15 +274,6 @@ class AssertionEngine:
                 pass
             pass
 
-        def skip_assertions(existed: List, new_generating: List):
-            for existed_assertion in existed:
-                for new_assertion in new_generating:
-                    if new_assertion['name'] == existed_assertion['name']:
-                        new_generating.remove(new_assertion)
-                        break
-                pass
-            pass
-
         for name, recommended_assertion in recommended_assertions.items():
             existing_assertion_path = os.path.join(self.assertion_search_path, self._recommend_assertion_filename(name))
             if os.path.exists(existing_assertion_path):
@@ -290,14 +286,18 @@ class AssertionEngine:
                     for ca in existing_assertion[name]['columns']:
                         merge_assertions(existing_assertion[name]['columns'][ca]['tests'],
                                          recommended_assertion[name]['columns'][ca]['tests'])
-            elif self.assertions_content.get(name):
-                print(
-                    f'Skip recommended assertions for table "{name}" because it already exists user-defined assertions.')
-                recommended_assertions[name]['skip'] = True
         pass
 
     def _recommend_assertion_filename(self, name):
         return f'recommended_{name}.yml'
+
+    def _backup_assertion_file(self, assertions, prefix=''):
+        for name in assertions.keys():
+            filename = f'{prefix}_{name}.yml' if prefix else f'{name}.yml'
+            backup_file_name = f'{filename}.bak'
+            file_path = os.path.join(self.assertion_search_path, filename)
+            backup_path = os.path.join(self.assertion_search_path, backup_file_name)
+            os.rename(file_path, backup_path)
 
     def _dump_assertions_files(self, assertions, prefix=''):
         paths = []
