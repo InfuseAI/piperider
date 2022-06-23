@@ -143,7 +143,7 @@ class DataSource(metaclass=ABCMeta):
         ask for user filling all fields.
         """
 
-        if sys.platform == "darwin":
+        if sys.platform == "darwin" or sys.platform == "linux":
             # change readchar key backspace
             readchar.key.BACKSPACE = '\x7F'
 
@@ -161,7 +161,7 @@ class DataSource(metaclass=ABCMeta):
     def ask():
         source_choices = [(k, v) for k, v in DATASOURCE_PROVIDERS.items()]
 
-        if sys.platform == "darwin":
+        if sys.platform == "darwin" or sys.platform == "linux":
             # change readchar key backspace
             readchar.key.BACKSPACE = '\x7F'
 
