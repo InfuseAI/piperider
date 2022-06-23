@@ -294,10 +294,11 @@ class AssertionEngine:
     def _backup_assertion_file(self, assertions, prefix=''):
         for name in assertions.keys():
             filename = f'{prefix}_{name}.yml' if prefix else f'{name}.yml'
-            backup_file_name = f'{filename}.bak'
             file_path = os.path.join(self.assertion_search_path, filename)
-            backup_path = os.path.join(self.assertion_search_path, backup_file_name)
-            os.rename(file_path, backup_path)
+            if os.path.exists(file_path):
+                backup_file_name = f'{filename}.bak'
+                backup_path = os.path.join(self.assertion_search_path, backup_file_name)
+                os.rename(file_path, backup_path)
 
     def _dump_assertions_files(self, assertions, prefix=''):
         paths = []
