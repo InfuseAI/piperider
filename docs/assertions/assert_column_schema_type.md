@@ -2,7 +2,7 @@
 
 - Description: The column schema type should be specific schema type.
 - Assert:
-  - types: [`TEXT`, `DATE`, `VARCHAR(128)`, or etc...]
+  - types: `TEXT`, `DATE`, `VARCHAR(128)`, or etc...
 - Tags:
 
 ### YAML
