@@ -47,5 +47,5 @@ $ make build-comparison
 ### Build Single & Comparison Reports
 
 ```sh
-$ make build-all
+$ make build
 ```
