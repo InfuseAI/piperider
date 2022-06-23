@@ -1,4 +1,5 @@
 import os.path
+import re
 import sys
 
 import click
@@ -13,7 +14,7 @@ from piperider_cli.event.track import TrackCommand
 def set_sentry_env():
     if '.dev' in __version__:
         return 'development'
-    elif 'nightly' in os.path.basename(sys.argv[0]):
+    elif re.match('^\d+\.\d+\.\d+\.\d{8}[a|b|rc]?.*$', __version__):
         return 'nightly'
     elif 'a' in __version__:
         return 'alpha'
