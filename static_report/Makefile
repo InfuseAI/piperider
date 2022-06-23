@@ -22,6 +22,6 @@ build-comparison:
 	@npm run build:comparison
 .PHONY: build-single
 
-build-all:
-	@npm run build:all
-.PHONY: build-all
+build:
+	@npm run build
+.PHONY: build
