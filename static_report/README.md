@@ -64,7 +64,7 @@ $ npm run start:comparison
 > **Note**
 >
 > Generated **single report** and **comparison report** will be moved into [piperider_cli/data/report](https://github.com/InfuseAI/piperider/tree/main/piperider_cli/data/report).
-> This MUST be done on ALL PR's that affect the reports.
+> Note that `prebuild` will strip index.html and its script variable values. Please restart a `start:*` script to repopulate values.
 
 ### Single Reports
 

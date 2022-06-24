@@ -1,5 +1,5 @@
-import { ComparisonReportSchema } from '../../comparison-report-schema.d';
-import { SingleReportSchema } from '../../single-report-schema.d';
+import { ComparisonReportSchema } from 'comparison-report-schema.d';
+import { SingleReportSchema } from 'single-report-schema.d';
 
 declare global {
   interface Window {

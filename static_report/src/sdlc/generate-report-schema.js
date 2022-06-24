@@ -12,7 +12,9 @@ import {
 
 const flag = process.argv[2];
 const isSingle = flag === SINGLE_KEY;
-const fileName = `${isSingle ? SINGLE_KEY : COMPARISON_KEY}-report-schema.json`;
+const fileName = `src/sdlc/${
+  isSingle ? SINGLE_KEY : COMPARISON_KEY
+}-report-schema.json`;
 
 const generateReportSchema = async () => {
   log(chalk.blueBright(`Generating Report Schema...`));
