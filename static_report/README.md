@@ -30,7 +30,7 @@ The prestart scripts will do the following, sourcing from the project's root `.p
 
 > **Note**
 >
-> If you need to make changes to above behaviors, see the `package.json` and/or the `utils/*.js` scripts to modify.
+> If you need to make changes to above behaviors, see the `package.json` and/or the `sdlc/*.js` scripts to modify.
 
 ### Single Report
 
