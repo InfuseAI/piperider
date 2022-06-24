@@ -13,7 +13,7 @@ flake8:
 	@echo "Passed"
 
 test: dev-requires
-	py.test --cov=piperider_cli --cov-report xml tests
+	py.test --cov=piperider_cli --cov-report html tests
 
 pre-release: dev-requires
 	pip install build
