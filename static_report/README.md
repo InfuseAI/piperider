@@ -66,10 +66,16 @@ $ npm run start:comparison
 > Generated **single report** and **comparison report** will be moved into [piperider_cli/data/report](https://github.com/InfuseAI/piperider/tree/main/piperider_cli/data/report).
 > This MUST be done on ALL PR's that affect the reports.
 
-### Single/Comparison Reports
+### Single Reports
 
 ```sh
-$ npm run build:{single|comparison}
+$ npm run build:single
+```
+
+### Comparison Reports
+
+```sh
+$ npm run build:comparison
 ```
 
 ### Both Reports
