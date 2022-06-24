@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { Switch, Route, Router } from 'wouter';
+import { Switch, Route, Router, BaseLocationHook } from 'wouter';
 
 import { Main } from './components/Main';
 import { Loading } from './components/Loading';
@@ -17,7 +17,7 @@ function AppSingle() {
   return (
     <Suspense fallback={<Loading />}>
       <Main alignItems="flex-start">
-        <Router hook={useHashLocation}>
+        <Router hook={useHashLocation as BaseLocationHook}>
           <Switch>
             <Route
               path="/"
@@ -27,7 +27,7 @@ function AppSingle() {
             />
 
             <Route path="/tables/:reportName">
-              {(params) => (
+              {(params: any) => (
                 <SingleReport
                   source={datasource}
                   reportName={params.reportName}
@@ -53,7 +53,7 @@ function AppComparison() {
   return (
     <Suspense fallback={<Loading />}>
       <Main alignItems="flex-start">
-        <Router hook={useHashLocation}>
+        <Router hook={useHashLocation as BaseLocationHook}>
           <Switch>
             <Route
               path="/"
@@ -61,7 +61,7 @@ function AppComparison() {
             />
 
             <Route path="/tables/:reportName">
-              {(params) => (
+              {(params: any) => (
                 <ComparisonReport
                   reportName={params.reportName}
                   base={base.tables[params.reportName]}

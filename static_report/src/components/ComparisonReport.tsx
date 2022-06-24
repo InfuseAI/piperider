@@ -82,7 +82,7 @@ function CompareTest({ base = [], input = [], ...props }) {
   );
 
   const tests = Object.values(groupedTests).map((groupedTest) => {
-    let row = {
+    let row: any = {
       level: groupedTest[0].level,
       column: groupedTest[0].column,
       name: groupedTest[0].name,
@@ -155,7 +155,7 @@ function CompareSchema({ base, input }) {
   let deleted = 0;
   let changed = 0;
 
-  Object.entries(base?.columns || []).forEach(([name, column]) => {
+  Object.entries<any>(base?.columns || []).forEach(([name, column]) => {
     mapIndex[column.name] = i;
     columns.push({
       name,
@@ -167,7 +167,7 @@ function CompareSchema({ base, input }) {
     deleted++;
   });
 
-  Object.entries(input?.columns || []).forEach(([name, column]) => {
+  Object.entries<any>(input?.columns || []).forEach(([name, column]) => {
     if (mapIndex.hasOwnProperty(column.name)) {
       const index = mapIndex[column.name];
       const isChanged = columns[index].base.schema_type !== column.schema_type;
@@ -418,14 +418,18 @@ function CompareProfileColumn({ name, base, input }) {
 function CompareProfile({ base, input }) {
   const transformedData = joinBykey(base?.columns, input?.columns);
 
-  return Object.entries(transformedData).map(([key, value]) => (
-    <CompareProfileColumn
-      key={key}
-      name={key}
-      base={value.base}
-      input={value.input}
-    />
-  ));
+  return (
+    <>
+      {Object.entries<any>(transformedData).map(([key, value]) => (
+        <CompareProfileColumn
+          key={key}
+          name={key}
+          base={value.base}
+          input={value.input}
+        />
+      ))}
+    </>
+  );
 }
 
 export default function ComparisonReport({ base, input, reportName }) {

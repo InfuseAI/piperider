@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { getChartTooltip, formatNumber } from './';
+import { getChartTooltip, formatNumber } from '.';
 
 export function drawSingleReportChart({
   containerWidth,
@@ -38,6 +38,7 @@ export function drawSingleReportChart({
       .duration(500)
       .style('visibility', 'visible');
 
+    //@ts-ignore
     d3.select(this).style('fill', 'var(--chakra-colors-blue-100)');
   }
 
@@ -50,6 +51,7 @@ export function drawSingleReportChart({
   function onHideTooltip() {
     tooltip.html('').transition().duration(500).style('visibility', 'hidden');
 
+    //@ts-ignore
     d3.select(this).style('fill', 'var(--chakra-colors-blue-300)');
   }
 
@@ -88,9 +90,9 @@ export function drawSingleReportChart({
     .data(data)
     .enter()
     .append('rect')
-    .attr('x', (s) => x(s.label))
-    .attr('y', (s) => y(s.value))
-    .attr('height', (s) => height - y(s.value))
+    .attr('x', (s: any) => x(s.label))
+    .attr('y', (s: any) => y(s.value))
+    .attr('height', (s: any) => height - y(s.value))
     .attr('width', x.bandwidth())
     .style('fill', 'var(--chakra-colors-blue-300)')
     .on('mouseover', onShowTooltip)

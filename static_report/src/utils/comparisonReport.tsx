@@ -6,7 +6,7 @@ import {
   getChartTooltip,
   getReportAsserationStatusCounts,
   formatNumber,
-} from './';
+} from '.';
 
 export function drawComparsionChart({
   containerWidth,
@@ -54,7 +54,7 @@ export function drawComparsionChart({
     tooltip.html('').transition().duration(500).style('visibility', 'hidden');
   }
 
-  const groups = d3.map(data, ({ label }) => label);
+  const groups = d3.map<any, any>(data, ({ label }) => label);
   const x = d3.scaleBand().domain(groups).range([0, width]).padding(0.3);
 
   svg
@@ -93,9 +93,9 @@ export function drawComparsionChart({
     .selectAll('g')
     .data(data)
     .join('g')
-    .attr('transform', (d) => `translate(${x(d.label)}, 0)`)
+    .attr('transform', (d: any) => `translate(${x(d.label)}, 0)`)
     .selectAll('rect')
-    .data(function (d) {
+    .data(function (d: any) {
       return ['base', 'input'].map(function (key) {
         return { label: d.label, key: key, value: d[key] };
       });
@@ -104,8 +104,8 @@ export function drawComparsionChart({
     .attr('x', (d) => xSubGroup(d.key))
     .attr('y', (d) => y(d.value))
     .attr('width', xSubGroup.bandwidth())
-    .attr('height', (d) => height - y(d.value))
-    .attr('fill', (d) => color(d.key))
+    .attr('height', (d: any) => height - y(d.value))
+    .attr('fill', (d: any) => color(d.key) as any)
     .on('mouseover', onShowTooltip)
     .on('mousemove', onMoveTooltip)
     .on('mouseout', onHideTooltip);

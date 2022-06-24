@@ -2,6 +2,7 @@
   "name": "piperider-report",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "homepage": "./",
   "dependencies": {
     "@chakra-ui/icons": "^2.0.1",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.18.2",
+    "@types/d3": "^7.4.0",
     "@types/jest": "^28.1.2",
     "@types/node": "^18.0.0",
     "@types/react": "^18.0.14",

@@ -12,7 +12,7 @@ const tooltipDefaultStyle = {
   backgroundColor: 'var(--chakra-colors-blackAlpha-700)',
 };
 
-export function getChartTooltip({ target, style }) {
+export function getChartTooltip({ target, style = {} as any }) {
   const tooltip = d3
     .select(target)
     .append('div')
@@ -109,7 +109,11 @@ export function formatReportTime(time) {
   return format(adjustForUTCOffset(parseISO(time)), 'yyyy/MM/dd HH:mm:ss');
 }
 
-export function formatNumber(num, locales = 'en-US', notation = 'compact') {
+export function formatNumber(
+  num,
+  locales = 'en-US',
+  notation: Intl.NumberFormatOptions['notation'] = 'compact',
+) {
   return new Intl.NumberFormat(locales, { notation }).format(num);
 }
 
