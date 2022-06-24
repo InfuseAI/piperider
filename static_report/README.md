@@ -1,14 +1,8 @@
 # PipeRider Report
 
-## Installation
+The FE source code that the CLI uses to output report views
 
-```sh
-$ npm install
-```
-
-## Development
-
-### (Prerequisite) Generate reports with the local CLI
+## (Prerequisite) Generate reports with the local CLI
 
 To develop the CLI alongside FE static reports.
 This is REQUIRED for serving your apps, as it depends on CLI's outputs:
@@ -22,10 +16,18 @@ This is REQUIRED for serving your apps, as it depends on CLI's outputs:
 1. Generate your Single and Comparison reports (`piperider run` for single; `piperider compare-reports` for comparison)
 1. Now, you are ready. Proceed to the FE side. `cd static_report`
 
-### Setup for FE Static Reports
+### Installation
+
+```sh
+$ npm install
+```
+
+## Development
+
+### Run the FE Static Reports
 
 > **Note**
-> By this point, you MUST have first generated both comparison and single reports from `piperider` CLI.
+> By this point, you MUST have first generated both comparison and single reports from `piperider` CLI (see prev section).
 
 All `start:*` scripts will run correspondingly to `prestart:*` scripts to setup your development environment.
 
@@ -37,9 +39,9 @@ The prestart scripts will do the following, sourcing from the project's root `.p
 
 ### If Things Break
 
-_Keep in mind that this is not future proof, as the CLI project is still evolving fast. If things suddenly break, most likely it is due to file path renames or changes. When that happens and you need to make changes to the above, see the `package.json` and/or the `sdlc/*.js` scripts to modify._
+_Keep in mind that this SDLC is not future-proof, as the CLI project is still evolving fast. If things suddenly break, most likely it is due to file path renames or changes. When that happens and you need to make changes to the above, see the `package.json` and/or the `sdlc/*.js` scripts to modify._
 
-### Running FE Static Reports
+### Run FE Static Reports
 
 You should now be able to run both apps on separate terminals.
 
@@ -62,7 +64,7 @@ $ npm run start:comparison
 > **Note**
 >
 > Generated **single report** and **comparison report** will be moved into [piperider_cli/data/report](https://github.com/InfuseAI/piperider/tree/main/piperider_cli/data/report).
-> This MUST be done on most FE PR's that affect the reports.
+> This MUST be done on ALL PR's that affect the reports.
 
 ### Single/Comparison Reports
 
