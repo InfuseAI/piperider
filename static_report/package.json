@@ -2,6 +2,7 @@
   "name": "piperider-report",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "homepage": "./",
   "dependencies": {
     "@chakra-ui/icons": "^2.0.1",
@@ -22,15 +23,40 @@
     "web-vitals": "^2.1.4",
     "wouter": "2.8.0-alpha.2"
   },
+  "devDependencies": {
+    "@babel/core": "^7.18.2",
+    "@types/jest": "^28.1.2",
+    "@types/node": "^18.0.0",
+    "@types/react": "^18.0.14",
+    "@types/react-dom": "^18.0.5",
+    "chalk": "^5.0.1",
+    "eslint": "^8.17.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "generate-schema": "^2.6.0",
+    "json-schema-to-typescript": "^10.1.5",
+    "node-html-parser": "^5.3.3",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.6.2",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.7.4"
+  },
   "scripts": {
-    "start": "REACT_APP_SINGLE_REPORT=true react-scripts start",
-    "start:compare": "PORT=3001 REACT_APP_SINGLE_REPORT=false react-scripts start",
+    "prestart:single": "run-s schema:* typing:* embed:html",
+    "start:single": "REACT_APP_SINGLE_REPORT=true react-scripts start",
+    "prestart:comparison": "run-s schema:* typing:* embed:html",
+    "start:comparison": "REACT_APP_SINGLE_REPORT=false react-scripts start",
+    "schema:single": "node src/utils/generate-report-schema.js single",
+    "schema:comparison": "node src/utils/generate-report-schema.js comparison",
+    "typing:single": "npx json2ts single-report-schema.json > single-report-schema.d.ts",
+    "typing:comparison": "npx json2ts comparison-report-schema.json > comparison-report-schema.d.ts",
+    "embed:html": "node src/utils/embed-window-data.js",
+    "build": "run-p build:*",
     "build:single": "rimraf ../piperider_cli/data/report/single-report && GENERATE_SOURCEMAP=false REACT_APP_SINGLE_REPORT=true react-scripts build && mv build ../piperider_cli/data/report/single-report",
     "build:comparison": "rimraf ../piperider_cli/data/report/comparison-report && GENERATE_SOURCEMAP=false REACT_APP_SINGLE_REPORT=false react-scripts build && mv build ../piperider_cli/data/report/comparison-report",
-    "build": "npm run build:single && npm run build:comparison",
-    "test": "react-scripts test",
     "eject": "react-scripts eject",
     "cleanup": "rimraf ../piperider_cli/data/report/single-report && rimraf ../piperider_cli/data/report/comparison-report",
+    "test": "react-scripts test",
     "lint": "eslint src/",
     "lint:fix": "npm run lint -- --fix"
   },
@@ -45,14 +71,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@babel/core": "^7.18.2",
-    "eslint": "^8.17.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-prettier": "^4.0.0",
-    "prettier": "^2.6.2",
-    "rimraf": "^3.0.2"
   },
   "eslintConfig": {
     "extends": [
