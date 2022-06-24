@@ -1,34 +1,29 @@
-import { readdir, readFile, writeFile } from 'fs/promises';
 import GS from 'generate-schema';
 import chalk from 'chalk';
+import {
+  COMPARISON_KEY,
+  generateFile,
+  getComparisonDataPath,
+  getFileData,
+  log,
+  PATH_TO_SINGLE_REPORT_DATA_JSON,
+  SINGLE_KEY,
+} from './core.js';
 
 const flag = process.argv[2];
-const log = console.log;
-const isSingle = flag === 'single';
+const isSingle = flag === SINGLE_KEY;
+const fileName = `${isSingle ? SINGLE_KEY : COMPARISON_KEY}-report-schema.json`;
 
 const generateReportSchema = async () => {
   log(chalk.blueBright(`Generating Report Schema...`));
-  log(chalk.blueBright(`Type: ${isSingle ? 'single' : 'comparison'}`));
-
-  const latestCompare =
-    !isSingle && (await readdir('../.piperider/comparisons')).pop();
+  log(chalk.blueBright(`[ Type: ${isSingle ? SINGLE_KEY : COMPARISON_KEY} ]`));
 
   const PATH_TO_REPORT = isSingle
-    ? '../.piperider/outputs/latest/run.json'
-    : `../.piperider/comparisons/${latestCompare}/comparison_data.json`;
+    ? PATH_TO_SINGLE_REPORT_DATA_JSON
+    : await getComparisonDataPath();
 
-  log(chalk.yellow(`reading report path: ${PATH_TO_REPORT}...`));
-  const jsonData = JSON.parse(
-    Buffer.from(
-      await readFile(PATH_TO_REPORT, {
-        encoding: 'utf-8',
-      }),
-    ),
-  );
+  const jsonData = await getFileData(PATH_TO_REPORT);
   const jsonSchema = JSON.stringify(GS.json(jsonData));
-  const fileName = `${isSingle ? 'single' : 'comparison'}-report-schema.json`;
-  await writeFile(fileName, jsonSchema);
-
-  log(chalk.green(`Created file ${fileName}`));
+  await generateFile(fileName, jsonSchema);
 };
 generateReportSchema();
