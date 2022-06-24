@@ -52,6 +52,7 @@
     "typing:single": "npx json2ts single-report-schema.json > single-report-schema.d.ts",
     "typing:comparison": "npx json2ts comparison-report-schema.json > comparison-report-schema.d.ts",
     "embed:html": "node src/sdlc/embed-window-data.js",
+    "prebuild": "run-s cleanup",
     "build": "run-p build:*",
     "build:single": "rimraf ../piperider_cli/data/report/single-report && GENERATE_SOURCEMAP=false REACT_APP_SINGLE_REPORT=true react-scripts build && mv build ../piperider_cli/data/report/single-report",
     "build:comparison": "rimraf ../piperider_cli/data/report/comparison-report && GENERATE_SOURCEMAP=false REACT_APP_SINGLE_REPORT=false react-scripts build && mv build ../piperider_cli/data/report/comparison-report",
