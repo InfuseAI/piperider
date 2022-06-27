@@ -224,7 +224,7 @@ class Profiler:
             distribution = None
             if _non_null == 1:
                 distribution = self._dist_topk(conn, t2.c.c, 20)
-            elif _non_null > 0:
+            elif _non_null > 0 and _min is not None and _max is not None:
                 dmin, dmax, interval = Profiler._calc_distribution_range(_min, _max, is_integer=is_integer)
                 _num_buckets = 20
 
