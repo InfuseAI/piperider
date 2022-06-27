@@ -197,3 +197,47 @@ ERROR: The max value should be greater than or equal to the min value.""", resul
 
         self.assertEqual("""Found assertion syntax problem => name: assert_row_count for table orders_1k
 ERROR: min parameter should be a int value""", results[0].as_report())
+
+    def test_validation_assert_column_not_null(self):
+        self._test_no_args_assertion('assert_column_not_null')
+
+    def test_validation_assert_column_null(self):
+        self._test_no_args_assertion('assert_column_null')
+
+    def test_validation_assert_column_unique(self):
+        self._test_no_args_assertion('assert_column_unique')
+
+    def test_validation_assert_column_exist(self):
+        self._test_no_args_assertion('assert_column_exist')
+
+    def _test_no_args_assertion(self, function_name):
+        # test with no problem syntax
+        AssertionEngine.load_assertion_content = _(f"""
+            orders_1k:  # Table Name
+              # Test Cases for Table
+              columns:
+                foobarbar:
+                  tests:
+                  - name: {function_name}
+            """)
+        # expect no errors and warnings
+        self.engine.load_all_assertions_for_validation()
+        results = self.engine.validate_assertions()
+        self.assertListEqual([], results)
+        # test with error syntax
+        AssertionEngine.load_assertion_content = _(f"""
+            orders_1k:  # Table Name
+              # Test Cases for Table
+              columns:
+                foobarbar:
+                  tests:
+                  - name: {function_name}
+                    assert:
+                      foo: bar
+            """)
+        # expect no errors and warnings
+        self.engine.load_all_assertions_for_validation()
+        results = self.engine.validate_assertions()
+        self.assertEqual(1, len(results))
+        self.assertEqual(f"""Found assertion syntax problem => name: {function_name} for table orders_1k and column foobarbar
+ERROR: parameters are not allowed""", results[0].as_report())

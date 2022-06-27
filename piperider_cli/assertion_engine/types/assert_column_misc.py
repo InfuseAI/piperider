@@ -11,8 +11,7 @@ class AssertColumnNotNull(BaseAssertionType):
         return assert_column_not_null(context, table, column, metrics)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
-        # TODO warning when user put asserts
-        pass
+        return ValidationResult(context).keep_no_args()
 
 
 class AssertColumnNull(BaseAssertionType):
@@ -23,8 +22,7 @@ class AssertColumnNull(BaseAssertionType):
         return assert_column_null(context, table, column, metrics)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
-        # TODO warning when user put asserts
-        pass
+        return ValidationResult(context).keep_no_args()
 
 
 class AssertColumnUnique(BaseAssertionType):
@@ -35,8 +33,7 @@ class AssertColumnUnique(BaseAssertionType):
         return assert_column_unique(context, table, column, metrics)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
-        # TODO warning when user put asserts
-        pass
+        return ValidationResult(context).keep_no_args()
 
 
 class AssertColumnExist(BaseAssertionType):
@@ -47,8 +44,7 @@ class AssertColumnExist(BaseAssertionType):
         return assert_column_exist(context, table, column, metrics)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
-        # TODO warning when user put asserts
-        pass
+        return ValidationResult(context).keep_no_args()
 
 
 def assert_column_not_null(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:

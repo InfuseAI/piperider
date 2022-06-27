@@ -97,6 +97,15 @@ class ValidationResult:
 
         return self
 
+    def keep_no_args(self):
+        if self.context.asserts is None:
+            return self
+
+        if self.context.asserts.keys():
+            self.errors.append(('ERROR', 'parameters are not allowed'))
+            return self
+        return self
+
     def as_report(self):
         def to_str(x: tuple):
             return ": ".join(x)
