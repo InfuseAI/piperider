@@ -223,9 +223,10 @@ class Profiler:
                 func.avg(t2.c.c).label("_avg"),
                 func.min(t2.c.c).label("_min"),
                 func.max(t2.c.c).label("_max"),
+                func.avg(t2.c.c * t2.c.c).label("_square_avg"),
             )
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _mismatched, _distinct, _sum, _avg, _min, _max = result
+            _total, _non_null, _mismatched, _distinct, _sum, _avg, _min, _max, _square_avg = result
             if is_integer:
                 _sum = int(_sum) if _sum is not None else None
                 _min = int(_min) if _min is not None else None
@@ -235,6 +236,8 @@ class Profiler:
                 _min = float(_min) if _min is not None else None
                 _max = float(_max) if _max is not None else None
             _avg = float(_avg) if _avg is not None else None
+            _square_avg = float(_square_avg) if _square_avg is not None else None
+            _stddev = math.sqrt(_square_avg - _avg * _avg)
 
             # quantile
             quantile = self._calc_quantile(conn, t2, t2.c.c)
@@ -326,6 +329,7 @@ class Profiler:
                 'avg': _avg,
                 'p5': quantile[1],
                 'p25': quantile[5],
+                'stddev': _stddev,
                 'median': quantile[10],
                 'p75': quantile[15],
                 'p95': quantile[19],
