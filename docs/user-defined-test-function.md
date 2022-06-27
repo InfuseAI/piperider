@@ -135,11 +135,11 @@ return context.result.fail()
 You might want to know what kinds of data you have in the `metric` dict? There is a `.profiler.json` in the output path
 of the `run` command. Open it and check the content:
 
-```
+```bash
 ls -alh $(MY_PROJECT)/.piperider/outputs/$(DATASOURCE)-$(TIMESTAMP)
-total 48
-drwxr-xr-x   4 piperider  staff   128B  6  1 09:35 .
-drwxr-xr-x  26 piperider  staff   832B  6  1 09:35 ..
--rw-r--r--   1 piperider  staff   6.2K  6  1 09:35 .profiler.json
--rw-r--r--   1 piperider  staff    15K  6  1 09:35 data.json
+# total 48
+# drwxr-xr-x   4 piperider  staff   128B  6  1 09:35 .
+# drwxr-xr-x  26 piperider  staff   832B  6  1 09:35 ..
+# -rw-r--r--   1 piperider  staff   6.2K  6  1 09:35 .profiler.json
+# -rw-r--r--   1 piperider  staff    15K  6  1 09:35 data.json
 ```

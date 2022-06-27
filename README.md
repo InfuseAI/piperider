@@ -10,10 +10,10 @@
 
 # What is PipeRider?
 
-PipeRider is an open-source toolkit for detecting data issues across pipelines that works with CI systems for continuous data quality assessment. PipeRider makes it easy for teams to have visibility about how data are being tested, and ensure errors are caught before they cause outages of downstream data applications like business intelligence dashboards or ML systems.
+PipeRider is an open-source toolkit for detecting data issues across pipelines that work with CI systems for continuous data quality assessment. PipeRider makes it easy for teams to have visibility about how data are being tested, and ensure errors are caught before they cause outages of downstream data applications like business intelligence dashboards or ML systems.
 # Why PipeRider?
 
-Ensuring consistent quality of data used to be difficult. Missing values, schema changes, data drift (to name just a few), could be introduced to your data at any time. Without effective data quality tools these errors will affect downstream operations and result in countless lost hours to debugging and missed revenue opportunities from unexpected downtime.
+Ensuring consistent quality of data used to be difficult. Missing values, schema changes and data drift (to name just a few) could be introduced to your data at any time. Without effective data quality tools, these errors will affect downstream operations and result in countless lost hours of debugging and missed revenue opportunities from unexpected downtime.
 PipeRider allows you to define the shape of your data once, and then use the data checking functionality to alert you to changes in your data quality.
 
 [![ci-tests](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)
@@ -42,7 +42,7 @@ PipeRider allows you to define the shape of your data once, and then use the dat
 
 # Key Features
 
-## Instant quality assessment in html report
+## Instant quality assessment in HTML report
 
 Example of [single run report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/single-run/global_mobility_report.html)
 
@@ -63,10 +63,10 @@ to [custom assertions](https://docs.piperider.io/data-quality-assertions/custom-
 ## Install PipeRider
 
 ```bash
-$ pip install piperider
+pip install piperider
 ```
 
-By default, PipeRider supports built-in sqlite connector, extra connectors are available:
+By default, PipeRider supports built-in SQLite connector, extra connectors are available:
 
 | connectors  | install  |
 |---|---|
@@ -75,11 +75,11 @@ By default, PipeRider supports built-in sqlite connector, extra connectors are a
 
 Use comma to install multiple connectors in one line:
 
-```
-$ pip install 'piperider[postgres,snowflake]'
+```bash
+pip install 'piperider[postgres,snowflake]'
 ```
 
-## Attach piperider to a dbt project
+## Attach PipeRider to a dbt project
 
 ![piperider_init](images/init_pipe.gif)
 
@@ -89,19 +89,19 @@ This command creates `/.piperider` under a dbt project root and generates necess
 
 ![piperider_run](images/run_pipe.gif)
 
-This command scans the models from datasource and creates assessment results in `/.piperider/output`
+This command scans the models from data sources and creates assessment results in `/.piperider/output`
 
 ## Generate reports
 
 ![piperider_report](images/report_pipe.gif)
 
-generate a static html report under current path.
+generate a static HTML report under the current path.
 
 ## Generate comparison view
 
 ![piperider_compare](images/compare_pipe.gif)
 
-The generated report in html will be placed in the path shown in console
+The generated report in HTML will be placed in the path shown in the console.
 
 # Get involved
 ## Contributions

@@ -4,7 +4,7 @@ In a piperider project, we can define assertions to validate the data in an expe
 
 The tests are defined in `.piperider/assertions/{table}.yml`. Here is the example config
 
-```
+```yaml
 #mytable.yml
 mytable:
   tests:

@@ -13,7 +13,7 @@ Piperider can integrate the assets and artifacts from a dbt project. The project
 It will search the dbt_project.yml under the folder and sub-folders. And if the file is found, it will generate the
 piperider config like this
 
-```
+```yaml
 dataSources:
 - name: my_dbt_project
   type: snowflake
@@ -46,7 +46,7 @@ You can use the environment variable `DBT_PROFILES_DIR` to override the default 
 
 To use two different profile data, define two data sources
 
-```
+```yaml
 dataSources:
 - name: my_dbt_project
   type: snowflake
@@ -64,7 +64,7 @@ dataSources:
 
 When run a project, use the `--datasource` to specify the data source to run.
 
-```
+```bash
 piperider run --datasource my_dbt_project_prod
 ```
 
