@@ -43,10 +43,9 @@
     "typescript": "^4.7.4"
   },
   "scripts": {
-    "prestart:single": "run-s schema:* typing:* embed:html",
-    "start:single": "REACT_APP_SINGLE_REPORT=true react-scripts start",
-    "prestart:comparison": "run-s schema:* typing:* embed:html",
-    "start:comparison": "REACT_APP_SINGLE_REPORT=false react-scripts start",
+    "setup": "run-s schema:* typing:* embed:html",
+    "start:single": "npm run setup && REACT_APP_SINGLE_REPORT=true react-scripts start",
+    "start:comparison": "npm run setup && REACT_APP_SINGLE_REPORT=false react-scripts start",
     "schema:single": "node src/sdlc/generate-report-schema.js single",
     "schema:comparison": "node src/sdlc/generate-report-schema.js comparison",
     "typing:single": "npx json2ts src/sdlc/single-report-schema.json > src/sdlc/single-report-schema.d.ts",

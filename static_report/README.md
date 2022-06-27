@@ -4,8 +4,8 @@ The FE source code that the CLI uses to output report views
 
 ## (Prerequisite) Generate reports with the local CLI
 
-To develop the CLI alongside FE static reports.
-This is REQUIRED for serving your apps, as it depends on CLI's outputs:
+**To develop the CLI alongside FE static reports.
+This is <span style="color: red">REQUIRED</span> for serving your apps, as it depends on CLI's outputs:**
 
 1. Go to the root of this repo
 1. Initialize Python's Virtual Environment: `python -m venv .venv`
@@ -27,15 +27,18 @@ $ npm install
 ### Run the FE Static Reports
 
 > **Note**
-> By this point, you MUST have first generated both comparison and single reports from `piperider` CLI (see prev section).
+> By this point, you **MUST** have first generated both comparison and single reports from `piperider` CLI (see prev section).
 
-All `start:*` scripts will run correspondingly to `prestart:*` scripts to setup your development environment.
+All `start:*` scripts will run with `setup` script to setup your development environment.
 
-The prestart scripts will do the following, sourcing from the project's root `.piperider/` (created by `piperider init`):
+The `setup` scripts will do the following, sourcing from the project's root `.piperider/` (created by `piperider init`):
 
-1. Get the latest schema of report/comparison from raw data
-1. Get the latest report/comparison TS typings from that generated schema
-1. Embed the latest available report/comparison raw data into index.html
+1. Get both latest schema of single & comparison from raw CLI-generated report data
+   - requires `piperider run` for single
+   - requires `piperider compare-report` for comparison
+1. Get the latest single/comparison TS typings from that generated schema (`piperider run`)
+   - generated typings are exposed at `src/sdlc/global.d.ts`
+1. Embed the latest available single/comparison raw data into index.html
 
 ### If Things Break
 
