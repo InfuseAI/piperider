@@ -1,16 +1,17 @@
+import decimal
 import math
 import time
 from datetime import date
 
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import MetaData, Table, String, Integer, Numeric, Date, DateTime, Boolean, select as select_orig, func, \
-    distinct, case
+from sqlalchemy import MetaData, Table, String, Integer, Numeric, Date, DateTime, Boolean, select, func, distinct, case
 
 
-# To comaptible with sqlalchemy 1.3
-# select(col1, col2, col3) does not work in 1.3
-def select(*args):
-    return select_orig(args)
+# dtof is helpler function to transform decimal value to float. Decimal is not json serializable type.
+def dtof(value):
+    if isinstance(value, decimal.Decimal):
+        return float(value)
+    return value
 
 
 class Profiler:
@@ -121,12 +122,12 @@ class Profiler:
         t = self.metadata.tables[table_name]
 
         with self.engine.connect() as conn:
-            t2 = select(t.c[column_name].label("c")).cte(name="T")
-            stmt = select(
+            t2 = select([t.c[column_name].label("c")]).cte(name="T")
+            stmt = select([
                 func.count().label("_total"),
                 func.count(t2.c.c).label("_non_nulls"),
                 func.count(distinct(t2.c.c)).label("_distinct")
-            )
+            ])
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _distinct = result
             distribution = None
@@ -140,10 +141,10 @@ class Profiler:
             }
 
     def _dist_topk(self, conn, expr, k):
-        stmt = select(
+        stmt = select([
             expr,
             func.count().label("_count")
-        ).group_by(
+        ]).group_by(
             expr
         ).order_by(
             func.count().desc(),
@@ -164,26 +165,54 @@ class Profiler:
         return distribution
 
     def _calc_quantile(self, conn, table, column):
-        # with a as (
-        #     select
-        #     column as c,
-        #     ntile(20) over (order by column) as n
-        # from price
-        # )
-        #
-        # select min(c), n, count(tile) from table group by n
+        if self.engine.url.get_backend_name() == "sqlite":
+            # with t as (
+            #   select
+            #     column as c,
+            #     ntile(20) over (order by column) as n
+            #   from table
+            # )
+            # select min(c), n, count(tile) from t group by n
 
-        t = select(
-            column.label("c"),
-            func.ntile(20).over(order_by=column).label("n")
-        ).cte()
-        stmt = select(t.c.n, func.min(t.c.c)).group_by(t.c.n)
-        result = conn.execute(stmt)
-        quantile = []
-        for row in result:
-            n, v = row
-            quantile.append(v)
-        return quantile
+            t = select([
+                column.label("c"),
+                func.ntile(20).over(order_by=column).label("n")
+            ]).cte()
+            stmt = select([t.c.n, func.min(t.c.c)]).group_by(t.c.n)
+            result = conn.execute(stmt)
+            quantile = []
+            for row in result:
+                n, v = row
+                quantile.append(v)
+            return {
+                'p5': dtof(quantile[0]),
+                'p25': dtof(quantile[5]),
+                'median': dtof(quantile[10]),
+                'p75': dtof(quantile[15]),
+                'p95': dtof(quantile[19]),
+            }
+        else:
+            # https://docs.sqlalchemy.org/en/14/core/functions.html#sqlalchemy.sql.functions.percentile_disc
+            #
+            # select
+            #     percentile_cont(0.05) within group (order by column),
+            #     percentile_cont(0.25) within group (order by column),
+            #     percentile_cont(0.5) within group (order by column),
+            #     percentile_cont(0.75) within group (order by column),
+            #     percentile_cont(0.95) within group (order by column)
+            # from table
+            selects = [
+                func.percentile_disc(percentile).within_group(column) for percentile in [0.05, 0.25, 0.5, 0.75, 0.95]
+            ]
+            stmt = select(selects).select_from(table)
+            result = conn.execute(stmt).fetchone()
+            return {
+                'p5': dtof(result[0]),
+                'p25': dtof(result[1]),
+                'median': dtof(result[2]),
+                'p75': dtof(result[3]),
+                'p95': dtof(result[4]),
+            }
 
     def _profile_numeric_column(self, table_name: str, column_name: str, is_integer: bool):
         # metadata = MetaData()
@@ -192,15 +221,15 @@ class Profiler:
 
         with self.engine.connect() as conn:
             if self.engine.url.get_backend_name() != "sqlite":
-                t2 = select(
+                t2 = select([
                     t.c[column_name].label("c"),
                     case(
                         [(t.c[column_name].is_(None), None)],
                         else_=0
                     ).label("mismatched")
-                ).cte(name="T")
+                ]).cte(name="T")
             else:
-                t2 = select(
+                t2 = select([
                     case(
                         [(func.typeof(t.c[column_name]) == 'text', None),
                          (func.typeof(t.c[column_name]) == 'blob', None)],
@@ -212,9 +241,9 @@ class Profiler:
                          (func.typeof(t.c[column_name]) == 'null', None)],
                         else_=0
                     ).label("mismatched")
-                ).cte(name="T")
+                ]).cte(name="T")
 
-            stmt = select(
+            stmt = select([
                 func.count().label("_total"),
                 func.count(t2.c.mismatched).label("_non_nulls"),
                 func.sum(t2.c.mismatched).label("_mismatched"),
@@ -224,19 +253,15 @@ class Profiler:
                 func.min(t2.c.c).label("_min"),
                 func.max(t2.c.c).label("_max"),
                 func.avg(t2.c.c * t2.c.c).label("_square_avg"),
-            )
+            ])
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _mismatched, _distinct, _sum, _avg, _min, _max, _square_avg = result
-            if is_integer:
-                _sum = int(_sum) if _sum is not None else None
-                _min = int(_min) if _min is not None else None
-                _max = int(_max) if _max is not None else None
-            else:
-                _sum = float(_sum) if _sum is not None else None
-                _min = float(_min) if _min is not None else None
-                _max = float(_max) if _max is not None else None
-            _avg = float(_avg) if _avg is not None else None
-            _square_avg = float(_square_avg) if _square_avg is not None else None
+
+            _sum = dtof(_sum)
+            _min = dtof(_min)
+            _max = dtof(_max)
+            _avg = dtof(_avg)
+            _square_avg = dtof(_square_avg)
             _stddev = math.sqrt(_square_avg - _avg * _avg)
 
             # quantile
@@ -264,17 +289,17 @@ class Profiler:
                 dmin, dmax, interval = Profiler._calc_distribution_range(_min, _max, is_integer=is_integer)
                 _num_buckets = 20
 
-                t2 = select(
+                t2 = select([
                     t.c[column_name].label("c"),
                     map_bucket(t.c[column_name].label("c"), dmin, dmin + (interval * _num_buckets), _num_buckets).label(
                         "bucket")
-                ).where(
+                ]).where(
                     t.c[column_name] is not None
                 ).cte(name="T")
-                stmt = select(
+                stmt = select([
                     t2.c.bucket,
                     func.count().label("_count")
-                ).group_by(
+                ]).group_by(
                     t2.c.bucket
                 ).order_by(
                     t2.c.bucket
@@ -327,12 +352,12 @@ class Profiler:
                 'max': _max,
                 'sum': _sum,
                 'avg': _avg,
-                'p5': quantile[1],
-                'p25': quantile[5],
+                'p5': quantile['p5'],
+                'p25': quantile['p25'],
                 'stddev': _stddev,
-                'median': quantile[10],
-                'p75': quantile[15],
-                'p95': quantile[19],
+                'median': quantile['median'],
+                'p75': quantile['p75'],
+                'p95': quantile['p95'],
                 'distribution': distribution,
             }
 
@@ -340,14 +365,14 @@ class Profiler:
         t = self.metadata.tables[table_name]
 
         with self.engine.connect() as conn:
-            t2 = select(t.c[column_name].label("c")).cte(name="T")
-            stmt = select(
+            t2 = select([t.c[column_name].label("c")]).cte(name="T")
+            stmt = select([
                 func.count().label("_total"),
                 func.count(t2.c.c).label("_non_nulls"),
                 func.count(distinct(t2.c.c)).label("_distinct"),
                 func.min(t2.c.c).label("_min"),
                 func.max(t2.c.c).label("_max"),
-            )
+            ])
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _distinct, _min, _max, = result
 
@@ -377,22 +402,22 @@ class Profiler:
                     distribution["type"] = "yearly"
                     period = relativedelta(dmax, dmin)
                     num_buckets = math.ceil(period.years / interval.years)
-                    t2 = select(date_trunc("YEAR", t.c[column_name]).label("d")).cte(name="T")
+                    t2 = select([date_trunc("YEAR", t.c[column_name]).label("d")]).cte(name="T")
                 elif interval.months:
                     distribution["type"] = "monthly"
                     period = relativedelta(dmax, dmin)
                     num_buckets = (period.years * 12 + period.months) // interval.months
-                    t2 = select(date_trunc("MONTH", t.c[column_name]).label("d")).cte(name="T")
+                    t2 = select([date_trunc("MONTH", t.c[column_name]).label("d")]).cte(name="T")
                 else:
                     distribution["type"] = "daily"
                     period = dmax - dmin
                     num_buckets = (period.days + 1) // interval.days
-                    t2 = select(date_trunc("DAY", t.c[column_name]).label("d")).cte(name="T")
+                    t2 = select([date_trunc("DAY", t.c[column_name]).label("d")]).cte(name="T")
 
-                stmt = select(
+                stmt = select([
                     t2.c.d,
                     func.count(t2.c.d).label("_count")
-                ).group_by(
+                ]).group_by(
                     t2.c.d
                 ).order_by(
                     t2.c.d
@@ -432,11 +457,11 @@ class Profiler:
         t = self.metadata.tables[table_name]
 
         with self.engine.connect() as conn:
-            t2 = select(t.c[column_name].label("c")).cte(name="T")
-            stmt = select(
+            t2 = select([t.c[column_name].label("c")]).cte(name="T")
+            stmt = select([
                 func.count().label("_total"),
                 func.count(t2.c.c).label("_non_nulls"),
-            )
+            ])
             result = conn.execute(stmt).fetchone()
             _total, _non_null, = result
 
@@ -456,12 +481,12 @@ class Profiler:
         t = self.metadata.tables[table_name]
 
         with self.engine.connect() as conn:
-            t2 = select(t.c[column_name].label("c")).cte(name="T")
-            stmt = select(
+            t2 = select([t.c[column_name].label("c")]).cte(name="T")
+            stmt = select([
                 func.count().label("_total"),
                 func.count(t2.c.c).label("_non_nulls"),
                 func.count(distinct(t2.c.c)).label("_distinct")
-            )
+            ])
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _distinct = result
             return {
