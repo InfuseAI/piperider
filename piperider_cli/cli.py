@@ -180,7 +180,7 @@ def generate_report(**kwargs):
 @click.option('--base', default=None, type=click.Path(exists=True), help='Specify the base report file.')
 @click.option('--input', default=None, type=click.Path(exists=True), help='Specify the report file to be compared.')
 @add_options(debug_option)
-def compare_report(**kwargs):
+def compare_reports(**kwargs):
     'Compare two existing reports selected in interactive mode or by option.'
 
     a = kwargs.get('base')
