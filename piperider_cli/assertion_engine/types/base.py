@@ -1,6 +1,7 @@
 import abc
 
 from piperider_cli.assertion_engine import AssertionContext, AssertionResult
+from piperider_cli.assertion_engine.assertion import ValidationResult
 
 
 class BaseAssertionType(metaclass=abc.ABCMeta):
@@ -17,5 +18,5 @@ class BaseAssertionType(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def validate(self, context: AssertionContext) -> AssertionResult:
+    def validate(self, context: AssertionContext) -> ValidationResult:
         pass

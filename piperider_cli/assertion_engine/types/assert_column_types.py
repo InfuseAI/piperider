@@ -1,4 +1,5 @@
 from piperider_cli.assertion_engine import AssertionContext, AssertionResult
+from piperider_cli.assertion_engine.assertion import ValidationResult
 from piperider_cli.assertion_engine.types.base import BaseAssertionType
 
 COLUMN_TYPES = ['string', 'integer', 'numeric', 'datetime', 'date', 'time', 'boolean', 'other']
@@ -11,7 +12,7 @@ class AssertColumnSchemaType(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_schema_type(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> AssertionResult:
+    def validate(self, context: AssertionContext) -> ValidationResult:
         pass
 
 
@@ -22,7 +23,7 @@ class AssertColumnType(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_type(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> AssertionResult:
+    def validate(self, context: AssertionContext) -> ValidationResult:
         pass
 
 
@@ -33,7 +34,8 @@ class AssertColumnInTypes(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_in_types(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> AssertionResult:
+    def validate(self, context: AssertionContext) -> ValidationResult:
+        # context.asserts.
         pass
 
 

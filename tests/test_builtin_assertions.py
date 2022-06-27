@@ -35,6 +35,22 @@ class BuiltinAssertionsTests(TestCase):
         with open(metrics_file) as fh:
             self.metrics = json.loads(fh.read())
 
+    def test_assert_row_count_in_range2(self):
+        assertions = """
+        orders_1k:  # Table Name
+          # Test Cases for Table
+          tests:
+          - name: assert_row_count_in_range
+            assert:
+              count: [1000, 200000.5]
+            tags:
+            - OPTIONAL
+        """
+        engine = build_assertion_engine('orders_1k', assertions)
+        engine.load_all_assertions_for_validation()
+        engine.validate_assertions()
+
+
     def test_assert_row_count_in_range(self):
         assertions = """
         orders_1k:  # Table Name

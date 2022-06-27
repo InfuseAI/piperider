@@ -1,4 +1,5 @@
 from piperider_cli.assertion_engine import AssertionContext, AssertionResult
+from piperider_cli.assertion_engine.assertion import ValidationResult
 from piperider_cli.assertion_engine.types.base import BaseAssertionType
 
 
@@ -9,7 +10,7 @@ class AssertColumnNotNull(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_not_null(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> AssertionResult:
+    def validate(self, context: AssertionContext) -> ValidationResult:
         # TODO warning when user put asserts
         pass
 
@@ -21,7 +22,7 @@ class AssertColumnNull(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_null(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> AssertionResult:
+    def validate(self, context: AssertionContext) -> ValidationResult:
         # TODO warning when user put asserts
         pass
 
@@ -33,7 +34,7 @@ class AssertColumnUnique(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_unique(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> AssertionResult:
+    def validate(self, context: AssertionContext) -> ValidationResult:
         # TODO warning when user put asserts
         pass
 
@@ -45,7 +46,7 @@ class AssertColumnExist(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_exist(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> AssertionResult:
+    def validate(self, context: AssertionContext) -> ValidationResult:
         # TODO warning when user put asserts
         pass
 

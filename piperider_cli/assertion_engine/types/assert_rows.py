@@ -1,4 +1,5 @@
 from piperider_cli.assertion_engine import AssertionContext, AssertionResult
+from piperider_cli.assertion_engine.assertion import ValidationResult
 from piperider_cli.assertion_engine.types.base import BaseAssertionType
 
 
@@ -10,10 +11,8 @@ class AssertRowCountInRange(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_row_count_in_range(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> AssertionResult:
-        # TODO verify "count" exists
-        # TODO verify two parameters in same type and all integer values
-        pass
+    def validate(self, context: AssertionContext) -> ValidationResult:
+        return ValidationResult(context).require_column('count').require_int_pair('count')
 
 
 class AssertRowCount(BaseAssertionType):
@@ -23,10 +22,11 @@ class AssertRowCount(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_row_count(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> AssertionResult:
-        # TODO verify "min" and "max" exists
-        # TODO verify two parameters in same type and all integer values
-        pass
+    def validate(self, context: AssertionContext) -> ValidationResult:
+        return ValidationResult(context) \
+            .require_one_of_columns(['min', 'max']) \
+            .int_if_present('min') \
+            .int_if_present('max')
 
 
 def assert_row_count(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:

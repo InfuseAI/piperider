@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from piperider_cli.assertion_engine import AssertionContext, AssertionResult
+from piperider_cli.assertion_engine.assertion import ValidationResult
 from piperider_cli.assertion_engine.types.base import BaseAssertionType
 
 
@@ -11,7 +12,7 @@ class AssertColumnMinInRange(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_min_in_range(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> AssertionResult:
+    def validate(self, context: AssertionContext) -> ValidationResult:
         # TODO verify "min" exists
         # TODO verify two parameters in same type and all numeric values (including datetime, date, time)
         pass
@@ -24,7 +25,7 @@ class AssertColumnMaxInRange(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_max_in_range(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> AssertionResult:
+    def validate(self, context: AssertionContext) -> ValidationResult:
         # TODO verify "max" exists
         # TODO verify two parameters in same type and all numeric values (including datetime, date, time)
         pass
@@ -37,7 +38,7 @@ class AssertColumnInRange(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_in_range(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> AssertionResult:
+    def validate(self, context: AssertionContext) -> ValidationResult:
         # TODO verify "range" exists
         # TODO verify two parameters in same type and all numeric values (including datetime, date, time)
         pass

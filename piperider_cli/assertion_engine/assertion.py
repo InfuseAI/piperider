@@ -45,19 +45,54 @@ def load_yaml_configs(path):
 
 class ValidationResult:
 
-    def __init__(self):
-        self.validated = False
-        self.message = None
-        self.stop_runner = False
+    def __init__(self, context):
+        self.context = context
+        self.errors = []
 
-    def warn(self, message):
-        self.validated = True
-        self.message = message
+    def require_column(self, name):
+        configuration: dict = self.context.asserts
+        if name not in configuration:
+            self.errors.append(('ERROR', f'{name} is required'))
+        return self
 
-    def error(self, message):
-        self.validated = True
-        self.message = message
-        self.stop_runner = True
+    def _require_numeric_pair(self, name, valid_types: set):
+        configuration: dict = self.context.asserts
+        values = configuration.get(name)
+        if not isinstance(values, list):
+            self.errors.append(('ERROR', f'{name} should be a list'))
+            return self
+
+        if len(values) != 2:
+            self.errors.append(('ERROR', f'{name} should contains two values'))
+            return self
+
+        if set([type(x) for x in values]) not in valid_types:
+            self.errors.append(('ERROR', f'{name} should be one of the types {valid_types}, input: {values}'))
+            return self
+
+        return self
+
+    def require_int_pair(self, name):
+        return self._require_numeric_pair(name, {int})
+
+    def require_one_of_columns(self, names: list):
+        found = False
+        columns = self.context.asserts.keys()
+        for c in names:
+            if c in columns:
+                found = True
+                break
+        if not found:
+            self.errors.append(('ERROR', f'There should contain any parameter names in {names}'))
+            return self
+
+    def int_if_present(self, name: str):
+        if name not in self.context.asserts:
+            return self
+
+        if not isinstance(self.context.asserts.get(name), int):
+            self.errors.append(('ERROR', f'{name} should be a int value'))
+            return self
 
 
 class AssertionResult:
@@ -67,7 +102,6 @@ class AssertionResult:
         self._exception: Exception = None
         self.actual: dict = None
         self._expected: dict = None
-        self.validated_result: ValidationResult = ValidationResult()
 
     def status(self):
         return self._success
@@ -431,20 +465,15 @@ class AssertionEngine:
     def validate_assertions(self):
 
         from piperider_cli.assertion_engine.types import get_assertion
-        results = dict()
+        results = []
 
         for assertion in self.assertions:
             try:
                 assertion_instance = get_assertion(assertion.name)
-                assertion_instance.validate(assertion)
+                results.append(assertion_instance.validate(assertion))
             except ValueError:
                 pass
-            print(assertion)
-            # validation_pass: bool = self.validate(assertion)
-            # results.append(validation_pass)
-            # print(assertion, validation_pass)
 
-        # TODO report errors or warnings
         return results
 
     def configure_plugins_path(self):
