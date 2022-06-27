@@ -43,6 +43,23 @@ def load_yaml_configs(path):
     return passed, failed, content
 
 
+class ValidationResult:
+
+    def __init__(self):
+        self.validated = False
+        self.message = None
+        self.stop_runner = False
+
+    def warn(self, message):
+        self.validated = True
+        self.message = message
+
+    def error(self, message):
+        self.validated = True
+        self.message = message
+        self.stop_runner = True
+
+
 class AssertionResult:
 
     def __init__(self):
@@ -50,6 +67,7 @@ class AssertionResult:
         self._exception: Exception = None
         self.actual: dict = None
         self._expected: dict = None
+        self.validated_result: ValidationResult = ValidationResult()
 
     def status(self):
         return self._success

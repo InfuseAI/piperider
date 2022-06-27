@@ -11,7 +11,7 @@ class AssertColumnSchemaType(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_schema_type(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> bool:
+    def validate(self, context: AssertionContext) -> AssertionResult:
         pass
 
 
@@ -22,7 +22,7 @@ class AssertColumnType(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_type(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> bool:
+    def validate(self, context: AssertionContext) -> AssertionResult:
         pass
 
 
@@ -33,7 +33,7 @@ class AssertColumnInTypes(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_in_types(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> bool:
+    def validate(self, context: AssertionContext) -> AssertionResult:
         pass
 
 

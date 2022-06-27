@@ -9,7 +9,8 @@ class AssertColumnNotNull(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_not_null(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> bool:
+    def validate(self, context: AssertionContext) -> AssertionResult:
+        # TODO warning when user put asserts
         pass
 
 
@@ -20,7 +21,8 @@ class AssertColumnNull(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_null(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> bool:
+    def validate(self, context: AssertionContext) -> AssertionResult:
+        # TODO warning when user put asserts
         pass
 
 
@@ -31,7 +33,8 @@ class AssertColumnUnique(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_unique(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> bool:
+    def validate(self, context: AssertionContext) -> AssertionResult:
+        # TODO warning when user put asserts
         pass
 
 
@@ -42,7 +45,8 @@ class AssertColumnExist(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_exist(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> bool:
+    def validate(self, context: AssertionContext) -> AssertionResult:
+        # TODO warning when user put asserts
         pass
 
 

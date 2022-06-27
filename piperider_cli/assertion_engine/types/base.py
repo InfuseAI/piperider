@@ -17,5 +17,5 @@ class BaseAssertionType(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def validate(self, context: AssertionContext) -> bool:
+    def validate(self, context: AssertionContext) -> AssertionResult:
         pass

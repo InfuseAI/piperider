@@ -10,7 +10,9 @@ class AssertRowCountInRange(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_row_count_in_range(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> bool:
+    def validate(self, context: AssertionContext) -> AssertionResult:
+        # TODO verify "count" exists
+        # TODO verify two parameters in same type and all integer values
         pass
 
 
@@ -21,7 +23,9 @@ class AssertRowCount(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_row_count(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> bool:
+    def validate(self, context: AssertionContext) -> AssertionResult:
+        # TODO verify "min" and "max" exists
+        # TODO verify two parameters in same type and all integer values
         pass
 
 

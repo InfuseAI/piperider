@@ -11,7 +11,9 @@ class AssertColumnMinInRange(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_min_in_range(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> bool:
+    def validate(self, context: AssertionContext) -> AssertionResult:
+        # TODO verify "min" exists
+        # TODO verify two parameters in same type and all numeric values (including datetime, date, time)
         pass
 
 
@@ -22,7 +24,9 @@ class AssertColumnMaxInRange(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_max_in_range(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> bool:
+    def validate(self, context: AssertionContext) -> AssertionResult:
+        # TODO verify "max" exists
+        # TODO verify two parameters in same type and all numeric values (including datetime, date, time)
         pass
 
 
@@ -33,7 +37,9 @@ class AssertColumnInRange(BaseAssertionType):
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         return assert_column_in_range(context, table, column, metrics)
 
-    def validate(self, context: AssertionContext) -> bool:
+    def validate(self, context: AssertionContext) -> AssertionResult:
+        # TODO verify "range" exists
+        # TODO verify two parameters in same type and all numeric values (including datetime, date, time)
         pass
 
 
