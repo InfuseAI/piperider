@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, date, time
 from importlib import import_module
 from typing import List, Dict
 
@@ -43,6 +43,113 @@ def load_yaml_configs(path):
                     always_merger.merge(content, payload)
 
     return passed, failed, content
+
+
+class ValidationResult:
+
+    def __init__(self, context):
+        self.context = context
+        self.errors = []
+
+    def has_errors(self):
+        return self.errors != []
+
+    def require(self, name: str, specific_type=None):
+        configuration: dict = self.context.asserts
+        if name not in configuration:
+            self.errors.append(f'{name} parameter is required')
+        if specific_type is not None:
+            if not isinstance(configuration.get(name), specific_type):
+                self.errors.append(f'{name} parameter should be a {specific_type} value')
+        return self
+
+    def _require_numeric_pair(self, name, valid_types: set):
+        configuration: dict = self.context.asserts
+        values = configuration.get(name)
+        if not isinstance(values, list):
+            self.errors.append(f'{name} parameter should be a list')
+            return self
+
+        if len(values) != 2:
+            self.errors.append(f'{name} parameter should contain two values')
+            return self
+
+        if not set([type(x) for x in values]).issubset(valid_types):
+            self.errors.append(f'{name} parameter should be one of the types {valid_types}, input: {values}')
+            return self
+
+        return self
+
+    def require_int_pair(self, name):
+        return self._require_numeric_pair(name, {int})
+
+    def require_range_pair(self, name):
+        return self._require_numeric_pair(name, {int, float, datetime, date, time})
+
+    def require_same_types(self, name):
+        values = self.context.asserts.get(name)
+
+        base_type = type(values[0])
+        for v in values:
+            if type(v) != base_type:
+                self.errors.append(f'{name} parameter should be the same types')
+                return self
+
+        return self
+
+    def require_one_of_parameters(self, names: list):
+        found = False
+        columns = self.context.asserts.keys()
+        for c in names:
+            if c in columns:
+                found = True
+                break
+        if not found:
+            self.errors.append(f'There should contain any parameter names in {names}')
+            return self
+        return self
+
+    def int_if_present(self, name: str):
+        if name not in self.context.asserts:
+            return self
+
+        if not isinstance(self.context.asserts.get(name), int):
+            self.errors.append(f'{name} parameter should be a int value')
+            return self
+
+        return self
+
+    def keep_no_args(self):
+        if self.context.asserts is None:
+            return self
+
+        if self.context.asserts.keys():
+            self.errors.append('parameters are not allowed')
+            return self
+        return self
+
+    def as_internal_report(self):
+        def to_str(x: str):
+            return f'ERROR: {x}'
+
+        header = 'Found assertion syntax problem =>'
+        if self.context.column is None:
+            where = f"{header} name: {self.context.name} for table {self.context.table}"
+        else:
+            where = f"{header} name: {self.context.name} for table {self.context.table} and column {self.context.column}"
+
+        return "\n".join([where] + [to_str(x) for x in self.errors])
+
+    def as_user_report(self):
+        def to_str(x):
+            return '    ' + x
+
+        if self.context.column is None:
+            where = f'name: {self.context.name} for [{self.context.table}]'
+        else:
+            where = f'name: {self.context.name} for [{self.context.table}] and [{self.context.column}]'
+
+        return '\n'.join([where] + [to_str(x) for x in self.errors])
 
 
 class AssertionResult:
@@ -212,8 +319,7 @@ class AssertionEngine:
         {'nodes': {'tests': [], 'columns': {'uid': {'tests': []}, 'type': {'tests': []}, 'name': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'metadata': {'tests': []}}}, 'edges': {'tests': [], 'columns': {'n1_uid': {'tests': []}, 'n2_uid': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'type': {'tests': []}, 'metadata': {'tests': []}}}}
         """
         self.assertions = []
-        passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
-            self.assertion_search_path)
+        self.load_assertion_content()
 
         # Load assertio
         if profiling_result:
@@ -228,6 +334,26 @@ class AssertionEngine:
                 for c in self.assertions_content[t].get('columns', {}):
                     for ca in self.assertions_content[t]['columns'][c].get('tests', []):
                         self.assertions.append(AssertionContext(t, c, ca))
+
+    def load_all_assertions_for_validation(self) -> (List[str], List[str]):
+        passed_assertion_files, failed_assertion_files = self.load_assertion_content()
+
+        self.assertions = []
+
+        for t in self.assertions_content:
+            for ta in self.assertions_content[t].get('tests', []):
+                self.assertions.append(AssertionContext(t, None, ta))
+            for c in self.assertions_content[t].get('columns', {}):
+                for ca in self.assertions_content[t]['columns'][c].get('tests', []):
+                    self.assertions.append(AssertionContext(t, c, ca))
+
+        return passed_assertion_files, failed_assertion_files
+
+    def load_assertion_content(self):
+        passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
+            self.assertion_search_path)
+
+        return passed_assertion_files, failed_assertion_files
 
     def generate_template_assertions(self, profiling_result):
         self.recommender.prepare_assertion_template(profiling_result)
@@ -347,40 +473,20 @@ class AssertionEngine:
               outliers: 5 # in get_outliers's verification logic, check outliers parameter and return true if it's less than 5
         """
 
-        func = None
+        self.load_plugins()
 
-        self.configure_plugins_path()
+        from piperider_cli.assertion_engine.types import get_assertion
         try:
-            # assertion name with "." suppose to be a user-defined test function
-            is_user_defined_test_function = ("." in assertion.name)
-            if not is_user_defined_test_function:
-                # locate the builtin assertion from the piperider_cli.assertion_engine
-                # fetch the assertion function
-                assertion_module = import_module('piperider_cli.assertion_engine')
-                func = getattr(assertion_module, assertion.name)
-            else:
-                assertion_def = assertion.name.split(".")
-                module_name = ".".join(assertion_def[0:-1])
-                function_name = assertion_def[-1]
-                assertion_module = import_module(module_name)
-                func = getattr(assertion_module, function_name)
-        except ModuleNotFoundError as e:
+            assertion_instance = get_assertion(assertion.name)
+            try:
+                result = assertion_instance.execute(assertion, assertion.table, assertion.column, metrics_result)
+                result.validate()
+            except Exception as e:
+                assertion.result.fail_with_exception(e)
+            return assertion
+        except ValueError as e:
             assertion.result.fail_with_exception(AssertionError(f'Cannot find the assertion: {assertion.name}', e))
             return assertion
-        except ImportError as e:
-            assertion.result.fail_with_exception(AssertionError(f'Cannot find the assertion: {assertion.name}', e))
-            return assertion
-        except Exception as e:
-            assertion.result.fail_with_exception(AssertionError(f'Cannot find the assertion: {assertion.name}', e))
-            return assertion
-
-        try:
-            result = func(assertion, assertion.table, assertion.column, metrics_result)
-            result.validate()
-        except Exception as e:
-            assertion.result.fail_with_exception(e)
-
-        return assertion
 
     def evaluate_all(self, metrics_result):
         results = []
@@ -401,9 +507,44 @@ class AssertionEngine:
                 exceptions.append((assertion, e))
         return results, exceptions
 
-    def configure_plugins_path(self):
+    def validate_assertions(self):
+
+        from piperider_cli.assertion_engine.types import get_assertion
+        results = []
+
+        for assertion in self.assertions:
+            try:
+                assertion_instance = get_assertion(assertion.name)
+                result = assertion_instance.validate(assertion)
+                if result and result.has_errors():
+                    results.append(result)
+            except ValueError:
+                pass
+
+        return results
+
+    def load_plugins(self):
+
+        def to_dirs(path_list: str):
+            if path_list is None:
+                return []
+            return [x.strip() for x in path_list.split(':')]
+
+        plugin_dirs = []
         plugin_context = os.environ.get('PIPERIDER_PLUGINS')
         if plugin_context:
             sys.path.append(plugin_context)
+            plugin_dirs += to_dirs(plugin_context)
+
         if self.default_plugins_dir:
             sys.path.append(self.default_plugins_dir)
+            plugin_dirs += to_dirs(self.default_plugins_dir)
+
+        for d in plugin_dirs:
+            module_names = [x.split('.py')[0] for x in os.listdir(d) if x.endswith(".py")]
+            for m in module_names:
+                try:
+                    import_module(m)
+                except BaseException:
+                    print(f"Failed to load module {m} from {d}")
+                    raise
