@@ -163,6 +163,28 @@ class Profiler:
             distribution["counts"].append(v)
         return distribution
 
+    def _calc_quantile(self, conn, table, column):
+        # with a as (
+        #     select
+        #     column as c,
+        #     ntile(20) over (order by column) as n
+        # from price
+        # )
+        #
+        # select min(c), n, count(tile) from table group by n
+
+        t = select(
+            column.label("c"),
+            func.ntile(20).over(order_by=column).label("n")
+        ).cte()
+        stmt = select(t.c.n, func.min(t.c.c)).group_by(t.c.n)
+        result = conn.execute(stmt)
+        quantile = []
+        for row in result:
+            n, v = row
+            quantile.append(v)
+        return quantile
+
     def _profile_numeric_column(self, table_name: str, column_name: str, is_integer: bool):
         # metadata = MetaData()
         # t = Table(table_name, metadata, Column(column_name, Numeric))
@@ -214,6 +236,10 @@ class Profiler:
                 _max = float(_max) if _max is not None else None
             _avg = float(_avg) if _avg is not None else None
 
+            # quantile
+            quantile = self._calc_quantile(conn, t2, t2.c.c)
+
+            # histogram
             def map_bucket(expr, min_value, max_value, num_buckets):
                 interval = (max_value - min_value) / num_buckets
                 cases = []
@@ -298,6 +324,11 @@ class Profiler:
                 'max': _max,
                 'sum': _sum,
                 'avg': _avg,
+                'p5': quantile[1],
+                'p25': quantile[5],
+                'median': quantile[10],
+                'p75': quantile[15],
+                'p95': quantile[19],
                 'distribution': distribution,
             }
 
