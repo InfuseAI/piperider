@@ -21,7 +21,8 @@ from piperider_cli.compare_report import CompareReport
 from piperider_cli.configuration import Configuration, PIPERIDER_WORKSPACE_NAME, PIPERIDER_CONFIG_PATH, \
     PIPERIDER_CREDENTIALS_PATH
 from piperider_cli.datasource import DataSource
-from piperider_cli.error import PipeRiderCredentialError, DbtManifestError, PipeRiderDiagnosticError
+from piperider_cli.error import PipeRiderCredentialError, DbtManifestError, PipeRiderDiagnosticError, \
+    PipeRiderNoProfilingResultError
 from piperider_cli.profiler import Profiler
 
 PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
@@ -853,8 +854,7 @@ def generate_recommended_assertions(input=None, interaction=True):
 
     run_json_path = _get_run_json_path(input)
     if not os.path.isfile(run_json_path):
-        console.print(f'[bold red]Error: {run_json_path} is not a file[/bold red]')
-        return
+        raise PipeRiderNoProfilingResultError(run_json_path)
 
     with open(run_json_path) as f:
         profiling_result = json.loads(f.read())
@@ -905,8 +905,7 @@ def generate_report(input=None):
 
     run_json_path = _get_run_json_path(input)
     if not os.path.isfile(run_json_path):
-        console.print(f'[bold red]Error: {run_json_path} is not a file[/bold red]')
-        return
+        raise PipeRiderNoProfilingResultError(run_json_path)
 
     with open(run_json_path) as f:
         result = json.loads(f.read())
