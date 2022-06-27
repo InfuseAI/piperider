@@ -580,6 +580,13 @@ def _transform_assertion_result(table: str, results):
     return dict(tests=tests, columns=columns)
 
 
+def _validate_assertions(console: Console):
+    assertion_engine = AssertionEngine(None)
+    assertion_engine.load_all_assertions_for_validation()
+    assertion_engine.validate_assertions()
+    # TODO stop running when errors
+
+
 def run(datasource=None, table=None, output=None, interaction=True, skip_report=False, skip_dbt=False,
         skip_recommend=False):
     console = Console()
@@ -633,6 +640,9 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     dbt_test_results = None
     if dbt and not skip_dbt:
         dbt_test_results = _run_dbt_command(dbt, table, dbt_manifest, console)
+
+    console.rule('Validating')
+    _validate_assertions(console)
 
     console.rule('Profiling')
     run_id = uuid.uuid4().hex

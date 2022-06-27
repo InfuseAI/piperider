@@ -227,6 +227,18 @@ class AssertionEngine:
                     for ca in self.assertions_content[t]['columns'][c].get('tests', []):
                         self.assertions.append(AssertionContext(t, c, ca))
 
+    def load_all_assertions_for_validation(self):
+        self.assertions = []
+        passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
+            self.assertion_search_path)
+
+        for t in self.assertions_content:
+            for ta in self.assertions_content[t].get('tests', []):
+                self.assertions.append(AssertionContext(t, None, ta))
+            for c in self.assertions_content[t].get('columns', {}):
+                for ca in self.assertions_content[t]['columns'][c].get('tests', []):
+                    self.assertions.append(AssertionContext(t, c, ca))
+
     def generate_template_assertions(self, profiling_result):
         self.recommender.prepare_assertion_template(profiling_result)
         template_assertions = self.recommender.assertions
@@ -397,6 +409,25 @@ class AssertionEngine:
             except BaseException as e:
                 exceptions.append((assertion, e))
         return results, exceptions
+
+    def validate_assertions(self):
+
+        from piperider_cli.assertion_engine.types import get_assertion
+        results = dict()
+
+        for assertion in self.assertions:
+            try:
+                assertion_instance = get_assertion(assertion.name)
+                assertion_instance.validate(assertion)
+            except ValueError:
+                pass
+            print(assertion)
+            # validation_pass: bool = self.validate(assertion)
+            # results.append(validation_pass)
+            # print(assertion, validation_pass)
+
+        # TODO report errors or warnings
+        return results
 
     def configure_plugins_path(self):
         plugin_context = os.environ.get('PIPERIDER_PLUGINS')
