@@ -13,7 +13,7 @@ your_table_name:
       tests:
       - name: assert_column_in_types
         assert:
-          type: [string, datetime]
+          types: [string, datetime]
         tags:
           - OPTIONAL
 ```
