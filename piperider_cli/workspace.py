@@ -699,13 +699,13 @@ def _list_dbt_tables(dbt, default_schema):
 
     for source in sources:
         schema = source['source_name']
-        schema = f'{schema}.' if schema != default_schema else ''
+        schema = f'{schema}.' if schema and schema != default_schema else ''
         name = source['name']
         tables.add(f'{schema}{name}')
 
     for model in models:
         schema = model['config'].get('schema', default_schema)
-        schema = f'{schema}.' if schema != default_schema else ''
+        schema = f'{schema}.' if schema and schema != default_schema else ''
         name = model['name']
         tables.add(f'{schema}{name}')
 
