@@ -1,0 +1,26 @@
+import { useEffect, useState } from 'react';
+
+export function useResizeObserver(elem) {
+  const [dimensions, setDimensions] = useState(null);
+
+  useEffect(() => {
+    if (!elem || !elem.current) {
+      return;
+    }
+
+    const target = elem.current;
+    const resizeObserver = new ResizeObserver((entries) => {
+      entries.forEach((entry) => {
+        setDimensions(entry.contentRect);
+      });
+    });
+
+    resizeObserver.observe(target);
+
+    return () => {
+      resizeObserver.unobserve(target);
+    };
+  }, [elem]);
+
+  return dimensions;
+}

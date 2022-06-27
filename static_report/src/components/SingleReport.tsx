@@ -21,7 +21,7 @@ import {
   Tab,
   TabPanel,
 } from '@chakra-ui/react';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { Link } from 'wouter';
 
 import { Main } from './Main';
@@ -32,21 +32,12 @@ import {
   getMissingValue,
   extractExpectedOrActual,
 } from '../utils';
-import { drawSingleReportChart } from '../utils/singleReport';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { SingleReportSchema } from '../sdlc/single-report-schema';
-import { ChartProps, SingleChartDataItem } from '../utils/types';
 
-type SingleReportProps = {
-  source: SingleReportSchema['datasource'];
-  data: SingleReportSchema['tables']['ACTION'];
-  reportName: string;
-};
-export default function SingleReport({
-  source,
-  data,
-  reportName,
-}: SingleReportProps) {
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useResizeObserver } from '../hooks/useResizeObserver';
+import { useSingleChart } from '../hooks/useSingleChart';
+
+export default function SingleReport({ source, data, reportName }) {
   useDocumentTitle(reportName);
 
   if (!data) {
@@ -150,7 +141,7 @@ export default function SingleReport({
   );
 }
 
-function ProfilingInformation({ data }: SingleReportProps['data']['columns']) {
+function ProfilingInformation({ data }) {
   return (
     <Flex direction="column" gap={4}>
       {Object.keys(data).map((key) => {
@@ -160,7 +151,7 @@ function ProfilingInformation({ data }: SingleReportProps['data']['columns']) {
 
         return (
           <Flex key={key} direction="column" px={4}>
-            <Grid my={4} templateColumns="450px 1fr" gap={4}>
+            <Grid my={4} templateColumns="minmax(270px, 1fr) 1fr" gap={12}>
               <Flex direction="column" gap={3}>
                 <Text>
                   <Text
@@ -196,29 +187,14 @@ function ProfilingInformation({ data }: SingleReportProps['data']['columns']) {
                   />
                 </Flex>
 
-                {(column.type === 'numeric' || column.type === 'integer') && (
-                  <>
-                    <Flex direction="column">
-                      <MetricsInfo
-                        name="Average"
-                        base={formatNumber(column.avg)}
-                      />
-                      <MetricsInfo
-                        name="Std. Deviation"
-                        base={formatNumber(column.stddev)}
-                      />
-                    </Flex>
+                {column.type === 'numeric' && (
+                  <Flex direction="column">
+                    <MetricsInfo name="Min" base={formatNumber(column.min)} />
 
-                    <Flex direction="column">
-                      <MetricsInfo name="Min" base={formatNumber(column.min)} />
-                      <MetricsInfo name="5%" base={formatNumber(column.p5)} />
-                      <MetricsInfo name="25%" base={formatNumber(column.p25)} />
-                      <MetricsInfo name="50%" base={formatNumber(column.p50)} />
-                      <MetricsInfo name="75%" base={formatNumber(column.p75)} />
-                      <MetricsInfo name="95%" base={formatNumber(column.p95)} />
-                      <MetricsInfo name="Max" base={formatNumber(column.max)} />
-                    </Flex>
-                  </>
+                    <MetricsInfo name="Max" base={formatNumber(column.max)} />
+
+                    <MetricsInfo name="Avg" base={formatNumber(column.avg)} />
+                  </Flex>
                 )}
 
                 {column.type === 'datetime' && (
@@ -230,7 +206,12 @@ function ProfilingInformation({ data }: SingleReportProps['data']['columns']) {
                 )}
               </Flex>
 
-              <Flex mt={8} justifyContent="center" alignItems="flex-start">
+              <Flex
+                mt={12}
+                width="100%"
+                justifyContent="center"
+                alignItems="stretch"
+              >
                 {distribution ? (
                   <BarChart
                     data={distribution.labels.map((label, i) => ({
@@ -301,7 +282,7 @@ function TestsInformation({ tableName, data }) {
                   </Td>
                   <Td>{tabelTest.name}</Td>
                   <Td>{extractExpectedOrActual(tabelTest.expected)}</Td>
-                  <Td color={isFailed && 'red.500'}>
+                  <Td color={isFailed ? 'red.500' : 'inherit'}>
                     {extractExpectedOrActual(tabelTest.actual)}
                   </Td>
                 </Tr>
@@ -331,7 +312,7 @@ function TestsInformation({ tableName, data }) {
                     </Td>
                     <Td>{columnTest.name}</Td>
                     <Td>{extractExpectedOrActual(columnTest.expected)}</Td>
-                    <Td color={isFailed && 'red.500'}>
+                    <Td color={isFailed ? 'red.500' : 'inherit'}>
                       {extractExpectedOrActual(columnTest.actual)}
                     </Td>
                   </Tr>
@@ -345,25 +326,19 @@ function TestsInformation({ tableName, data }) {
   );
 }
 
-function BarChart({ data }: ChartProps<SingleChartDataItem>) {
+function BarChart({ data }) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
+  const dimensions = useResizeObserver(containerRef);
 
-  useEffect(() => {
-    if (data.length > 0) {
-      drawSingleReportChart({
-        containerWidth: containerRef.current.getBoundingClientRect().width,
-        containerHeight: containerRef.current.getBoundingClientRect().height,
-        svgTarget: svgRef.current,
-        tooltipTarget: '.chart',
-        data,
-      });
-    }
-  }, [data]);
+  useSingleChart({ target: svgRef, data, dimensions });
 
   return (
     <Flex className="chart" width="100%" ref={containerRef}>
-      <svg ref={svgRef} />
+      <svg width="100%" overflow="visible" ref={svgRef}>
+        <g className="x-axis" />
+        <g className="y-axis" />
+      </svg>
     </Flex>
   );
 }

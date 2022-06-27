@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import * as d3 from 'd3';
 import { getChartTooltip, formatNumber } from '.';
 import { SingleChartDataItem, DrawChartArgs } from './types';
@@ -20,16 +21,20 @@ export function drawSingleReportChart({
   const xPadding = 0.5;
   const overlayOffset = 10;
 
-  const svgEl = d3.select(svgTarget);
-  svgEl.selectAll('*').remove();
+    const svg = d3.select(target.current);
+    const xScale = d3
+      .scaleBand()
+      .domain(data.map((d) => d.label))
+      .range([0, dimensions.width])
+      .padding(0.5);
 
-  const svg = svgEl
-    .attr('width', width + margin.left + margin.right)
-    .attr('height', height + margin.top + margin.bottom)
-    .append('g')
-    .attr('transform', `translate(${margin.left},${margin.top})`);
+    const yScale = d3
+      .scaleLinear()
+      .domain([0, d3.max(data, ({ value }) => value)])
+      .range([dimensions.height, 0]);
 
-  const tooltip = getChartTooltip({ target: tooltipTarget });
+    const xAxis = d3.axisBottom(xScale).tickFormat((value: any, i) => {
+      const xAxisItemLength = xScale.domain().length - 1;
 
   // TODO: Refactor these as utils
   function onShowTooltip(event, d) {
@@ -37,25 +42,22 @@ export function drawSingleReportChart({
       .html(
         `
           <div>
-            <p>Label: ${d.label}</p>
-            <p>Count: ${formatNumber(d.value)}</p>
-            <p>Percentage: ${Number((d.value / d.total) * 100).toFixed(3)}%</p>
+            <p>Label: ${label}</p>
+            <p>Count: ${formatNumber(value)}</p>
+            <p>Percentage: ${Number((value / total) * 100).toFixed(3)}%</p>
           </div>
         `,
-      )
-      .transition()
-      .duration(500)
-      .style('visibility', 'visible');
+          )
+          .transition()
+          .duration(500)
+          .style('visibility', 'visible');
 
     //@ts-ignore
     d3.select(this).style('fill', barColor).style('opacity', 0.3);
   }
 
-  function onMoveTooltip(event) {
-    tooltip
-      .style('top', `${event.pageY - 10}px`)
-      .style('left', `${event.pageX + 10}px`);
-  }
+        d3.select(this).style('fill', 'var(--chakra-colors-blue-300)');
+      });
 
   function onHideTooltip() {
     tooltip.html('').transition().duration(500).style('visibility', 'hidden');
