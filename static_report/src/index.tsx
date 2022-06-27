@@ -2,8 +2,8 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
-import theme from './theme';
+import reportWebVitals from './utils/reportWebVitals';
+import theme from './utils/theme';
 
 const rootElement = document.getElementById('root');
 const root = createRoot(rootElement);

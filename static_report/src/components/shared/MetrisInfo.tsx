@@ -1,6 +1,6 @@
 import { Flex, Text } from '@chakra-ui/react';
 
-export function MetricsInfo({ name, base, input }) {
+export function MetricsInfo({ name, base, input = null }) {
   return (
     <Flex justifyContent="space-between">
       <Text fontWeight={700}>{name}</Text>

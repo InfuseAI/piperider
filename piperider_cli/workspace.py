@@ -949,7 +949,7 @@ def compare_report(a=None, b=None):
     console.print(f"Comparison report: {filename}")
 
     # TODO for debugging intermediate data, remove this
-    # with open('comparison_data.json', 'w') as f:
-    #    f.write(comparison_data.to_json())
+    with open(os.path.join(dir, 'comparison_data.json'), 'w') as f:
+        f.write(comparison_data.to_json())
 
     pass
