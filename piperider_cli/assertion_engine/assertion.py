@@ -331,9 +331,24 @@ class AssertionEngine:
               outliers: 5 # in get_outliers's verification logic, check outliers parameter and return true if it's less than 5
         """
 
-        func = None
-
         self.configure_plugins_path()
+
+        from piperider_cli.assertion_engine.types import get_assertion
+        try:
+            assertion_instance = get_assertion(assertion.name)
+            try:
+                result = assertion_instance.execute(assertion, assertion.table, assertion.column, metrics_result)
+                result.validate()
+            except Exception as e:
+                assertion.result.fail_with_exception(e)
+            return assertion
+        except ValueError:
+            # got this error when  an assertion function was not found in the registry
+            pass
+
+        return self._do_legacy_evaluate(assertion, metrics_result)
+
+    def _do_legacy_evaluate(self, assertion, metrics_result):
         try:
             # assertion name with "." suppose to be a user-defined test function
             is_user_defined_test_function = ("." in assertion.name)
@@ -357,13 +372,11 @@ class AssertionEngine:
         except Exception as e:
             assertion.result.fail_with_exception(AssertionError(f'Cannot find the assertion: {assertion.name}', e))
             return assertion
-
         try:
             result = func(assertion, assertion.table, assertion.column, metrics_result)
             result.validate()
         except Exception as e:
             assertion.result.fail_with_exception(e)
-
         return assertion
 
     def evaluate_all(self, metrics_result):
