@@ -23,6 +23,14 @@ class PipeRiderCredentialError(PipeRiderError):
         self.message = f"The credential of '{name}' is not configured. Please execute command 'piperider init' to move forward."
 
 
+class PipeRiderNoProfilingResultError(PipeRiderError):
+    def __init__(self, result_file):
+        self.result_file = result_file
+        pass
+
+    message = "No profiling result is found. Please execute command 'piperider run' to move forward."
+
+
 class PipeRiderInvalidDataSourceError(PipeRiderError):
     def __init__(self, name, config_file):
         self.name = name

@@ -317,6 +317,7 @@ class AssertionEngine:
 
     def _dump_assertions_files(self, assertions, prefix=''):
         paths = []
+        os.makedirs(self.assertion_search_path, exist_ok=True)
         for name, assertion in assertions.items():
             filename = f'{prefix}_{name}.yml' if prefix else f'{name}.yml'
             file_path = os.path.join(self.assertion_search_path, filename)
