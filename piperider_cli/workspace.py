@@ -613,6 +613,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
             f"[bold yellow]Warning: multiple datasources found ({', '.join(datasource_names)}), using '{ds_name}'[/bold yellow]\n")
 
     console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
+    ds.show_installation_information()
 
     dbt = ds.args.get('dbt')
     tables = None
