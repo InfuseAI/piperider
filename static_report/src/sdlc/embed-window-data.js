@@ -18,10 +18,14 @@ import {
 const insertDataToHTML = async () => {
   // Read Report Data (Both Comparison/Single)
   const reportDataMap = new Map();
-  setMapValues(reportDataMap, PATH_TO_SINGLE_REPORT_DATA_JSON, SINGLE_KEY);
+  await setMapValues(
+    reportDataMap,
+    PATH_TO_SINGLE_REPORT_DATA_JSON,
+    SINGLE_KEY,
+  );
 
   const PATH_TO_COMPARISON_REPORT_DATA_JSON = await getComparisonDataPath();
-  setMapValues(
+  await setMapValues(
     reportDataMap,
     PATH_TO_COMPARISON_REPORT_DATA_JSON,
     COMPARISON_KEY,
