@@ -138,7 +138,7 @@ class CheckDbtManifest(AbstractChecker):
                 continue
 
             self.console.print(f'  {os.path.expanduser(dbt.get("projectDir"))}/target/manifest.json: ', end='')
-            passed, error_msg, _ = _fetch_dbt_manifest(dbt)
+            passed, error_msg, _, _ = _fetch_dbt_manifest(dbt)
             if not passed:
                 all_passed = False
                 self.console.print(f'{ds.name}: [[bold red]Failed[/bold red]] Error: {error_msg}')
@@ -304,7 +304,7 @@ def init(dbt_project_path=None, dbt_profiles_dir=None):
 
 def _fetch_dbt_manifest(dbt, table=None):
     if dbt is None:
-        return True, '', []
+        return True, '', [], None
 
     for key in ['profile', 'target', 'projectDir']:
         if key not in dbt:
@@ -614,21 +614,10 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
     console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
 
+    default_schema = ds.credential.get('schema')
     dbt = ds.args.get('dbt')
-    tables = None
-
-    if table:
-        table = re.sub('^(PUBLIC|public)\.', '', table)
-
-    if dbt:
-        passed, error_msg, tables, dbt_manifest = _fetch_dbt_manifest(dbt, table)
-        if not passed:
-            console.print(
-                "[bold yellow]Note:[/bold yellow] Please run command 'dbt build/run/test' to update 'manifest.json' files")
-            raise DbtManifestError(error_msg)
-    else:
-        if table:
-            tables = [table]
+    dbt['resources'] = _list_dbt_resources(dbt)
+    tables = _get_table_list(table, default_schema, dbt)
 
     dbt_test_results = None
     if dbt and not skip_dbt:
@@ -687,12 +676,73 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     return 0
 
 
+def _list_dbt_resources(dbt):
+    dbt_root = os.path.expanduser(dbt.get('projectDir'))
+    try:
+        check_output(['command', '-v', 'dbt'], cwd=dbt_root)
+    except CalledProcessError:
+        console.print('[bold yellow]Warning: dbt command not found. Skip parsing dbt resources.[/bold yellow]')
+        return []
+
+    full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'all']
+    lines = check_output(full_cmd_arr, cwd=dbt_root).decode().split('\n')[:-1]
+    # Skip lines not starts with '{', which are not message in JSON format
+    resources = [json.loads(l) for l in lines if l.startswith('{')]
+    return resources
+
+
+def _list_dbt_tables(dbt, default_schema):
+    tables = set()
+    resources = dbt.get('resources', [])
+    sources = [r for r in resources if r['resource_type']=='source']
+    models = [r for r in resources if r['resource_type']=='model']
+
+    for source in sources:
+        schema = source['source_name']
+        schema = f'{schema}.' if schema != default_schema else ''
+        name = source['name']
+        tables.add(f'{schema}{name}')
+
+    for model in models:
+        schema = model['config'].get('schema', default_schema)
+        schema = f'{schema}.' if schema != default_schema else ''
+        name = model['name']
+        tables.add(f'{schema}{name}')
+
+    return list(tables)
+
+
+def _get_table_list(table, default_schema, dbt):
+    tables = None
+
+    if table:
+        table = re.sub(f'^({default_schema})\.', '', table)
+        tables = [table]
+
+    if dbt:
+        dbt_tables = _list_dbt_tables(dbt, default_schema)
+        if not dbt_tables:
+            raise Exception('No table found in dbt project.')
+
+        if not table:
+            tables = dbt_tables
+        elif table not in dbt_tables:
+            suggestion = ''
+            lower_tables = [t.lower() for t in dbt_tables]
+            if table.lower() in lower_tables:
+                index = lower_tables.index(table.lower())
+                suggestion = f"Do you mean '{dbt_tables[index]}'?"
+            raise Exception(f"Table '{table}' doesn't exist in dbt project. {suggestion}")
+
+    return tables
+
+
 def _run_dbt_command(dbt, table, manifest, console):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     try:
         check_output(['command', '-v', 'dbt'], cwd=dbt_root)
     except CalledProcessError:
-        console.print('[bold yellow]Warning: dbt command not found. Skip running dbt[/bold yellow]')
+        console.print('[bold yellow]Warning: dbt command not found. Skip running dbt.[/bold yellow]')
         return
 
     cmd = dbt.get('cmd', 'test')
