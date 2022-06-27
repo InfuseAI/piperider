@@ -164,7 +164,7 @@ class Profiler:
             distribution["counts"].append(v)
         return distribution
 
-    def _calc_quantile(self, conn, table, column):
+    def _calc_quantile(self, conn, table, column, total) -> dict:
         if self.engine.url.get_backend_name() == "sqlite":
             # with t as (
             #   select
@@ -173,10 +173,10 @@ class Profiler:
             #   from table
             # )
             # select min(c), n, count(tile) from t group by n
-
+            n_bucket = total if total < 20 else 20
             t = select([
                 column.label("c"),
-                func.ntile(20).over(order_by=column).label("n")
+                func.ntile(n_bucket).over(order_by=column).label("n")
             ]).cte()
             stmt = select([t.c.n, func.min(t.c.c)]).group_by(t.c.n)
             result = conn.execute(stmt)
@@ -186,10 +186,10 @@ class Profiler:
                 quantile.append(v)
             return {
                 'p5': dtof(quantile[0]),
-                'p25': dtof(quantile[5]),
-                'median': dtof(quantile[10]),
-                'p75': dtof(quantile[15]),
-                'p95': dtof(quantile[19]),
+                'p25': dtof(quantile[5 * n_bucket // 20]),
+                'median': dtof(quantile[10 * n_bucket // 20]),
+                'p75': dtof(quantile[15 * n_bucket // 20]),
+                'p95': dtof(quantile[19 * n_bucket // 20]),
             }
         else:
             # https://docs.sqlalchemy.org/en/14/core/functions.html#sqlalchemy.sql.functions.percentile_disc
@@ -262,10 +262,13 @@ class Profiler:
             _max = dtof(_max)
             _avg = dtof(_avg)
             _square_avg = dtof(_square_avg)
-            _stddev = math.sqrt(_square_avg - _avg * _avg)
+            _stddev = math.sqrt(_square_avg - _avg * _avg) if _square_avg and _avg else None
 
             # quantile
-            quantile = self._calc_quantile(conn, t2, t2.c.c)
+            if _total:
+                quantile = self._calc_quantile(conn, t2, t2.c.c, _total)
+            else:
+                quantile = {}
 
             # histogram
             def map_bucket(expr, min_value, max_value, num_buckets):
@@ -352,12 +355,12 @@ class Profiler:
                 'max': _max,
                 'sum': _sum,
                 'avg': _avg,
-                'p5': quantile['p5'],
-                'p25': quantile['p25'],
+                'p5': quantile.get('p5'),
+                'p25': quantile.get('p25'),
                 'stddev': _stddev,
-                'median': quantile['median'],
-                'p75': quantile['p75'],
-                'p95': quantile['p95'],
+                'median': quantile.get('median'),
+                'p75': quantile.get('p75'),
+                'p95': quantile.get('p95'),
                 'distribution': distribution,
             }
 
