@@ -52,22 +52,22 @@ class ValidationResult:
     def require_column(self, name):
         configuration: dict = self.context.asserts
         if name not in configuration:
-            self.errors.append(('ERROR', f'{name} is required'))
+            self.errors.append(('ERROR', f'{name} parameter is required'))
         return self
 
     def _require_numeric_pair(self, name, valid_types: set):
         configuration: dict = self.context.asserts
         values = configuration.get(name)
         if not isinstance(values, list):
-            self.errors.append(('ERROR', f'{name} should be a list'))
+            self.errors.append(('ERROR', f'{name} parameter should be a list'))
             return self
 
         if len(values) != 2:
-            self.errors.append(('ERROR', f'{name} should contains two values'))
+            self.errors.append(('ERROR', f'{name} parameter should contain two values'))
             return self
 
-        if set([type(x) for x in values]) not in valid_types:
-            self.errors.append(('ERROR', f'{name} should be one of the types {valid_types}, input: {values}'))
+        if not set([type(x) for x in values]).issubset(valid_types):
+            self.errors.append(('ERROR', f'{name} parameter should be one of the types {valid_types}, input: {values}'))
             return self
 
         return self
@@ -91,8 +91,20 @@ class ValidationResult:
             return self
 
         if not isinstance(self.context.asserts.get(name), int):
-            self.errors.append(('ERROR', f'{name} should be a int value'))
+            self.errors.append(('ERROR', f'{name} parameter should be a int value'))
             return self
+
+    def as_report(self):
+        def to_str(x: tuple):
+            return ": ".join(x)
+
+        header = 'Found assertion syntax problem =>'
+        if self.context.column is None:
+            where = f"{header} name: {self.context.name} for table {self.context.table}"
+        else:
+            where = f"{header} name: {self.context.name} for table {self.context.table} and column {self.context.column}"
+
+        return "\n".join([where] + [to_str(x) for x in self.errors])
 
 
 class AssertionResult:
@@ -262,8 +274,7 @@ class AssertionEngine:
         {'nodes': {'tests': [], 'columns': {'uid': {'tests': []}, 'type': {'tests': []}, 'name': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'metadata': {'tests': []}}}, 'edges': {'tests': [], 'columns': {'n1_uid': {'tests': []}, 'n2_uid': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'type': {'tests': []}, 'metadata': {'tests': []}}}}
         """
         self.assertions = []
-        passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
-            self.assertion_search_path)
+        self.load_assertion_content()
 
         # Load assertio
         if profiling_result:
@@ -280,9 +291,8 @@ class AssertionEngine:
                         self.assertions.append(AssertionContext(t, c, ca))
 
     def load_all_assertions_for_validation(self):
+        self.load_assertion_content()
         self.assertions = []
-        passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
-            self.assertion_search_path)
 
         for t in self.assertions_content:
             for ta in self.assertions_content[t].get('tests', []):
@@ -290,6 +300,10 @@ class AssertionEngine:
             for c in self.assertions_content[t].get('columns', {}):
                 for ca in self.assertions_content[t]['columns'][c].get('tests', []):
                     self.assertions.append(AssertionContext(t, c, ca))
+
+    def load_assertion_content(self):
+        passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
+            self.assertion_search_path)
 
     def generate_template_assertions(self, profiling_result):
         self.recommender.prepare_assertion_template(profiling_result)
@@ -470,7 +484,9 @@ class AssertionEngine:
         for assertion in self.assertions:
             try:
                 assertion_instance = get_assertion(assertion.name)
-                results.append(assertion_instance.validate(assertion))
+                result = assertion_instance.validate(assertion)
+                if result and result.errors:
+                    results.append(result)
             except ValueError:
                 pass
 

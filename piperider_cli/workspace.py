@@ -583,8 +583,19 @@ def _transform_assertion_result(table: str, results):
 def _validate_assertions(console: Console):
     assertion_engine = AssertionEngine(None)
     assertion_engine.load_all_assertions_for_validation()
-    assertion_engine.validate_assertions()
-    # TODO stop running when errors
+    results = assertion_engine.validate_assertions()
+    # if results
+    for result in results:
+        # result
+        print(result.as_report())
+
+    if results:
+        # stop runner
+        return True
+
+    # continue to run profiling
+    print('everything is OK.')
+    return False
 
 
 def run(datasource=None, table=None, output=None, interaction=True, skip_report=False, skip_dbt=False,
@@ -642,7 +653,11 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
         dbt_test_results = _run_dbt_command(dbt, table, dbt_manifest, console)
 
     console.rule('Validating')
-    _validate_assertions(console)
+    stop_runner = _validate_assertions(console)
+    if stop_runner:
+        # TODO rewrite to use Console
+        print('\n\nStop profiling, please fix the syntax errors first.')
+        return 1
 
     console.rule('Profiling')
     run_id = uuid.uuid4().hex
