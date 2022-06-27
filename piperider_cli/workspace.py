@@ -621,7 +621,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
     dbt_test_results = None
     if dbt and not skip_dbt:
-        dbt_test_results = _run_dbt_command(dbt, table, dbt_manifest, console)
+        dbt_test_results = _run_dbt_command(table, default_schema, dbt, console)
 
     console.rule('Profiling')
     run_id = uuid.uuid4().hex
@@ -737,7 +737,7 @@ def _get_table_list(table, default_schema, dbt):
     return tables
 
 
-def _run_dbt_command(dbt, table, manifest, console):
+def _run_dbt_command(table, default_schema, dbt, console):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     try:
         check_output(['command', '-v', 'dbt'], cwd=dbt_root)
@@ -753,25 +753,25 @@ def _run_dbt_command(dbt, table, manifest, console):
         console.print(f"[bold yellow]Warning: {message}[/bold yellow]")
         return
 
+    dbt_resources = dbt['resources']
     full_cmd_arr = ['dbt', cmd]
     if table:
-        table_dict = dict()
-        schema_path = os.path.join(dbt_root, 'models', 'schema.yml')
-        with open(schema_path) as f:
-            schema = yaml.YAML(typ='safe').load(f)
-            for m in schema.get('models', []):
-                table_dict[m['name']] = m['name']
-            for s in schema.get('sources', []):
-                schema_name = s['name']
-                for t in s.get('tables', []):
-                    source_name = f"source:{schema_name}.{t['name']}"
-                    table_key = t['name'] if schema_name in ['public', 'PUBLIC'] else f"{schema_name}.{t['name']}"
-                    table_dict[table_key] = source_name
-        if table not in table_dict:
-            console.print(
-                f"[bold yellow]Warning: '{table}' doesn't exist in dbt schema. Skip running dbt[/bold yellow]")
-            return
-        select = table_dict[table]
+        select = table
+        if '.' in table:
+            schema, name = table.split('.')[:2]
+        else:
+            schema, name = default_schema, table
+
+        for resource in dbt_resources:
+            if resource.get('name') != name:
+                continue
+            if resource['resource_type'] == 'model':
+                select = name
+                break
+            if resource['resource_type'] == 'source' and \
+               resource['source_name'] == schema:
+                select = f'source:{schema}.{name}'
+                break
         full_cmd_arr.append('-s')
         full_cmd_arr.append(select)
 
@@ -798,6 +798,7 @@ def _run_dbt_command(dbt, table, manifest, console):
             message=result.get('message'),
         )
 
+    # TODO: get info from dbt_resources
     for node in manifest.get('nodes', []).values():
         unique_id = node.get('unique_id')
         if unique_id not in unique_tests:
