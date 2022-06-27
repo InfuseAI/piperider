@@ -4,8 +4,8 @@ set project piperider-getting-started
 set timeout 60
 cd $project
 
-set title "compare-report step started"
-spawn piperider compare-report
+set title "compare-reports step started"
+spawn piperider compare-reports
 expect {
     "Please select the 2 reports to compare" {
         # wait for list
@@ -18,7 +18,7 @@ expect {
 }
 
 
-set title "compare-report step ended"
+set title "compare-reports step ended"
 
 expect {
     "> o" {
