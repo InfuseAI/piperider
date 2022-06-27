@@ -616,7 +616,8 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
     default_schema = ds.credential.get('schema')
     dbt = ds.args.get('dbt')
-    dbt['resources'] = _list_dbt_resources(dbt, console)
+    if dbt:
+        dbt['resources'] = _list_dbt_resources(dbt, console)
     tables = _get_table_list(table, default_schema, dbt)
 
     dbt_test_results = None
