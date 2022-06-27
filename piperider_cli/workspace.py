@@ -616,7 +616,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
     default_schema = ds.credential.get('schema')
     dbt = ds.args.get('dbt')
-    dbt['resources'] = _list_dbt_resources(dbt)
+    dbt['resources'] = _list_dbt_resources(dbt, console)
     tables = _get_table_list(table, default_schema, dbt)
 
     dbt_test_results = None
@@ -676,7 +676,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     return 0
 
 
-def _list_dbt_resources(dbt):
+def _list_dbt_resources(dbt, console):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     try:
         check_output(['command', '-v', 'dbt'], cwd=dbt_root)
@@ -687,15 +687,15 @@ def _list_dbt_resources(dbt):
     full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'all']
     lines = check_output(full_cmd_arr, cwd=dbt_root).decode().split('\n')[:-1]
     # Skip lines not starts with '{', which are not message in JSON format
-    resources = [json.loads(l) for l in lines if l.startswith('{')]
+    resources = [json.loads(x) for x in lines if x.startswith('{')]
     return resources
 
 
 def _list_dbt_tables(dbt, default_schema):
     tables = set()
     resources = dbt.get('resources', [])
-    sources = [r for r in resources if r['resource_type']=='source']
-    models = [r for r in resources if r['resource_type']=='model']
+    sources = [r for r in resources if r['resource_type'] == 'source']
+    models = [r for r in resources if r['resource_type'] == 'model']
 
     for source in sources:
         schema = source['source_name']
@@ -798,28 +798,36 @@ def _run_dbt_command(table, default_schema, dbt, console):
             message=result.get('message'),
         )
 
-    # TODO: get info from dbt_resources
-    for node in manifest.get('nodes', []).values():
-        unique_id = node.get('unique_id')
+    for resource in dbt_resources:
+        unique_id = resource.get('unique_id')
         if unique_id not in unique_tests:
             continue
 
-        parent_nodes = node.get('depends_on', {}).get('nodes', [])
-        if not parent_nodes:
+        macros = resource.get('depends_on', {}).get('macros', [])
+        nodes = resource.get('depends_on', {}).get('nodes', [])
+        if not nodes or not macros:
             continue
-        first_parent_node = parent_nodes[0]
-        parent_table = first_parent_node.split('.')[-1]
+
+        test_method = macros[0].replace('macro.dbt.test_', '')
+        node = nodes[0]
+        node_type = node.split('.')[0]
+        package_name = resource.get('package_name')
+
+        is_source = 'source_' if node_type == 'source' else ''
+        table_with_schema = re.sub(f'^{node_type}\.{package_name}\.', '', node)
+        schema = ''
+        table_name = table_with_schema
+        if '.' in table_with_schema:
+            schema, table_name = table_with_schema.split('.')[:2]
+        is_schema = f'{schema}_' if schema != '' else ''
+
+        pattern = f'^{is_source}{test_method}_{is_schema}{table_name}_'
+        column = re.sub(pattern, '', resource['name'])
+
+        parent_table = f'{schema}.{table_name}' if schema and schema != default_schema else table_name
+
         if parent_table not in output:
             output[parent_table] = dict(columns={})
-
-        # TODO: need a better way to get parent table and column
-        parent_type = 'source' if len(node.get('sources', [])) > 0 else 'model'
-        package_name = node.get('package_name')
-        table_with_schema = re.sub(f'^{parent_type}\.{package_name}\.', '', first_parent_node).replace('.', '_')
-
-        test_name = node.get('test_metadata', {}).get('name')
-        fqn = node.get('fqn')[1]
-        column = re.sub(f"^{'source_' if parent_type == 'source' else ''}{test_name}_{table_with_schema}_", '', fqn)
 
         if column not in output[parent_table]['columns']:
             output[parent_table]['columns'][column] = []
