@@ -85,6 +85,7 @@ class ValidationResult:
         if not found:
             self.errors.append(('ERROR', f'There should contain any parameter names in {names}'))
             return self
+        return self
 
     def int_if_present(self, name: str):
         if name not in self.context.asserts:
@@ -93,6 +94,8 @@ class ValidationResult:
         if not isinstance(self.context.asserts.get(name), int):
             self.errors.append(('ERROR', f'{name} parameter should be a int value'))
             return self
+
+        return self
 
     def as_report(self):
         def to_str(x: tuple):

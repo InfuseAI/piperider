@@ -23,10 +23,19 @@ class AssertRowCount(BaseAssertionType):
         return assert_row_count(context, table, column, metrics)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
-        return ValidationResult(context) \
+        results = ValidationResult(context) \
             .require_one_of_columns(['min', 'max']) \
             .int_if_present('min') \
             .int_if_present('max')
+
+        if results.errors:
+            return results
+
+        if context.asserts.get('min') is not None and context.asserts.get('max') is not None:
+            if context.asserts.get('min') > context.asserts.get('max'):
+                results.errors.append(('ERROR', 'The max value should be greater than or equal to the min value.'))
+
+        return results
 
 
 def assert_row_count(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
