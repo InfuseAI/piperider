@@ -8,8 +8,11 @@ from click.core import Command, Context
 from rich.console import Console
 
 from piperider_cli import event
+from piperider_cli.guide import Guide
 
 _enable_trackback: bool = os.environ.get('PIPERIDER_PRINT_TRACKBACK') == '1'
+
+guide = Guide()
 
 
 class TrackCommand(Command):
@@ -42,7 +45,10 @@ class TrackCommand(Command):
     def invoke(self, ctx: Context) -> t.Any:
         status = False
         try:
+
             ret = super(TrackCommand, self).invoke(ctx)
+            guide.show_tips(ctx)
+
             status = True
             return ret
         except Exception as e:

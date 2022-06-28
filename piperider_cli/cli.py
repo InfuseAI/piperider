@@ -9,6 +9,7 @@ from rich.syntax import Syntax
 
 from piperider_cli import workspace, __version__, event
 from piperider_cli.event.track import TrackCommand
+from piperider_cli.guide import Guide
 
 
 def set_sentry_env():
@@ -55,9 +56,15 @@ def add_options(options):
     return _add_options
 
 
-@click.group(name="piperider")
-def cli():
+@click.group(name="piperider", invoke_without_command=True)
+@click.pass_context
+def cli(ctx: click.Context):
     'An open-source toolkit for detecting data issues across pipelines that works with CI systems for continuous data quality assessment.'
+
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+        Guide().show_tips(ctx)
+
     pass
 
 
