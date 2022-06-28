@@ -175,24 +175,24 @@ class Profiler:
             #     ntile(20) over (order by column) as n
             #   from table
             # )
-            # select min(c), n, count(tile) from t group by n
-            n_bucket = total if total < 20 else 20
+            # select n, min(c) from t group by n order by n
+            n_bucket = total if total < 100 else 100
             t = select([
                 column.label("c"),
                 func.ntile(n_bucket).over(order_by=column).label("n")
             ]).cte()
-            stmt = select([t.c.n, func.min(t.c.c)]).group_by(t.c.n)
+            stmt = select([t.c.n, func.min(t.c.c)]).group_by(t.c.n).order_by(t.c.n)
             result = conn.execute(stmt)
             quantile = []
             for row in result:
                 n, v = row
                 quantile.append(v)
             return {
-                'p5': dtof(quantile[1 * n_bucket // 20]),
-                'p25': dtof(quantile[5 * n_bucket // 20]),
-                'p50': dtof(quantile[10 * n_bucket // 20]),
-                'p75': dtof(quantile[15 * n_bucket // 20]),
-                'p95': dtof(quantile[19 * n_bucket // 20]),
+                'p5': dtof(quantile[5 * n_bucket // 100]),
+                'p25': dtof(quantile[25 * n_bucket // 100]),
+                'p50': dtof(quantile[50 * n_bucket // 100]),
+                'p75': dtof(quantile[75 * n_bucket // 100]),
+                'p95': dtof(quantile[95 * n_bucket // 100]),
             }
         else:
             # https://docs.sqlalchemy.org/en/14/core/functions.html#sqlalchemy.sql.functions.percentile_disc
