@@ -49,10 +49,17 @@ class ValidationResult:
         self.context = context
         self.errors = []
 
-    def require_column(self, name):
+    def has_errors(self):
+        return self.errors != []
+
+    def require_column(self, name: str, specific_type=None):
+        # TODO rename to "required" or "required_parameter"
         configuration: dict = self.context.asserts
         if name not in configuration:
             self.errors.append(('ERROR', f'{name} parameter is required'))
+        if specific_type is not None:
+            if not isinstance(configuration.get(name), specific_type):
+                self.errors.append(('ERROR', f'{name} parameter should be a {specific_type} value'))
         return self
 
     def _require_numeric_pair(self, name, valid_types: set):

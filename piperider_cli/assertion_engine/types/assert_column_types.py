@@ -13,7 +13,8 @@ class AssertColumnSchemaType(BaseAssertionType):
         return assert_column_schema_type(context, table, column, metrics)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
-        pass
+        # type list: https://docs.sqlalchemy.org/en/14/core/type_basics.html#sql-standard-and-multiple-vendor-types
+        return ValidationResult(context).require_column('schema_type', str)
 
 
 class AssertColumnType(BaseAssertionType):
@@ -24,7 +25,14 @@ class AssertColumnType(BaseAssertionType):
         return assert_column_type(context, table, column, metrics)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
-        pass
+        result = ValidationResult(context).require_column('type', str)
+        if result.has_errors():
+            return result
+
+        if not set([context.asserts.get("type")]).issubset(set(COLUMN_TYPES)):
+            result.errors.append(('ERROR', f'type parameter should be one of {COLUMN_TYPES}, '
+                                           f'input: {context.asserts.get("type")}'))
+        return result
 
 
 class AssertColumnInTypes(BaseAssertionType):
@@ -35,8 +43,15 @@ class AssertColumnInTypes(BaseAssertionType):
         return assert_column_in_types(context, table, column, metrics)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
-        # context.asserts.
-        pass
+        result = ValidationResult(context).require_column('types', list)
+        if result.has_errors():
+            return result
+
+        if not set(context.asserts.get("types")).issubset(set(COLUMN_TYPES)):
+            result.errors.append(('ERROR', f'types parameter should be one of {COLUMN_TYPES}, '
+                                           f'input: {context.asserts.get("types")}'))
+
+        return result
 
 
 def assert_column_schema_type(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
