@@ -1,25 +1,19 @@
 import * as d3 from 'd3';
 import { getChartTooltip, formatNumber } from '.';
-import { DataItem } from '../components/SingleReport';
+import { SingleChartDataItem, DrawChartArgs } from './types';
 
-type drawArgs = {
-  containerWidth: number;
-  containerHeight: number;
-  svgTarget: any;
-  tooltipTarget: any;
-  data: DataItem[];
-};
+const barColor = 'var(--chakra-colors-blue-300)';
 
-const hoverOverlayColor = '#4A5568';
-const barColor = '#63B3ED';
-
+//TODO: Refactor file name (currently confusing with component file)
+// -- shouldn't this be part of component folder?
+//see: https://www.robinwieruch.de/react-folder-structure/
 export function drawSingleReportChart({
   containerWidth,
   containerHeight,
   svgTarget,
   tooltipTarget,
   data,
-}: drawArgs) {
+}: DrawChartArgs<SingleChartDataItem>) {
   const margin = { top: 10, right: 30, bottom: 30, left: 50 };
   const width = containerWidth - margin.left - margin.right;
   const height = containerHeight - margin.top - margin.bottom;
@@ -37,7 +31,7 @@ export function drawSingleReportChart({
 
   const tooltip = getChartTooltip({ target: tooltipTarget });
 
-  // TODO: curry these functions for bar|overlay usages
+  // TODO: Refactor these as utils
   function onShowTooltip(event, d) {
     tooltip
       .html(
@@ -54,7 +48,7 @@ export function drawSingleReportChart({
       .style('visibility', 'visible');
 
     //@ts-ignore
-    d3.select(this).style('fill', hoverOverlayColor).style('opacity', 1);
+    d3.select(this).style('fill', barColor).style('opacity', 0.3);
   }
 
   function onMoveTooltip(event) {

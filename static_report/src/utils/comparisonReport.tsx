@@ -7,19 +7,24 @@ import {
   getReportAsserationStatusCounts,
   formatNumber,
 } from '.';
+import { ComparisonChartDataItem, DrawChartArgs } from './types';
 
-const hoverOverlayColor = '#BEE3F8';
-const barColor = '#63B3ED';
+const inputBarColor = 'var(--chakra-colors-blue-300)';
+const baseBarColor = 'var(--chakra-colors-blue-100)';
 
+//TODO: Refactor file name (currently confusing with component file)
+// -- shouldn't this be part of component folder?
+//see: https://www.robinwieruch.de/react-folder-structure/
 export function drawComparsionChart({
   containerWidth,
+  containerHeight,
   svgTarget,
   tooltipTarget,
   data,
-}) {
+}: DrawChartArgs<ComparisonChartDataItem>) {
   const margin = { top: 10, right: 30, bottom: 30, left: 55 };
   const width = containerWidth - margin.left - margin.right;
-  const height = 250 - margin.top - margin.bottom;
+  const height = containerHeight - margin.top - margin.bottom;
   const overlayOffset = 8;
 
   const svgEl = d3.select(svgTarget);
@@ -33,7 +38,7 @@ export function drawComparsionChart({
 
   const tooltip = getChartTooltip({ target: tooltipTarget });
 
-  // TODO: curry these functions for bar|overlay usages (refactor??)
+  // TODO: Refactor these as utils
   function onShowTooltip(event, d) {
     tooltip
       .html(
@@ -48,7 +53,7 @@ export function drawComparsionChart({
       .duration(500)
       .style('visibility', 'visible');
     //@ts-ignore
-    d3.select(this).style('fill', hoverOverlayColor).style('opacity', 0.3);
+    d3.select(this).style('fill', baseBarColor).style('opacity', 0.3);
   }
 
   function onMoveTooltip(event) {
@@ -95,7 +100,7 @@ export function drawComparsionChart({
   const color = d3
     .scaleOrdinal()
     .domain(['base', 'input'])
-    .range(['var(--chakra-colors-blue-100)', 'var(--chakra-colors-blue-300)']);
+    .range([baseBarColor, inputBarColor]);
 
   svg
     .append('g')

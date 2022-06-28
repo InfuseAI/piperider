@@ -35,6 +35,7 @@ import {
 import { drawSingleReportChart } from '../utils/singleReport';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { SingleReportSchema } from '../sdlc/single-report-schema';
+import { ChartProps, SingleChartDataItem } from '../utils/types';
 
 type SingleReportProps = {
   source: SingleReportSchema['datasource'];
@@ -329,15 +330,7 @@ function TestsInformation({ tableName, data }) {
   );
 }
 
-export type DataItem = {
-  label: string;
-  value: number;
-  total: number;
-};
-type BarChartProps = {
-  data: DataItem[];
-};
-function BarChart({ data }: BarChartProps) {
+function BarChart({ data }: ChartProps<SingleChartDataItem>) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
 
