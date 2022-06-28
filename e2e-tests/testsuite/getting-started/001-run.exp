@@ -13,7 +13,7 @@ exec -ignorestderr -- curl -o data/sp500.db https://piperider-data.s3.ap-northea
 
 # check the diagnose
 set title "check out with the first dataset"
-spawn piperider diagnose
+spawn piperider diagnose --debug
 expect {
     "You are all set" {
         pass $title
@@ -24,7 +24,7 @@ expect {
 }
 
 set title "run with the first dataset"
-spawn piperider run --no-interaction
+spawn piperider run --no-interaction --debug
 
 expect {
     "Report generated in" {
@@ -40,7 +40,7 @@ expect {
 exec -ignorestderr -- curl -o data/sp500.db https://piperider-data.s3.ap-northeast-1.amazonaws.com/getting-started/sp500_20220527.db
 
 set title "run with the second dataset"
-spawn piperider run --no-interaction
+spawn piperider run --no-interaction --debug
 
 expect {
     "Report generated in" {
