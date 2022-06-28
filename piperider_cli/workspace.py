@@ -139,7 +139,7 @@ class CheckDbtManifest(AbstractChecker):
                 continue
 
             self.console.print(f'  {os.path.expanduser(dbt.get("projectDir"))}/target/manifest.json: ', end='')
-            passed, error_msg, _ = _fetch_dbt_manifest(dbt)
+            passed, error_msg, _, _ = _fetch_dbt_manifest(dbt)
             if not passed:
                 all_passed = False
                 self.console.print(f'{ds.name}: [[bold red]Failed[/bold red]] Error: {error_msg}')
@@ -305,7 +305,7 @@ def init(dbt_project_path=None, dbt_profiles_dir=None):
 
 def _fetch_dbt_manifest(dbt, table=None):
     if dbt is None:
-        return True, '', []
+        return True, '', [], None
 
     for key in ['profile', 'target', 'projectDir']:
         if key not in dbt:
@@ -616,25 +616,15 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
     ds.show_installation_information()
 
+    default_schema = ds.credential.get('schema')
     dbt = ds.args.get('dbt')
-    tables = None
-
-    if table:
-        table = re.sub('^(PUBLIC|public)\.', '', table)
-
     if dbt:
-        passed, error_msg, tables, dbt_manifest = _fetch_dbt_manifest(dbt, table)
-        if not passed:
-            console.print(
-                "[bold yellow]Note:[/bold yellow] Please run command 'dbt build/run/test' to update 'manifest.json' files")
-            raise DbtManifestError(error_msg)
-    else:
-        if table:
-            tables = [table]
+        dbt['resources'] = _list_dbt_resources(dbt, console)
+    tables = _get_table_list(table, default_schema, dbt)
 
     dbt_test_results = None
     if dbt and not skip_dbt:
-        dbt_test_results = _run_dbt_command(dbt, table, dbt_manifest, console)
+        dbt_test_results = _run_dbt_command(table, default_schema, dbt, console)
 
     console.rule('Profiling')
     run_id = uuid.uuid4().hex
@@ -689,12 +679,73 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     return 0
 
 
-def _run_dbt_command(dbt, table, manifest, console):
+def _list_dbt_resources(dbt, console):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     try:
         check_output(['command', '-v', 'dbt'], cwd=dbt_root)
     except CalledProcessError:
-        console.print('[bold yellow]Warning: dbt command not found. Skip running dbt[/bold yellow]')
+        console.print('[bold yellow]Warning: dbt command not found. Skip parsing dbt resources.[/bold yellow]')
+        return []
+
+    full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'all']
+    lines = check_output(full_cmd_arr, cwd=dbt_root).decode().split('\n')[:-1]
+    # Skip lines not starts with '{', which are not message in JSON format
+    resources = [json.loads(x) for x in lines if x.startswith('{')]
+    return resources
+
+
+def _list_dbt_tables(dbt, default_schema):
+    tables = set()
+    resources = dbt.get('resources', [])
+    sources = [r for r in resources if r['resource_type'] == 'source']
+    models = [r for r in resources if r['resource_type'] == 'model']
+
+    for source in sources:
+        schema = source['source_name']
+        schema = f'{schema}.' if schema and schema != default_schema else ''
+        name = source['name']
+        tables.add(f'{schema}{name}')
+
+    for model in models:
+        schema = model['config'].get('schema', default_schema)
+        schema = f'{schema}.' if schema and schema != default_schema else ''
+        name = model['name']
+        tables.add(f'{schema}{name}')
+
+    return list(tables)
+
+
+def _get_table_list(table, default_schema, dbt):
+    tables = None
+
+    if table:
+        table = re.sub(f'^({default_schema})\.', '', table)
+        tables = [table]
+
+    if dbt:
+        dbt_tables = _list_dbt_tables(dbt, default_schema)
+        if not dbt_tables:
+            raise Exception('No table found in dbt project.')
+
+        if not table:
+            tables = dbt_tables
+        elif table not in dbt_tables:
+            suggestion = ''
+            lower_tables = [t.lower() for t in dbt_tables]
+            if table.lower() in lower_tables:
+                index = lower_tables.index(table.lower())
+                suggestion = f"Do you mean '{dbt_tables[index]}'?"
+            raise Exception(f"Table '{table}' doesn't exist in dbt project. {suggestion}")
+
+    return tables
+
+
+def _run_dbt_command(table, default_schema, dbt, console):
+    dbt_root = os.path.expanduser(dbt.get('projectDir'))
+    try:
+        check_output(['command', '-v', 'dbt'], cwd=dbt_root)
+    except CalledProcessError:
+        console.print('[bold yellow]Warning: dbt command not found. Skip running dbt.[/bold yellow]')
         return
 
     cmd = dbt.get('cmd', 'test')
@@ -705,25 +756,25 @@ def _run_dbt_command(dbt, table, manifest, console):
         console.print(f"[bold yellow]Warning: {message}[/bold yellow]")
         return
 
+    dbt_resources = dbt['resources']
     full_cmd_arr = ['dbt', cmd]
     if table:
-        table_dict = dict()
-        schema_path = os.path.join(dbt_root, 'models', 'schema.yml')
-        with open(schema_path) as f:
-            schema = yaml.YAML(typ='safe').load(f)
-            for m in schema.get('models', []):
-                table_dict[m['name']] = m['name']
-            for s in schema.get('sources', []):
-                schema_name = s['name']
-                for t in s.get('tables', []):
-                    source_name = f"source:{schema_name}.{t['name']}"
-                    table_key = t['name'] if schema_name in ['public', 'PUBLIC'] else f"{schema_name}.{t['name']}"
-                    table_dict[table_key] = source_name
-        if table not in table_dict:
-            console.print(
-                f"[bold yellow]Warning: '{table}' doesn't exist in dbt schema. Skip running dbt[/bold yellow]")
-            return
-        select = table_dict[table]
+        select = table
+        if '.' in table:
+            schema, name = table.split('.')[:2]
+        else:
+            schema, name = default_schema, table
+
+        for resource in dbt_resources:
+            if resource.get('name') != name:
+                continue
+            if resource['resource_type'] == 'model':
+                select = name
+                break
+            if resource['resource_type'] == 'source' and \
+               resource['source_name'] == schema:
+                select = f'source:{schema}.{name}'
+                break
         full_cmd_arr.append('-s')
         full_cmd_arr.append(select)
 
@@ -750,27 +801,36 @@ def _run_dbt_command(dbt, table, manifest, console):
             message=result.get('message'),
         )
 
-    for node in manifest.get('nodes', []).values():
-        unique_id = node.get('unique_id')
+    for resource in dbt_resources:
+        unique_id = resource.get('unique_id')
         if unique_id not in unique_tests:
             continue
 
-        parent_nodes = node.get('depends_on', {}).get('nodes', [])
-        if not parent_nodes:
+        macros = resource.get('depends_on', {}).get('macros', [])
+        nodes = resource.get('depends_on', {}).get('nodes', [])
+        if not nodes or not macros:
             continue
-        first_parent_node = parent_nodes[0]
-        parent_table = first_parent_node.split('.')[-1]
+
+        test_method = macros[0].replace('macro.dbt.test_', '')
+        node = nodes[0]
+        node_type = node.split('.')[0]
+        package_name = resource.get('package_name')
+
+        is_source = 'source_' if node_type == 'source' else ''
+        table_with_schema = re.sub(f'^{node_type}\.{package_name}\.', '', node)
+        schema = ''
+        table_name = table_with_schema
+        if '.' in table_with_schema:
+            schema, table_name = table_with_schema.split('.')[:2]
+        is_schema = f'{schema}_' if schema != '' else ''
+
+        pattern = f'^{is_source}{test_method}_{is_schema}{table_name}_'
+        column = re.sub(pattern, '', resource['name'])
+
+        parent_table = f'{schema}.{table_name}' if schema and schema != default_schema else table_name
+
         if parent_table not in output:
             output[parent_table] = dict(columns={})
-
-        # TODO: need a better way to get parent table and column
-        parent_type = 'source' if len(node.get('sources', [])) > 0 else 'model'
-        package_name = node.get('package_name')
-        table_with_schema = re.sub(f'^{parent_type}\.{package_name}\.', '', first_parent_node).replace('.', '_')
-
-        test_name = node.get('test_metadata', {}).get('name')
-        fqn = node.get('fqn')[1]
-        column = re.sub(f"^{'source_' if parent_type == 'source' else ''}{test_name}_{table_with_schema}_", '', fqn)
 
         if column not in output[parent_table]['columns']:
             output[parent_table]['columns'][column] = []
