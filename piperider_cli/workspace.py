@@ -770,8 +770,7 @@ def _run_dbt_command(table, default_schema, dbt, console):
             if resource['resource_type'] == 'model':
                 select = name
                 break
-            if resource['resource_type'] == 'source' and \
-                resource['source_name'] == schema:
+            if resource['resource_type'] == 'source' and resource['source_name'] == schema:
                 select = f'source:{schema}.{name}'
                 break
         full_cmd_arr.append('-s')
