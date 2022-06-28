@@ -196,49 +196,30 @@ function ProfilingInformation({ data }: SingleReportProps['data']['columns']) {
                   />
                 </Flex>
 
-                {column.type === 'numeric' ||
-                  (column.type === 'integer' && (
-                    <>
-                      <Flex direction="column">
-                        <MetricsInfo
-                          name="Average"
-                          base={formatNumber(column.avg)}
-                        />
-                        <MetricsInfo
-                          name="Std. Deviation"
-                          base={formatNumber(column.stddev)}
-                        />
-                      </Flex>
+                {(column.type === 'numeric' || column.type === 'integer') && (
+                  <>
+                    <Flex direction="column">
+                      <MetricsInfo
+                        name="Average"
+                        base={formatNumber(column.avg)}
+                      />
+                      <MetricsInfo
+                        name="Std. Deviation"
+                        base={formatNumber(column.stddev)}
+                      />
+                    </Flex>
 
-                      <Flex direction="column">
-                        <MetricsInfo
-                          name="Min"
-                          base={formatNumber(column.min)}
-                        />
-                        <MetricsInfo name="5%" base={formatNumber(column.p5)} />
-                        <MetricsInfo
-                          name="25%"
-                          base={formatNumber(column.p25)}
-                        />
-                        <MetricsInfo
-                          name="50%"
-                          base={formatNumber(column.p50)}
-                        />
-                        <MetricsInfo
-                          name="75%"
-                          base={formatNumber(column.p75)}
-                        />
-                        <MetricsInfo
-                          name="95%"
-                          base={formatNumber(column.p95)}
-                        />
-                        <MetricsInfo
-                          name="Max"
-                          base={formatNumber(column.max)}
-                        />
-                      </Flex>
-                    </>
-                  ))}
+                    <Flex direction="column">
+                      <MetricsInfo name="Min" base={formatNumber(column.min)} />
+                      <MetricsInfo name="5%" base={formatNumber(column.p5)} />
+                      <MetricsInfo name="25%" base={formatNumber(column.p25)} />
+                      <MetricsInfo name="50%" base={formatNumber(column.p50)} />
+                      <MetricsInfo name="75%" base={formatNumber(column.p75)} />
+                      <MetricsInfo name="95%" base={formatNumber(column.p95)} />
+                      <MetricsInfo name="Max" base={formatNumber(column.max)} />
+                    </Flex>
+                  </>
+                )}
 
                 {column.type === 'datetime' && (
                   <Flex direction="column">

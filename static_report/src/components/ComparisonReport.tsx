@@ -346,60 +346,59 @@ function CompareProfileColumn({ name, base, input }) {
               />
             </Flex>
 
-            {column.type === 'numeric' ||
-              (column.type === 'integer' && (
-                <>
-                  <Flex direction="column">
-                    <MetricsInfo
-                      name="Average"
-                      base={base?.avg ? formatNumber(base.avg) : '-'}
-                      input={input?.avg ? formatNumber(input.avg) : '-'}
-                    />
-                    <MetricsInfo
-                      name="Std. Deviation"
-                      base={base?.stddev ? formatNumber(base.stddev) : '-'}
-                      input={input?.stddev ? formatNumber(input.stddev) : '-'}
-                    />
-                  </Flex>
-                  <Flex direction="column">
-                    <MetricsInfo
-                      name="Min"
-                      base={base?.min ? formatNumber(base.min) : '-'}
-                      input={input?.min ? formatNumber(input.min) : '-'}
-                    />
-                    <MetricsInfo
-                      name="5%"
-                      base={base?.p5 ? formatNumber(base.p5) : '-'}
-                      input={input?.p5 ? formatNumber(input.p5) : '-'}
-                    />
-                    <MetricsInfo
-                      name="25%"
-                      base={base?.p25 ? formatNumber(base.p25) : '-'}
-                      input={input?.p25 ? formatNumber(input.p25) : '-'}
-                    />
-                    <MetricsInfo
-                      name="50%"
-                      base={base?.p50 ? formatNumber(base.p50) : '-'}
-                      input={input?.p50 ? formatNumber(input.p50) : '-'}
-                    />
-                    <MetricsInfo
-                      name="75%"
-                      base={base?.p75 ? formatNumber(base.p75) : '-'}
-                      input={input?.p75 ? formatNumber(input.p75) : '-'}
-                    />
-                    <MetricsInfo
-                      name="95%"
-                      base={base?.p95 ? formatNumber(base.p95) : '-'}
-                      input={input?.p95 ? formatNumber(input.p95) : '-'}
-                    />
-                    <MetricsInfo
-                      name="Max"
-                      base={base?.max ? formatNumber(base.max) : '-'}
-                      input={input?.max ? formatNumber(input.max) : '-'}
-                    />
-                  </Flex>
-                </>
-              ))}
+            {(column.type === 'numeric' || column.type === 'integer') && (
+              <>
+                <Flex direction="column">
+                  <MetricsInfo
+                    name="Average"
+                    base={base?.avg ? formatNumber(base.avg) : '-'}
+                    input={input?.avg ? formatNumber(input.avg) : '-'}
+                  />
+                  <MetricsInfo
+                    name="Std. Deviation"
+                    base={base?.stddev ? formatNumber(base.stddev) : '-'}
+                    input={input?.stddev ? formatNumber(input.stddev) : '-'}
+                  />
+                </Flex>
+                <Flex direction="column">
+                  <MetricsInfo
+                    name="Min"
+                    base={base?.min ? formatNumber(base.min) : '-'}
+                    input={input?.min ? formatNumber(input.min) : '-'}
+                  />
+                  <MetricsInfo
+                    name="5%"
+                    base={base?.p5 ? formatNumber(base.p5) : '-'}
+                    input={input?.p5 ? formatNumber(input.p5) : '-'}
+                  />
+                  <MetricsInfo
+                    name="25%"
+                    base={base?.p25 ? formatNumber(base.p25) : '-'}
+                    input={input?.p25 ? formatNumber(input.p25) : '-'}
+                  />
+                  <MetricsInfo
+                    name="50%"
+                    base={base?.p50 ? formatNumber(base.p50) : '-'}
+                    input={input?.p50 ? formatNumber(input.p50) : '-'}
+                  />
+                  <MetricsInfo
+                    name="75%"
+                    base={base?.p75 ? formatNumber(base.p75) : '-'}
+                    input={input?.p75 ? formatNumber(input.p75) : '-'}
+                  />
+                  <MetricsInfo
+                    name="95%"
+                    base={base?.p95 ? formatNumber(base.p95) : '-'}
+                    input={input?.p95 ? formatNumber(input.p95) : '-'}
+                  />
+                  <MetricsInfo
+                    name="Max"
+                    base={base?.max ? formatNumber(base.max) : '-'}
+                    input={input?.max ? formatNumber(input.max) : '-'}
+                  />
+                </Flex>
+              </>
+            )}
 
             {column.type === 'datetime' && (
               <Flex direction="column">
