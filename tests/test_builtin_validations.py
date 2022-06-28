@@ -241,3 +241,82 @@ ERROR: min parameter should be a int value""", results[0].as_report())
         self.assertEqual(1, len(results))
         self.assertEqual(f"""Found assertion syntax problem => name: {function_name} for table orders_1k and column foobarbar
 ERROR: parameters are not allowed""", results[0].as_report())
+
+    def test_validation_assert_column_min_in_range(self):
+        # test with valid format
+        AssertionEngine.load_assertion_content = _("""
+            orders_1k:  # Table Name
+              # Test Cases for Table
+              columns:
+                foobarbar:
+                  tests:
+                  - name: assert_column_min_in_range
+                    assert:
+                        min: [10, 30]
+            """)
+
+        # expect no errors and warnings
+        self.engine.load_all_assertions_for_validation()
+        results = self.engine.validate_assertions()
+        self.assertListEqual([], results)
+
+    def test_validation_assert_column_min_in_range_date(self):
+        # test with valid format
+        AssertionEngine.load_assertion_content = _("""
+            orders_1k:  # Table Name
+              # Test Cases for Table
+              columns:
+                foobarbar:
+                  tests:
+                  - name: assert_column_min_in_range
+                    assert:
+                        min: [2022-05-20, 2022-05-31]
+            """)
+
+        # expect no errors and warnings
+        self.engine.load_all_assertions_for_validation()
+        results = self.engine.validate_assertions()
+        self.assertListEqual([], results)
+
+    def test_validation_assert_column_min_in_range_no_args(self):
+        # test with valid format
+        AssertionEngine.load_assertion_content = _("""
+            orders_1k:  # Table Name
+              # Test Cases for Table
+              columns:
+                foobarbar:
+                  tests:
+                  - name: assert_column_min_in_range
+                    assert:
+                        # it should be "min"
+                        max: [10, 100]
+            """)
+
+        # expect no errors and warnings
+        self.engine.load_all_assertions_for_validation()
+        results = self.engine.validate_assertions()
+        self.assertEqual(1, len(results))
+
+        self.assertEqual("""Found assertion syntax problem => name: assert_column_min_in_range for table orders_1k and column foobarbar
+ERROR: min parameter is required""", results[0].as_report())
+
+    def test_validation_assert_column_min_in_range_invalid_args(self):
+        # test with valid format
+        AssertionEngine.load_assertion_content = _("""
+            orders_1k:  # Table Name
+              # Test Cases for Table
+              columns:
+                foobarbar:
+                  tests:
+                  - name: assert_column_min_in_range
+                    assert:
+                        min: [10, 2022-05-23]
+            """)
+
+        # expect no errors and warnings
+        self.engine.load_all_assertions_for_validation()
+        results = self.engine.validate_assertions()
+        self.assertEqual(1, len(results))
+
+        self.assertEqual("""Found assertion syntax problem => name: assert_column_min_in_range for table orders_1k and column foobarbar
+ERROR: min parameter should be the same types""", results[0].as_report())

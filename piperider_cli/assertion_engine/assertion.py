@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, date, time
 from importlib import import_module
 from typing import List, Dict
 
@@ -81,6 +81,20 @@ class ValidationResult:
 
     def require_int_pair(self, name):
         return self._require_numeric_pair(name, {int})
+
+    def require_range_pair(self, name):
+        return self._require_numeric_pair(name, {int, float, datetime, date, time})
+
+    def require_same_types(self, name):
+        values = self.context.asserts.get(name)
+
+        base_type = type(values[0])
+        for v in values:
+            if type(v) != base_type:
+                self.errors.append(('ERROR', f'{name} parameter should be the same types'))
+                return self
+
+        return self
 
     def require_one_of_columns(self, names: list):
         found = False

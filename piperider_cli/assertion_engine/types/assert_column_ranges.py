@@ -13,9 +13,11 @@ class AssertColumnMinInRange(BaseAssertionType):
         return assert_column_min_in_range(context, table, column, metrics)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
-        # TODO verify "min" exists
-        # TODO verify two parameters in same type and all numeric values (including datetime, date, time)
-        pass
+        result = ValidationResult(context).require_column('min')
+        if result.has_errors():
+            return result
+
+        return result.require_range_pair('min').require_same_types('min')
 
 
 class AssertColumnMaxInRange(BaseAssertionType):
@@ -26,9 +28,11 @@ class AssertColumnMaxInRange(BaseAssertionType):
         return assert_column_max_in_range(context, table, column, metrics)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
-        # TODO verify "max" exists
-        # TODO verify two parameters in same type and all numeric values (including datetime, date, time)
-        pass
+        result = ValidationResult(context).require_column('max')
+        if result.has_errors():
+            return result
+
+        return result.require_range_pair('max').require_same_types('max')
 
 
 class AssertColumnInRange(BaseAssertionType):
@@ -39,9 +43,11 @@ class AssertColumnInRange(BaseAssertionType):
         return assert_column_in_range(context, table, column, metrics)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
-        # TODO verify "range" exists
-        # TODO verify two parameters in same type and all numeric values (including datetime, date, time)
-        pass
+        result = ValidationResult(context).require_column('range')
+        if result.has_errors():
+            return result
+
+        return result.require_range_pair('range').require_same_types('range')
 
 
 def assert_column_min_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
