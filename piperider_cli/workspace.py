@@ -11,7 +11,6 @@ from subprocess import Popen, check_output, CalledProcessError
 import inquirer
 from rich.console import Console
 from rich.table import Table
-from ruamel import yaml
 from sqlalchemy import create_engine, inspect
 
 from piperider_cli import clone_directory, convert_to_tzlocal, datetime_to_str
@@ -388,7 +387,7 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
                         output, result, created_at, skip_recommend: bool):
     # TODO: Implement running test cases based on profiling result
     assertion_engine = AssertionEngine(profiler)
-    assertion_engine.load_assertions()
+    assertion_engine.load_assertions(result)
     assertion_exist = True if assertion_engine.assertions_content else False
 
     if not assertion_exist:
@@ -601,7 +600,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
         console.print(f"Available datasources: {', '.join(datasource_names)}")
         return 1
 
-    # Use the fisrt datasource if no datasource is specified
+    # Use the first datasource if no datasource is specified
     ds_name = datasource if datasource else datasource_names[0]
     ds = datasources[ds_name]
 
@@ -772,7 +771,7 @@ def _run_dbt_command(table, default_schema, dbt, console):
                 select = name
                 break
             if resource['resource_type'] == 'source' and \
-               resource['source_name'] == schema:
+                resource['source_name'] == schema:
                 select = f'source:{schema}.{name}'
                 break
         full_cmd_arr.append('-s')
