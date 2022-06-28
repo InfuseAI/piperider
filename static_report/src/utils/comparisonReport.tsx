@@ -8,6 +8,9 @@ import {
   formatNumber,
 } from '.';
 
+const hoverOverlayColor = '#BEE3F8';
+const barColor = '#63B3ED';
+
 export function drawComparsionChart({
   containerWidth,
   svgTarget,
@@ -17,6 +20,7 @@ export function drawComparsionChart({
   const margin = { top: 10, right: 30, bottom: 30, left: 55 };
   const width = containerWidth - margin.left - margin.right;
   const height = 250 - margin.top - margin.bottom;
+  const overlayOffset = 8;
 
   const svgEl = d3.select(svgTarget);
   svgEl.selectAll('*').remove();
@@ -29,6 +33,7 @@ export function drawComparsionChart({
 
   const tooltip = getChartTooltip({ target: tooltipTarget });
 
+  // TODO: curry these functions for bar|overlay usages (refactor??)
   function onShowTooltip(event, d) {
     tooltip
       .html(
@@ -42,6 +47,8 @@ export function drawComparsionChart({
       .transition()
       .duration(500)
       .style('visibility', 'visible');
+    //@ts-ignore
+    d3.select(this).style('fill', hoverOverlayColor).style('opacity', 0.3);
   }
 
   function onMoveTooltip(event) {
@@ -52,6 +59,8 @@ export function drawComparsionChart({
 
   function onHideTooltip() {
     tooltip.html('').transition().duration(500).style('visibility', 'hidden');
+    //@ts-ignore
+    d3.select(this).style('opacity', 0);
   }
 
   const groups = d3.map<any, any>(data, ({ label }) => label);
@@ -105,7 +114,20 @@ export function drawComparsionChart({
     .attr('y', (d) => y(d.value))
     .attr('width', xSubGroup.bandwidth())
     .attr('height', (d: any) => height - y(d.value))
-    .attr('fill', (d: any) => color(d.key) as any)
+    .attr('fill', (d: any) => color(d.key) as any);
+
+  // plot backdrop hover area
+  svg
+    .selectAll()
+    .data(data)
+    .enter()
+    .append('rect')
+    .style('opacity', 0)
+    .attr('class', 'overlay-bars')
+    .attr('x', (s: any) => x(s.label) - overlayOffset / 2)
+    .attr('y', (s: any) => 0)
+    .attr('width', x.bandwidth() + overlayOffset)
+    .attr('height', (s: any) => height)
     .on('mouseover', onShowTooltip)
     .on('mousemove', onMoveTooltip)
     .on('mouseout', onHideTooltip);

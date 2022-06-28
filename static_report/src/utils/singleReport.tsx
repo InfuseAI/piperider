@@ -1,5 +1,17 @@
 import * as d3 from 'd3';
 import { getChartTooltip, formatNumber } from '.';
+import { DataItem } from '../components/SingleReport';
+
+type drawArgs = {
+  containerWidth: number;
+  containerHeight: number;
+  svgTarget: any;
+  tooltipTarget: any;
+  data: DataItem[];
+};
+
+const hoverOverlayColor = '#4A5568';
+const barColor = '#63B3ED';
 
 export function drawSingleReportChart({
   containerWidth,
@@ -7,10 +19,12 @@ export function drawSingleReportChart({
   svgTarget,
   tooltipTarget,
   data,
-}) {
+}: drawArgs) {
   const margin = { top: 10, right: 30, bottom: 30, left: 50 };
   const width = containerWidth - margin.left - margin.right;
   const height = containerHeight - margin.top - margin.bottom;
+  const xPadding = 0.5;
+  const overlayOffset = 10;
 
   const svgEl = d3.select(svgTarget);
   svgEl.selectAll('*').remove();
@@ -23,6 +37,7 @@ export function drawSingleReportChart({
 
   const tooltip = getChartTooltip({ target: tooltipTarget });
 
+  // TODO: curry these functions for bar|overlay usages
   function onShowTooltip(event, d) {
     tooltip
       .html(
@@ -39,7 +54,7 @@ export function drawSingleReportChart({
       .style('visibility', 'visible');
 
     //@ts-ignore
-    d3.select(this).style('fill', 'var(--chakra-colors-blue-100)');
+    d3.select(this).style('fill', hoverOverlayColor).style('opacity', 1);
   }
 
   function onMoveTooltip(event) {
@@ -52,14 +67,21 @@ export function drawSingleReportChart({
     tooltip.html('').transition().duration(500).style('visibility', 'hidden');
 
     //@ts-ignore
-    d3.select(this).style('fill', 'var(--chakra-colors-blue-300)');
+    d3.select(this).style('opacity', 0);
+    //TODO: apply on the actual data-bar itself?
   }
 
   const x = d3
     .scaleBand()
     .domain(data.map((d) => d.label))
     .range([0, width])
-    .padding(0.5);
+    .padding(xPadding);
+  const y = d3
+    .scaleLinear()
+    .domain([0, d3.max(data, ({ value }) => value)])
+    .range([height, 0]);
+
+  // plot X axis
   svg
     .append('g')
     .attr('transform', `translate(0, ${height})`)
@@ -74,10 +96,7 @@ export function drawSingleReportChart({
       }),
     );
 
-  const y = d3
-    .scaleLinear()
-    .domain([0, d3.max(data, ({ value }) => value)])
-    .range([height, 0]);
+  // plot Y axis
   svg.append('g').call(
     d3
       .axisLeft(y)
@@ -85,6 +104,23 @@ export function drawSingleReportChart({
       .ticks(8),
   );
 
+  // plot backdrop hover area
+  svg
+    .selectAll()
+    .data(data)
+    .enter()
+    .append('rect')
+    .style('opacity', 0)
+    .attr('class', 'overlay-bars')
+    .attr('x', (s: any) => x(s.label) - overlayOffset / 2)
+    .attr('y', (s: any) => 0)
+    .attr('width', x.bandwidth() + overlayOffset)
+    .attr('height', (s: any) => height)
+    .on('mouseover', onShowTooltip)
+    .on('mousemove', onMoveTooltip)
+    .on('mouseout', onHideTooltip);
+
+  // plot data bars
   svg
     .selectAll()
     .data(data)
@@ -94,8 +130,5 @@ export function drawSingleReportChart({
     .attr('y', (s: any) => y(s.value))
     .attr('height', (s: any) => height - y(s.value))
     .attr('width', x.bandwidth())
-    .style('fill', 'var(--chakra-colors-blue-300)')
-    .on('mouseover', onShowTooltip)
-    .on('mousemove', onMoveTooltip)
-    .on('mouseout', onHideTooltip);
+    .style('fill', barColor);
 }
