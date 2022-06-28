@@ -38,7 +38,7 @@ export function drawComparsionChart({
 
   const tooltip = getChartTooltip({ target: tooltipTarget });
 
-  // TODO: Refactor these as utils
+  // TODO: Refactor these as shared utils
   function onShowTooltip(event, d) {
     tooltip
       .html(
@@ -102,6 +102,7 @@ export function drawComparsionChart({
     .domain(['base', 'input'])
     .range([baseBarColor, inputBarColor]);
 
+  // plot data bars
   svg
     .append('g')
     .selectAll('g')
@@ -123,16 +124,24 @@ export function drawComparsionChart({
 
   // plot backdrop hover area
   svg
-    .selectAll()
+    .append('g')
+    .selectAll('g')
     .data(data)
-    .enter()
-    .append('rect')
+    .join('g')
+    .attr('transform', (d: any) => `translate(${x(d.label)}, 0)`)
+    .selectAll('rect')
+    .data(function (d: any) {
+      return ['base', 'input'].map(function (key) {
+        return { label: d.label, key: key, value: d[key] };
+      });
+    })
+    .join('rect')
+    .attr('x', (d) => xSubGroup(d.key))
+    .attr('y', (d) => 0)
+    .attr('width', xSubGroup.bandwidth())
+    .attr('height', (d: any) => height)
+    .attr('fill', (d: any) => color(d.key) as any)
     .style('opacity', 0)
-    .attr('class', 'overlay-bars')
-    .attr('x', (s: any) => x(s.label) - overlayOffset / 2)
-    .attr('y', (s: any) => 0)
-    .attr('width', x.bandwidth() + overlayOffset)
-    .attr('height', (s: any) => height)
     .on('mouseover', onShowTooltip)
     .on('mousemove', onMoveTooltip)
     .on('mouseout', onHideTooltip);
