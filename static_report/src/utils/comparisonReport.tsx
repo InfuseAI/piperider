@@ -25,7 +25,6 @@ export function drawComparsionChart({
   const margin = { top: 10, right: 30, bottom: 30, left: 55 };
   const width = containerWidth - margin.left - margin.right;
   const height = containerHeight - margin.top - margin.bottom;
-  const overlayOffset = 8;
 
   const svgEl = d3.select(svgTarget);
   svgEl.selectAll('*').remove();
@@ -68,6 +67,7 @@ export function drawComparsionChart({
     d3.select(this).style('opacity', 0);
   }
 
+  // plot X axis
   const groups = d3.map<any, any>(data, ({ label }) => label);
   const x = d3.scaleBand().domain(groups).range([0, width]).padding(0.3);
 
@@ -85,6 +85,7 @@ export function drawComparsionChart({
       }),
     );
 
+  // plot Y axis
   const y = d3
     .scaleLinear()
     .domain([0, d3.max(data, ({ base, input }) => Math.max(base, input))])
