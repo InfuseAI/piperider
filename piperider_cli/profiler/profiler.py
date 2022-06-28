@@ -165,6 +165,9 @@ class Profiler:
         return distribution
 
     def _calc_quantile(self, conn, table, column, total) -> dict:
+        if not total:
+            return {}
+
         if self.engine.url.get_backend_name() == "sqlite":
             # with t as (
             #   select
@@ -185,9 +188,9 @@ class Profiler:
                 n, v = row
                 quantile.append(v)
             return {
-                'p5': dtof(quantile[0]),
+                'p5': dtof(quantile[1 * n_bucket // 20]),
                 'p25': dtof(quantile[5 * n_bucket // 20]),
-                'median': dtof(quantile[10 * n_bucket // 20]),
+                'p50': dtof(quantile[10 * n_bucket // 20]),
                 'p75': dtof(quantile[15 * n_bucket // 20]),
                 'p95': dtof(quantile[19 * n_bucket // 20]),
             }
@@ -209,7 +212,7 @@ class Profiler:
             return {
                 'p5': dtof(result[0]),
                 'p25': dtof(result[1]),
-                'median': dtof(result[2]),
+                'p50': dtof(result[2]),
                 'p75': dtof(result[3]),
                 'p95': dtof(result[4]),
             }
@@ -265,10 +268,7 @@ class Profiler:
             _stddev = math.sqrt(_square_avg - _avg * _avg) if _square_avg and _avg else None
 
             # quantile
-            if _total:
-                quantile = self._calc_quantile(conn, t2, t2.c.c, _total)
-            else:
-                quantile = {}
+            quantile = self._calc_quantile(conn, t2, t2.c.c, _total)
 
             # histogram
             def map_bucket(expr, min_value, max_value, num_buckets):
@@ -358,7 +358,7 @@ class Profiler:
                 'p5': quantile.get('p5'),
                 'p25': quantile.get('p25'),
                 'stddev': _stddev,
-                'median': quantile.get('median'),
+                'p50': quantile.get('p50'),
                 'p75': quantile.get('p75'),
                 'p95': quantile.get('p95'),
                 'distribution': distribution,
