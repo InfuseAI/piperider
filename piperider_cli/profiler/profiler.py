@@ -198,11 +198,11 @@ class Profiler:
             # https://docs.sqlalchemy.org/en/14/core/functions.html#sqlalchemy.sql.functions.percentile_disc
             #
             # select
-            #     percentile_cont(0.05) within group (order by column),
-            #     percentile_cont(0.25) within group (order by column),
-            #     percentile_cont(0.5) within group (order by column),
-            #     percentile_cont(0.75) within group (order by column),
-            #     percentile_cont(0.95) within group (order by column)
+            #     percentile_disc(0.05) within group (order by column),
+            #     percentile_disc(0.25) within group (order by column),
+            #     percentile_disc(0.5) within group (order by column),
+            #     percentile_disc(0.75) within group (order by column),
+            #     percentile_disc(0.95) within group (order by column)
             # from table
             selects = [
                 func.percentile_disc(percentile).within_group(column) for percentile in [0.05, 0.25, 0.5, 0.75, 0.95]

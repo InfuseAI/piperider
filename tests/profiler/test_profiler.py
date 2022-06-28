@@ -69,7 +69,7 @@ class TestProfiler:
         assert "test1" in result["tables"]
         assert "test2" not in result["tables"]
 
-    def test_integer_dist(self):
+    def test_integer_metrics(self):
         engine = self.engine = create_engine('sqlite://')
         data = [
             ("col",),
@@ -94,7 +94,20 @@ class TestProfiler:
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
-        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+
+        result = profiler.profile()["tables"]["test"]['columns']["col"]
+        assert result['avg'] == 10.5
+        assert result['stddev'] == 9.5
+        assert result['sum'] == 21
+        assert result['min'] == 1
+        assert result['p5'] == 1
+        assert result['p25'] == 1
+        assert result['p50'] == 20
+        assert result['p75'] == 20
+        assert result['p95'] == 20
+        assert result['max'] == 20
+
+        result = result["distribution"]
         assert result["labels"][0] == '1'
         assert result["counts"][0] == 1
         assert result["labels"][19] == '20'
@@ -113,13 +126,26 @@ class TestProfiler:
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
-        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+
+        result = profiler.profile()["tables"]["test"]['columns']["col"]
+        assert result['avg'] == 472.0
+        assert abs(result['stddev'] - 376.47) < 0.01
+        assert result['sum'] == 2360
+        assert result['min'] == 10
+        assert result['p5'] == 10
+        assert result['p25'] == 100
+        assert result['p50'] == 500
+        assert result['p75'] == 750
+        assert result['p95'] == 1000
+        assert result['max'] == 1000
+
+        result = result["distribution"]
         assert result["labels"][0] == '0 _ 50'
         assert result["counts"][0] == 1
         assert result["labels"][19] == '950 _'
         assert result["counts"][19] == 1
 
-    def test_numeric_dist(self):
+    def test_numeric_metrics(self):
         engine = self.engine = create_engine('sqlite://')
 
         data = [
@@ -129,7 +155,20 @@ class TestProfiler:
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
-        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+
+        result = profiler.profile()["tables"]["test"]['columns']["col"]
+        assert result['avg'] == 10
+        assert result['stddev'] == 10
+        assert result['sum'] == 20
+        assert result['min'] == 0
+        assert result['p5'] == 0
+        assert result['p25'] == 0
+        assert result['p50'] == 20
+        assert result['p75'] == 20
+        assert result['p95'] == 20
+        assert result['max'] == 20
+
+        result = result["distribution"]
         assert result["counts"][0] == 1
         assert result["counts"][19] == 1
         assert result["counts"][5] == 0
@@ -164,7 +203,20 @@ class TestProfiler:
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
-        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+
+        result = profiler.profile()["tables"]["test"]['columns']["col"]
+        assert result['avg'] == 448
+        assert abs(result['stddev'] - 407.69) < 0.01
+        assert result['sum'] == 2240
+        assert result['min'] == -110
+        assert result['p5'] == -110
+        assert result['p25'] == 100
+        assert result['p50'] == 500
+        assert result['p75'] == 750
+        assert result['p95'] == 1000
+        assert result['max'] == 1000
+
+        result = result["distribution"]
         assert result["labels"][0] == '-200.0 _ -100.0'
         assert result["counts"][0] == 1
         assert result["labels"][12] == '1000.0 _ 1100.0'
