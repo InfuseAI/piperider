@@ -682,9 +682,18 @@ def _list_dbt_resources(dbt, console):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     try:
         check_output(['command', '-v', 'dbt'], cwd=dbt_root)
+        console.print('command works')
     except CalledProcessError:
-        console.print('[bold yellow]Warning: dbt command not found. Skip parsing dbt resources.[/bold yellow]')
-        return []
+        console.print('[bold yellow]Warning: dbt command not found. Skip running dbt.[/bold yellow]')
+        return
+    except Exception:
+        try:
+            check_output(['which', 'dbt'], cwd=dbt_root)
+            console.print('which works')
+        except Exception:
+            console.print('[bold yellow](which) Warning: dbt command not found. Skip running dbt.[/bold yellow]')
+            return
+        pass
 
     full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'all']
     lines = check_output(full_cmd_arr, cwd=dbt_root).decode().split('\n')[:-1]
@@ -743,12 +752,14 @@ def _run_dbt_command(table, default_schema, dbt, console):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     try:
         check_output(['command', '-v', 'dbt'], cwd=dbt_root)
+        console.print('command works')
     except CalledProcessError:
         console.print('[bold yellow]Warning: dbt command not found. Skip running dbt.[/bold yellow]')
         return
     except Exception:
         try:
             check_output(['which', 'dbt'], cwd=dbt_root)
+            console.print('which works')
         except Exception:
             console.print('[bold yellow](which) Warning: dbt command not found. Skip running dbt.[/bold yellow]')
             return
