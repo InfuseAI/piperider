@@ -46,7 +46,7 @@ def recommended_column_min_assertion(table, column, profiling_result) -> Recomme
         if count / total > 0.95:
             test_function_name = 'assert_column_min_in_range'
             assertion_values = {
-                'min': [round(column_min * 0.9, 4), round(column_min * 1.1, 4)]
+                'min': sorted([round(column_min * 0.9, 4), round(column_min * 1.1, 4)])
             }
             assertion = RecommendedAssertion(test_function_name, assertion_values)
             return assertion
@@ -73,7 +73,7 @@ def recommended_column_max_assertion(table, column, profiling_result) -> Recomme
         if count / total > 0.95:
             test_function_name = 'assert_column_max_in_range'
             assertion_values = {
-                'max': [round(column_max * 0.9, 4), round(column_max * 1.1, 4)]
+                'max': sorted([round(column_max * 0.9, 4), round(column_max * 1.1, 4)])
             }
             assertion = RecommendedAssertion(test_function_name, assertion_values)
             return assertion
