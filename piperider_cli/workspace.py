@@ -6,7 +6,7 @@ import uuid
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from glob import glob
-from subprocess import Popen, check_output, CalledProcessError
+from subprocess import Popen, check_output, CalledProcessError, DEVNULL
 
 import inquirer
 from rich.console import Console
@@ -545,12 +545,16 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
     default_schema = ds.credential.get('schema')
     dbt = ds.args.get('dbt')
-    if dbt:
-        dbt['resources'] = _list_dbt_resources(dbt, console)
+    dbt_exists = _check_dbt_command(dbt)
+    if dbt_command and not dbt_exists:
+        console.print(f'[bold yellow]Warning: dbt command not found. Skip running dbt {dbt_command}.[/bold yellow]')
+
+    if dbt and dbt_exists:
+        dbt['resources'] = _list_dbt_resources(dbt)
     tables = _get_table_list(table, default_schema, dbt)
 
     dbt_test_results = None
-    if dbt and dbt_command in ['build', 'test']:
+    if dbt and dbt_command in ['build', 'test'] and dbt_exists:
         dbt['cmd'] = dbt_command
         dbt_test_results = _run_dbt_command(table, default_schema, dbt, console)
 
@@ -607,14 +611,19 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     return 0
 
 
-def _list_dbt_resources(dbt, console):
+def _check_dbt_command(dbt):
+    if not dbt:
+        return False
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     try:
-        check_output(['command', '-v', 'dbt'], cwd=dbt_root)
-    except CalledProcessError:
-        console.print('[bold yellow]Warning: dbt command not found. Skip parsing dbt resources.[/bold yellow]')
-        return []
+        check_output(['dbt', '--version'], cwd=dbt_root, stderr=DEVNULL)
+    except Exception:
+        return False
+    return True
 
+
+def _list_dbt_resources(dbt):
+    dbt_root = os.path.expanduser(dbt.get('projectDir'))
     full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'all']
     lines = check_output(full_cmd_arr, cwd=dbt_root).decode().split('\n')[:-1]
     # Skip lines not starts with '{', which are not message in JSON format
@@ -670,11 +679,6 @@ def _get_table_list(table, default_schema, dbt):
 
 def _run_dbt_command(table, default_schema, dbt, console):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
-    try:
-        check_output(['command', '-v', 'dbt'], cwd=dbt_root)
-    except CalledProcessError:
-        console.print('[bold yellow]Warning: dbt command not found. Skip running dbt.[/bold yellow]')
-        return
 
     cmd = dbt.get('cmd', 'test')
     dbt_resources = dbt['resources']
