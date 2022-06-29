@@ -117,7 +117,7 @@ def init(**kwargs):
 @cli.command(short_help='Check project configuration.')
 @add_options(debug_option)
 def diagnose(**kwargs):
-    'Check project configuration, datasource, connections, assertion configuration and dbt manifest.'
+    'Check project configuration, datasource, connections, and assertion configuration.'
 
     console = Console()
     console.print('Diagnosing...')

@@ -55,12 +55,6 @@ class DbtProfileNotFoundError(PipeRiderError):
         self.message = f"Cannot find dbt profiles at {dbt_profile_path}. Please use dbt init to initiate the dbt profiles."
 
 
-class DbtManifestError(PipeRiderError):
-    def __init__(self, error_msg, **kwargs):
-        self.message = error_msg
-        pass
-
-
 class AssertionError(PipeRiderError):
     def __init__(self, error_msg):
         self.message = error_msg
