@@ -34,8 +34,19 @@ import {
 } from '../utils';
 import { drawSingleReportChart } from '../utils/singleReport';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { SingleReportSchema } from '../sdlc/single-report-schema';
+import { ChartProps, SingleChartDataItem } from '../utils/types';
 
-export default function SingleReport({ source, data, reportName }) {
+type SingleReportProps = {
+  source: SingleReportSchema['datasource'];
+  data: SingleReportSchema['tables']['ACTION'];
+  reportName: string;
+};
+export default function SingleReport({
+  source,
+  data,
+  reportName,
+}: SingleReportProps) {
   useDocumentTitle(reportName);
 
   if (!data) {
@@ -139,7 +150,7 @@ export default function SingleReport({ source, data, reportName }) {
   );
 }
 
-function ProfilingInformation({ data }) {
+function ProfilingInformation({ data }: SingleReportProps['data']['columns']) {
   return (
     <Flex direction="column" gap={4}>
       {Object.keys(data).map((key) => {
@@ -319,7 +330,7 @@ function TestsInformation({ tableName, data }) {
   );
 }
 
-function BarChart({ data }) {
+function BarChart({ data }: ChartProps<SingleChartDataItem>) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
 

@@ -439,7 +439,6 @@ export default function ComparisonReport({ base, input, reportName }) {
   const [testDetail, setTestDetail] = useState(null);
 
   useDocumentTitle(reportName);
-  // console.log(testDetail);
 
   return (
     <Main>
@@ -636,6 +635,7 @@ function ComparisonBarChart({ data }) {
   useEffect(() => {
     if (data.length > 0) {
       drawComparsionChart({
+        containerHeight: containerRef.current.getBoundingClientRect().height,
         containerWidth: containerRef.current.getBoundingClientRect().width,
         svgTarget: svgRef.current,
         tooltipTarget: '.chart',

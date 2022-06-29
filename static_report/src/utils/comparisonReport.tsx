@@ -7,16 +7,24 @@ import {
   getReportAsserationStatusCounts,
   formatNumber,
 } from '.';
+import { ComparisonChartDataItem, DrawChartArgs } from './types';
 
+const inputBarColor = 'var(--chakra-colors-blue-300)';
+const baseBarColor = 'var(--chakra-colors-blue-100)';
+
+//TODO: Refactor file name (currently confusing with component file)
+// -- shouldn't this be part of component folder?
+//see: https://www.robinwieruch.de/react-folder-structure/
 export function drawComparsionChart({
   containerWidth,
+  containerHeight,
   svgTarget,
   tooltipTarget,
   data,
-}) {
+}: DrawChartArgs<ComparisonChartDataItem>) {
   const margin = { top: 10, right: 30, bottom: 30, left: 55 };
   const width = containerWidth - margin.left - margin.right;
-  const height = 250 - margin.top - margin.bottom;
+  const height = containerHeight - margin.top - margin.bottom;
 
   const svgEl = d3.select(svgTarget);
   svgEl.selectAll('*').remove();
@@ -29,6 +37,7 @@ export function drawComparsionChart({
 
   const tooltip = getChartTooltip({ target: tooltipTarget });
 
+  // TODO: Refactor these as shared utils
   function onShowTooltip(event, d) {
     tooltip
       .html(
@@ -42,6 +51,8 @@ export function drawComparsionChart({
       .transition()
       .duration(500)
       .style('visibility', 'visible');
+    //@ts-ignore
+    d3.select(this).style('fill', baseBarColor).style('opacity', 0.3);
   }
 
   function onMoveTooltip(event) {
@@ -52,8 +63,11 @@ export function drawComparsionChart({
 
   function onHideTooltip() {
     tooltip.html('').transition().duration(500).style('visibility', 'hidden');
+    //@ts-ignore
+    d3.select(this).style('opacity', 0);
   }
 
+  // plot X axis
   const groups = d3.map<any, any>(data, ({ label }) => label);
   const x = d3.scaleBand().domain(groups).range([0, width]).padding(0.3);
 
@@ -71,6 +85,7 @@ export function drawComparsionChart({
       }),
     );
 
+  // plot Y axis
   const y = d3
     .scaleLinear()
     .domain([0, d3.max(data, ({ base, input }) => Math.max(base, input))])
@@ -86,8 +101,9 @@ export function drawComparsionChart({
   const color = d3
     .scaleOrdinal()
     .domain(['base', 'input'])
-    .range(['var(--chakra-colors-blue-100)', 'var(--chakra-colors-blue-300)']);
+    .range([baseBarColor, inputBarColor]);
 
+  // plot data bars
   svg
     .append('g')
     .selectAll('g')
@@ -105,7 +121,28 @@ export function drawComparsionChart({
     .attr('y', (d) => y(d.value))
     .attr('width', xSubGroup.bandwidth())
     .attr('height', (d: any) => height - y(d.value))
+    .attr('fill', (d: any) => color(d.key) as any);
+
+  // plot backdrop hover area
+  svg
+    .append('g')
+    .selectAll('g')
+    .data(data)
+    .join('g')
+    .attr('transform', (d: any) => `translate(${x(d.label)}, 0)`)
+    .selectAll('rect')
+    .data(function (d: any) {
+      return ['base', 'input'].map(function (key) {
+        return { label: d.label, key: key, value: d[key] };
+      });
+    })
+    .join('rect')
+    .attr('x', (d) => xSubGroup(d.key))
+    .attr('y', (d) => 0)
+    .attr('width', xSubGroup.bandwidth())
+    .attr('height', (d: any) => height)
     .attr('fill', (d: any) => color(d.key) as any)
+    .style('opacity', 0)
     .on('mouseover', onShowTooltip)
     .on('mousemove', onMoveTooltip)
     .on('mouseout', onHideTooltip);
