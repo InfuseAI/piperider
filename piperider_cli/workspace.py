@@ -20,7 +20,7 @@ from piperider_cli.compare_report import CompareReport
 from piperider_cli.configuration import Configuration, PIPERIDER_WORKSPACE_NAME, PIPERIDER_CONFIG_PATH, \
     PIPERIDER_CREDENTIALS_PATH
 from piperider_cli.datasource import DataSource
-from piperider_cli.error import PipeRiderCredentialError, DbtManifestError, PipeRiderDiagnosticError, \
+from piperider_cli.error import PipeRiderCredentialError, PipeRiderDiagnosticError, \
     PipeRiderNoProfilingResultError
 from piperider_cli.profiler import Profiler
 
@@ -124,29 +124,6 @@ class CheckConnections(AbstractChecker):
                     engine.dispose()
 
         return all_passed, ''
-
-
-class CheckDbtManifest(AbstractChecker):
-    def check_function(self, configurator: Configuration) -> (bool, str):
-        all_passed = True
-        error_msg = ''
-        for ds in configurator.dataSources:
-            dbt = ds.args.get('dbt')
-
-            if not dbt:
-                self.console.print(f'  {ds.name}: [[bold yellow]SKIP[/bold yellow]] provider is not dbt')
-                continue
-
-            self.console.print(f'  {os.path.expanduser(dbt.get("projectDir"))}/target/manifest.json: ', end='')
-            passed, error_msg, _, _ = _fetch_dbt_manifest(dbt)
-            if not passed:
-                all_passed = False
-                self.console.print(f'{ds.name}: [[bold red]Failed[/bold red]] Error: {error_msg}')
-                self.console.print(
-                    "  [bold yellow]Note:[/bold yellow] Please run command 'dbt build/run/test' to update 'manifest.json' file")
-            else:
-                self.console.print(f'{ds.name}: [[bold green]OK[/bold green]]')
-        return all_passed, error_msg
 
 
 class CheckAssertionFiles(AbstractChecker):
@@ -302,60 +279,11 @@ def init(dbt_project_path=None, dbt_profiles_dir=None):
     return configuration
 
 
-def _fetch_dbt_manifest(dbt, table=None):
-    if dbt is None:
-        return True, '', [], None
-
-    for key in ['profile', 'target', 'projectDir']:
-        if key not in dbt:
-            raise DbtManifestError(f"'{key}' is not in dbt config")
-
-    tables = set()
-    available_tables = []
-    dbt_root = os.path.expanduser(dbt.get('projectDir'))
-    dbt_manifest = os.path.join(dbt_root, 'target', 'manifest.json')
-    manifest = None
-
-    if os.path.exists(dbt_manifest):
-        with open(dbt_manifest) as fd:
-            manifest = json.loads(fd.read())
-        content = manifest.get('nodes', {})
-        content.update(manifest.get('sources', {}))
-        for k, v in content.items():
-            if not v.get('resource_type', '') in ['source', 'model']:
-                continue
-            name = v.get('name')
-            schema = v.get('schema')
-            if schema in ['public', 'PUBLIC']:
-                table_name = name
-            else:
-                table_name = f'{schema}.{name}'
-            available_tables.append(table_name)
-            if table and table_name != table:
-                continue
-            tables.add(table_name)
-    else:
-        return False, f"'{dbt_manifest}' not found", []
-
-    if table and not tables:
-        suggestion = ''
-        lower_tables = [t.lower() for t in available_tables]
-        if table.lower() in lower_tables:
-            index = lower_tables.index(table.lower())
-            suggestion = f". Do you mean '{available_tables[index]}'?"
-        return False, f"Table '{table}' doesn't exist in {dbt_manifest}{suggestion}", [], None
-    if not tables:
-        return False, f'No table found in {dbt_manifest}', [], None
-
-    return True, '', list(tables), manifest
-
-
 def debug():
     handler = CheckingHandler()
     handler.set_checker('config files', CheckConfiguration)
     handler.set_checker('format of data sources', CheckDataSources)
     handler.set_checker('connections', CheckConnections)
-    handler.set_checker('dbt manifest files', CheckDbtManifest)
     handler.set_checker('assertion files', CheckAssertionFiles)
     return handler.execute()
 
