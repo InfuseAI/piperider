@@ -242,6 +242,84 @@ class Profiler:
                 'p95': dtof(result[4]),
             }
 
+    def _calc_histogram(self, conn, table, column, min, max, is_integer, num_buckets=HISTOGRAM_NUM_BUCKET):
+
+        if is_integer:
+            # min=0, max=50, num_buckets=50  => interval=1, num_buckets=51
+            # min=0, max=70, num_buckets=50  => interval=2, num_buckets=36
+            # min=0, max=100, num_buckets=50 => interval=2, num_buckets=51
+            interval = math.ceil((max - min) / num_buckets) if max > min else 1
+            num_buckets = math.ceil((max - min + 1) / interval)
+        else:
+            interval = (max - min) / num_buckets
+
+        cases = []
+        for i in range(num_buckets):
+            bound = min + interval * (i + 1)
+            if i != num_buckets - 1:
+                cases += [(column < bound, i)]
+            else:
+                cases += [(column <= bound, i)]
+
+        t2 = select([
+            column.label("c"),
+            case(cases, else_=None).label("bucket")
+        ]).select_from(
+            table
+        ).where(
+            column.isnot(None)
+        ).cte(name="T_WITH_BUCKET")
+
+        stmt = select([
+            t2.c.bucket,
+            func.count().label("_count")
+        ]).group_by(
+            t2.c.bucket
+        ).order_by(
+            t2.c.bucket
+        )
+
+        result = conn.execute(stmt)
+
+        counts = []
+        labels = []
+        bin_edges = []
+        for i in range(num_buckets):
+            if is_integer:
+                start = min + i * interval
+                end = min + (i + 1) * interval
+                if interval == 1:
+                    label = f"{start}"
+                else:
+                    label = f"{start} _ {end}"
+            else:
+                if interval >= 1:
+                    start = min + i * interval
+                    end = min + (i + 1) * interval
+                else:
+                    start = min + i / (1 / interval)
+                    end = min + (i + 1) / (1 / interval)
+
+                label = f"{format_float(start)} _ {format_float(end)}"
+
+            labels.append(label)
+            counts.append(0)
+            bin_edges.append(start)
+            if i == num_buckets - 1:
+                bin_edges.append(end)
+
+        for row in result:
+            _bucket, v = row
+            if _bucket is None:
+                continue
+            counts[int(_bucket)] = v
+        return {
+            "type": "histogram",
+            "labels": labels,
+            "counts": counts,
+            "bin_edges": bin_edges,
+        }
+
     def _profile_numeric_column(self, table_name: str, column_name: str, is_integer: bool):
         # metadata = MetaData()
         # t = Table(table_name, metadata, Column(column_name, Numeric))
@@ -296,83 +374,8 @@ class Profiler:
             quantile = self._calc_quantile(conn, t2, t2.c.c, _total)
 
             # histogram
-            def map_bucket(expr, min_value, max_value, num_buckets):
-                interval = (max_value - min_value) / num_buckets
-                cases = []
-                for i in range(num_buckets):
-                    bound = min_value + interval * (i + 1)
-                    if i != num_buckets - 1:
-                        cases += [(expr < bound, i)]
-                    else:
-                        cases += [(expr <= bound, i)]
 
-                return case(
-                    cases, else_=None
-                )
-
-            distribution = None
-            if _non_null > 0:
-                # dmin, dmax, interval = Profiler._calc_histogram_range(_min, _max, is_integer=is_integer)
-
-                _num_buckets = HISTOGRAM_NUM_BUCKET
-                _is_discrete = False
-                if is_integer and _max - _min < HISTOGRAM_NUM_BUCKET:
-                    _num_buckets = int(_max - _min) + 1
-                    _is_discrete = True
-
-                t2 = select([
-                    t.c[column_name].label("c"),
-                    map_bucket(t.c[column_name].label("c"), _min, _max, _num_buckets).label("bucket")
-                ]).where(
-                    t.c[column_name].isnot(None)
-                ).cte(name="T")
-                stmt = select([
-                    t2.c.bucket,
-                    func.count().label("_count")
-                ]).group_by(
-                    t2.c.bucket
-                ).order_by(
-                    t2.c.bucket
-                )
-                result = conn.execute(stmt)
-                distribution = {
-                    "type": "histogram",
-                    "params": {
-                        "min": _min,
-                        "max": _max,
-                        "buckets": _num_buckets,
-                    },
-                    "labels": [],
-                    "counts": [],
-                }
-                for i in range(_num_buckets):
-                    if is_integer:
-                        start = _min + math.ceil(i * (_max - _min) / _num_buckets)
-                        end = _min + math.floor((i + 1) * (_max - _min) / _num_buckets)
-
-                        if _is_discrete:
-                            label = f"{start}"
-                        else:
-                            label = f"{start} _ {end}"
-                    else:
-                        interval = (_max - _min) / _num_buckets
-                        if interval >= 1:
-                            start = _min + i * interval
-                            end = _min + (i + 1) * interval
-                        else:
-                            start = _min + i / (1 / interval)
-                            end = _min + (i + 1) / (1 / interval)
-
-                        label = f"{format_float(start)} _ {format_float(end)}"
-
-                    distribution["labels"].append(label)
-                    distribution["counts"].append(0)
-
-                for row in result:
-                    _bucket, v = row
-                    if _bucket is None:
-                        continue
-                    distribution["counts"][int(_bucket)] = v
+            distribution = self._calc_histogram(conn, t2, t2.c.c, _min, _max, is_integer) if _non_null > 0 else None
 
             return {
                 'total': _total,

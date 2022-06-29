@@ -84,35 +84,43 @@ class TestProfiler:
         assert result["labels"][20] == '20'
         assert result["counts"][20] == 1
         assert result["counts"][5] == 0
+        assert result["bin_edges"][0] == 0
+        assert result["bin_edges"][21] == 21
 
-        # number range within 20
+        #
         engine = self.engine = create_engine('sqlite://')
         data = [
             ("col",),
-            (1,),
+            (0,),
             (50,),
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
 
-        result = profiler.profile()["tables"]["test"]['columns']["col"]
-        assert result['avg'] == 25.5
-        assert result['stddev'] == 24.5
-        assert result['sum'] == 51
-        assert result['min'] == 1
-        assert result['p5'] == 1
-        assert result['p25'] == 1
-        assert result['p50'] == 50
-        assert result['p75'] == 50
-        assert result['p95'] == 50
-        assert result['max'] == 50
-
-        result = result["distribution"]
-        assert result["labels"][0] == '1'
+        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+        assert result["labels"][0] == '0'
         assert result["counts"][0] == 1
-        assert result["labels"][49] == '50'
-        assert result["counts"][49] == 1
+        assert result["labels"][50] == '50'
+        assert result["counts"][50] == 1
         assert result["counts"][5] == 0
+        assert result["bin_edges"][0] == 0
+        assert result["bin_edges"][51] == 51
+
+        #
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ("col",),
+            (0,),
+        ]
+        self.create_table("test", data)
+        profiler = Profiler(engine)
+
+        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+        assert result["labels"][0] == '0'
+        assert result["counts"][0] == 1
+        assert result["bin_edges"][0] == 0
+        assert result["bin_edges"][1] == 1
+        assert len(result["labels"]) == 1
 
         #
         engine = self.engine = create_engine('sqlite://')
@@ -140,10 +148,30 @@ class TestProfiler:
         assert result['max'] == 1000
 
         result = result["distribution"]
-        assert result["labels"][0] == '10 _ 29'
+        assert result["labels"][0] == '10 _ 30'
         assert result["counts"][0] == 1
-        assert result["labels"][49] == '981 _ 1000'
+        assert result["labels"][49] == '990 _ 1010'
         assert result["counts"][49] == 1
+        assert result["bin_edges"][0] == 10
+        assert result["bin_edges"][50] == 1010
+
+        # no data
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ("num", "col"),
+        ]
+        self.create_table("test", data, columns=[Column("col", Integer)])
+        profiler = Profiler(engine)
+        result = profiler.profile()["tables"]["test"]['columns']["col"]
+        assert result['sum'] is None
+        assert result['min'] is None
+        assert result['p5'] is None
+        assert result['p25'] is None
+        assert result['p50'] is None
+        assert result['p75'] is None
+        assert result['p95'] is None
+        assert result['max'] is None
+        assert result['distribution'] is None
 
     def test_numeric_metrics(self):
         engine = self.engine = create_engine('sqlite://')
@@ -190,6 +218,8 @@ class TestProfiler:
         assert result["counts"][0] == 1
         assert result["labels"][49] == '980.20 _ 1.0K'
         assert result["counts"][49] == 1
+        assert result["bin_edges"][0] == 10.0
+        assert result["bin_edges"][50] == 1000.0
 
         # negative
         engine = self.engine = create_engine('sqlite://')
@@ -223,6 +253,24 @@ class TestProfiler:
         assert result["counts"][27] == 1
         assert result["labels"][49] == '977.80 _ 1.0K'
         assert result["counts"][49] == 1
+
+        # no data
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ("num", "col"),
+        ]
+        self.create_table("test", data, columns=[Column("col", Numeric)])
+        profiler = Profiler(engine)
+        result = profiler.profile()["tables"]["test"]['columns']["col"]
+        assert result['sum'] is None
+        assert result['min'] is None
+        assert result['p5'] is None
+        assert result['p25'] is None
+        assert result['p50'] is None
+        assert result['p75'] is None
+        assert result['p95'] is None
+        assert result['max'] is None
+        assert result['distribution'] is None
 
     def test_numeric_mismatched(self):
         engine = self.engine = create_engine('sqlite://')
