@@ -581,7 +581,7 @@ def _transform_assertion_result(table: str, results):
     return dict(tests=tests, columns=columns)
 
 
-def run(datasource=None, table=None, output=None, interaction=True, skip_report=False, skip_dbt=False,
+def run(datasource=None, table=None, output=None, interaction=True, skip_report=False, dbt_command='',
         skip_recommend=False):
     console = Console()
     configuration = Configuration.load()
@@ -623,7 +623,8 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     tables = _get_table_list(table, default_schema, dbt)
 
     dbt_test_results = None
-    if dbt and not skip_dbt:
+    if dbt and dbt_command in ['build', 'test']:
+        dbt['cmd'] = dbt_command
         dbt_test_results = _run_dbt_command(table, default_schema, dbt, console)
 
     console.rule('Profiling')
@@ -749,7 +750,7 @@ def _run_dbt_command(table, default_schema, dbt, console):
         return
 
     cmd = dbt.get('cmd', 'test')
-    if cmd not in ['build', 'run', 'test']:
+    if cmd not in ['build', 'test']:
         message = f"'dbt {cmd}' is invalid, only support 'dbt build/run/test'."
         message += " Please check the dbt command in '.piperider/config.yml'."
         message += ' Skip running dbt'
