@@ -79,10 +79,10 @@ class TestProfiler:
         self.create_table("test", data)
         profiler = Profiler(engine)
         result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
-        assert result["labels"][0] == '0 _ 1'
+        assert result["labels"][0] == '0'
         assert result["counts"][0] == 1
-        assert result["labels"][19] == '19 _'
-        assert result["counts"][19] == 1
+        assert result["labels"][20] == '20'
+        assert result["counts"][20] == 1
         assert result["counts"][5] == 0
 
         # number range within 20
@@ -90,28 +90,28 @@ class TestProfiler:
         data = [
             ("col",),
             (1,),
-            (20,),
+            (50,),
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
 
         result = profiler.profile()["tables"]["test"]['columns']["col"]
-        assert result['avg'] == 10.5
-        assert result['stddev'] == 9.5
-        assert result['sum'] == 21
+        assert result['avg'] == 25.5
+        assert result['stddev'] == 24.5
+        assert result['sum'] == 51
         assert result['min'] == 1
         assert result['p5'] == 1
         assert result['p25'] == 1
-        assert result['p50'] == 20
-        assert result['p75'] == 20
-        assert result['p95'] == 20
-        assert result['max'] == 20
+        assert result['p50'] == 50
+        assert result['p75'] == 50
+        assert result['p95'] == 50
+        assert result['max'] == 50
 
         result = result["distribution"]
         assert result["labels"][0] == '1'
         assert result["counts"][0] == 1
-        assert result["labels"][19] == '20'
-        assert result["counts"][19] == 1
+        assert result["labels"][49] == '50'
+        assert result["counts"][49] == 1
         assert result["counts"][5] == 0
 
         #
@@ -140,10 +140,10 @@ class TestProfiler:
         assert result['max'] == 1000
 
         result = result["distribution"]
-        assert result["labels"][0] == '0 _ 50'
+        assert result["labels"][0] == '10 _ 29'
         assert result["counts"][0] == 1
-        assert result["labels"][19] == '950 _'
-        assert result["counts"][19] == 1
+        assert result["labels"][49] == '981 _ 1000'
+        assert result["counts"][49] == 1
 
     def test_numeric_metrics(self):
         engine = self.engine = create_engine('sqlite://')
@@ -170,8 +170,8 @@ class TestProfiler:
 
         result = result["distribution"]
         assert result["counts"][0] == 1
-        assert result["counts"][19] == 1
-        assert result["counts"][5] == 0
+        assert result["counts"][49] == 1
+        assert result["counts"][25] == 0
 
         #
         engine = self.engine = create_engine('sqlite://')
@@ -186,10 +186,10 @@ class TestProfiler:
         self.create_table("test", data)
         profiler = Profiler(engine)
         result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
-        assert result["labels"][0] == '0.0 _ 50.0'
+        assert result["labels"][0] == '10.00 _ 29.80'
         assert result["counts"][0] == 1
-        assert result["labels"][19] == '950.0 _'
-        assert result["counts"][19] == 1
+        assert result["labels"][49] == '980.20 _ 1.0K'
+        assert result["counts"][49] == 1
 
         # negative
         engine = self.engine = create_engine('sqlite://')
@@ -217,12 +217,12 @@ class TestProfiler:
         assert result['max'] == 1000
 
         result = result["distribution"]
-        assert result["labels"][0] == '-200.0 _ -100.0'
+        assert result["labels"][0] == '-110.00 _ -87.80'
         assert result["counts"][0] == 1
-        assert result["labels"][12] == '1000.0 _ 1100.0'
-        assert result["counts"][12] == 1
-        assert result["labels"][19] == '1700.0 _'
-        assert result["counts"][19] == 0
+        assert result["labels"][27] == '489.40 _ 511.60'
+        assert result["counts"][27] == 1
+        assert result["labels"][49] == '977.80 _ 1.0K'
+        assert result["counts"][49] == 1
 
     def test_numeric_mismatched(self):
         engine = self.engine = create_engine('sqlite://')
@@ -286,31 +286,3 @@ class TestProfiler:
         assert result["tables"]["test"]['columns']["num"]["distribution"]["counts"][0] == 1
         assert result["tables"]["test"]['columns']["str"]["distribution"]["counts"][0] == 1
         assert result["tables"]["test"]['columns']["num_empty"]["distribution"] == None
-
-    def test_range(self):
-        tests = [
-            # min,max,expected min,expected interval
-            (0.1, 200, 0, 10),
-            (150, 250, 150, 5),
-            (8700, 15000, 8500, 500),
-            (235, 753, 200, 50),
-            (20, 250, 0, 20),
-            (50, 700, 0, 50),
-            (5000, 70000, 0, 5000),
-            (0.05, 0.0788, 0.05, 0.002),
-            (1, 21, 0, 2),
-            (-1, 100, -10, 10),
-            (-134, 543, -150, 50),
-            (-0.134, 0.543, -0.15, 0.05),
-            (0.151, 0.16, 0.151, 0.0005),
-            (-20, -10, -20, 0.5),
-            (-18, -2, -18, 1),
-            (35071105.0, 35075104.0, 35071000, 250),
-            (499, 699, 480, 20)
-        ]
-
-        for test in tests:
-            low, high, emin, einterval = test
-            min, max, interval = Profiler._calc_distribution_range(low, high, is_integer=False)
-            assert emin == min
-            assert einterval == interval
