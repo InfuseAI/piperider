@@ -646,7 +646,7 @@ export default function ComparisonReport({ base, input, reportName }) {
                     <Td>
                       {extractExpectedOrActual(testDetail?.input.expected)}
                     </Td>
-                    <Td>{extractExpectedOrActual(testDetail?.base.actual)}</Td>
+                    <Td>{extractExpectedOrActual(testDetail?.input.actual)}</Td>
                   </Tr>
                 </Tbody>
               </Table>
