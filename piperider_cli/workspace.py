@@ -684,6 +684,8 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
 
 def _check_dbt_command(dbt):
+    if not dbt:
+        return False
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     try:
         check_output(['dbt', '--version'], cwd=dbt_root, stderr=DEVNULL)
