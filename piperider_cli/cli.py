@@ -148,9 +148,7 @@ def run(**kwargs):
     skip_recommend = kwargs.get('skip_recommend')
     run_dbt_test = kwargs.get('dbt_test')
     run_dbt_build = kwargs.get('dbt_build')
-    dbt_command = 'test' if run_dbt_test else ''
-    if run_dbt_build:
-        dbt_command = 'build'
+    dbt_command = 'build' if run_dbt_build else 'test' if run_dbt_test else ''
     ret = workspace.run(datasource=datasource,
                         table=table,
                         output=output,

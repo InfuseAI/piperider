@@ -749,13 +749,6 @@ def _run_dbt_command(table, default_schema, dbt, console):
         return
 
     cmd = dbt.get('cmd', 'test')
-    if cmd not in ['build', 'test']:
-        message = f"'dbt {cmd}' is invalid, only support 'dbt build/run/test'."
-        message += " Please check the dbt command in '.piperider/config.yml'."
-        message += ' Skip running dbt'
-        console.print(f"[bold yellow]Warning: {message}[/bold yellow]")
-        return
-
     dbt_resources = dbt['resources']
     full_cmd_arr = ['dbt', cmd]
     if table:
