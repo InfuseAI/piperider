@@ -92,7 +92,7 @@ export function getReportAsserationStatusCounts(
 }
 
 export function getMissingValue(
-  column: undefined | { total: number; non_nulls: number },
+  column: undefined | { total?: number; non_nulls?: number },
 ) {
   if (!column) {
     return '-';
