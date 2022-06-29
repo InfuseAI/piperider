@@ -89,15 +89,13 @@ export function getMissingValue(column) {
     return '-';
   }
 
-  const num = (
-    Number((column.total - column.non_nulls) / column.total) * 100
-  ).toFixed(1);
+  const num = Number((column.total - column.non_nulls) / column.total) * 100;
 
   if (Math.floor(num) === 0.0) {
     return '<0.1%';
+  } else {
+    return `${num.toFixed(1)}%`;
   }
-
-  return `${num}%`;
 }
 
 export function formatReportTime(time) {
