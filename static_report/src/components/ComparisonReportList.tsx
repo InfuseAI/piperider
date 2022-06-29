@@ -18,8 +18,9 @@ import {
   getReportAsserationStatusCounts,
   formatReportTime,
   formatNumber,
+  joinBykey,
 } from '../utils';
-import { joinBykey } from '../utils/comparisonReport';
+
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export function ComparisonReportList({ data }) {

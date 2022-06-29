@@ -1,4 +1,6 @@
 import * as d3 from 'd3';
+import fill from 'lodash/fill';
+import zip from 'lodash/zip';
 import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 
@@ -91,7 +93,7 @@ export function getMissingValue(column) {
 
   const num = Number((column.total - column.non_nulls) / column.total) * 100;
 
-  if (Math.floor(Number(num)) === 0) {
+  if (Math.floor(num) === 0) {
     return '<0.1%';
   } else {
     return `${num.toFixed(1)}%`;
@@ -133,4 +135,114 @@ export function extractExpectedOrActual(value) {
   }
 
   return value;
+}
+
+// for comparison
+export function joinBykey(base = {}, input = {}) {
+  const result = {};
+
+  Object.entries(base).forEach(([key, value]) => {
+    if (!result[key]) {
+      result[key] = {};
+    }
+
+    result[key]['base'] = value;
+  });
+
+  Object.entries(input).forEach(([key, value]) => {
+    if (!result[key]) {
+      result[key] = {};
+    }
+    result[key]['input'] = value;
+  });
+
+  return result;
+}
+
+export function getComparisonTests(assertion, from) {
+  const { passed, failed } = getReportAsserationStatusCounts(assertion);
+
+  if (assertion) {
+    const table = assertion.tests.map((test) => ({
+      ...test,
+      level: 'Table',
+      column: '-',
+      from,
+    }));
+
+    const columns = Object.keys(assertion.columns).map((column) => {
+      const columnAssertion = assertion.columns[column];
+      return columnAssertion.map((test) => ({
+        ...test,
+        level: 'Column',
+        column,
+        from,
+      }));
+    });
+
+    return {
+      passed,
+      failed,
+      tests: [...table, ...columns.flat()],
+    };
+  }
+
+  return {
+    passed,
+    failed,
+    tests: [],
+  };
+}
+
+// for `type` equal to string, datetime
+export function transformDistribution({ base, input }) {
+  const mapIndex = {};
+  const result = [];
+
+  for (let i = 0; i < base.labels.length; i++) {
+    let label = base.labels[i];
+    let count = base.counts[i];
+    mapIndex[label] = i;
+    result.push({
+      label: label,
+      base: count,
+      input: 0,
+    });
+  }
+
+  for (let i = 0; i < input.labels.length; i++) {
+    let label = input.labels[i];
+    let count = input.counts[i];
+
+    if (mapIndex.hasOwnProperty(label)) {
+      result[mapIndex[label]].input = count;
+    } else {
+      result.push({
+        label: label,
+        base: 0,
+        input: count,
+      });
+    }
+  }
+
+  return result;
+}
+
+export function transformDistributionWithLabels({ base, input, labels }) {
+  if (!base) {
+    base = fill(Array(labels.length), 0);
+  }
+
+  if (!input) {
+    input = fill(Array(labels.length), 0);
+  }
+
+  const z = zip(labels, base, input);
+  const m = z.map(([label, base, input]) => ({
+    label,
+    base,
+    input,
+  }));
+
+  return m;
 }
