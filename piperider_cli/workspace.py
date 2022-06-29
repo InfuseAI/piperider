@@ -746,6 +746,14 @@ def _run_dbt_command(table, default_schema, dbt, console):
     except CalledProcessError:
         console.print('[bold yellow]Warning: dbt command not found. Skip running dbt.[/bold yellow]')
         return
+    except Exception:
+        try:
+            check_output(['which', 'dbt'], cwd=dbt_root)
+        except Exception:
+            console.print('[bold yellow](which) Warning: dbt command not found. Skip running dbt.[/bold yellow]')
+            return
+        pass
+
 
     cmd = dbt.get('cmd', 'test')
     if cmd not in ['build', 'run', 'test']:
