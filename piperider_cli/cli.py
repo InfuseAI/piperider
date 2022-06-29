@@ -63,7 +63,7 @@ def cli(ctx: click.Context):
 
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
-        Guide().show_tips(ctx)
+        Guide().show_tips(ctx.command.name)
 
     pass
 

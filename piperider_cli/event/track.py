@@ -47,7 +47,7 @@ class TrackCommand(Command):
         try:
 
             ret = super(TrackCommand, self).invoke(ctx)
-            guide.show_tips(ctx)
+            guide.show_tips(ctx.command.name)
 
             status = True
             return ret

@@ -1,21 +1,11 @@
 import os
 
-from click import Context
 from rich.console import Console
 
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 
 piperider_config = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
 report_directory = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
-
-console = Console()
-
-
-def show(description):
-    console.line()
-    console.print("Next step:")
-    console.print(f'  {description}')
-    console.line()
 
 
 def piperider_initialized() -> bool:
@@ -39,28 +29,49 @@ class Guide(object):
     after run if ==2 reports ==> compare-report
     """
 
-    def show_tips(self, ctx: Context):
-        command_name = ctx.command.name
+    def __init__(self):
+        self.console = Console()
+
+    def show_tips(self, command_name: str):
 
         if command_name == 'version':
             return
 
         if command_name != 'init' and not piperider_initialized():
-            show("Piperider is not initialized. Please execute command 'piperider init' to move forward.")
+            self.show("Piperider is not initialized. Please execute command 'piperider init' to move forward.")
             return
 
         if command_name == 'init':
-            show("Please execute command 'piperider diagnose' to verify configuration")
+            self.show("Please execute command 'piperider diagnose' to verify configuration")
+            return
+
+        if command_name == 'diagnose' and number_of_reports() < 1:
+            self.show("Please execute command 'piperider run' to generate your first report")
             return
 
         if command_name == 'diagnose' and number_of_reports() < 2:
-            show("Please execute command 'piperider run' to generate your first report")
+            self.show("Please execute command 'piperider run' to generate your second report")
             return
 
         if command_name == 'run' and number_of_reports() == 1:
-            show("Please execute command 'piperider run' to generate your second report")
+            self.show("Please execute command 'piperider run' to generate your second report")
             return
 
         if command_name == 'run' and number_of_reports() == 2:
-            show("Please execute command 'piperider compare-reports' to get the comparison report")
+            self.show("Please execute command 'piperider compare-reports' to get the comparison report")
             return
+
+        if command_name == 'generate-report' and number_of_reports() == 1:
+            self.show("Please execute command 'piperider run' to generate your second report")
+            return
+
+        if command_name == 'generate-report' and number_of_reports() == 2:
+            self.show("Please execute command 'piperider compare-reports' to get the comparison report")
+            return
+
+    def show(self, description):
+        console = self.console
+        console.line()
+        console.print("Next step:")
+        console.print(f'  {description}')
+        console.line()
