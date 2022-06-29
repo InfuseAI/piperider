@@ -54,6 +54,9 @@ jobs:
           echo "Nightly build version: $(cat piperider_cli/VERSION)"
           echo "::set-output name=nightly_version::$(cat piperider_cli/VERSION)"
 
+          # add commit sha to version command
+          echo "$GITHUB_SHA" > piperider_cli/data/COMMIT
+
           # release to PyPI
           make release
         env:

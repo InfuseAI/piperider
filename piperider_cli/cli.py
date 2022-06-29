@@ -74,7 +74,20 @@ cli.command_class = TrackCommand
 @cli.command(short_help='Show version information.')
 def version():
     'Show version information.'
-    click.echo(__version__)
+    console = Console()
+    console.print(__version__)
+
+    if 'production' == sentry_env:
+        return
+
+    from piperider_cli import data
+    commit_file = os.path.abspath(os.path.join(os.path.dirname(data.__file__), 'COMMIT'))
+    try:
+        with open(commit_file) as fh:
+            commit_sha = fh.read().strip()
+            console.print(f'GitCommit: {commit_sha}')
+    except Exception:
+        pass
 
 
 @cli.command(short_help='Initialize a PipeRider project.')
