@@ -6,12 +6,37 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, String, Integer, Numeric, Date, DateTime, Boolean, select, func, distinct, case
 
+HISTOGRAM_NUM_BUCKET = 50
+
 
 # dtof is helpler function to transform decimal value to float. Decimal is not json serializable type.
 def dtof(value):
     if isinstance(value, decimal.Decimal):
         return float(value)
     return value
+
+
+def format_float(val):
+    if val == 0:
+        return "0"
+
+    base = math.floor(math.log10(abs(val)))
+    if base < -2:
+        return f"{val:.2e}"
+    elif base < 0:
+        return f"{val:.3f}"
+    elif base < 3:
+        return f"{val:.2f}"
+    elif base < 6:
+        return f"{val / (10 ** 3):.1f}K"
+    elif base < 9:
+        return f"{val / (10 ** 6):.1f}M"
+    elif base < 12:
+        return f"{val / (10 ** 9):.1f}T"
+    elif base < 15:
+        return f"{val / (10 ** 12):.1f}B"
+    else:
+        return f"{val / (10 ** 12):.0f}B"
 
 
 class Profiler:
@@ -132,7 +157,7 @@ class Profiler:
             _total, _non_null, _distinct = result
             distribution = None
             if _non_null > 0:
-                distribution = self._dist_topk(conn, t2.c.c, 20)
+                distribution = self._dist_topk(conn, t2.c.c)
             return {
                 'total': _total,
                 'non_nulls': _non_null,
@@ -140,7 +165,7 @@ class Profiler:
                 'distribution': distribution,
             }
 
-    def _dist_topk(self, conn, expr, k):
+    def _dist_topk(self, conn, expr, k=20):
         stmt = select([
             expr,
             func.count().label("_count")
@@ -217,6 +242,84 @@ class Profiler:
                 'p95': dtof(result[4]),
             }
 
+    def _calc_histogram(self, conn, table, column, min, max, is_integer, num_buckets=HISTOGRAM_NUM_BUCKET):
+
+        if is_integer:
+            # min=0, max=50, num_buckets=50  => interval=1, num_buckets=51
+            # min=0, max=70, num_buckets=50  => interval=2, num_buckets=36
+            # min=0, max=100, num_buckets=50 => interval=2, num_buckets=51
+            interval = math.ceil((max - min) / num_buckets) if max > min else 1
+            num_buckets = math.ceil((max - min + 1) / interval)
+        else:
+            interval = (max - min) / num_buckets
+
+        cases = []
+        for i in range(num_buckets):
+            bound = min + interval * (i + 1)
+            if i != num_buckets - 1:
+                cases += [(column < bound, i)]
+            else:
+                cases += [(column <= bound, i)]
+
+        t2 = select([
+            column.label("c"),
+            case(cases, else_=None).label("bucket")
+        ]).select_from(
+            table
+        ).where(
+            column.isnot(None)
+        ).cte(name="T_WITH_BUCKET")
+
+        stmt = select([
+            t2.c.bucket,
+            func.count().label("_count")
+        ]).group_by(
+            t2.c.bucket
+        ).order_by(
+            t2.c.bucket
+        )
+
+        result = conn.execute(stmt)
+
+        counts = []
+        labels = []
+        bin_edges = []
+        for i in range(num_buckets):
+            if is_integer:
+                start = min + i * interval
+                end = min + (i + 1) * interval
+                if interval == 1:
+                    label = f"{start}"
+                else:
+                    label = f"{start} _ {end}"
+            else:
+                if interval >= 1:
+                    start = min + i * interval
+                    end = min + (i + 1) * interval
+                else:
+                    start = min + i / (1 / interval)
+                    end = min + (i + 1) / (1 / interval)
+
+                label = f"{format_float(start)} _ {format_float(end)}"
+
+            labels.append(label)
+            counts.append(0)
+            bin_edges.append(start)
+            if i == num_buckets - 1:
+                bin_edges.append(end)
+
+        for row in result:
+            _bucket, v = row
+            if _bucket is None:
+                continue
+            counts[int(_bucket)] = v
+        return {
+            "type": "histogram",
+            "labels": labels,
+            "counts": counts,
+            "bin_edges": bin_edges,
+        }
+
     def _profile_numeric_column(self, table_name: str, column_name: str, is_integer: bool):
         # metadata = MetaData()
         # t = Table(table_name, metadata, Column(column_name, Numeric))
@@ -271,80 +374,8 @@ class Profiler:
             quantile = self._calc_quantile(conn, t2, t2.c.c, _total)
 
             # histogram
-            def map_bucket(expr, min_value, max_value, num_buckets):
-                interval = (max_value - min_value) / num_buckets
-                cases = []
-                for i in range(num_buckets):
-                    bound = min_value + interval * (i + 1)
-                    if i != num_buckets - 1:
-                        cases += [(expr < bound, i)]
-                    else:
-                        cases += [(expr <= bound, i)]
 
-                return case(
-                    cases, else_=None
-                )
-
-            distribution = None
-            if _non_null == 1:
-                distribution = self._dist_topk(conn, t2.c.c, 20)
-            elif _non_null > 0:
-                dmin, dmax, interval = Profiler._calc_distribution_range(_min, _max, is_integer=is_integer)
-                _num_buckets = 20
-
-                t2 = select([
-                    t.c[column_name].label("c"),
-                    map_bucket(t.c[column_name].label("c"), dmin, dmin + (interval * _num_buckets), _num_buckets).label(
-                        "bucket")
-                ]).where(
-                    t.c[column_name] is not None
-                ).cte(name="T")
-                stmt = select([
-                    t2.c.bucket,
-                    func.count().label("_count")
-                ]).group_by(
-                    t2.c.bucket
-                ).order_by(
-                    t2.c.bucket
-                )
-                result = conn.execute(stmt)
-                distribution = {
-                    "type": "histogram",
-                    "labels": [],
-                    "counts": [],
-                }
-                for i in range(_num_buckets):
-                    if is_integer:
-                        dmin = int(dmin)
-                        dmax = int(dmax)
-                        interval = int(interval)
-
-                        if _max - _min < _num_buckets:
-                            label = f"{i * interval + dmin}"
-                        elif i == _num_buckets - 1:
-                            label = f"{i * interval + dmin} _"
-                        else:
-                            label = f"{i * interval + dmin} _ {(i + 1) * interval + dmin}"
-                    else:
-                        if interval >= 1:
-                            if i == _num_buckets - 1:
-                                label = f"{i * interval + dmin} _"
-                            else:
-                                label = f"{i * interval + dmin} _ {(i + 1) * interval + dmin}"
-                        else:
-                            if i == _num_buckets - 1:
-                                label = f"{i / (1 / interval) + dmin} _"
-                            else:
-                                label = f"{i / (1 / interval) + dmin} _ {(i + 1) / (1 / interval) + dmin}"
-
-                    distribution["labels"].append(label)
-                    distribution["counts"].append(0)
-
-                for row in result:
-                    _bucket, v = row
-                    if _bucket is None:
-                        continue
-                    distribution["counts"][int(_bucket)] = v
+            distribution = self._calc_histogram(conn, t2, t2.c.c, _min, _max, is_integer) if _non_null > 0 else None
 
             return {
                 'total': _total,
@@ -381,7 +412,7 @@ class Profiler:
 
             distribution = None
             if _non_null == 1 or _distinct == 1:
-                distribution = self._dist_topk(conn, t2.c.c, 20)
+                distribution = self._dist_topk(conn, t2.c.c)
             elif _non_null > 0:
                 distribution = {
                     "type": "",
@@ -499,81 +530,6 @@ class Profiler:
                 'distinct': _distinct,
                 'distribution': None,
             }
-
-    @staticmethod
-    def _calc_distribution_range(min, max, is_integer):
-        import math
-
-        if is_integer and max - min < 20:
-            return (min, max, 1)
-
-        # make the min align to 0
-        if min > 0 and max / 4 > min:
-            min = 0
-
-        # only one value case
-        if min == max:
-            if is_integer:
-                max = min + 1
-            else:
-                if min == 0:
-                    min = 0
-                    max = 1
-                elif min > 0:
-                    min = 0
-                else:
-                    max = 0
-        range = max - min
-
-        # find the base
-        # range = 100, base=100
-        # range = 104, base=100
-        # range = 0.8, base=0.1
-        # range = 0.05, base=0.01
-        base = math.pow(10, math.floor(math.log10(range)))
-
-        # range=100 base=100 => range=100, interval=5
-        # range=101 base=100 => range=200, interval=10
-        # range=256 base=100 => range=400, interval=20
-        # range=423 base=100 => range=500, interval=25
-        # range=723 base=100 => range=1000, interval=50
-        if range / base == 1:
-            range = base
-        elif range / base <= 2:
-            range = base * 2
-        elif range / base <= 4:
-            range = base * 4
-        elif range / base <= 5:
-            range = base * 5
-        else:
-            range = base * 10
-        interval = range / 20
-
-        # Adjust the min/max to the grid
-        # interval=10, 235->230
-        # interval=20, 235->220
-        if interval >= 1:
-            min = math.floor(min / interval) * interval
-            max = math.ceil(max / interval) * interval
-        else:
-            # fix the truncation issue
-            # 5 * 0.25 => 5 / 4
-            # 5 * 0.05 => 5 / 20
-            min = math.floor(min / interval) / (1 / interval)
-            max = math.ceil(max / interval) / (1 / interval)
-
-        if max - min > interval * 20:
-            # Sometimes, the range does not contains in the 20*interval, because we shift min,max to interval grid.
-            # For example
-            #   (499, 699)
-            #   range=200 => range=200,interval=10
-            #   (499, 699) => align to interval grid => (490, 700)
-            #   max-min=210 > interval*20=200
-            #
-            # In order to max sure the min, max is inside the 20 bins, we calculate the range again by the adjusted min/max.
-            return Profiler._calc_distribution_range(min, max, is_integer=is_integer)
-        else:
-            return min, max, interval
 
     @staticmethod
     def _calc_date_range(min_date, max_date):
