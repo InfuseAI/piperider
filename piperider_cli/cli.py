@@ -135,7 +135,8 @@ def diagnose(**kwargs):
 @click.option('--no-interaction', is_flag=True, help='Disable interactive mode.')
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
 @click.option('--skip-recommend', is_flag=True, help='Skip recommending assertions.')
-@click.option('--skip-dbt', is_flag=True, help='Skip running dbt.')
+@click.option('--dbt-test', is_flag=True, help='Run dbt test.')
+@click.option('--dbt-build', is_flag=True, help='Run dbt build.')
 @add_options(debug_option)
 def run(**kwargs):
     'Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
@@ -145,14 +146,18 @@ def run(**kwargs):
     output = kwargs.get('output')
     skip_report = kwargs.get('skip_report')
     skip_recommend = kwargs.get('skip_recommend')
-    skip_dbt = kwargs.get('skip_dbt')
+    run_dbt_test = kwargs.get('dbt_test')
+    run_dbt_build = kwargs.get('dbt_build')
+    dbt_command = 'test' if run_dbt_test else ''
+    if run_dbt_build:
+        dbt_command = 'build'
     ret = workspace.run(datasource=datasource,
                         table=table,
                         output=output,
                         interaction=not kwargs.get('no_interaction'),
                         skip_report=skip_report,
                         skip_recommend=skip_recommend,
-                        skip_dbt=skip_dbt)
+                        dbt_command=dbt_command)
     if not skip_report and ret == 0:
         workspace.generate_report()
 

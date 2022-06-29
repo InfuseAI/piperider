@@ -73,7 +73,6 @@ class Configuration(object):
             'profile': profile_name,
             'target': target_name,
             'projectDir': os.path.relpath(os.path.dirname(dbt_project_path), os.getcwd()),
-            'cmd': 'test',
         }
 
         if dbt_profiles_dir:
