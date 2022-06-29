@@ -6,7 +6,7 @@ import uuid
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from glob import glob
-from subprocess import Popen, check_output, CalledProcessError
+from subprocess import Popen, check_output, CalledProcessError, DEVNULL
 
 import inquirer
 from rich.console import Console
@@ -686,7 +686,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 def _check_dbt_command(dbt):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     try:
-        check_output(['dbt', '--version'], cwd=dbt_root, stderr=subprocess.DEVNULL)
+        check_output(['dbt', '--version'], cwd=dbt_root, stderr=DEVNULL)
     except Exception:
         return False
     return True
