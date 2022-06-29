@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { RefObject, useEffect, useState } from 'react';
 
-export function useResizeObserver(elem) {
-  const [dimensions, setDimensions] = useState(null);
+export function useResizeObserver<T extends HTMLElement>(elem: RefObject<T>) {
+  const [dimensions, setDimensions] = useState<DOMRect>(null);
 
   useEffect(() => {
     if (!elem || !elem.current) {

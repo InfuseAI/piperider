@@ -1,4 +1,3 @@
-import * as d3 from 'd3';
 import fill from 'lodash/fill';
 import zip from 'lodash/zip';
 
