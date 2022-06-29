@@ -12,15 +12,15 @@ There is a customized assertion in our assertion configuration `customized_asser
 data: # Table Name
   # Test Cases for Table
   tests:
-    - name: customized_assertions.assert_nothing_table_example
+    - name: assert_nothing_table_example
       assert:
         param1: value1
 ```
 
 That means
 
-1. You have put the `customized_assertions.py` into PipeRider plugin search path.
-2. There must be a function named `assert_nothing_table_example` in the `customized_assertions.py`
+1. You have put a python module `customized_assertions.py` into PipeRider plugin search path.
+2. There must be an assertion class named `assert_nothing_table_example` in the `customized_assertions.py`
 
 ### Plugin Search Path
 
@@ -46,17 +46,60 @@ After you `init` the PipeRider, you can find two examples at the `./piperider/pl
 * assert_nothing_table_example
 * assert_nothing_column_example
 
-The customized assertion must have the same method signature and return an `AssertionResult` like this:
+The customized assertion must implementation `BaseAssertionType` like this:
 
 ```python
-def assert_nothing_table_example(context: AssertionContext,
-                                 table: str,
-                                 column: str,
-                                 metrics: dict) -> AssertionResult:
-  return context.result.success()
+from piperider_cli.assertion_engine.assertion import AssertionContext, AssertionResult, ValidationResult
+from piperider_cli.assertion_engine.types import BaseAssertionType, register_assertion_function
+
+
+class AssertNothingTableExample(BaseAssertionType):
+  def name(self):
+    return 'assert_nothing_table_example'
+
+  def execute(self, context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    table_metrics = metrics.get('tables', {}).get(table)
+    if table_metrics is None:
+      # cannot find the table in the metrics
+      return context.result.fail()
+
+    # 1. Get the metric for the current table
+    # We support two metrics for table level metrics: ['row_count', 'col_count']
+    row_count = table_metrics.get('row_count')
+    # col_count = table_metrics.get('col_count')
+
+    # 2. Get expectation from assert input
+    expected = context.asserts.get('something', [])
+
+    # 3. Implement your logic to check requirement between expectation and actual value in the metrics
+
+    # 4. send result
+
+    # 4.1 mark it as failed result
+    # return context.result.fail('what I saw in the metric')
+
+    # 4.2 mark it as success result
+    # return context.result.success('what I saw in the metric')
+
+    return context.result.success('what I saw in the metric')
+
+  def validate(self, context: AssertionContext) -> ValidationResult:
+    result = ValidationResult(context)
+    result.errors.append(('ERROR', 'explain to users why this broken'))
+    return result
+
+
+# register new assertions
+register_assertion_function(AssertNothingTableExample)
 ```
 
-When the assertion has been called, PipeRider will put all arguments for you:
+* name method provides the function name that will be used in the assertion yaml.
+* execute method is your implementation to give the result of the assertion function.
+* validate method could help you check `assert` parameters before PipeRider is profiling.
+
+#### execute details
+
+When the assertion has been called, PipeRider will put all arguments to `execute` method for you:
 
 * context: helper object for assembling result entry to the report.
 * table: the table name you are asserting.
@@ -142,4 +185,25 @@ drwxr-xr-x   4 piperider  staff   128B  6  1 09:35 .
 drwxr-xr-x  26 piperider  staff   832B  6  1 09:35 ..
 -rw-r--r--   1 piperider  staff   6.2K  6  1 09:35 .profiler.json
 -rw-r--r--   1 piperider  staff    15K  6  1 09:35 data.json
+```
+
+#### Validation
+
+Validation is used when `diagnose` or before `profiling` to verify the `assert` are well-defined in the assertion file.
+
+If everything was fine, the `validate` could return an ValidationResult without errors
+
+```python
+  def validate(self, context: AssertionContext) -> ValidationResult:
+    result = ValidationResult(context)
+    return result
+```
+
+If you have found something wrong, tried to add the reason to the result object:
+
+```python
+    def validate(self, context: AssertionContext) -> ValidationResult:
+        result = ValidationResult(context)
+        result.errors.append(('ERROR', 'explain to users why this broken'))
+        return result
 ```

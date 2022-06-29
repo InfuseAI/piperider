@@ -442,7 +442,7 @@ class AssertionEngine:
               outliers: 5 # in get_outliers's verification logic, check outliers parameter and return true if it's less than 5
         """
 
-        self.configure_plugins_path()
+        self.load_plugins()
 
         from piperider_cli.assertion_engine.types import get_assertion
         try:
@@ -453,42 +453,9 @@ class AssertionEngine:
             except Exception as e:
                 assertion.result.fail_with_exception(e)
             return assertion
-        except ValueError:
-            # got this error when  an assertion function was not found in the registry
-            pass
-
-        return self._do_legacy_evaluate(assertion, metrics_result)
-
-    def _do_legacy_evaluate(self, assertion, metrics_result):
-        try:
-            # assertion name with "." suppose to be a user-defined test function
-            is_user_defined_test_function = ("." in assertion.name)
-            if not is_user_defined_test_function:
-                # locate the builtin assertion from the piperider_cli.assertion_engine
-                # fetch the assertion function
-                assertion_module = import_module('piperider_cli.assertion_engine')
-                func = getattr(assertion_module, assertion.name)
-            else:
-                assertion_def = assertion.name.split(".")
-                module_name = ".".join(assertion_def[0:-1])
-                function_name = assertion_def[-1]
-                assertion_module = import_module(module_name)
-                func = getattr(assertion_module, function_name)
-        except ModuleNotFoundError as e:
+        except ValueError as e:
             assertion.result.fail_with_exception(AssertionError(f'Cannot find the assertion: {assertion.name}', e))
             return assertion
-        except ImportError as e:
-            assertion.result.fail_with_exception(AssertionError(f'Cannot find the assertion: {assertion.name}', e))
-            return assertion
-        except Exception as e:
-            assertion.result.fail_with_exception(AssertionError(f'Cannot find the assertion: {assertion.name}', e))
-            return assertion
-        try:
-            result = func(assertion, assertion.table, assertion.column, metrics_result)
-            result.validate()
-        except Exception as e:
-            assertion.result.fail_with_exception(e)
-        return assertion
 
     def evaluate_all(self, metrics_result):
         results = []
@@ -525,9 +492,28 @@ class AssertionEngine:
 
         return results
 
-    def configure_plugins_path(self):
+    def load_plugins(self):
+
+        def to_dirs(path_list: str):
+            if path_list is None:
+                return []
+            return [x.strip() for x in path_list.split(':')]
+
+        plugin_dirs = []
         plugin_context = os.environ.get('PIPERIDER_PLUGINS')
         if plugin_context:
             sys.path.append(plugin_context)
+            plugin_dirs += to_dirs(plugin_context)
+
         if self.default_plugins_dir:
             sys.path.append(self.default_plugins_dir)
+            plugin_dirs += to_dirs(self.default_plugins_dir)
+
+        for d in plugin_dirs:
+            module_names = [x.split('.py')[0] for x in os.listdir(d) if x.endswith(".py")]
+            for m in module_names:
+                try:
+                    import_module(m)
+                except BaseException:
+                    print(f"Failed to load module {m} from {d}")
+                    raise
