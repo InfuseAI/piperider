@@ -1,6 +1,11 @@
 import * as d3 from 'd3';
+import fill from 'lodash/fill';
+import zip from 'lodash/zip';
+import mergeWith from 'lodash/mergeWith';
 import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
+
+import type { AssertionResult } from '../types';
 
 const tooltipDefaultStyle = {
   paddingTop: 'var(--chakra-space-2)',
@@ -45,7 +50,9 @@ export function getChartTooltip({ target, style = {} as any }) {
   return tooltip;
 }
 
-export function getReportAsserationStatusCounts(assertion) {
+export function getReportAsserationStatusCounts(
+  assertion: AssertionResult | undefined,
+) {
   if (!assertion) {
     return { passed: '-', failed: '-' };
   }
@@ -84,21 +91,23 @@ export function getReportAsserationStatusCounts(assertion) {
   };
 }
 
-export function getMissingValue(column) {
+export function getMissingValue(
+  column: undefined | { total: number; non_nulls: number },
+) {
   if (!column) {
     return '-';
   }
 
   const num = Number((column.total - column.non_nulls) / column.total) * 100;
 
-  if (Math.floor(num) === 0.0) {
+  if (Math.floor(num) === 0) {
     return '<0.1%';
   } else {
     return `${num.toFixed(1)}%`;
   }
 }
 
-export function formatReportTime(time) {
+export function formatReportTime(time: string) {
   const adjustForUTCOffset = (date) => {
     return new Date(
       date.getUTCFullYear(),
@@ -133,4 +142,119 @@ export function extractExpectedOrActual(value) {
   }
 
   return value;
+}
+
+// for comparison
+export function nestComparisonValueByKey(
+  base: Record<string, unknown>,
+  input: Record<string, unknown>,
+): Record<
+  string,
+  { base: Record<string, unknown>; input: Record<string, unknown> }
+> {
+  const helper = (acc, [key, value]) => {
+    acc[key] = value;
+    return acc;
+  };
+  const _base = Object.entries(base).reduce(helper, {});
+  const _input = Object.entries(input).reduce(helper, {});
+
+  return mergeWith(_base, _input, (base, input) => ({
+    base,
+    input,
+  }));
+}
+
+export function getComparisonAssertionTests({
+  assertion,
+  from,
+}: {
+  assertion: AssertionResult | undefined;
+  from: 'base' | 'input';
+}) {
+  const { passed, failed } = getReportAsserationStatusCounts(assertion);
+
+  if (!assertion) {
+    return {
+      passed,
+      failed,
+      tests: [],
+    };
+  }
+
+  const table = assertion.tests.map((test) => ({
+    ...test,
+    level: 'Table',
+    column: '-',
+    from,
+  }));
+
+  const columns = Object.keys(assertion.columns).map((column) => {
+    const columnAssertion = assertion.columns[column];
+    return columnAssertion.map((test) => ({
+      ...test,
+      level: 'Column',
+      column,
+      from,
+    }));
+  });
+
+  return {
+    passed,
+    failed,
+    tests: [...table, ...columns.flat()],
+  };
+}
+
+// for `type` equal to string, datetime
+export function transformDistribution({ base, input }) {
+  const mapIndex = {};
+  const result = [];
+
+  for (let i = 0; i < base.labels.length; i++) {
+    let label = base.labels[i];
+    let count = base.counts[i];
+    mapIndex[label] = i;
+    result.push({
+      label: label,
+      base: count,
+      input: 0,
+    });
+  }
+
+  for (let i = 0; i < input.labels.length; i++) {
+    let label = input.labels[i];
+    let count = input.counts[i];
+
+    if (mapIndex.hasOwnProperty(label)) {
+      result[mapIndex[label]].input = count;
+    } else {
+      result.push({
+        label: label,
+        base: 0,
+        input: count,
+      });
+    }
+  }
+
+  return result;
+}
+
+export function transformDistributionWithLabels({ base, input, labels }) {
+  if (!base) {
+    base = fill(Array(labels.length), 0);
+  }
+
+  if (!input) {
+    input = fill(Array(labels.length), 0);
+  }
+
+  const z = zip(labels, base, input);
+  const m = z.map(([label, base, input]) => ({
+    label,
+    base,
+    input,
+  }));
+
+  return m;
 }

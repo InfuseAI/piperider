@@ -18,14 +18,16 @@ import {
   getReportAsserationStatusCounts,
   formatReportTime,
   formatNumber,
+  nestComparisonValueByKey,
 } from '../utils';
-import { joinBykey } from '../utils/comparisonReport';
+
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import type { AssertionResult } from '../types';
 
 export function ComparisonReportList({ data }) {
   const { base, input } = data;
 
-  const tables = joinBykey(base.tables, input.tables);
+  const tables = nestComparisonValueByKey(base.tables, input.tables);
 
   useDocumentTitle('Report List');
 
@@ -104,10 +106,16 @@ export function ComparisonReportList({ data }) {
                 {Object.keys(tables).map((key) => {
                   const table = tables[key];
                   const baseOverview = getReportAsserationStatusCounts(
-                    table.base?.assertion_results,
+                    // TODO: upstream types can improve
+                    table.base?.assertion_results
+                      ? (table.base.assertion_results as AssertionResult)
+                      : undefined,
                   );
                   const inputOverview = getReportAsserationStatusCounts(
-                    table.input?.assertion_results,
+                    // TODO: upstream types can improve
+                    table.input?.assertion_results
+                      ? (table.input.assertion_results as AssertionResult)
+                      : undefined,
                   );
 
                   return (

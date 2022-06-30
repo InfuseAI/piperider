@@ -45,8 +45,8 @@
   },
   "scripts": {
     "setup": "run-s schema:* typing:* embed:html",
-    "start:single": "npm run setup && REACT_APP_SINGLE_REPORT=true react-scripts start",
-    "start:comparison": "npm run setup && REACT_APP_SINGLE_REPORT=false react-scripts start",
+    "start:single": "npm run setup && PORT=3000 REACT_APP_SINGLE_REPORT=true react-scripts start",
+    "start:comparison": "npm run setup && PORT=3001 REACT_APP_SINGLE_REPORT=false react-scripts start",
     "schema:single": "node src/sdlc/generate-report-schema.js single",
     "schema:comparison": "node src/sdlc/generate-report-schema.js comparison",
     "typing:single": "npx json2ts src/sdlc/single-report-schema.json > src/sdlc/single-report-schema.d.ts",

@@ -1,4 +1,5 @@
 import {
+  Button,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -40,16 +41,15 @@ import {
   getMissingValue,
   formatNumber,
   extractExpectedOrActual,
-} from '../utils';
-import {
-  drawComparsionChart,
-  joinBykey,
-  getComparisonTests,
+  nestComparisonValueByKey,
+  getComparisonAssertionTests,
   transformDistribution,
   transformDistributionWithLabels,
-} from '../utils/comparisonReport';
+} from '../utils';
+
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { Button } from '@chakra-ui/react';
+import { useResizeObserver } from '../hooks/useResizeObserver';
+import { useComparisonChart } from '../hooks/useComparisonChart';
 
 function TestStatus({ status }) {
   switch (status) {
@@ -88,7 +88,7 @@ function CompareTest({ base = [], input = [], ...props }) {
       name: groupedTest[0].name,
     };
 
-    groupedTest.forEach((test) => {
+    (groupedTest as any).forEach((test) => {
       if (test.from === 'base') {
         row.base = test;
       } else {
@@ -299,17 +299,19 @@ function CompareProfileColumn({ name, base, input }) {
 
   return (
     <Flex key={name} direction="column">
-      <Grid my={4} templateColumns="500px 1fr" gap={3}>
+      <Grid my={4} templateColumns="500px 1fr" gap={12}>
         <Flex direction="column" gap={2} minH="250px">
           <Flex direction="column" gap={3}>
             <Flex justifyContent="space-between">
-              <Text>
+              <Text maxWidth="calc(100% - 250px)">
                 <Text
                   as="span"
                   fontWeight={700}
                   color="gray.900"
                   fontSize="lg"
                   mr={1}
+                  noOfLines={1}
+                  title={column.name}
                 >
                   {column.name}
                 </Text>
@@ -450,11 +452,14 @@ function CompareProfileColumn({ name, base, input }) {
 }
 
 function CompareProfile({ base, input }) {
-  const transformedData = joinBykey(base?.columns, input?.columns);
+  const transformedData = nestComparisonValueByKey(
+    base?.columns,
+    input?.columns,
+  );
 
   return (
     <>
-      {Object.entries<any>(transformedData).map(([key, value]) => (
+      {Object.entries(transformedData).map(([key, value]) => (
         <CompareProfileColumn
           key={key}
           name={key}
@@ -467,10 +472,17 @@ function CompareProfile({ base, input }) {
 }
 
 export default function ComparisonReport({ base, input, reportName }) {
-  const tBase = getComparisonTests(base?.assertion_results, 'base');
-  const tInput = getComparisonTests(input?.assertion_results, 'input');
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const [testDetail, setTestDetail] = useState(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const tBase = getComparisonAssertionTests({
+    assertion: base?.assertion_results,
+    from: 'base',
+  });
+  const tInput = getComparisonAssertionTests({
+    assertion: input?.assertion_results,
+    from: 'input',
+  });
 
   useDocumentTitle(reportName);
 
@@ -663,24 +675,18 @@ export default function ComparisonReport({ base, input, reportName }) {
 }
 
 function ComparisonBarChart({ data }) {
-  const svgRef = useRef(null);
-  const containerRef = useRef(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dimensions = useResizeObserver(containerRef);
 
-  useEffect(() => {
-    if (data.length > 0) {
-      drawComparsionChart({
-        containerHeight: containerRef.current.getBoundingClientRect().height,
-        containerWidth: containerRef.current.getBoundingClientRect().width,
-        svgTarget: svgRef.current,
-        tooltipTarget: '.chart',
-        data,
-      });
-    }
-  }, [data]);
+  useComparisonChart({ target: svgRef, data, dimensions });
 
   return (
-    <Flex className="chart" ref={containerRef} width="100%">
-      <svg ref={svgRef} />
+    <Flex className="chart" width="100%" ref={containerRef}>
+      <svg width="100%" overflow="visible" ref={svgRef}>
+        <g className="x-axis" />
+        <g className="y-axis" />
+      </svg>
     </Flex>
   );
 }
