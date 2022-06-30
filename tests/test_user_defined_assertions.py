@@ -45,12 +45,6 @@ def build_assertion_engine(project_dir, table, assertions):
     return engine
 
 
-def assert_foobarbar(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
-    context.result.actual = 'I see you'
-    context.result._expected = dict(magic_number=5566)
-    return context.result.success()
-
-
 class UserDefinedTestAssertionsTests(TestCase):
 
     def setUp(self) -> None:
@@ -61,19 +55,19 @@ class UserDefinedTestAssertionsTests(TestCase):
                                                                        AssertionEngine.PIPERIDER_WORKSPACE_NAME,
                                                                        'plugins')
 
-        # generate a random module name for user defined tests
-        self.current_module_name = uuid.uuid4().hex.replace('-', '_')
+        self.current_module_name = '_user_defined_assertion_functions.py'
+        self.custom_asertions = os.path.join(os.path.dirname(__file__), self.current_module_name)
 
     def test_user_defined_test_from_default_plugin_path(self):
         # put the user defined test function
-        shutil.copyfile(__file__, os.path.join(f'{AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH}',
-                                               f'{self.current_module_name}.py'))
+        shutil.copyfile(self.custom_asertions, os.path.join(f'{AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH}',
+                                                            f'{self.current_module_name}'))
 
         # use the function in the assertion configuration
         assertions = f"""
         foobarbar:
           tests:
-          - name: {self.current_module_name}.{assert_foobarbar.__name__}
+          - name: user-defined-test-test
             assert:
               param1: a
               param2: b
@@ -99,14 +93,14 @@ class UserDefinedTestAssertionsTests(TestCase):
         os.environ['PIPERIDER_PLUGINS'] = random_dir
         print("PIPERIDER_PLUGINS => ", os.environ['PIPERIDER_PLUGINS'])
         # copy this file to PIPERIDER_PLUGINS
-        shutil.copyfile(__file__,
-                        os.path.join(random_dir, f'{self.current_module_name}.py'))
+        shutil.copyfile(self.custom_asertions,
+                        os.path.join(random_dir, f'{self.current_module_name}'))
 
         # use the function in the assertion configuration
         assertions = f"""
         foobarbar:
           tests:
-          - name: {self.current_module_name}.{assert_foobarbar.__name__}
+          - name: user-defined-test-test
             assert:
               param1: a
               param2: b

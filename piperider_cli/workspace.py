@@ -6,7 +6,9 @@ import uuid
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from glob import glob
-from subprocess import Popen, check_output, CalledProcessError, DEVNULL
+from subprocess import DEVNULL
+from subprocess import Popen, check_output
+from typing import List
 
 import inquirer
 from rich.console import Console
@@ -14,7 +16,7 @@ from rich.table import Table
 from sqlalchemy import create_engine, inspect
 
 from piperider_cli import clone_directory, convert_to_tzlocal, datetime_to_str
-from piperider_cli.assertion_engine import AssertionEngine
+from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
 from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.compare_report import CompareReport
 from piperider_cli.configuration import Configuration, PIPERIDER_WORKSPACE_NAME, PIPERIDER_CONFIG_PATH, \
@@ -128,14 +130,32 @@ class CheckConnections(AbstractChecker):
 
 class CheckAssertionFiles(AbstractChecker):
     def check_function(self, configurator: Configuration) -> (bool, str):
-        passed_files, failed_files, content = AssertionEngine.check_assertions_syntax()
+        engine = AssertionEngine(None)
+        passed_files, failed_files = engine.load_all_assertions_for_validation()
+        results: List[ValidationResult] = engine.validate_assertions()
+
         for file in passed_files:
             self.console.print(f'  {file}: [[bold green]OK[/bold green]]')
 
         for file in failed_files:
             self.console.print(f'  {file}: [[bold red]FAILED[/bold red]]')
 
-        return len(failed_files) == 0, ''
+        newline_section = False
+        validate_fail = False
+        error_msg = ''
+        for result in results:
+            if result.has_errors():
+                if not newline_section:
+                    self.console.line()
+                    newline_section = True
+                self.console.print(f'  [[bold red]FAILED[/bold red]] {result.as_user_report()}')
+                validate_fail = True
+
+        if validate_fail or len(failed_files):
+            error_msg = 'Syntax problem of PipeRider assertion yaml files'
+            self.console.line()
+
+        return error_msg == '', error_msg
 
 
 def _is_piperider_workspace_exist(workspace_path: str) -> bool:
@@ -508,6 +528,24 @@ def _transform_assertion_result(table: str, results):
     return dict(tests=tests, columns=columns)
 
 
+def _validate_assertions(console: Console):
+    assertion_engine = AssertionEngine(None)
+    assertion_engine.load_all_assertions_for_validation()
+    results = assertion_engine.validate_assertions()
+    # if results
+    for result in results:
+        # result
+        console.print(f'  [[bold red]FAILED[/bold red]] {result.as_user_report()}')
+
+    if results:
+        # stop runner
+        return True
+
+    # continue to run profiling
+    console.print('everything is OK.')
+    return False
+
+
 def run(datasource=None, table=None, output=None, interaction=True, skip_report=False, dbt_command='',
         skip_recommend=False):
     console = Console()
@@ -557,6 +595,12 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     if dbt and dbt_command in ['build', 'test'] and dbt_exists:
         dbt['cmd'] = dbt_command
         dbt_test_results = _run_dbt_command(table, default_schema, dbt, console)
+
+    console.rule('Validating')
+    stop_runner = _validate_assertions(console)
+    if stop_runner:
+        console.print('\n\n[bold red]ERROR:[/bold red] Stop profiling, please fix the syntax errors above.')
+        return 1
 
     console.rule('Profiling')
     run_id = uuid.uuid4().hex
