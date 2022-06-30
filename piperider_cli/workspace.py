@@ -604,6 +604,10 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
         _show_table_summary(console, t, profile_result['tables'][t], assertion_results, dbt_test_results)
 
     _show_recommended_assertion_notice_message(console, assertion_results)
+
+    if dbt and dbt_exists:
+        _append_descriptions_from_dbt(profile_result, dbt, default_schema)
+
     with open(output_file, 'w') as f:
         f.write(json.dumps(profile_result, indent=4))
     if skip_report:
@@ -905,6 +909,31 @@ def generate_report(input=None):
 
     _generate_static_html(result, report_template_html, dir)
     console.print(f"Report generated in {dir}/index.html")
+
+
+def _append_descriptions_from_dbt(profile_result, dbt, default_schema):
+    dbt_root = os.path.expanduser(dbt.get('projectDir'))
+    full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'model', '--resource-type', 'source', '--output-keys', 'resource_type,description,name,columns,source_name']
+    lines = check_output(full_cmd_arr, cwd=dbt_root).decode().split('\n')[:-1]
+    # Skip lines not starts with '{', which are not message in JSON format
+    resources = [json.loads(x) for x in lines if x.startswith('{')]
+    for resource in resources:
+        schema = resource.get('source_name')
+        table_name = resource.get('name')
+        description = resource.get('description', '')
+
+        schema = f'{schema}.' if schema and schema != default_schema else ''
+        table_name = f'{schema}{table_name}'
+
+        if table_name not in profile_result['tables']:
+            continue
+        profile_result['tables'][table_name]['description'] = description
+
+        columns = resource.get('columns', {})
+        for column_name, v in columns.items():
+            if column_name not in profile_result['tables'][table_name]['columns']:
+                continue
+            profile_result['tables'][table_name]['columns'][column_name]['description'] = v.get('description', '')
 
 
 def compare_report(a=None, b=None):
