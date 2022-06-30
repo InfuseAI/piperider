@@ -68,8 +68,8 @@ jobs:
         uses: getsentry/action-release@v1
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_ORG: infuseai
+          SENTRY_PROJECT: piperider
         with:
           environment: nightly
           ignore_empty: true
@@ -88,3 +88,6 @@ jobs:
           fi
         env:
           ALPHA_VERSION: ${{ inputs.alpha_version || '' }}
+          SLACK_API_TOKEN: ${{ secrets.SLACK_API_TOKEN }}
+          SHORTCUT_API_TOKEN: ${{ secrets.SHORTCUT_API_TOKEN }}
+          SLACK_CHANNEL: '#dev'

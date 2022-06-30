@@ -28,6 +28,7 @@ jobs:
         run: |
           make test
       - name: Release
+        id: release_pypi
         run: |
           # get version from GITHUB_REF
           # input: "refs/tags/v0.1.0"
@@ -35,6 +36,7 @@ jobs:
 
           # update version number
           echo "${GITHUB_REF:11}" > ./piperider_cli/VERSION
+          echo "::set-output name=version::$(cat piperider_cli/VERSION)"
           # put config includes tracking api key
           echo "$CONFIG" > ./piperider_cli/data/CONFIG
 
@@ -50,10 +52,20 @@ jobs:
         uses: getsentry/action-release@v1
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_ORG: infuseai
+          SENTRY_PROJECT: piperider
         with:
           environment: production
           ignore_empty: true
           ignore_missing: true
-          version: ${{ github.ref }}
+          version: ${{ steps.release_pypi.outputs.version }}
+      - name: Notify release to Slack
+        id: slack
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          payload: |
+            {
+              "text": ":chai_dog::chai_dog::chai_dog:*PipeRider Release*:chai_dog::chai_dog::chai_dog:\n*Version*: ${{ steps.release_pypi.outputs.version }}\n*GitHub Release*: <https://github.com/InfuseAI/piperider/releases/tag/v${{ steps.release_pypi.outputs.version }}|v${{ steps.release_pypi.outputs.version }}>",
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_API_TOKEN }}
