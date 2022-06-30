@@ -41,8 +41,8 @@ import {
   getMissingValue,
   formatNumber,
   extractExpectedOrActual,
-  joinBykey,
-  getComparisonTests,
+  nestComparisonValueByKey,
+  getComparisonAssertionTests,
   transformDistribution,
   transformDistributionWithLabels,
 } from '../utils';
@@ -450,11 +450,14 @@ function CompareProfileColumn({ name, base, input }) {
 }
 
 function CompareProfile({ base, input }) {
-  const transformedData = joinBykey(base?.columns, input?.columns);
+  const transformedData = nestComparisonValueByKey(
+    base?.columns,
+    input?.columns,
+  );
 
   return (
     <>
-      {Object.entries<any>(transformedData).map(([key, value]) => (
+      {Object.entries(transformedData).map(([key, value]) => (
         <CompareProfileColumn
           key={key}
           name={key}
@@ -467,10 +470,17 @@ function CompareProfile({ base, input }) {
 }
 
 export default function ComparisonReport({ base, input, reportName }) {
-  const tBase = getComparisonTests(base?.assertion_results, 'base');
-  const tInput = getComparisonTests(input?.assertion_results, 'input');
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const [testDetail, setTestDetail] = useState(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const tBase = getComparisonAssertionTests({
+    assertion: base?.assertion_results,
+    from: 'base',
+  });
+  const tInput = getComparisonAssertionTests({
+    assertion: input?.assertion_results,
+    from: 'input',
+  });
 
   useDocumentTitle(reportName);
 

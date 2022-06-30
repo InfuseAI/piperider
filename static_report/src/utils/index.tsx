@@ -1,8 +1,11 @@
 import * as d3 from 'd3';
 import fill from 'lodash/fill';
 import zip from 'lodash/zip';
+import mergeWith from 'lodash/mergeWith';
 import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
+
+import type { AssertionResult } from '../types';
 
 const tooltipDefaultStyle = {
   paddingTop: 'var(--chakra-space-2)',
@@ -47,7 +50,9 @@ export function getChartTooltip({ target, style = {} as any }) {
   return tooltip;
 }
 
-export function getReportAsserationStatusCounts(assertion) {
+export function getReportAsserationStatusCounts(
+  assertion: AssertionResult | undefined,
+) {
   if (!assertion) {
     return { passed: '-', failed: '-' };
   }
@@ -86,7 +91,9 @@ export function getReportAsserationStatusCounts(assertion) {
   };
 }
 
-export function getMissingValue(column) {
+export function getMissingValue(
+  column: undefined | { total: number; non_nulls: number },
+) {
   if (!column) {
     return '-';
   }
@@ -100,7 +107,7 @@ export function getMissingValue(column) {
   }
 }
 
-export function formatReportTime(time) {
+export function formatReportTime(time: string) {
   const adjustForUTCOffset = (date) => {
     return new Date(
       date.getUTCFullYear(),
@@ -138,59 +145,64 @@ export function extractExpectedOrActual(value) {
 }
 
 // for comparison
-export function joinBykey(base = {}, input = {}) {
-  const result = {};
+export function nestComparisonValueByKey(
+  base: Record<string, unknown>,
+  input: Record<string, unknown>,
+): Record<
+  string,
+  { base: Record<string, unknown>; input: Record<string, unknown> }
+> {
+  const helper = (acc, [key, value]) => {
+    acc[key] = value;
+    return acc;
+  };
+  const _base = Object.entries(base).reduce(helper, {});
+  const _input = Object.entries(input).reduce(helper, {});
 
-  Object.entries(base).forEach(([key, value]) => {
-    if (!result[key]) {
-      result[key] = {};
-    }
-
-    result[key]['base'] = value;
-  });
-
-  Object.entries(input).forEach(([key, value]) => {
-    if (!result[key]) {
-      result[key] = {};
-    }
-    result[key]['input'] = value;
-  });
-
-  return result;
+  return mergeWith(_base, _input, (base, input) => ({
+    base,
+    input,
+  }));
 }
 
-export function getComparisonTests(assertion, from) {
+export function getComparisonAssertionTests({
+  assertion,
+  from,
+}: {
+  assertion: AssertionResult | undefined;
+  from: 'base' | 'input';
+}) {
   const { passed, failed } = getReportAsserationStatusCounts(assertion);
 
-  if (assertion) {
-    const table = assertion.tests.map((test) => ({
-      ...test,
-      level: 'Table',
-      column: '-',
-      from,
-    }));
-
-    const columns = Object.keys(assertion.columns).map((column) => {
-      const columnAssertion = assertion.columns[column];
-      return columnAssertion.map((test) => ({
-        ...test,
-        level: 'Column',
-        column,
-        from,
-      }));
-    });
-
+  if (!assertion) {
     return {
       passed,
       failed,
-      tests: [...table, ...columns.flat()],
+      tests: [],
     };
   }
+
+  const table = assertion.tests.map((test) => ({
+    ...test,
+    level: 'Table',
+    column: '-',
+    from,
+  }));
+
+  const columns = Object.keys(assertion.columns).map((column) => {
+    const columnAssertion = assertion.columns[column];
+    return columnAssertion.map((test) => ({
+      ...test,
+      level: 'Column',
+      column,
+      from,
+    }));
+  });
 
   return {
     passed,
     failed,
-    tests: [],
+    tests: [...table, ...columns.flat()],
   };
 }
 
