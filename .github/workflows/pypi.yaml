@@ -40,6 +40,17 @@ jobs:
           # put config includes tracking api key
           echo "$CONFIG" > ./piperider_cli/data/CONFIG
 
+          # set sentry environment
+          if [[ "$(cat piperider_cli/VERSION)" == *"a"* ]]; then
+            echo "::set-output name=sentry_env::alpha"
+          elif [[ "$(cat piperider_cli/VERSION)" == *"b"* ]]; then
+            echo "::set-output name=sentry_env::beta"
+          elif [[ "$(cat piperider_cli/VERSION)" == *"rc"* ]]; then
+            echo "::set-output name=sentry_env::release-candidate'"
+          else
+            echo "::set-output name=sentry_env::production'"
+          fi
+
           # generate pypirc
           echo "$PYPIRC" > $HOME/.pypirc
 
@@ -55,7 +66,7 @@ jobs:
           SENTRY_ORG: infuseai
           SENTRY_PROJECT: piperider
         with:
-          environment: production
+          environment: ${{ steps.release_pypi.outputs.sentry_env || 'production' }}
           ignore_empty: true
           ignore_missing: true
           version: ${{ steps.release_pypi.outputs.version }}
