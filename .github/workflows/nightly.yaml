@@ -32,6 +32,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Release to PyPi
+        id: release_pypi
         run: |
           # remove tracking config for nightly build
           echo "" > ./piperider_cli/data/CONFIG
@@ -67,10 +68,26 @@ jobs:
         uses: getsentry/action-release@v1
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_ORG: infuseai
+          SENTRY_PROJECT: piperider
         with:
           environment: nightly
           ignore_empty: true
           ignore_missing: true
-          version: ${{ steps.vars.outputs.nightly_version }}
+          version: ${{ steps.release_pypi.outputs.nightly_version }}
+
+      - name: Notify Release to Slack and Update Shortcut Stories
+        run: |
+          if [ "$ALPHA_VERSION" != '' ]; then
+            echo "[Skip] Notify release to Slack and Update Shortcut Stories"
+            echo "PipeRider Alpha version: $(cat piperider_cli/VERSION)"
+          else
+            echo "Notify release to Slack and Update Shortcut Stories"
+            echo "PipeRider version: $(cat piperider_cli/VERSION)"
+            bash .github/scripts/deploy_notify.sh $(cat piperider_cli/VERSION)
+          fi
+        env:
+          ALPHA_VERSION: ${{ inputs.alpha_version || '' }}
+          SLACK_API_TOKEN: ${{ secrets.SLACK_API_TOKEN }}
+          SHORTCUT_API_TOKEN: ${{ secrets.SHORTCUT_API_TOKEN }}
+          SLACK_CHANNEL: '#dev'
