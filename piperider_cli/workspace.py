@@ -913,13 +913,11 @@ def generate_report(input=None):
 
 def _append_descriptions_from_dbt(profile_result, dbt, default_schema):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
-    full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'all', '--output-keys', 'resource_type,description,name,columns,source_name']
+    full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'model', '--resource-type', 'source', '--output-keys', 'resource_type,description,name,columns,source_name']
     lines = check_output(full_cmd_arr, cwd=dbt_root).decode().split('\n')[:-1]
     # Skip lines not starts with '{', which are not message in JSON format
     resources = [json.loads(x) for x in lines if x.startswith('{')]
     for resource in resources:
-        if resource['resource_type'] not in ['model', 'source']:
-            continue
         schema = resource.get('source_name')
         table_name = resource.get('name')
         description = resource.get('description', '')
