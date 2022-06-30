@@ -149,7 +149,7 @@ function ProfilingInformation({ data }) {
             <Grid my={4} templateColumns="minmax(270px, 1fr) 1fr" gap={12}>
               <SRTableColumnDetails
                 column={column}
-                hasValuesExist={isAllValuesExists}
+                hasNoNull={isAllValuesExists}
               />
               <Flex mt={8} justifyContent="center" alignItems="center">
                 {distribution ? (

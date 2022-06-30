@@ -125,9 +125,9 @@ export function formatReportTime(time: string) {
 export function formatNumber(
   num,
   locales = 'en-US',
-  notation: Intl.NumberFormatOptions['notation'] = 'compact',
+  options?: Intl.NumberFormatOptions,
 ) {
-  return new Intl.NumberFormat(locales, { notation }).format(num);
+  return new Intl.NumberFormat(locales, options).format(num);
 }
 
 export function extractExpectedOrActual(value) {
