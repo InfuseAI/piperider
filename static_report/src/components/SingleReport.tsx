@@ -128,10 +128,7 @@ export default function SingleReport({ source, data, reportName }) {
               </TabPanel>
 
               <TabPanel>
-                <TestsInformation
-                  tableName={data.name}
-                  data={data.assertion_results}
-                />
+                <TestsInformation data={data.assertion_results} />
               </TabPanel>
             </TabPanels>
           </Tabs>
@@ -236,7 +233,7 @@ function ProfilingInformation({ data }) {
   );
 }
 
-function TestsInformation({ tableName, data }) {
+function TestsInformation({ data }) {
   const tabelTests = data?.tests;
   const columnsTests = data?.columns;
 
