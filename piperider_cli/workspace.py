@@ -542,7 +542,7 @@ def _validate_assertions(console: Console):
         return True
 
     # continue to run profiling
-    print('everything is OK.')
+    console.print('everything is OK.')
     return False
 
 
