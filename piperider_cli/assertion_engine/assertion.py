@@ -508,19 +508,13 @@ class AssertionEngine:
         return results, exceptions
 
     def validate_assertions(self):
-
         from piperider_cli.assertion_engine.types import get_assertion
         results = []
-
         for assertion in self.assertions:
-            try:
-                assertion_instance = get_assertion(assertion.name)
-                result = assertion_instance.validate(assertion)
-                if result and result.has_errors():
-                    results.append(result)
-            except ValueError:
-                pass
-
+            assertion_instance = get_assertion(assertion.name)
+            result = assertion_instance.validate(assertion)
+            if result and result.has_errors():
+                results.append(result)
         return results
 
     def load_plugins(self):

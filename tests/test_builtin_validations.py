@@ -321,3 +321,24 @@ ERROR: min parameter is required""", results[0].as_internal_report())
 
         self.assertEqual("""Found assertion syntax problem => name: assert_column_min_in_range for table orders_1k and column foobarbar
 ERROR: min parameter should be the same types""", results[0].as_internal_report())
+
+    def test_validation_assert_no_such_assertion(self):
+        # test with valid format
+        AssertionEngine.load_assertion_content = _("""
+            orders_1k:  # Table Name
+              # Test Cases for Table
+              tests:
+              - name: there_is_no_such_assertion
+                assert:
+                  count: [1000, 200000]
+                tags:
+                - OPTIONAL
+            """)
+
+        # expect no errors and warnings
+        self.engine.load_all_assertions_for_validation()
+        results = self.engine.validate_assertions()
+        self.assertEqual(1, len(results))
+        self.assertEqual("""Found assertion syntax problem => name: there_is_no_such_assertion for table orders_1k
+ERROR: cannot find an assertion by name there_is_no_such_assertion""",
+                         results[0].as_internal_report())
