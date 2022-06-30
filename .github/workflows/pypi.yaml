@@ -65,7 +65,7 @@ jobs:
         with:
           payload: |
             {
-              "text": ":chai_dog::chai_dog::chai_dog:*PipeRider Release*:chai_dog::chai_dog::chai_dog:\n*Version*: ${{ steps.release_pypi.outputs.version }}\n*GitHub Release*: <https://github.com/InfuseAI/piperider/releases/tag/v${{ steps.release_pypi.outputs.version }}|v${{ steps.release_pypi.outputs.version }}>",
+              "text": ":chai_dog::chai_dog::chai_dog:*PipeRider Release*:chai_dog::chai_dog::chai_dog:\n*Version*: ${{ steps.release_pypi.outputs.version }}\n*GitHub Release*: <https://github.com/InfuseAI/piperider/releases/tag/v${{ steps.release_pypi.outputs.version }}|v${{ steps.release_pypi.outputs.version }}>"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_API_TOKEN }}
