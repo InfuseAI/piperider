@@ -46,9 +46,9 @@ jobs:
           elif [[ "$(cat piperider_cli/VERSION)" == *"b"* ]]; then
             echo "::set-output name=sentry_env::beta"
           elif [[ "$(cat piperider_cli/VERSION)" == *"rc"* ]]; then
-            echo "::set-output name=sentry_env::release-candidate'"
+            echo "::set-output name=sentry_env::release-candidate"
           else
-            echo "::set-output name=sentry_env::production'"
+            echo "::set-output name=sentry_env::production"
           fi
 
           # generate pypirc
