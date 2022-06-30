@@ -3,7 +3,6 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
-  Code,
   Divider,
   Flex,
   Grid,
@@ -35,19 +34,19 @@ import { nanoid } from 'nanoid';
 import { useEffect, useRef, useState } from 'react';
 import groupBy from 'lodash/groupBy';
 
-import { Main } from './Main';
+import { Main } from '../shared/Main';
 import {
   extractExpectedOrActual,
   nestComparisonValueByKey,
   getComparisonAssertionTests,
   transformDistribution,
   transformDistributionWithLabels,
-} from '../utils';
+} from '../../utils';
 
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { useResizeObserver } from '../hooks/useResizeObserver';
-import { useComparisonChart } from '../hooks/useComparisonChart';
-import { CRTableColumnDetails } from './ComparisonReport/CRTableColumnDetails';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useResizeObserver } from '../../hooks/useResizeObserver';
+import { useComparisonChart } from '../../hooks/useComparisonChart';
+import { CRTableColumnDetails } from './CRTableColumnDetails';
 
 function TestStatus({ status }) {
   switch (status) {

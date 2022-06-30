@@ -23,17 +23,17 @@ import {
 import { useRef } from 'react';
 import { Link } from 'wouter';
 
-import { Main } from './Main';
+import { Main } from '../shared/Main';
 import {
   getReportAsserationStatusCounts,
   formatNumber,
   extractExpectedOrActual,
-} from '../utils';
+} from '../../utils';
 
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { useResizeObserver } from '../hooks/useResizeObserver';
-import { useSingleChart } from '../hooks/useSingleChart';
-import { SRTableColumnDetails } from './SingleReport/SRTableColumnDetails';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useResizeObserver } from '../../hooks/useResizeObserver';
+import { useSingleChart } from '../../hooks/useSingleChart';
+import { SRTableColumnDetails } from './SRTableColumnDetails';
 
 export default function SingleReport({ source, data, reportName }) {
   useDocumentTitle(reportName);
