@@ -1,27 +1,25 @@
 import React from 'react';
 import { Code, Flex, Text } from '@chakra-ui/react';
-import { formatNumber, getMissingValue } from '../../utils';
+import { formatNumber, getColumnDetails, getMissingValue } from '../../utils';
 import { MetricsInfo } from '../shared/MetrisInfo';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
 
 // Temp Typing
 type SRTableColumnDetailsProps = {
   column: SingleReportSchema['tables']['ACTION']['columns']['DATE'];
-  hasNoNull: boolean;
 };
 export const SRTableColumnDetails: React.FC<SRTableColumnDetailsProps> = ({
   column,
-  hasNoNull,
 }) => {
-  const { non_nulls, total, mismatched } = column;
-
-  const mismatch = mismatched || 0;
-  const valid = non_nulls - mismatch;
-  const missing = total - non_nulls;
-
-  const validOfTotal = valid / total;
-  const mismatchOfTotal = mismatch / total;
-  const missingOfTotal = missing / total;
+  const {
+    hasNoNull,
+    mismatch,
+    mismatchOfTotal,
+    missing,
+    missingOfTotal,
+    valid,
+    validOfTotal,
+  } = getColumnDetails(column);
 
   return (
     <Flex direction="column" gap={3}>
@@ -40,18 +38,29 @@ export const SRTableColumnDetails: React.FC<SRTableColumnDetailsProps> = ({
         {''}(<Code>{column.schema_type}</Code>)
       </Text>
 
-      <Flex mt={12} width="100%" justifyContent="center" alignItems="stretch">
+      <Flex direction="column">
         <MetricsInfo name="Total" base={formatNumber(column.total)} />
+      </Flex>
 
+      <Flex direction="column" mt={3}>
+        <MetricsInfo
+          name="Valid"
+          base={valid}
+          input={formatNumber(validOfTotal, 'en-US', { style: 'percent' })}
+        />
+        <MetricsInfo
+          name="Mismatched"
+          base={mismatch}
+          input={formatNumber(mismatchOfTotal, 'en-US', { style: 'percent' })}
+        />
         <MetricsInfo
           name="Missing"
-          base={
-            <Text as="span" color={hasNoNull ? 'green.500' : 'red.500'}>
-              {hasNoNull ? '0%' : getMissingValue(column)}
-            </Text>
-          }
+          base={missing}
+          input={getMissingValue(column)}
         />
+      </Flex>
 
+      <Flex direction="column" mt={3}>
         <MetricsInfo name="Distinct" base={formatNumber(column.distinct)} />
       </Flex>
 
@@ -72,24 +81,6 @@ export const SRTableColumnDetails: React.FC<SRTableColumnDetailsProps> = ({
           <MetricsInfo name="Max" base={column.max} />
         </Flex>
       )}
-
-      <Flex direction="column" mt={3}>
-        <MetricsInfo
-          name="Valid"
-          base={valid}
-          input={formatNumber(validOfTotal, 'en-US', { style: 'percent' })}
-        />
-        <MetricsInfo
-          name="Mismatched"
-          base={mismatch}
-          input={formatNumber(mismatchOfTotal, 'en-US', { style: 'percent' })}
-        />
-        <MetricsInfo
-          name="Missing"
-          base={missing}
-          input={formatNumber(missingOfTotal, 'en-US', { style: 'percent' })}
-        />
-      </Flex>
     </Flex>
   );
 };

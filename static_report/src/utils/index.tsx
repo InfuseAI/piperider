@@ -6,6 +6,7 @@ import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 
 import type { AssertionResult } from '../types';
+import { ComparisonReportSchema } from '../sdlc/comparison-report-schema';
 
 const tooltipDefaultStyle = {
   paddingTop: 'var(--chakra-space-2)',
@@ -257,4 +258,31 @@ export function transformDistributionWithLabels({ base, input, labels }) {
   }));
 
   return m;
+}
+
+//TODO: Temp Typing
+export function getColumnDetails(
+  columnData: ComparisonReportSchema['base']['tables']['ACTION']['columns']['DATE'],
+) {
+  const { non_nulls, total, mismatched } = columnData;
+
+  const hasNoNull = non_nulls === total;
+
+  const mismatch = mismatched || 0;
+  const valid = non_nulls - mismatch;
+  const missing = total - non_nulls;
+
+  const validOfTotal = valid / total;
+  const mismatchOfTotal = mismatch / total;
+  const missingOfTotal = missing / total;
+
+  return {
+    hasNoNull,
+    mismatch,
+    valid,
+    missing,
+    validOfTotal,
+    mismatchOfTotal,
+    missingOfTotal,
+  };
 }

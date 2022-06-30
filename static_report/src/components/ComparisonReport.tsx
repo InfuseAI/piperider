@@ -36,10 +36,7 @@ import { useEffect, useRef, useState } from 'react';
 import groupBy from 'lodash/groupBy';
 
 import { Main } from './Main';
-import { MetricsInfo } from './shared/MetrisInfo';
 import {
-  getMissingValue,
-  formatNumber,
   extractExpectedOrActual,
   nestComparisonValueByKey,
   getComparisonAssertionTests,
@@ -50,6 +47,7 @@ import {
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useResizeObserver } from '../hooks/useResizeObserver';
 import { useComparisonChart } from '../hooks/useComparisonChart';
+import { CRTableColumnDetails } from './CRTableColumnDetails';
 
 function TestStatus({ status }) {
   switch (status) {
@@ -262,7 +260,6 @@ function CompareSchema({ base, input }) {
 }
 
 function CompareProfileColumn({ name, base, input }) {
-  const column = base ? base : input;
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -300,124 +297,11 @@ function CompareProfileColumn({ name, base, input }) {
   return (
     <Flex key={name} direction="column">
       <Grid my={4} templateColumns="500px 1fr" gap={12}>
-        <Flex direction="column" gap={2} minH="250px">
-          <Flex direction="column" gap={3}>
-            <Flex justifyContent="space-between">
-              <Text maxWidth="calc(100% - 250px)">
-                <Text
-                  as="span"
-                  fontWeight={700}
-                  color="gray.900"
-                  fontSize="lg"
-                  mr={1}
-                  noOfLines={1}
-                  title={column.name}
-                >
-                  {column.name}
-                </Text>
-                {''}(<Code>{column.schema_type}</Code>)
-              </Text>
-
-              <Flex gap={8}>
-                <Text fontWeight={700} textAlign="right" width="100px">
-                  Base
-                </Text>
-                <Text fontWeight={700} textAlign="right" width="100px">
-                  Input
-                </Text>
-              </Flex>
-            </Flex>
-
-            <Flex direction="column">
-              <MetricsInfo
-                name="Total"
-                base={base?.total ? formatNumber(base?.total) : '-'}
-                input={input?.total ? formatNumber(input?.total) : '-'}
-              />
-
-              <MetricsInfo
-                name="Missing"
-                base={getMissingValue(base)}
-                input={getMissingValue(input)}
-              />
-
-              <MetricsInfo
-                name="Distinct"
-                base={base?.distinct ? formatNumber(base.distinct) : '-'}
-                input={input?.distinct ? formatNumber(input.distinct) : '-'}
-              />
-            </Flex>
-
-            {(column.type === 'numeric' || column.type === 'integer') && (
-              <>
-                <Flex direction="column">
-                  <MetricsInfo
-                    name="Average"
-                    base={base?.avg ? formatNumber(base.avg) : '-'}
-                    input={input?.avg ? formatNumber(input.avg) : '-'}
-                  />
-                  <MetricsInfo
-                    name="Std. Deviation"
-                    base={base?.stddev ? formatNumber(base.stddev) : '-'}
-                    input={input?.stddev ? formatNumber(input.stddev) : '-'}
-                  />
-                </Flex>
-                <Flex direction="column">
-                  <MetricsInfo
-                    name="Min"
-                    base={base?.min ? formatNumber(base.min) : '-'}
-                    input={input?.min ? formatNumber(input.min) : '-'}
-                  />
-                  <MetricsInfo
-                    name="5%"
-                    base={base?.p5 ? formatNumber(base.p5) : '-'}
-                    input={input?.p5 ? formatNumber(input.p5) : '-'}
-                  />
-                  <MetricsInfo
-                    name="25%"
-                    base={base?.p25 ? formatNumber(base.p25) : '-'}
-                    input={input?.p25 ? formatNumber(input.p25) : '-'}
-                  />
-                  <MetricsInfo
-                    name="50%"
-                    base={base?.p50 ? formatNumber(base.p50) : '-'}
-                    input={input?.p50 ? formatNumber(input.p50) : '-'}
-                  />
-                  <MetricsInfo
-                    name="75%"
-                    base={base?.p75 ? formatNumber(base.p75) : '-'}
-                    input={input?.p75 ? formatNumber(input.p75) : '-'}
-                  />
-                  <MetricsInfo
-                    name="95%"
-                    base={base?.p95 ? formatNumber(base.p95) : '-'}
-                    input={input?.p95 ? formatNumber(input.p95) : '-'}
-                  />
-                  <MetricsInfo
-                    name="Max"
-                    base={base?.max ? formatNumber(base.max) : '-'}
-                    input={input?.max ? formatNumber(input.max) : '-'}
-                  />
-                </Flex>
-              </>
-            )}
-
-            {column.type === 'datetime' && (
-              <Flex direction="column">
-                <MetricsInfo
-                  name="Min"
-                  base={base?.min ?? '-'}
-                  input={input?.min ?? '-'}
-                />
-                <MetricsInfo
-                  name="Max"
-                  base={base?.max ?? '-'}
-                  input={input?.max ?? '-'}
-                />
-              </Flex>
-            )}
-          </Flex>
-        </Flex>
+        <CRTableColumnDetails
+          baseColumn={base}
+          inputColumn={input}
+          column={base ? base : input}
+        />
 
         {data.length === 1 && <ComparisonBarChart data={data[0]} />}
         {data.length === 2 && (
