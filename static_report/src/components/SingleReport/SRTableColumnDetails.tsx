@@ -1,8 +1,8 @@
 import React from 'react';
 import { Code, Flex, Text } from '@chakra-ui/react';
-import { formatNumber, getColumnDetails, getMissingValue } from '../../utils';
 import { MetricsInfo } from '../shared/MetrisInfo';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
+import { formatNumber, getColumnDetails, getMissingValue } from '../../utils';
 
 // Temp Typing
 type SRTableColumnDetailsProps = {
@@ -11,15 +11,8 @@ type SRTableColumnDetailsProps = {
 export const SRTableColumnDetails: React.FC<SRTableColumnDetailsProps> = ({
   column,
 }) => {
-  const {
-    hasNoNull,
-    mismatch,
-    mismatchOfTotal,
-    missing,
-    missingOfTotal,
-    valid,
-    validOfTotal,
-  } = getColumnDetails(column);
+  const { mismatch, mismatchOfTotal, missing, valid, validOfTotal } =
+    getColumnDetails(column);
 
   return (
     <Flex direction="column" gap={3}>

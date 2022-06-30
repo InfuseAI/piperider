@@ -2,11 +2,11 @@ import { Suspense, lazy } from 'react';
 import { Switch, Route, Router, BaseLocationHook } from 'wouter';
 
 import { Main } from './components/Main';
-import { Loading } from './components/Loading';
-import { SingleReportList } from './components/SingleReportList';
-import { NotFound } from './components/NotFound';
+import { Loading } from './components/shared/Loading';
+import { NotFound } from './components/shared/NotFound';
 import { useHashLocation } from './hooks/useHashLcocation';
-import { ComparisonReportList } from './components/ComparisonReportList';
+import { SingleReportList } from './components/SingleReport/SRList';
+import { ComparisonReportList } from './components/ComparisonReport/CRList';
 
 const SingleReport = lazy(() => import('./components/SingleReport'));
 const ComparisonReport = lazy(() => import('./components/ComparisonReport'));

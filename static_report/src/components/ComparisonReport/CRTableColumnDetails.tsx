@@ -16,21 +16,11 @@ export const CRTableColumnDetails: React.FC<CRTableColumnDetailsProps> = ({
   inputColumn,
 }) => {
   const {
-    hasNoNull: baseHasNoNull,
-    mismatch: baseMismatch,
     mismatchOfTotal: baseMismatchOfTotal,
-    missing: baseMissing,
-    missingOfTotal: baseMissingOfTotal,
-    valid: baseValid,
     validOfTotal: baseValidOfTotal,
   } = getColumnDetails(baseColumn);
   const {
-    hasNoNull: inputHasNoNull,
-    mismatch: inputMismatch,
     mismatchOfTotal: inputMismatchOfTotal,
-    missing: inputMissing,
-    missingOfTotal: inputMissingOfTotal,
-    valid: inputValid,
     validOfTotal: inputValidOfTotal,
   } = getColumnDetails(inputColumn);
 

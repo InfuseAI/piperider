@@ -47,7 +47,7 @@ import {
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useResizeObserver } from '../hooks/useResizeObserver';
 import { useComparisonChart } from '../hooks/useComparisonChart';
-import { CRTableColumnDetails } from './CRTableColumnDetails';
+import { CRTableColumnDetails } from './ComparisonReport/CRTableColumnDetails';
 
 function TestStatus({ status }) {
   switch (status) {
@@ -296,7 +296,7 @@ function CompareProfileColumn({ name, base, input }) {
 
   return (
     <Flex key={name} direction="column">
-      <Grid my={4} templateColumns="500px 1fr" gap={12}>
+      <Grid my={8} templateColumns="500px 1fr" gap={12}>
         <CRTableColumnDetails
           baseColumn={base}
           inputColumn={input}
