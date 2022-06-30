@@ -81,6 +81,10 @@ class Configuration(object):
         if type_name not in DATASOURCE_PROVIDERS:
             raise PipeRiderInvalidDataSourceError(type_name, dbt_profile_path)
 
+        # Set 'pass' as the alias of 'password'
+        if credential.get('pass') and credential.get('password') is None:
+            credential['password'] = credential.pop('pass')
+
         datasource_class = DATASOURCE_PROVIDERS[type_name]
         datasource: DataSource = datasource_class(name=profile_name, dbt=dbt, credential=credential)
         datasource.show_installation_information()
@@ -119,6 +123,9 @@ class Configuration(object):
                     profile_path = os.path.expanduser(profile_path)
                 profile = _load_dbt_profile(profile_path)
                 credential = profile.get(dbt.get('profile'), {}).get('outputs', {}).get(dbt.get('target', {}))
+                # TODO: extract duplicate code from func 'from_dbt_project'
+                if credential.get('pass') and credential.get('password') is None:
+                    credential['password'] = credential.pop('pass')
                 data_source = datasource_class(name=ds.get('name'), dbt=dbt, credential=credential)
             else:
                 try:

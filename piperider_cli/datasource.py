@@ -104,6 +104,10 @@ class DataSource(metaclass=ABCMeta):
             if f.name not in self.credential and f.optional is False:
                 reasons.append(f"{f.name} is required")
 
+        # check if got duplicate keys: pass & password
+        if self.credential.get('pass') and self.credential.get('password'):
+            reasons.append('Got duplicate keys: (pass) all map to "password"')
+
         return reasons == [], reasons
 
     @abstractmethod
