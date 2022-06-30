@@ -4,7 +4,7 @@ import { useEffect, RefObject } from 'react';
 import { getChartTooltip, formatNumber } from '../utils';
 
 const GROUPED = ['base', 'input'];
-const X_PADDING = 0.5;
+const X_PADDING = 0.2;
 const X_SUB_PADDING = 0.05;
 const TOOLTIPS_BG_COLOR = 'var(--chakra-colors-gray-500)';
 const BASE_CHART_COLOR = 'var(--chakra-colors-blue-100)';

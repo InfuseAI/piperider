@@ -3,8 +3,7 @@ import { useEffect, RefObject } from 'react';
 
 import { getChartTooltip, formatNumber } from '../utils';
 
-const X_PADDING = 0.5;
-const OVERLAY_OFFSET = 10;
+const X_PADDING = 0.05;
 const TOOLTIPS_BG_COLOR = 'var(--chakra-colors-gray-500)';
 const CHART_COLOR = 'var(--chakra-colors-blue-300)';
 
@@ -56,18 +55,27 @@ export function useSingleChart<T extends SVGSVGElement>({
     // plot Y axis
     svg.select('.y-axis').call(yAxis as any);
 
-    const tooltip = getChartTooltip({ target: '.chart' });
+    svg
+      .selectAll('.bar')
+      .data(data)
+      .join('rect')
+      .attr('class', 'bar')
+      .attr('x', (s: any) => xScale(s.label) as any)
+      .attr('y', (s: any) => yScale(s.value) as any)
+      .attr('width', xScale.bandwidth())
+      .attr('height', (s) => dimensions.height - yScale((s as any).value))
+      .style('fill', CHART_COLOR);
 
-    // TODO: maybe can merge tooltips and chart as one?
     // plot backdrop hover area
+    const tooltip = getChartTooltip({ target: '.chart' });
     svg
       .selectAll('.overlay-bars')
       .data(data)
       .join('rect')
       .attr('class', 'overlay-bars')
-      .attr('x', (s: any) => xScale(s.label) - OVERLAY_OFFSET / 2)
+      .attr('x', (s: any) => xScale(s.label))
       .attr('y', () => 0)
-      .attr('width', xScale.bandwidth() + OVERLAY_OFFSET)
+      .attr('width', xScale.bandwidth())
       .attr('height', () => dimensions.height)
       .style('opacity', 0)
       .on('mouseover', function (event, data) {
@@ -76,12 +84,12 @@ export function useSingleChart<T extends SVGSVGElement>({
         tooltip
           .html(
             `
-        <div>
-          <p>Label: ${label}</p>
-          <p>Count: ${formatNumber(value)}</p>
-          <p>Percentage: ${Number((value / total) * 100).toFixed(3)}%</p>
-        </div>
-      `,
+          <div>
+            <p>Label: ${label}</p>
+            <p>Count: ${formatNumber(value)}</p>
+            <p>Percentage: ${Number((value / total) * 100).toFixed(3)}%</p>
+          </div>
+        `,
           )
           .transition()
           .duration(500)
@@ -103,17 +111,6 @@ export function useSingleChart<T extends SVGSVGElement>({
 
         d3.select(this).style('opacity', 0);
       });
-
-    svg
-      .selectAll('.bar')
-      .data(data)
-      .join('rect')
-      .attr('class', 'bar')
-      .attr('x', (s: any) => xScale(s.label) as any)
-      .attr('y', (s: any) => yScale(s.value) as any)
-      .attr('width', xScale.bandwidth())
-      .attr('height', (s) => dimensions.height - yScale((s as any).value))
-      .style('fill', CHART_COLOR);
 
     return () => {
       svg.select('svg').remove();

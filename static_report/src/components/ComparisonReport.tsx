@@ -421,7 +421,7 @@ function CompareProfileColumn({ name, base, input }) {
 
         {data.length === 1 && <ComparisonBarChart data={data[0]} />}
         {data.length === 2 && (
-          <Grid my={4} templateColumns="1fr 1fr" gap={3}>
+          <Grid my={4} templateColumns="1fr 1fr" gap={12}>
             {data[0] ? (
               <ComparisonBarChart data={data[0]} />
             ) : (
