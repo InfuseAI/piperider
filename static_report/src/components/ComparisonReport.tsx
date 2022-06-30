@@ -303,13 +303,15 @@ function CompareProfileColumn({ name, base, input }) {
         <Flex direction="column" gap={2} minH="250px">
           <Flex direction="column" gap={3}>
             <Flex justifyContent="space-between">
-              <Text>
+              <Text maxWidth="calc(100% - 250px)">
                 <Text
                   as="span"
                   fontWeight={700}
                   color="gray.900"
                   fontSize="lg"
                   mr={1}
+                  noOfLines={1}
+                  title={column.name}
                 >
                   {column.name}
                 </Text>

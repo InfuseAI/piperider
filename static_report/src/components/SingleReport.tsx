@@ -153,13 +153,15 @@ function ProfilingInformation({ data }) {
           <Flex key={key} direction="column" px={4}>
             <Grid my={4} templateColumns="minmax(270px, 1fr) 1fr" gap={12}>
               <Flex direction="column" gap={3}>
-                <Text>
+                <Text maxWidth="100%">
                   <Text
                     as="span"
                     fontWeight={700}
                     color="gray.900"
                     fontSize="lg"
                     mr={1}
+                    title={column.name}
+                    noOfLines={1}
                   >
                     {column.name}
                   </Text>
