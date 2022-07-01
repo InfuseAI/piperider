@@ -958,10 +958,10 @@ def generate_report(input=None):
 
 
 def _append_descriptions(profile_result):
-    for table_name, table_v in profile_result['tables'].items():
-        table_v['description'] = table_name
-        for column_name, column_v in table_v['columns'].items():
-            column_v['description'] = column_name
+    for table_v in profile_result['tables'].values():
+        table_v['description'] = 'Description: N/A'
+        for column_v in table_v['columns'].values():
+            column_v['description'] = 'Description: N/A'
 
 
 def _append_descriptions_from_dbt(profile_result, dbt, default_schema):
