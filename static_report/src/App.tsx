@@ -32,7 +32,7 @@ function AppSingle() {
 
             <Route path="/tables/:reportName">
               {(params: any) => {
-                const decodedReportName = decodeURI(params.reportName);
+                const decodedReportName = decodeURIComponent(params.reportName);
 
                 return (
                   <SingleReport
@@ -70,7 +70,7 @@ function AppComparison() {
 
             <Route path="/tables/:reportName">
               {(params: any) => {
-                const decodedReportName = decodeURI(params.reportName);
+                const decodedReportName = decodeURIComponent(params.reportName);
                 return (
                   <ComparisonReport
                     reportName={decodedReportName}
