@@ -1,0 +1,66 @@
+{
+  "title": "SingleReport",
+  "type": "object",
+  "properties": {
+    "tables": {
+      "patternProperties": {
+        ".+": {
+          "type": "object",
+          "title": "table",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "row_count": {
+              "type": "integer"
+            },
+            "col_count": {
+              "type": "integer"
+            },
+            "columns": {
+              "type": "object",
+              "title": "Column"
+            },
+            "assertion_results": {
+              "type": "object",
+              "title": "assertionResult"
+            }
+          },
+          "required": [
+            "name",
+            "row_count",
+            "col_count",
+            "assertion_results",
+            "columns"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "id": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "datasource": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "tables",
+    "id",
+    "created_at",
+    "datasource"
+  ],
+  "additionalProperties": false
+}
