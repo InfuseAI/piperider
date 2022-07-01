@@ -27,6 +27,10 @@ expect {
         set timeout 2
         exp_continue
     }
+    "> X" {
+        send "\r"
+        exp_continue
+    }
     "not a valid profiler_outputs" {
         send " "
         send "\[B"
