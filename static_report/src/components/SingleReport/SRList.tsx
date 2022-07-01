@@ -16,8 +16,8 @@ import {
   getReportAsserationStatusCounts,
   formatReportTime,
   formatNumber,
-} from '../utils';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+} from '../../utils';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 export function SingleReportList({ data }) {
   const { id, created_at, datasource, tables } = data;

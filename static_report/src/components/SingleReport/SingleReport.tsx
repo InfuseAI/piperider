@@ -2,7 +2,6 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
-  Code,
   Divider,
   Flex,
   Grid,
@@ -24,18 +23,17 @@ import {
 import { useRef } from 'react';
 import { Link } from 'wouter';
 
-import { Main } from './Main';
-import { MetricsInfo } from './shared/MetrisInfo';
+import { Main } from '../shared/Main';
 import {
   getReportAsserationStatusCounts,
   formatNumber,
-  getMissingValue,
   extractExpectedOrActual,
-} from '../utils';
+} from '../../utils';
 
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { useResizeObserver } from '../hooks/useResizeObserver';
-import { useSingleChart } from '../hooks/useSingleChart';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useResizeObserver } from '../../hooks/useResizeObserver';
+import { useSingleChart } from '../../hooks/useSingleChart';
+import { SRTableColumnDetails } from './SRTableColumnDetails';
 
 export default function SingleReport({ source, data, reportName }) {
   useDocumentTitle(reportName);
@@ -144,73 +142,12 @@ function ProfilingInformation({ data }) {
       {Object.keys(data).map((key) => {
         const column = data[key];
         const distribution = column.distribution;
-        const isAllValuesExists = column.non_nulls === column.total;
 
         return (
           <Flex key={key} direction="column" px={4}>
             <Grid my={4} templateColumns="minmax(270px, 1fr) 1fr" gap={12}>
-              <Flex direction="column" gap={3}>
-                <Text maxWidth="100%">
-                  <Text
-                    as="span"
-                    fontWeight={700}
-                    color="gray.900"
-                    fontSize="lg"
-                    mr={1}
-                    title={column.name}
-                    noOfLines={1}
-                  >
-                    {column.name}
-                  </Text>
-                  {''}(<Code>{column.schema_type}</Code>)
-                </Text>
-
-                <Flex direction="column">
-                  <MetricsInfo name="Total" base={formatNumber(column.total)} />
-
-                  <MetricsInfo
-                    name="Missing"
-                    base={
-                      <Text
-                        as="span"
-                        color={isAllValuesExists ? 'green.500' : 'red.500'}
-                      >
-                        {isAllValuesExists ? '0%' : getMissingValue(column)}
-                      </Text>
-                    }
-                  />
-
-                  <MetricsInfo
-                    name="Distinct"
-                    base={formatNumber(column.distinct)}
-                  />
-                </Flex>
-
-                {column.type === 'numeric' && (
-                  <Flex direction="column">
-                    <MetricsInfo name="Min" base={formatNumber(column.min)} />
-
-                    <MetricsInfo name="Max" base={formatNumber(column.max)} />
-
-                    <MetricsInfo name="Avg" base={formatNumber(column.avg)} />
-                  </Flex>
-                )}
-
-                {column.type === 'datetime' && (
-                  <Flex direction="column">
-                    <MetricsInfo name="Min" base={column.min} />
-
-                    <MetricsInfo name="Max" base={column.max} />
-                  </Flex>
-                )}
-              </Flex>
-
-              <Flex
-                mt={12}
-                width="100%"
-                justifyContent="center"
-                alignItems="stretch"
-              >
+              <SRTableColumnDetails column={column} />
+              <Flex mt={8} justifyContent="center" alignItems="center">
                 {distribution ? (
                   <BarChart
                     data={distribution.labels.map((label, i) => ({

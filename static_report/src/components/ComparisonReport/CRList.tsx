@@ -19,10 +19,10 @@ import {
   formatReportTime,
   formatNumber,
   nestComparisonValueByKey,
-} from '../utils';
+} from '../../utils';
 
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import type { AssertionResult } from '../types';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import type { AssertionResult } from '../../types';
 
 export function ComparisonReportList({ data }) {
   const { base, input } = data;
