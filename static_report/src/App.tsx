@@ -31,13 +31,17 @@ function AppSingle() {
             />
 
             <Route path="/tables/:reportName">
-              {(params: any) => (
-                <SingleReport
-                  source={datasource}
-                  reportName={params.reportName}
-                  data={tables[params.reportName]}
-                />
-              )}
+              {(params: any) => {
+                const decodedReportName = decodeURIComponent(params.reportName);
+
+                return (
+                  <SingleReport
+                    source={datasource}
+                    reportName={decodedReportName}
+                    data={tables[decodedReportName]}
+                  />
+                );
+              }}
             </Route>
 
             <Route>
@@ -65,13 +69,16 @@ function AppComparison() {
             />
 
             <Route path="/tables/:reportName">
-              {(params: any) => (
-                <ComparisonReport
-                  reportName={params.reportName}
-                  base={base.tables[params.reportName]}
-                  input={input.tables[params.reportName]}
-                />
-              )}
+              {(params: any) => {
+                const decodedReportName = decodeURIComponent(params.reportName);
+                return (
+                  <ComparisonReport
+                    reportName={decodedReportName}
+                    base={base.tables[decodedReportName]}
+                    input={input.tables[decodedReportName]}
+                  />
+                );
+              }}
             </Route>
             <Route>
               <NotFound />
