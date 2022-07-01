@@ -581,6 +581,12 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
     ds.show_installation_information()
 
+    console.rule('Validating')
+    stop_runner = _validate_assertions(console)
+    if stop_runner:
+        console.print('\n\n[bold red]ERROR:[/bold red] Stop profiling, please fix the syntax errors above.')
+        return 1
+
     default_schema = ds.credential.get('schema')
     dbt = ds.args.get('dbt')
     dbt_exists = _check_dbt_command(dbt)
@@ -595,12 +601,6 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     if dbt and dbt_command in ['build', 'test'] and dbt_exists:
         dbt['cmd'] = dbt_command
         dbt_test_results = _run_dbt_command(table, default_schema, dbt, console)
-
-    console.rule('Validating')
-    stop_runner = _validate_assertions(console)
-    if stop_runner:
-        console.print('\n\n[bold red]ERROR:[/bold red] Stop profiling, please fix the syntax errors above.')
-        return 1
 
     console.rule('Profiling')
     run_id = uuid.uuid4().hex
@@ -802,7 +802,7 @@ def _run_dbt_command(table, default_schema, dbt, console):
         parent_table = f'{schema}.{table_name}' if schema and schema != default_schema else table_name
 
         if parent_table not in output:
-            output[parent_table] = dict(columns={})
+            output[parent_table] = dict(columns={}, tests=[])
 
         if column not in output[parent_table]['columns']:
             output[parent_table]['columns'][column] = []
