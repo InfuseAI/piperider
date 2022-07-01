@@ -29,6 +29,7 @@ class AssertionRecommender:
                 column_name = str(col)
                 column_assertions = CommentedSeq()
                 columns[column_name] = CommentedMap({
+                    'description': '',
                     'tests': column_assertions,
                 })
                 columns[column_name].yaml_set_comment_before_after_key('tests', indent=6,
@@ -38,6 +39,7 @@ class AssertionRecommender:
             # Generate assertions for table
             recommended_assertion = CommentedMap({
                 name: CommentedMap({
+                    'description': '',
                     'tests': table_assertions,
                     'columns': columns,
                 })})
