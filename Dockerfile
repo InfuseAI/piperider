@@ -1,21 +1,12 @@
 FROM python:3.9-slim
-
-WORKDIR /usr/src/app/
-
-COPY piperider_cli piperider_cli/
-COPY tests tests/
-COPY docs docs/
-COPY requirements.txt .
-COPY LICENSE .
-COPY README.md .
-COPY setup.py .
+ARG PIPERIDER_VERSION=0.3.0
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git \
     && apt-get purge -y --auto-remove \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir piperider==${PIPERIDER_VERSION}
 
 WORKDIR /usr/src/github/
 

@@ -80,3 +80,20 @@ jobs:
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_API_TOKEN }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build & deploy Docker images
+        run: |
+          echo "Build & deploy Docker images: piperider:$(cat piperider_cli/VERSION)"
+          make docker-deploy VERSION=$(cat piperider_cli/VERSION)
+          if [ "$SENTRY_ENV" == "production" ]; then
+            echo "Set piperider:$(cat piperider_cli/VERSION) as piperider:latest"
+            make deploy-deploy-latest VERSION=$(cat piperider_cli/VERSION)
+          fi
+        env:
+          SENTRY_ENV: ${{ steps.release_pypi.outputs.sentry_env || 'production' }}
