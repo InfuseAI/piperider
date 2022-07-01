@@ -11,6 +11,7 @@
     "tables": {
       "patternProperties": {
         ".+": {
+          "title": "TableSchema",
           "type": "object",
           "required": [
             "name",
@@ -37,6 +38,7 @@
               "type": "object",
               "patternProperties": {
                 ".+": {
+                  "title": "ColumnSchema",
                   "type": "object",
                   "required": [
                     "total",
@@ -110,13 +112,14 @@
               "oneOf": [
                 { "type": "null" },
                 {
+                  "title": "AssertionResult",
                   "type": "object",
                   "required": ["tests", "columns"],
                   "properties": {
                     "tests": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/definitions/test_result"
+                        "$ref": "#/definitions/assertion"
                       }
                     },
                     "columns": {
@@ -125,7 +128,7 @@
                         ".+": {
                           "type": "array",
                           "items": {
-                            "$ref": "#/definitions/test_result"
+                            "$ref": "#/definitions/assertion"
                           }
                         }
                       }
@@ -138,13 +141,14 @@
               "oneOf": [
                 { "type": "null" },
                 {
+                  "title": "DbtTestResult",
                   "type": "object",
                   "required": ["tests", "columns"],
                   "properties": {
                     "tests": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/definitions/test_result"
+                        "$ref": "#/definitions/assertion"
                       }
                     },
                     "columns": {
@@ -153,7 +157,7 @@
                         ".+": {
                           "type": "array",
                           "items": {
-                            "$ref": "#/definitions/test_result"
+                            "$ref": "#/definitions/assertion"
                           }
                         }
                       }
@@ -173,6 +177,7 @@
       "type": "string"
     },
     "datasource": {
+      "title": "DataSource",
       "type": "object",
       "required": ["name", "type"],
       "properties": {
@@ -187,6 +192,7 @@
   },
   "definitions": {
     "distribution": {
+      "title": "Distribution",
       "type": "object",
       "required": ["type", "labels", "counts"],
       "properties": {
@@ -210,7 +216,8 @@
         }
       }
     },
-    "test_result": {
+    "assertion": {
+      "title": "Assertion",
       "type": "object",
       "required": ["name", "status"],
       "properties": {
