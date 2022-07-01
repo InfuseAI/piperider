@@ -142,7 +142,7 @@ export function extractExpectedOrActual(value) {
     ));
   }
 
-  return value;
+  return value ?? '-';
 }
 
 // for comparison

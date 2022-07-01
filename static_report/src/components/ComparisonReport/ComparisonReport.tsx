@@ -1,5 +1,4 @@
 import {
-  Button,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -20,13 +19,6 @@ import {
   TabPanels,
   Tab,
   TabPanel,
-  Modal,
-  ModalHeader,
-  ModalOverlay,
-  ModalContent,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
   useDisclosure,
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
@@ -36,7 +28,6 @@ import groupBy from 'lodash/groupBy';
 
 import { Main } from '../shared/Main';
 import {
-  extractExpectedOrActual,
   nestComparisonValueByKey,
   getComparisonAssertionTests,
   transformDistribution,
@@ -47,29 +38,10 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useResizeObserver } from '../../hooks/useResizeObserver';
 import { useComparisonChart } from '../../hooks/useComparisonChart';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
-
-function TestStatus({ status }) {
-  switch (status) {
-    case 'passed':
-      return (
-        <Text as="span" role={'img'}>
-          ✅
-        </Text>
-      );
-    case 'failed':
-      return (
-        <Text as="span" role={'img'}>
-          ❌
-        </Text>
-      );
-    default:
-      return (
-        <Text as="span" role={'img'}>
-          -
-        </Text>
-      );
-  }
-}
+import { CRTestStatus } from './CRTestStatus';
+import { CRModal } from './CRModal';
+import type { ComparisonReportSchema } from '../../sdlc/comparison-report-schema';
+import type { AssertionResult } from '../../types';
 
 function CompareTest({ base = [], input = [], ...props }) {
   // group by "level", "column", "name"
@@ -125,10 +97,10 @@ function CompareTest({ base = [], input = [], ...props }) {
                 <Td>{test.column}</Td>
                 <Td>{test.name}</Td>
                 <Td>
-                  <TestStatus status={test.base?.status} />
+                  <CRTestStatus status={test.base?.status} />
                 </Td>
                 <Td>
-                  <TestStatus status={test.input?.status} />
+                  <CRTestStatus status={test.input?.status} />
                 </Td>
                 <Td onClick={() => props?.onDetailVisible(test)}>
                   <Text as="span" cursor="pointer">
@@ -354,16 +326,46 @@ function CompareProfile({ base, input }) {
   );
 }
 
-export default function ComparisonReport({ base, input, reportName }) {
+export default function ComparisonReport({
+  data,
+  name: reportName,
+}: {
+  data: ComparisonReportSchema;
+  name: string;
+}) {
   const [testDetail, setTestDetail] = useState(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const modal = useDisclosure();
 
-  const tBase = getComparisonAssertionTests({
-    assertion: base?.assertion_results,
+  const { base, input } = data;
+  const baseTables = base.tables[reportName];
+  const inputTables = input.tables[reportName];
+
+  const baseOverview = getComparisonAssertionTests({
+    assertion: (baseTables as any)?.assertion_results
+      ? ((baseTables as any).assertion_results as AssertionResult)
+      : undefined,
     from: 'base',
   });
-  const tInput = getComparisonAssertionTests({
-    assertion: input?.assertion_results,
+  const inputOverview = getComparisonAssertionTests({
+    assertion: (inputTables as any)?.assertion_results
+      ? ((inputTables as any).assertion_results as AssertionResult)
+      : undefined,
+    from: 'input',
+  });
+
+  const existsDbtTests = (base.tables[reportName] as any)?.dbt_test_results;
+
+  const dbtBaseOverview = getComparisonAssertionTests({
+    assertion: (base.tables[reportName] as any)?.dbt_test_results
+      ? ((base.tables[reportName] as any).dbt_test_results as AssertionResult)
+      : undefined,
+    from: 'base',
+  });
+
+  const dbtInputOverview = getComparisonAssertionTests({
+    assertion: (input.tables[reportName] as any)?.dbt_test_results
+      ? ((input.tables[reportName] as any).dbt_test_results as AssertionResult)
+      : undefined,
     from: 'input',
   });
 
@@ -412,34 +414,34 @@ export default function ComparisonReport({ base, input, reportName }) {
               <Tbody>
                 <Tr>
                   <Td>Table</Td>
-                  <Td>{base?.name ?? '-'}</Td>
-                  <Td>{input?.name ?? '-'}</Td>
+                  <Td>{(baseTables as any)?.name ?? '-'}</Td>
+                  <Td>{(inputTables as any)?.name ?? '-'}</Td>
                 </Tr>
                 <Tr>
                   <Td>Rows</Td>
-                  <Td>{base?.row_count ?? '-'}</Td>
-                  <Td>{input?.row_count ?? '-'}</Td>
+                  <Td>{(baseTables as any)?.row_count ?? '-'}</Td>
+                  <Td>{(inputTables as any)?.row_count ?? '-'}</Td>
                 </Tr>
                 <Tr>
                   <Td>Columns</Td>
-                  <Td>{base?.col_count ?? '-'}</Td>
-                  <Td>{input?.col_count ?? '-'}</Td>
+                  <Td>{(baseTables as any)?.col_count ?? '-'}</Td>
+                  <Td>{(inputTables as any)?.col_count ?? '-'}</Td>
                 </Tr>
                 <Tr>
                   <Td>Test status</Td>
                   <Td>
                     <Text>
                       <Text as="span" fontWeight={700}>
-                        {tBase.passed}{' '}
+                        {baseOverview.passed}{' '}
                       </Text>
                       Passed
                       {', '}
                       <Text
                         as="span"
                         fontWeight={700}
-                        color={tBase.failed > 0 ? 'red.500' : 'inherit'}
+                        color={baseOverview.failed > 0 ? 'red.500' : 'inherit'}
                       >
-                        {tBase.failed}{' '}
+                        {baseOverview.failed}{' '}
                       </Text>
                       Failed
                     </Text>
@@ -447,16 +449,16 @@ export default function ComparisonReport({ base, input, reportName }) {
                   <Td>
                     <Text>
                       <Text as="span" fontWeight={700}>
-                        {tInput.passed}{' '}
+                        {inputOverview.passed}{' '}
                       </Text>
                       Passed
                       {', '}
                       <Text
                         as="span"
                         fontWeight={700}
-                        color={tInput.failed > 0 ? 'red.500' : 'inherit'}
+                        color={inputOverview.failed > 0 ? 'red.500' : 'inherit'}
                       >
-                        {tInput.failed}{' '}
+                        {inputOverview.failed}{' '}
                       </Text>
                       Failed
                     </Text>
@@ -471,90 +473,70 @@ export default function ComparisonReport({ base, input, reportName }) {
               <Tab>Schema</Tab>
               <Tab>Profiling</Tab>
               <Tab>Tests</Tab>
+              {existsDbtTests && <Tab>dbt Tests</Tab>}
             </TabList>
 
             <TabPanels>
               <TabPanel>
-                <CompareSchema base={base} input={input} />
+                <CompareSchema base={baseTables} input={inputTables} />
               </TabPanel>
 
               <TabPanel>
-                <CompareProfile base={base} input={input} />
+                <CompareProfile base={baseTables} input={inputTables} />
               </TabPanel>
 
               <TabPanel>
                 <CompareTest
-                  base={tBase?.tests}
-                  input={tInput?.tests}
+                  base={baseOverview?.tests}
+                  input={inputOverview?.tests}
                   onDetailVisible={(data) => {
-                    setTestDetail(data);
-                    onOpen();
+                    setTestDetail({
+                      type: 'piperider',
+                      data,
+                    });
+                    modal.onOpen();
                   }}
                 />
+              </TabPanel>
+
+              <TabPanel>
+                {dbtBaseOverview?.tests.length === 0 &&
+                dbtInputOverview?.tests.length === 0 ? (
+                  <Flex
+                    justifyContent="center"
+                    alignItems="center"
+                    height="100px"
+                  >
+                    <Text color="gray.500">No dbt tests available.</Text>
+                  </Flex>
+                ) : (
+                  <CompareTest
+                    base={dbtBaseOverview?.tests}
+                    input={dbtInputOverview?.tests}
+                    onDetailVisible={(data) => {
+                      setTestDetail({
+                        type: 'dbt',
+                        data,
+                      });
+                      modal.onOpen();
+                    }}
+                  />
+                )}
               </TabPanel>
             </TabPanels>
           </Tabs>
         </Flex>
       </Flex>
 
-      <Modal
-        isOpen={isOpen}
-        size="2xl"
+      <CRModal
+        {...modal}
+        type={testDetail?.type}
+        data={testDetail?.data}
         onClose={() => {
-          onClose();
+          modal.onClose();
           setTestDetail(null);
         }}
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>{testDetail?.name}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <TableContainer>
-              <Table variant="simple">
-                <Thead>
-                  <Tr>
-                    <Th />
-                    <Th>Status</Th>
-                    <Th>Expected</Th>
-                    <Th>Actual</Th>
-                  </Tr>
-                </Thead>
-
-                <Tbody>
-                  <Tr>
-                    <Td fontWeight={700}>Base</Td>
-                    <Td>
-                      <TestStatus status={testDetail?.base?.status} />
-                    </Td>
-                    <Td>
-                      {extractExpectedOrActual(testDetail?.base?.expected)}
-                    </Td>
-                    <Td>{extractExpectedOrActual(testDetail?.base?.actual)}</Td>
-                  </Tr>
-
-                  <Tr>
-                    <Td fontWeight={700}>Input</Td>
-                    <Td>
-                      <TestStatus status={testDetail?.input?.status} />
-                    </Td>
-                    <Td>
-                      {extractExpectedOrActual(testDetail?.input?.expected)}
-                    </Td>
-                    <Td>
-                      {extractExpectedOrActual(testDetail?.input?.actual)}
-                    </Td>
-                  </Tr>
-                </Tbody>
-              </Table>
-            </TableContainer>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button onClick={onClose}>Close</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      />
     </Main>
   );
 }
