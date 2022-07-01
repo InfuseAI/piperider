@@ -1,4 +1,5 @@
 {
+  "title": "SingleReportSchema",
   "type": "object",
   "required": [
     "tables",
@@ -21,6 +22,9 @@
           ],
           "properties": {
             "name": {
+              "type": "string"
+            },
+            "description": {
               "type": "string"
             },
             "row_count": {
@@ -60,6 +64,9 @@
                       ]
                     },
                     "name": {
+                      "type": "string"
+                    },
+                    "description": {
                       "type": "string"
                     },
                     "type": {
