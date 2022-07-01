@@ -1,12 +1,24 @@
 {
-  "title": "SingleReport",
   "type": "object",
+  "required": [
+    "tables",
+    "id",
+    "created_at",
+    "datasource"
+  ],
   "properties": {
     "tables": {
       "patternProperties": {
         ".+": {
           "type": "object",
-          "title": "table",
+          "required": [
+            "name",
+            "description",
+            "row_count",
+            "col_count",
+            "columns",
+            "assertion_results"
+          ],
           "properties": {
             "name": {
               "type": "string"
@@ -19,21 +31,131 @@
             },
             "columns": {
               "type": "object",
-              "title": "Column"
+              "patternProperties": {
+                ".+": {
+                  "type": "object",
+                  "required": [
+                    "total",
+                    "non_nulls",
+                    "distinct",
+                    "name",
+                    "description",
+                    "type",
+                    "schema_type"
+                  ],
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    },
+                    "non_nulls": {
+                      "type": "integer"
+                    },
+                    "distinct": {
+                      "type": "integer"
+                    },
+                    "distribution": {
+                      "oneOf": [
+                        { "type": "null" },
+                        { "$ref": "#/definitions/distribution" }
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "enum": [
+                        "string",
+                        "numeric",
+                        "datetime",
+                        "bool",
+                        "other"
+                      ]
+                    },
+                    "schema_type": {
+                      "type": "string"
+                    },
+                    "mismatched": {
+                      "type": "integer"
+                    },
+                    "sum": {
+                      "type": "number"
+                    },
+                    "avg": {
+                      "type": "number"
+                    },
+                    "min": {
+                      "oneOf": [
+                       { "type": "string" },
+                       { "type": "number" }
+                      ]
+                    },
+                    "max": {
+                      "oneOf": [
+                       { "type": "string" },
+                       { "type": "number" }
+                      ]
+                    }
+                  }
+                }
+              }
             },
             "assertion_results": {
-              "type": "object",
-              "title": "assertionResult"
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "required": ["tests", "columns"],
+                  "properties": {
+                    "tests": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/test_result"
+                      }
+                    },
+                    "columns": {
+                      "type": "object",
+                      "patternProperties": {
+                        ".+": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/test_result"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "dbt_test_results": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "required": ["tests", "columns"],
+                  "properties": {
+                    "tests": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/test_result"
+                      }
+                    },
+                    "columns": {
+                      "type": "object",
+                      "patternProperties": {
+                        ".+": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/test_result"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
             }
-          },
-          "required": [
-            "name",
-            "row_count",
-            "col_count",
-            "assertion_results",
-            "columns"
-          ],
-          "additionalProperties": false
+          }
         }
       }
     },
@@ -44,8 +166,8 @@
       "type": "string"
     },
     "datasource": {
-      "additionalProperties": false,
       "type": "object",
+      "required": ["name", "type"],
       "properties": {
         "name": {
           "type": "string"
@@ -56,11 +178,53 @@
       }
     }
   },
-  "required": [
-    "tables",
-    "id",
-    "created_at",
-    "datasource"
-  ],
-  "additionalProperties": false
+  "definitions": {
+    "distribution": {
+      "type": "object",
+      "required": ["type", "labels", "counts"],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+             { "type": "string" },
+             { "type": "null" }
+            ]
+          }
+        },
+        "counts": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "test_result": {
+      "type": "object",
+      "required": ["name", "status"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "passed", "failed"
+          ]
+        },
+        "parameters": {
+          "type": "object"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }
