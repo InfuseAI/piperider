@@ -1,20 +1,20 @@
-import React from 'react';
 import { Code, Flex, Text } from '@chakra-ui/react';
 import { formatNumber, getColumnDetails, getMissingValue } from '../../utils';
 import { MetricsInfo } from '../shared/MetrisInfo';
 import { ComparisonReportSchema } from '../../sdlc/comparison-report-schema';
 
-// Temp Typing
+// FIXME: Temp Typing
 type CRTableColumnDetailsProps = {
   column: any;
-  baseColumn: ComparisonReportSchema['base']['tables']['ACTION']['columns']['DATE'];
-  inputColumn: ComparisonReportSchema['input']['tables']['ACTION']['columns']['DATE'];
+  baseColumn: ComparisonReportSchema['base']['tables']['ACTION']['columns'];
+  inputColumn: ComparisonReportSchema['input']['tables']['ACTION']['columns'];
 };
-export const CRTableColumnDetails: React.FC<CRTableColumnDetailsProps> = ({
+
+export const CRTableColumnDetails = ({
   column,
   baseColumn,
   inputColumn,
-}) => {
+}: CRTableColumnDetailsProps) => {
   const {
     mismatchOfTotal: baseMismatchOfTotal,
     validOfTotal: baseValidOfTotal,
@@ -81,8 +81,8 @@ export const CRTableColumnDetails: React.FC<CRTableColumnDetailsProps> = ({
 
           <MetricsInfo
             name="Missing"
-            base={getMissingValue(baseColumn)}
-            input={getMissingValue(inputColumn)}
+            base={getMissingValue(baseColumn as any)}
+            input={getMissingValue(inputColumn as any)}
           />
 
           <Flex direction="column" mt={3}>

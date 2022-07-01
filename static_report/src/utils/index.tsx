@@ -6,7 +6,7 @@ import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 
 import type { AssertionResult } from '../types';
-import { ComparisonReportSchema } from '../sdlc/comparison-report-schema';
+import type { ComparisonReportSchema } from '../sdlc/comparison-report-schema';
 
 const tooltipDefaultStyle = {
   paddingTop: 'var(--chakra-space-2)',
@@ -147,8 +147,8 @@ export function extractExpectedOrActual(value) {
 
 // for comparison
 export function nestComparisonValueByKey(
-  base: Record<string, unknown>,
-  input: Record<string, unknown>,
+  base: ComparisonReportSchema['base']['tables'],
+  input: ComparisonReportSchema['input']['tables'],
 ): Record<
   string,
   { base: Record<string, unknown>; input: Record<string, unknown> }
@@ -260,11 +260,11 @@ export function transformDistributionWithLabels({ base, input, labels }) {
   return m;
 }
 
-//TODO: Temp Typing
+// FIXME: Temp Typing
 export function getColumnDetails(
   columnData: ComparisonReportSchema['base']['tables']['ACTION']['columns']['DATE'],
 ) {
-  const { non_nulls, total, mismatched } = columnData;
+  const { non_nulls, total, mismatched } = columnData as any;
 
   const hasNoNull = non_nulls === total;
 
