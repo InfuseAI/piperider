@@ -649,8 +649,10 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
 
     _show_recommended_assertion_notice_message(console, assertion_results)
 
+    _append_descriptions(profile_result)
     if dbt and dbt_exists:
         _append_descriptions_from_dbt(profile_result, dbt, default_schema)
+    _append_descriptions_from_assertion(profile_result)
 
     with open(output_file, 'w') as f:
         f.write(json.dumps(profile_result, indent=4))
@@ -955,6 +957,13 @@ def generate_report(input=None):
     console.print(f"Report generated in {dir}/index.html")
 
 
+def _append_descriptions(profile_result):
+    for table_name, table_v in profile_result['tables'].items():
+        table_v['description'] = table_name
+        for column_name, column_v in table_v['columns'].items():
+            column_v['description'] = column_name
+
+
 def _append_descriptions_from_dbt(profile_result, dbt, default_schema):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
     full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'model', '--resource-type', 'source', '--output-keys', 'resource_type,description,name,columns,source_name']
@@ -978,6 +987,23 @@ def _append_descriptions_from_dbt(profile_result, dbt, default_schema):
             if column_name not in profile_result['tables'][table_name]['columns']:
                 continue
             profile_result['tables'][table_name]['columns'][column_name]['description'] = v.get('description', '')
+
+
+def _append_descriptions_from_assertion(profile_result):
+    engine = AssertionEngine(None)
+    engine.load_assertion_content()
+    for table_name, table_v in engine.assertions_content.items():
+        if table_name not in profile_result['tables']:
+            continue
+        table_desc = table_v.get('description', '')
+        if table_desc:
+            profile_result['tables'][table_name]['description'] = table_desc
+        for column_name, column_v in table_v.get('columns', {}).items():
+            if column_name not in profile_result['tables'][table_name]['columns']:
+                continue
+            column_desc = column_v.get('description', column_name)
+            if column_desc:
+                profile_result['tables'][table_name]['columns'][column_name]['description'] = column_desc
 
 
 def compare_report(a=None, b=None):
