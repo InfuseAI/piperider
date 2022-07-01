@@ -525,23 +525,25 @@ export default function ComparisonReport({ base, input, reportName }) {
                   <Tr>
                     <Td fontWeight={700}>Base</Td>
                     <Td>
-                      <TestStatus status={testDetail?.base.status} />
+                      <TestStatus status={testDetail?.base?.status} />
                     </Td>
                     <Td>
-                      {extractExpectedOrActual(testDetail?.base.expected)}
+                      {extractExpectedOrActual(testDetail?.base?.expected)}
                     </Td>
-                    <Td>{extractExpectedOrActual(testDetail?.base.actual)}</Td>
+                    <Td>{extractExpectedOrActual(testDetail?.base?.actual)}</Td>
                   </Tr>
 
                   <Tr>
                     <Td fontWeight={700}>Input</Td>
                     <Td>
-                      <TestStatus status={testDetail?.input.status} />
+                      <TestStatus status={testDetail?.input?.status} />
                     </Td>
                     <Td>
-                      {extractExpectedOrActual(testDetail?.input.expected)}
+                      {extractExpectedOrActual(testDetail?.input?.expected)}
                     </Td>
-                    <Td>{extractExpectedOrActual(testDetail?.input.actual)}</Td>
+                    <Td>
+                      {extractExpectedOrActual(testDetail?.input?.actual)}
+                    </Td>
                   </Tr>
                 </Tbody>
               </Table>
