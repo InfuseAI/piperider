@@ -5,14 +5,12 @@ export function Footer() {
     <Flex gap={8} my={8}>
       <Flex gap={3}>
         <Flex alignItems="center" gap={3}>
-          <Link href="https://github.com/InfuseAI/piperider" isExternal>
-            <Image
-              src="GitHub/GitHub-Logo.png"
-              width={5}
-              height={5}
-              alt="GitHub Logo"
-            />
-          </Link>
+          <Image
+            src="GitHub/GitHub-Logo.svg"
+            width={6}
+            height={6}
+            alt="GitHub Logo"
+          />
           <Link
             href="https://github.com/InfuseAI/piperider"
             isExternal
@@ -27,14 +25,12 @@ export function Footer() {
         </Box>
 
         <Flex alignItems="center" gap={3}>
-          <Link href="https://discord.com/invite/CrAxQznedH" isExternal>
-            <Image
-              src="Discord/Discord-Logo.svg"
-              width={6}
-              height={6}
-              alt="Discord Logo"
-            />
-          </Link>
+          <Image
+            src="Discord/Discord-Logo.svg"
+            width={6}
+            height={6}
+            alt="Discord Logo"
+          />
           <Link
             href="https://discord.com/invite/CrAxQznedH"
             isExternal
