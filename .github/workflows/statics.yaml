@@ -5,15 +5,17 @@
 name: Node.js - Build & Commit to CLI data/report/**
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     paths:
-      - "static_report"
+      - "static_report/**"
     branches: # Reminder: Revert to 'main' before PR to 'main'
-      - testing/sc-27084/on-merge-push-statics-build
+      - "testing/**"
 
 jobs:
   build:
-
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     defaults:
       run:
