@@ -1,7 +1,7 @@
 import decimal
 import math
 import time
-from datetime import date
+from datetime import datetime, date
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, String, Integer, Numeric, Date, DateTime, Boolean, select, func, distinct, case
@@ -400,22 +400,41 @@ class Profiler:
         t = self.metadata.tables[table_name]
 
         with self.engine.connect() as conn:
-            t2 = select([t.c[column_name].label("c")]).cte(name="T")
+            if self.engine.url.get_backend_name() != "sqlite":
+                t2 = select([
+                    t.c[column_name].label("c"),
+                    case(
+                        [(t.c[column_name].is_(None), None)],
+                        else_=0
+                    ).label("mismatched")
+                ]).cte(name="T")
+            else:
+                t2 = select([
+                    case(
+                        [(func.datetime(t.c[column_name]).is_(None), None)],
+                        else_=func.datetime(t.c[column_name])
+                    ).label("c"),
+                    case(
+                        [((func.typeof(t.c[column_name]) == 'text') & (func.datetime(t.c[column_name]).is_(None)), 1),
+                         (func.typeof(t.c[column_name]) == 'null', None)],
+                        else_=0
+                    ).label("mismatched")
+                ]).cte(name="T")
+
             stmt = select([
                 func.count().label("_total"),
                 func.count(t2.c.c).label("_non_nulls"),
+                func.sum(t2.c.mismatched).label("_mismatched"),
                 func.count(distinct(t2.c.c)).label("_distinct"),
-            ])
-            result = conn.execute(stmt).fetchone()
-            _total, _non_null, _distinct = result
-
-            t2 = select([t.c[column_name].label("c")]).where(t.c[column_name].isnot('')).cte(name="T")
-            stmt = select([
                 func.min(t2.c.c).label("_min"),
                 func.max(t2.c.c).label("_max"),
             ])
             result = conn.execute(stmt).fetchone()
-            _min, _max, = result
+            _total, _non_null, _mismatched, _distinct, _min, _max = result
+
+            if self.engine.url.get_backend_name() == "sqlite":
+                _min = datetime.fromisoformat(_min).date() if _min is not None else _min
+                _max = datetime.fromisoformat(_max).date() if _max is not None else _max
 
             distribution = None
             if _non_null == 1 or _distinct == 1:
@@ -487,10 +506,10 @@ class Profiler:
             return {
                 'total': _total,
                 'non_nulls': _non_null,
-                'mismatched': 0,
+                'mismatched': _mismatched,
                 'distinct': _distinct,
-                'min': str(_min),
-                'max': str(_max),
+                'min': str(_min) if _min is not None else _min,
+                'max': str(_max) if _max is not None else _max,
                 'distribution': distribution,
             }
 
