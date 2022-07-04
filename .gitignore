@@ -313,13 +313,11 @@ tags
 # Support for Project snippet scope
 .idea
 # End of https://www.toptal.com/developers/gitignore/api/pycharm,visualstudiocode,vim,macos
-foo*
 piperider/
 
 node_modules/
 pnpm-lock.yaml
 yarn.lock
-package-lock.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

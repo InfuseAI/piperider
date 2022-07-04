@@ -2,13 +2,13 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 # Should only affect changes pushed to static_report directory, when merging to `main`
 
-name: Node.js CI - Build to CLI data/report/**; Commit
+name: Node.js - Build & Commit to CLI data/report/**
 
 on:
   push:
     paths:
       - "static_report"
-    branches:
+    branches: # Reminder: Revert to 'main' before PR to 'main'
       - testing/sc-27084/on-merge-push-statics-build
 
 jobs:
@@ -17,11 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: static_report
+        working-directory: ./static_report
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -31,6 +31,9 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+        cache-dependency-path: static_report/package-lock.json
+
+
     - run: npm ci
     - run: npm run build
     - uses: stefanzweifel/git-auto-commit-action@v4
