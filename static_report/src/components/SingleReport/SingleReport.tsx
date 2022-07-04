@@ -218,8 +218,8 @@ function TestsInformation({
             <Tr>
               <Th>Level</Th>
               <Th>Column</Th>
-              <Th>Status</Th>
               <Th>Assertion</Th>
+              <Th>Status</Th>
               {type === 'piperider' && <Th>Expected</Th>}
               {type === 'piperider' && <Th>Actual</Th>}
               {type === 'dbt' && <Th>Messagae</Th>}
@@ -229,11 +229,11 @@ function TestsInformation({
           <Tbody>
             {tabelTests.map((tabelTest) => {
               const isFailed = tabelTest.status === 'failed';
-
               return (
                 <Tr key={tabelTest.name}>
                   <Td>Table</Td>
                   <Td>-</Td>
+                  <Td>{tabelTest.name}</Td>
                   <Td>
                     {isFailed ? (
                       <Text as="span" role="img">
@@ -245,7 +245,6 @@ function TestsInformation({
                       </Text>
                     )}
                   </Td>
-                  <Td>{tabelTest.name}</Td>
                   {type === 'piperider' && (
                     <Td>{extractExpectedOrActual(tabelTest.expected)}</Td>
                   )}
@@ -254,7 +253,7 @@ function TestsInformation({
                       {extractExpectedOrActual(tabelTest.actual)}
                     </Td>
                   )}
-                  {type === 'dbt' && <Td>{tabelTest.message}</Td>}
+                  {type === 'dbt' && <Td>{tabelTest.message ?? '-'}</Td>}
                 </Tr>
               );
             })}
@@ -269,6 +268,7 @@ function TestsInformation({
                   <Tr key={columnTest.name}>
                     <Td>Column</Td>
                     <Td>{key}</Td>
+                    <Td>{columnTest.name}</Td>
                     <Td>
                       {isFailed ? (
                         <Text as="span" role="img">
@@ -280,7 +280,6 @@ function TestsInformation({
                         </Text>
                       )}
                     </Td>
-                    <Td>{columnTest.name}</Td>
                     {type === 'piperider' && (
                       <Td>{extractExpectedOrActual(columnTest.expected)}</Td>
                     )}
@@ -289,7 +288,7 @@ function TestsInformation({
                         {extractExpectedOrActual(columnTest.actual)}
                       </Td>
                     )}
-                    {type === 'dbt' && <Td>{columnTest.message}</Td>}
+                    {type === 'dbt' && <Td>{columnTest.message ?? '-'}</Td>}
                   </Tr>
                 );
               });
