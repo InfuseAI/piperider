@@ -45,6 +45,14 @@ jobs:
           runtest testsuite/getting-started/002-compare.exp
           echo "Finish"
 
+          echo "Validate report schema"
+          cd $origin
+          schema_file=$(find ~ -name "schema.json")
+          for run in $(find ~ -name "run.json")
+          do
+             jsonschema -i "$run" "$schema_file"
+          done
+
       - name: Archive e2e artifacts
         uses: actions/upload-artifact@v3
         if: failure()
