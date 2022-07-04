@@ -16,14 +16,13 @@ import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
 
 import {
-  getComparisonAssertionTests,
+  getComparisonAssertions,
   formatReportTime,
   formatNumber,
   nestComparisonValueByKey,
 } from '../../utils';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import type { AssertionResult } from '../../types';
 import type { ComparisonReportSchema } from '../../sdlc/comparison-report-schema';
 
 export function ComparisonReportList({
@@ -129,36 +128,20 @@ export function ComparisonReportList({
                 {Object.keys(tables).map((key) => {
                   const table = tables[key];
 
-                  const baseOverview = getComparisonAssertionTests({
-                    // TODO: improve upstream type
-                    assertion: table.base.assertion_results
-                      ? (table.base.assertion_results as AssertionResult)
-                      : undefined,
-                    from: 'base',
-                  });
-                  const inputOverview = getComparisonAssertionTests({
-                    // TODO: improve upstream type
-                    assertion: table.input.assertion_results
-                      ? (table.input.assertion_results as AssertionResult)
-                      : undefined,
-                    from: 'input',
-                  });
+                  const [baseOverview, inputOverview] = getComparisonAssertions(
+                    {
+                      data,
+                      reportName: key,
+                      type: 'piperider',
+                    },
+                  );
 
-                  // If running by `piperider run --dbt-test`, it will have this field, vice versa.
-                  const dbtBaseOverview = getComparisonAssertionTests({
-                    // TODO: improve upstream type
-                    assertion: table.base.dbt_test_results
-                      ? (table.base.dbt_test_results as AssertionResult)
-                      : undefined,
-                    from: 'base',
-                  });
-                  const dbtInputOverview = getComparisonAssertionTests({
-                    // TODO: improve upstream type
-                    assertion: table.input.dbt_test_results
-                      ? (table.input.dbt_test_results as AssertionResult)
-                      : undefined,
-                    from: 'input',
-                  });
+                  const [dbtBaseOverview, dbtInputOverview] =
+                    getComparisonAssertions({
+                      data,
+                      reportName: key,
+                      type: 'dbt',
+                    });
 
                   return (
                     <Link key={nanoid()} href={`/tables/${key}`}>

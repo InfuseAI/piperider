@@ -20,10 +20,86 @@ import {
 
 import { TestStatus } from '../shared/TestStatus';
 import { extractExpectedOrActual } from '../../utils';
+import type { ComparisonReportSchema } from '../../sdlc/comparison-report-schema';
 
 interface Props extends UseDisclosureReturn {
-  data?: any;
   type?: 'piperider' | 'dbt';
+  data?: ComparisonReportSchema & {
+    level: 'Column' | 'Table';
+    column: string;
+    name: string;
+  };
+}
+
+function PipeRiderTable({ data }: { data: ComparisonReportSchema }) {
+  return (
+    <TableContainer>
+      <Table variant="simple">
+        <Thead>
+          <Tr>
+            <Th />
+            <Th>Status</Th>
+            <Th>Expected</Th>
+            <Th>Actual</Th>
+          </Tr>
+        </Thead>
+
+        <Tbody>
+          <Tr>
+            <Td fontWeight={700}>Base</Td>
+            <Td>
+              <TestStatus status={data?.base?.status as any} />
+            </Td>
+            <Td>{extractExpectedOrActual(data?.base?.expected)}</Td>
+            <Td>{extractExpectedOrActual(data?.base?.actual)}</Td>
+          </Tr>
+
+          <Tr>
+            <Td fontWeight={700}>Input</Td>
+            <Td>
+              <TestStatus status={data?.input?.status as any} />
+            </Td>
+            <Td>{extractExpectedOrActual(data?.input?.expected)}</Td>
+            <Td>{extractExpectedOrActual(data?.input?.actual)}</Td>
+          </Tr>
+        </Tbody>
+      </Table>
+    </TableContainer>
+  );
+}
+
+function DbtTable({ data }: { data: ComparisonReportSchema }) {
+  return (
+    <TableContainer>
+      <Table variant="simple">
+        <Thead>
+          <Tr>
+            <Th />
+            <Th>Status</Th>
+            <Th>Message</Th>
+          </Tr>
+        </Thead>
+
+        <Tbody>
+          <Tr>
+            <Td fontWeight={700}>Base</Td>
+            <Td>
+              <TestStatus status={data?.base?.status as any} />
+            </Td>
+            <Td>{(data?.base?.message as any) ?? '-'}</Td>
+          </Tr>
+
+          <Tr>
+            <Td fontWeight={700}>Input</Td>
+            <Td>
+              <TestStatus status={data?.input?.status as any} />
+            </Td>
+            <Td>{(data?.base?.message as any) ?? '-'}</Td>
+          </Tr>
+        </Tbody>
+      </Table>
+    </TableContainer>
+  );
 }
 
 export function CRModal({
@@ -51,49 +127,11 @@ export function CRModal({
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <TableContainer>
-            <Table variant="simple">
-              <Thead>
-                <Tr>
-                  <Th />
-                  <Th>Status</Th>
-                  {type === 'piperider' && <Th>Expected</Th>}
-                  {type === 'piperider' && <Th>Actual</Th>}
-                  {type === 'dbt' && <Th>Message</Th>}
-                </Tr>
-              </Thead>
-
-              <Tbody>
-                <Tr>
-                  <Td fontWeight={700}>Base</Td>
-                  <Td>
-                    <TestStatus status={data?.base?.status} />
-                  </Td>
-                  {type === 'piperider' && (
-                    <Td>{extractExpectedOrActual(data?.base?.expected)}</Td>
-                  )}
-                  {type === 'piperider' && (
-                    <Td>{extractExpectedOrActual(data?.base?.actual)}</Td>
-                  )}
-                  {type === 'dbt' && <Td>{data?.base?.message ?? '-'}</Td>}
-                </Tr>
-
-                <Tr>
-                  <Td fontWeight={700}>Input</Td>
-                  <Td>
-                    <TestStatus status={data?.input?.status} />
-                  </Td>
-                  {type === 'piperider' && (
-                    <Td>{extractExpectedOrActual(data?.input?.expected)}</Td>
-                  )}
-                  {type === 'piperider' && (
-                    <Td>{extractExpectedOrActual(data?.input?.actual)}</Td>
-                  )}
-                  {type === 'dbt' && <Td>{data?.input?.message ?? '-'}</Td>}
-                </Tr>
-              </Tbody>
-            </Table>
-          </TableContainer>
+          {type === 'piperider' ? (
+            <PipeRiderTable data={data} />
+          ) : (
+            <DbtTable data={data} />
+          )}
         </ModalBody>
 
         <ModalFooter>

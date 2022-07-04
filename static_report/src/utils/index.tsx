@@ -5,7 +5,7 @@ import mergeWith from 'lodash/mergeWith';
 import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 
-import type { AssertionResult } from '../types';
+import type { AssertionResult, ComparsionSource } from '../types';
 import type { ComparisonReportSchema } from '../sdlc/comparison-report-schema';
 
 const tooltipDefaultStyle = {
@@ -166,12 +166,39 @@ export function nestComparisonValueByKey(
   }));
 }
 
+export function getComparisonAssertions({
+  data,
+  reportName,
+  type,
+}: {
+  data: ComparisonReportSchema;
+  reportName: string;
+  type: 'piperider' | 'dbt';
+}) {
+  const targets = {
+    piperider: 'assertion_results',
+    dbt: 'dbt_test_results',
+  };
+
+  const baseTables = { type: 'base', tables: data.base.tables[reportName] };
+  const inputTables = { type: 'input', tables: data.input.tables[reportName] };
+
+  const assertions = [baseTables, inputTables].map((source) =>
+    getComparisonAssertionTests({
+      assertion: source.tables[targets[type]],
+      from: source.type as ComparsionSource,
+    }),
+  );
+
+  return assertions;
+}
+
 export function getComparisonAssertionTests({
   assertion,
   from,
 }: {
   assertion: AssertionResult | undefined;
-  from: 'base' | 'input';
+  from: ComparsionSource;
 }) {
   const { passed, failed } = getReportAsserationStatusCounts(assertion);
 

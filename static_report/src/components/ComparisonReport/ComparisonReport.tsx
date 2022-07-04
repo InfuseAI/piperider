@@ -29,9 +29,9 @@ import groupBy from 'lodash/groupBy';
 import { Main } from '../shared/Main';
 import {
   nestComparisonValueByKey,
-  getComparisonAssertionTests,
   transformDistribution,
   transformDistributionWithLabels,
+  getComparisonAssertions,
 } from '../../utils';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -41,7 +41,6 @@ import { CRTableColumnDetails } from './CRTableColumnDetails';
 import { TestStatus } from '../shared/TestStatus';
 import { CRModal } from './CRModal';
 import type { ComparisonReportSchema } from '../../sdlc/comparison-report-schema';
-import type { AssertionResult } from '../../types';
 
 function CompareTest({ base = [], input = [], ...props }) {
   // group by "level", "column", "name"
@@ -102,7 +101,11 @@ function CompareTest({ base = [], input = [], ...props }) {
                 <Td>
                   <TestStatus status={test.input?.status} />
                 </Td>
-                <Td onClick={() => props?.onDetailVisible(test)}>
+                <Td
+                  onClick={() => {
+                    props.onDetailVisible(test);
+                  }}
+                >
                   <Text as="span" cursor="pointer">
                     🔍
                   </Text>
@@ -339,34 +342,17 @@ export default function ComparisonReport({
   const { base, input } = data;
   const baseTables = base.tables[reportName];
   const inputTables = input.tables[reportName];
-
-  const baseOverview = getComparisonAssertionTests({
-    assertion: (baseTables as any)?.assertion_results
-      ? ((baseTables as any).assertion_results as AssertionResult)
-      : undefined,
-    from: 'base',
-  });
-  const inputOverview = getComparisonAssertionTests({
-    assertion: (inputTables as any)?.assertion_results
-      ? ((inputTables as any).assertion_results as AssertionResult)
-      : undefined,
-    from: 'input',
-  });
-
   const existsDbtTests = (base.tables[reportName] as any)?.dbt_test_results;
 
-  const dbtBaseOverview = getComparisonAssertionTests({
-    assertion: (base.tables[reportName] as any)?.dbt_test_results
-      ? ((base.tables[reportName] as any).dbt_test_results as AssertionResult)
-      : undefined,
-    from: 'base',
+  const [baseOverview, inputOverview] = getComparisonAssertions({
+    data,
+    reportName,
+    type: 'piperider',
   });
-
-  const dbtInputOverview = getComparisonAssertionTests({
-    assertion: (input.tables[reportName] as any)?.dbt_test_results
-      ? ((input.tables[reportName] as any).dbt_test_results as AssertionResult)
-      : undefined,
-    from: 'input',
+  const [dbtBaseOverview, dbtInputOverview] = getComparisonAssertions({
+    data,
+    reportName,
+    type: 'dbt',
   });
 
   useDocumentTitle(reportName);
