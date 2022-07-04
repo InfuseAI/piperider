@@ -394,6 +394,9 @@ class AssertionEngine:
                         'TODO: Suggest to remove following assertions (no recommended found)', target)
             else:
                 # Merge with existed
+                existed_desc = existed_items[target]['description']
+                if existed_desc:
+                    new_generating_items[target]['description'] = existed_desc
                 for existed_assertion in existed_items[target]['tests']:
                     is_new_assertion_found = False
                     for new_assertion in new_generating_items[target]['tests']:
