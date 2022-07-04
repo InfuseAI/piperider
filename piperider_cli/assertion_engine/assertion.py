@@ -1,5 +1,6 @@
 import json
 import os
+import runpy
 import sys
 from datetime import datetime, date, time
 from importlib import import_module
@@ -473,8 +474,6 @@ class AssertionEngine:
               outliers: 5 # in get_outliers's verification logic, check outliers parameter and return true if it's less than 5
         """
 
-        self.load_plugins()
-
         from piperider_cli.assertion_engine.types import get_assertion
         try:
             assertion_instance = get_assertion(assertion.name)
@@ -492,6 +491,7 @@ class AssertionEngine:
         results = []
         exceptions = []
 
+        self.load_plugins()
         for assertion in self.assertions:
             try:
                 assertion_result: AssertionContext = self.evaluate(assertion, metrics_result)
@@ -510,6 +510,8 @@ class AssertionEngine:
     def validate_assertions(self):
         from piperider_cli.assertion_engine.types import get_assertion
         results = []
+
+        self.load_plugins()
         for assertion in self.assertions:
             assertion_instance = get_assertion(assertion.name)
             result = assertion_instance.validate(assertion)
