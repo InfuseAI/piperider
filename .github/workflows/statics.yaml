@@ -41,3 +41,5 @@ jobs:
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
           commit_message: Automation - built report statics to CLI data/report
+          branch: ${{ github.base_ref }}
+          # Auto-commits to target merge branch
