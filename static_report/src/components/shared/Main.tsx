@@ -1,5 +1,7 @@
 import { Flex, useColorMode } from '@chakra-ui/react';
 
+import { Footer } from './Footer';
+
 export function Main({ children, ...props }) {
   const { colorMode } = useColorMode();
   const bgColor = { light: 'gray.50', dark: 'gray.900' };
@@ -17,6 +19,8 @@ export function Main({ children, ...props }) {
       {...props}
     >
       {children}
+
+      <Footer />
     </Flex>
   );
 }
