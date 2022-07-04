@@ -53,6 +53,7 @@ setup(name='piperider',
               'pytest-mypy',
               'pytest-cov',
               'twine',
+              'jsonschema',
           ],
       },
       project_urls={

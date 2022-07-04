@@ -7,6 +7,7 @@
     "created_at",
     "datasource"
   ],
+  "additionalProperties": false,
   "properties": {
     "tables": {
       "patternProperties": {
@@ -21,6 +22,7 @@
             "columns",
             "assertion_results"
           ],
+          "additionalProperties": false,
           "properties": {
             "name": {
               "type": "string"
@@ -49,6 +51,7 @@
                     "type",
                     "schema_type"
                   ],
+                  "additionalProperties": false,
                   "properties": {
                     "total": {
                       "type": "integer"
@@ -86,6 +89,9 @@
                     "mismatched": {
                       "type": "integer"
                     },
+                    "profile_duration": {
+                      "type": "string"
+                    },
                     "sum": {
                       "type": "number"
                     },
@@ -103,6 +109,24 @@
                        { "type": "string" },
                        { "type": "number" }
                       ]
+                    },
+                    "p5": {
+                      "type": "number"
+                    },
+                    "p25": {
+                      "type": "number"
+                    },
+                    "p50": {
+                      "type": "number"
+                    },
+                    "p75": {
+                      "type": "number"
+                    },
+                    "p95": {
+                      "type": "number"
+                    },
+                    "stddev": {
+                      "type": "number"
                     }
                   }
                 }
@@ -115,6 +139,7 @@
                   "title": "AssertionResult",
                   "type": "object",
                   "required": ["tests", "columns"],
+                  "additionalProperties": false,
                   "properties": {
                     "tests": {
                       "type": "array",
@@ -144,6 +169,7 @@
                   "title": "DbtTestResult",
                   "type": "object",
                   "required": ["tests", "columns"],
+                  "additionalProperties": false,
                   "properties": {
                     "tests": {
                       "type": "array",
@@ -180,6 +206,7 @@
       "title": "DataSource",
       "type": "object",
       "required": ["name", "type"],
+      "additionalProperties": false,
       "properties": {
         "name": {
           "type": "string"
@@ -195,6 +222,7 @@
       "title": "Distribution",
       "type": "object",
       "required": ["type", "labels", "counts"],
+      "additionalProperties": false,
       "properties": {
         "type": {
           "type": "string"
@@ -213,6 +241,12 @@
           "items": {
             "type": "integer"
           }
+        },
+        "bin_edges": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
         }
       }
     },
@@ -220,6 +254,7 @@
       "title": "Assertion",
       "type": "object",
       "required": ["name", "status"],
+      "additionalProperties": false,
       "properties": {
         "name": {
           "type": "string"
@@ -237,7 +272,9 @@
           "items": {
             "type": "string"
           }
-        }
+        },
+        "expected": true,
+        "actual": true
       }
     }
   }
