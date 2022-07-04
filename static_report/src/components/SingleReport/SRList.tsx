@@ -12,6 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
 
+import { Main } from '../shared/Main';
 import {
   getReportAsserationStatusCounts,
   formatReportTime,
@@ -25,16 +26,17 @@ export function SingleReportList({ data }) {
   useDocumentTitle('Report List');
 
   return (
-    <Flex direction="column" minH="100vh" width="100%">
+    <Main>
       <Flex
+        direction="column"
         border="1px solid"
         borderColor="gray.300"
         bg="white"
         borderRadius="md"
         p={6}
+        width="calc(100% - 64px)"
+        maxWidth="1200px"
         my={10}
-        mx="10%"
-        direction="column"
       >
         <Flex direction="column" mb={6} gap={3}>
           <Heading size="lg">Data Source: {datasource.name}</Heading>
@@ -115,6 +117,6 @@ export function SingleReportList({ data }) {
           </Table>
         </TableContainer>
       </Flex>
-    </Flex>
+    </Main>
   );
 }

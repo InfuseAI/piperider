@@ -15,6 +15,8 @@ import { InfoIcon } from '@chakra-ui/icons';
 import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
 
+import { Main } from '../shared/Main';
+
 import {
   getComparisonAssertions,
   formatReportTime,
@@ -37,16 +39,17 @@ export function ComparisonReportList({
   useDocumentTitle('Report List');
 
   return (
-    <Flex direction="column" minH="100vh" width="100%">
+    <Main>
       <Flex
+        direction="column"
         border="1px solid"
         borderColor="gray.300"
         bg="white"
         borderRadius="md"
+        width="calc(100% - 64px)"
+        maxWidth="1200px"
         p={6}
         my={10}
-        mx="10%"
-        direction="column"
       >
         <Flex direction="column" gap={4}>
           <Heading>Comparison Summary</Heading>
@@ -201,6 +204,6 @@ export function ComparisonReportList({
           </TableContainer>
         </Flex>
       </Flex>
-    </Flex>
+    </Main>
   );
 }

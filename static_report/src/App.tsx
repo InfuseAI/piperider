@@ -1,7 +1,6 @@
 import { Suspense, lazy } from 'react';
 import { Switch, Route, Router, BaseLocationHook, type Params } from 'wouter';
 
-import { Main } from './components/shared/Main';
 import { Loading } from './components/shared/Loading';
 import { NotFound } from './components/shared/NotFound';
 import { useHashLocation } from './hooks/useHashLcocation';
@@ -18,31 +17,29 @@ const ComparisonReport = lazy(
 function AppSingle() {
   return (
     <Suspense fallback={<Loading />}>
-      <Main alignItems="flex-start">
-        <Router hook={useHashLocation as BaseLocationHook}>
-          <Switch>
-            <Route
-              path="/"
-              component={() => (
-                <SingleReportList data={window.PIPERIDER_SINGLE_REPORT_DATA} />
-              )}
-            />
+      <Router hook={useHashLocation as BaseLocationHook}>
+        <Switch>
+          <Route
+            path="/"
+            component={() => (
+              <SingleReportList data={window.PIPERIDER_SINGLE_REPORT_DATA} />
+            )}
+          />
 
-            <Route path="/tables/:reportName">
-              {(params: Params<{ reportName: string }>) => (
-                <SingleReport
-                  name={decodeURIComponent(params.reportName)}
-                  data={window.PIPERIDER_SINGLE_REPORT_DATA}
-                />
-              )}
-            </Route>
+          <Route path="/tables/:reportName">
+            {(params: Params<{ reportName: string }>) => (
+              <SingleReport
+                name={decodeURIComponent(params.reportName)}
+                data={window.PIPERIDER_SINGLE_REPORT_DATA}
+              />
+            )}
+          </Route>
 
-            <Route>
-              <NotFound />
-            </Route>
-          </Switch>
-        </Router>
-      </Main>
+          <Route>
+            <NotFound />
+          </Route>
+        </Switch>
+      </Router>
     </Suspense>
   );
 }
@@ -50,32 +47,30 @@ function AppSingle() {
 function AppComparison() {
   return (
     <Suspense fallback={<Loading />}>
-      <Main alignItems="flex-start">
-        <Router hook={useHashLocation as BaseLocationHook}>
-          <Switch>
-            <Route
-              path="/"
-              component={() => (
-                <ComparisonReportList
-                  data={window.PIPERIDER_COMPARISON_REPORT_DATA}
-                />
-              )}
-            />
+      <Router hook={useHashLocation as BaseLocationHook}>
+        <Switch>
+          <Route
+            path="/"
+            component={() => (
+              <ComparisonReportList
+                data={window.PIPERIDER_COMPARISON_REPORT_DATA}
+              />
+            )}
+          />
 
-            <Route path="/tables/:reportName">
-              {(params: Params<{ reportName: string }>) => (
-                <ComparisonReport
-                  name={decodeURIComponent(params.reportName)}
-                  data={window.PIPERIDER_COMPARISON_REPORT_DATA}
-                />
-              )}
-            </Route>
-            <Route>
-              <NotFound />
-            </Route>
-          </Switch>
-        </Router>
-      </Main>
+          <Route path="/tables/:reportName">
+            {(params: Params<{ reportName: string }>) => (
+              <ComparisonReport
+                name={decodeURIComponent(params.reportName)}
+                data={window.PIPERIDER_COMPARISON_REPORT_DATA}
+              />
+            )}
+          </Route>
+          <Route>
+            <NotFound />
+          </Route>
+        </Switch>
+      </Router>
     </Suspense>
   );
 }
