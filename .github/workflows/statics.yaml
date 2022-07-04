@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: static_report
+        working-directory: ./static_report
 
     strategy:
       matrix:
