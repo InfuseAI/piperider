@@ -13,3 +13,5 @@ export interface AssertionResult {
   tests: Assertion[];
   columns: Record<string, Assertion[]>;
 }
+
+export type ComparsionSource = 'base' | 'input';

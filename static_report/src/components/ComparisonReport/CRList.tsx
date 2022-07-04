@@ -4,6 +4,7 @@ import {
   Table,
   TableContainer,
   Tbody,
+  Text,
   Td,
   Th,
   Thead,
@@ -15,16 +16,20 @@ import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
 
 import {
-  getReportAsserationStatusCounts,
+  getComparisonAssertions,
   formatReportTime,
   formatNumber,
   nestComparisonValueByKey,
 } from '../../utils';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import type { AssertionResult } from '../../types';
+import type { ComparisonReportSchema } from '../../sdlc/comparison-report-schema';
 
-export function ComparisonReportList({ data }) {
+export function ComparisonReportList({
+  data,
+}: {
+  data: ComparisonReportSchema;
+}) {
   const { base, input } = data;
 
   const tables = nestComparisonValueByKey(base.tables, input.tables);
@@ -96,27 +101,47 @@ export function ComparisonReportList({ data }) {
               <Thead>
                 <Tr>
                   <Th>Name</Th>
-                  <Th>Passed</Th>
-                  <Th>Failed</Th>
+                  <Th>PipeRider</Th>
+                  <Th>dbt</Th>
                   <Th>Rows</Th>
                   <Th>Columns</Th>
+                </Tr>
+                <Tr>
+                  <Th />
+                  <Th>
+                    <Text as="span" mr={8}>
+                      Passed
+                    </Text>
+                    <Text as="span">Failed</Text>
+                  </Th>
+                  <Th>
+                    <Text as="span" mr={8}>
+                      Passed
+                    </Text>
+                    <Text as="span">Failed</Text>
+                  </Th>
+                  <Th />
+                  <Th />
                 </Tr>
               </Thead>
               <Tbody>
                 {Object.keys(tables).map((key) => {
                   const table = tables[key];
-                  const baseOverview = getReportAsserationStatusCounts(
-                    // TODO: upstream types can improve
-                    table.base?.assertion_results
-                      ? (table.base.assertion_results as AssertionResult)
-                      : undefined,
+
+                  const [baseOverview, inputOverview] = getComparisonAssertions(
+                    {
+                      data,
+                      reportName: key,
+                      type: 'piperider',
+                    },
                   );
-                  const inputOverview = getReportAsserationStatusCounts(
-                    // TODO: upstream types can improve
-                    table.input?.assertion_results
-                      ? (table.input.assertion_results as AssertionResult)
-                      : undefined,
-                  );
+
+                  const [dbtBaseOverview, dbtInputOverview] =
+                    getComparisonAssertions({
+                      data,
+                      reportName: key,
+                      type: 'dbt',
+                    });
 
                   return (
                     <Link key={nanoid()} href={`/tables/${key}`}>
@@ -126,20 +151,34 @@ export function ComparisonReportList({ data }) {
                       >
                         <Td>{key}</Td>
                         <Td>
-                          {baseOverview.passed}
-                          {' | '}
-                          {inputOverview.passed}
+                          <Text as="span">{baseOverview.passed}</Text>
+                          {' / '}
+                          <Text as="span" mr={10}>
+                            {inputOverview.passed}
+                          </Text>
+
+                          <Text as="span">{baseOverview.failed}</Text>
+                          {' / '}
+                          <Text as="span">{inputOverview.failed}</Text>
                         </Td>
+
                         <Td>
-                          {baseOverview.failed}
-                          {' | '}
-                          {inputOverview.failed}
+                          <Text as="span">{dbtBaseOverview.passed}</Text>
+                          {' / '}
+                          <Text as="span" mr={10}>
+                            {dbtInputOverview.passed}
+                          </Text>
+
+                          <Text as="span">{dbtBaseOverview.failed}</Text>
+                          {' / '}
+                          <Text as="span">{dbtInputOverview.failed}</Text>
                         </Td>
+
                         <Td>
                           {table.base?.row_count
                             ? formatNumber(table.base.row_count)
                             : '-'}
-                          {' | '}
+                          {' / '}
                           {table.input?.row_count
                             ? formatNumber(table.input.row_count)
                             : '-'}
@@ -148,7 +187,7 @@ export function ComparisonReportList({ data }) {
                           {table.base?.col_count
                             ? formatNumber(table.base.col_count)
                             : '-'}
-                          {' | '}
+                          {' / '}
                           {table.input?.col_count
                             ? formatNumber(table.input?.col_count)
                             : '-'}

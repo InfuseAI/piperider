@@ -53,25 +53,58 @@ export function SingleReportList({ data }) {
             <Thead>
               <Tr>
                 <Th>Name</Th>
-                <Th>Passed</Th>
-                <Th>Failed</Th>
+                <Th>PipeRider</Th>
+                <Th>dbt</Th>
                 <Th>Rows</Th>
                 <Th>Columns</Th>
+              </Tr>
+              <Tr>
+                <Th />
+                <Th>
+                  <Text as="span" mr={8}>
+                    Passed
+                  </Text>
+                  <Text as="span">Failed</Text>
+                </Th>
+                <Th>
+                  <Text as="span" mr={8}>
+                    Passed
+                  </Text>
+                  <Text as="span">Failed</Text>
+                </Th>
+                <Th />
+                <Th />
               </Tr>
             </Thead>
             <Tbody>
               {Object.keys(tables).map((key) => {
                 const report = tables[key];
+
                 const overview = getReportAsserationStatusCounts(
-                  report?.assertion_results,
+                  report.assertion_results,
+                );
+
+                // If running by `piperider run --dbt-test`, it will have this field, vice versa.
+                const dbtOverview = getReportAsserationStatusCounts(
+                  report?.dbt_test_results,
                 );
 
                 return (
                   <Link key={report.name} href={`/tables/${key}`}>
                     <Tr cursor="pointer" _hover={{ bgColor: 'blackAlpha.50' }}>
                       <Td>{report.name}</Td>
-                      <Td>{overview.passed}</Td>
-                      <Td>{overview.failed}</Td>
+                      <Td>
+                        <Text as="span" mr={16}>
+                          {overview.passed}
+                        </Text>
+                        <Text as="span">{overview.failed}</Text>
+                      </Td>
+                      <Td>
+                        <Text as="span" mr={16}>
+                          {dbtOverview.passed}
+                        </Text>
+                        <Text as="span">{dbtOverview.failed}</Text>
+                      </Td>
                       <Td>{formatNumber(report.row_count)}</Td>
                       <Td>{formatNumber(report.col_count)}</Td>
                     </Tr>

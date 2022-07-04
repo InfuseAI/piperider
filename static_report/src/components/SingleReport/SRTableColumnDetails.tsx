@@ -1,16 +1,14 @@
-import React from 'react';
 import { Code, Flex, Text } from '@chakra-ui/react';
 import { MetricsInfo } from '../shared/MetrisInfo';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import { formatNumber, getColumnDetails, getMissingValue } from '../../utils';
 
-// Temp Typing
+// FIXME: Temp Typing
 type SRTableColumnDetailsProps = {
-  column: SingleReportSchema['tables']['ACTION']['columns']['DATE'];
+  column: SingleReportSchema['tables']['ACTION']['columns'];
 };
-export const SRTableColumnDetails: React.FC<SRTableColumnDetailsProps> = ({
-  column,
-}) => {
+
+export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
   const { mismatch, mismatchOfTotal, missing, valid, validOfTotal } =
     getColumnDetails(column);
 
@@ -23,12 +21,12 @@ export const SRTableColumnDetails: React.FC<SRTableColumnDetailsProps> = ({
           color="gray.900"
           fontSize="lg"
           mr={1}
-          title={column.name}
+          title={column.name as string}
           noOfLines={1}
         >
-          {column.name}
+          {column.name as string}
         </Text>
-        {''}(<Code>{column.schema_type}</Code>)
+        {''}(<Code>{column.schema_type as string}</Code>)
       </Text>
 
       <Flex direction="column">
@@ -49,7 +47,7 @@ export const SRTableColumnDetails: React.FC<SRTableColumnDetailsProps> = ({
         <MetricsInfo
           name="Missing"
           base={missing}
-          input={getMissingValue(column)}
+          input={getMissingValue(column as any)}
         />
       </Flex>
 

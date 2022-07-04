@@ -34,9 +34,19 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useResizeObserver } from '../../hooks/useResizeObserver';
 import { useSingleChart } from '../../hooks/useSingleChart';
 import { SRTableColumnDetails } from './SRTableColumnDetails';
+import type { SingleReportSchema } from '../../sdlc/single-report-schema';
+import type { AssertionResult } from '../../types';
 
-export default function SingleReport({ source, data, reportName }) {
-  useDocumentTitle(reportName);
+interface Props {
+  data: SingleReportSchema;
+  name: string;
+}
+
+export default function SingleReport({ data, name }: Props) {
+  const { datasource: source, tables } = data;
+  const table = tables[name] as any;
+
+  useDocumentTitle(name);
 
   if (!data) {
     return (
@@ -48,7 +58,11 @@ export default function SingleReport({ source, data, reportName }) {
     );
   }
 
-  const overview = getReportAsserationStatusCounts(data?.assertion_results);
+  const overview = getReportAsserationStatusCounts(
+    table?.assertion_results
+      ? (table.assertion_results as AssertionResult)
+      : undefined,
+  );
 
   return (
     <Main alignItems="flex-start">
@@ -62,7 +76,7 @@ export default function SingleReport({ source, data, reportName }) {
             </BreadcrumbItem>
 
             <BreadcrumbItem isCurrentPage>
-              <BreadcrumbLink href="#">{data.name}</BreadcrumbLink>
+              <BreadcrumbLink href="#">{table.name}</BreadcrumbLink>
             </BreadcrumbItem>
           </Breadcrumb>
         </Flex>
@@ -82,19 +96,19 @@ export default function SingleReport({ source, data, reportName }) {
             <Text>
               Table:{' '}
               <Text as="span" fontWeight={700}>
-                {data.name}
+                {table.name}
               </Text>
             </Text>
             <Text>
               Rows:{' '}
               <Text as="span" fontWeight={700}>
-                {formatNumber(data.row_count)}
+                {formatNumber(table.row_count)}
               </Text>
             </Text>
             <Text>
               Columns:{' '}
               <Text as="span" fontWeight={700}>
-                {formatNumber(data.col_count)}
+                {formatNumber(table.col_count)}
               </Text>
             </Text>
             <Text>
@@ -118,16 +132,24 @@ export default function SingleReport({ source, data, reportName }) {
             <TabList>
               <Tab>Profiling</Tab>
               <Tab>Tests</Tab>
+              {/* If have `dbt_test_results` it will render this tab */}
+              {table.dbt_test_results && <Tab>dbt Tests</Tab>}
             </TabList>
 
             <TabPanels>
               <TabPanel>
-                <ProfilingInformation data={data.columns} />
+                <ProfilingInformation data={table.columns} />
               </TabPanel>
 
               <TabPanel>
-                <TestsInformation data={data.assertion_results} />
+                <TestsInformation data={table.assertion_results} />
               </TabPanel>
+
+              {table?.dbt_test_results && (
+                <TabPanel>
+                  <TestsInformation type="dbt" data={table.dbt_test_results} />
+                </TabPanel>
+              )}
             </TabPanels>
           </Tabs>
         </Flex>
@@ -170,7 +192,13 @@ function ProfilingInformation({ data }) {
   );
 }
 
-function TestsInformation({ data }) {
+function TestsInformation({
+  data,
+  type = 'piperider',
+}: {
+  data: any;
+  type?: 'piperider' | 'dbt';
+}) {
   const tabelTests = data?.tests;
   const columnsTests = data?.columns;
 
@@ -190,21 +218,22 @@ function TestsInformation({ data }) {
             <Tr>
               <Th>Level</Th>
               <Th>Column</Th>
-              <Th>Status</Th>
               <Th>Assertion</Th>
-              <Th>Expected</Th>
-              <Th>Actual</Th>
+              <Th>Status</Th>
+              {type === 'piperider' && <Th>Expected</Th>}
+              {type === 'piperider' && <Th>Actual</Th>}
+              {type === 'dbt' && <Th>Messagae</Th>}
             </Tr>
           </Thead>
 
           <Tbody>
             {tabelTests.map((tabelTest) => {
               const isFailed = tabelTest.status === 'failed';
-
               return (
                 <Tr key={tabelTest.name}>
                   <Td>Table</Td>
                   <Td>-</Td>
+                  <Td>{tabelTest.name}</Td>
                   <Td>
                     {isFailed ? (
                       <Text as="span" role="img">
@@ -216,11 +245,15 @@ function TestsInformation({ data }) {
                       </Text>
                     )}
                   </Td>
-                  <Td>{tabelTest.name}</Td>
-                  <Td>{extractExpectedOrActual(tabelTest.expected)}</Td>
-                  <Td color={isFailed ? 'red.500' : 'inherit'}>
-                    {extractExpectedOrActual(tabelTest.actual)}
-                  </Td>
+                  {type === 'piperider' && (
+                    <Td>{extractExpectedOrActual(tabelTest.expected)}</Td>
+                  )}
+                  {type === 'piperider' && (
+                    <Td color={isFailed ? 'red.500' : 'inherit'}>
+                      {extractExpectedOrActual(tabelTest.actual)}
+                    </Td>
+                  )}
+                  {type === 'dbt' && <Td>{tabelTest.message ?? '-'}</Td>}
                 </Tr>
               );
             })}
@@ -235,6 +268,7 @@ function TestsInformation({ data }) {
                   <Tr key={columnTest.name}>
                     <Td>Column</Td>
                     <Td>{key}</Td>
+                    <Td>{columnTest.name}</Td>
                     <Td>
                       {isFailed ? (
                         <Text as="span" role="img">
@@ -246,11 +280,15 @@ function TestsInformation({ data }) {
                         </Text>
                       )}
                     </Td>
-                    <Td>{columnTest.name}</Td>
-                    <Td>{extractExpectedOrActual(columnTest.expected)}</Td>
-                    <Td color={isFailed ? 'red.500' : 'inherit'}>
-                      {extractExpectedOrActual(columnTest.actual)}
-                    </Td>
+                    {type === 'piperider' && (
+                      <Td>{extractExpectedOrActual(columnTest.expected)}</Td>
+                    )}
+                    {type === 'piperider' && (
+                      <Td color={isFailed ? 'red.500' : 'inherit'}>
+                        {extractExpectedOrActual(columnTest.actual)}
+                      </Td>
+                    )}
+                    {type === 'dbt' && <Td>{columnTest.message ?? '-'}</Td>}
                   </Tr>
                 );
               });
@@ -263,8 +301,8 @@ function TestsInformation({ data }) {
 }
 
 function BarChart({ data }) {
-  const svgRef = useRef(null);
-  const containerRef = useRef(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const dimensions = useResizeObserver(containerRef);
 
   useSingleChart({ target: svgRef, data, dimensions });

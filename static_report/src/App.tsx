@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { Switch, Route, Router, BaseLocationHook } from 'wouter';
+import { Switch, Route, Router, BaseLocationHook, type Params } from 'wouter';
 
 import { Main } from './components/shared/Main';
 import { Loading } from './components/shared/Loading';
@@ -16,8 +16,6 @@ const ComparisonReport = lazy(
 );
 
 function AppSingle() {
-  const { tables, datasource } = window.PIPERIDER_SINGLE_REPORT_DATA;
-
   return (
     <Suspense fallback={<Loading />}>
       <Main alignItems="flex-start">
@@ -31,17 +29,12 @@ function AppSingle() {
             />
 
             <Route path="/tables/:reportName">
-              {(params: any) => {
-                const decodedReportName = decodeURIComponent(params.reportName);
-
-                return (
-                  <SingleReport
-                    source={datasource}
-                    reportName={decodedReportName}
-                    data={tables[decodedReportName]}
-                  />
-                );
-              }}
+              {(params: Params<{ reportName: string }>) => (
+                <SingleReport
+                  name={decodeURIComponent(params.reportName)}
+                  data={window.PIPERIDER_SINGLE_REPORT_DATA}
+                />
+              )}
             </Route>
 
             <Route>
@@ -55,9 +48,6 @@ function AppSingle() {
 }
 
 function AppComparison() {
-  const data = window.PIPERIDER_COMPARISON_REPORT_DATA;
-  const { base, input } = data;
-
   return (
     <Suspense fallback={<Loading />}>
       <Main alignItems="flex-start">
@@ -65,20 +55,20 @@ function AppComparison() {
           <Switch>
             <Route
               path="/"
-              component={() => <ComparisonReportList data={data} />}
+              component={() => (
+                <ComparisonReportList
+                  data={window.PIPERIDER_COMPARISON_REPORT_DATA}
+                />
+              )}
             />
 
             <Route path="/tables/:reportName">
-              {(params: any) => {
-                const decodedReportName = decodeURIComponent(params.reportName);
-                return (
-                  <ComparisonReport
-                    reportName={decodedReportName}
-                    base={base.tables[decodedReportName]}
-                    input={input.tables[decodedReportName]}
-                  />
-                );
-              }}
+              {(params: Params<{ reportName: string }>) => (
+                <ComparisonReport
+                  name={decodeURIComponent(params.reportName)}
+                  data={window.PIPERIDER_COMPARISON_REPORT_DATA}
+                />
+              )}
             </Route>
             <Route>
               <NotFound />
