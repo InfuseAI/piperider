@@ -38,7 +38,7 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useResizeObserver } from '../../hooks/useResizeObserver';
 import { useComparisonChart } from '../../hooks/useComparisonChart';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
-import { CRTestStatus } from './CRTestStatus';
+import { TestStatus } from '../shared/TestStatus';
 import { CRModal } from './CRModal';
 import type { ComparisonReportSchema } from '../../sdlc/comparison-report-schema';
 import type { AssertionResult } from '../../types';
@@ -97,10 +97,10 @@ function CompareTest({ base = [], input = [], ...props }) {
                 <Td>{test.column}</Td>
                 <Td>{test.name}</Td>
                 <Td>
-                  <CRTestStatus status={test.base?.status} />
+                  <TestStatus status={test.base?.status} />
                 </Td>
                 <Td>
-                  <CRTestStatus status={test.input?.status} />
+                  <TestStatus status={test.input?.status} />
                 </Td>
                 <Td onClick={() => props?.onDetailVisible(test)}>
                   <Text as="span" cursor="pointer">

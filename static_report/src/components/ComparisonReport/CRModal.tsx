@@ -18,7 +18,7 @@ import {
   type UseDisclosureReturn,
 } from '@chakra-ui/react';
 
-import { CRTestStatus } from './CRTestStatus';
+import { TestStatus } from '../shared/TestStatus';
 import { extractExpectedOrActual } from '../../utils';
 
 interface Props extends UseDisclosureReturn {
@@ -67,7 +67,7 @@ export function CRModal({
                 <Tr>
                   <Td fontWeight={700}>Base</Td>
                   <Td>
-                    <CRTestStatus status={data?.base?.status} />
+                    <TestStatus status={data?.base?.status} />
                   </Td>
                   {type === 'piperider' && (
                     <Td>{extractExpectedOrActual(data?.base?.expected)}</Td>
@@ -81,7 +81,7 @@ export function CRModal({
                 <Tr>
                   <Td fontWeight={700}>Input</Td>
                   <Td>
-                    <CRTestStatus status={data?.input?.status} />
+                    <TestStatus status={data?.input?.status} />
                   </Td>
                   {type === 'piperider' && (
                     <Td>{extractExpectedOrActual(data?.input?.expected)}</Td>

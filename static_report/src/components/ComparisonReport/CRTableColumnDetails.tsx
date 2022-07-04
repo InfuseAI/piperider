@@ -19,6 +19,7 @@ export const CRTableColumnDetails = ({
     mismatchOfTotal: baseMismatchOfTotal,
     validOfTotal: baseValidOfTotal,
   } = getColumnDetails(baseColumn);
+
   const {
     mismatchOfTotal: inputMismatchOfTotal,
     validOfTotal: inputValidOfTotal,
