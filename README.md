@@ -16,6 +16,8 @@ PipeRider is an open-source toolkit for detecting data issues across pipelines t
 Ensuring consistent quality of data used to be difficult. Missing values, schema changes and data drift (to name just a few) could be introduced to your data at any time. Without effective data quality tools, these errors will affect downstream operations and result in countless lost hours of debugging and missed revenue opportunities from unexpected downtime.
 PipeRider allows you to define the shape of your data once, and then use the data checking functionality to alert you to changes in your data quality.
 
+[Read more](https://blog.infuseai.io/data-reliability-automated-with-piperider-7a823521ef11) about why we created PipeRider.
+
 [![ci-tests](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)
 [![release](https://img.shields.io/github/release/infuseAI/piperider-cli/all.svg?style=flat-square)](https://github.com/infuseAI/piperider-cli/releases)
 [![pipy](https://img.shields.io/pypi/v/piperider?style=flat-square)](https://pypi.org/project/piperider/)
