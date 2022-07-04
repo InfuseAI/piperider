@@ -251,7 +251,7 @@ class Profiler:
             interval = math.ceil((max - min) / num_buckets) if max > min else 1
             num_buckets = math.ceil((max - min + 1) / interval)
         else:
-            interval = (max - min) / num_buckets
+            interval = (max - min) / num_buckets if max > min else 1
 
         cases = []
         for i in range(num_buckets):
@@ -362,6 +362,7 @@ class Profiler:
             ])
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _mismatched, _distinct, _sum, _avg, _min, _max, _square_avg = result
+            _mismatched = 0 if _mismatched is None else _mismatched
 
             _sum = dtof(_sum)
             _min = dtof(_min)
@@ -375,7 +376,7 @@ class Profiler:
 
             # histogram
 
-            distribution = self._calc_histogram(conn, t2, t2.c.c, _min, _max, is_integer) if _non_null > 0 else None
+            distribution = self._calc_histogram(conn, t2, t2.c.c, _min, _max, is_integer) if _non_null - _mismatched > 0 else None
 
             return {
                 'total': _total,
@@ -404,11 +405,17 @@ class Profiler:
                 func.count().label("_total"),
                 func.count(t2.c.c).label("_non_nulls"),
                 func.count(distinct(t2.c.c)).label("_distinct"),
+            ])
+            result = conn.execute(stmt).fetchone()
+            _total, _non_null, _distinct = result
+
+            t2 = select([t.c[column_name].label("c")]).where(t.c[column_name].isnot('')).cte(name="T")
+            stmt = select([
                 func.min(t2.c.c).label("_min"),
                 func.max(t2.c.c).label("_max"),
             ])
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _distinct, _min, _max, = result
+            _min, _max, = result
 
             distribution = None
             if _non_null == 1 or _distinct == 1:
