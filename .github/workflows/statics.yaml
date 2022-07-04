@@ -2,13 +2,15 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 # Should only affect changes pushed to static_report directory, when merging to `main`
 
-name: Node.js CI - Build to CLI data/report/**; Commit
+name: Node.js - Build & Commit to CLI data/report/**
 
 on:
+  pull_request: # Reminder: for first-time detection only!
+    
   push:
     paths:
       - "static_report"
-    branches:
+    branches: # Reminder: Revert to 'main' before PR to 'main'
       - testing/sc-27084/on-merge-push-statics-build
 
 jobs:
