@@ -1,17 +1,15 @@
 import { Box, Code, Flex, Text, Tooltip } from '@chakra-ui/react';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { MetricsInfo } from '../shared/MetrisInfo';
-import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import {
   formatNumber,
   getColumnDetails,
-  getMissingValue,
   getSRCommonMetrics,
 } from '../../utils';
+import { SingleReportSchema } from '../../sdlc/single-report-schema';
 
-// FIXME: Temp Typing
 type SRTableColumnDetailsProps = {
-  column: SingleReportSchema['tables']['ACTION']['columns'];
+  column: SingleReportSchema['tables']['__']['columns']['__'];
 };
 
 export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
@@ -20,25 +18,20 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
 
   return (
     <Flex direction="column" gap={3}>
-      <Box maxWidth="100%">
-        <Flex>
-          <Text
-            as="span"
-            fontWeight={700}
-            color="gray.900"
-            fontSize="lg"
-            mr={1}
-            title={column.name as string}
-            noOfLines={1}
-          >
-            {column.name as string}
-          </Text>
-          <Tooltip label={column.description || ''} placement="right-end">
-            <InfoOutlineIcon m={'auto 0'} />
-          </Tooltip>
-        </Flex>
-        {''}(<Code>{column.schema_type as string}</Code>)
-      </Box>
+      <Text maxWidth="100%">
+        <Text
+          as="span"
+          fontWeight={700}
+          color="gray.900"
+          fontSize="lg"
+          mr={1}
+          title={column.name}
+          noOfLines={1}
+        >
+          {column.name}
+        </Text>
+        {''}(<Code>{column.schema_type}</Code>)
+      </Text>
 
       <Flex direction="column">
         <MetricsInfo name="Total" base={formatNumber(column.total as number)} />
@@ -58,7 +51,7 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
         <MetricsInfo
           name="Missing"
           base={missing}
-          input={getMissingValue(column as any)}
+          input={getSRCommonMetrics(column)}
         />
       </Flex>
 
