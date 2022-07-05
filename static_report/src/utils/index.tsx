@@ -330,7 +330,7 @@ export function transformDistributionWithLabels({ base, input, labels }) {
 
 // FIXME: Temp Typing
 export function getColumnDetails(
-  columnData: ComparisonReportSchema['base']['tables']['ACTION']['columns'],
+  columnData?: ComparisonReportSchema['base']['tables']['ACTION']['columns'],
 ) {
   if (!columnData) {
     return {

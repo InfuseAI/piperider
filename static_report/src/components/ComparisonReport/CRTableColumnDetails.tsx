@@ -57,8 +57,16 @@ export const CRTableColumnDetails = ({
         <Flex direction="column">
           <MetricsInfo
             name="Total"
-            base={baseColumn?.total ? formatNumber(baseColumn?.total) : '-'}
-            input={inputColumn?.total ? formatNumber(inputColumn?.total) : '-'}
+            base={
+              baseColumn?.total
+                ? formatNumber(baseColumn?.total as number)
+                : '-'
+            }
+            input={
+              inputColumn?.total
+                ? formatNumber(inputColumn?.total as number)
+                : '-'
+            }
           />
         </Flex>
 
@@ -90,10 +98,14 @@ export const CRTableColumnDetails = ({
             <MetricsInfo
               name="Distinct"
               base={
-                baseColumn?.distinct ? formatNumber(baseColumn.distinct) : '-'
+                baseColumn?.distinct
+                  ? formatNumber(baseColumn.distinct as number)
+                  : '-'
               }
               input={
-                inputColumn?.distinct ? formatNumber(inputColumn.distinct) : '-'
+                inputColumn?.distinct
+                  ? formatNumber(inputColumn.distinct as number)
+                  : '-'
               }
             />
           </Flex>
@@ -103,54 +115,104 @@ export const CRTableColumnDetails = ({
             <Flex direction="column">
               <MetricsInfo
                 name="Average"
-                base={baseColumn?.avg ? formatNumber(baseColumn.avg) : '-'}
-                input={inputColumn?.avg ? formatNumber(inputColumn.avg) : '-'}
+                base={
+                  baseColumn?.avg ? formatNumber(baseColumn.avg as number) : '-'
+                }
+                input={
+                  inputColumn?.avg
+                    ? formatNumber(inputColumn.avg as number)
+                    : '-'
+                }
               />
               <MetricsInfo
                 name="Std. Deviation"
                 base={
-                  baseColumn?.stddev ? formatNumber(baseColumn.stddev) : '-'
+                  baseColumn?.stddev
+                    ? formatNumber(baseColumn.stddev as number)
+                    : '-'
                 }
                 input={
-                  inputColumn?.stddev ? formatNumber(inputColumn.stddev) : '-'
+                  inputColumn?.stddev
+                    ? formatNumber(inputColumn.stddev as number)
+                    : '-'
                 }
               />
             </Flex>
             <Flex direction="column">
               <MetricsInfo
                 name="Min"
-                base={baseColumn?.min ? formatNumber(baseColumn.min) : '-'}
-                input={inputColumn?.min ? formatNumber(inputColumn.min) : '-'}
+                base={
+                  baseColumn?.min ? formatNumber(baseColumn.min as number) : '-'
+                }
+                input={
+                  inputColumn?.min
+                    ? formatNumber(inputColumn.min as number)
+                    : '-'
+                }
               />
               <MetricsInfo
                 name="5%"
-                base={baseColumn?.p5 ? formatNumber(baseColumn.p5) : '-'}
-                input={inputColumn?.p5 ? formatNumber(inputColumn.p5) : '-'}
+                base={
+                  baseColumn?.p5 ? formatNumber(baseColumn.p5 as number) : '-'
+                }
+                input={
+                  inputColumn?.p5 ? formatNumber(inputColumn.p5 as number) : '-'
+                }
               />
               <MetricsInfo
                 name="25%"
-                base={baseColumn?.p25 ? formatNumber(baseColumn.p25) : '-'}
-                input={inputColumn?.p25 ? formatNumber(inputColumn.p25) : '-'}
+                base={
+                  baseColumn?.p25 ? formatNumber(baseColumn.p25 as number) : '-'
+                }
+                input={
+                  inputColumn?.p25
+                    ? formatNumber(inputColumn.p25 as number)
+                    : '-'
+                }
               />
               <MetricsInfo
                 name="50%"
-                base={baseColumn?.p50 ? formatNumber(baseColumn.p50) : '-'}
-                input={inputColumn?.p50 ? formatNumber(inputColumn.p50) : '-'}
+                base={
+                  baseColumn?.p50 ? formatNumber(baseColumn.p50 as number) : '-'
+                }
+                input={
+                  inputColumn?.p50
+                    ? formatNumber(inputColumn.p50 as number)
+                    : '-'
+                }
               />
               <MetricsInfo
                 name="75%"
-                base={baseColumn?.p75 ? formatNumber(baseColumn.p75) : '-'}
-                input={inputColumn?.p75 ? formatNumber(inputColumn.p75) : '-'}
+                base={
+                  baseColumn?.p75 ? formatNumber(baseColumn.p75 as number) : '-'
+                }
+                input={
+                  inputColumn?.p75
+                    ? formatNumber(inputColumn.p75 as number)
+                    : '-'
+                }
               />
               <MetricsInfo
                 name="95%"
-                base={baseColumn?.p95 ? formatNumber(baseColumn.p95) : '-'}
-                input={inputColumn?.p95 ? formatNumber(inputColumn.p95) : '-'}
+                base={
+                  baseColumn?.p95 ? formatNumber(baseColumn.p95 as number) : '-'
+                }
+                input={
+                  inputColumn?.p95
+                    ? formatNumber(inputColumn.p95 as number)
+                    : '-'
+                }
               />
               <MetricsInfo
                 name="Max"
-                base={baseColumn?.max ? formatNumber(baseColumn.max) : '-'}
-                input={inputColumn?.max ? formatNumber(inputColumn.max) : '-'}
+                base={
+                  baseColumn?.max ? formatNumber(baseColumn.max as number) : '-'
+                }
+                input={
+                  inputColumn?.max
+                    ? formatNumber(inputColumn.max as number)
+                    : '-'
+                }
               />
             </Flex>
           </>
