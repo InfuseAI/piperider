@@ -1,0 +1,47 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Should only affect changes pushed to static_report directory, when merging to `main`
+
+name: Node.js - Build & Commit to CLI data/report/**
+
+on:
+  pull_request:
+    types:
+      - closed
+    paths:
+      - "static_report/**"
+      # Trigger when diffs detected in statics source code
+    branches:
+      - main
+
+jobs:
+  build:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./static_report
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'yarn'
+        cache-dependency-path: static_report/yarn.lock
+
+    - name: Install Dependencies
+    - run: yarn install --frozen-lockfile
+    - name: Build Apps
+    - run: yarn build
+    - uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+          commit_message: AUTO-COMMIT - build report statics to CLI data/report
+          branch: ${{ github.base_ref }}
+          # Auto-commits to target merge branch
