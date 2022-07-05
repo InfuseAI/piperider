@@ -65,7 +65,7 @@ export default function SingleReport({ data, name }: Props) {
   );
 
   return (
-    <Main alignItems="flex-start">
+    <Main>
       <Flex direction="column" minH="calc(100vh + 1px)" width="100%">
         <Flex mx="10%" mt={4}>
           <Breadcrumb fontSize="lg">
