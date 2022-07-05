@@ -222,7 +222,7 @@ function TestsInformation({
               <Th>Status</Th>
               {type === 'piperider' && <Th>Expected</Th>}
               {type === 'piperider' && <Th>Actual</Th>}
-              {type === 'dbt' && <Th>Messagae</Th>}
+              {type === 'dbt' && <Th>Message</Th>}
             </Tr>
           </Thead>
 
