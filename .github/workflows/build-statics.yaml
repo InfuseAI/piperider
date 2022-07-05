@@ -33,14 +33,15 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: static_report/package-lock.json
+        cache: 'yarn'
+        cache-dependency-path: static_report/yarn.lock
 
-
-    - run: npm ci
-    - run: npm run build
+    - name: Install Dependencies
+    - run: yarn install --frozen-lockfile
+    - name: Build Apps
+    - run: yarn build
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
-          commit_message: Automation - built report statics to CLI data/report
+          commit_message: AUTO-COMMIT - build report statics to CLI data/report
           branch: ${{ github.base_ref }}
           # Auto-commits to target merge branch
