@@ -80,6 +80,18 @@ jobs:
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_API_TOKEN }}
+    outputs:
+      piperider_version: ${{ steps.release_pypi.outputs.version }}
+      sentry_env: ${{ steps.release_pypi.outputs.sentry_env || 'production' }}
+
+  deploy-docker:
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -87,13 +99,18 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
+      - name: Sleep for 30 seconds
+        run: |
+          sleep 30
+
       - name: Build & deploy Docker images
         run: |
-          echo "Build & deploy Docker images: piperider:$(cat piperider_cli/VERSION)"
-          make docker-deploy VERSION=$(cat piperider_cli/VERSION)
+          echo "Build & deploy Docker images: piperider:$VERSION"
+          make docker-deploy VERSION=$VERSION
           if [ "$SENTRY_ENV" == "production" ]; then
-            echo "Set piperider:$(cat piperider_cli/VERSION) as piperider:latest"
-            make deploy-deploy-latest VERSION=$(cat piperider_cli/VERSION)
+            echo "Set piperider:$VERSION as piperider:latest"
+            make deploy-deploy-latest VERSION=$VERSION
           fi
         env:
-          SENTRY_ENV: ${{ steps.release_pypi.outputs.sentry_env || 'production' }}
+          VERSION: ${{ needs.build.outputs.piperider_version }}
+          SENTRY_ENV: ${{ needs.build.outputs.sentry_env }}
