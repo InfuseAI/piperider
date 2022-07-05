@@ -40,7 +40,7 @@ import { useComparisonChart } from '../../hooks/useComparisonChart';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
 import { TestStatus } from '../shared/TestStatus';
 import { CRModal } from './CRModal';
-import type { ComparisonReportSchema } from '../../sdlc/comparison-report-schema';
+import { ComparisonReportSchema } from '../../types';
 
 function CompareTest({ base = [], input = [], ...props }) {
   // group by "level", "column", "name"

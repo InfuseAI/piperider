@@ -20,7 +20,7 @@ import {
 
 import { TestStatus } from '../shared/TestStatus';
 import { extractExpectedOrActual } from '../../utils';
-import type { ComparisonReportSchema } from '../../sdlc/comparison-report-schema';
+import { ComparisonReportSchema } from '../../types';
 
 interface Props extends UseDisclosureReturn {
   type?: 'piperider' | 'dbt';
@@ -31,7 +31,7 @@ interface Props extends UseDisclosureReturn {
   };
 }
 
-function PipeRiderTable({ data }: { data: ComparisonReportSchema }) {
+function PipeRiderTable({ data }: any) {
   return (
     <TableContainer>
       <Table variant="simple">
@@ -68,7 +68,7 @@ function PipeRiderTable({ data }: { data: ComparisonReportSchema }) {
   );
 }
 
-function DbtTable({ data }: { data: ComparisonReportSchema }) {
+function DbtTable({ data }: any) {
   return (
     <TableContainer>
       <Table variant="simple">

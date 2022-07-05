@@ -4,9 +4,12 @@ import zip from 'lodash/zip';
 import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 
-import type { AssertionResult, ComparsionSource } from '../types';
-import type { ComparisonReportSchema } from '../sdlc/comparison-report-schema';
-import type { SingleReportSchema } from '../sdlc/single-report-schema';
+import type {
+  AssertionResult,
+  ComparisonReportSchema,
+  ComparsionSource,
+} from '../types';
+import { ColumnSchema, TableSchema } from '../sdlc/single-report-schema';
 
 const tooltipDefaultStyle = {
   paddingTop: 'var(--chakra-space-2)',
@@ -153,9 +156,7 @@ export function extractExpectedOrActual(value) {
   return value;
 }
 
-export function getSRCommonMetrics(
-  column: SingleReportSchema['tables']['ACTION']['columns']['symbol'],
-) {
+export function getSRCommonMetrics(column: ColumnSchema) {
   // show the most common values
   // * give null if type mismatch
   // * skip null value
@@ -186,8 +187,8 @@ export function getSRCommonMetrics(
 
 // for comparison
 export function nestComparisonValueByKey(
-  base: ComparisonReportSchema['base']['tables'],
-  input: ComparisonReportSchema['input']['tables'],
+  base: TableSchema,
+  input: TableSchema,
 ): Record<
   string,
   { base: Record<string, unknown>; input: Record<string, unknown> }

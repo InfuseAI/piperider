@@ -1,13 +1,14 @@
 import { Code, Flex, Text } from '@chakra-ui/react';
+import { ColumnSchema } from '../../sdlc/single-report-schema';
+import { ComparisonReportSchema } from '../../types';
 import { formatNumber, getColumnDetails, getMissingValue } from '../../utils';
 import { MetricsInfo } from '../shared/MetrisInfo';
-import { ComparisonReportSchema } from '../../sdlc/comparison-report-schema';
 
 // FIXME: Temp Typing
 type CRTableColumnDetailsProps = {
   column: any;
-  baseColumn: ComparisonReportSchema['base']['tables']['ACTION']['columns'];
-  inputColumn: ComparisonReportSchema['input']['tables']['ACTION']['columns'];
+  baseColumn: ColumnSchema;
+  inputColumn: ColumnSchema;
 };
 
 export const CRTableColumnDetails = ({

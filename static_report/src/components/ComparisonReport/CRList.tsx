@@ -25,7 +25,7 @@ import {
 } from '../../utils';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import type { ComparisonReportSchema } from '../../sdlc/comparison-report-schema';
+import { ComparisonReportSchema } from '../../types';
 
 export function ComparisonReportList({
   data,
@@ -34,7 +34,11 @@ export function ComparisonReportList({
 }) {
   const { base, input } = data;
 
-  const tables = nestComparisonValueByKey(base.tables, input.tables);
+  //FIXME:
+  const tables = nestComparisonValueByKey(
+    base.tables as any,
+    input.tables as any,
+  );
 
   useDocumentTitle('Report List');
 
