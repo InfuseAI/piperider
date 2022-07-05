@@ -1,7 +1,13 @@
 import { Code, Flex, Text } from '@chakra-ui/react';
+
 import { MetricsInfo } from '../shared/MetrisInfo';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
-import { formatNumber, getColumnDetails, getMissingValue } from '../../utils';
+import {
+  formatNumber,
+  getColumnDetails,
+  getMissingValue,
+  getSRCommonMetrics,
+} from '../../utils';
 
 // FIXME: Temp Typing
 type SRTableColumnDetailsProps = {
@@ -55,6 +61,16 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
         <MetricsInfo name="Distinct" base={formatNumber(column.distinct)} />
       </Flex>
 
+      {column.type === 'string' && (
+        <Flex direction="column">
+          <MetricsInfo
+            name="Most common"
+            base={getSRCommonMetrics(column)}
+            baseWidth={'200px'}
+          />
+        </Flex>
+      )}
+
       {column.type === 'numeric' && (
         <Flex direction="column">
           <MetricsInfo name="Min" base={formatNumber(column.min)} />
@@ -67,9 +83,9 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
 
       {column.type === 'datetime' && (
         <Flex direction="column">
-          <MetricsInfo name="Min" base={column.min} />
+          <MetricsInfo name="Min" base={column.min as number} />
 
-          <MetricsInfo name="Max" base={column.max} />
+          <MetricsInfo name="Max" base={column.max as number} />
         </Flex>
       )}
     </Flex>

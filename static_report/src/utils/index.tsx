@@ -7,6 +7,7 @@ import { format, parseISO } from 'date-fns';
 
 import type { AssertionResult, ComparsionSource } from '../types';
 import type { ComparisonReportSchema } from '../sdlc/comparison-report-schema';
+import type { SingleReportSchema } from '../sdlc/single-report-schema';
 
 const tooltipDefaultStyle = {
   paddingTop: 'var(--chakra-space-2)',
@@ -143,6 +144,37 @@ export function extractExpectedOrActual(value) {
   }
 
   return value ?? '-';
+}
+
+export function getSRCommonMetrics(
+  column: SingleReportSchema['tables']['ACTION']['columns']['symbol'],
+) {
+  // show the most common values
+  // * give null if type mismatch
+  // * skip null value
+  // * show top 2 if the values share the same counting, examples:
+  //    (more than 2) a:100, b:100, c:100 => a, b, ...
+  //    (2) a:100, b:100 => a
+  //    (2) null:100, a:100, b:100 => a, b
+  //    (2) null:101, a:100, b:100 => a, b
+  //    (2) a:100, b:100 => a, b
+  //    (1) a:100 => a
+  //    (1) a:100, b:99, c:99 => a
+
+  if (column.type !== 'string') {
+    return null;
+  }
+
+  const data = zip(column.distribution.labels, column.distribution.counts)
+    .filter((x) => x[0] !== null)
+    .slice(0, 3);
+  const topCount = data[0][1];
+  const tops = data.filter((x) => x[1] === topCount).map((x) => x[0]);
+
+  if (tops.length > 2) {
+    return tops.slice(0, 2).join(', ') + ', ...';
+  }
+  return tops.join(', ');
 }
 
 // for comparison
