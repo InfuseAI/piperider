@@ -1,8 +1,13 @@
 import { Code, Flex, Text } from '@chakra-ui/react';
+
 import { MetricsInfo } from '../shared/MetrisInfo';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
-import { formatNumber, getColumnDetails, getMissingValue } from '../../utils';
-import { zip } from 'lodash';
+import {
+  formatNumber,
+  getColumnDetails,
+  getMissingValue,
+  getSRCommonMetrics,
+} from '../../utils';
 
 // FIXME: Temp Typing
 type SRTableColumnDetailsProps = {
@@ -12,39 +17,6 @@ type SRTableColumnDetailsProps = {
 export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
   const { mismatch, mismatchOfTotal, missing, valid, validOfTotal } =
     getColumnDetails(column);
-
-  const toMostCommon = (
-    column: SingleReportSchema['tables']['ACTION']['columns']['symbol'],
-  ) => {
-    // show the most common values
-    // * give null if type mismatch
-    // * skip null value
-    // * show top 2 if the values share the same counting, examples:
-    //    (more than 2) a:100, b:100, c:100 => a, b, ...
-    //    (2) a:100, b:100 => a
-    //    (2) null:100, a:100, b:100 => a, b
-    //    (2) null:101, a:100, b:100 => a, b
-    //    (2) a:100, b:100 => a, b
-    //    (1) a:100 => a
-    //    (1) a:100, b:99, c:99 => a
-
-    if (column.type !== 'string') {
-      return null;
-    }
-
-    const data = zip(column.distribution.labels, column.distribution.counts)
-      .filter((x) => x[0] !== null)
-      .slice(0, 3);
-    const topCount = data[0][1];
-    const tops = data.filter((x) => x[1] == topCount).map((x) => x[0]);
-
-    if (tops.length > 2) {
-      return tops.slice(0, 2).join(', ') + ', ...';
-    }
-    return tops.join(', ');
-  };
-
-  const mostCommon = toMostCommon(column);
 
   return (
     <Flex direction="column" gap={3}>
@@ -89,9 +61,13 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
         <MetricsInfo name="Distinct" base={formatNumber(column.distinct)} />
       </Flex>
 
-      {column.type === 'string' && mostCommon && (
+      {column.type === 'string' && (
         <Flex direction="column">
-          <MetricsInfo name="Most common" base={mostCommon} />
+          <MetricsInfo
+            name="Most common"
+            base={getSRCommonMetrics(column)}
+            baseWidth={'200px'}
+          />
         </Flex>
       )}
 
@@ -107,9 +83,9 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
 
       {column.type === 'datetime' && (
         <Flex direction="column">
-          <MetricsInfo name="Min" base={column.min} />
+          <MetricsInfo name="Min" base={column.min as number} />
 
-          <MetricsInfo name="Max" base={column.max} />
+          <MetricsInfo name="Max" base={column.max as number} />
         </Flex>
       )}
     </Flex>

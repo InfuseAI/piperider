@@ -160,13 +160,13 @@ export const CRTableColumnDetails = ({
           <Flex direction="column">
             <MetricsInfo
               name="Min"
-              base={baseColumn?.min ?? '-'}
-              input={inputColumn?.min ?? '-'}
+              base={(baseColumn?.min as string | number) ?? '-'}
+              input={(inputColumn?.min as string | number) ?? '-'}
             />
             <MetricsInfo
               name="Max"
-              base={baseColumn?.max ?? '-'}
-              input={inputColumn?.max ?? '-'}
+              base={(baseColumn?.max as string | number) ?? '-'}
+              input={(inputColumn?.max as string | number) ?? '-'}
             />
           </Flex>
         )}
