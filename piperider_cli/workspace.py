@@ -777,34 +777,6 @@ def _append_descriptions(profile_result):
             column_v['description'] = 'Description: N/A'
 
 
-def _append_descriptions_from_dbt(profile_result, dbt, default_schema):
-    dbt_root = os.path.expanduser(dbt.get('projectDir'))
-    full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'model', '--resource-type', 'source', '--output-keys', 'resource_type,description,name,columns,source_name']
-    lines = check_output(full_cmd_arr, cwd=dbt_root).decode().split('\n')[:-1]
-    # Skip lines not starts with '{', which are not message in JSON format
-    resources = [json.loads(x) for x in lines if x.startswith('{')]
-    for resource in resources:
-        schema = resource.get('source_name')
-        table_name = resource.get('name')
-        table_desc = resource.get('description', '')
-
-        schema = f'{schema}.' if schema and schema != default_schema else ''
-        table_name = f'{schema}{table_name}'
-
-        if table_name not in profile_result['tables']:
-            continue
-        if table_desc:
-            profile_result['tables'][table_name]['description'] = table_desc
-
-        columns = resource.get('columns', {})
-        for column_name, v in columns.items():
-            if column_name not in profile_result['tables'][table_name]['columns']:
-                continue
-            column_desc = v.get('description', '')
-            if column_desc:
-                profile_result['tables'][table_name]['columns'][column_name]['description'] = column_desc
-
-
 def _append_descriptions_from_assertion(profile_result):
     engine = AssertionEngine(None)
     engine.load_assertion_content()
