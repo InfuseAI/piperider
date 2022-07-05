@@ -20,7 +20,7 @@
             "row_count",
             "col_count",
             "columns",
-            "assertion_results"
+            "piperider_assertion_result"
           ],
           "additionalProperties": false,
           "properties": {
@@ -132,11 +132,11 @@
                 }
               }
             },
-            "assertion_results": {
+            "piperider_assertion_result": {
               "oneOf": [
                 { "type": "null" },
                 {
-                  "title": "AssertionResult",
+                  "title": "PipeRiderAssertionResult",
                   "type": "object",
                   "required": ["tests", "columns"],
                   "additionalProperties": false,
@@ -144,7 +144,7 @@
                     "tests": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/definitions/assertion"
+                        "$ref": "#/definitions/assertion_test"
                       }
                     },
                     "columns": {
@@ -153,7 +153,7 @@
                         ".+": {
                           "type": "array",
                           "items": {
-                            "$ref": "#/definitions/assertion"
+                            "$ref": "#/definitions/assertion_test"
                           }
                         }
                       }
@@ -162,11 +162,11 @@
                 }
               ]
             },
-            "dbt_test_results": {
+            "dbt_assertion_result": {
               "oneOf": [
                 { "type": "null" },
                 {
-                  "title": "DbtTestResult",
+                  "title": "DbtAssertionResult",
                   "type": "object",
                   "required": ["tests", "columns"],
                   "additionalProperties": false,
@@ -174,7 +174,7 @@
                     "tests": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/definitions/assertion"
+                        "$ref": "#/definitions/assertion_test"
                       }
                     },
                     "columns": {
@@ -183,7 +183,7 @@
                         ".+": {
                           "type": "array",
                           "items": {
-                            "$ref": "#/definitions/assertion"
+                            "$ref": "#/definitions/assertion_test"
                           }
                         }
                       }
@@ -250,8 +250,8 @@
         }
       }
     },
-    "assertion": {
-      "title": "Assertion",
+    "assertion_test": {
+      "title": "AssertionTest",
       "type": "object",
       "required": ["name", "status"],
       "additionalProperties": false,

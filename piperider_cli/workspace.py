@@ -639,11 +639,11 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
         for k, v in dbt_test_results.items():
             if k not in profile_result['tables']:
                 continue
-            profile_result['tables'][k]['dbt_test_results'] = v
+            profile_result['tables'][k]['dbt_assertion_result'] = v
 
     output_file = os.path.join(output_path, 'run.json')
     for t in profile_result['tables']:
-        profile_result['tables'][t]['assertion_results'] = _transform_assertion_result(t, assertion_results)
+        profile_result['tables'][t]['piperider_assertion_result'] = _transform_assertion_result(t, assertion_results)
 
         _show_table_summary(console, t, profile_result['tables'][t], assertion_results, dbt_test_results)
 
