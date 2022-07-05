@@ -37,9 +37,9 @@ jobs:
         cache-dependency-path: static_report/yarn.lock
 
     - name: Install Dependencies
-    - run: yarn install --frozen-lockfile
+      run: yarn install --frozen-lockfile
     - name: Build Apps
-    - run: yarn build
+      run: yarn build
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
           commit_message: AUTO-COMMIT - build report statics to CLI data/report
