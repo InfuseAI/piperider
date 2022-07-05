@@ -7,7 +7,7 @@ import sentry_sdk
 from rich.console import Console
 from rich.syntax import Syntax
 
-from piperider_cli import workspace, __version__, event
+from piperider_cli import workspace, dbt_adapter, __version__, event
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.guide import Guide
 
@@ -115,7 +115,7 @@ def init(**kwargs):
         if dbt_project_dir:
             dbt_project_path = os.path.join(dbt_project_dir, "dbt_project.yml")
         else:
-            dbt_project_path = workspace.search_dbt_project_path()
+            dbt_project_path = dbt_adapter.search_dbt_project_path()
 
     if dbt_project_path:
         console.print(f'Use dbt project file: {dbt_project_path}')
