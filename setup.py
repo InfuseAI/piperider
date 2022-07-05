@@ -53,6 +53,7 @@ setup(name='piperider',
               'pytest-mypy',
               'pytest-cov',
               'twine',
+              'jsonschema',
           ],
       },
       project_urls={
@@ -67,5 +68,5 @@ setup(name='piperider',
           "Development Status :: 4 - Beta"
       ],
       package_data={
-          'piperider_cli': ['*.json', 'VERSION', 'data/**']
+          'piperider_cli': ['*.json', 'VERSION', 'data/**', 'profiler/schema.json']
       })

@@ -1,0 +1,281 @@
+{
+  "title": "SingleReportSchema",
+  "type": "object",
+  "required": [
+    "tables",
+    "id",
+    "created_at",
+    "datasource"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "tables": {
+      "patternProperties": {
+        ".+": {
+          "title": "TableSchema",
+          "type": "object",
+          "required": [
+            "name",
+            "description",
+            "row_count",
+            "col_count",
+            "columns",
+            "piperider_assertion_result"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "row_count": {
+              "type": "integer"
+            },
+            "col_count": {
+              "type": "integer"
+            },
+            "columns": {
+              "type": "object",
+              "patternProperties": {
+                ".+": {
+                  "title": "ColumnSchema",
+                  "type": "object",
+                  "required": [
+                    "total",
+                    "non_nulls",
+                    "distinct",
+                    "name",
+                    "description",
+                    "type",
+                    "schema_type"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    },
+                    "non_nulls": {
+                      "type": "integer"
+                    },
+                    "distinct": {
+                      "type": "integer"
+                    },
+                    "distribution": {
+                      "oneOf": [
+                        { "type": "null" },
+                        { "$ref": "#/definitions/distribution" }
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "enum": [
+                        "string",
+                        "numeric",
+                        "datetime",
+                        "bool",
+                        "other"
+                      ]
+                    },
+                    "schema_type": {
+                      "type": "string"
+                    },
+                    "mismatched": {
+                      "type": "integer"
+                    },
+                    "profile_duration": {
+                      "type": "string"
+                    },
+                    "sum": {
+                      "type": "number"
+                    },
+                    "avg": {
+                      "type": "number"
+                    },
+                    "min": {
+                      "oneOf": [
+                       { "type": "string" },
+                       { "type": "number" }
+                      ]
+                    },
+                    "max": {
+                      "oneOf": [
+                       { "type": "string" },
+                       { "type": "number" }
+                      ]
+                    },
+                    "p5": {
+                      "type": "number"
+                    },
+                    "p25": {
+                      "type": "number"
+                    },
+                    "p50": {
+                      "type": "number"
+                    },
+                    "p75": {
+                      "type": "number"
+                    },
+                    "p95": {
+                      "type": "number"
+                    },
+                    "stddev": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            },
+            "piperider_assertion_result": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "title": "PipeRiderAssertionResult",
+                  "type": "object",
+                  "required": ["tests", "columns"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "tests": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/assertion_test"
+                      }
+                    },
+                    "columns": {
+                      "type": "object",
+                      "patternProperties": {
+                        ".+": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/assertion_test"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "dbt_assertion_result": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "title": "DbtAssertionResult",
+                  "type": "object",
+                  "required": ["tests", "columns"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "tests": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/assertion_test"
+                      }
+                    },
+                    "columns": {
+                      "type": "object",
+                      "patternProperties": {
+                        ".+": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/assertion_test"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "id": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "datasource": {
+      "title": "DataSource",
+      "type": "object",
+      "required": ["name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "distribution": {
+      "title": "Distribution",
+      "type": "object",
+      "required": ["type", "labels", "counts"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+             { "type": "string" },
+             { "type": "null" }
+            ]
+          }
+        },
+        "counts": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "bin_edges": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "assertion_test": {
+      "title": "AssertionTest",
+      "type": "object",
+      "required": ["name", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "passed", "failed"
+          ]
+        },
+        "parameters": {
+          "type": "object"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "expected": true,
+        "actual": true
+      }
+    }
+  }
+}
