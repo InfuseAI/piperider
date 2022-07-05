@@ -179,20 +179,20 @@ export function ComparisonReportList({
 
                         <Td>
                           {table.base?.row_count
-                            ? formatNumber(table.base.row_count)
+                            ? formatNumber(table.base.row_count as number)
                             : '-'}
                           {' / '}
                           {table.input?.row_count
-                            ? formatNumber(table.input.row_count)
+                            ? formatNumber(table.input.row_count as number)
                             : '-'}
                         </Td>
                         <Td>
                           {table.base?.col_count
-                            ? formatNumber(table.base.col_count)
+                            ? formatNumber(table.base.col_count as number)
                             : '-'}
                           {' / '}
                           {table.input?.col_count
-                            ? formatNumber(table.input?.col_count)
+                            ? formatNumber(table.input?.col_count as number)
                             : '-'}
                         </Td>
                       </Tr>

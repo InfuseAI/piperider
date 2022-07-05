@@ -1,7 +1,6 @@
 import * as d3 from 'd3';
 import fill from 'lodash/fill';
 import zip from 'lodash/zip';
-import mergeWith from 'lodash/mergeWith';
 import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 
@@ -125,10 +124,14 @@ export function formatReportTime(time: string) {
 }
 
 export function formatNumber(
-  num,
+  num: number,
   locales = 'en-US',
   options?: Intl.NumberFormatOptions,
 ) {
+  if (!Number.isSafeInteger(num)) {
+    return '-';
+  }
+
   return new Intl.NumberFormat(locales, options).format(num);
 }
 
@@ -185,17 +188,23 @@ export function nestComparisonValueByKey(
   string,
   { base: Record<string, unknown>; input: Record<string, unknown> }
 > {
-  const helper = (acc, [key, value]) => {
-    acc[key] = value;
-    return acc;
-  };
-  const _base = Object.entries(base).reduce(helper, {});
-  const _input = Object.entries(input).reduce(helper, {});
+  const result = {};
 
-  return mergeWith(_base, _input, (base, input) => ({
-    base,
-    input,
-  }));
+  Object.entries(base).forEach(([key, value]) => {
+    if (!result[key]) {
+      result[key] = {};
+    }
+    result[key]['base'] = value;
+  });
+
+  Object.entries(input).forEach(([key, value]) => {
+    if (!result[key]) {
+      result[key] = {};
+    }
+    result[key]['input'] = value;
+  });
+
+  return result;
 }
 
 export function getComparisonAssertions({
@@ -321,8 +330,20 @@ export function transformDistributionWithLabels({ base, input, labels }) {
 
 // FIXME: Temp Typing
 export function getColumnDetails(
-  columnData: ComparisonReportSchema['base']['tables']['ACTION']['columns']['DATE'],
+  columnData?: ComparisonReportSchema['base']['tables']['ACTION']['columns'],
 ) {
+  if (!columnData) {
+    return {
+      hasNoNull: false,
+      mismatch: null,
+      valid: null,
+      missing: null,
+      validOfTotal: null,
+      mismatchOfTotal: null,
+      missingOfTotal: null,
+    };
+  }
+
   const { non_nulls, total, mismatched } = columnData as any;
 
   const hasNoNull = non_nulls === total;
