@@ -83,7 +83,7 @@ def _list_dbt_resources(dbt):
     console.rule('Running dbt')
     console.print(f'[bold yellow]dbt working dir:[/bold yellow] {dbt_root}')
 
-    full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'al']
+    full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'all']
     proc = Popen(full_cmd_arr, stdout=PIPE, stderr=PIPE, cwd=dbt_root)
     out, err = proc.communicate()
     if proc.returncode != 0:
