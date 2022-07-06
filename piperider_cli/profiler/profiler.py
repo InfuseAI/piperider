@@ -5,6 +5,7 @@ from datetime import datetime, date
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, String, Integer, Numeric, Date, DateTime, Boolean, select, func, distinct, case
+from sqlalchemy.types import Float
 
 HISTOGRAM_NUM_BUCKET = 50
 
@@ -358,7 +359,7 @@ class Profiler:
                 func.avg(t2.c.c).label("_avg"),
                 func.min(t2.c.c).label("_min"),
                 func.max(t2.c.c).label("_max"),
-                func.avg(t2.c.c * t2.c.c).label("_square_avg"),
+                func.avg(func.cast(t2.c.c, Float) * func.cast(t2.c.c, Float)).label("_square_avg"),
             ])
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _mismatched, _distinct, _sum, _avg, _min, _max, _square_avg = result
