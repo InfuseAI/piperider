@@ -4,6 +4,7 @@ import { MetricsInfo } from '../shared/MetrisInfo';
 import {
   formatNumber,
   getColumnDetails,
+  formatIntervalMinMax,
   getSRCommonMetrics,
 } from '../../utils';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
@@ -12,9 +13,17 @@ type SRTableColumnDetailsProps = {
   column: SingleReportSchema['tables']['__']['columns']['__'];
 };
 
+// Will column ever be null?
 export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
-  const { mismatch, mismatchOfTotal, missing, valid, validOfTotal } =
-    getColumnDetails(column);
+  const {
+    mismatch,
+    mismatchOfTotal,
+    missing,
+    missingOfTotal,
+    valid,
+    validOfTotal,
+    totalOfTotal,
+  } = getColumnDetails(column);
 
   return (
     <Flex direction="column" gap={3}>
@@ -33,25 +42,26 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
         {''}(<Code>{column.schema_type}</Code>)
       </Text>
 
-      <Flex direction="column">
-        <MetricsInfo name="Total" base={formatNumber(column.total as number)} />
-      </Flex>
-
       <Flex direction="column" mt={3}>
         <MetricsInfo
+          name="Total"
+          base={formatNumber(column.total)}
+          input={formatIntervalMinMax(totalOfTotal)}
+        />
+        <MetricsInfo
           name="Valid"
-          base={valid}
-          input={formatNumber(validOfTotal, 'en-US', { style: 'percent' })}
+          base={formatNumber(valid)}
+          input={formatIntervalMinMax(validOfTotal)}
         />
         <MetricsInfo
           name="Mismatched"
-          base={mismatch}
-          input={formatNumber(mismatchOfTotal, 'en-US', { style: 'percent' })}
+          base={formatNumber(mismatch)}
+          input={formatIntervalMinMax(mismatchOfTotal)}
         />
         <MetricsInfo
           name="Missing"
-          base={missing}
-          input={getSRCommonMetrics(column)}
+          base={formatNumber(missing)}
+          input={formatIntervalMinMax(missingOfTotal)}
         />
       </Flex>
 

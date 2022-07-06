@@ -1,12 +1,14 @@
 import { Code, Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
-import { ComparisonReportSchema } from '../../types';
-import { formatNumber, getColumnDetails, getMissingValue } from '../../utils';
+import {
+  formatNumber,
+  getColumnDetails,
+  formatIntervalMinMax,
+} from '../../utils';
 import { MetricsInfo } from '../shared/MetrisInfo';
 
-// FIXME: Temp Typing
 type CRTableColumnDetailsProps = {
-  column: any;
+  column: ColumnSchema;
   baseColumn: ColumnSchema;
   inputColumn: ColumnSchema;
 };
@@ -19,11 +21,13 @@ export const CRTableColumnDetails = ({
   const {
     mismatchOfTotal: baseMismatchOfTotal,
     validOfTotal: baseValidOfTotal,
+    missingOfTotal: baseMissingOfTotal,
   } = getColumnDetails(baseColumn);
 
   const {
     mismatchOfTotal: inputMismatchOfTotal,
     validOfTotal: inputValidOfTotal,
+    missingOfTotal: inputMissingOfTotal,
   } = getColumnDetails(inputColumn);
 
   return (
@@ -55,44 +59,27 @@ export const CRTableColumnDetails = ({
           </Flex>
         </Flex>
 
-        <Flex direction="column">
-          <MetricsInfo
-            name="Total"
-            base={
-              baseColumn?.total
-                ? formatNumber(baseColumn?.total as number)
-                : '-'
-            }
-            input={
-              inputColumn?.total
-                ? formatNumber(inputColumn?.total as number)
-                : '-'
-            }
-          />
-        </Flex>
-
         <Flex direction="column" mt={3}>
           <MetricsInfo
+            name="Total"
+            base={formatNumber(baseColumn?.total)}
+            input={formatNumber(inputColumn?.total)}
+          />
+          <MetricsInfo
             name="Valid"
-            base={formatNumber(baseValidOfTotal, 'en-US', { style: 'percent' })}
-            input={formatNumber(inputValidOfTotal, 'en-US', {
-              style: 'percent',
-            })}
+            base={formatIntervalMinMax(baseValidOfTotal)}
+            input={formatIntervalMinMax(inputValidOfTotal)}
           />
           <MetricsInfo
             name="Mismatched"
-            base={formatNumber(baseMismatchOfTotal, 'en-US', {
-              style: 'percent',
-            })}
-            input={formatNumber(inputMismatchOfTotal, 'en-US', {
-              style: 'percent',
-            })}
+            base={formatIntervalMinMax(baseMismatchOfTotal)}
+            input={formatIntervalMinMax(inputMismatchOfTotal)}
           />
 
           <MetricsInfo
             name="Missing"
-            base={getMissingValue(baseColumn as any)}
-            input={getMissingValue(inputColumn as any)}
+            base={formatIntervalMinMax(baseMissingOfTotal)}
+            input={formatIntervalMinMax(inputMissingOfTotal)}
           />
 
           <Flex direction="column" mt={3}>
@@ -111,7 +98,7 @@ export const CRTableColumnDetails = ({
             />
           </Flex>
         </Flex>
-        {(column.type === 'numeric' || column.type === 'integer') && (
+        {column.type === 'numeric' && (
           <>
             <Flex direction="column">
               <MetricsInfo
