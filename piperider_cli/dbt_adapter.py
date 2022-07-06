@@ -3,17 +3,19 @@ import os
 import sys
 import json
 from glob import glob
-from subprocess import DEVNULL
+from subprocess import DEVNULL, PIPE
 from subprocess import Popen, check_output
+from piperider_cli.error import DbtInvocationError
 
 import inquirer
 from rich.console import Console
 from rich.table import Table
 
+console = Console()
+
 
 def search_dbt_project_path():
     exclude_patterns = ['site-packages', 'dbt_packages']
-    console = Console()
     _warning_if_search_path_too_widely(os.getcwd())
     console.print('Start to search dbt project ...')
     paths = glob(os.path.join(os.getcwd(), '**', 'dbt_project.yml'), recursive=True)
@@ -78,8 +80,16 @@ def _check_dbt_command(dbt):
 
 def _list_dbt_resources(dbt):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
-    full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'all']
-    lines = check_output(full_cmd_arr, cwd=dbt_root).decode().split('\n')[:-1]
+    console.rule('Running dbt')
+    console.print(f'[bold yellow]dbt working dir:[/bold yellow] {dbt_root}')
+
+    full_cmd_arr = ['dbt', 'list', '--output', 'json', '--resource-type', 'al']
+    proc = Popen(full_cmd_arr, stdout=PIPE, stderr=PIPE, cwd=dbt_root)
+    out, err = proc.communicate()
+    if proc.returncode != 0:
+        raise DbtInvocationError()
+    lines = out.decode().split('\n')[:-1]
+
     # Skip lines not starts with '{', which are not message in JSON format
     resources = [json.loads(x) for x in lines if x.startswith('{')]
     return resources
@@ -106,7 +116,7 @@ def _list_dbt_tables(dbt, default_schema):
     return list(tables)
 
 
-def _run_dbt_command(table, default_schema, dbt, console):
+def _run_dbt_command(table, default_schema, dbt):
     dbt_root = os.path.expanduser(dbt.get('projectDir'))
 
     cmd = dbt.get('cmd', 'test')
@@ -131,8 +141,6 @@ def _run_dbt_command(table, default_schema, dbt, console):
         full_cmd_arr.append('-s')
         full_cmd_arr.append(select)
 
-    console.rule('Running dbt')
-    console.print(f'[bold yellow]dbt working dir:[/bold yellow] {dbt_root}')
     console.print(f"Execute command: {' '.join(full_cmd_arr)}")
     proc = Popen(full_cmd_arr, cwd=dbt_root)
     proc.communicate()
