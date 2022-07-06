@@ -136,6 +136,10 @@ export function formatNumber(
 }
 
 export function extractExpectedOrActual(value) {
+  if (!value) {
+    return '-';
+  }
+
   if (typeof value === 'object') {
     return Object.keys(value).map((key) => (
       <Text key={key}>
@@ -146,7 +150,7 @@ export function extractExpectedOrActual(value) {
     ));
   }
 
-  return value ?? '-';
+  return value;
 }
 
 export function getSRCommonMetrics(

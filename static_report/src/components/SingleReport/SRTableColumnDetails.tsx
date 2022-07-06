@@ -36,7 +36,7 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
       </Text>
 
       <Flex direction="column">
-        <MetricsInfo name="Total" base={formatNumber(column.total)} />
+        <MetricsInfo name="Total" base={formatNumber(column.total as number)} />
       </Flex>
 
       <Flex direction="column" mt={3}>
@@ -58,7 +58,10 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
       </Flex>
 
       <Flex direction="column" mt={3}>
-        <MetricsInfo name="Distinct" base={formatNumber(column.distinct)} />
+        <MetricsInfo
+          name="Distinct"
+          base={formatNumber(column.distinct as number)}
+        />
       </Flex>
 
       {column.type === 'string' && (
@@ -73,11 +76,11 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
 
       {column.type === 'numeric' && (
         <Flex direction="column">
-          <MetricsInfo name="Min" base={formatNumber(column.min)} />
+          <MetricsInfo name="Min" base={formatNumber(column.min as number)} />
 
-          <MetricsInfo name="Max" base={formatNumber(column.max)} />
+          <MetricsInfo name="Max" base={formatNumber(column.max as number)} />
 
-          <MetricsInfo name="Avg" base={formatNumber(column.avg)} />
+          <MetricsInfo name="Avg" base={formatNumber(column.avg as number)} />
         </Flex>
       )}
 
