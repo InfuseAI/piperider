@@ -19,7 +19,9 @@ jobs:
       fail-fast: false
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # fetch all the code, we need the full log history for shortcut integration
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
