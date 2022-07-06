@@ -60,7 +60,7 @@ export default function SingleReport({ data, name }: Props) {
 
   const overview = getReportAsserationStatusCounts(
     table?.assertion_results
-      ? (table.assertion_results as AssertionResult)
+      ? (table.piperider_assertion_result as AssertionResult)
       : undefined,
   );
 
@@ -132,8 +132,8 @@ export default function SingleReport({ data, name }: Props) {
             <TabList>
               <Tab>Profiling</Tab>
               <Tab>Tests</Tab>
-              {/* If have `dbt_test_results` it will render this tab */}
-              {table.dbt_test_results && <Tab>dbt Tests</Tab>}
+              {/* If have `dbt_test_result` it will render this tab */}
+              {table.dbt_test_result && <Tab>dbt Tests</Tab>}
             </TabList>
 
             <TabPanels>
@@ -145,9 +145,9 @@ export default function SingleReport({ data, name }: Props) {
                 <TestsInformation data={table.assertion_results} />
               </TabPanel>
 
-              {table?.dbt_test_results && (
+              {table?.dbt_test_result && (
                 <TabPanel>
-                  <TestsInformation type="dbt" data={table.dbt_test_results} />
+                  <TestsInformation type="dbt" data={table.dbt_test_result} />
                 </TabPanel>
               )}
             </TabPanels>
