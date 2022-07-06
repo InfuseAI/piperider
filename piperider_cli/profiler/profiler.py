@@ -436,6 +436,11 @@ class Profiler:
             if self.engine.url.get_backend_name() == "sqlite":
                 _min = datetime.fromisoformat(_min).date() if _min is not None else _min
                 _max = datetime.fromisoformat(_max).date() if _max is not None else _max
+            else:
+                if isinstance(_min, datetime):
+                    _min = _min.date()
+                if isinstance(_max, datetime):
+                    _max = _max.date()
 
             distribution = None
             if _non_null == 1 or _distinct == 1:
@@ -497,6 +502,8 @@ class Profiler:
                         continue
                     elif isinstance(bucket, str):
                         bucket = date.fromisoformat(bucket)
+                    elif isinstance(bucket, datetime):
+                        bucket = bucket.date()
 
                     for i in range(num_buckets):
                         d = distribution["labels"][i].split(" - ")
