@@ -9,7 +9,9 @@ import {
   Thead,
   Tr,
   Text,
+  Tooltip,
 } from '@chakra-ui/react';
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { Link } from 'wouter';
 
 import { Main } from '../shared/Main';
@@ -94,7 +96,15 @@ export function SingleReportList({ data }) {
                 return (
                   <Link key={report.name} href={`/tables/${key}`}>
                     <Tr cursor="pointer" _hover={{ bgColor: 'blackAlpha.50' }}>
-                      <Td>{report.name}</Td>
+                      <Td>
+                        {report.name}
+                        <Tooltip
+                          label={report.description || ''}
+                          placement="right-end"
+                        >
+                          <InfoOutlineIcon ml={2} mb={1} />
+                        </Tooltip>
+                      </Td>
                       <Td>
                         <Text as="span" mr={16}>
                           {overview.passed}

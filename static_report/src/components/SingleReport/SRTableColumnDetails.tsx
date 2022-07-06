@@ -1,5 +1,5 @@
-import { Code, Flex, Text } from '@chakra-ui/react';
-
+import { Box, Code, Flex, Text, Tooltip } from '@chakra-ui/react';
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { MetricsInfo } from '../shared/MetrisInfo';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import {
@@ -20,20 +20,25 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
 
   return (
     <Flex direction="column" gap={3}>
-      <Text maxWidth="100%">
-        <Text
-          as="span"
-          fontWeight={700}
-          color="gray.900"
-          fontSize="lg"
-          mr={1}
-          title={column.name as string}
-          noOfLines={1}
-        >
-          {column.name as string}
-        </Text>
+      <Box maxWidth="100%">
+        <Flex>
+          <Text
+            as="span"
+            fontWeight={700}
+            color="gray.900"
+            fontSize="lg"
+            mr={1}
+            title={column.name as string}
+            noOfLines={1}
+          >
+            {column.name as string}
+          </Text>
+          <Tooltip label={column.description || ''} placement="right-end">
+            <InfoOutlineIcon m={'auto 0'} />
+          </Tooltip>
+        </Flex>
         {''}(<Code>{column.schema_type as string}</Code>)
-      </Text>
+      </Box>
 
       <Flex direction="column">
         <MetricsInfo name="Total" base={formatNumber(column.total as number)} />
