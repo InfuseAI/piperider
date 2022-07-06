@@ -7,10 +7,10 @@ import {
   formatIntervalMinMax,
   getSRCommonMetrics,
 } from '../../utils';
-import { SingleReportSchema } from '../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../sdlc/single-report-schema';
 
 type SRTableColumnDetailsProps = {
-  column: SingleReportSchema['tables']['__']['columns']['__'];
+  column: ColumnSchema;
 };
 
 // Will column ever be null?
@@ -24,7 +24,6 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
     validOfTotal,
     totalOfTotal,
   } = getColumnDetails(column);
-
   return (
     <Flex direction="column" gap={3}>
       <Text maxWidth="100%">

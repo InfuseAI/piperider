@@ -9,7 +9,7 @@ import type {
   ComparisonReportSchema,
   ComparsionSource,
 } from '../types';
-import { ColumnSchema, TableSchema } from '../sdlc/single-report-schema';
+import { ColumnSchema } from '../sdlc/single-report-schema';
 
 const tooltipDefaultStyle = {
   paddingTop: 'var(--chakra-space-2)',
@@ -126,10 +126,6 @@ export function formatNumber(
   locales = 'en-US',
   options?: Intl.NumberFormatOptions,
 ) {
-  if (!Number.isSafeInteger(num)) {
-    return '-';
-  }
-
   return new Intl.NumberFormat(locales, options).format(num);
 }
 
@@ -206,14 +202,11 @@ export function getSRCommonMetrics(column: ColumnSchema) {
   return tops.join(', ');
 }
 
-// for comparison
-export function nestComparisonValueByKey(
-  base: TableSchema,
-  input: TableSchema,
-): Record<
-  string,
-  { base: Record<string, unknown>; input: Record<string, unknown> }
-> {
+//FUTURE: cleaner way?
+export function nestComparisonValueByKey<T>(
+  base: any,
+  input: any,
+): Record<string, { base: T; input: T }> {
   const result = {};
 
   Object.entries(base).forEach(([key, value]) => {
@@ -394,5 +387,20 @@ export function getColumnDetails(columnData: ColumnSchema) {
     mismatchOfTotal,
     missingOfTotal,
     totalOfTotal,
+    total,
   };
+}
+/**
+ *
+ * @param input any value that will be checked as number
+ * @param fn any function to format the valid number
+ * @param emptyLabel
+ * @returns
+ */
+export function formatColumnValueWith(
+  input,
+  fn: Function,
+  emptyLabel = '-',
+): string {
+  return isNaN(input) ? emptyLabel : fn(input);
 }

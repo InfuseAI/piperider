@@ -4,31 +4,39 @@ import {
   formatNumber,
   getColumnDetails,
   formatIntervalMinMax,
+  formatColumnValueWith,
 } from '../../utils';
 import { MetricsInfo } from '../shared/MetrisInfo';
 
+// props made optional as they can be undefined
 type CRTableColumnDetailsProps = {
-  column: ColumnSchema;
-  baseColumn: ColumnSchema;
-  inputColumn: ColumnSchema;
+  column?: ColumnSchema;
+  baseColumn?: ColumnSchema;
+  inputColumn?: ColumnSchema;
 };
-
 export const CRTableColumnDetails = ({
   column,
   baseColumn,
   inputColumn,
 }: CRTableColumnDetailsProps) => {
-  const {
-    mismatchOfTotal: baseMismatchOfTotal,
-    validOfTotal: baseValidOfTotal,
-    missingOfTotal: baseMissingOfTotal,
-  } = getColumnDetails(baseColumn);
+  const emptyLabel = '-';
+  if (baseColumn) {
+    var {
+      total: baseTotal,
+      mismatchOfTotal: baseMismatchOfTotal,
+      validOfTotal: baseValidOfTotal,
+      missingOfTotal: baseMissingOfTotal,
+    } = getColumnDetails(baseColumn);
+  }
 
-  const {
-    mismatchOfTotal: inputMismatchOfTotal,
-    validOfTotal: inputValidOfTotal,
-    missingOfTotal: inputMissingOfTotal,
-  } = getColumnDetails(inputColumn);
+  if (inputColumn) {
+    var {
+      total: inputTotal,
+      mismatchOfTotal: inputMismatchOfTotal,
+      validOfTotal: inputValidOfTotal,
+      missingOfTotal: inputMissingOfTotal,
+    } = getColumnDetails(inputColumn);
+  }
 
   return (
     <Flex direction="column" gap={2} minH="250px">
@@ -62,39 +70,46 @@ export const CRTableColumnDetails = ({
         <Flex direction="column" mt={3}>
           <MetricsInfo
             name="Total"
-            base={formatNumber(baseColumn?.total)}
-            input={formatNumber(inputColumn?.total)}
+            base={formatColumnValueWith(baseTotal, formatNumber)}
+            input={formatColumnValueWith(inputTotal, formatNumber)}
           />
           <MetricsInfo
             name="Valid"
-            base={formatIntervalMinMax(baseValidOfTotal)}
-            input={formatIntervalMinMax(inputValidOfTotal)}
+            base={formatColumnValueWith(baseValidOfTotal, formatIntervalMinMax)}
+            input={formatColumnValueWith(
+              inputValidOfTotal,
+              formatIntervalMinMax,
+            )}
           />
           <MetricsInfo
             name="Mismatched"
-            base={formatIntervalMinMax(baseMismatchOfTotal)}
-            input={formatIntervalMinMax(inputMismatchOfTotal)}
+            base={formatColumnValueWith(
+              baseMismatchOfTotal,
+              formatIntervalMinMax,
+            )}
+            input={formatColumnValueWith(
+              inputMismatchOfTotal,
+              formatIntervalMinMax,
+            )}
           />
 
           <MetricsInfo
             name="Missing"
-            base={formatIntervalMinMax(baseMissingOfTotal)}
-            input={formatIntervalMinMax(inputMissingOfTotal)}
+            base={formatColumnValueWith(
+              baseMissingOfTotal,
+              formatIntervalMinMax,
+            )}
+            input={formatColumnValueWith(
+              inputMissingOfTotal,
+              formatIntervalMinMax,
+            )}
           />
 
           <Flex direction="column" mt={3}>
             <MetricsInfo
               name="Distinct"
-              base={
-                baseColumn?.distinct
-                  ? formatNumber(baseColumn.distinct as number)
-                  : '-'
-              }
-              input={
-                inputColumn?.distinct
-                  ? formatNumber(inputColumn.distinct as number)
-                  : '-'
-              }
+              base={formatColumnValueWith(baseColumn?.distinct, formatNumber)}
+              input={formatColumnValueWith(inputColumn?.distinct, formatNumber)}
             />
           </Flex>
         </Flex>
@@ -103,104 +118,50 @@ export const CRTableColumnDetails = ({
             <Flex direction="column">
               <MetricsInfo
                 name="Average"
-                base={
-                  baseColumn?.avg ? formatNumber(baseColumn.avg as number) : '-'
-                }
-                input={
-                  inputColumn?.avg
-                    ? formatNumber(inputColumn.avg as number)
-                    : '-'
-                }
+                base={formatColumnValueWith(baseColumn?.avg, formatNumber)}
+                input={formatColumnValueWith(inputColumn?.avg, formatNumber)}
               />
               <MetricsInfo
                 name="Std. Deviation"
-                base={
-                  baseColumn?.stddev
-                    ? formatNumber(baseColumn.stddev as number)
-                    : '-'
-                }
-                input={
-                  inputColumn?.stddev
-                    ? formatNumber(inputColumn.stddev as number)
-                    : '-'
-                }
+                base={formatColumnValueWith(baseColumn?.stddev, formatNumber)}
+                input={formatColumnValueWith(inputColumn?.stddev, formatNumber)}
               />
             </Flex>
             <Flex direction="column">
               <MetricsInfo
                 name="Min"
-                base={
-                  baseColumn?.min ? formatNumber(baseColumn.min as number) : '-'
-                }
-                input={
-                  inputColumn?.min
-                    ? formatNumber(inputColumn.min as number)
-                    : '-'
-                }
+                base={formatColumnValueWith(baseColumn?.min, formatNumber)}
+                input={formatColumnValueWith(inputColumn?.min, formatNumber)}
               />
               <MetricsInfo
                 name="5%"
-                base={
-                  baseColumn?.p5 ? formatNumber(baseColumn.p5 as number) : '-'
-                }
-                input={
-                  inputColumn?.p5 ? formatNumber(inputColumn.p5 as number) : '-'
-                }
+                base={formatColumnValueWith(baseColumn?.p5, formatNumber)}
+                input={formatColumnValueWith(inputColumn?.p5, formatNumber)}
               />
               <MetricsInfo
                 name="25%"
-                base={
-                  baseColumn?.p25 ? formatNumber(baseColumn.p25 as number) : '-'
-                }
-                input={
-                  inputColumn?.p25
-                    ? formatNumber(inputColumn.p25 as number)
-                    : '-'
-                }
+                base={formatColumnValueWith(baseColumn?.p25, formatNumber)}
+                input={formatColumnValueWith(inputColumn?.p25, formatNumber)}
               />
               <MetricsInfo
                 name="50%"
-                base={
-                  baseColumn?.p50 ? formatNumber(baseColumn.p50 as number) : '-'
-                }
-                input={
-                  inputColumn?.p50
-                    ? formatNumber(inputColumn.p50 as number)
-                    : '-'
-                }
+                base={formatColumnValueWith(baseColumn?.p50, formatNumber)}
+                input={formatColumnValueWith(inputColumn?.p50, formatNumber)}
               />
               <MetricsInfo
                 name="75%"
-                base={
-                  baseColumn?.p75 ? formatNumber(baseColumn.p75 as number) : '-'
-                }
-                input={
-                  inputColumn?.p75
-                    ? formatNumber(inputColumn.p75 as number)
-                    : '-'
-                }
+                base={formatColumnValueWith(baseColumn?.p75, formatNumber)}
+                input={formatColumnValueWith(inputColumn?.p75, formatNumber)}
               />
               <MetricsInfo
                 name="95%"
-                base={
-                  baseColumn?.p95 ? formatNumber(baseColumn.p95 as number) : '-'
-                }
-                input={
-                  inputColumn?.p95
-                    ? formatNumber(inputColumn.p95 as number)
-                    : '-'
-                }
+                base={formatColumnValueWith(baseColumn?.p95, formatNumber)}
+                input={formatColumnValueWith(inputColumn?.p95, formatNumber)}
               />
               <MetricsInfo
                 name="Max"
-                base={
-                  baseColumn?.max ? formatNumber(baseColumn.max as number) : '-'
-                }
-                input={
-                  inputColumn?.max
-                    ? formatNumber(inputColumn.max as number)
-                    : '-'
-                }
+                base={formatColumnValueWith(baseColumn?.max, formatNumber)}
+                input={formatColumnValueWith(inputColumn?.max, formatNumber)}
               />
             </Flex>
           </>
@@ -210,13 +171,13 @@ export const CRTableColumnDetails = ({
           <Flex direction="column">
             <MetricsInfo
               name="Min"
-              base={(baseColumn?.min as string | number) ?? '-'}
-              input={(inputColumn?.min as string | number) ?? '-'}
+              base={(baseColumn?.min as string | number) ?? emptyLabel}
+              input={(inputColumn?.min as string | number) ?? emptyLabel}
             />
             <MetricsInfo
               name="Max"
-              base={(baseColumn?.max as string | number) ?? '-'}
-              input={(inputColumn?.max as string | number) ?? '-'}
+              base={(baseColumn?.max as string | number) ?? emptyLabel}
+              input={(inputColumn?.max as string | number) ?? emptyLabel}
             />
           </Flex>
         )}

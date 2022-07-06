@@ -26,6 +26,7 @@ import {
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { ComparisonReportSchema } from '../../types';
+import { TableSchema } from '../../sdlc/single-report-schema';
 
 export function ComparisonReportList({
   data,
@@ -34,10 +35,9 @@ export function ComparisonReportList({
 }) {
   const { base, input } = data;
 
-  //FIXME:
-  const tables = nestComparisonValueByKey(
-    base.tables as any,
-    input.tables as any,
+  const tables = nestComparisonValueByKey<TableSchema>(
+    base.tables,
+    input.tables,
   );
 
   useDocumentTitle('Report List');
@@ -183,20 +183,20 @@ export function ComparisonReportList({
 
                         <Td>
                           {table.base?.row_count
-                            ? formatNumber(table.base.row_count as number)
+                            ? formatNumber(table.base.row_count)
                             : '-'}
                           {' / '}
                           {table.input?.row_count
-                            ? formatNumber(table.input.row_count as number)
+                            ? formatNumber(table.input.row_count)
                             : '-'}
                         </Td>
                         <Td>
                           {table.base?.col_count
-                            ? formatNumber(table.base.col_count as number)
+                            ? formatNumber(table.base.col_count)
                             : '-'}
                           {' / '}
                           {table.input?.col_count
-                            ? formatNumber(table.input?.col_count as number)
+                            ? formatNumber(table.input?.col_count)
                             : '-'}
                         </Td>
                       </Tr>

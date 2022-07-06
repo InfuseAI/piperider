@@ -1,5 +1,6 @@
 import { Flex, Grid } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
+import { ColumnSchema } from '../../sdlc/single-report-schema';
 import {
   nestComparisonValueByKey,
   transformDistribution,
@@ -9,26 +10,33 @@ import { CRBarChart } from './CRBarChart';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
 
 export function CRTabProfilingDetails({ base, input }) {
-  const transformedData = nestComparisonValueByKey(
-    base?.columns,
-    input?.columns,
+  const transformedData = nestComparisonValueByKey<ColumnSchema>(
+    base.columns,
+    input.columns,
   );
 
   return (
     <>
-      {Object.entries(transformedData).map(([key, value]) => (
-        <CRProfilingColumn
-          key={key}
-          name={key}
-          base={value.base}
-          input={value.input}
-        />
-      ))}
+      {Object.entries(transformedData).map(([key, value]) => {
+        return (
+          <CRProfilingColumn
+            key={key}
+            name={key}
+            base={value.base}
+            input={value.input}
+          />
+        );
+      })}
     </>
   );
 }
 
-function CRProfilingColumn({ name, base, input }) {
+type CRProfilingColumnProp = {
+  name: string;
+  base: ColumnSchema | undefined;
+  input: ColumnSchema | undefined;
+};
+function CRProfilingColumn({ name, base, input }: CRProfilingColumnProp) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -66,6 +74,7 @@ function CRProfilingColumn({ name, base, input }) {
   return (
     <Flex key={name} direction="column">
       <Grid my={8} templateColumns="500px 1fr" gap={12}>
+        {/* case: base and input not always avail due to column shifts */}
         <CRTableColumnDetails
           baseColumn={base}
           inputColumn={input}
