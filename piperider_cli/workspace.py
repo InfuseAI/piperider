@@ -544,7 +544,7 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
     dbt_test_results = None
     if dbt and dbt_command in ['build', 'test'] and dbt_exists:
         dbt['cmd'] = dbt_command
-        dbt_test_results = dbt_adapter._run_dbt_command(table, default_schema, dbt, console)
+        dbt_test_results = dbt_adapter._run_dbt_command(table, default_schema, dbt)
 
     console.rule('Profiling')
     run_id = uuid.uuid4().hex
