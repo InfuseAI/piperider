@@ -33,7 +33,10 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
           >
             {column.name as string}
           </Text>
-          <Tooltip label={column.description || ''} placement="right-end">
+          <Tooltip
+            label={(column.description as string) || ''}
+            placement="right-end"
+          >
             <InfoOutlineIcon m={'auto 0'} />
           </Tooltip>
         </Flex>
