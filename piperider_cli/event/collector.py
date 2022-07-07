@@ -20,6 +20,7 @@ class Collector:
         self._user_id = None
 
         self._unsend_events_file = PIPERIDER_EVENT_PATH
+        self._delete_threshold = 1000
         self._upload_threshold = 10
 
         self._check_required_files()
@@ -55,6 +56,7 @@ class Collector:
         self._store_to_file(event)
         if self._is_full():
             self.send_events()
+        self._cleanup_unsend_events()
 
     def _check_required_files(self):
         if not os.path.exists(PIPERIDER_WORKING_DIR):
@@ -97,6 +99,20 @@ class Collector:
                 o['unsend_events'] = []
 
             o['unsend_events'].append(event)
+            f.seek(0)
+            f.truncate()
+            f.write(json.dumps(o))
+
+    def _cleanup_unsend_events(self):
+        with portalocker.Lock(self._unsend_events_file, 'r+', timeout=5) as f:
+            o = json.loads(f.read())
+            events = o.get('unsend_events', None)
+            if events is None:
+                o['unsend_events'] = []
+
+            while len(o['unsend_events']) > self._delete_threshold:
+                o['unsend_events'].pop(0)
+
             f.seek(0)
             f.truncate()
             f.write(json.dumps(o))
