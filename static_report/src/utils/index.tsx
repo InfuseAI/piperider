@@ -251,7 +251,6 @@ export function getComparisonAssertions({
     }),
   );
 
-  console.log(assertions);
   return assertions;
 }
 
