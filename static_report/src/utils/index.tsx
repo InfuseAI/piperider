@@ -4,9 +4,12 @@ import zip from 'lodash/zip';
 import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 
-import type { AssertionResult, ComparsionSource } from '../types';
-import type { ComparisonReportSchema } from '../sdlc/comparison-report-schema';
-import type { SingleReportSchema } from '../sdlc/single-report-schema';
+import type {
+  AssertionValue,
+  ComparisonReportSchema,
+  ComparsionSource,
+} from '../types';
+import { ColumnSchema } from '../sdlc/single-report-schema';
 
 const tooltipDefaultStyle = {
   paddingTop: 'var(--chakra-space-2)',
@@ -51,9 +54,13 @@ export function getChartTooltip({ target, style = {} as any }) {
   return tooltip;
 }
 
+export type ReportAsserationStatusCounts = {
+  passed: string | number;
+  failed: string | number;
+};
 export function getReportAsserationStatusCounts(
-  assertion: AssertionResult | undefined,
-) {
+  assertion: AssertionValue,
+): ReportAsserationStatusCounts {
   if (!assertion) {
     return { passed: '-', failed: '-' };
   }
@@ -92,22 +99,6 @@ export function getReportAsserationStatusCounts(
   };
 }
 
-export function getMissingValue(
-  column: undefined | { total?: number; non_nulls?: number },
-) {
-  if (!column) {
-    return '-';
-  }
-
-  const num = Number((column.total - column.non_nulls) / column.total) * 100;
-
-  if (Math.floor(num) === 0) {
-    return '<0.1%';
-  } else {
-    return `${num.toFixed(1)}%`;
-  }
-}
-
 export function formatReportTime(time: string) {
   const adjustForUTCOffset = (date) => {
     return new Date(
@@ -123,16 +114,45 @@ export function formatReportTime(time: string) {
   return format(adjustForUTCOffset(parseISO(time)), 'yyyy/MM/dd HH:mm:ss');
 }
 
+/**
+ *
+ * @param num number type input
+ * @param locales locale string
+ * @param options
+ * @returns a formatted string number, based on locale & options
+ */
 export function formatNumber(
   num: number,
   locales = 'en-US',
   options?: Intl.NumberFormatOptions,
 ) {
-  if (!Number.isSafeInteger(num)) {
-    return '-';
-  }
-
   return new Intl.NumberFormat(locales, options).format(num);
+}
+
+/**
+ * @param num fractional number type input
+ * @returns a formatted interval string, based on its percentage position
+ */
+export function formatIntervalMinMax(num: number) {
+  // *  should show <0.1 % if the value is between (0%, 0.1%]
+  const isLowerBound = num > 0 && num <= 0.001;
+  // *  should show >99.9% if the value is between [99.9%, 100%) .
+  const isUpperBound = num < 1 && num >= 0.999;
+
+  const formatter = (newArg = num) =>
+    formatNumber(newArg, 'en-US', {
+      style: 'percent',
+      minimumFractionDigits: 1,
+    });
+
+  if (isLowerBound) {
+    const result = formatter(0.001);
+    return `<${result}`;
+  } else if (isUpperBound) {
+    const result = formatter(0.999);
+    return `>${result}`;
+  }
+  return formatter();
 }
 
 export function extractExpectedOrActual(value) {
@@ -153,9 +173,7 @@ export function extractExpectedOrActual(value) {
   return value;
 }
 
-export function getSRCommonMetrics(
-  column: SingleReportSchema['tables']['ACTION']['columns']['symbol'],
-) {
+export function getSRCommonMetrics(column: ColumnSchema) {
   // show the most common values
   // * give null if type mismatch
   // * skip null value
@@ -184,14 +202,11 @@ export function getSRCommonMetrics(
   return tops.join(', ');
 }
 
-// for comparison
-export function nestComparisonValueByKey(
-  base: ComparisonReportSchema['base']['tables'],
-  input: ComparisonReportSchema['input']['tables'],
-): Record<
-  string,
-  { base: Record<string, unknown>; input: Record<string, unknown> }
-> {
+//FUTURE: cleaner way?
+export function nestComparisonValueByKey<T>(
+  base: any,
+  input: any,
+): Record<string, { base: T; input: T }> {
   const result = {};
 
   Object.entries(base).forEach(([key, value]) => {
@@ -211,15 +226,16 @@ export function nestComparisonValueByKey(
   return result;
 }
 
+export type ComparisonAssertions = {
+  data: ComparisonReportSchema;
+  reportName: string;
+  type: 'piperider' | 'dbt';
+};
 export function getComparisonAssertions({
   data,
   reportName,
   type,
-}: {
-  data: ComparisonReportSchema;
-  reportName: string;
-  type: 'piperider' | 'dbt';
-}) {
+}: ComparisonAssertions) {
   const targets = {
     piperider: 'piperider_assertion_result',
     dbt: 'dbt_test_result',
@@ -238,11 +254,27 @@ export function getComparisonAssertions({
   return assertions;
 }
 
+//FIXME: Rename -- hard to understand
+export type ComparisonAssertionTests = {
+  passed: string | number;
+  failed: string | number;
+  tests: {
+    level: string;
+    column: string;
+    from: ComparsionSource;
+    name: string;
+    status: 'passed' | 'failed';
+    parameters: Record<string, unknown>;
+    expected: Record<string, unknown>;
+    actual: number;
+    tags: unknown[];
+  }[];
+};
 export function getComparisonAssertionTests({
   assertion,
   from,
 }: {
-  assertion: AssertionResult | undefined;
+  assertion: AssertionValue;
   from: ComparsionSource;
 }) {
   const { passed, failed } = getReportAsserationStatusCounts(assertion);
@@ -332,23 +364,8 @@ export function transformDistributionWithLabels({ base, input, labels }) {
   return m;
 }
 
-// FIXME: Temp Typing
-export function getColumnDetails(
-  columnData?: ComparisonReportSchema['base']['tables']['ACTION']['columns'],
-) {
-  if (!columnData) {
-    return {
-      hasNoNull: false,
-      mismatch: null,
-      valid: null,
-      missing: null,
-      validOfTotal: null,
-      mismatchOfTotal: null,
-      missingOfTotal: null,
-    };
-  }
-
-  const { non_nulls, total, mismatched } = columnData as any;
+export function getColumnDetails(columnData: ColumnSchema) {
+  const { non_nulls, total, mismatched } = columnData;
 
   const hasNoNull = non_nulls === total;
 
@@ -359,6 +376,7 @@ export function getColumnDetails(
   const validOfTotal = valid / total;
   const mismatchOfTotal = mismatch / total;
   const missingOfTotal = missing / total;
+  const totalOfTotal = total / total;
 
   return {
     hasNoNull,
@@ -368,5 +386,21 @@ export function getColumnDetails(
     validOfTotal,
     mismatchOfTotal,
     missingOfTotal,
+    totalOfTotal,
+    total,
   };
+}
+/**
+ * A method to handle falsey non-numbers (relevant for comparison reports with column shifts, where base/input values can be undefined)
+ * @param input any value that will be checked as number
+ * @param fn any function to format the valid number
+ * @param emptyLabel
+ * @returns
+ */
+export function formatColumnValueWith(
+  input,
+  fn: Function,
+  emptyLabel = '-',
+): string {
+  return isNaN(input) ? emptyLabel : fn(input);
 }

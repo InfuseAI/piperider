@@ -22,10 +22,12 @@ import {
   formatReportTime,
   formatNumber,
   nestComparisonValueByKey,
+  formatColumnValueWith,
 } from '../../utils';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import type { ComparisonReportSchema } from '../../sdlc/comparison-report-schema';
+import { ComparisonReportSchema } from '../../types';
+import { TableSchema } from '../../sdlc/single-report-schema';
 
 export function ComparisonReportList({
   data,
@@ -34,7 +36,10 @@ export function ComparisonReportList({
 }) {
   const { base, input } = data;
 
-  const tables = nestComparisonValueByKey(base.tables, input.tables);
+  const tables = nestComparisonValueByKey<TableSchema>(
+    base.tables,
+    input.tables,
+  );
 
   useDocumentTitle('Report List');
 
@@ -178,22 +183,26 @@ export function ComparisonReportList({
                         </Td>
 
                         <Td>
-                          {table.base?.row_count
-                            ? formatNumber(table.base.row_count as number)
-                            : '-'}
+                          {formatColumnValueWith(
+                            table.base.row_count,
+                            formatNumber,
+                          )}
                           {' / '}
-                          {table.input?.row_count
-                            ? formatNumber(table.input.row_count as number)
-                            : '-'}
+                          {formatColumnValueWith(
+                            table.input.row_count,
+                            formatNumber,
+                          )}
                         </Td>
                         <Td>
-                          {table.base?.col_count
-                            ? formatNumber(table.base.col_count as number)
-                            : '-'}
+                          {formatColumnValueWith(
+                            table.base.col_count,
+                            formatNumber,
+                          )}
                           {' / '}
-                          {table.input?.col_count
-                            ? formatNumber(table.input?.col_count as number)
-                            : '-'}
+                          {formatColumnValueWith(
+                            table.input.col_count,
+                            formatNumber,
+                          )}
                         </Td>
                       </Tr>
                     </Link>

@@ -19,10 +19,13 @@ import {
   getReportAsserationStatusCounts,
   formatReportTime,
   formatNumber,
+  formatColumnValueWith,
 } from '../../utils';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { SingleReportSchema } from '../../sdlc/single-report-schema';
 
-export function SingleReportList({ data }) {
+type Props = { data: SingleReportSchema };
+export function SingleReportList({ data }: Props) {
   const { id, created_at, datasource, tables } = data;
 
   useDocumentTitle('Report List');
@@ -82,7 +85,7 @@ export function SingleReportList({ data }) {
 
                 // If running by `piperider run --dbt-test`, it will have this field, vice versa.
                 const dbtOverview = getReportAsserationStatusCounts(
-                  report?.dbt_test_result,
+                  report.dbt_assertion_result,
                 );
 
                 return (
@@ -97,12 +100,30 @@ export function SingleReportList({ data }) {
                           <InfoOutlineIcon ml={2} mb={1} />
                         </Tooltip>
                       </Td>
-                      <Td>{formatNumber(overview.passed as number)}</Td>
-                      <Td>{formatNumber(overview.failed as number)}</Td>
-                      <Td>{formatNumber(dbtOverview.passed as number)}</Td>
-                      <Td>{formatNumber(dbtOverview.failed as number)}</Td>
-                      <Td>{formatNumber(report.row_count)}</Td>
-                      <Td>{formatNumber(report.col_count)}</Td>
+                      <Td>
+                        {formatColumnValueWith(overview.passed, formatNumber)}
+                      </Td>
+                      <Td>
+                        {formatColumnValueWith(overview.failed, formatNumber)}
+                      </Td>
+                      <Td>
+                        {formatColumnValueWith(
+                          dbtOverview.passed,
+                          formatNumber,
+                        )}
+                      </Td>
+                      <Td>
+                        {formatColumnValueWith(
+                          dbtOverview.failed,
+                          formatNumber,
+                        )}
+                      </Td>
+                      <Td>
+                        {formatColumnValueWith(report.row_count, formatNumber)}
+                      </Td>
+                      <Td>
+                        {formatColumnValueWith(report.col_count, formatNumber)}
+                      </Td>
                     </Tr>
                   </Link>
                 );

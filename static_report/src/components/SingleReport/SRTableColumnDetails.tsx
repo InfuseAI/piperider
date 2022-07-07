@@ -1,23 +1,28 @@
 import { Box, Code, Flex, Text, Tooltip } from '@chakra-ui/react';
-import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { MetricsInfo } from '../shared/MetrisInfo';
-import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import {
   formatNumber,
   getColumnDetails,
-  getMissingValue,
+  formatIntervalMinMax,
   getSRCommonMetrics,
 } from '../../utils';
+import { ColumnSchema } from '../../sdlc/single-report-schema';
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 
-// FIXME: Temp Typing
 type SRTableColumnDetailsProps = {
-  column: SingleReportSchema['tables']['ACTION']['columns'];
+  column: ColumnSchema;
 };
 
 export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
-  const { mismatch, mismatchOfTotal, missing, valid, validOfTotal } =
-    getColumnDetails(column);
-
+  const {
+    mismatch,
+    mismatchOfTotal,
+    missing,
+    missingOfTotal,
+    valid,
+    validOfTotal,
+    totalOfTotal,
+  } = getColumnDetails(column);
   return (
     <Flex direction="column" gap={3}>
       <Box maxWidth="100%">
@@ -43,29 +48,27 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
         {''}(<Code>{column.schema_type as string}</Code>)
       </Box>
 
-      <Flex direction="column">
-        <MetricsInfo name="Total" base={formatNumber(column.total as number)} />
-      </Flex>
-
       <Flex direction="column" mt={3}>
         <MetricsInfo
+          name="Total"
+          base={formatNumber(column.total)}
+          input={formatIntervalMinMax(totalOfTotal)}
+        />
+        <MetricsInfo
           name="Valid"
-          base={valid}
-          input={formatNumber(validOfTotal, 'en-US', { style: 'percent' })}
+          base={formatNumber(valid)}
+          input={formatIntervalMinMax(validOfTotal)}
         />
         <MetricsInfo
           name="Mismatched"
-          base={mismatch}
-          input={formatNumber(mismatchOfTotal, 'en-US', { style: 'percent' })}
+          base={formatNumber(mismatch)}
+          input={formatIntervalMinMax(mismatchOfTotal)}
         />
         <MetricsInfo
           name="Missing"
-          base={missing}
-          input={getMissingValue(column as any)}
+          base={formatNumber(missing)}
+          input={formatIntervalMinMax(missingOfTotal)}
         />
-      </Flex>
-
-      <Flex direction="column" mt={3}>
         <MetricsInfo
           name="Distinct"
           base={formatNumber(column.distinct as number)}
