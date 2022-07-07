@@ -104,14 +104,11 @@ export const CRTableColumnDetails = ({
               formatIntervalMinMax,
             )}
           />
-
-          <Flex direction="column" mt={3}>
-            <MetricsInfo
-              name="Distinct"
-              base={formatColumnValueWith(baseColumn?.distinct, formatNumber)}
-              input={formatColumnValueWith(inputColumn?.distinct, formatNumber)}
-            />
-          </Flex>
+          <MetricsInfo
+            name="Distinct"
+            base={formatColumnValueWith(baseColumn?.distinct, formatNumber)}
+            input={formatColumnValueWith(inputColumn?.distinct, formatNumber)}
+          />
         </Flex>
         {column.type === 'numeric' && (
           <>

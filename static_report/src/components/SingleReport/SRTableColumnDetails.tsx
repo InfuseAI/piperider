@@ -48,10 +48,6 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
         {''}(<Code>{column.schema_type as string}</Code>)
       </Box>
 
-      <Flex direction="column">
-        <MetricsInfo name="Total" base={formatNumber(column.total as number)} />
-      </Flex>
-
       <Flex direction="column" mt={3}>
         <MetricsInfo
           name="Total"
@@ -73,9 +69,6 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
           base={formatNumber(missing)}
           input={formatIntervalMinMax(missingOfTotal)}
         />
-      </Flex>
-
-      <Flex direction="column" mt={3}>
         <MetricsInfo
           name="Distinct"
           base={formatNumber(column.distinct as number)}
