@@ -36,11 +36,12 @@ def recommended_column_min_assertion(table, column, profiling_result) -> Recomme
     if column_type == 'numeric':
         total = column_metric['total']
         column_min = column_metric['min']
+        distribution_counts = column_metric['distribution']['counts'] if column_metric['distribution'] else []
 
         count = 0
-        for i, v in enumerate(reversed(column_metric['distribution']['counts'])):
+        for i, v in enumerate(reversed(distribution_counts)):
             count = count + v
-            if i == len(column_metric['distribution']['counts']) // 2:
+            if i == len(distribution_counts) // 2:
                 break
 
         if count / total > 0.95:
@@ -63,11 +64,12 @@ def recommended_column_max_assertion(table, column, profiling_result) -> Recomme
     if column_type == 'numeric':
         total = column_metric['total']
         column_max = column_metric['max']
+        distribution_counts = column_metric['distribution']['counts'] if column_metric['distribution'] else []
 
         count = 0
-        for i, v in enumerate(column_metric['distribution']['counts']):
+        for i, v in enumerate(distribution_counts):
             count = count + v
-            if i == len(column_metric['distribution']['counts']) // 2:
+            if i == len(distribution_counts) // 2:
                 break
 
         if count / total > 0.95:
