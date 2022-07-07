@@ -238,7 +238,7 @@ export function getComparisonAssertions({
 }: ComparisonAssertions) {
   const targets = {
     piperider: 'piperider_assertion_result',
-    dbt: 'dbt_test_result',
+    dbt: 'dbt_assertion_result',
   };
 
   const baseTables = { type: 'base', tables: data.base.tables[reportName] };

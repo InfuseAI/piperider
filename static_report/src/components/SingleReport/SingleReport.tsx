@@ -77,7 +77,6 @@ export default function SingleReport({ data, name }: Props) {
             <TabList>
               <Tab>Profiling</Tab>
               <Tab>Tests</Tab>
-              {/* If have `dbt_test_result` it will render this tab */}
               {table.dbt_assertion_result && <Tab>dbt Tests</Tab>}
             </TabList>
 
