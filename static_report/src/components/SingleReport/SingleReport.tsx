@@ -15,7 +15,6 @@ import { Main } from '../shared/Main';
 import { getReportAsserationStatusCounts } from '../../utils';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import type { AssertionResult } from '../../types';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import { SRTabProfilingDetails } from './SRTabProfilingDetails';
 import { SRTabTestDetails } from './SRTabTestDetails';

@@ -82,11 +82,12 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
         >
           {/* overview */}
           <Heading fontSize={24}>Overview</Heading>
+          {/* FIXME: any typing */}
           <CRTableOverview
-            baseOverview={baseOverview}
+            baseOverview={baseOverview as any}
             baseTables={baseTables}
             inputTables={inputTables}
-            inputOverview={inputOverview}
+            inputOverview={inputOverview as any}
           />
 
           <Tabs isLazy>

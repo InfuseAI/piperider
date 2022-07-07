@@ -5,7 +5,7 @@ import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 
 import type {
-  AssertionResult,
+  AssertionValue,
   ComparisonReportSchema,
   ComparsionSource,
 } from '../types';
@@ -59,7 +59,7 @@ export type ReportAsserationStatusCounts = {
   failed: string | number;
 };
 export function getReportAsserationStatusCounts(
-  assertion: AssertionResult | undefined,
+  assertion: AssertionValue,
 ): ReportAsserationStatusCounts {
   if (!assertion) {
     return { passed: '-', failed: '-' };
@@ -274,7 +274,7 @@ export function getComparisonAssertionTests({
   assertion,
   from,
 }: {
-  assertion: AssertionResult | undefined;
+  assertion: AssertionValue;
   from: ComparsionSource;
 }) {
   const { passed, failed } = getReportAsserationStatusCounts(assertion);

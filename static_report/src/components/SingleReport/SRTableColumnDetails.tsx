@@ -1,5 +1,4 @@
-import { Box, Code, Flex, Text, Tooltip } from '@chakra-ui/react';
-import { InfoOutlineIcon } from '@chakra-ui/icons';
+import { Code, Flex, Text } from '@chakra-ui/react';
 import { MetricsInfo } from '../shared/MetrisInfo';
 import {
   formatNumber,
