@@ -35,7 +35,6 @@ import { useResizeObserver } from '../../hooks/useResizeObserver';
 import { useSingleChart } from '../../hooks/useSingleChart';
 import { SRTableColumnDetails } from './SRTableColumnDetails';
 import type { SingleReportSchema } from '../../sdlc/single-report-schema';
-import type { AssertionResult } from '../../types';
 
 interface Props {
   data: SingleReportSchema;
