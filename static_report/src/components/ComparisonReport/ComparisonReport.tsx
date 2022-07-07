@@ -342,7 +342,7 @@ export default function ComparisonReport({
   const { base, input } = data;
   const baseTables = base.tables[reportName];
   const inputTables = input.tables[reportName];
-  const existsDbtTests = (base.tables[reportName] as any)?.dbt_test_results;
+  const existsDbtTests = (base.tables[reportName] as any)?.dbt_test_result;
 
   const [baseOverview, inputOverview] = getComparisonAssertions({
     data,

@@ -59,9 +59,7 @@ export default function SingleReport({ data, name }: Props) {
   }
 
   const overview = getReportAsserationStatusCounts(
-    table?.assertion_results
-      ? (table.assertion_results as AssertionResult)
-      : undefined,
+    table.piperider_assertion_result,
   );
 
   return (
@@ -120,7 +118,11 @@ export default function SingleReport({ data, name }: Props) {
               <Text
                 as="span"
                 fontWeight={700}
-                color={overview.failed > 0 ? 'red.500' : 'inherit'}
+                color={
+                  Number.isInteger(overview.failed) && overview.failed > 0
+                    ? 'red.500'
+                    : 'inherit'
+                }
               >
                 {overview.failed}
               </Text>{' '}
@@ -132,8 +134,8 @@ export default function SingleReport({ data, name }: Props) {
             <TabList>
               <Tab>Profiling</Tab>
               <Tab>Tests</Tab>
-              {/* If have `dbt_test_results` it will render this tab */}
-              {table.dbt_test_results && <Tab>dbt Tests</Tab>}
+              {/* If have `dbt_test_result` it will render this tab */}
+              {table.dbt_test_result && <Tab>dbt Tests</Tab>}
             </TabList>
 
             <TabPanels>
@@ -142,12 +144,12 @@ export default function SingleReport({ data, name }: Props) {
               </TabPanel>
 
               <TabPanel>
-                <TestsInformation data={table.assertion_results} />
+                <TestsInformation data={table.piperider_assertion_result} />
               </TabPanel>
 
-              {table?.dbt_test_results && (
+              {table?.dbt_test_result && (
                 <TabPanel>
-                  <TestsInformation type="dbt" data={table.dbt_test_results} />
+                  <TestsInformation type="dbt" data={table.dbt_test_result} />
                 </TabPanel>
               )}
             </TabPanels>
