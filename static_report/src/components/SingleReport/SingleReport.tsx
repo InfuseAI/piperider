@@ -59,9 +59,7 @@ export default function SingleReport({ data, name }: Props) {
   }
 
   const overview = getReportAsserationStatusCounts(
-    table?.assertion_results
-      ? (table.piperider_assertion_result as AssertionResult)
-      : undefined,
+    table.piperider_assertion_result,
   );
 
   return (
@@ -120,7 +118,11 @@ export default function SingleReport({ data, name }: Props) {
               <Text
                 as="span"
                 fontWeight={700}
-                color={overview.failed > 0 ? 'red.500' : 'inherit'}
+                color={
+                  Number.isInteger(overview.failed) && overview.failed > 0
+                    ? 'red.500'
+                    : 'inherit'
+                }
               >
                 {overview.failed}
               </Text>{' '}
@@ -142,7 +144,7 @@ export default function SingleReport({ data, name }: Props) {
               </TabPanel>
 
               <TabPanel>
-                <TestsInformation data={table.assertion_results} />
+                <TestsInformation data={table.piperider_assertion_result} />
               </TabPanel>
 
               {table?.dbt_test_result && (
