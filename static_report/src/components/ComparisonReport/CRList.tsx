@@ -22,6 +22,7 @@ import {
   formatReportTime,
   formatNumber,
   nestComparisonValueByKey,
+  formatColumnValueWith,
 } from '../../utils';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -182,22 +183,26 @@ export function ComparisonReportList({
                         </Td>
 
                         <Td>
-                          {table.base?.row_count
-                            ? formatNumber(table.base.row_count)
-                            : '-'}
+                          {formatColumnValueWith(
+                            table.base.row_count,
+                            formatNumber,
+                          )}
                           {' / '}
-                          {table.input?.row_count
-                            ? formatNumber(table.input.row_count)
-                            : '-'}
+                          {formatColumnValueWith(
+                            table.input.row_count,
+                            formatNumber,
+                          )}
                         </Td>
                         <Td>
-                          {table.base?.col_count
-                            ? formatNumber(table.base.col_count)
-                            : '-'}
+                          {formatColumnValueWith(
+                            table.base.col_count,
+                            formatNumber,
+                          )}
                           {' / '}
-                          {table.input?.col_count
-                            ? formatNumber(table.input?.col_count)
-                            : '-'}
+                          {formatColumnValueWith(
+                            table.input.col_count,
+                            formatNumber,
+                          )}
                         </Td>
                       </Tr>
                     </Link>

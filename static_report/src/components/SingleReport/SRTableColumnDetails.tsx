@@ -12,7 +12,6 @@ type SRTableColumnDetailsProps = {
   column: ColumnSchema;
 };
 
-// Will column ever be null?
 export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
   const {
     mismatch,
