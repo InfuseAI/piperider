@@ -1,9 +1,4 @@
-import {
-  DbtAssertionResult,
-  PipeRiderAssertionResult,
-  SingleReportSchema,
-  TableSchema,
-} from '../sdlc/single-report-schema';
+import { SingleReportSchema, TableSchema } from '../sdlc/single-report-schema';
 
 export interface ComparisonReportSchema {
   base: SingleReportSchema;
@@ -12,5 +7,6 @@ export interface ComparisonReportSchema {
 
 export type ComparsionSource = 'base' | 'input';
 
-export type AssertionValue = TableSchema['piperider_assertion_result'] &
-  TableSchema['dbt_assertion_result'];
+export type AssertionValue =
+  | TableSchema['piperider_assertion_result']
+  | TableSchema['dbt_assertion_result'];

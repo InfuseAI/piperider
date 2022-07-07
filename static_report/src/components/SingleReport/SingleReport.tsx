@@ -26,7 +26,7 @@ interface Props {
 }
 export default function SingleReport({ data, name }: Props) {
   const { datasource: source, tables } = data;
-  const table = tables[name] as any;
+  const table = tables[name];
 
   useDocumentTitle(name);
 
@@ -78,7 +78,7 @@ export default function SingleReport({ data, name }: Props) {
               <Tab>Profiling</Tab>
               <Tab>Tests</Tab>
               {/* If have `dbt_test_result` it will render this tab */}
-              {table.dbt_test_result && <Tab>dbt Tests</Tab>}
+              {table.dbt_assertion_result && <Tab>dbt Tests</Tab>}
             </TabList>
 
             <TabPanels>
@@ -87,12 +87,17 @@ export default function SingleReport({ data, name }: Props) {
               </TabPanel>
 
               <TabPanel>
-                <SRTabTestDetails data={table.assertion_results} />
+                <SRTabTestDetails
+                  assertionData={table.piperider_assertion_result}
+                />
               </TabPanel>
 
-              {table?.dbt_test_result && (
+              {table.piperider_assertion_result && (
                 <TabPanel>
-                  <SRTabTestDetails type="dbt" data={table.dbt_test_results} />
+                  <SRTabTestDetails
+                    type="dbt"
+                    assertionData={table.dbt_assertion_result}
+                  />
                 </TabPanel>
               )}
             </TabPanels>

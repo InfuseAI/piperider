@@ -9,15 +9,16 @@ import {
   Td,
   Text,
 } from '@chakra-ui/react';
+import { AssertionValue } from '../../types';
 import { extractExpectedOrActual } from '../../utils';
 
 type Props = {
-  data: any;
+  assertionData: AssertionValue;
   type?: 'piperider' | 'dbt';
 };
-export function SRTabTestDetails({ data, type = 'piperider' }: Props) {
-  const tabelTests = data?.tests;
-  const columnsTests = data?.columns;
+export function SRTabTestDetails({ assertionData, type = 'piperider' }: Props) {
+  const tabelTests = assertionData.tests;
+  const columnsTests = assertionData.columns;
 
   if (tabelTests.length === 0 && Object.keys(columnsTests).length === 0) {
     return (
@@ -39,7 +40,6 @@ export function SRTabTestDetails({ data, type = 'piperider' }: Props) {
               <Th>Status</Th>
               {type === 'piperider' && <Th>Expected</Th>}
               {type === 'piperider' && <Th>Actual</Th>}
-              {type === 'dbt' && <Th>Messagae</Th>}
             </Tr>
           </Thead>
 
@@ -70,7 +70,6 @@ export function SRTabTestDetails({ data, type = 'piperider' }: Props) {
                       {extractExpectedOrActual(tabelTest.actual)}
                     </Td>
                   )}
-                  {type === 'dbt' && <Td>{tabelTest.message ?? '-'}</Td>}
                 </Tr>
               );
             })}
@@ -105,7 +104,6 @@ export function SRTabTestDetails({ data, type = 'piperider' }: Props) {
                         {extractExpectedOrActual(columnTest.actual)}
                       </Td>
                     )}
-                    {type === 'dbt' && <Td>{columnTest.message ?? '-'}</Td>}
                   </Tr>
                 );
               });
