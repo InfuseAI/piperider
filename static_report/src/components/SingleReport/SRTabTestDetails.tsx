@@ -17,10 +17,13 @@ type Props = {
   type?: 'piperider' | 'dbt';
 };
 export function SRTabTestDetails({ assertionData, type = 'piperider' }: Props) {
-  const tabelTests = assertionData.tests;
-  const columnsTests = assertionData.columns;
+  const tableTests = assertionData?.tests;
+  const columnsTests = assertionData?.columns;
 
-  if (tabelTests.length === 0 && Object.keys(columnsTests).length === 0) {
+  if (
+    !tableTests ||
+    (tableTests.length === 0 && Object.keys(columnsTests).length === 0)
+  ) {
     return (
       <Flex direction="column">
         <Text textAlign="center">No tests available</Text>
@@ -44,7 +47,7 @@ export function SRTabTestDetails({ assertionData, type = 'piperider' }: Props) {
           </Thead>
 
           <Tbody>
-            {tabelTests.map((tabelTest) => {
+            {tableTests.map((tabelTest) => {
               const isFailed = tabelTest.status === 'failed';
               return (
                 <Tr key={tabelTest.name}>
