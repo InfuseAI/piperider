@@ -9,21 +9,13 @@ import {
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
+import { GeneralTableColumn } from '../shared/GeneralTableColumn';
 
 type SRTableColumnDetailsProps = {
   column: ColumnSchema;
 };
 
 export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
-  const {
-    mismatch,
-    mismatchOfTotal,
-    missing,
-    missingOfTotal,
-    valid,
-    validOfTotal,
-    totalOfTotal,
-  } = getColumnDetails(column);
   return (
     <Flex direction="column" gap={3}>
       <Box maxWidth="100%">
@@ -50,30 +42,7 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
       </Box>
 
       <Flex direction="column" mt={3}>
-        <MetricsInfo
-          name="Total"
-          base={formatNumber(column.total)}
-          input={formatIntervalMinMax(totalOfTotal)}
-        />
-        <MetricsInfo
-          name="Valid"
-          base={formatNumber(valid)}
-          input={formatIntervalMinMax(validOfTotal)}
-        />
-        <MetricsInfo
-          name="Mismatched"
-          base={formatNumber(mismatch)}
-          input={formatIntervalMinMax(mismatchOfTotal)}
-        />
-        <MetricsInfo
-          name="Missing"
-          base={formatNumber(missing)}
-          input={formatIntervalMinMax(missingOfTotal)}
-        />
-        <MetricsInfo
-          name="Distinct"
-          base={formatNumber(column.distinct as number)}
-        />
+        <GeneralTableColumn baseColumn={column} />
       </Flex>
 
       {column.type === 'string' && (

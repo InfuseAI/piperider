@@ -6,6 +6,7 @@ import {
   formatIntervalMinMax,
   formatColumnValueWith,
 } from '../../utils';
+import { GeneralTableColumn } from '../shared/GeneralTableColumn';
 import { MetricsInfo } from '../shared/MetrisInfo';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
 
@@ -21,23 +22,6 @@ export const CRTableColumnDetails = ({
   inputColumn,
 }: CRTableColumnDetailsProps) => {
   const emptyLabel = '-';
-  if (baseColumn) {
-    var {
-      total: baseTotal,
-      mismatchOfTotal: baseMismatchOfTotal,
-      validOfTotal: baseValidOfTotal,
-      missingOfTotal: baseMissingOfTotal,
-    } = getColumnDetails(baseColumn);
-  }
-
-  if (inputColumn) {
-    var {
-      total: inputTotal,
-      mismatchOfTotal: inputMismatchOfTotal,
-      validOfTotal: inputValidOfTotal,
-      missingOfTotal: inputMissingOfTotal,
-    } = getColumnDetails(inputColumn);
-  }
 
   return (
     <Flex direction="column" gap={2} minH="250px">
@@ -69,47 +53,9 @@ export const CRTableColumnDetails = ({
         </Flex>
 
         <Flex direction="column" mt={3}>
-          {/* TODO: GeneralStatsTableColumn */}
-          <MetricsInfo
-            name="Total"
-            base={formatColumnValueWith(baseTotal, formatNumber)}
-            input={formatColumnValueWith(inputTotal, formatNumber)}
-          />
-          <MetricsInfo
-            name="Valid"
-            base={formatColumnValueWith(baseValidOfTotal, formatIntervalMinMax)}
-            input={formatColumnValueWith(
-              inputValidOfTotal,
-              formatIntervalMinMax,
-            )}
-          />
-          <MetricsInfo
-            name="Mismatched"
-            base={formatColumnValueWith(
-              baseMismatchOfTotal,
-              formatIntervalMinMax,
-            )}
-            input={formatColumnValueWith(
-              inputMismatchOfTotal,
-              formatIntervalMinMax,
-            )}
-          />
-
-          <MetricsInfo
-            name="Missing"
-            base={formatColumnValueWith(
-              baseMissingOfTotal,
-              formatIntervalMinMax,
-            )}
-            input={formatColumnValueWith(
-              inputMissingOfTotal,
-              formatIntervalMinMax,
-            )}
-          />
-          <MetricsInfo
-            name="Distinct"
-            base={formatColumnValueWith(baseColumn?.distinct, formatNumber)}
-            input={formatColumnValueWith(inputColumn?.distinct, formatNumber)}
+          <GeneralTableColumn
+            inputColumn={inputColumn}
+            baseColumn={baseColumn}
           />
         </Flex>
         {column.type === 'numeric' && (
