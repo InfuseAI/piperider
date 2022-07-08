@@ -132,7 +132,7 @@ export function ComparisonReportList({
                   <Th />
                 </Tr>
               </Thead>
-              <Tbody>
+              <Tbody data-cy="cr-report-list">
                 {Object.keys(tables).map((key) => {
                   const table = tables[key];
 
@@ -154,6 +154,7 @@ export function ComparisonReportList({
                   return (
                     <Link key={nanoid()} href={`/tables/${key}`}>
                       <Tr
+                        data-cy="cr-report-list-item"
                         cursor="pointer"
                         _hover={{ bgColor: 'blackAlpha.50' }}
                       >

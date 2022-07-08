@@ -59,7 +59,9 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
           <Breadcrumb fontSize="lg">
             <BreadcrumbItem>
               <Link href="/">
-                <BreadcrumbLink href="/">Tables</BreadcrumbLink>
+                <BreadcrumbLink href="/" data-cy="cr-report-breadcrumb-back">
+                  Tables
+                </BreadcrumbLink>
               </Link>
             </BreadcrumbItem>
 
@@ -93,8 +95,8 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
           <Tabs isLazy>
             <TabList>
               <Tab>Schema</Tab>
-              <Tab>Profiling</Tab>
-              <Tab>Tests</Tab>
+              <Tab data-cy="cr-report-tab-item-profiling">Profiling</Tab>
+              <Tab data-cy="cr-report-tab-item-tests">Tests</Tab>
               {existsDbtTests && <Tab>dbt Tests</Tab>}
             </TabList>
 

@@ -35,6 +35,12 @@ jobs:
 
     - name: Install Dependencies
       run: yarn install --frozen-lockfile
+    - name: Cypress build & run
+    # Parallelization only for cypress dashboard https://www.cypress.io/pricing/
+      uses: cypress-io/github-action@v2
+      with:
+        build: npm run setup:e2e #TODO: build requires raw data, which is not avail atm (house raw data jsons)
+        start: npm run test:e2e #TODO: cypress run (all) 
     - name: Build Apps
       run: npm run build
     - uses: stefanzweifel/git-auto-commit-action@v4

@@ -19,11 +19,39 @@ describe('Home Page', () => {
     // Check navigation success...
     cy.url().should('include', '/tables/DL');
 
+    // SingleReport
     // Click tabs...
     cy.get('[data-cy="sr-report-tab-item"]').click();
 
     // Return to Index
     cy.get('[data-cy="sr-report-breadcrumb-back"]').click();
   });
-  it('Navigate thru CR Pages', () => {});
+  it('Navigate thru CR Pages', () => {
+    // ARRANGE
+    cy.visit('http://localhost:3001');
+
+    // ACT (None: Loading only)
+
+    // ASSERT
+    // CROverview
+
+    // CRList
+    const list = cy.get('[data-cy="cr-report-list"]');
+    list.should('be.visible');
+    const listItem = cy
+      .get('[data-cy="cr-report-list-item"]')
+      .should('be.visible');
+    // Click to navigate...
+    listItem.first().click();
+    // Check navigation success...
+    cy.url().should('include', '/tables/year');
+
+    // ComparisonReport
+    // Click tabs...
+    cy.get('[data-cy="cr-report-tab-item-profiling"]').click();
+    cy.get('[data-cy="cr-report-tab-item-tests"]').click();
+
+    // Return to Index
+    cy.get('[data-cy="cr-report-breadcrumb-back"]').click();
+  });
 });
