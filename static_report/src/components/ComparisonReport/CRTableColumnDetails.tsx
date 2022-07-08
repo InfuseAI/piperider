@@ -7,6 +7,7 @@ import {
   formatColumnValueWith,
 } from '../../utils';
 import { MetricsInfo } from '../shared/MetrisInfo';
+import { NumericTableColumn } from '../shared/NumericTableColumn';
 
 // props made optional as they can be undefined
 type CRTableColumnDetailsProps = {
@@ -68,6 +69,7 @@ export const CRTableColumnDetails = ({
         </Flex>
 
         <Flex direction="column" mt={3}>
+          {/* TODO: GeneralStatsTableColumn */}
           <MetricsInfo
             name="Total"
             base={formatColumnValueWith(baseTotal, formatNumber)}
@@ -112,55 +114,10 @@ export const CRTableColumnDetails = ({
         </Flex>
         {column.type === 'numeric' && (
           <>
-            <Flex direction="column">
-              <MetricsInfo
-                name="Average"
-                base={formatColumnValueWith(baseColumn?.avg, formatNumber)}
-                input={formatColumnValueWith(inputColumn?.avg, formatNumber)}
-              />
-              <MetricsInfo
-                name="Std. Deviation"
-                base={formatColumnValueWith(baseColumn?.stddev, formatNumber)}
-                input={formatColumnValueWith(inputColumn?.stddev, formatNumber)}
-              />
-            </Flex>
-            <Flex direction="column">
-              <MetricsInfo
-                name="Min"
-                base={formatColumnValueWith(baseColumn?.min, formatNumber)}
-                input={formatColumnValueWith(inputColumn?.min, formatNumber)}
-              />
-              <MetricsInfo
-                name="5%"
-                base={formatColumnValueWith(baseColumn?.p5, formatNumber)}
-                input={formatColumnValueWith(inputColumn?.p5, formatNumber)}
-              />
-              <MetricsInfo
-                name="25%"
-                base={formatColumnValueWith(baseColumn?.p25, formatNumber)}
-                input={formatColumnValueWith(inputColumn?.p25, formatNumber)}
-              />
-              <MetricsInfo
-                name="50%"
-                base={formatColumnValueWith(baseColumn?.p50, formatNumber)}
-                input={formatColumnValueWith(inputColumn?.p50, formatNumber)}
-              />
-              <MetricsInfo
-                name="75%"
-                base={formatColumnValueWith(baseColumn?.p75, formatNumber)}
-                input={formatColumnValueWith(inputColumn?.p75, formatNumber)}
-              />
-              <MetricsInfo
-                name="95%"
-                base={formatColumnValueWith(baseColumn?.p95, formatNumber)}
-                input={formatColumnValueWith(inputColumn?.p95, formatNumber)}
-              />
-              <MetricsInfo
-                name="Max"
-                base={formatColumnValueWith(baseColumn?.max, formatNumber)}
-                input={formatColumnValueWith(inputColumn?.max, formatNumber)}
-              />
-            </Flex>
+            <NumericTableColumn
+              baseColumn={baseColumn}
+              inputColumn={inputColumn}
+            />
           </>
         )}
 
