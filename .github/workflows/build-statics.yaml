@@ -6,8 +6,6 @@ name: Node.js - Build & Commit to CLI data/report/**
 
 on:
   pull_request:
-    types:
-      - closed
     paths:
       - "static_report/**"
       # Trigger when diffs detected in statics source code
@@ -16,7 +14,6 @@ on:
 
 jobs:
   build:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -41,6 +38,7 @@ jobs:
     - name: Build Apps
       run: npm run build
     - uses: stefanzweifel/git-auto-commit-action@v4
+      if: github.event.pull_request.merged == true
       with:
           commit_message: AUTO-COMMIT - build report statics to CLI data/report
           branch: ${{ github.base_ref }}
