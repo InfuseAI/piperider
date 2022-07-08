@@ -109,7 +109,7 @@ jobs:
           make docker-deploy VERSION=$VERSION
           if [ "$SENTRY_ENV" == "production" ]; then
             echo "Set piperider:$VERSION as piperider:latest"
-            make deploy-deploy-latest VERSION=$VERSION
+            make docker-deploy-latest VERSION=$VERSION
           fi
         env:
           VERSION: ${{ needs.build.outputs.piperider_version }}
