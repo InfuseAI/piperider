@@ -51,7 +51,9 @@ export default function SingleReport({ data, name }: Props) {
           <Breadcrumb fontSize="lg">
             <BreadcrumbItem>
               <Link href="/">
-                <BreadcrumbLink href="/">{source.name}</BreadcrumbLink>
+                <BreadcrumbLink href="/" data-cy="sr-report-breadcrumb-back">
+                  {source.name}
+                </BreadcrumbLink>
               </Link>
             </BreadcrumbItem>
 
@@ -76,7 +78,7 @@ export default function SingleReport({ data, name }: Props) {
           <Tabs isLazy>
             <TabList>
               <Tab>Profiling</Tab>
-              <Tab>Tests</Tab>
+              <Tab data-cy="sr-report-tab-item">Tests</Tab>
               {table.dbt_assertion_result && <Tab>dbt Tests</Tab>}
             </TabList>
 

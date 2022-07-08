@@ -1,5 +1,5 @@
 describe('Home Page', () => {
-  it('Navigate', () => {
+  it('Navigate thru SR Pages', () => {
     // ARRANGE
     cy.visit('http://localhost:3000');
 
@@ -18,5 +18,12 @@ describe('Home Page', () => {
     listItem.first().click();
     // Check navigation success...
     cy.url().should('include', '/tables/DL');
+
+    // Click tabs...
+    cy.get('[data-cy="sr-report-tab-item"]').click();
+
+    // Return to Index
+    cy.get('[data-cy="sr-report-breadcrumb-back"]').click();
   });
+  it('Navigate thru CR Pages', () => {});
 });
