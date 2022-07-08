@@ -49,10 +49,22 @@ class DbtProjectNotFoundError(PipeRiderError):
         self.message = f"Cannot find dbt project at {dbt_project_path}"
 
 
+class DbtProjectInvalidError(PipeRiderError):
+    def __init__(self, dbt_project_path):
+        self.dbt_project_path = dbt_project_path
+        self.message = f"Failed to load dbt project '{dbt_project_path}'. Please use 'dbt debug' to verify the dbt configuration."
+
+
 class DbtProfileNotFoundError(PipeRiderError):
     def __init__(self, dbt_profile_path):
         self.dbt_project_path = dbt_profile_path
-        self.message = f"Cannot find dbt profiles at {dbt_profile_path}. Please use dbt init to initiate the dbt profiles."
+        self.message = f"Cannot find dbt profiles at '{dbt_profile_path}'. Please use 'dbt init' to initiate the dbt profiles."
+
+
+class DbtProfileInvalidError(PipeRiderError):
+    def __init__(self, dbt_profile_path):
+        self.dbt_profile_path = dbt_profile_path
+        self.message = f"Failed to load dbt profile '{dbt_profile_path}'. Please use 'dbt debug' to verify the dbt configuration."
 
 
 class DbtInvocationError(PipeRiderError):

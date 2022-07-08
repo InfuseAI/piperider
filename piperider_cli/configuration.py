@@ -11,7 +11,9 @@ from piperider_cli.error import \
     PipeRiderConfigError, \
     PipeRiderInvalidDataSourceError, \
     DbtProjectNotFoundError, \
-    DbtProfileNotFoundError
+    DbtProfileNotFoundError, \
+    DbtProjectInvalidError, \
+    DbtProfileInvalidError
 
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
@@ -58,7 +60,10 @@ class Configuration(object):
             raise DbtProjectNotFoundError(dbt_project_path)
 
         with open(dbt_project_path, 'r') as fd:
-            dbt_project = yaml.safe_load(fd)
+            try:
+                dbt_project = yaml.safe_load(fd)
+            except Exception:
+                raise DbtProjectInvalidError(dbt_project_path)
 
         if not os.path.exists(os.path.expanduser(dbt_profile_path)):
             raise DbtProfileNotFoundError(dbt_profile_path)
@@ -218,4 +223,7 @@ def _load_dbt_profile(path):
     env.filters['as_number'] = as_number
     env.filters['as_text'] = as_text
     template = env.get_template(os.path.basename(path))
-    return yaml.safe_load(template.render())
+    try:
+        return yaml.safe_load(template.render())
+    except Exception:
+        raise DbtProfileInvalidError(path)
