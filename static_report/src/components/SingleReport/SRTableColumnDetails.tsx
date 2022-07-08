@@ -8,6 +8,7 @@ import {
 } from '../../utils';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
+import { NumericTableColumn } from '../shared/NumericTableColumn';
 
 type SRTableColumnDetailsProps = {
   column: ColumnSchema;
@@ -85,15 +86,7 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
         </Flex>
       )}
 
-      {column.type === 'numeric' && (
-        <Flex direction="column">
-          <MetricsInfo name="Min" base={formatNumber(column.min as number)} />
-
-          <MetricsInfo name="Max" base={formatNumber(column.max as number)} />
-
-          <MetricsInfo name="Avg" base={formatNumber(column.avg as number)} />
-        </Flex>
-      )}
+      {column.type === 'numeric' && <NumericTableColumn baseColumn={column} />}
 
       {column.type === 'datetime' && (
         <Flex direction="column">
