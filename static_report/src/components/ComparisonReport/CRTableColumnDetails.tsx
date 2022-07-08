@@ -1,11 +1,5 @@
 import { Code, Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
-import {
-  formatNumber,
-  getColumnDetails,
-  formatIntervalMinMax,
-  formatColumnValueWith,
-} from '../../utils';
 import { GeneralTableColumn } from '../shared/GeneralTableColumn';
 import { MetricsInfo } from '../shared/MetrisInfo';
 import { NumericTableColumn } from '../shared/NumericTableColumn';

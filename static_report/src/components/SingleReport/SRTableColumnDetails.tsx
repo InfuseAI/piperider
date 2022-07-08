@@ -1,11 +1,6 @@
 import { Box, Code, Flex, Text, Tooltip } from '@chakra-ui/react';
 import { MetricsInfo } from '../shared/MetrisInfo';
-import {
-  formatNumber,
-  getColumnDetails,
-  formatIntervalMinMax,
-  getSRCommonMetrics,
-} from '../../utils';
+import { getSRCommonMetrics } from '../../utils';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
