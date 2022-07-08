@@ -213,17 +213,20 @@ def _append_descriptions_from_dbt(profile_result, dbt, default_schema):
     for resource in resources:
         schema = resource.get('source_name')
         table_name = resource.get('name')
-        description = resource.get('description', '')
+        table_desc = resource.get('description', '')
 
         schema = f'{schema}.' if schema and schema != default_schema else ''
         table_name = f'{schema}{table_name}'
 
         if table_name not in profile_result['tables']:
             continue
-        profile_result['tables'][table_name]['description'] = description
+        if table_desc:
+            profile_result['tables'][table_name]['description'] = table_desc
 
         columns = resource.get('columns', {})
         for column_name, v in columns.items():
             if column_name not in profile_result['tables'][table_name]['columns']:
                 continue
-            profile_result['tables'][table_name]['columns'][column_name]['description'] = v.get('description', '')
+            column_desc = v.get('description', '')
+            if column_desc:
+                profile_result['tables'][table_name]['columns'][column_name]['description'] = column_desc
