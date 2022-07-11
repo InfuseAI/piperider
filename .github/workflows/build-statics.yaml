@@ -34,11 +34,12 @@ jobs:
         cache-dependency-path: static_report/yarn.lock
 
     - name: Install Dependencies
-      run: yarn install --frozen-lockfile
+      run: yarn install --immutable
     - name: Cypress run (E2E)
     # Parallelization only for cypress dashboard https://www.cypress.io/pricing/
       uses: cypress-io/github-action@v2
       with:
+        install: false
         project: ./static_report
         build: npm run setup:e2e
         start: |
