@@ -39,14 +39,28 @@ jobs:
       with:
         python-version: 3.8
 
-    - name: Run Python commands
+    - name: Prepare Piperider Data
       run: |
+        sudo apt-get install expect dejagnu
+        mkdir -p ~/.piperider
+        cat << EOF > ~/.piperider/profile.yml
+        user_id: 00000000000000000000000000000000
+        anonymous_tracking: true
+        EOF
         pip install -r requirements.txt
-        python3.8 -m venv env
-        source env/bin/activate
-        echo "VIRTUAL ENV:" $VIRTUAL_ENV
+        which piperider
         piperider version
-        curl -o sp500.db https://piperider-data.s3.ap-northeast-1.amazonaws.com/getting-started/sp500_20220527.db
+
+    - name: RunTests
+      # cd e2e-tests
+      # origin=$(pwd)
+      # echo "current directory is $origin"
+      # cd $origin
+      run: |
+        runtest e2e-tests/testsuite/getting-started/001-run.exp
+        ls ~/.piperider/outputs
+        ls ~/.piperider/comparisons
+        echo "Finish Runs"
 
     - name: Install Dependencies
       run: yarn install --immutable
@@ -59,6 +73,7 @@ jobs:
         working-directory: ./static_report
         config-file: cypress.config.ts
         build: npm run setup:e2e
+        # change to `build apps`
         start: |
           npm run serve:single
           npm run serve:comparison
