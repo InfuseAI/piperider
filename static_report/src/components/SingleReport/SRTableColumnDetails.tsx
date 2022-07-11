@@ -1,10 +1,11 @@
-import { Box, Code, Flex, Text, Tooltip } from '@chakra-ui/react';
+import { Box, Code, Flex, Text } from '@chakra-ui/react';
 import { MetricsInfo } from '../shared/MetrisInfo';
 import { getSRCommonMetrics } from '../../utils';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
 import { GeneralTableColumn } from '../shared/GeneralTableColumn';
+import { DescriptionTooltip } from '../shared/DescriptionTooltip';
 
 type SRTableColumnDetailsProps = {
   column: ColumnSchema;
@@ -26,12 +27,12 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
           >
             {column.name as string}
           </Text>
-          <Tooltip
-            label={(column.description as string) || ''}
+          <DescriptionTooltip
+            description={(column.description as string) || ''}
             placement="right-end"
           >
             <InfoOutlineIcon m={'auto 0'} />
-          </Tooltip>
+          </DescriptionTooltip>
         </Flex>
         {''}(<Code>{column.schema_type as string}</Code>)
       </Box>
