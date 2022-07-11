@@ -41,10 +41,10 @@ jobs:
       with:
         install: false
         working-directory: ./static_report
-        build: npm run embed:html:e2e
+        build: npm run setup:e2e
         start: |
-          npm run start:single
-          npm run start:comparison
+          npm run serve:single
+          npm run serve:comparison
     - name: Build Apps
       run: npm run build
     - uses: stefanzweifel/git-auto-commit-action@v4
