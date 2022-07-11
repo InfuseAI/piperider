@@ -4,8 +4,10 @@ import time
 from datetime import datetime, date
 
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import MetaData, Table, String, Integer, Numeric, Date, DateTime, Boolean, select, func, distinct, case
+from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, select, func, \
+    distinct, case
 from sqlalchemy.types import Float
+from sqlalchemy.engine import Engine
 
 HISTOGRAM_NUM_BUCKET = 50
 
@@ -41,10 +43,10 @@ def format_float(val):
 
 
 class Profiler:
-    engine = None
+    engine: Engine = None
     metadata = None
 
-    def __init__(self, engine):
+    def __init__(self, engine: Engine):
         self.engine = engine
 
     def profile(self, tables=None):
@@ -68,19 +70,20 @@ class Profiler:
         if not tables:
             tables = self.metadata.tables
 
-        for t in tables:
+        for table_name in tables:
+            t = self.metadata.tables[table_name]
             tresult = self._profile_table(t)
-            profiled_tables[t] = tresult
+            profiled_tables[table_name] = tresult
         return {
             "tables": profiled_tables,
         }
 
-    def _profile_table(self, table_name):
-        t = self.metadata.tables[table_name]
+    def _profile_table(self, table):
+
         columns = {}
-        for c in t.columns:
-            tresult = self._profile_column(table_name, c.name)
-            columns[c.name] = tresult
+        for column in table.columns:
+            tresult = self._profile_column(table, column)
+            columns[column.name] = tresult
 
         row_count = 0
         for k in columns:
@@ -88,77 +91,111 @@ class Profiler:
             break
 
         return {
-            "name": table_name,
+            "name": table.name,
             "row_count": row_count,
             "col_count": len(columns),
             "columns": columns
         }
 
-    def _profile_column(self, table_name, column_name):
-        t = self.metadata.tables[table_name]
-        c = t.c[column_name]
-
-        print(f"profiling [{c.table.name}.{c.name}] type={c.type}")
-        result = None
-        generic_type = None
+    def _profile_column(self, table: Table, column: Column):
+        print(f"profiling [{column.table.name}.{column.name}] type={column.type}")
         profile_start = time.perf_counter()
-        if isinstance(c.type, String):
+        if isinstance(column.type, String):
             # VARCHAR
             # CHAR
             # TEXT
             # CLOB
             generic_type = "string"
-            result = self._profile_string_column(table_name, c.name)
-        elif isinstance(c.type, Integer):
+            profiler = StringColumnProfiler(self.engine, table, column)
+        elif isinstance(column.type, Integer):
             # INTEGER
             # BIGINT
             # SMALLINT
             generic_type = "integer"
-            result = self._profile_numeric_column(table_name, c.name, is_integer=True)
-        elif isinstance(c.type, Numeric):
+            profiler = NumericColumnProfiler(self.engine, table, column, is_integer=True)
+        elif isinstance(column.type, Numeric):
             # NUMERIC
             # DECIMAL
             # FLOAT
             generic_type = "numeric"
-            result = self._profile_numeric_column(table_name, c.name, is_integer=False)
-        elif isinstance(c.type, Date) or isinstance(c.type, DateTime):
+            profiler = NumericColumnProfiler(self.engine, table, column, is_integer=False)
+        elif isinstance(column.type, Date) or isinstance(column.type, DateTime):
             # DATE
             # DATETIME
             generic_type = "datetime"
-            result = self._profile_datetime_column(table_name, c.name)
-        elif isinstance(c.type, Boolean):
+            profiler = DatetimeColumnProfiler(self.engine, table, column)
+        elif isinstance(column.type, Boolean):
             # BOOLEAN
             generic_type = "boolean"
-            result = self._profile_bool_column(table_name, c.name)
+            profiler = BooleanColumnProfiler(self.engine, table, column)
         else:
             generic_type = "other"
-            result = self._profile_other_column(table_name, c.name)
+            profiler = BaseColumnProfiler(self.engine, table, column)
+
+        result = profiler.profile()
         profile_end = time.perf_counter()
         duration = profile_end - profile_start
 
-        result["name"] = column_name
+        result["name"] = column.name
         result["profile_duration"] = f"{duration:.2f}"
         result["type"] = generic_type
-        result["schema_type"] = str(c.type)
+        result["schema_type"] = str(column.type)
         return result
 
-    def _profile_string_column(self, table_name, column_name):
-        # metadata = MetaData()
-        # t = Table(table_name, metadata, Column(column_name, String))
-        t = self.metadata.tables[table_name]
 
+class BaseColumnProfiler:
+    engine: Engine = None
+    table: Table = None
+    column: Column = None
+
+    def __init__(self, engine, table: Table, column: Column):
+        self.engine = engine
+        self.table = table
+        self.column = column
+
+    def _get_table_cte(self):
+        t = self.table
+        c = self.column
+
+        return select([c.label("c")]).select_from(t).cte()
+
+    def profile(self):
         with self.engine.connect() as conn:
-            t2 = select([t.c[column_name].label("c")]).cte(name="T")
+            cte = self._get_table_cte()
             stmt = select([
                 func.count().label("_total"),
-                func.count(t2.c.c).label("_non_nulls"),
-                func.count(distinct(t2.c.c)).label("_distinct")
+                func.count(cte.c.c).label("_non_nulls"),
+                func.count(distinct(cte.c.c)).label("_distinct")
+            ])
+            result = conn.execute(stmt).fetchone()
+            _total, _non_null, _distinct = result
+            return {
+                'total': _total,
+                'non_nulls': _non_null,
+                'mismatched': 0,
+                'distinct': _distinct,
+                'distribution': None,
+            }
+
+
+class StringColumnProfiler(BaseColumnProfiler):
+
+    def __init__(self, engine, table: Table, column: Column):
+        super().__init__(engine, table, column)
+
+    def profile(self):
+        with self.engine.connect() as conn:
+            cte = self._get_table_cte()
+            stmt = select([
+                func.count().label("_total"),
+                func.count(cte.c.c).label("_non_nulls"),
+                func.count(distinct(cte.c.c)).label("_distinct")
             ])
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _distinct = result
             distribution = None
             if _non_null > 0:
-                distribution = self._dist_topk(conn, t2.c.c)
+                distribution = profile_topk(conn, cte.c.c)
             return {
                 'total': _total,
                 'non_nulls': _non_null,
@@ -166,35 +203,95 @@ class Profiler:
                 'distribution': distribution,
             }
 
-    def _dist_topk(self, conn, expr, k=20):
-        stmt = select([
-            expr,
-            func.count().label("_count")
-        ]).group_by(
-            expr
-        ).order_by(
-            func.count().desc(),
-        ).limit(k)
-        result = conn.execute(stmt)
 
-        distribution = {
-            "type": "topk",  # Top K Items
-            "labels": [],
-            "counts": [],
-        }
-        for row in result:
-            k, v = row
-            if k is not None:
-                k = str(k)
-            distribution["labels"].append(k)
-            distribution["counts"].append(v)
-        return distribution
+class NumericColumnProfiler(BaseColumnProfiler):
+    is_integer: bool
 
-    def _calc_quantile(self, conn, table, column, total) -> dict:
-        if not total:
-            return {}
+    def __init__(self, engine, table: Table, column: Column, is_integer: bool):
+        super().__init__(engine, table, column)
+        self.is_integer = is_integer
 
-        if self.engine.url.get_backend_name() == "sqlite":
+    def _get_table_cte(self):
+        t = self.table
+        c = self.column
+        if self.engine.url.get_backend_name() != "sqlite":
+            cte = select([
+                c.label("c"),
+                case(
+                    [(c.is_(None), None)],
+                    else_=0
+                ).label("mismatched")
+            ]).select_from(t).cte()
+        else:
+            cte = select([
+                case(
+                    [(func.typeof(c) == 'text', None),
+                     (func.typeof(c) == 'blob', None)],
+                    else_=c
+                ).label("c"),
+                case(
+                    [(func.typeof(c) == 'text', 1),
+                     (func.typeof(c) == 'blob', 1),
+                     (func.typeof(c) == 'null', None)],
+                    else_=0
+                ).label("mismatched")
+            ]).cte(name="T")
+        return cte
+
+    def profile(self):
+        with self.engine.connect() as conn:
+            cte = self._get_table_cte()
+
+            stmt = select([
+                func.count().label("_total"),
+                func.count(cte.c.mismatched).label("_non_nulls"),
+                func.sum(cte.c.mismatched).label("_mismatched"),
+                func.count(distinct(cte.c.c)).label("_distinct"),
+                func.sum(cte.c.c).label("_sum"),
+                func.avg(cte.c.c).label("_avg"),
+                func.min(cte.c.c).label("_min"),
+                func.max(cte.c.c).label("_max"),
+                func.avg(func.cast(cte.c.c, Float) * func.cast(cte.c.c, Float)).label("_square_avg"),
+            ])
+            result = conn.execute(stmt).fetchone()
+            _total, _non_null, _mismatched, _distinct, _sum, _avg, _min, _max, _square_avg = result
+            _mismatched = 0 if _mismatched is None else _mismatched
+            _valid = _non_null - _mismatched
+
+            _sum = dtof(_sum)
+            _min = dtof(_min)
+            _max = dtof(_max)
+            _avg = dtof(_avg)
+            _square_avg = dtof(_square_avg)
+            _stddev = math.sqrt(_square_avg - _avg * _avg) if _square_avg and _avg else None
+
+            if _valid > 0:
+                quantile = self._profile_quantile(conn, cte, cte.c.c, _valid, self.engine.url.get_backend_name())
+                distribution = self._profile_histogram(conn, cte, cte.c.c, _min, _max, self.is_integer)
+            else:
+                quantile = {}
+                distribution = None
+
+            return {
+                'total': _total,
+                'non_nulls': _non_null,
+                'mismatched': _mismatched,
+                'distinct': _distinct,
+                'min': _min,
+                'max': _max,
+                'sum': _sum,
+                'avg': _avg,
+                'p5': quantile.get('p5'),
+                'p25': quantile.get('p25'),
+                'stddev': _stddev,
+                'p50': quantile.get('p50'),
+                'p75': quantile.get('p75'),
+                'p95': quantile.get('p95'),
+                'distribution': distribution,
+            }
+
+    def _profile_quantile(self, conn, table, column, total, backend=None) -> dict:
+        if backend == "sqlite":
             # with t as (
             #   select
             #     column as c,
@@ -243,8 +340,7 @@ class Profiler:
                 'p95': dtof(result[4]),
             }
 
-    def _calc_histogram(self, conn, table, column, min, max, is_integer, num_buckets=HISTOGRAM_NUM_BUCKET):
-
+    def _profile_histogram(self, conn, table, column, min, max, is_integer, num_buckets=HISTOGRAM_NUM_BUCKET):
         if is_integer:
             # min=0, max=50, num_buckets=50  => interval=1, num_buckets=51
             # min=0, max=70, num_buckets=50  => interval=2, num_buckets=36
@@ -262,22 +358,22 @@ class Profiler:
             else:
                 cases += [(column <= bound, i)]
 
-        t2 = select([
+        cte_with_bucket = select([
             column.label("c"),
             case(cases, else_=None).label("bucket")
         ]).select_from(
             table
         ).where(
             column.isnot(None)
-        ).cte(name="T_WITH_BUCKET")
+        ).cte()
 
         stmt = select([
-            t2.c.bucket,
+            cte_with_bucket.c.bucket,
             func.count().label("_count")
         ]).group_by(
-            t2.c.bucket
+            cte_with_bucket.c.bucket
         ).order_by(
-            t2.c.bucket
+            cte_with_bucket.c.bucket
         )
 
         result = conn.execute(stmt)
@@ -321,114 +417,47 @@ class Profiler:
             "bin_edges": bin_edges,
         }
 
-    def _profile_numeric_column(self, table_name: str, column_name: str, is_integer: bool):
-        # metadata = MetaData()
-        # t = Table(table_name, metadata, Column(column_name, Numeric))
-        t = self.metadata.tables[table_name]
 
+class DatetimeColumnProfiler(BaseColumnProfiler):
+    def __init__(self, engine, table: Table, column: Column):
+        super().__init__(engine, table, column)
+
+    def _get_table_cte(self):
+        t = self.table
+        c = self.column
+        if self.engine.url.get_backend_name() != "sqlite":
+            cte = select([
+                c.label("c"),
+                case(
+                    [(c.is_(None), None)],
+                    else_=0
+                ).label("mismatched")
+            ]).select_from(t).cte()
+        else:
+            cte = select([
+                case(
+                    [(func.datetime(c).is_(None), None)],
+                    else_=func.datetime(c)
+                ).label("c"),
+                case(
+                    [((func.typeof(c) == 'text') & (func.datetime(c).is_(None)), 1),
+                     (func.typeof(c) == 'null', None)],
+                    else_=0
+                ).label("mismatched")
+            ]).cte()
+        return cte
+
+    def profile(self):
         with self.engine.connect() as conn:
-            if self.engine.url.get_backend_name() != "sqlite":
-                t2 = select([
-                    t.c[column_name].label("c"),
-                    case(
-                        [(t.c[column_name].is_(None), None)],
-                        else_=0
-                    ).label("mismatched")
-                ]).cte(name="T")
-            else:
-                t2 = select([
-                    case(
-                        [(func.typeof(t.c[column_name]) == 'text', None),
-                         (func.typeof(t.c[column_name]) == 'blob', None)],
-                        else_=t.c[column_name]
-                    ).label("c"),
-                    case(
-                        [(func.typeof(t.c[column_name]) == 'text', 1),
-                         (func.typeof(t.c[column_name]) == 'blob', 1),
-                         (func.typeof(t.c[column_name]) == 'null', None)],
-                        else_=0
-                    ).label("mismatched")
-                ]).cte(name="T")
+            cte = self._get_table_cte()
 
             stmt = select([
                 func.count().label("_total"),
-                func.count(t2.c.mismatched).label("_non_nulls"),
-                func.sum(t2.c.mismatched).label("_mismatched"),
-                func.count(distinct(t2.c.c)).label("_distinct"),
-                func.sum(t2.c.c).label("_sum"),
-                func.avg(t2.c.c).label("_avg"),
-                func.min(t2.c.c).label("_min"),
-                func.max(t2.c.c).label("_max"),
-                func.avg(func.cast(t2.c.c, Float) * func.cast(t2.c.c, Float)).label("_square_avg"),
-            ])
-            result = conn.execute(stmt).fetchone()
-            _total, _non_null, _mismatched, _distinct, _sum, _avg, _min, _max, _square_avg = result
-            _mismatched = 0 if _mismatched is None else _mismatched
-
-            _sum = dtof(_sum)
-            _min = dtof(_min)
-            _max = dtof(_max)
-            _avg = dtof(_avg)
-            _square_avg = dtof(_square_avg)
-            _stddev = math.sqrt(_square_avg - _avg * _avg) if _square_avg and _avg else None
-
-            # quantile
-            quantile = self._calc_quantile(conn, t2, t2.c.c, _total)
-
-            # histogram
-
-            distribution = self._calc_histogram(conn, t2, t2.c.c, _min, _max, is_integer) if _non_null - _mismatched > 0 else None
-
-            return {
-                'total': _total,
-                'non_nulls': _non_null,
-                'mismatched': _mismatched,
-                'distinct': _distinct,
-                'min': _min,
-                'max': _max,
-                'sum': _sum,
-                'avg': _avg,
-                'p5': quantile.get('p5'),
-                'p25': quantile.get('p25'),
-                'stddev': _stddev,
-                'p50': quantile.get('p50'),
-                'p75': quantile.get('p75'),
-                'p95': quantile.get('p95'),
-                'distribution': distribution,
-            }
-
-    def _profile_datetime_column(self, table_name, column_name):
-        t = self.metadata.tables[table_name]
-
-        with self.engine.connect() as conn:
-            if self.engine.url.get_backend_name() != "sqlite":
-                t2 = select([
-                    t.c[column_name].label("c"),
-                    case(
-                        [(t.c[column_name].is_(None), None)],
-                        else_=0
-                    ).label("mismatched")
-                ]).cte(name="T")
-            else:
-                t2 = select([
-                    case(
-                        [(func.datetime(t.c[column_name]).is_(None), None)],
-                        else_=func.datetime(t.c[column_name])
-                    ).label("c"),
-                    case(
-                        [((func.typeof(t.c[column_name]) == 'text') & (func.datetime(t.c[column_name]).is_(None)), 1),
-                         (func.typeof(t.c[column_name]) == 'null', None)],
-                        else_=0
-                    ).label("mismatched")
-                ]).cte(name="T")
-
-            stmt = select([
-                func.count().label("_total"),
-                func.count(t2.c.c).label("_non_nulls"),
-                func.sum(t2.c.mismatched).label("_mismatched"),
-                func.count(distinct(t2.c.c)).label("_distinct"),
-                func.min(t2.c.c).label("_min"),
-                func.max(t2.c.c).label("_max"),
+                func.count(cte.c.c).label("_non_nulls"),
+                func.sum(cte.c.mismatched).label("_mismatched"),
+                func.count(distinct(cte.c.c)).label("_distinct"),
+                func.min(cte.c.c).label("_min"),
+                func.max(cte.c.c).label("_max"),
             ])
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _mismatched, _distinct, _min, _max = result
@@ -444,7 +473,7 @@ class Profiler:
 
             distribution = None
             if _non_null == 1 or _distinct == 1:
-                distribution = self._dist_topk(conn, t2.c.c)
+                distribution = profile_topk(conn, cte.c.c)
             elif _non_null > 0:
                 distribution = {
                     "type": "",
@@ -463,30 +492,30 @@ class Profiler:
                     else:
                         return func.date_trunc(*args)
 
-                dmin, dmax, interval = Profiler._calc_date_range(_min, _max)
+                dmin, dmax, interval = self._calc_date_range(_min, _max)
                 if interval.years:
                     distribution["type"] = "yearly"
                     period = relativedelta(dmax, dmin)
                     num_buckets = math.ceil(period.years / interval.years)
-                    t2 = select([date_trunc("YEAR", t.c[column_name]).label("d")]).cte(name="T")
+                    cte = select([date_trunc("YEAR", cte.c.c).label("d")]).cte(name="T")
                 elif interval.months:
                     distribution["type"] = "monthly"
                     period = relativedelta(dmax, dmin)
                     num_buckets = (period.years * 12 + period.months) // interval.months
-                    t2 = select([date_trunc("MONTH", t.c[column_name]).label("d")]).cte(name="T")
+                    cte = select([date_trunc("MONTH", cte.c.c).label("d")]).cte(name="T")
                 else:
                     distribution["type"] = "daily"
                     period = dmax - dmin
                     num_buckets = (period.days + 1) // interval.days
-                    t2 = select([date_trunc("DAY", t.c[column_name]).label("d")]).cte(name="T")
+                    cte = select([date_trunc("DAY", cte.c.c).label("d")]).cte(name="T")
 
                 stmt = select([
-                    t2.c.d,
-                    func.count(t2.c.d).label("_count")
+                    cte.c.d,
+                    func.count(cte.c.d).label("_count")
                 ]).group_by(
-                    t2.c.d
+                    cte.c.d
                 ).order_by(
-                    t2.c.d
+                    cte.c.d
                 )
 
                 result = conn.execute(stmt)
@@ -521,52 +550,7 @@ class Profiler:
                 'distribution': distribution,
             }
 
-    def _profile_bool_column(self, table_name, column_name):
-        t = self.metadata.tables[table_name]
-
-        with self.engine.connect() as conn:
-            t2 = select([t.c[column_name].label("c")]).cte(name="T")
-            stmt = select([
-                func.count().label("_total"),
-                func.count(t2.c.c).label("_non_nulls"),
-            ])
-            result = conn.execute(stmt).fetchone()
-            _total, _non_null, = result
-
-            distribution = None
-            if _non_null > 0:
-                distribution = self._dist_topk(conn, t2.c.c, 3)
-            return {
-                'total': _total,
-                'non_nulls': _non_null,
-                'mismatched': 0,
-                'distribution': distribution,
-            }
-
-    def _profile_other_column(self, table_name, column_name):
-        # metadata = MetaData()
-        # t = Table(table_name, metadata, Column(column_name, String))
-        t = self.metadata.tables[table_name]
-
-        with self.engine.connect() as conn:
-            t2 = select([t.c[column_name].label("c")]).cte(name="T")
-            stmt = select([
-                func.count().label("_total"),
-                func.count(t2.c.c).label("_non_nulls"),
-                func.count(distinct(t2.c.c)).label("_distinct")
-            ])
-            result = conn.execute(stmt).fetchone()
-            _total, _non_null, _distinct = result
-            return {
-                'total': _total,
-                'non_nulls': _non_null,
-                'mismatched': 0,
-                'distinct': _distinct,
-                'distribution': None,
-            }
-
-    @staticmethod
-    def _calc_date_range(min_date, max_date):
+    def _calc_date_range(self, min_date, max_date):
         period = max_date - min_date
         if math.ceil(period.days / 365) > 2:
             # more than 2 years
@@ -586,3 +570,54 @@ class Profiler:
             max_date = date(max_date.year, max_date.month, max_date.day)
             interval = relativedelta(days=+1)
         return min_date, max_date, interval
+
+
+class BooleanColumnProfiler(BaseColumnProfiler):
+    def __init__(self, engine, table: Table, column: Column):
+        super().__init__(engine, table, column)
+
+    def profile(self):
+        cte = self._get_table_cte()
+
+        with self.engine.connect() as conn:
+            stmt = select([
+                func.count().label("_total"),
+                func.count(cte.c.c).label("_non_nulls"),
+            ]).select_from(cte)
+            result = conn.execute(stmt).fetchone()
+            _total, _non_null, = result
+
+            distribution = None
+            if _non_null > 0:
+                distribution = profile_topk(conn, cte.c.c, 3)
+            return {
+                'total': _total,
+                'non_nulls': _non_null,
+                'mismatched': 0,
+                'distribution': distribution,
+            }
+
+
+def profile_topk(conn, expr, k=20):
+    stmt = select([
+        expr,
+        func.count().label("_count")
+    ]).group_by(
+        expr
+    ).order_by(
+        func.count().desc(),
+    ).limit(k)
+    result = conn.execute(stmt)
+
+    topk = {
+        "type": "topk",  # Top K Items
+        "labels": [],
+        "counts": [],
+    }
+    for row in result:
+        k, v = row
+        if k is not None:
+            k = str(k)
+        topk["labels"].append(k)
+        topk["counts"].append(v)
+    return topk
