@@ -53,7 +53,7 @@
     "build": "run-s strip:html build:*",
     "build:single": "rimraf ../piperider_cli/data/report/single-report && GENERATE_SOURCEMAP=false REACT_APP_SINGLE_REPORT=true react-scripts build && mv build ../piperider_cli/data/report/single-report",
     "build:comparison": "rimraf ../piperider_cli/data/report/comparison-report && GENERATE_SOURCEMAP=false REACT_APP_SINGLE_REPORT=false react-scripts build && mv build ../piperider_cli/data/report/comparison-report",
-    "embed:html:e2e": "node src/sdlc/embed-window-data.js e2e",
+    "embed:html:e2e": "node src/sdlc/embed-window-data.js e2e covid19-india",
     "test:e2e": "cypress open",
     "eject": "react-scripts eject",
     "test": "react-scripts test",
