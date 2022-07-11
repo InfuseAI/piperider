@@ -2,6 +2,16 @@ import chalk from 'chalk';
 import { writeFile, readdir, readFile } from 'fs/promises';
 import { parse } from 'node-html-parser';
 
+export const log = console.log;
+export const SINGLE_KEY = 'single';
+export const COMPARISON_KEY = 'comparison';
+export const PATH_TO_INDEX = 'public/index.html';
+export const FILENAME_SINGLE = 'run.json';
+export const FILENAME_COMPARISON = 'comparison_data.json';
+export const PATH_TO_SINGLE_REPORT_DATA_JSON =
+  '../.piperider/outputs/latest/run.json';
+export const PATH_TO_E2E_DATA_JSON = 'public/e2e-profiling-data';
+
 export const generateFile = async (fileName, fileData) => {
   try {
     await writeFile(fileName, fileData);
@@ -47,15 +57,3 @@ export const getEmbeddedIndexHTML = async (dataMap) => {
     throw new Error(chalk.red(e, `\nCheck if ${PATH_TO_INDEX} exists!`));
   }
 };
-
-export const log = console.log;
-export const SINGLE_KEY = 'single';
-export const COMPARISON_KEY = 'comparison';
-export const PATH_TO_INDEX = 'public/index.html';
-export const FILENAME_SINGLE = 'run.json';
-export const FILENAME_COMPARISON = 'comparison_data.json';
-export const PATH_TO_SINGLE_REPORT_DATA_JSON =
-  '../.piperider/outputs/latest/run.json';
-export const PATH_TO_COMPARISON_REPORT_DATA_JSON =
-  await getComparisonDataPath();
-export const PATH_TO_E2E_DATA_JSON = 'public/e2e-profiling-data';

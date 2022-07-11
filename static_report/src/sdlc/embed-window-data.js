@@ -19,7 +19,11 @@ import {
  * Inserts piperider report data into public/index.html
  * Note: This is for DEVELOPMENT ONLY. Make sure to exclude/revert index.html changes before pushing and committing!
  */
+log(process.argv);
+
 const insertDataToHTML = async () => {
+  // Declared here since this is dynamic
+  const PATH_TO_COMPARISON_REPORT_DATA_JSON = await getComparisonDataPath();
   const reportDataMap = new Map();
   const isE2E = process.argv[2] === 'e2e';
   const datasetName = process.argv[3];
