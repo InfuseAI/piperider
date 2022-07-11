@@ -53,8 +53,10 @@ jobs:
         which piperider
         piperider version
         runtest e2e-tests/testsuite/getting-started/001-run.exp
-        ls -a piperider-getting-started
-        ls -a .piperider
+        runtest e2e-tests/testsuite/getting-started/002-compare.exp
+        ls -a piperider-getting-started/.piperider/outputs
+        ls -a piperider-getting-started/.piperider/comparisons
+        
         echo "Finish Runs"
 
     - name: Install Dependencies
