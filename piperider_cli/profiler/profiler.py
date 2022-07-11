@@ -5,7 +5,7 @@ from datetime import datetime, date
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, select, func, \
-    distinct, case
+    distinct, case, or_
 from sqlalchemy.types import Float
 from sqlalchemy.engine import Engine
 
@@ -576,16 +576,45 @@ class BooleanColumnProfiler(BaseColumnProfiler):
     def __init__(self, engine, table: Table, column: Column):
         super().__init__(engine, table, column)
 
+    def _get_table_cte(self):
+        t = self.table
+        c = self.column
+        if self.engine.url.get_backend_name() != "sqlite":
+            cte = select([
+                c.label("c"),
+                case(
+                    [(c.is_(None), None)],
+                    else_=0
+                ).label("mismatched")
+            ]).select_from(t).cte()
+        else:
+            cte = select([
+                case(
+                    [(c.is_(True), c),
+                     (c.is_(False), c)],
+                    else_=None
+                ).label("c"),
+                case(
+                    [(c.is_(True), 0),
+                     (c.is_(False), 0),
+                     (c.is_(None), None)],
+                    else_=1
+                ).label("mismatched")
+            ]).cte()
+        return cte
+
     def profile(self):
         cte = self._get_table_cte()
 
         with self.engine.connect() as conn:
             stmt = select([
                 func.count().label("_total"),
-                func.count(cte.c.c).label("_non_nulls"),
+                func.count(cte.c.mismatched).label("_non_nulls"),
+                func.sum(cte.c.mismatched).label("_mismatched"),
+                func.count(distinct(cte.c.c)).label("_distinct"),
             ]).select_from(cte)
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, = result
+            _total, _non_null, _mismatched, _distinct = result
 
             distribution = None
             if _non_null > 0:
@@ -593,7 +622,8 @@ class BooleanColumnProfiler(BaseColumnProfiler):
             return {
                 'total': _total,
                 'non_nulls': _non_null,
-                'mismatched': 0,
+                'mismatched': _mismatched,
+                'distinct': _distinct,
                 'distribution': distribution,
             }
 
