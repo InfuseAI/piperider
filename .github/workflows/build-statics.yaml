@@ -45,6 +45,7 @@ jobs:
         start: |
           npm run serve:single
           npm run serve:comparison
+        wait-on: 'http://localhost:3000, http://localhost:3001' 
     - name: Build Apps
       run: npm run build
     - uses: stefanzweifel/git-auto-commit-action@v4
