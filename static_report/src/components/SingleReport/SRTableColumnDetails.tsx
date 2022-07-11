@@ -41,7 +41,7 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
         <GeneralTableColumn baseColumn={column} />
       </Flex>
 
-      {column.type === 'string' && (
+      {column.type === 'string' && column.distribution && (
         <Flex direction="column">
           <MetricsInfo
             name="Most common"
