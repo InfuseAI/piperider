@@ -41,7 +41,7 @@ jobs:
       with:
         install: false
         working-directory: ./static_report
-        build: npm run setup:e2e
+        build: npm run embed:html:e2e
         start: |
           npm run start:single
           npm run start:comparison
