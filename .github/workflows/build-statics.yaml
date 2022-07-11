@@ -41,6 +41,7 @@ jobs:
       with:
         install: false
         working-directory: ./static_report
+        config-file: cypress.config.ts
         build: npm run setup:e2e
         start: |
           npm run serve:single
