@@ -141,6 +141,8 @@ class DataSource(metaclass=ABCMeta):
         if self.verify_connector():
             console = Console()
             console.print(f'\n{escape(self.verify_connector())}\n')
+            return False
+        return True
 
     def ask_credential(self):
         """
@@ -277,6 +279,7 @@ class SnowflakeDataSource(DataSource):
     def verify_connector(self):
         try:
             import snowflake.connector
+            import snowflake.sqlalchemy
             # do nothing when everything is ok
             return None
         except Exception:

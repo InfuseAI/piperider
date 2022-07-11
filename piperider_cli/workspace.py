@@ -5,8 +5,6 @@ import sys
 import uuid
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
-from glob import glob
-from subprocess import check_output
 from typing import List
 
 from rich.console import Console
@@ -523,7 +521,10 @@ def run(datasource=None, table=None, output=None, interaction=True, skip_report=
             f"[bold yellow]Warning: multiple datasources found ({', '.join(datasource_names)}), using '{ds_name}'[/bold yellow]\n")
 
     console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
-    ds.show_installation_information()
+
+    if ds.show_installation_information() is False:
+        console.print(f'[[bold red]FAILED[/bold red]] Failed to load the \'{ds.type_name}\' connector')
+        return 1
 
     console.rule('Validating')
     stop_runner = _validate_assertions(console)
