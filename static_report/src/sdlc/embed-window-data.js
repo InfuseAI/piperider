@@ -8,7 +8,6 @@ import {
   getEmbeddedIndexHTML,
   getFileData,
   log,
-  PATH_TO_COMPARISON_REPORT_DATA_JSON,
   PATH_TO_E2E_DATA_JSON,
   PATH_TO_INDEX,
   PATH_TO_SINGLE_REPORT_DATA_JSON,
