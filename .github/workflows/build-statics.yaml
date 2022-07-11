@@ -52,13 +52,6 @@ jobs:
         pip install -r requirements.txt
         which piperider
         piperider version
-
-    - name: RunTests
-      # cd e2e-tests
-      # origin=$(pwd)
-      # echo "current directory is $origin"
-      # cd $origin
-      run: |
         runtest e2e-tests/testsuite/getting-started/001-run.exp
         ls ~/.piperider/outputs
         ls ~/.piperider/comparisons
