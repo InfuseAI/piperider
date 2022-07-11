@@ -35,10 +35,11 @@ jobs:
 
     - name: Install Dependencies
       run: yarn install --frozen-lockfile
-    - name: Cypress build & run
+    - name: Cypress run (E2E)
     # Parallelization only for cypress dashboard https://www.cypress.io/pricing/
       uses: cypress-io/github-action@v2
       with:
+        project: ./static_report
         build: npm run setup:e2e
         start: |
           npm run start:single
@@ -48,6 +49,6 @@ jobs:
     - uses: stefanzweifel/git-auto-commit-action@v4
       if: github.event.pull_request.merged == true
       with:
-          commit_message: AUTO-COMMIT - build report statics to CLI data/report
-          branch: ${{ github.base_ref }}
-          # Auto-commits to target merge branch
+        commit_message: AUTO-COMMIT - build report statics to CLI data/report
+        branch: ${{ github.base_ref }}
+        # Auto-commits to target merge branch
