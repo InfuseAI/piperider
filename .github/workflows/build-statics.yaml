@@ -40,7 +40,7 @@ jobs:
       uses: cypress-io/github-action@v2
       with:
         install: false
-        project: ./static_report
+        working-directory: ./static_report
         build: npm run setup:e2e
         start: |
           npm run start:single
