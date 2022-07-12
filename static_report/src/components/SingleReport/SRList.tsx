@@ -14,7 +14,7 @@ import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { Link } from 'wouter';
 
 import { Main } from '../shared/Main';
-import { DescriptionTooltip } from '../shared/DescriptionTooltip';
+import { SRTooltip } from './SRTooltip';
 import {
   getReportAsserationStatusCounts,
   formatReportTime,
@@ -93,12 +93,13 @@ export function SingleReportList({ data }: Props) {
                     <Tr cursor="pointer" _hover={{ bgColor: 'blackAlpha.50' }}>
                       <Td>
                         {report.name}
-                        <DescriptionTooltip
-                          description={(report.description as string) || ''}
+                        <SRTooltip
+                          label={(report.description as string) || ''}
+                          prefix={' - via '}
                           placement="right-end"
                         >
                           <InfoOutlineIcon ml={2} mb={1} />
-                        </DescriptionTooltip>
+                        </SRTooltip>
                       </Td>
                       <Td>
                         {formatColumnValueWith(overview.passed, formatNumber)}

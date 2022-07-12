@@ -5,7 +5,7 @@ import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
 import { GeneralTableColumn } from '../shared/GeneralTableColumn';
-import { DescriptionTooltip } from '../shared/DescriptionTooltip';
+import { SRTooltip } from './SRTooltip';
 
 type SRTableColumnDetailsProps = {
   column: ColumnSchema;
@@ -27,12 +27,13 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
           >
             {column.name as string}
           </Text>
-          <DescriptionTooltip
-            description={(column.description as string) || ''}
+          <SRTooltip
+            label={(column.description as string) || ''}
+            prefix={' - via '}
             placement="right-end"
           >
             <InfoOutlineIcon m={'auto 0'} />
-          </DescriptionTooltip>
+          </SRTooltip>
         </Flex>
         {''}(<Code>{column.schema_type as string}</Code>)
       </Box>
