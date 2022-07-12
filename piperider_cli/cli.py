@@ -10,6 +10,7 @@ from rich.syntax import Syntax
 from piperider_cli import workspace, dbt_adapter, __version__, event
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.guide import Guide
+from piperider_cli.initializer import Initializer
 from piperider_cli.validator import Validator
 from piperider_cli.generate_report import GenerateReport
 
@@ -123,7 +124,7 @@ def init(**kwargs):
         console.print(f'Use dbt project file: {dbt_project_path}')
     else:
         console.print('[[bold yellow]Skip[/bold yellow]] No dbt project found')
-    config = workspace.init(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir)
+    config = Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir)
     if kwargs.get('debug'):
         for ds in config.dataSources:
             console.rule('Configuration')

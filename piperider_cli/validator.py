@@ -8,7 +8,6 @@ from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
 from piperider_cli.configuration import Configuration, PIPERIDER_CONFIG_PATH
 from piperider_cli.error import PipeRiderDiagnosticError
 
-
 CONSOLE_MSG_PASS = '[bold green]✅ PASS[/bold green]\n'
 CONSOLE_MSG_FAIL = '[bold red]😱 FAILED[/bold red]\n'
 CONSOLE_MSG_ALL_SET = '[bold]🎉 You are all set![/bold]\n'
