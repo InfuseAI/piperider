@@ -53,9 +53,10 @@ jobs:
         which piperider
         piperider version
         runtest e2e-tests/testsuite/getting-started/001-run.exp
-        runtest e2e-tests/testsuite/getting-started/002-compare.exp
-        ls -a piperider-getting-started/.piperider/outputs
-        ls -a piperider-getting-started/.piperider/comparisons
+        
+        bash static_report/src/sdlc/generate-comparisons.sh
+
+        ls -a piperider-getting-started/.piperider/*(outputs|comparison)*
         
         echo "Piperider Data Generated. Ready for html embedding"
 
@@ -70,7 +71,6 @@ jobs:
         working-directory: ./static_report
         config-file: cypress.config.ts
         build: npm run setup:e2e
-        # change to `build apps`
         start: |
           npm run serve:e2e:single
           npm run serve:e2e:comparison
