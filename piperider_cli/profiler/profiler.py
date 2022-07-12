@@ -189,6 +189,9 @@ class BaseColumnProfiler:
         self.table = table
         self.column = column
 
+    def _get_database_backend(self):
+        return self.engine.url.get_backend_name()
+
     def _get_table_cte(self):
         t = self.table
         c = self.column
@@ -250,7 +253,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
     def _get_table_cte(self):
         t = self.table
         c = self.column
-        if self.engine.url.get_backend_name() != "sqlite":
+        if self._get_database_backend() != 'sqlite':
             cte = select([
                 c.label("c"),
                 case(
@@ -302,7 +305,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
             _stddev = math.sqrt(_square_avg - _avg * _avg) if _square_avg and _avg else None
 
             if _valid > 0:
-                quantile = self._profile_quantile(conn, cte, cte.c.c, _valid, self.engine.url.get_backend_name())
+                quantile = self._profile_quantile(conn, cte, cte.c.c, _valid)
                 distribution = self._profile_histogram(conn, cte, cte.c.c, _min, _max, self.is_integer)
             else:
                 quantile = {}
@@ -326,8 +329,8 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 'distribution': distribution,
             }
 
-    def _profile_quantile(self, conn, table, column, total, backend=None) -> dict:
-        if backend == "sqlite":
+    def _profile_quantile(self, conn, table, column, total) -> dict:
+        if self._get_database_backend() == 'sqlite':
             # with t as (
             #   select
             #     column as c,
@@ -461,7 +464,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
     def _get_table_cte(self):
         t = self.table
         c = self.column
-        if self.engine.url.get_backend_name() != "sqlite":
+        if self._get_database_backend() != 'sqlite':
             cte = select([
                 c.label("c"),
                 case(
@@ -498,7 +501,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _mismatched, _distinct, _min, _max = result
 
-            if self.engine.url.get_backend_name() == "sqlite":
+            if self._get_database_backend() == 'sqlite':
                 _min = datetime.fromisoformat(_min).date() if _min is not None else _min
                 _max = datetime.fromisoformat(_max).date() if _max is not None else _max
             else:
@@ -511,70 +514,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             if _non_null == 1 or _distinct == 1:
                 distribution = profile_topk(conn, cte.c.c)
             elif _non_null > 0:
-                distribution = {
-                    "type": "",
-                    "labels": [],
-                    "counts": [],
-                }
-
-                def date_trunc(*args):
-                    if self.engine.url.get_backend_name() == "sqlite":
-                        if args[0] == "YEAR":
-                            return func.strftime("%Y-01-01", args[1])
-                        elif args[0] == "MONTH":
-                            return func.strftime("%Y-%m-01", args[1])
-                        else:
-                            return func.strftime("%Y-%m-%d", args[1])
-                    else:
-                        return func.date_trunc(*args)
-
-                dmin, dmax, interval = self._calc_date_range(_min, _max)
-                if interval.years:
-                    distribution["type"] = "yearly"
-                    period = relativedelta(dmax, dmin)
-                    num_buckets = math.ceil(period.years / interval.years)
-                    cte = select([date_trunc("YEAR", cte.c.c).label("d")]).cte(name="T")
-                elif interval.months:
-                    distribution["type"] = "monthly"
-                    period = relativedelta(dmax, dmin)
-                    num_buckets = (period.years * 12 + period.months) // interval.months
-                    cte = select([date_trunc("MONTH", cte.c.c).label("d")]).cte(name="T")
-                else:
-                    distribution["type"] = "daily"
-                    period = dmax - dmin
-                    num_buckets = (period.days + 1) // interval.days
-                    cte = select([date_trunc("DAY", cte.c.c).label("d")]).cte(name="T")
-
-                stmt = select([
-                    cte.c.d,
-                    func.count(cte.c.d).label("_count")
-                ]).group_by(
-                    cte.c.d
-                ).order_by(
-                    cte.c.d
-                )
-
-                result = conn.execute(stmt)
-
-                for i in range(num_buckets):
-                    label = f"{dmin + i * interval} - {dmin + (i + 1) * interval}"
-                    distribution["labels"].append(label)
-                    distribution["counts"].append(0)
-
-                for row in result:
-                    bucket, v = row
-                    if bucket is None:
-                        continue
-                    elif isinstance(bucket, str):
-                        bucket = date.fromisoformat(bucket)
-                    elif isinstance(bucket, datetime):
-                        bucket = bucket.date()
-
-                    for i in range(num_buckets):
-                        d = distribution["labels"][i].split(" - ")
-                        if date.fromisoformat(d[0]) <= bucket < date.fromisoformat(d[1]):
-                            distribution["counts"][i] += v
-                            break
+                distribution = self._profile_histogram(conn, cte, cte.c.c, _min, _max)
 
             return {
                 'total': _total,
@@ -607,6 +547,74 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             interval = relativedelta(days=+1)
         return min_date, max_date, interval
 
+    def _profile_histogram(self, conn, table, column, min, max):
+        distribution = {
+            "type": "",
+            "labels": [],
+            "counts": [],
+        }
+
+        def date_trunc(*args):
+            if self._get_database_backend() == 'sqlite':
+                if args[0] == "YEAR":
+                    return func.strftime("%Y-01-01", args[1])
+                elif args[0] == "MONTH":
+                    return func.strftime("%Y-%m-01", args[1])
+                else:
+                    return func.strftime("%Y-%m-%d", args[1])
+            else:
+                return func.date_trunc(*args)
+
+        dmin, dmax, interval = self._calc_date_range(min, max)
+        if interval.years:
+            distribution["type"] = "yearly"
+            period = relativedelta(dmax, dmin)
+            num_buckets = math.ceil(period.years / interval.years)
+            cte = select([date_trunc("YEAR", column).label("d")]).select_from(table).cte()
+        elif interval.months:
+            distribution["type"] = "monthly"
+            period = relativedelta(dmax, dmin)
+            num_buckets = (period.years * 12 + period.months) // interval.months
+            cte = select([date_trunc("MONTH", column).label("d")]).select_from(table).cte()
+        else:
+            distribution["type"] = "daily"
+            period = dmax - dmin
+            num_buckets = (period.days + 1) // interval.days
+            cte = select([date_trunc("DAY", column).label("d")]).select_from(table).cte()
+
+        stmt = select([
+            cte.c.d,
+            func.count(cte.c.d).label("_count")
+        ]).group_by(
+            cte.c.d
+        ).order_by(
+            cte.c.d
+        )
+
+        result = conn.execute(stmt)
+
+        for i in range(num_buckets):
+            label = f"{dmin + i * interval} - {dmin + (i + 1) * interval}"
+            distribution["labels"].append(label)
+            distribution["counts"].append(0)
+
+        for row in result:
+            bucket, v = row
+            if bucket is None:
+                continue
+            elif isinstance(bucket, str):
+                bucket = date.fromisoformat(bucket)
+            elif isinstance(bucket, datetime):
+                bucket = bucket.date()
+
+            for i in range(num_buckets):
+                d = distribution["labels"][i].split(" - ")
+                if date.fromisoformat(d[0]) <= bucket < date.fromisoformat(d[1]):
+                    distribution["counts"][i] += v
+                    break
+
+        return distribution
+
 
 class BooleanColumnProfiler(BaseColumnProfiler):
     def __init__(self, engine, table: Table, column: Column):
@@ -615,7 +623,7 @@ class BooleanColumnProfiler(BaseColumnProfiler):
     def _get_table_cte(self):
         t = self.table
         c = self.column
-        if self.engine.url.get_backend_name() != "sqlite":
+        if self._get_database_backend() != 'sqlite':
             cte = select([
                 c.label("c"),
                 case(
