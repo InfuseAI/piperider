@@ -105,7 +105,7 @@ export function CRTabSchemaDetails({ base, input }) {
             <Thead>
               <Tr>
                 <Th>Column</Th>
-                <Th>Value</Th>
+                <Th>Type</Th>
               </Tr>
             </Thead>
             <Tbody>
