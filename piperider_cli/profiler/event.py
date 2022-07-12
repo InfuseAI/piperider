@@ -53,11 +53,13 @@ class DefaultProfilerEventHandler(ProfilerEventHandler):
         print(f"fetching metadata for table '{table_name}'")
 
     def handle_table_start(self, table_result):
-        print(f"[{self.table_completed + 1}/{self.table_total}] profiling {table_result['name']} ")
+        print(f"[{self.table_completed + 1}/{self.table_total}] profiling [{table_result['name']}] ", end='', flush=True)
 
     def handle_table_progress(self, table_result, total, completed):
         self.col_total = total
         self.col_completed = completed
+        if completed == 0:
+            print(f"\r[{self.table_completed + 1}/{self.table_total}] profiling [{table_result['name']}] rows={table_result['row_count']}")
 
     def handle_table_end(self, table_result):
         pass

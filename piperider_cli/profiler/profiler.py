@@ -99,14 +99,24 @@ class Profiler:
             "columns": columns
         }
 
+        if not self.engine:
+            # unittest case
+            return result
+
         self.event_handler.handle_table_start(result)
-        self.event_handler.handle_table_progress(result, col_count, 0)
+
+        # Profile table metrics
+        with self.engine.connect() as conn:
+            stmt = select([
+                func.count(),
+            ]).select_from(table)
+            row_count, = conn.execute(stmt).fetchone()
+            result["row_count"] = row_count
+        self.event_handler.handle_table_progress(result, col_count, col_index)
+
+        # Profile columns
         for column in table.columns:
             columns[column.name] = self._profile_column(table, column)
-
-            # to be removed
-            result["row_count"] = columns[column.name]["total"]
-
             col_index = col_index + 1
             self.event_handler.handle_table_progress(result, col_count, col_index)
 
