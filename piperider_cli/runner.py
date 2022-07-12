@@ -322,13 +322,13 @@ def _append_descriptions_from_assertion(profile_result):
             continue
         table_desc = table_v.get('description', '')
         if table_desc:
-            profile_result['tables'][table_name]['description'] = table_desc
+            profile_result['tables'][table_name]['description'] = f'{table_desc} - via PipeRider'
         for column_name, column_v in table_v.get('columns', {}).items():
             if column_name not in profile_result['tables'][table_name]['columns']:
                 continue
             column_desc = column_v.get('description', column_name)
             if column_desc:
-                profile_result['tables'][table_name]['columns'][column_name]['description'] = column_desc
+                profile_result['tables'][table_name]['columns'][column_name]['description'] = f'{column_desc} - via PipeRider'
 
 
 class Runner():
@@ -365,7 +365,10 @@ class Runner():
                 f"[bold yellow]Warning: multiple datasources found ({', '.join(datasource_names)}), using '{ds_name}'[/bold yellow]\n")
 
         console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
-        ds.show_installation_information()
+
+        if ds.show_installation_information() is False:
+            console.print(f'[[bold red]FAILED[/bold red]] Failed to load the \'{ds.type_name}\' connector')
+            return 1
 
         console.rule('Validating')
         stop_runner = _validate_assertions(console)
