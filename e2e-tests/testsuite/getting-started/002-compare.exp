@@ -23,22 +23,18 @@ set title "compare-reports step ended"
 expect {
     "> o" {
         send " "
+        after 500
         send "\[B"
-        set timeout 2
+        after 500
         exp_continue
     }
     "> X" {
+        after 1000
         send "\r"
         exp_continue
     }
     "not a valid profiler_outputs" {
-        send " "
-        send "\[B"
-        set timeout 2
-        exp_continue
-    }
-    timeout {
-        send "\r"
+        send "a"
         exp_continue
     }
     "Comparison report" {
