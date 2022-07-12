@@ -540,13 +540,6 @@ def setup_report_variables(template_html: str, is_single: bool, data):
     return html
 
 
-def _generate_static_html(result, html, output_path):
-    filename = os.path.join(output_path, "index.html")
-    with open(filename, 'w') as f:
-        html = setup_report_variables(html, True, result)
-        f.write(html)
-
-
 def _get_run_json_path(input=None):
     console = Console()
     run_json = None
@@ -608,33 +601,6 @@ def generate_recommended_assertions(input=None, interaction=True):
     for f in recommended_assertions:
         console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
     pass
-
-
-def generate_report(input=None):
-    console = Console()
-
-    from piperider_cli import data
-    report_template_dir = os.path.join(os.path.dirname(data.__file__), 'report', 'single-report')
-    with open(os.path.join(report_template_dir, 'index.html')) as f:
-        report_template_html = f.read()
-
-    run_json_path = _get_run_json_path(input)
-    if not os.path.isfile(run_json_path):
-        raise PipeRiderNoProfilingResultError(run_json_path)
-
-    with open(run_json_path) as f:
-        result = json.loads(f.read())
-    if not _validate_input_result(result):
-        console.print(f'[bold red]Error: {run_json_path} is invalid[/bold red]')
-        return
-
-    console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {run_json_path}')
-
-    dir = os.path.dirname(run_json_path)
-    clone_directory(report_template_dir, dir)
-
-    _generate_static_html(result, report_template_html, dir)
-    console.print(f"Report generated in {dir}/index.html")
 
 
 def _append_descriptions(profile_result):

@@ -11,6 +11,7 @@ from piperider_cli import workspace, dbt_adapter, __version__, event
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.guide import Guide
 from piperider_cli.validator import Validator
+from piperider_cli.generate_report import GenerateReport
 
 
 def set_sentry_env():
@@ -178,7 +179,7 @@ def run(**kwargs):
                         skip_recommend=skip_recommend,
                         dbt_command=dbt_command)
     if not skip_report and ret == 0:
-        workspace.generate_report()
+        GenerateReport.exec()
 
 
 @cli.command(short_help='Generate recommended assertions.')
@@ -196,8 +197,7 @@ def generate_assertions(**kwargs):
 def generate_report(**kwargs):
     'Generate a report from the latest raw result or specified result. By default, the raw results are saved in ".piperider/outputs".'
 
-    input = kwargs.get('input')
-    workspace.generate_report(input=input)
+    GenerateReport.exec(input=kwargs.get('input'))
 
 
 @cli.command(short_help='Compare two existing reports.')
