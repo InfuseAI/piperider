@@ -8,6 +8,7 @@ from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, 
     distinct, case, or_
 from sqlalchemy.types import Float
 from sqlalchemy.engine import Engine
+from .event import ProfilerEventHandler, DefaultProfilerEventHandler
 
 HISTOGRAM_NUM_BUCKET = 50
 
@@ -45,61 +46,77 @@ def format_float(val):
 class Profiler:
     engine: Engine = None
     metadata = None
+    event_handler: ProfilerEventHandler
 
-    def __init__(self, engine: Engine):
+    def __init__(self, engine: Engine, event_handler: ProfilerEventHandler = DefaultProfilerEventHandler()):
         self.engine = engine
+        self.event_handler = event_handler
 
     def profile(self, tables=None):
-        # reflect the metadata
+        profiled_tables = {}
+        result = {
+            "tables": profiled_tables,
+        }
+        self.event_handler.handle_run_start(result)
 
         metadata = self.metadata
         if not metadata:
             self.metadata = metadata = MetaData()
             if not tables:
-                print("fetching metadata")
+                self.event_handler.handle_fetch_metadata_all_start()
                 metadata.reflect(bind=self.engine)
             else:
                 for table in tables:
-                    print(f"fetching metadata for table '{table}'")
+                    self.event_handler.handle_fetch_metadata_table_start(table)
                     if len(table.split('.')) == 2:
                         schema, table = table.split('.')
                         metadata.schema = schema
                     Table(table, metadata, autoload_with=self.engine)
 
-        profiled_tables = {}
         if not tables:
             tables = self.metadata.tables
 
+        table_count = len(tables.keys())
+        table_index = 0
+        self.event_handler.handle_run_progress(result, table_count, table_index)
         for table_name in tables:
             t = self.metadata.tables[table_name]
             tresult = self._profile_table(t)
             profiled_tables[table_name] = tresult
-        return {
-            "tables": profiled_tables,
-        }
+            table_index = table_index + 1
+            self.event_handler.handle_run_progress(result, table_count, table_index)
+
+        self.event_handler.handle_run_end(result)
+
+        return result
 
     def _profile_table(self, table):
-
+        col_index = 0
+        col_count = len(table.columns)
         columns = {}
-        for column in table.columns:
-            tresult = self._profile_column(table, column)
-            columns[column.name] = tresult
-
-        row_count = 0
-        for k in columns:
-            row_count = columns[k]["total"]
-            break
-
-        return {
+        result = {
             "name": table.name,
-            "row_count": row_count,
-            "col_count": len(columns),
+            "row_count": 0,
+            "col_count": col_count,
             "columns": columns
         }
 
+        self.event_handler.handle_table_start(result)
+        self.event_handler.handle_table_progress(result, col_count, 0)
+        for column in table.columns:
+            columns[column.name] = self._profile_column(table, column)
+
+            # to be removed
+            result["row_count"] = columns[column.name]["total"]
+
+            col_index = col_index + 1
+            self.event_handler.handle_table_progress(result, col_count, col_index)
+
+        self.event_handler.handle_table_end(result)
+
+        return result
+
     def _profile_column(self, table: Table, column: Column):
-        print(f"profiling [{column.table.name}.{column.name}] type={column.type}")
-        profile_start = time.perf_counter()
         if isinstance(column.type, String):
             # VARCHAR
             # CHAR
@@ -132,14 +149,25 @@ class Profiler:
             generic_type = "other"
             profiler = BaseColumnProfiler(self.engine, table, column)
 
-        result = profiler.profile()
+        result = {
+            "name": column.name,
+            "type": generic_type,
+            "schema_type": str(column.type)
+        }
+
+        self.event_handler.handle_column_start(table.name, result)
+
+        profile_start = time.perf_counter()
+        profile_result = profiler.profile()
         profile_end = time.perf_counter()
         duration = profile_end - profile_start
 
-        result["name"] = column.name
+        result.update(profile_result)
         result["profile_duration"] = f"{duration:.2f}"
-        result["type"] = generic_type
-        result["schema_type"] = str(column.type)
+        result["elapsed_milli"] = int(duration * 1000)
+
+        self.event_handler.handle_column_end(table.name, result)
+
         return result
 
 
