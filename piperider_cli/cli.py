@@ -12,6 +12,7 @@ from piperider_cli.event.track import TrackCommand
 from piperider_cli.guide import Guide
 from piperider_cli.initializer import Initializer
 from piperider_cli.validator import Validator
+from piperider_cli.runner import Runner
 from piperider_cli.generate_report import GenerateReport
 
 
@@ -67,8 +68,6 @@ def cli(ctx: click.Context):
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
         Guide().show_tips(ctx.command.name)
-
-    pass
 
 
 cli.command_class = TrackCommand
@@ -172,13 +171,13 @@ def run(**kwargs):
     run_dbt_test = kwargs.get('dbt_test')
     run_dbt_build = kwargs.get('dbt_build')
     dbt_command = 'build' if run_dbt_build else 'test' if run_dbt_test else ''
-    ret = workspace.run(datasource=datasource,
-                        table=table,
-                        output=output,
-                        interaction=not kwargs.get('no_interaction'),
-                        skip_report=skip_report,
-                        skip_recommend=skip_recommend,
-                        dbt_command=dbt_command)
+    ret = Runner.exec(datasource=datasource,
+                      table=table,
+                      output=output,
+                      interaction=not kwargs.get('no_interaction'),
+                      skip_report=skip_report,
+                      skip_recommend=skip_recommend,
+                      dbt_command=dbt_command)
     if not skip_report and ret == 0:
         GenerateReport.exec()
 
@@ -189,7 +188,6 @@ def run(**kwargs):
 def generate_assertions(**kwargs):
     input = kwargs.get('input')
     workspace.generate_recommended_assertions(input=input)
-    pass
 
 
 @cli.command(short_help='Generate a report.')

@@ -60,4 +60,3 @@ class TrackCommand(Command):
             sys.exit(1)
         finally:
             event.log_event(ctx.command.name, ctx.params, status)
-            pass
