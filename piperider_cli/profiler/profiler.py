@@ -65,6 +65,7 @@ class Profiler:
             if not tables:
                 self.event_handler.handle_fetch_metadata_all_start()
                 metadata.reflect(bind=self.engine)
+                tables = self.metadata.tables.keys()
             else:
                 for table in tables:
                     self.event_handler.handle_fetch_metadata_table_start(table)
@@ -73,10 +74,7 @@ class Profiler:
                         metadata.schema = schema
                     Table(table, metadata, autoload_with=self.engine)
 
-        if not tables:
-            tables = self.metadata.tables
-
-        table_count = len(tables.keys())
+        table_count = len(tables)
         table_index = 0
         self.event_handler.handle_run_progress(result, table_count, table_index)
         for table_name in tables:
