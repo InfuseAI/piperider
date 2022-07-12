@@ -9,12 +9,12 @@ import {
   Thead,
   Tr,
   Text,
-  Tooltip,
 } from '@chakra-ui/react';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { Link } from 'wouter';
 
 import { Main } from '../shared/Main';
+import { SRTooltip } from './SRTooltip';
 import {
   getReportAsserationStatusCounts,
   formatReportTime,
@@ -93,12 +93,13 @@ export function SingleReportList({ data }: Props) {
                     <Tr cursor="pointer" _hover={{ bgColor: 'blackAlpha.50' }}>
                       <Td>
                         {report.name}
-                        <Tooltip
-                          label={report.description || ''}
+                        <SRTooltip
+                          label={(report.description as string) || ''}
+                          prefix={' - via '}
                           placement="right-end"
                         >
                           <InfoOutlineIcon ml={2} mb={1} />
-                        </Tooltip>
+                        </SRTooltip>
                       </Td>
                       <Td>
                         {formatColumnValueWith(overview.passed, formatNumber)}

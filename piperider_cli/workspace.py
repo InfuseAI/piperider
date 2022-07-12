@@ -786,13 +786,13 @@ def _append_descriptions_from_assertion(profile_result):
             continue
         table_desc = table_v.get('description', '')
         if table_desc:
-            profile_result['tables'][table_name]['description'] = table_desc
+            profile_result['tables'][table_name]['description'] = f"{table_desc} - via PipeRider"
         for column_name, column_v in table_v.get('columns', {}).items():
             if column_name not in profile_result['tables'][table_name]['columns']:
                 continue
             column_desc = column_v.get('description', column_name)
             if column_desc:
-                profile_result['tables'][table_name]['columns'][column_name]['description'] = column_desc
+                profile_result['tables'][table_name]['columns'][column_name]['description'] = f"{column_desc} - via PipeRider"
 
 
 def compare_report(a=None, b=None):

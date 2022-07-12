@@ -1,10 +1,11 @@
-import { Box, Code, Flex, Text, Tooltip } from '@chakra-ui/react';
+import { Box, Code, Flex, Text } from '@chakra-ui/react';
 import { MetricsInfo } from '../shared/MetrisInfo';
 import { getSRCommonMetrics } from '../../utils';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
 import { GeneralTableColumn } from '../shared/GeneralTableColumn';
+import { SRTooltip } from './SRTooltip';
 
 type SRTableColumnDetailsProps = {
   column: ColumnSchema;
@@ -26,12 +27,13 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
           >
             {column.name as string}
           </Text>
-          <Tooltip
+          <SRTooltip
             label={(column.description as string) || ''}
+            prefix={' - via '}
             placement="right-end"
           >
             <InfoOutlineIcon m={'auto 0'} />
-          </Tooltip>
+          </SRTooltip>
         </Flex>
         {''}(<Code>{column.schema_type as string}</Code>)
       </Box>
@@ -40,7 +42,7 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
         <GeneralTableColumn baseColumn={column} />
       </Flex>
 
-      {column.type === 'string' && (
+      {column.type === 'string' && column.distribution && (
         <Flex direction="column">
           <MetricsInfo
             name="Most common"

@@ -221,7 +221,7 @@ def _append_descriptions_from_dbt(profile_result, dbt, default_schema):
         if table_name not in profile_result['tables']:
             continue
         if table_desc:
-            profile_result['tables'][table_name]['description'] = table_desc
+            profile_result['tables'][table_name]['description'] = f"{table_desc} - via DBT"
 
         columns = resource.get('columns', {})
         for column_name, v in columns.items():
@@ -229,4 +229,4 @@ def _append_descriptions_from_dbt(profile_result, dbt, default_schema):
                 continue
             column_desc = v.get('description', '')
             if column_desc:
-                profile_result['tables'][table_name]['columns'][column_name]['description'] = column_desc
+                profile_result['tables'][table_name]['columns'][column_name]['description'] = f"{column_desc} - via DBT"
