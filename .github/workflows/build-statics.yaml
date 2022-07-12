@@ -56,7 +56,8 @@ jobs:
         
         bash static_report/src/sdlc/generate-comparisons.sh
 
-        ls -a piperider-getting-started/.piperider/*(outputs|comparison)*
+        ls -a piperider-getting-started/.piperider/outputs
+        ls -a piperider-getting-started/.piperider/comparison
         
         echo "Piperider Data Generated. Ready for html embedding"
 
