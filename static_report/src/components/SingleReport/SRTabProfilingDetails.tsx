@@ -1,8 +1,13 @@
 import { Flex, Grid, Divider, Text } from '@chakra-ui/react';
 import { SRBarChart } from './SRBarChart';
 import { SRTableColumnDetails } from './SRTableColumnDetails';
+import type { TableSchema } from '../../sdlc/single-report-schema';
 
-export function SRTabProfilingDetails({ data }) {
+export function SRTabProfilingDetails({
+  data,
+}: {
+  data: TableSchema['columns'];
+}) {
   return (
     <Flex direction="column" gap={4}>
       {Object.keys(data).map((key) => {

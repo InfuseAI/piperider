@@ -3,7 +3,15 @@ import { useRef } from 'react';
 import { useResizeObserver } from '../../hooks/useResizeObserver';
 import { useSingleChart } from '../../hooks/useSingleChart';
 
-export function SRBarChart({ data }) {
+interface Props {
+  data: Array<{
+    label: string;
+    value: any;
+    total: number;
+  }>;
+}
+
+export function SRBarChart({ data }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dimensions = useResizeObserver(containerRef);
