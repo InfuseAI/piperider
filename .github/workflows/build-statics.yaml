@@ -72,8 +72,8 @@ jobs:
         build: npm run setup:e2e
         # change to `build apps`
         start: |
-          npm run bundle:single
-          npm run bundle:comparison
+          npm run serve:e2e:single
+          npm run serve:e2e:comparison
         wait-on: 'http://localhost:3000, http://localhost:3001' 
 
     - name: Build Apps
