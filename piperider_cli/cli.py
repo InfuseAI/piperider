@@ -7,7 +7,7 @@ import sentry_sdk
 from rich.console import Console
 from rich.syntax import Syntax
 
-from piperider_cli import workspace, dbt_adapter, __version__, event
+from piperider_cli import workspace, dbt_adapter, validation, __version__, event
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.guide import Guide
 
@@ -144,7 +144,7 @@ def diagnose(**kwargs):
 
     console.print(f'[bold dark_orange]PipeRider Version:[/bold dark_orange] {__version__}')
 
-    if not workspace.debug():
+    if not validation.diagnose():
         sys.exit(1)
 
 
