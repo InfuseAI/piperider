@@ -39,7 +39,7 @@ jobs:
       with:
         python-version: 3.8
 
-    - name: Prepare Piperider Data
+    - name: Prepare Piperider Data (2 runs; 1 comparison)
       working-directory: .
       run: |
         sudo apt-get install expect dejagnu
@@ -57,7 +57,7 @@ jobs:
         ls -a piperider-getting-started/.piperider/outputs
         ls -a piperider-getting-started/.piperider/comparisons
         
-        echo "Finish Runs"
+        echo "Piperider Data Generated. Ready for html embedding"
 
     - name: Install Dependencies
       run: yarn install --immutable
@@ -72,8 +72,8 @@ jobs:
         build: npm run setup:e2e
         # change to `build apps`
         start: |
-          npm run serve:single
-          npm run serve:comparison
+          npm run bundle:single
+          npm run bundle:comparison
         wait-on: 'http://localhost:3000, http://localhost:3001' 
 
     - name: Build Apps

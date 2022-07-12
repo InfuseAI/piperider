@@ -1,14 +1,11 @@
 import chalk from 'chalk';
 import {
   COMPARISON_KEY,
-  FILENAME_COMPARISON,
-  FILENAME_SINGLE,
   generateFile,
-  getComparisonDataPath,
   getEmbeddedIndexHTML,
   getFileData,
   log,
-  PATH_TO_E2E_DATA_JSON,
+  PATH_TO_COMPARISON_REPORT_DATA_JSON,
   PATH_TO_INDEX,
   PATH_TO_SINGLE_REPORT_DATA_JSON,
   SINGLE_KEY,
@@ -21,39 +18,20 @@ import {
 
 const insertDataToHTML = async () => {
   const reportDataMap = new Map();
-  const isE2E = process.argv[2] === 'e2e';
-  const datasetName = process.argv[3];
-
-  if (isE2E && !datasetName) {
-    return log(
-      chalk.red(
-        `Please provide a dataset name for your ${PATH_TO_E2E_DATA_JSON}/<DS_NAME>
-        Example: npm run embed:html e2e <DS_NAME>
-        `,
-      ),
-    );
-  }
 
   // Read Report Data (Comparison/Single)
-
-  // Declared here since this is dynamic
-  const NEW_PATH_TO_COMPARISON_REPORT_DATA_JSON = isE2E
-    ? `${PATH_TO_E2E_DATA_JSON}/${datasetName}/${FILENAME_COMPARISON}`
-    : await getComparisonDataPath();
-  const NEW_PATH_TO_SINGLE_REPORT_DATA_JSON = isE2E
-    ? `${PATH_TO_E2E_DATA_JSON}/${datasetName}/${FILENAME_SINGLE}`
-    : PATH_TO_SINGLE_REPORT_DATA_JSON;
-
-  const argSetPaths = {
-    [SINGLE_KEY]: NEW_PATH_TO_SINGLE_REPORT_DATA_JSON,
-    [COMPARISON_KEY]: NEW_PATH_TO_COMPARISON_REPORT_DATA_JSON,
-  };
-
-  await setMapValues(reportDataMap, argSetPaths[SINGLE_KEY], SINGLE_KEY);
+  log(PATH_TO_SINGLE_REPORT_DATA_JSON);
+  log(PATH_TO_COMPARISON_REPORT_DATA_JSON);
 
   await setMapValues(
     reportDataMap,
-    argSetPaths[COMPARISON_KEY],
+    PATH_TO_SINGLE_REPORT_DATA_JSON,
+    SINGLE_KEY,
+  );
+
+  await setMapValues(
+    reportDataMap,
+    PATH_TO_COMPARISON_REPORT_DATA_JSON,
     COMPARISON_KEY,
   );
 
