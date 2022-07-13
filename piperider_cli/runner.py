@@ -10,7 +10,8 @@ from rich.markup import escape
 from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedColumn, MofNCompleteColumn
 from sqlalchemy import create_engine, inspect
 
-from piperider_cli import convert_to_tzlocal, datetime_to_str, dbt_adapter
+from piperider_cli import convert_to_tzlocal, datetime_to_str
+from piperider_cli.adapter.dbt_adapter import DbtAdapter
 from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration, PIPERIDER_OUTPUT_PATH
@@ -335,15 +336,15 @@ def _validate_assertions(console: Console):
     return False
 
 
-def _get_table_list(table, default_schema, dbt):
+def _get_table_list(table, default_schema, dbt_adapter):
     tables = None
 
     if table:
         table = re.sub(f'^({default_schema})\.', '', table)
         tables = [table]
 
-    if dbt:
-        dbt_tables = dbt_adapter._list_dbt_tables(dbt, default_schema)
+    if dbt_adapter.is_ready():
+        dbt_tables = dbt_adapter.list_dbt_tables(default_schema)
         if not dbt_tables:
             raise Exception('No table found in dbt project.')
 
@@ -456,19 +457,17 @@ class Runner():
             return 1
 
         default_schema = ds.credential.get('schema')
-        dbt = ds.args.get('dbt')
-        dbt_exists = dbt_adapter._check_dbt_command(dbt)
-        if dbt_command and not dbt_exists:
-            console.print(f'[bold yellow]Warning: dbt command not found. Skip running dbt {dbt_command}.[/bold yellow]')
 
-        if dbt and dbt_exists:
-            dbt['resources'] = dbt_adapter._list_dbt_resources(dbt)
-        tables = _get_table_list(table, default_schema, dbt)
+        dbt_adapter = DbtAdapter(ds.args.get('dbt'))
+        if dbt_command and not dbt_adapter.is_ready():
+            raise dbt_adapter.get_error()
+
+        tables = _get_table_list(table, default_schema, dbt_adapter)
 
         dbt_test_results = None
-        if dbt and dbt_command in ['build', 'test'] and dbt_exists:
-            dbt['cmd'] = dbt_command
-            dbt_test_results = dbt_adapter._run_dbt_command(table, default_schema, dbt)
+        if dbt_command in ['build', 'test'] and dbt_adapter.is_ready():
+            dbt_adapter.set_dbt_command(dbt_command)
+            dbt_test_results = dbt_adapter.run_dbt_command(table, default_schema)
 
         console.rule('Profiling')
         run_id = uuid.uuid4().hex
@@ -519,8 +518,8 @@ class Runner():
         _show_recommended_assertion_notice_message(console, assertion_results)
 
         _append_descriptions(profile_result)
-        if dbt and dbt_exists:
-            dbt_adapter._append_descriptions_from_dbt(profile_result, dbt, default_schema)
+        if dbt_adapter.is_ready():
+            dbt_adapter.append_descriptions(profile_result, default_schema)
         _append_descriptions_from_assertion(profile_result)
 
         with open(output_file, 'w') as f:

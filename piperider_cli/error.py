@@ -102,6 +102,11 @@ class DbtInvocationError(DbtError):
     hint = "Please reference dbt documentation for more information. ref: https://docs.getdbt.com/reference/exit-codes"
 
 
+class DbtCommandNotFoundError(PipeRiderError):
+    def __init__(self):
+        self.message = "dbt command not found."
+
+
 class AssertionError(PipeRiderError):
     def __init__(self, error_msg):
         self.message = error_msg
