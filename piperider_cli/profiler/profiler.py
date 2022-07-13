@@ -2,25 +2,41 @@ import decimal
 import math
 import time
 from datetime import datetime, date
+from typing import Union, List
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, select, func, \
     distinct, case, or_
+from sqlalchemy.sql import FromClause, Selectable
+from sqlalchemy.sql.elements import ColumnClause, literal
+from sqlalchemy.sql.expression import CTE
 from sqlalchemy.types import Float
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import Engine, Connection
 from .event import ProfilerEventHandler, DefaultProfilerEventHandler
 
 HISTOGRAM_NUM_BUCKET = 50
 
 
-# dtof is helpler function to transform decimal value to float. Decimal is not json serializable type.
-def dtof(value):
+def dtof(value: Union[int, float, decimal.Decimal]) -> Union[int, float]:
+    """
+    dtof is helpler function to transform decimal value to float. Decimal is not json serializable type.
+
+    :param value:
+    :return:
+    """
     if isinstance(value, decimal.Decimal):
         return float(value)
     return value
 
 
-def format_float(val):
+def format_float(val: Union[int, float]) -> str:
+    """
+    from the float to human-readable format.
+
+    :param val:
+    :return:
+    """
+
     if val == 0:
         return "0"
 
@@ -44,15 +60,33 @@ def format_float(val):
 
 
 class Profiler:
+    """
+    Profiler profile tables and columns by a sqlalchemy engine.
+    """
     engine: Engine = None
-    metadata = None
+    metadata: MetaData = None
     event_handler: ProfilerEventHandler
 
     def __init__(self, engine: Engine, event_handler: ProfilerEventHandler = DefaultProfilerEventHandler()):
         self.engine = engine
         self.event_handler = event_handler
 
-    def profile(self, tables=None):
+    def profile(self, tables: List[str] = None) -> dict:
+        """
+        profile all tables or specific table. With different column types, it would profile different metrics.
+
+        The column can be categorized as these types
+        - integer
+        - numeric
+        - string
+        - datetime
+        - boolean
+        - Other
+
+        :param tables: optinoal, the tables to profile
+        :return: the profile results
+        """
+
         profiled_tables = {}
         result = {
             "tables": profiled_tables,
@@ -88,7 +122,7 @@ class Profiler:
 
         return result
 
-    def _profile_table(self, table):
+    def _profile_table(self, table: Table) -> dict:
         col_index = 0
         col_count = len(table.columns)
         columns = {}
@@ -124,7 +158,7 @@ class Profiler:
 
         return result
 
-    def _profile_column(self, table: Table, column: Column):
+    def _profile_column(self, table: Table, column: Column) -> dict:
         if isinstance(column.type, String):
             # VARCHAR
             # CHAR
@@ -180,25 +214,55 @@ class Profiler:
 
 
 class BaseColumnProfiler:
+    """
+    The base class of the column profiler. It will automatically profile the metrics according to the schema type
+    """
+
     engine: Engine = None
     table: Table = None
     column: Column = None
 
-    def __init__(self, engine, table: Table, column: Column):
+    def __init__(self, engine: Engine, table: Table, column: Column):
         self.engine = engine
         self.table = table
         self.column = column
 
-    def _get_database_backend(self):
+    def _get_database_backend(self) -> str:
+        """
+        Helper function to return the sqlalchemy engine backend
+        :return:
+        """
         return self.engine.url.get_backend_name()
 
-    def _get_table_cte(self):
+    def _get_table_cte(self) -> CTE:
+        """
+        Get the CTE to normalize the
+        - table name
+        - column name as column "c"
+        - (Optional) Remove the mismatched data.
+
+        Columns
+        - "c":
+            null: if the column value is null or mismatched
+            otherwise: column value
+        - "mismatched":
+            null: if the column vaLue is null
+            0: if the column vaLue is valid
+            1: if the column value mismatched
+        :return: CTE
+        """
         t = self.table
         c = self.column
 
         return select([c.label("c")]).select_from(t).cte()
 
-    def profile(self):
+    def profile(self) -> dict:
+        """
+        Profile a column
+
+        :return: the profiling result. The result dict is json serializable
+        """
+
         with self.engine.connect() as conn:
             cte = self._get_table_cte()
             stmt = select([
@@ -218,8 +282,7 @@ class BaseColumnProfiler:
 
 
 class StringColumnProfiler(BaseColumnProfiler):
-
-    def __init__(self, engine, table: Table, column: Column):
+    def __init__(self, engine: Engine, table: Table, column: Column):
         super().__init__(engine, table, column)
 
     def profile(self):
@@ -238,6 +301,7 @@ class StringColumnProfiler(BaseColumnProfiler):
             return {
                 'total': _total,
                 'non_nulls': _non_null,
+                'mismatched': 0,
                 'distinct': _distinct,
                 'distribution': distribution,
             }
@@ -246,11 +310,11 @@ class StringColumnProfiler(BaseColumnProfiler):
 class NumericColumnProfiler(BaseColumnProfiler):
     is_integer: bool
 
-    def __init__(self, engine, table: Table, column: Column, is_integer: bool):
+    def __init__(self, engine: Engine, table: Table, column: Column, is_integer: bool):
         super().__init__(engine, table, column)
         self.is_integer = is_integer
 
-    def _get_table_cte(self):
+    def _get_table_cte(self) -> CTE:
         t = self.table
         c = self.column
         if self._get_database_backend() != 'sqlite':
@@ -329,7 +393,22 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 'distribution': distribution,
             }
 
-    def _profile_quantile(self, conn, table, column, total) -> dict:
+    def _profile_quantile(
+        self,
+        conn: Connection,
+        table: FromClause,
+        column: ColumnClause,
+        total: int
+    ) -> dict:
+        """
+
+        :param conn:
+        :param table: a
+        :param column:
+        :param total:
+        :return:
+        """
+
         if self._get_database_backend() == 'sqlite':
             # with t as (
             #   select
@@ -379,7 +458,16 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 'p95': dtof(result[4]),
             }
 
-    def _profile_histogram(self, conn, table, column, min, max, is_integer, num_buckets=HISTOGRAM_NUM_BUCKET):
+    def _profile_histogram(
+        self,
+        conn: Connection,
+        table: FromClause,
+        column: ColumnClause,
+        min: Union[int, float],
+        max: Union[int, float],
+        is_integer: bool,
+        num_buckets: int = HISTOGRAM_NUM_BUCKET
+    ) -> dict:
         if is_integer:
             # min=0, max=50, num_buckets=50  => interval=1, num_buckets=51
             # min=0, max=70, num_buckets=50  => interval=2, num_buckets=36
@@ -461,7 +549,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
     def __init__(self, engine, table: Table, column: Column):
         super().__init__(engine, table, column)
 
-    def _get_table_cte(self):
+    def _get_table_cte(self) -> CTE:
         t = self.table
         c = self.column
         if self._get_database_backend() != 'sqlite':
@@ -492,7 +580,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
 
             stmt = select([
                 func.count().label("_total"),
-                func.count(cte.c.c).label("_non_nulls"),
+                func.count(cte.c.mismatched).label("_non_nulls"),
                 func.sum(cte.c.mismatched).label("_mismatched"),
                 func.count(distinct(cte.c.c)).label("_distinct"),
                 func.min(cte.c.c).label("_min"),
@@ -500,20 +588,10 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             ])
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _mismatched, _distinct, _min, _max = result
-
-            if self._get_database_backend() == 'sqlite':
-                _min = datetime.fromisoformat(_min).date() if _min is not None else _min
-                _max = datetime.fromisoformat(_max).date() if _max is not None else _max
-            else:
-                if isinstance(_min, datetime):
-                    _min = _min.date()
-                if isinstance(_max, datetime):
-                    _max = _max.date()
-
+            _min = datetime.fromisoformat(_min) if isinstance(_min, str) else _min
+            _max = datetime.fromisoformat(_max) if isinstance(_max, str) else _min
             distribution = None
-            if _non_null == 1 or _distinct == 1:
-                distribution = profile_topk(conn, cte.c.c)
-            elif _non_null > 0:
+            if _min and _max:
                 distribution = self._profile_histogram(conn, cte, cte.c.c, _min, _max)
 
             return {
@@ -521,37 +599,45 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 'non_nulls': _non_null,
                 'mismatched': _mismatched,
                 'distinct': _distinct,
-                'min': str(_min) if _min is not None else _min,
-                'max': str(_max) if _max is not None else _max,
+                'min': _min.isoformat() if _min is not None else None,
+                'max': _max.isoformat() if _max is not None else None,
                 'distribution': distribution,
             }
 
-    def _calc_date_range(self, min_date, max_date):
-        period = max_date - min_date
-        if math.ceil(period.days / 365) > 2:
-            # more than 2 years
-            min_date = date(min_date.year, 1, 1)
-            max_date = max_date + relativedelta(years=+1)
-            n_buckets = 20
-            years = relativedelta(max_date, min_date).years
-            n = math.ceil(years / n_buckets)
-            interval = relativedelta(years=+n)
-        elif period.days > 31:
-            # more than 1 months
-            min_date = date(min_date.year, min_date.month, 1)
-            max_date = max_date + relativedelta(months=+1)
-            interval = relativedelta(months=+1)
-        else:
-            min_date = date(min_date.year, min_date.month, min_date.day)
-            max_date = date(max_date.year, max_date.month, max_date.day)
-            interval = relativedelta(days=+1)
-        return min_date, max_date, interval
+    def _profile_histogram(
+        self,
+        conn: Connection,
+        table: FromClause,
+        column: ColumnClause,
+        min: Union[str, date, datetime],
+        max: Union[str, date, datetime]
+    ) -> dict:
+        """
+        Profile the histogram of a datetime column. There are three way to create bins of the histogram
 
-    def _profile_histogram(self, conn, table, column, min, max):
+
+        :param conn:
+        :param table:
+        :param column:
+        :param min:
+        :param max:
+        :return:
+        """
+
+        # if self._get_database_backend() == 'sqlite':
+        #     min = datetime.fromisoformat(min).date() if min is not None else min
+        #     max = datetime.fromisoformat(max).date() if max is not None else max
+        # else:
+        #     if isinstance(min, datetime):
+        #         min = min.date()
+        #     if isinstance(max, datetime):
+        #         max = max.date()
+
         distribution = {
             "type": "",
             "labels": [],
             "counts": [],
+            "bin_edges": [],
         }
 
         def date_trunc(*args):
@@ -565,21 +651,29 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             else:
                 return func.date_trunc(*args)
 
-        dmin, dmax, interval = self._calc_date_range(min, max)
-        if interval.years:
+        days_delta = (max - min).days
+        if days_delta > 365 * 4:
             distribution["type"] = "yearly"
-            period = relativedelta(dmax, dmin)
-            num_buckets = math.ceil(period.years / interval.years)
+            dmin = date(min.year, 1, 1)
+            dmax = date(max.year, 1, 1) + relativedelta(years=+1)
+            interval_years = math.ceil((dmax.year - dmin.year) / 50)
+            interval = relativedelta(years=+interval_years)
+            num_buckets = math.ceil((dmax.year - dmin.year) / interval.years)
             cte = select([date_trunc("YEAR", column).label("d")]).select_from(table).cte()
-        elif interval.months:
+        elif days_delta > 60:
             distribution["type"] = "monthly"
+            interval = relativedelta(months=+1)
+            dmin = date(min.year, min.month, 1)
+            dmax = date(max.year, max.month, 1) + interval
             period = relativedelta(dmax, dmin)
-            num_buckets = (period.years * 12 + period.months) // interval.months
+            num_buckets = (period.years * 12 + period.months)
             cte = select([date_trunc("MONTH", column).label("d")]).select_from(table).cte()
         else:
             distribution["type"] = "daily"
-            period = dmax - dmin
-            num_buckets = (period.days + 1) // interval.days
+            interval = relativedelta(days=+1)
+            dmin = date(min.year, min.month, min.day)
+            dmax = date(max.year, max.month, max.day) + interval
+            num_buckets = (dmax - dmin).days
             cte = select([date_trunc("DAY", column).label("d")]).select_from(table).cte()
 
         stmt = select([
@@ -596,20 +690,22 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
         for i in range(num_buckets):
             label = f"{dmin + i * interval} - {dmin + (i + 1) * interval}"
             distribution["labels"].append(label)
+            distribution["bin_edges"].append(str(dmin + i * interval))
             distribution["counts"].append(0)
+        distribution["bin_edges"].append(str(dmin + num_buckets * interval))
 
         for row in result:
-            bucket, v = row
-            if bucket is None:
+            date_truncated, v = row
+            if date_truncated is None:
                 continue
-            elif isinstance(bucket, str):
-                bucket = date.fromisoformat(bucket)
-            elif isinstance(bucket, datetime):
-                bucket = bucket.date()
+            elif isinstance(date_truncated, str):
+                date_truncated = date.fromisoformat(date_truncated)
+            elif isinstance(date_truncated, datetime):
+                date_truncated = date_truncated.date()
 
             for i in range(num_buckets):
-                d = distribution["labels"][i].split(" - ")
-                if date.fromisoformat(d[0]) <= bucket < date.fromisoformat(d[1]):
+                date_edge = date.fromisoformat(distribution["bin_edges"][i + 1])
+                if date_truncated < date_edge:
                     distribution["counts"][i] += v
                     break
 
@@ -617,10 +713,10 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
 
 
 class BooleanColumnProfiler(BaseColumnProfiler):
-    def __init__(self, engine, table: Table, column: Column):
+    def __init__(self, engine: Engine, table: Table, column: Column):
         super().__init__(engine, table, column)
 
-    def _get_table_cte(self):
+    def _get_table_cte(self) -> CTE:
         t = self.table
         c = self.column
         if self._get_database_backend() != 'sqlite':
@@ -672,7 +768,7 @@ class BooleanColumnProfiler(BaseColumnProfiler):
             }
 
 
-def profile_topk(conn, expr, k=20):
+def profile_topk(conn, expr, k=20) -> dict:
     stmt = select([
         expr,
         func.count().label("_count")
