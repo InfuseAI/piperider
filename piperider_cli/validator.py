@@ -137,6 +137,7 @@ class CheckAssertionFiles(AbstractChecker):
 
 
 class Validator():
+    @staticmethod
     def diagnose():
         handler = CheckingHandler()
         handler.set_checker('config files', CheckConfiguration)

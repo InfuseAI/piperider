@@ -58,6 +58,7 @@ def _get_run_json_path(input=None):
 
 
 class GenerateReport():
+    @staticmethod
     def exec(input=None):
         console = Console()
 

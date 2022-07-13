@@ -332,6 +332,7 @@ def _append_descriptions_from_assertion(profile_result):
 
 
 class Runner():
+    @staticmethod
     def exec(datasource=None, table=None, output=None, interaction=True, skip_report=False, dbt_command='',
              skip_recommend=False):
         console = Console()
