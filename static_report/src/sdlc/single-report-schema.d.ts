@@ -39,7 +39,7 @@ export interface ColumnSchema {
   distribution?: null | Distribution;
   name: string;
   description: string;
-  type: 'string' | 'numeric' | 'datetime' | 'bool' | 'other';
+  type: "string" | "numeric" | "datetime" | "bool" | "other";
   schema_type: string;
   mismatched?: number;
   profile_duration?: string;
@@ -72,7 +72,7 @@ export interface PipeRiderAssertionResult {
 }
 export interface AssertionTest {
   name: string;
-  status: 'passed' | 'failed';
+  status: "passed" | "failed";
   parameters?: {
     [k: string]: unknown;
   };

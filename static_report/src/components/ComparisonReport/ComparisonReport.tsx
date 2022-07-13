@@ -37,7 +37,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
   const { base, input } = data;
   const baseTables = base.tables[reportName];
   const inputTables = input.tables[reportName];
-  const existsDbtTests = base.tables[reportName].dbt_assertion_result;
+  const existsDbtTests = base.tables[reportName]?.dbt_assertion_result;
 
   const [baseOverview, inputOverview] = getComparisonAssertions({
     data,
@@ -82,13 +82,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
         >
           {/* overview */}
           <Heading fontSize={24}>Overview</Heading>
-          {/* FIXME: any typing */}
-          <CRTableOverview
-            baseOverview={baseOverview as any}
-            baseTables={baseTables}
-            inputTables={inputTables}
-            inputOverview={inputOverview as any}
-          />
+          <CRTableOverview baseTables={baseTables} inputTables={inputTables} />
 
           <Tabs isLazy>
             <TabList>

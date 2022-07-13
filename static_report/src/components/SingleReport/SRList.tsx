@@ -79,7 +79,7 @@ export function SingleReportList({ data }: Props) {
               {Object.keys(tables).map((key) => {
                 const report = tables[key];
 
-                const overview = getReportAsserationStatusCounts(
+                const pipeRideroverview = getReportAsserationStatusCounts(
                   report.piperider_assertion_result,
                 );
 
@@ -102,10 +102,16 @@ export function SingleReportList({ data }: Props) {
                         </SRTooltip>
                       </Td>
                       <Td>
-                        {formatColumnValueWith(overview.passed, formatNumber)}
+                        {formatColumnValueWith(
+                          pipeRideroverview.passed,
+                          formatNumber,
+                        )}
                       </Td>
                       <Td>
-                        {formatColumnValueWith(overview.failed, formatNumber)}
+                        {formatColumnValueWith(
+                          pipeRideroverview.failed,
+                          formatNumber,
+                        )}
                       </Td>
                       <Td>
                         {formatColumnValueWith(

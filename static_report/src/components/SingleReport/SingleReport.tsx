@@ -12,7 +12,6 @@ import {
 import { Link } from 'wouter';
 
 import { Main } from '../shared/Main';
-import { getReportAsserationStatusCounts } from '../../utils';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
@@ -39,10 +38,6 @@ export default function SingleReport({ data, name }: Props) {
       </Main>
     );
   }
-
-  const overview = getReportAsserationStatusCounts(
-    table.piperider_assertion_result,
-  );
 
   return (
     <Main>
@@ -71,7 +66,7 @@ export default function SingleReport({ data, name }: Props) {
           mx="10%"
           direction="column"
         >
-          <SRTableOverview table={table} overview={overview} />
+          <SRTableOverview table={table} />
 
           <Tabs isLazy>
             <TabList>
@@ -91,7 +86,7 @@ export default function SingleReport({ data, name }: Props) {
                 />
               </TabPanel>
 
-              {table.piperider_assertion_result && (
+              {table?.dbt_assertion_result && (
                 <TabPanel>
                   <SRTabTestDetails
                     type="dbt"

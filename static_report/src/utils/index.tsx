@@ -19,18 +19,30 @@ export function getReportAggregateAsserations(
   piperiderAssertions: TableSchema['piperider_assertion_result'],
   dbtAssertion: TableSchema['dbt_assertion_result'],
 ) {
-  let { passed, failed } = getReportAsserationStatusCounts(piperiderAssertions);
+  let passed = 0;
+  let failed = 0;
+
+  const { passed: piperiderPassed, failed: piperiderFailed } =
+    getReportAsserationStatusCounts(piperiderAssertions);
+
+  if (Number.isInteger(piperiderPassed)) {
+    passed += piperiderPassed as number;
+  }
+
+  if (Number.isInteger(piperiderFailed)) {
+    passed += piperiderFailed as number;
+  }
 
   if (dbtAssertion) {
     const { passed: dbtPassed, failed: dbtFailed } =
       getReportAsserationStatusCounts(dbtAssertion);
 
-    if (Number.isInteger(passed) && Number.isInteger(dbtPassed)) {
-      passed = (passed as number) + (dbtPassed as number);
+    if (Number.isInteger(dbtPassed)) {
+      passed += dbtPassed as number;
     }
 
-    if (Number.isInteger(failed) && Number.isInteger(dbtFailed)) {
-      failed = (failed as number) + (dbtFailed as number);
+    if (Number.isInteger(dbtFailed)) {
+      failed += dbtFailed as number;
     }
   }
 
@@ -226,14 +238,12 @@ export function getComparisonAssertions({
   const baseTables = { type: 'base', tables: data.base.tables[reportName] };
   const inputTables = { type: 'input', tables: data.input.tables[reportName] };
 
-  const assertions = [baseTables, inputTables].map((source) => {
-    // console.log(source.tables[targets[type]], type);
-    return getComparisonAssertionTests({
+  const assertions = [baseTables, inputTables].map((source) =>
+    getComparisonAssertionTests({
       assertion: source.tables[targets[type]],
       from: source.type as ComparsionSource,
-    });
-  });
-  // console.log(assertions);
+    }),
+  );
 
   return assertions;
 }
