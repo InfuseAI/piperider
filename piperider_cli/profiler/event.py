@@ -83,8 +83,8 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         text_column = TextColumn("{task.description}")
         bar_column = BarColumn(bar_width=80)
         time_elapsed_column = TimeElapsedColumn()
-        mof_column = MofNCompleteColumn()
-        self.progress = Progress(text_column, bar_column, mof_column, time_elapsed_column)
+        mofn_column = MofNCompleteColumn()
+        self.progress = Progress(text_column, bar_column, mofn_column, time_elapsed_column)
         self.progress_started = False
         self.tasks = {}
 
