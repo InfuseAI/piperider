@@ -21,6 +21,7 @@ from piperider_cli.profiler import Profiler
 from piperider_cli.configuration import Configuration, \
     PIPERIDER_CONFIG_PATH, \
     PIPERIDER_OUTPUT_PATH
+from piperider_cli.profiler.event import RichProfilerEventHandler
 
 
 def _agreed_to_run_recommended_assertions(console: Console, interactive: bool):
@@ -395,7 +396,7 @@ class Runner():
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
         engine = create_engine(ds.to_database_url(), **ds.engine_args())
-        profiler = Profiler(engine)
+        profiler = Profiler(engine, RichProfilerEventHandler())
         profile_result = profiler.profile(tables)
 
         output_path = prepare_output_path(created_at, ds, output)

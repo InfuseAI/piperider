@@ -74,6 +74,7 @@ class Profiler:
                         metadata.schema = schema
                     Table(table, metadata, autoload_with=self.engine)
 
+        result["metadata"] = metadata
         table_count = len(tables)
         table_index = 0
         self.event_handler.handle_run_progress(result, table_count, table_index)
@@ -86,6 +87,7 @@ class Profiler:
 
         self.event_handler.handle_run_end(result)
 
+        del result["metadata"]
         return result
 
     def _profile_table(self, table):
