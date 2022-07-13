@@ -78,11 +78,12 @@ class DefaultDbtAdaptee(DbtAdaptee):
 class DbtAdapter:
 
     def __init__(self, config, adaptee=None):
-        self.profile = config.get('profile')
-        self.profilesDir = config.get('profilesDir')
-        self.projectDir = config.get('projectDir')
-        self.target = config.get('target')
-        self.rootPath = os.path.expanduser(config.get('projectDir'))
+        self.config = config or {}
+        self.profile = self.config.get('profile')
+        self.profilesDir = self.config.get('profilesDir')
+        self.projectDir = self.config.get('projectDir')
+        self.target = self.config.get('target')
+        self.rootPath = os.path.expanduser(self.projectDir) if self.projectDir else None
 
         self.adaptee: DbtAdaptee = adaptee if adaptee else DefaultDbtAdaptee()
         self.adaptee.set_root(self.rootPath)
@@ -167,7 +168,7 @@ class DbtAdapter:
         # TODO: check dbt command
         if self.error:
             return False
-        return None not in [self.profile, self.projectDir, self.target]
+        return None not in [self.profile, self.projectDir, self.target, self.rootPath]
 
     def get_error(self):
         return self.error
