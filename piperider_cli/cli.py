@@ -187,6 +187,7 @@ def run(**kwargs):
 @click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
 @add_options(debug_option)
 def generate_assertions(**kwargs):
+    'Generate recommended assertions based on the latest result. By default, the profiling result will be loaded from ".piperider/outputs".'
     input = kwargs.get('input')
     AssertionGenerator.exec(input=input)
 

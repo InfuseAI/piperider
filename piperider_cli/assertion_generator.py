@@ -8,10 +8,10 @@ from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.configuration import PIPERIDER_OUTPUT_PATH
 from piperider_cli.error import PipeRiderNoProfilingResultError
 
+console = Console()
+
 
 def _get_run_json_path(input=None):
-    console = Console()
-    run_json = None
     if input:
         if not os.path.exists(input):
             console.print(f'[bold red]Error: {input} not found[/bold red]')
@@ -36,7 +36,6 @@ def _validate_input_result(result):
 class AssertionGenerator():
     @staticmethod
     def exec(input=None, interaction=True):
-        console = Console()
         run_json_path = _get_run_json_path(input)
         if not os.path.isfile(run_json_path):
             raise PipeRiderNoProfilingResultError(run_json_path)
