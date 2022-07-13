@@ -11,6 +11,7 @@ import piperider_cli.hack.inquirer as inquirer_hack
 from piperider_cli import datetime_to_str, str_to_datetime, clone_directory
 from piperider_cli.configuration import PIPERIDER_OUTPUT_PATH, PIPERIDER_COMPARISON_PATH
 
+
 class ProfilerOutput(object):
     def __init__(self, path):
         self.path = path
