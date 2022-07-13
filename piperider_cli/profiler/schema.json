@@ -248,7 +248,10 @@
         "bin_edges": {
           "type": "array",
           "items": {
-            "type": "number"
+            "oneOf": [
+             { "type": "number" },
+             { "type": "string" }
+            ]
           }
         }
       }
