@@ -65,18 +65,19 @@ class TestRunner(TestCase):
     def test_dbt_list_tables(self):
         tables = self.dbt_adapter.list_dbt_tables('PUBLIC')
         tables.sort()
+
         self.assertEqual('PRICE,PRICE_20210128,symbol_all', ','.join(tables))
 
     def test_dbt_run_results(self):
         results = self.dbt_adapter.run_dbt_command(None, 'PUBLIC')
+
         self.assertIn('PRICE_20210128', results)
         self.assertIn('ma60', results['PRICE_20210128']['columns'])
         self.assertEqual('failed', results['PRICE_20210128']['columns']['ma60'][0]['status'])
 
     def test_dbt_append_descriptions(self):
         self.dbt_adapter.append_descriptions(self.profile_results, 'PUBLIC')
-        print(self.profile_results['tables']['PRICE_20210128'])
-        print(self.profile_results['tables']['PRICE'])
+
         self.assertEqual('test - via DBT', self.profile_results['tables']['PRICE_20210128']['description'])
         self.assertEqual('ooopppen - via DBT', self.profile_results['tables']['PRICE_20210128']['columns']['open']['description'])
         self.assertEqual('ma 20 - via DBT', self.profile_results['tables']['PRICE']['columns']['ma20']['description'])
