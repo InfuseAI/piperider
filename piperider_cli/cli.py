@@ -10,6 +10,10 @@ from rich.syntax import Syntax
 from piperider_cli import workspace, dbt_adapter, __version__, event
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.guide import Guide
+from piperider_cli.initializer import Initializer
+from piperider_cli.validator import Validator
+from piperider_cli.runner import Runner
+from piperider_cli.generate_report import GenerateReport
 
 
 def set_sentry_env():
@@ -65,8 +69,6 @@ def cli(ctx: click.Context):
         click.echo(ctx.get_help())
         Guide().show_tips(ctx.command.name)
 
-    pass
-
 
 cli.command_class = TrackCommand
 
@@ -121,7 +123,7 @@ def init(**kwargs):
         console.print(f'Use dbt project file: {dbt_project_path}')
     else:
         console.print('[[bold yellow]Skip[/bold yellow]] No dbt project found')
-    config = workspace.init(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir)
+    config = Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir)
     if kwargs.get('debug'):
         for ds in config.dataSources:
             console.rule('Configuration')
@@ -144,7 +146,7 @@ def diagnose(**kwargs):
 
     console.print(f'[bold dark_orange]PipeRider Version:[/bold dark_orange] {__version__}')
 
-    if not workspace.debug():
+    if not Validator.diagnose():
         sys.exit(1)
 
 
@@ -169,15 +171,15 @@ def run(**kwargs):
     run_dbt_test = kwargs.get('dbt_test')
     run_dbt_build = kwargs.get('dbt_build')
     dbt_command = 'build' if run_dbt_build else 'test' if run_dbt_test else ''
-    ret = workspace.run(datasource=datasource,
-                        table=table,
-                        output=output,
-                        interaction=not kwargs.get('no_interaction'),
-                        skip_report=skip_report,
-                        skip_recommend=skip_recommend,
-                        dbt_command=dbt_command)
+    ret = Runner.exec(datasource=datasource,
+                      table=table,
+                      output=output,
+                      interaction=not kwargs.get('no_interaction'),
+                      skip_report=skip_report,
+                      skip_recommend=skip_recommend,
+                      dbt_command=dbt_command)
     if not skip_report and ret == 0:
-        workspace.generate_report()
+        GenerateReport.exec()
 
 
 @cli.command(short_help='Generate recommended assertions.')
@@ -186,7 +188,6 @@ def run(**kwargs):
 def generate_assertions(**kwargs):
     input = kwargs.get('input')
     workspace.generate_recommended_assertions(input=input)
-    pass
 
 
 @cli.command(short_help='Generate a report.')
@@ -195,8 +196,7 @@ def generate_assertions(**kwargs):
 def generate_report(**kwargs):
     'Generate a report from the latest raw result or specified result. By default, the raw results are saved in ".piperider/outputs".'
 
-    input = kwargs.get('input')
-    workspace.generate_report(input=input)
+    GenerateReport.exec(input=kwargs.get('input'))
 
 
 @cli.command(short_help='Compare two existing reports.')

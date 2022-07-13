@@ -7,7 +7,7 @@ import requests
 import portalocker
 from datetime import datetime
 from piperider_cli import __version__
-from piperider_cli.workspace import PIPERIDER_WORKSPACE_NAME
+from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 
 PIPERIDER_WORKING_DIR = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
 PIPERIDER_EVENT_PATH = os.path.join(PIPERIDER_WORKING_DIR, '.unsend_events.json')

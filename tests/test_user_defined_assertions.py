@@ -10,7 +10,7 @@ from piperider_cli.profiler import Profiler
 
 
 def prepare_project_structure():
-    from piperider_cli.workspace import _generate_piperider_workspace
+    from piperider_cli.initializer import _generate_piperider_workspace
 
     with tempfile.NamedTemporaryFile() as tmp:
         # tmp will be removed after exiting context

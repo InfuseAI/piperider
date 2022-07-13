@@ -1,0 +1,450 @@
+import json
+import os
+import re
+import sys
+import uuid
+from datetime import datetime
+from subprocess import check_output
+from typing import List
+
+from rich.console import Console
+from rich.table import Table
+from sqlalchemy import create_engine, inspect
+
+from piperider_cli import convert_to_tzlocal, datetime_to_str, dbt_adapter
+from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
+from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
+from piperider_cli.compare_report import CompareReport
+from piperider_cli.datasource import DataSource
+from piperider_cli.error import PipeRiderCredentialError
+from piperider_cli.profiler import Profiler
+from piperider_cli.configuration import Configuration, \
+    PIPERIDER_CONFIG_PATH, \
+    PIPERIDER_OUTPUT_PATH
+
+
+def _agreed_to_run_recommended_assertions(console: Console, interactive: bool):
+    if interactive:
+        console.print('Please press enter to continue ...',
+                      end=' ')
+        confirm = input('').strip().lower()
+        return confirm == 'yes' or confirm == 'y' or confirm == ''  # default yes
+    else:
+        return True
+
+
+def _agreed_to_generate_recommended_assertions(console: Console, interactive: bool, skip_recommend: bool):
+    if skip_recommend:
+        return False
+
+    if interactive:
+        console.print('Do you want to auto generate recommended assertions for this datasource \[Yes/no]?',
+                      end=' ')
+        confirm = input('').strip().lower()
+        return confirm == 'yes' or confirm == 'y' or confirm == ''  # default yes
+    else:
+        return True
+
+
+def _execute_assertions(console: Console, profiler, ds: DataSource, interaction: bool,
+                        output, result, created_at, skip_recommend: bool):
+    # TODO: Implement running test cases based on profiling result
+    assertion_engine = AssertionEngine(profiler)
+    assertion_engine.load_assertions(result)
+    assertion_exist = True if assertion_engine.assertions_content else False
+
+    if not assertion_exist:
+        console.print('[bold yellow]No assertion found[/]')
+        if _agreed_to_generate_recommended_assertions(console, interaction, skip_recommend):
+            # Generate recommended assertions
+            console.rule('Generating Recommended Assertions')
+            recommended_assertions = assertion_engine.generate_recommended_assertions(result)
+            for f in recommended_assertions:
+                console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
+            if _agreed_to_run_recommended_assertions(console, interaction):
+                assertion_engine.load_assertions()
+            else:
+                console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
+                return [], []
+        else:
+            # Generate assertion templates
+            console.rule('Generating Assertion Templates')
+            template_assertions = assertion_engine.generate_template_assertions(result)
+            for f in template_assertions:
+                console.print(f'[bold green]Template Assertion[/bold green]: {f}')
+
+    # Execute assertions
+    results, exceptions = assertion_engine.evaluate_all(result)
+    return results, exceptions
+
+
+def _show_dbt_test_result(console: Console, dbt_test_results, failed_only=False):
+    max_target_len = 0
+    max_assert_len = 0
+    indent = '  ' if failed_only else ''
+    for table, v in dbt_test_results.items():
+        for column, results in v['columns'].items():
+            for r in results:
+                if failed_only and r.get('status') == 'passed':
+                    continue
+                target = f'{table}.{column}'
+                test_name = r.get('name')
+                max_target_len = max(max_target_len, len(target))
+                max_assert_len = max(max_assert_len, len(test_name))
+
+    for table, v in dbt_test_results.items():
+        for column, results in v['columns'].items():
+            for r in results:
+                if failed_only and r.get('status') == 'passed':
+                    continue
+                success = True if r.get('status') == 'passed' else False
+                test_name = r.get('name')
+                test_name = test_name.ljust(max_assert_len + 1)
+                target = f'{table}.{column}'
+                target = target.ljust(max_target_len + 1)
+                message = r.get('message')
+
+                if success:
+                    console.print(
+                        f'{indent}[[bold green]  OK  [/bold green]] {target} {test_name} Message: {message}')
+                else:
+                    console.print(
+                        f'{indent}[[bold red]FAILED[/bold red]] {target} {test_name} Message: {message}')
+
+
+def _show_assertion_result(console: Console, results, exceptions, failed_only=False, single_table=None):
+    if results:
+        max_target_len = 0
+        max_assert_len = 0
+        indent = '  ' if failed_only else ''
+        for assertion in results:
+            if single_table and single_table != assertion.table:
+                continue
+            if assertion.column:
+                if failed_only and assertion.result.status():
+                    continue
+                target = f'{assertion.table}.{assertion.column}'
+                max_target_len = max(max_target_len, len(target))
+            max_assert_len = max(max_assert_len, len(assertion.name))
+
+        for assertion in results:
+            if single_table and single_table != assertion.table:
+                continue
+            if failed_only and assertion.result.status():
+                continue
+            table = assertion.table
+            column = assertion.column
+            test_function = assertion.name
+            test_function = test_function.ljust(max_assert_len + 1)
+            success = assertion.result.status()
+            target = f'{table}.{column}' if column else table
+            target = target.ljust(max_target_len + 1)
+            if success:
+                console.print(
+                    f'{indent}[[bold green]  OK  [/bold green]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
+            else:
+                console.print(
+                    f'{indent}[[bold red]FAILED[/bold red]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
+                if assertion.result.exception:
+                    console.print(f'         {indent}[bold white]Reason[/bold white]: {assertion.result.exception}')
+    # TODO: Handle exceptions
+    pass
+
+
+def _show_recommended_assertion_notice_message(console: Console, results):
+    for assertion in results:
+        if assertion.result.status() is False and RECOMMENDED_ASSERTION_TAG in assertion.tags:
+            console.print(
+                f'\n[[bold yellow]Notice[/bold yellow]] You can use command '
+                f'"{os.path.basename(sys.argv[0])} generate-assertions" '
+                f'to re-generate recommended assertions with new profiling results.')
+            break
+
+
+def _show_dbt_test_result_summary(console: Console, table: str, dbt_test_results):
+    if not dbt_test_results:
+        return False
+
+    num_of_testcases = 0
+    num_of_passed_testcases = 0
+    num_of_failed_testcases = 0
+
+    for k, v in dbt_test_results.items():
+        if k == table:
+            for column, results in v['columns'].items():
+                for r in results:
+                    num_of_testcases += 1
+                    if r.get('status') == 'passed':
+                        num_of_passed_testcases += 1
+
+            num_of_failed_testcases = num_of_testcases - num_of_passed_testcases
+            if num_of_testcases > 0:
+                console.print(f'  {num_of_testcases} dbt test executed')
+
+            if (num_of_failed_testcases > 0):
+                console.print(f'  {num_of_failed_testcases} of {num_of_testcases} dbt tests failed:')
+                _show_dbt_test_result(console, {k: v}, failed_only=True)
+                return True
+    return False
+
+
+def _show_table_summary(console: Console, table: str, profiled_result, assertion_results, dbt_test_results):
+    profiled_columns = profiled_result.get('col_count')
+    num_of_testcases = 0
+    num_of_passed_testcases = 0
+    num_of_failed_testcases = 0
+    failed_testcases = []
+
+    if assertion_results:
+        for r in assertion_results:
+            if r.table == table:
+                num_of_testcases += 1
+                if r.result.status():
+                    num_of_passed_testcases += 1
+                else:
+                    failed_testcases.append(r)
+
+    num_of_failed_testcases = num_of_testcases - num_of_passed_testcases
+
+    console.print(f"Table '{table}'")
+    console.print(f'  {profiled_columns} columns profiled')
+
+    dbt_showed = _show_dbt_test_result_summary(console, table, dbt_test_results)
+    pr = ' PipeRider' if dbt_showed else ''
+    if assertion_results and dbt_showed:
+        console.print()
+
+    if num_of_testcases > 0:
+        console.print(f'  {num_of_testcases}{pr} test executed')
+
+    if (num_of_failed_testcases > 0):
+        console.print(f'  {num_of_failed_testcases} of {num_of_testcases}{pr} tests failed:')
+        _show_assertion_result(console, assertion_results, None, failed_only=True, single_table=table)
+    console.print()
+    pass
+
+
+def _transform_assertion_result(table: str, results):
+    tests = []
+    columns = {}
+    if results is None:
+        return dict(tests=tests, columns=columns)
+
+    for r in results:
+        if r.table == table:
+            entry = r.to_result_entry()
+            if r.column:
+                if r.column not in columns:
+                    columns[r.column] = []
+                columns[r.column].append(entry)
+            else:
+                tests.append(entry)
+
+    return dict(tests=tests, columns=columns)
+
+
+def _validate_assertions(console: Console):
+    assertion_engine = AssertionEngine(None)
+    assertion_engine.load_all_assertions_for_validation()
+    results = assertion_engine.validate_assertions()
+    # if results
+    for result in results:
+        # result
+        console.print(f'  [[bold red]FAILED[/bold red]] {result.as_user_report()}')
+
+    if results:
+        # stop runner
+        return True
+
+    # continue to run profiling
+    console.print('everything is OK.')
+    return False
+
+
+def _get_table_list(table, default_schema, dbt):
+    tables = None
+
+    if table:
+        table = re.sub(f'^({default_schema})\.', '', table)
+        tables = [table]
+
+    if dbt:
+        dbt_tables = dbt_adapter._list_dbt_tables(dbt, default_schema)
+        if not dbt_tables:
+            raise Exception('No table found in dbt project.')
+
+        if not table:
+            tables = dbt_tables
+        elif table not in dbt_tables:
+            suggestion = ''
+            lower_tables = [t.lower() for t in dbt_tables]
+            if table.lower() in lower_tables:
+                index = lower_tables.index(table.lower())
+                suggestion = f"Do you mean '{dbt_tables[index]}'?"
+            raise Exception(f"Table '{table}' doesn't exist in dbt project. {suggestion}")
+
+    return tables
+
+
+def prepare_output_path(created_at, ds, output):
+    latest_symlink_path = os.path.join(PIPERIDER_OUTPUT_PATH, 'latest')
+    output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
+                               f"{ds.name}-{convert_to_tzlocal(created_at).strftime('%Y%m%d%H%M%S')}")
+    if output:
+        output_path = output
+    if not os.path.exists(output_path):
+        os.makedirs(output_path, exist_ok=True)
+
+    # Create a symlink pointing to the latest output directory
+    if os.path.islink(latest_symlink_path):
+        os.unlink(latest_symlink_path)
+    if not os.path.exists(latest_symlink_path):
+        os.symlink(output_path, latest_symlink_path)
+    else:
+        console = Console()
+        console.print(f'[bold yellow]Warning: {latest_symlink_path} already exists[/bold yellow]')
+
+    return output_path
+
+
+def _append_descriptions(profile_result):
+    for table_v in profile_result['tables'].values():
+        table_v['description'] = 'Description: N/A'
+        for column_v in table_v['columns'].values():
+            column_v['description'] = 'Description: N/A'
+
+
+def _append_descriptions_from_assertion(profile_result):
+    engine = AssertionEngine(None)
+    engine.load_assertion_content()
+    for table_name, table_v in engine.assertions_content.items():
+        if table_name not in profile_result['tables']:
+            continue
+        table_desc = table_v.get('description', '')
+        if table_desc:
+            profile_result['tables'][table_name]['description'] = f'{table_desc} - via PipeRider'
+        for column_name, column_v in table_v.get('columns', {}).items():
+            if column_name not in profile_result['tables'][table_name]['columns']:
+                continue
+            column_desc = column_v.get('description', column_name)
+            if column_desc:
+                profile_result['tables'][table_name]['columns'][column_name]['description'] = f'{column_desc} - via PipeRider'
+
+
+class Runner():
+    def exec(datasource=None, table=None, output=None, interaction=True, skip_report=False, dbt_command='',
+             skip_recommend=False):
+        console = Console()
+        configuration = Configuration.load()
+
+        datasources = {}
+        datasource_names = []
+        for ds in configuration.dataSources:
+            datasource_names.append(ds.name)
+            datasources[ds.name] = ds
+
+        if len(datasource_names) == 0:
+            console.print("[bold red]Error: no datasource found[/bold red]")
+            return 1
+
+        if datasource and datasource not in datasource_names:
+            console.print(f"[bold red]Error: datasource '{datasource}' doesn't exist[/bold red]")
+            console.print(f"Available datasources: {', '.join(datasource_names)}")
+            return 1
+
+        # Use the first datasource if no datasource is specified
+        ds_name = datasource if datasource else datasource_names[0]
+        ds = datasources[ds_name]
+
+        passed, _ = ds.validate()
+        if passed is not True:
+            raise PipeRiderCredentialError(ds.name)
+
+        if not datasource and len(datasource_names) > 1:
+            console.print(
+                f"[bold yellow]Warning: multiple datasources found ({', '.join(datasource_names)}), using '{ds_name}'[/bold yellow]\n")
+
+        console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
+
+        if ds.show_installation_information() is False:
+            console.print(f'[[bold red]FAILED[/bold red]] Failed to load the \'{ds.type_name}\' connector')
+            return 1
+
+        console.rule('Validating')
+        stop_runner = _validate_assertions(console)
+        if stop_runner:
+            console.print('\n\n[bold red]ERROR:[/bold red] Stop profiling, please fix the syntax errors above.')
+            return 1
+
+        default_schema = ds.credential.get('schema')
+        dbt = ds.args.get('dbt')
+        dbt_exists = dbt_adapter._check_dbt_command(dbt)
+        if dbt_command and not dbt_exists:
+            console.print(f'[bold yellow]Warning: dbt command not found. Skip running dbt {dbt_command}.[/bold yellow]')
+
+        if dbt and dbt_exists:
+            dbt['resources'] = dbt_adapter._list_dbt_resources(dbt)
+        tables = _get_table_list(table, default_schema, dbt)
+
+        dbt_test_results = None
+        if dbt and dbt_command in ['build', 'test'] and dbt_exists:
+            dbt['cmd'] = dbt_command
+            dbt_test_results = dbt_adapter._run_dbt_command(table, default_schema, dbt)
+
+        console.rule('Profiling')
+        run_id = uuid.uuid4().hex
+        created_at = datetime.utcnow()
+        engine = create_engine(ds.to_database_url(), **ds.engine_args())
+        profiler = Profiler(engine)
+        profile_result = profiler.profile(tables)
+
+        output_path = prepare_output_path(created_at, ds, output)
+
+        # output profiling result
+        with open(os.path.join(output_path, ".profiler.json"), "w") as f:
+            f.write(json.dumps(profile_result))
+
+        # TODO stop here if tests was not needed.
+        assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
+                                                                      profile_result, created_at, skip_recommend)
+        if assertion_results or dbt_test_results:
+            console.rule('Assertion Results')
+            if dbt_test_results:
+                console.rule('dbt')
+                _show_dbt_test_result(console, dbt_test_results)
+                if assertion_results:
+                    console.rule('PipeRider')
+            if assertion_results:
+                _show_assertion_result(console, assertion_results, assertion_exceptions)
+
+        console.rule('Summary')
+
+        profile_result['id'] = run_id
+        profile_result['created_at'] = datetime_to_str(created_at)
+        profile_result['datasource'] = dict(name=ds.name, type=ds.type_name)
+
+        # Include dbt test results
+        if dbt_test_results:
+            for k, v in dbt_test_results.items():
+                if k not in profile_result['tables']:
+                    continue
+                profile_result['tables'][k]['dbt_assertion_result'] = v
+
+        output_file = os.path.join(output_path, 'run.json')
+        for t in profile_result['tables']:
+            profile_result['tables'][t]['piperider_assertion_result'] = _transform_assertion_result(t, assertion_results)
+
+            _show_table_summary(console, t, profile_result['tables'][t], assertion_results, dbt_test_results)
+
+        _show_recommended_assertion_notice_message(console, assertion_results)
+
+        _append_descriptions(profile_result)
+        if dbt and dbt_exists:
+            dbt_adapter._append_descriptions_from_dbt(profile_result, dbt, default_schema)
+        _append_descriptions_from_assertion(profile_result)
+
+        with open(output_file, 'w') as f:
+            f.write(json.dumps(profile_result, indent=4))
+        if skip_report:
+            console.print(f'Results saved to {output_path}')
+        return 0
