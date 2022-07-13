@@ -33,6 +33,10 @@ class DbtAdaptee(metaclass=ABCMeta):
     def run(self, cmd_arr):
         raise NotImplementedError
 
+    @abstractmethod
+    def get_run_results(self):
+        raise NotImplementedError
+
 
 class DefaultDbtAdaptee(DbtAdaptee):
 
@@ -64,6 +68,11 @@ class DefaultDbtAdaptee(DbtAdaptee):
             raise DbtInvocationError()
         if out:
             return out.decode()
+
+    def get_run_results(self):
+        path = os.path.join(self.root, 'target/run_results.json')
+        with open(path) as f:
+            return json.load(f)
 
 
 class DbtAdapter:
@@ -212,9 +221,7 @@ class DbtAdapter:
         console.print(f"Execute command: {' '.join(full_cmd_arr)}")
         self.adaptee.run(full_cmd_arr)
 
-        run_results_path = os.path.join(self.rootPath, 'target/run_results.json')
-        with open(run_results_path) as f:
-            run_results = json.load(f)
+        run_results = self.adaptee.get_run_results()
 
         output = {}
         unique_tests = {}
