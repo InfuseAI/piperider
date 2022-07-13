@@ -1,4 +1,3 @@
-import * as d3 from 'd3';
 import fill from 'lodash/fill';
 import zip from 'lodash/zip';
 import { Text } from '@chakra-ui/react';
@@ -9,55 +8,38 @@ import type {
   ComparisonReportSchema,
   ComparsionSource,
 } from '../types';
-import { ColumnSchema } from '../sdlc/single-report-schema';
-
-const tooltipDefaultStyle = {
-  paddingTop: 'var(--chakra-space-2)',
-  paddingBottom: 'var(--chakra-space-2)',
-  paddingLeft: 'var(--chakra-space-4)',
-  paddingRight: 'var(--chakra-space-4)',
-  borderRadius: 'var(--chakra-radii-md)',
-  color: 'var(--chakra-colors-white)',
-  backgroundColor: 'var(--chakra-colors-blackAlpha-700)',
-};
-
-export function getChartTooltip({ target, style = {} as any }) {
-  const tooltip = d3
-    .select(target)
-    .append('div')
-    .style('visibility', 'hidden')
-    .style('position', 'absolute')
-    .style('z-index', '9')
-    .style('padding-top', style?.paddingTop || tooltipDefaultStyle.paddingTop)
-    .style(
-      'padding-bottom',
-      style?.paddingBottom || tooltipDefaultStyle.paddingBottom,
-    )
-    .style(
-      'border-radius',
-      style?.borderRadius || tooltipDefaultStyle.borderRadius,
-    )
-    .style(
-      'padding-left',
-      style?.paddingLeft || tooltipDefaultStyle.paddingLeft,
-    )
-    .style(
-      'padding-right',
-      style?.paddingRight || tooltipDefaultStyle.paddingRight,
-    )
-    .style('color', style?.color || tooltipDefaultStyle.color)
-    .style(
-      'background-color',
-      style?.backgroundColor || tooltipDefaultStyle.backgroundColor,
-    );
-
-  return tooltip;
-}
+import type { ColumnSchema, TableSchema } from '../sdlc/single-report-schema';
 
 export type ReportAsserationStatusCounts = {
   passed: string | number;
   failed: string | number;
 };
+
+export function getReportAggregateAsserations(
+  piperiderAssertions: TableSchema['piperider_assertion_result'],
+  dbtAssertion: TableSchema['dbt_assertion_result'],
+) {
+  let { passed, failed } = getReportAsserationStatusCounts(piperiderAssertions);
+
+  if (dbtAssertion) {
+    const { passed: dbtPassed, failed: dbtFailed } =
+      getReportAsserationStatusCounts(dbtAssertion);
+
+    if (Number.isInteger(passed) && Number.isInteger(dbtPassed)) {
+      passed = (passed as number) + (dbtPassed as number);
+    }
+
+    if (Number.isInteger(failed) && Number.isInteger(dbtFailed)) {
+      failed = (failed as number) + (dbtFailed as number);
+    }
+  }
+
+  return {
+    passed,
+    failed,
+  };
+}
+
 export function getReportAsserationStatusCounts(
   assertion: AssertionValue,
 ): ReportAsserationStatusCounts {
@@ -244,12 +226,14 @@ export function getComparisonAssertions({
   const baseTables = { type: 'base', tables: data.base.tables[reportName] };
   const inputTables = { type: 'input', tables: data.input.tables[reportName] };
 
-  const assertions = [baseTables, inputTables].map((source) =>
-    getComparisonAssertionTests({
+  const assertions = [baseTables, inputTables].map((source) => {
+    // console.log(source.tables[targets[type]], type);
+    return getComparisonAssertionTests({
       assertion: source.tables[targets[type]],
       from: source.type as ComparsionSource,
-    }),
-  );
+    });
+  });
+  // console.log(assertions);
 
   return assertions;
 }
@@ -270,6 +254,7 @@ export type ComparisonAssertionTests = {
     tags: unknown[];
   }[];
 };
+
 export function getComparisonAssertionTests({
   assertion,
   from,
