@@ -79,7 +79,7 @@ class RichProfilerEventHandler(ProfilerEventHandler):
     def handle_table_progress(self, table_result, total, completed):
         if completed == 0:
             table_name = table_result['name']
-            padding = ' ' * (len(str(self.table_total)) - len(str(self.table_completed+1)))
+            padding = ' ' * (len(str(self.table_total)) - len(str(self.table_completed + 1)))
             coft = f'[{padding}{self.table_completed+1}/{self.table_total}]'
             task_id = self.progress.add_task(table_name, total=total, **dict(coft=coft))
             self.tasks[table_name] = task_id
