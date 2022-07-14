@@ -431,12 +431,10 @@ class AssertionEngine:
                                     'assert')
                                 new_assertion['assert'] = existed_assertion['assert']
                     if is_new_assertion_found is False:
-                        # Add new generating assertion
                         new_generating_items[target]['tests'].append(existed_assertion)
                         if self._is_recommended_assertion(existed_assertion):
                             new_generating_items[target]['tests'][-1].yaml_add_eol_comment(comment_remove_assertion,
                                                                                            'name')
-                            pass
             return new_generating_items
 
         for name, recommended_assertion in recommended_assertions.items():
