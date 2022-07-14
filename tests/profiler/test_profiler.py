@@ -302,13 +302,39 @@ class TestProfiler:
 
         self.create_table("test", data, columns=[Column("col", DateTime)])
         with engine.connect() as conn:
+            conn.execute("insert into test values (0)")
+            conn.execute("insert into test values (1.3)")
             conn.execute("insert into test values ('abc')")
-            conn.execute("insert into test values (x'0500')")
+            conn.execute("insert into test values ('2021-02-13')")
+            conn.execute("insert into test values (x'A1B2')")
         profiler = Profiler(engine)
         result = profiler.profile()["tables"]["test"]['columns']["col"]
-        assert result["total"] == 5
-        assert result["non_nulls"] == 4
-        assert result["mismatched"] == 1
+        assert result["total"] == 8
+        assert result["non_nulls"] == 7
+        assert result["mismatched"] == 2
+
+    def test_boolean_mismatched(self):
+        engine = self.engine = create_engine('sqlite://')
+
+        data = [
+            ("col",),
+        ]
+
+        self.create_table("test", data, columns=[Column("col", Boolean)])
+        with engine.connect() as conn:
+            conn.execute("PRAGMA ignore_check_constraints = 1")
+            conn.execute("insert into test values (0)")
+            conn.execute("insert into test values (1)")
+            conn.execute("insert into test values (2.3)")  # mismatched
+            conn.execute("insert into test values ('1')")
+            conn.execute("insert into test values ('123')")  # mismatched
+            conn.execute("insert into test values (x'A1B2')")  # mismatched
+            conn.execute("insert into test values (NULL)")
+        profiler = Profiler(engine)
+        result = profiler.profile()["tables"]["test"]['columns']["col"]
+        assert result["total"] == 7
+        assert result["non_nulls"] == 6
+        assert result["mismatched"] == 3
 
     def test_date_boundary(self):
         # yearly
