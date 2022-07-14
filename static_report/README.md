@@ -62,27 +62,55 @@ $ npm run start:single
 $ npm run start:comparison
 ```
 
-## Build (especially before pushing changes)
+## Building the Apps
 
 > **Note**
 >
-> Generated **single report** and **comparison report** will be moved into [piperider_cli/data/report](https://github.com/InfuseAI/piperider/tree/main/piperider_cli/data/report).
-> Note that `prebuild` will strip index.html and its script variable values. Please restart a `start:*` script to repopulate values.
+> - This is now handled by the github action [.github/workflows/build-statics.yaml](https://github.com/InfuseAI/piperider/tree/main/.github/workflows/build-statics.yaml)
+> - Generated **single report** and **comparison report** will be moved into [piperider_cli/data/report](https://github.com/InfuseAI/piperider/tree/main/piperider_cli/data/report).
+> - Note that the main `build` script will strip index.html and its script variable values. If you are continuing to develop, you can run `npm run setup` again to re-populate the index.html script tag's data.
 
-### Single Reports
+### Building locally (do not commit these!)
 
 ```sh
+# Build Both Reports
+$ npm run build
+# Build Single Report
 $ npm run build:single
-```
-
-### Comparison Reports
-
-```sh
+# Build Comparison Report
 $ npm run build:comparison
 ```
 
-### Both Reports
+## E2E UI Testing
 
-```sh
-$ npm run build
+Currently, a cypress smoke-test is written inside [static_report/cypress/e2e/spec.cy.ts](https://github.com/InfuseAI/piperider/tree/main/static_report/cypress/e2e/spec.cy.ts). In the future, this may expand to cover different browsers, devices, etc.
+
+### Running E2E Locally
+
+> **Prereqs**
+>
+> - See it in action locally: [cypress e2e video](https://www.loom.com/share/7f576a39d2fd45ff91a06929b3ba4811)
+> - Following Cypress's setup [guide](https://docs.cypress.io/guides/getting-started/installing-cypress), especially if you are using a linux environment.
+> - You may need some dependencies: `runtest`, `expect`, `dejagnu` (this helps execute automation scripts from `*.exp` files)
+
+You can run the following from our github action [.github/workflows/build-statics.yaml](https://github.com/InfuseAI/piperider/tree/main/.github/workflows/build-statics.yaml):
+
+1. Under the step `Prepare Piperider Data (2 runs; 1 comparison)`: clone (from [piperider-getting-started](https://github.com/InfuseAI/piperider-getting-started) repo, and execute/generate the report mocks you need from the cloned repo `data/*.db` automatically.
+
+```bash
+   # install local python source
+   pip install -r requirements.txt
+   #execute auto scripts (generate 2 runs & 1 comparison)
+   runtest e2e-tests/testsuite/getting-started/001-run.exp
+   bash static_report/src/sdlc/generate-comparisons.sh
+
+   # verify they exist
+   ls -a piperider-getting-started/.piperider/outputs
+   ls -a piperider-getting-started/.piperider/comparisons
 ```
+
+1. Run `npm run setup:e2e` which will build the e2e statics against generated jsons found under the `piperider-getting-started/.piperider/..` directory.
+1. Run `npm run serve:e2e:single` and/or `npm run serve:e2e:comparison` to serve those statics, which replicate the cypress runtime
+1. Now run `npx cypress open` to spawn the cypress app
+1. Proceed within cypress app to E2E testing, and select the test file to run against the served statics.
+1. You can continue developing and the E2E testing should hot reload when changes occur (sometimes a hard refresh may be necessary)

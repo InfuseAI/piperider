@@ -75,7 +75,7 @@ export function SingleReportList({ data }: Props) {
                 <Th />
               </Tr>
             </Thead>
-            <Tbody>
+            <Tbody data-cy="sr-report-list">
               {Object.keys(tables).map((key) => {
                 const report = tables[key];
 
@@ -90,7 +90,11 @@ export function SingleReportList({ data }: Props) {
 
                 return (
                   <Link key={report.name} href={`/tables/${key}`}>
-                    <Tr cursor="pointer" _hover={{ bgColor: 'blackAlpha.50' }}>
+                    <Tr
+                      cursor="pointer"
+                      _hover={{ bgColor: 'blackAlpha.50' }}
+                      data-cy="sr-report-list-item"
+                    >
                       <Td>
                         {report.name}
                         <SRTooltip

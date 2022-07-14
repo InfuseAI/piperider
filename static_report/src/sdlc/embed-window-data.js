@@ -5,6 +5,7 @@ import {
   getComparisonDataPath,
   getEmbeddedIndexHTML,
   getFileData,
+  isE2E,
   log,
   PATH_TO_INDEX,
   PATH_TO_SINGLE_REPORT_DATA_JSON,
@@ -16,15 +17,22 @@ import {
  * Note: This is for DEVELOPMENT ONLY. Make sure to exclude/revert index.html changes before pushing and committing!
  */
 const insertDataToHTML = async () => {
-  // Read Report Data (Both Comparison/Single)
+  // NOTE: Not exported from core.js due to call-assign pattern, leading to unexpected errors when initializing imported file value
+  const PATH_TO_COMPARISON_REPORT_DATA_JSON = await getComparisonDataPath(
+    isE2E,
+  );
   const reportDataMap = new Map();
+
+  // Read Report Data (Comparison/Single)
+  log(PATH_TO_SINGLE_REPORT_DATA_JSON);
+  log(PATH_TO_COMPARISON_REPORT_DATA_JSON);
+
   await setMapValues(
     reportDataMap,
     PATH_TO_SINGLE_REPORT_DATA_JSON,
     SINGLE_KEY,
   );
 
-  const PATH_TO_COMPARISON_REPORT_DATA_JSON = await getComparisonDataPath();
   await setMapValues(
     reportDataMap,
     PATH_TO_COMPARISON_REPORT_DATA_JSON,
