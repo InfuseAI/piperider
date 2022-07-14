@@ -1,0 +1,77 @@
+
+name: Node.js - E2E, Unit Tests, Lint (for PR) 
+
+on:
+  pull_request:
+    types: 
+      [open, synchronize]
+      # Trigger when PR is created and/or head of branch is updated.
+    paths:
+      - "static_report/**"
+      # Trigger when diffs detected in statics source code
+    branches:
+      - main
+      # Only PR target is `main`
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./static_report
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'yarn'
+        cache-dependency-path: static_report/yarn.lock
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Prepare Piperider Data (2 runs; 1 comparison)
+      working-directory: .
+      run: |
+        sudo apt-get install expect dejagnu
+        mkdir -p ~/.piperider
+        cat << EOF > ~/.piperider/profile.yml
+        user_id: 00000000000000000000000000000000
+        anonymous_tracking: true
+        EOF
+        pwd
+        pip install -r requirements.txt
+        which piperider
+        piperider version
+        runtest e2e-tests/testsuite/getting-started/001-run.exp
+        
+        bash static_report/src/sdlc/generate-comparisons.sh
+
+        ls -a piperider-getting-started/.piperider/outputs
+        ls -a piperider-getting-started/.piperider/comparisons
+        
+        echo "Piperider Data Generated. Ready for html embedding"
+
+    - name: Install Dependencies
+      run: yarn install --immutable
+
+    - name: Cypress run (E2E)
+    # Parallelization only for cypress dashboard https://www.cypress.io/pricing/
+      uses: cypress-io/github-action@v2
+      with:
+        install: false
+        working-directory: ./static_report
+        config-file: cypress.config.ts
+        build: npm run setup:e2e
+        start: |
+          npm run serve:e2e:single
+          npm run serve:e2e:comparison
+        wait-on: 'http://localhost:3000, http://localhost:3001' 
+
+    - name: Build Apps
+      run: npm run build
