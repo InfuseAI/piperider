@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from typing import List
 
 from rich.console import Console
+from rich.markup import escape
 from sqlalchemy import create_engine, inspect
 
 from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
@@ -42,6 +43,8 @@ class CheckingHandler(object):
                 self.console.print(f'Check {checker["name"]}:')
                 passed, error_msg = checker['cls'].check_function(self.configurator)
                 if not passed:
+                    if isinstance(error_msg, list):
+                        error_msg = ', '.join(str(e) for e in error_msg)
                     raise PipeRiderDiagnosticError(checker['cls'].__class__.__name__, error_msg)
                 self.console.print(CONSOLE_MSG_PASS)
 
@@ -64,6 +67,7 @@ class CheckConfiguration(AbstractChecker):
 class CheckDataSources(AbstractChecker):
     def check_function(self, configurator: Configuration) -> (bool, str):
         all_passed = True
+        failed_reasons = []
         for ds in configurator.dataSources:
             passed, reasons = ds.validate()
             if passed:
@@ -73,13 +77,14 @@ class CheckDataSources(AbstractChecker):
                 self.console.print(f'  {ds.name}: [[bold red]FAILED[/bold red]]')
                 for reason in reasons:
                     self.console.print(f'    {reason}')
-            ds.show_installation_information()
-        return all_passed, ''
+                failed_reasons.extend(reasons)
+        return all_passed, failed_reasons
 
 
 class CheckConnections(AbstractChecker):
     def check_function(self, configurator: Configuration) -> (bool, str):
         all_passed = True
+        reason = ''
         for ds in configurator.dataSources:
             dbt = ds.args.get('dbt')
             name = ds.name
@@ -91,6 +96,16 @@ class CheckConnections(AbstractChecker):
             self.console.print(f'  Name: {name}')
             self.console.print(f'  Type: {type}')
 
+            err = ds.verify_connector()
+            if err:
+                all_passed = False
+                reason = err
+                self.console.print(f'  connector: [[bold red]FAILED[/bold red]] reason: {err}')
+                self.console.print(f'\n{escape(err.hint)}\n')
+                continue
+            else:
+                self.console.print('  connector: [[bold green]OK[/bold green]]')
+
             engine = None
             try:
                 engine = create_engine(ds.to_database_url(), **ds.engine_args())
@@ -99,11 +114,12 @@ class CheckConnections(AbstractChecker):
             except Exception as e:
                 self.console.print(f'  Connection: [[bold red]FAILED[/bold red]] reason: {e}')
                 all_passed = False
+                reason = e
             finally:
                 if engine:
                     engine.dispose()
 
-        return all_passed, ''
+        return all_passed, reason
 
 
 class CheckAssertionFiles(AbstractChecker):

@@ -10,6 +10,8 @@ import readchar
 from rich.console import Console
 from sqlalchemy.exc import SAWarning
 
+from piperider_cli.error import PipeRiderConnectorError
+
 
 def _default_validate_func(answer, current) -> bool:
     if isinstance(current, str):
@@ -138,9 +140,10 @@ class DataSource(metaclass=ABCMeta):
 
     def show_installation_information(self):
         from rich.markup import escape
-        if self.verify_connector():
+        err = self.verify_connector()
+        if err:
             console = Console()
-            console.print(f'\n{escape(self.verify_connector())}\n')
+            console.print(f'\n{escape(err.hint)}\n')
             return False
         return True
 
@@ -220,8 +223,8 @@ class PostgreSQLDataSource(DataSource):
             import psycopg2
             # do nothing when everything is ok
             return None
-        except Exception:
-            return "Please run 'pip install piperider[postgres]' to get the postgres connector"
+        except Exception as e:
+            return PipeRiderConnectorError(str(e), 'postgres')
 
 
 class SnowflakeDataSource(DataSource):
@@ -282,8 +285,8 @@ class SnowflakeDataSource(DataSource):
             import snowflake.sqlalchemy
             # do nothing when everything is ok
             return None
-        except Exception:
-            return "Please run 'pip install piperider[snowflake]' to get the snowflake connector"
+        except Exception as e:
+            return PipeRiderConnectorError(str(e), 'snowflake')
 
 
 class SqliteDataSource(DataSource):
