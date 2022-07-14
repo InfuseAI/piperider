@@ -62,8 +62,8 @@ class Configuration(object):
         with open(dbt_project_path, 'r') as fd:
             try:
                 dbt_project = yaml.safe_load(fd)
-            except Exception:
-                raise DbtProjectInvalidError(dbt_project_path)
+            except Exception as e:
+                raise DbtProjectInvalidError(dbt_project_path, e)
 
         if not os.path.exists(os.path.expanduser(dbt_profile_path)):
             raise DbtProfileNotFoundError(dbt_profile_path)
@@ -225,5 +225,5 @@ def _load_dbt_profile(path):
     template = env.get_template(os.path.basename(path))
     try:
         return yaml.safe_load(template.render())
-    except Exception:
-        raise DbtProfileInvalidError(path)
+    except Exception as e:
+        raise DbtProfileInvalidError(path, e)
