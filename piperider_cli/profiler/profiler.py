@@ -242,13 +242,17 @@ class BaseColumnProfiler:
         - (Optional) Remove the mismatched data.
 
         Columns
-        - "c":
+        - "c": the transformed valid to use data
             null: if the column value is null or mismatched
-            otherwise: column value
-        - "mismatched":
-            null: if the column vaLue is null
-            0: if the column vaLue is valid
-            1: if the column value mismatched
+            otherwise: orginal column value or transformed value.
+        - "orig": the original column
+
+        so that
+
+        valid       = count(c)
+        non_nulls   = count(orig)
+        mismatched  = non_nulls - valid
+
         :return: CTE
         """
         t = self.table
@@ -555,22 +559,17 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
         if self._get_database_backend() != 'sqlite':
             cte = select([
                 c.label("c"),
-                case(
-                    [(c.is_(None), None)],
-                    else_=0
-                ).label("mismatched")
+                c.label("orig")
             ]).select_from(t).cte()
         else:
             cte = select([
                 case(
-                    [(func.datetime(c).is_(None), None)],
-                    else_=func.datetime(c)
+                    [(func.typeof(c) == 'text', func.datetime(c)),
+                     (func.typeof(c) == 'integer', func.datetime(c, 'unixepoch')),
+                     (func.typeof(c) == 'real', func.datetime(c, 'unixepoch'))],
+                    else_=None
                 ).label("c"),
-                case(
-                    [((func.typeof(c) == 'text') & (func.datetime(c).is_(None)), 1),
-                     (func.typeof(c) == 'null', None)],
-                    else_=0
-                ).label("mismatched")
+                c.label("orig"),
             ]).cte()
         return cte
 
@@ -580,14 +579,15 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
 
             stmt = select([
                 func.count().label("_total"),
-                func.count(cte.c.mismatched).label("_non_nulls"),
-                func.sum(cte.c.mismatched).label("_mismatched"),
+                func.count(cte.c.orig).label("_non_nulls"),
+                func.count(cte.c.c).label("_valid"),
                 func.count(distinct(cte.c.c)).label("_distinct"),
                 func.min(cte.c.c).label("_min"),
                 func.max(cte.c.c).label("_max"),
             ])
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _mismatched, _distinct, _min, _max = result
+            _total, _non_null, _valid, _distinct, _min, _max = result
+            _mismatched = _non_null - _valid
             _min = datetime.fromisoformat(_min) if isinstance(_min, str) else _min
             _max = datetime.fromisoformat(_max) if isinstance(_max, str) else _min
             distribution = None
@@ -722,10 +722,7 @@ class BooleanColumnProfiler(BaseColumnProfiler):
         if self._get_database_backend() != 'sqlite':
             cte = select([
                 c.label("c"),
-                case(
-                    [(c.is_(None), None)],
-                    else_=0
-                ).label("mismatched")
+                c.label("orig")
             ]).select_from(t).cte()
         else:
             cte = select([
@@ -734,12 +731,7 @@ class BooleanColumnProfiler(BaseColumnProfiler):
                      (c.is_(False), c)],
                     else_=None
                 ).label("c"),
-                case(
-                    [(c.is_(True), 0),
-                     (c.is_(False), 0),
-                     (c.is_(None), None)],
-                    else_=1
-                ).label("mismatched")
+                c.label("orig"),
             ]).cte()
         return cte
 
@@ -749,20 +741,22 @@ class BooleanColumnProfiler(BaseColumnProfiler):
         with self.engine.connect() as conn:
             stmt = select([
                 func.count().label("_total"),
-                func.count(cte.c.mismatched).label("_non_nulls"),
-                func.sum(cte.c.mismatched).label("_mismatched"),
+                func.count(cte.c.orig).label("_non_nulls"),
+                func.count(cte.c.c).label("_valid"),
                 func.count(distinct(cte.c.c)).label("_distinct"),
             ]).select_from(cte)
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _mismatched, _distinct = result
+            _total, _non_null, _valid, _distinct = result
 
             distribution = None
-            if _non_null > 0:
+            if _valid > 0:
                 distribution = profile_topk(conn, cte.c.c, 3)
             return {
                 'total': _total,
                 'non_nulls': _non_null,
-                'mismatched': _mismatched,
+                'nulls': _total - _non_null,
+                'valid': _valid,
+                'mismatched': _non_null - _valid,
                 'distinct': _distinct,
                 'distribution': distribution,
             }
