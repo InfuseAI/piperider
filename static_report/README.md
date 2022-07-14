@@ -97,17 +97,17 @@ You can run the following from our github action [.github/workflows/build-static
 
 1. Under the step `Prepare Piperider Data (2 runs; 1 comparison)`: clone (from [piperider-getting-started](https://github.com/InfuseAI/piperider-getting-started) repo, and execute/generate the report mocks you need from the cloned repo `data/*.db` automatically.
 
-```bash
-   # install local python source
-   pip install -r requirements.txt
-   #execute auto scripts (generate 2 runs & 1 comparison)
-   runtest e2e-tests/testsuite/getting-started/001-run.exp
-   bash static_report/src/sdlc/generate-comparisons.sh
+   ```bash
+      # install local python source
+      pip install -r requirements.txt
+      #execute auto scripts (generate 2 runs & 1 comparison)
+      runtest e2e-tests/testsuite/getting-started/001-run.exp
+      bash static_report/src/sdlc/generate-comparisons.sh
 
-   # verify they exist
-   ls -a piperider-getting-started/.piperider/outputs
-   ls -a piperider-getting-started/.piperider/comparisons
-```
+      # verify they exist
+      ls -a piperider-getting-started/.piperider/outputs
+      ls -a piperider-getting-started/.piperider/comparisons
+   ```
 
 1. Run `npm run setup:e2e` which will build the e2e statics against generated jsons found under the `piperider-getting-started/.piperider/..` directory.
 1. Run `npm run serve:e2e:single` and/or `npm run serve:e2e:comparison` to serve those statics, which replicate the cypress runtime
