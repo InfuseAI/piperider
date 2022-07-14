@@ -5,9 +5,12 @@ import sys
 import uuid
 from datetime import datetime
 
+from rich import box
 from rich.console import Console
 from rich.markup import escape
+from rich.pretty import Pretty
 from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedColumn, MofNCompleteColumn
+from rich.table import Table
 from sqlalchemy import create_engine, inspect
 
 from piperider_cli import convert_to_tzlocal, datetime_to_str
@@ -201,6 +204,14 @@ def _show_assertion_result(console: Console, results, exceptions, failed_only=Fa
                 max_target_len = max(max_target_len, len(target))
             max_assert_len = max(max_assert_len, len(assertion.name))
 
+        ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta',
+                            box=box.SIMPLE)
+        ascii_table.add_column('Status', style='bold white')
+        ascii_table.add_column('Target', style='bold')
+        ascii_table.add_column('TestFunction', style='bold green')
+        ascii_table.add_column('Expected', style='bold')
+        ascii_table.add_column('Actual', style='cyan')
+
         for assertion in results:
             if single_table and single_table != assertion.table:
                 continue
@@ -209,18 +220,29 @@ def _show_assertion_result(console: Console, results, exceptions, failed_only=Fa
             table = assertion.table
             column = assertion.column
             test_function = assertion.name
-            test_function = test_function.ljust(max_assert_len + 1)
             success = assertion.result.status()
-            target = f'{table}.{column}' if column else table
-            target = target.ljust(max_target_len + 1)
+            target = f'[yellow]{table}[/yellow].[blue]{column}[/blue]' if column else f'[yellow]{table}[/yellow]'
             if success:
-                console.print(
-                    f'{indent}[[bold green]  OK  [/bold green]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
+                ascii_table.add_row(
+                    '[[bold green]  OK  [/bold green]]',
+                    target,
+                    test_function,
+                    Pretty(assertion.result.expected()),
+                    Pretty(assertion.result.actual)
+                )
             else:
-                console.print(
-                    f'{indent}[[bold red]FAILED[/bold red]] {target} {test_function} Expected: {assertion.result.expected()} Actual: {assertion.result.actual}')
+                ascii_table.add_row(
+                    '[[bold red]FAILED[/bold red]]',
+                    target,
+                    test_function,
+                    Pretty(assertion.result.expected()),
+                    Pretty(assertion.result.actual)
+                )
                 if assertion.result.exception:
-                    console.print(f'         {indent}[bold white]Reason[/bold white]: {assertion.result.exception}')
+                    msg = f'[grey11 on white][purple4]{type(assertion.result.exception).__name__}[/purple4](\'{assertion.result.exception}\')[/grey11 on white]'
+                    ascii_table.add_row('', '', '', msg)
+
+        console.print(ascii_table)
     # TODO: Handle exceptions
     pass
 
