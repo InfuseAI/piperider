@@ -70,9 +70,6 @@ export const PATH_TO_INDEX = 'public/index.html';
 export const FILENAME_SINGLE = 'run.json';
 export const FILENAME_COMPARISON = 'comparison_data.json';
 export const MOUNT_PATH_TO_E2E_DATA = 'piperider-getting-started/.piperider';
-export const PATH_TO_COMPARISON_REPORT_DATA_JSON = await getComparisonDataPath(
-  isE2E,
-);
 export const PATH_TO_SINGLE_REPORT_DATA_JSON =
   '../' +
   (isE2E ? `${MOUNT_PATH_TO_E2E_DATA}` : `.piperider`) +
