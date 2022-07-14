@@ -147,6 +147,15 @@ class DbtAdapter:
             if inquirer.confirm(message="Do you still want to keep going?", default=True) is not True:
                 raise KeyboardInterrupt()
 
+    @staticmethod
+    def check_dbt_command(dbt_config):
+        adaptee = DefaultDbtAdaptee()
+        adaptee.set_root(os.path.expanduser(dbt_config.get('projectDir', '')))
+        try:
+            adaptee.check()
+        except Exception:
+            return DbtCommandNotFoundError()
+
     def _check_dbt_command(self):
         if not self.is_ready():
             return False

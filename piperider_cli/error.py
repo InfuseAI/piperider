@@ -105,6 +105,13 @@ class DbtInvocationError(DbtError):
 class DbtCommandNotFoundError(PipeRiderError):
     def __init__(self):
         self.message = "dbt command not found."
+        self.hint = f'Please run \'pip install dbt-core\' to install dbt Core.'
+
+
+class DbtAdapterCommandNotFoundError(PipeRiderError):
+    def __init__(self, datasource_type):
+        self.message = "dbt command not found."
+        self.hint = f'Please run \'pip install dbt-{datasource_type}\' to install dbt Core and the adapter.'
 
 
 class AssertionError(PipeRiderError):
