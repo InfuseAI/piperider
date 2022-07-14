@@ -88,6 +88,7 @@ def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None):
 
 
 class Initializer():
+    @staticmethod
     def exec(dbt_project_path=None, dbt_profiles_dir=None):
         console = Console()
         if _generate_piperider_workspace() is False:
