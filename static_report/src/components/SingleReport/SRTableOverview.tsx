@@ -1,9 +1,15 @@
 import { Flex, Heading, Text } from '@chakra-ui/react';
 import { TableSchema } from '../../sdlc/single-report-schema';
-import { formatNumber, ReportAsserationStatusCounts } from '../../utils';
+import { formatNumber, getReportAggregateAssertions } from '../../utils';
 
-type Props = { table: TableSchema; overview: ReportAsserationStatusCounts };
-export function SRTableOverview({ table, overview }: Props) {
+type Props = { table: TableSchema };
+
+export function SRTableOverview({ table }: Props) {
+  const overview = getReportAggregateAssertions(
+    table.piperider_assertion_result,
+    table.dbt_assertion_result,
+  );
+
   return (
     <Flex direction="column" gap={4} mb={8}>
       <Heading size="lg">Overview</Heading>

@@ -9,20 +9,23 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { TableSchema } from '../../sdlc/single-report-schema';
-import { ComparisonAssertionTests } from '../../utils';
+import { getReportAggregateAssertions } from '../../utils';
 
 type Props = {
   baseTables: TableSchema;
-  baseOverview: ComparisonAssertionTests;
   inputTables: TableSchema;
-  inputOverview: ComparisonAssertionTests;
 };
-export function CRTableOverview({
-  baseTables,
-  baseOverview,
-  inputTables,
-  inputOverview,
-}: Props) {
+
+export function CRTableOverview({ baseTables, inputTables }: Props) {
+  const baseAssertions = getReportAggregateAssertions(
+    baseTables.piperider_assertion_result,
+    baseTables?.dbt_assertion_result,
+  );
+  const inputAssertions = getReportAggregateAssertions(
+    inputTables.piperider_assertion_result,
+    inputTables?.dbt_assertion_result,
+  );
+
   return (
     <TableContainer>
       <Table variant="simple">
@@ -55,16 +58,16 @@ export function CRTableOverview({
             <Td>
               <Text>
                 <Text as="span" fontWeight={700}>
-                  {baseOverview.passed}{' '}
+                  {baseAssertions.passed}{' '}
                 </Text>
                 Passed
                 {', '}
                 <Text
                   as="span"
                   fontWeight={700}
-                  color={baseOverview.failed > 0 ? 'red.500' : 'inherit'}
+                  color={baseAssertions.failed > 0 ? 'red.500' : 'inherit'}
                 >
-                  {baseOverview.failed}{' '}
+                  {baseAssertions.failed}{' '}
                 </Text>
                 Failed
               </Text>
@@ -72,16 +75,16 @@ export function CRTableOverview({
             <Td>
               <Text>
                 <Text as="span" fontWeight={700}>
-                  {inputOverview.passed}{' '}
+                  {inputAssertions.passed}{' '}
                 </Text>
                 Passed
                 {', '}
                 <Text
                   as="span"
                   fontWeight={700}
-                  color={inputOverview.failed > 0 ? 'red.500' : 'inherit'}
+                  color={inputAssertions.failed > 0 ? 'red.500' : 'inherit'}
                 >
-                  {inputOverview.failed}{' '}
+                  {inputAssertions.failed}{' '}
                 </Text>
                 Failed
               </Text>

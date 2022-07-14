@@ -1,4 +1,3 @@
-import * as d3 from 'd3';
 import fill from 'lodash/fill';
 import zip from 'lodash/zip';
 import { Text } from '@chakra-ui/react';
@@ -9,58 +8,56 @@ import type {
   ComparisonReportSchema,
   ComparsionSource,
 } from '../types';
-import { ColumnSchema } from '../sdlc/single-report-schema';
+import type { ColumnSchema, TableSchema } from '../sdlc/single-report-schema';
 
-const tooltipDefaultStyle = {
-  paddingTop: 'var(--chakra-space-2)',
-  paddingBottom: 'var(--chakra-space-2)',
-  paddingLeft: 'var(--chakra-space-4)',
-  paddingRight: 'var(--chakra-space-4)',
-  borderRadius: 'var(--chakra-radii-md)',
-  color: 'var(--chakra-colors-white)',
-  backgroundColor: 'var(--chakra-colors-blackAlpha-700)',
-};
-
-export function getChartTooltip({ target, style = {} as any }) {
-  const tooltip = d3
-    .select(target)
-    .append('div')
-    .style('visibility', 'hidden')
-    .style('position', 'absolute')
-    .style('z-index', '9')
-    .style('padding-top', style?.paddingTop || tooltipDefaultStyle.paddingTop)
-    .style(
-      'padding-bottom',
-      style?.paddingBottom || tooltipDefaultStyle.paddingBottom,
-    )
-    .style(
-      'border-radius',
-      style?.borderRadius || tooltipDefaultStyle.borderRadius,
-    )
-    .style(
-      'padding-left',
-      style?.paddingLeft || tooltipDefaultStyle.paddingLeft,
-    )
-    .style(
-      'padding-right',
-      style?.paddingRight || tooltipDefaultStyle.paddingRight,
-    )
-    .style('color', style?.color || tooltipDefaultStyle.color)
-    .style(
-      'background-color',
-      style?.backgroundColor || tooltipDefaultStyle.backgroundColor,
-    );
-
-  return tooltip;
-}
-
-export type ReportAsserationStatusCounts = {
+export type ReportAssertionStatusCounts = {
   passed: string | number;
   failed: string | number;
 };
-export function getReportAsserationStatusCounts(
+
+/**
+ * Get the report assertions by giving piperider and dbt assertions.
+ */
+export function getReportAggregateAssertions(
+  piperiderAssertions: TableSchema['piperider_assertion_result'],
+  dbtAssertion?: TableSchema['dbt_assertion_result'],
+) {
+  let passed = 0;
+  let failed = 0;
+
+  const { passed: piperiderPassed, failed: piperiderFailed } =
+    getReportAssertionStatusCounts(piperiderAssertions);
+
+  if (Number.isInteger(piperiderPassed)) {
+    passed += piperiderPassed as number;
+  }
+
+  if (Number.isInteger(piperiderFailed)) {
+    passed += piperiderFailed as number;
+  }
+
+  if (dbtAssertion) {
+    const { passed: dbtPassed, failed: dbtFailed } =
+      getReportAssertionStatusCounts(dbtAssertion);
+
+    if (Number.isInteger(dbtPassed)) {
+      passed += dbtPassed as number;
+    }
+
+    if (Number.isInteger(dbtFailed)) {
+      failed += dbtFailed as number;
+    }
+  }
+
+  return {
+    passed,
+    failed,
+  };
+}
+
+export function getReportAssertionStatusCounts(
   assertion: AssertionValue,
-): ReportAsserationStatusCounts {
+): ReportAssertionStatusCounts {
   if (!assertion) {
     return { passed: '-', failed: '-' };
   }
@@ -270,6 +267,7 @@ export type ComparisonAssertionTests = {
     tags: unknown[];
   }[];
 };
+
 export function getComparisonAssertionTests({
   assertion,
   from,
@@ -277,7 +275,7 @@ export function getComparisonAssertionTests({
   assertion: AssertionValue;
   from: ComparsionSource;
 }) {
-  const { passed, failed } = getReportAsserationStatusCounts(assertion);
+  const { passed, failed } = getReportAssertionStatusCounts(assertion);
 
   if (!assertion) {
     return {

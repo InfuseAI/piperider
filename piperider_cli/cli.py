@@ -7,13 +7,14 @@ import sentry_sdk
 from rich.console import Console
 from rich.syntax import Syntax
 
-from piperider_cli import workspace, dbt_adapter, __version__, event
+from piperider_cli import dbt_adapter, __version__, event
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.event.track import TrackCommand
-from piperider_cli.generate_report import GenerateReport
 from piperider_cli.guide import Guide
 from piperider_cli.initializer import Initializer
 from piperider_cli.runner import Runner
+from piperider_cli.generate_report import GenerateReport
+from piperider_cli.compare_report import CompareReport
 from piperider_cli.validator import Validator
 
 
@@ -210,4 +211,4 @@ def compare_reports(**kwargs):
 
     a = kwargs.get('base')
     b = kwargs.get('input')
-    workspace.compare_report(a=a, b=b)
+    CompareReport.exec(a=a, b=b)

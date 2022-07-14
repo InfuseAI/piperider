@@ -16,7 +16,7 @@ import { Link } from 'wouter';
 import { Main } from '../shared/Main';
 import { SRTooltip } from './SRTooltip';
 import {
-  getReportAsserationStatusCounts,
+  getReportAssertionStatusCounts,
   formatReportTime,
   formatNumber,
   formatColumnValueWith,
@@ -79,12 +79,12 @@ export function SingleReportList({ data }: Props) {
               {Object.keys(tables).map((key) => {
                 const report = tables[key];
 
-                const overview = getReportAsserationStatusCounts(
+                const pipeRideroverview = getReportAssertionStatusCounts(
                   report.piperider_assertion_result,
                 );
 
                 // If running by `piperider run --dbt-test`, it will have this field, vice versa.
-                const dbtOverview = getReportAsserationStatusCounts(
+                const dbtOverview = getReportAssertionStatusCounts(
                   report.dbt_assertion_result,
                 );
 
@@ -106,10 +106,16 @@ export function SingleReportList({ data }: Props) {
                         </SRTooltip>
                       </Td>
                       <Td>
-                        {formatColumnValueWith(overview.passed, formatNumber)}
+                        {formatColumnValueWith(
+                          pipeRideroverview.passed,
+                          formatNumber,
+                        )}
                       </Td>
                       <Td>
-                        {formatColumnValueWith(overview.failed, formatNumber)}
+                        {formatColumnValueWith(
+                          pipeRideroverview.failed,
+                          formatNumber,
+                        )}
                       </Td>
                       <Td>
                         {formatColumnValueWith(
