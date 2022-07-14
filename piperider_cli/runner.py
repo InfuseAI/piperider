@@ -16,8 +16,7 @@ from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration, PIPERIDER_OUTPUT_PATH
 from piperider_cli.datasource import DataSource
 from piperider_cli.error import PipeRiderCredentialError
-from piperider_cli.profiler import Profiler
-from piperider_cli.profiler import ProfilerEventHandler
+from piperider_cli.profiler import Profiler, ProfilerEventHandler
 
 
 class RichProfilerEventHandler(ProfilerEventHandler):
@@ -475,7 +474,10 @@ class Runner():
         created_at = datetime.utcnow()
         engine = create_engine(ds.to_database_url(), **ds.engine_args())
         profiler = Profiler(engine, RichProfilerEventHandler(tables, ds))
-        profile_result = profiler.profile(tables)
+        try:
+            profile_result = profiler.profile(tables)
+        except Exception as e:
+            raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
         output_path = prepare_output_path(created_at, ds, output)
 
