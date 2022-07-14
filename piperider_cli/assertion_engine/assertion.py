@@ -434,9 +434,8 @@ class AssertionEngine:
                         # Add new generating assertion
                         new_generating_items[target]['tests'].append(existed_assertion)
                         if self._is_recommended_assertion(existed_assertion):
-                            idx = len(new_generating_items[target]['tests']) - 1
-                            new_generating_items[target]['tests'][idx].yaml_add_eol_comment(comment_remove_assertion,
-                                                                                            'name')
+                            new_generating_items[target]['tests'][-1].yaml_add_eol_comment(comment_remove_assertion,
+                                                                                           'name')
                             pass
             return new_generating_items
 
