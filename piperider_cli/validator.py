@@ -100,7 +100,7 @@ class CheckConnections(AbstractChecker):
                     reason = err
                     self.console.print(f"\n{DbtAdapterCommandNotFoundError(type).hint}\n")
                 else:
-                    self.console.print(f'[[bold green]OK[/bold green]]')
+                    self.console.print('[[bold green]OK[/bold green]]')
 
             self.console.print(f'  Name: {name}')
             self.console.print(f'  Type: {type}')
