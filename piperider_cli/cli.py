@@ -8,12 +8,13 @@ from rich.console import Console
 from rich.syntax import Syntax
 
 from piperider_cli import workspace, dbt_adapter, __version__, event
+from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.event.track import TrackCommand
+from piperider_cli.generate_report import GenerateReport
 from piperider_cli.guide import Guide
 from piperider_cli.initializer import Initializer
-from piperider_cli.validator import Validator
 from piperider_cli.runner import Runner
-from piperider_cli.generate_report import GenerateReport
+from piperider_cli.validator import Validator
 
 
 def set_sentry_env():
@@ -186,8 +187,9 @@ def run(**kwargs):
 @click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
 @add_options(debug_option)
 def generate_assertions(**kwargs):
+    'Generate recommended assertions based on the latest result. By default, the profiling result will be loaded from ".piperider/outputs".'
     input = kwargs.get('input')
-    workspace.generate_recommended_assertions(input=input)
+    AssertionGenerator.exec(input=input)
 
 
 @cli.command(short_help='Generate a report.')
