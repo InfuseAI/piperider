@@ -4,22 +4,20 @@ import re
 import sys
 import uuid
 from datetime import datetime
-from subprocess import check_output
-from typing import List
 
 from rich.console import Console
-from rich.table import Table
+from rich.markup import escape
 from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedColumn, MofNCompleteColumn
 from sqlalchemy import create_engine, inspect
 
 from piperider_cli import convert_to_tzlocal, datetime_to_str, dbt_adapter
-from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
+from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
-from piperider_cli.compare_report import CompareReport
+from piperider_cli.configuration import Configuration, PIPERIDER_OUTPUT_PATH
 from piperider_cli.datasource import DataSource
 from piperider_cli.error import PipeRiderCredentialError
-from piperider_cli.profiler import Profiler, ProfilerEventHandler
-from piperider_cli.configuration import Configuration, PIPERIDER_OUTPUT_PATH
+from piperider_cli.profiler import Profiler
+from piperider_cli.profiler import ProfilerEventHandler
 
 
 class RichProfilerEventHandler(ProfilerEventHandler):
@@ -80,7 +78,7 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         if completed == 0:
             table_name = table_result['name']
             padding = ' ' * (len(str(self.table_total)) - len(str(self.table_completed + 1)))
-            coft = f'[{padding}{self.table_completed+1}/{self.table_total}]'
+            coft = f'[{padding}{self.table_completed + 1}/{self.table_total}]'
             task_id = self.progress.add_task(table_name, total=total, **dict(coft=coft))
             self.tasks[table_name] = task_id
             self.progress.start()
@@ -404,7 +402,8 @@ def _append_descriptions_from_assertion(profile_result):
                 continue
             column_desc = column_v.get('description', column_name)
             if column_desc:
-                profile_result['tables'][table_name]['columns'][column_name]['description'] = f'{column_desc} - via PipeRider'
+                profile_result['tables'][table_name]['columns'][column_name][
+                    'description'] = f'{column_desc} - via PipeRider'
 
 
 class Runner():
@@ -443,8 +442,11 @@ class Runner():
 
         console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
 
-        if ds.show_installation_information() is False:
-            console.print(f'[[bold red]FAILED[/bold red]] Failed to load the \'{ds.type_name}\' connector')
+        err = ds.verify_connector()
+        if err:
+            console.print(
+                f'[[bold red]FAILED[/bold red]] Failed to load the \'{ds.type_name}\' connector. Reason: {err}')
+            console.print(f'\n{escape(err.hint)}\n')
             return 1
 
         console.rule('Validating')
@@ -509,7 +511,8 @@ class Runner():
 
         output_file = os.path.join(output_path, 'run.json')
         for t in profile_result['tables']:
-            profile_result['tables'][t]['piperider_assertion_result'] = _transform_assertion_result(t, assertion_results)
+            profile_result['tables'][t]['piperider_assertion_result'] = _transform_assertion_result(t,
+                                                                                                    assertion_results)
 
             _show_table_summary(console, t, profile_result['tables'][t], assertion_results, dbt_test_results)
 
