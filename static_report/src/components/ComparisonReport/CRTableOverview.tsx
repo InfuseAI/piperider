@@ -9,7 +9,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { TableSchema } from '../../sdlc/single-report-schema';
-import { getReportAggregateAsserations } from '../../utils';
+import { getReportAggregateAssertions } from '../../utils';
 
 type Props = {
   baseTables: TableSchema;
@@ -17,11 +17,11 @@ type Props = {
 };
 
 export function CRTableOverview({ baseTables, inputTables }: Props) {
-  const baseAssertions = getReportAggregateAsserations(
+  const baseAssertions = getReportAggregateAssertions(
     baseTables.piperider_assertion_result,
     baseTables?.dbt_assertion_result,
   );
-  const inputAssertions = getReportAggregateAsserations(
+  const inputAssertions = getReportAggregateAssertions(
     inputTables.piperider_assertion_result,
     inputTables?.dbt_assertion_result,
   );

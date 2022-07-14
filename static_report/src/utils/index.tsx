@@ -10,12 +10,12 @@ import type {
 } from '../types';
 import type { ColumnSchema, TableSchema } from '../sdlc/single-report-schema';
 
-export type ReportAsserationStatusCounts = {
+export type ReportAssertionStatusCounts = {
   passed: string | number;
   failed: string | number;
 };
 
-export function getReportAggregateAsserations(
+export function getReportAggregateAssertions(
   piperiderAssertions: TableSchema['piperider_assertion_result'],
   dbtAssertion: TableSchema['dbt_assertion_result'],
 ) {
@@ -23,7 +23,7 @@ export function getReportAggregateAsserations(
   let failed = 0;
 
   const { passed: piperiderPassed, failed: piperiderFailed } =
-    getReportAsserationStatusCounts(piperiderAssertions);
+    getReportAssertionStatusCounts(piperiderAssertions);
 
   if (Number.isInteger(piperiderPassed)) {
     passed += piperiderPassed as number;
@@ -35,7 +35,7 @@ export function getReportAggregateAsserations(
 
   if (dbtAssertion) {
     const { passed: dbtPassed, failed: dbtFailed } =
-      getReportAsserationStatusCounts(dbtAssertion);
+      getReportAssertionStatusCounts(dbtAssertion);
 
     if (Number.isInteger(dbtPassed)) {
       passed += dbtPassed as number;
@@ -52,9 +52,9 @@ export function getReportAggregateAsserations(
   };
 }
 
-export function getReportAsserationStatusCounts(
+export function getReportAssertionStatusCounts(
   assertion: AssertionValue,
-): ReportAsserationStatusCounts {
+): ReportAssertionStatusCounts {
   if (!assertion) {
     return { passed: '-', failed: '-' };
   }
@@ -272,7 +272,7 @@ export function getComparisonAssertionTests({
   assertion: AssertionValue;
   from: ComparsionSource;
 }) {
-  const { passed, failed } = getReportAsserationStatusCounts(assertion);
+  const { passed, failed } = getReportAssertionStatusCounts(assertion);
 
   if (!assertion) {
     return {
