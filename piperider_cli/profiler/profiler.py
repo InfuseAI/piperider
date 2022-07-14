@@ -276,9 +276,11 @@ class BaseColumnProfiler:
             ])
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _distinct = result
+
             return {
                 'total': _total,
-                'non_nulls': _non_null,
+                'nulls': _total - _non_null,
+                'valid': _non_null,
                 'mismatched': 0,
                 'distinct': _distinct,
                 'distribution': None,
@@ -305,6 +307,8 @@ class StringColumnProfiler(BaseColumnProfiler):
             return {
                 'total': _total,
                 'non_nulls': _non_null,
+                'nulls': _total - _non_null,
+                'valid': _non_null,
                 'mismatched': 0,
                 'distinct': _distinct,
                 'distribution': distribution,
@@ -324,10 +328,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
         if self._get_database_backend() != 'sqlite':
             cte = select([
                 c.label("c"),
-                case(
-                    [(c.is_(None), None)],
-                    else_=0
-                ).label("mismatched")
+                c.label("orig")
             ]).select_from(t).cte()
         else:
             cte = select([
@@ -336,12 +337,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
                      (func.typeof(c) == 'blob', None)],
                     else_=c
                 ).label("c"),
-                case(
-                    [(func.typeof(c) == 'text', 1),
-                     (func.typeof(c) == 'blob', 1),
-                     (func.typeof(c) == 'null', None)],
-                    else_=0
-                ).label("mismatched")
+                c.label("orig")
             ]).cte(name="T")
         return cte
 
@@ -351,8 +347,8 @@ class NumericColumnProfiler(BaseColumnProfiler):
 
             stmt = select([
                 func.count().label("_total"),
-                func.count(cte.c.mismatched).label("_non_nulls"),
-                func.sum(cte.c.mismatched).label("_mismatched"),
+                func.count(cte.c.orig).label("_non_nulls"),
+                func.count(cte.c.c).label("_valid"),
                 func.count(distinct(cte.c.c)).label("_distinct"),
                 func.sum(cte.c.c).label("_sum"),
                 func.avg(cte.c.c).label("_avg"),
@@ -361,10 +357,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 func.avg(func.cast(cte.c.c, Float) * func.cast(cte.c.c, Float)).label("_square_avg"),
             ])
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _mismatched, _distinct, _sum, _avg, _min, _max, _square_avg = result
-            _mismatched = 0 if _mismatched is None else _mismatched
-            _valid = _non_null - _mismatched
-
+            _total, _non_null, _valid, _distinct, _sum, _avg, _min, _max, _square_avg = result
             _sum = dtof(_sum)
             _min = dtof(_min)
             _max = dtof(_max)
@@ -382,7 +375,9 @@ class NumericColumnProfiler(BaseColumnProfiler):
             return {
                 'total': _total,
                 'non_nulls': _non_null,
-                'mismatched': _mismatched,
+                'nulls': _total - _non_null,
+                'valid': _valid,
+                'mismatched': _non_null - _valid,
                 'distinct': _distinct,
                 'min': _min,
                 'max': _max,
@@ -597,7 +592,9 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             return {
                 'total': _total,
                 'non_nulls': _non_null,
-                'mismatched': _mismatched,
+                'nulls': _total - _non_null,
+                'valid': _valid,
+                'mismatched': _non_null - _valid,
                 'distinct': _distinct,
                 'min': _min.isoformat() if _min is not None else None,
                 'max': _max.isoformat() if _max is not None else None,
