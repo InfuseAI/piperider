@@ -6,9 +6,9 @@ from typing import Union, List
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, select, func, \
-    distinct, case, or_
-from sqlalchemy.sql import FromClause, Selectable
-from sqlalchemy.sql.elements import ColumnClause, literal
+    distinct, case
+from sqlalchemy.sql import FromClause
+from sqlalchemy.sql.elements import ColumnClause
 from sqlalchemy.sql.expression import CTE
 from sqlalchemy.types import Float
 from sqlalchemy.engine import Engine, Connection
@@ -279,6 +279,7 @@ class BaseColumnProfiler:
 
             return {
                 'total': _total,
+                'non_nulls': _non_null,
                 'nulls': _total - _non_null,
                 'valid': _non_null,
                 'mismatched': 0,
@@ -582,9 +583,13 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             ])
             result = conn.execute(stmt).fetchone()
             _total, _non_null, _valid, _distinct, _min, _max = result
-            _mismatched = _non_null - _valid
-            _min = datetime.fromisoformat(_min) if isinstance(_min, str) else _min
-            _max = datetime.fromisoformat(_max) if isinstance(_max, str) else _min
+            if self._get_database_backend() == 'sqlite':
+                if isinstance(self.column.type, Date):
+                    _min = datetime.fromisoformat(_min).date() if isinstance(_min, str) else _min
+                    _max = datetime.fromisoformat(_max).date() if isinstance(_max, str) else _max
+                else:
+                    _min = datetime.fromisoformat(_min) if isinstance(_min, str) else _min
+                    _max = datetime.fromisoformat(_max) if isinstance(_max, str) else _max
             distribution = None
             if _min and _max:
                 distribution = self._profile_histogram(conn, cte, cte.c.c, _min, _max)
@@ -606,8 +611,8 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
         conn: Connection,
         table: FromClause,
         column: ColumnClause,
-        min: Union[str, date, datetime],
-        max: Union[str, date, datetime]
+        min: Union[date, datetime],
+        max: Union[date, datetime]
     ) -> dict:
         """
         Profile the histogram of a datetime column. There are three way to create bins of the histogram

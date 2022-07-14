@@ -30,8 +30,10 @@ class TestProfiler:
                     col = Column(col_name, Float)
                 elif isinstance(value, int):
                     col = Column(col_name, Integer)
-                elif isinstance(value, date):
+                elif isinstance(value, datetime):
                     col = Column(col_name, DateTime)
+                elif isinstance(value, date):
+                    col = Column(col_name, Date)
                 else:
                     raise Exception(f"not support type: {type(value)}")
                 columns.append(col)
@@ -350,8 +352,8 @@ class TestProfiler:
         result = profiler.profile()
         cresult = result["tables"]["test"]['columns']["date"]
         distribution = cresult["distribution"]
-        assert cresult["min"] == '1900-05-26T00:00:00'
-        assert cresult["max"] == '2022-07-26T00:00:00'
+        assert cresult["min"] == '1900-05-26'
+        assert cresult["max"] == '2022-07-26'
         assert distribution["type"] == 'yearly'
         assert distribution["counts"][0] == 1
         assert distribution["counts"][-1] == 2
@@ -371,8 +373,8 @@ class TestProfiler:
         result = profiler.profile()
         cresult = result["tables"]["test"]['columns']["date"]
         distribution = cresult["distribution"]
-        assert cresult["min"] == '2021-12-25T00:00:00'
-        assert cresult["max"] == '2022-02-26T00:00:00'
+        assert cresult["min"] == '2021-12-25'
+        assert cresult["max"] == '2022-02-26'
         assert distribution["type"] == 'monthly'
         assert distribution["counts"][0] == 1
         assert distribution["counts"][-1] == 2
@@ -383,9 +385,9 @@ class TestProfiler:
         engine = self.engine = create_engine('sqlite://')
         data = [
             ("date",),
+            (datetime(2022, 7, 26, 1, 2, 3),),
             (date(2022, 6, 24),),
             (date(2022, 7, 26),),
-            (datetime(2022, 7, 26, 1, 2, 3),),
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
@@ -399,6 +401,26 @@ class TestProfiler:
         assert distribution["counts"][-1] == 2
         assert distribution["bin_edges"][0] == "2022-06-24"
         assert distribution["bin_edges"][-1] == "2022-07-27"
+
+        # one record or min=max
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ("date",),
+            (date(2022, 1, 1),),
+            (datetime(2022, 1, 1, 1, 2, 3),),
+        ]
+        self.create_table("test", data)
+        profiler = Profiler(engine)
+        result = profiler.profile()
+        cresult = result["tables"]["test"]['columns']["date"]
+        distribution = cresult["distribution"]
+        assert cresult["min"] == '2022-01-01'
+        assert cresult["max"] == '2022-01-01'
+        assert distribution["type"] == 'daily'
+        assert distribution["counts"][0] == 2
+        assert distribution["counts"][-1] == 2
+        assert distribution["bin_edges"][0] == "2022-01-01"
+        assert distribution["bin_edges"][-1] == "2022-01-02"
 
     def test_empty_table(self):
         engine = self.engine = create_engine('sqlite://')
