@@ -1,4 +1,4 @@
-# PipeRider Report
+# PipeRider Report (LOREM IPSUM)
 
 The FE source code that the CLI uses to output report views
 
