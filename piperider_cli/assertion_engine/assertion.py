@@ -27,6 +27,16 @@ def safe_load_yaml(file_path):
     return payload
 
 
+def round_trip_load_yaml(file_path):
+    with open(file_path, 'r') as f:
+        try:
+            payload = yaml.round_trip_load(f)
+        except yaml.YAMLError as e:
+            print(e)
+            return None
+    return payload
+
+
 def load_yaml_configs(path):
     passed: List[str] = []
     failed: List[str] = []
@@ -379,19 +389,27 @@ class AssertionEngine:
         # Dump recommended assertions
         return self._dump_assertions_files(recommended_assertions, prefix='recommended')
 
+    def _is_recommended_assertion(self, assertion):
+        if RECOMMENDED_ASSERTION_TAG in assertion.get('tags', []):
+            return True
+        return False
+
     def _update_existing_recommended_assertions(self, recommended_assertions):
+        comment_remove_entire_assertions = 'TODO: Suggest to remove following assertions (no table/column found)'
+        comment_remove_assertion = 'TODO: Suggest to remove this assertion (no recommended found)'
+        comment_update_assertion = 'TODO: {recommended_assertion_value} (new recommended assert)'
 
         def merge_assertions(target: str, existed_items: List, new_generating_items: List):
             if new_generating_items.get(target) is None:
+                # Column or table doesn't exist in the existing assertions
                 new_generating_items[target] = CommentedMap(existed_items[target])
                 is_generated_by_us = False
                 for assertion in new_generating_items[target].get('tests', []):
-                    if RECOMMENDED_ASSERTION_TAG in assertion.get('tags', []):
-                        is_generated_by_us = True
+                    is_generated_by_us = self._is_recommended_assertion(assertion)
+                    if is_generated_by_us:
                         break
                 if is_generated_by_us:
-                    new_generating_items.yaml_add_eol_comment(
-                        'TODO: Suggest to remove following assertions (no recommended found)', target)
+                    new_generating_items.yaml_add_eol_comment(comment_remove_entire_assertions, target)
             else:
                 # Merge with existed
                 existed_desc = existed_items[target].get('description')
@@ -408,18 +426,22 @@ class AssertionEngine:
                                 # Update new generating assertion with new assert in comment
                                 recommended_assertion_value = json.dumps(new_assertion['assert']).replace('\"', '')
                                 new_assertion.yaml_add_eol_comment(
-                                    f'TODO: {recommended_assertion_value} (new recommended assert)',
+                                    comment_update_assertion.format(
+                                        recommended_assertion_value=recommended_assertion_value),
                                     'assert')
                                 new_assertion['assert'] = existed_assertion['assert']
                     if is_new_assertion_found is False:
-                        # Add new generating assertion
                         new_generating_items[target]['tests'].append(existed_assertion)
+                        if self._is_recommended_assertion(existed_assertion):
+                            new_generating_items[target]['tests'][-1].yaml_add_eol_comment(comment_remove_assertion,
+                                                                                           'name')
             return new_generating_items
 
         for name, recommended_assertion in recommended_assertions.items():
             existing_assertion_path = os.path.join(self.assertion_search_path, self._recommend_assertion_filename(name))
             if os.path.exists(existing_assertion_path):
-                existing_assertion = safe_load_yaml(existing_assertion_path)
+                # Use round trip loader to load existing assertions with comments
+                existing_assertion = round_trip_load_yaml(existing_assertion_path)
                 if existing_assertion:
                     # Table assertions
                     recommended_assertion = merge_assertions(name, existing_assertion, recommended_assertion)
