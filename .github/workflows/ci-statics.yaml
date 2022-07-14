@@ -3,8 +3,7 @@ name: Node.js - E2E, Unit Tests, Lint (for PR)
 
 on:
   pull_request:
-    types: 
-      [open, synchronize]
+    types: [opened, synchronize, reopened]
       # Trigger when PR is created and/or head of branch is updated.
     paths:
       - "static_report/**"
