@@ -36,6 +36,9 @@ jobs:
     - name: Build Apps
       run: npm run build
 
+    - name: Pull Remote Changes (before AC)
+      run: git pull
+
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: AUTO-COMMIT - build report statics to CLI data/report
