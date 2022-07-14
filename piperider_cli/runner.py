@@ -458,8 +458,9 @@ class Runner():
 
         default_schema = ds.credential.get('schema')
 
-        dbt_adapter = DbtAdapter(ds.args.get('dbt'))
-        if dbt_command and not dbt_adapter.is_ready():
+        dbt_config = ds.args.get('dbt')
+        dbt_adapter = DbtAdapter(dbt_config)
+        if dbt_config and not dbt_adapter.is_ready():
             raise dbt_adapter.get_error()
 
         tables = _get_table_list(table, default_schema, dbt_adapter)
