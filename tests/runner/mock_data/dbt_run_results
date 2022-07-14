@@ -1,0 +1,175 @@
+{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/run-results/v4.json",
+    "dbt_version": "1.1.0",
+    "generated_at": "2022-07-13T07:06:29.248917Z",
+    "invocation_id": "63f2f456-c443-4fb5-8b5f-7a273e5d9d78",
+    "env": {}
+  },
+  "results": [
+    {
+      "status": "fail",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2022-07-13T07:06:16.261475Z",
+          "completed_at": "2022-07-13T07:06:16.272969Z"
+        },
+        {
+          "name": "execute",
+          "started_at": "2022-07-13T07:06:16.273258Z",
+          "completed_at": "2022-07-13T07:06:17.176933Z"
+        }
+      ],
+      "thread_id": "Thread-1 (worker)",
+      "execution_time": 1.347541093826294,
+      "adapter_response": {},
+      "message": "Got 1 result, configured to fail if != 0",
+      "failures": 1,
+      "unique_id": "test.foo1k.not_null_PRICE_20210128_ma60.dfb8a42469"
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2022-07-13T07:06:17.612487Z",
+          "completed_at": "2022-07-13T07:06:17.628339Z"
+        },
+        {
+          "name": "execute",
+          "started_at": "2022-07-13T07:06:17.628637Z",
+          "completed_at": "2022-07-13T07:06:18.338250Z"
+        }
+      ],
+      "thread_id": "Thread-1 (worker)",
+      "execution_time": 1.306703805923462,
+      "adapter_response": {},
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.foo1k.not_null_PRICE_20210128_open.039d8b300d"
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2022-07-13T07:06:18.925178Z",
+          "completed_at": "2022-07-13T07:06:18.937829Z"
+        },
+        {
+          "name": "execute",
+          "started_at": "2022-07-13T07:06:18.938161Z",
+          "completed_at": "2022-07-13T07:06:20.629289Z"
+        }
+      ],
+      "thread_id": "Thread-1 (worker)",
+      "execution_time": 2.139350175857544,
+      "adapter_response": {},
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.foo1k.not_null_symbol_all_symbol.995c4edfb5"
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2022-07-13T07:06:21.074034Z",
+          "completed_at": "2022-07-13T07:06:21.090866Z"
+        },
+        {
+          "name": "execute",
+          "started_at": "2022-07-13T07:06:21.091212Z",
+          "completed_at": "2022-07-13T07:06:22.710383Z"
+        }
+      ],
+      "thread_id": "Thread-1 (worker)",
+      "execution_time": 2.0755038261413574,
+      "adapter_response": {},
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.foo1k.source_not_null_PUBLIC_PRICE_close.99d5fb9bec"
+    },
+    {
+      "status": "fail",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2022-07-13T07:06:23.155653Z",
+          "completed_at": "2022-07-13T07:06:23.164931Z"
+        },
+        {
+          "name": "execute",
+          "started_at": "2022-07-13T07:06:23.165229Z",
+          "completed_at": "2022-07-13T07:06:25.153579Z"
+        }
+      ],
+      "thread_id": "Thread-1 (worker)",
+      "execution_time": 2.423180103302002,
+      "adapter_response": {},
+      "message": "Got 9595 results, configured to fail if != 0",
+      "failures": 9595,
+      "unique_id": "test.foo1k.source_not_null_PUBLIC_PRICE_ma20.3b1ea8b487"
+    },
+    {
+      "status": "fail",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2022-07-13T07:06:25.582728Z",
+          "completed_at": "2022-07-13T07:06:25.591474Z"
+        },
+        {
+          "name": "execute",
+          "started_at": "2022-07-13T07:06:25.591689Z",
+          "completed_at": "2022-07-13T07:06:26.804950Z"
+        }
+      ],
+      "thread_id": "Thread-1 (worker)",
+      "execution_time": 1.6625409126281738,
+      "adapter_response": {},
+      "message": "Got 29777 results, configured to fail if != 0",
+      "failures": 29777,
+      "unique_id": "test.foo1k.source_not_null_PUBLIC_PRICE_ma60.336776de0b"
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2022-07-13T07:06:27.246176Z",
+          "completed_at": "2022-07-13T07:06:27.269047Z"
+        },
+        {
+          "name": "execute",
+          "started_at": "2022-07-13T07:06:27.269559Z",
+          "completed_at": "2022-07-13T07:06:28.850407Z"
+        }
+      ],
+      "thread_id": "Thread-1 (worker)",
+      "execution_time": 2.001781940460205,
+      "adapter_response": {},
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.foo1k.unique_symbol_all_symbol.a6f6507b45"
+    }
+  ],
+  "elapsed_time": 14.980694770812988,
+  "args": {
+    "write_json": true,
+    "use_colors": true,
+    "printer_width": 80,
+    "version_check": true,
+    "partial_parse": true,
+    "static_parser": true,
+    "profiles_dir": "/Users/timothy/.dbt",
+    "send_anonymous_usage_stats": true,
+    "event_buffer_size": 100000,
+    "quiet": false,
+    "no_print": false,
+    "indirect_selection": "eager",
+    "which": "test",
+    "rpc_method": "test"
+  }
+}
