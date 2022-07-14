@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from piperider_cli.profiler import Profiler
 from sqlalchemy import *
@@ -30,8 +30,10 @@ class TestProfiler:
                     col = Column(col_name, Float)
                 elif isinstance(value, int):
                     col = Column(col_name, Integer)
-                elif isinstance(value, date):
+                elif isinstance(value, datetime):
                     col = Column(col_name, DateTime)
+                elif isinstance(value, date):
+                    col = Column(col_name, Date)
                 else:
                     raise Exception(f"not support type: {type(value)}")
                 columns.append(col)
@@ -290,20 +292,135 @@ class TestProfiler:
         assert result["non_nulls"] == 4
         assert result["mismatched"] == 2
 
-    def test_date_boundary(self):
+    def test_datetime_mismatched(self):
         engine = self.engine = create_engine('sqlite://')
 
         data = [
+            ("col",),
+            (date(2021, 1, 1),),
+            (datetime(2021, 1, 1),),
+            (None,),
+        ]
+
+        self.create_table("test", data, columns=[Column("col", DateTime)])
+        with engine.connect() as conn:
+            conn.execute("insert into test values (0)")
+            conn.execute("insert into test values (1.3)")
+            conn.execute("insert into test values ('abc')")
+            conn.execute("insert into test values ('2021-02-13')")
+            conn.execute("insert into test values (x'A1B2')")
+        profiler = Profiler(engine)
+        result = profiler.profile()["tables"]["test"]['columns']["col"]
+        assert result["total"] == 8
+        assert result["non_nulls"] == 7
+        assert result["mismatched"] == 2
+
+    def test_boolean_mismatched(self):
+        engine = self.engine = create_engine('sqlite://')
+
+        data = [
+            ("col",),
+        ]
+
+        self.create_table("test", data, columns=[Column("col", Boolean)])
+        with engine.connect() as conn:
+            conn.execute("PRAGMA ignore_check_constraints = 1")
+            conn.execute("insert into test values (0)")
+            conn.execute("insert into test values (1)")
+            conn.execute("insert into test values (2.3)")  # mismatched
+            conn.execute("insert into test values ('1')")
+            conn.execute("insert into test values ('123')")  # mismatched
+            conn.execute("insert into test values (x'A1B2')")  # mismatched
+            conn.execute("insert into test values (NULL)")
+        profiler = Profiler(engine)
+        result = profiler.profile()["tables"]["test"]['columns']["col"]
+        assert result["total"] == 7
+        assert result["non_nulls"] == 6
+        assert result["mismatched"] == 3
+
+    def test_date_boundary(self):
+        # yearly
+        engine = self.engine = create_engine('sqlite://')
+        data = [
             ("date",),
-            (date(2000, 5, 26),),
+            (date(1900, 5, 26),),
             (date(2022, 6, 26),),
             (date(2022, 7, 26),),
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
         result = profiler.profile()
-        assert result["tables"]["test"]['columns']["date"]["distribution"]["counts"][0] == 1
-        assert result["tables"]["test"]['columns']["date"]["distribution"]["counts"][-1] == 2
+        cresult = result["tables"]["test"]['columns']["date"]
+        distribution = cresult["distribution"]
+        assert cresult["min"] == '1900-05-26'
+        assert cresult["max"] == '2022-07-26'
+        assert distribution["type"] == 'yearly'
+        assert distribution["counts"][0] == 1
+        assert distribution["counts"][-1] == 2
+        assert distribution["bin_edges"][0] == "1900-01-01"
+        assert distribution["bin_edges"][-1] == "2023-01-01"
+
+        # monthly
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ("date",),
+            (date(2021, 12, 25),),
+            (date(2022, 2, 24),),
+            (date(2022, 2, 26),),
+        ]
+        self.create_table("test", data)
+        profiler = Profiler(engine)
+        result = profiler.profile()
+        cresult = result["tables"]["test"]['columns']["date"]
+        distribution = cresult["distribution"]
+        assert cresult["min"] == '2021-12-25'
+        assert cresult["max"] == '2022-02-26'
+        assert distribution["type"] == 'monthly'
+        assert distribution["counts"][0] == 1
+        assert distribution["counts"][-1] == 2
+        assert distribution["bin_edges"][0] == "2021-12-01"
+        assert distribution["bin_edges"][-1] == "2022-03-01"
+
+        # daily
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ("date",),
+            (datetime(2022, 7, 26, 1, 2, 3),),
+            (date(2022, 6, 24),),
+            (date(2022, 7, 26),),
+        ]
+        self.create_table("test", data)
+        profiler = Profiler(engine)
+        result = profiler.profile()
+        cresult = result["tables"]["test"]['columns']["date"]
+        distribution = cresult["distribution"]
+        assert cresult["min"] == '2022-06-24T00:00:00'
+        assert cresult["max"] == '2022-07-26T01:02:03'
+        assert distribution["type"] == 'daily'
+        assert distribution["counts"][0] == 1
+        assert distribution["counts"][-1] == 2
+        assert distribution["bin_edges"][0] == "2022-06-24"
+        assert distribution["bin_edges"][-1] == "2022-07-27"
+
+        # one record or min=max
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ("date",),
+            (date(2022, 1, 1),),
+            (datetime(2022, 1, 1, 1, 2, 3),),
+        ]
+        self.create_table("test", data)
+        profiler = Profiler(engine)
+        result = profiler.profile()
+        cresult = result["tables"]["test"]['columns']["date"]
+        distribution = cresult["distribution"]
+        assert cresult["min"] == '2022-01-01'
+        assert cresult["max"] == '2022-01-01'
+        assert distribution["type"] == 'daily'
+        assert distribution["counts"][0] == 2
+        assert distribution["counts"][-1] == 2
+        assert distribution["bin_edges"][0] == "2022-01-01"
+        assert distribution["bin_edges"][-1] == "2022-01-02"
 
     def test_empty_table(self):
         engine = self.engine = create_engine('sqlite://')

@@ -56,6 +56,9 @@
                     "total": {
                       "type": "integer"
                     },
+                    "nulls": {
+                      "type": "integer"
+                    },
                     "non_nulls": {
                       "type": "integer"
                     },
@@ -64,8 +67,12 @@
                     },
                     "distribution": {
                       "oneOf": [
-                        { "type": "null" },
-                        { "$ref": "#/definitions/distribution" }
+                        {
+                          "type": "null"
+                        },
+                        {
+                          "$ref": "#/definitions/distribution"
+                        }
                       ]
                     },
                     "name": {
@@ -86,6 +93,9 @@
                     "schema_type": {
                       "type": "string"
                     },
+                    "valid": {
+                      "type": "integer"
+                    },
                     "mismatched": {
                       "type": "integer"
                     },
@@ -103,14 +113,22 @@
                     },
                     "min": {
                       "oneOf": [
-                       { "type": "string" },
-                       { "type": "number" }
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
                       ]
                     },
                     "max": {
                       "oneOf": [
-                       { "type": "string" },
-                       { "type": "number" }
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
                       ]
                     },
                     "p5": {
@@ -137,11 +155,16 @@
             },
             "piperider_assertion_result": {
               "oneOf": [
-                { "type": "null" },
+                {
+                  "type": "null"
+                },
                 {
                   "title": "PipeRiderAssertionResult",
                   "type": "object",
-                  "required": ["tests", "columns"],
+                  "required": [
+                    "tests",
+                    "columns"
+                  ],
                   "additionalProperties": false,
                   "properties": {
                     "tests": {
@@ -167,11 +190,16 @@
             },
             "dbt_assertion_result": {
               "oneOf": [
-                { "type": "null" },
+                {
+                  "type": "null"
+                },
                 {
                   "title": "DbtAssertionResult",
                   "type": "object",
-                  "required": ["tests", "columns"],
+                  "required": [
+                    "tests",
+                    "columns"
+                  ],
                   "additionalProperties": false,
                   "properties": {
                     "tests": {
@@ -208,7 +236,10 @@
     "datasource": {
       "title": "DataSource",
       "type": "object",
-      "required": ["name", "type"],
+      "required": [
+        "name",
+        "type"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -224,7 +255,11 @@
     "distribution": {
       "title": "Distribution",
       "type": "object",
-      "required": ["type", "labels", "counts"],
+      "required": [
+        "type",
+        "labels",
+        "counts"
+      ],
       "additionalProperties": false,
       "properties": {
         "type": {
@@ -234,8 +269,12 @@
           "type": "array",
           "items": {
             "oneOf": [
-             { "type": "string" },
-             { "type": "null" }
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ]
           }
         },
@@ -248,7 +287,14 @@
         "bin_edges": {
           "type": "array",
           "items": {
-            "type": "number"
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
           }
         }
       }
@@ -256,7 +302,10 @@
     "assertion_test": {
       "title": "AssertionTest",
       "type": "object",
-      "required": ["name", "status"],
+      "required": [
+        "name",
+        "status"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -264,7 +313,8 @@
         },
         "status": {
           "enum": [
-            "passed", "failed"
+            "passed",
+            "failed"
           ]
         },
         "parameters": {
