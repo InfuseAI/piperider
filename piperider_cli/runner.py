@@ -9,6 +9,7 @@ from typing import List
 
 from rich.console import Console
 from rich.table import Table
+from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedColumn, MofNCompleteColumn
 from sqlalchemy import create_engine, inspect
 
 from piperider_cli import convert_to_tzlocal, datetime_to_str, dbt_adapter
@@ -17,10 +18,85 @@ from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.compare_report import CompareReport
 from piperider_cli.datasource import DataSource
 from piperider_cli.error import PipeRiderCredentialError
-from piperider_cli.profiler import Profiler
-from piperider_cli.configuration import Configuration, \
-    PIPERIDER_CONFIG_PATH, \
-    PIPERIDER_OUTPUT_PATH
+from piperider_cli.profiler import Profiler, ProfilerEventHandler
+from piperider_cli.configuration import Configuration, PIPERIDER_OUTPUT_PATH
+
+
+class RichProfilerEventHandler(ProfilerEventHandler):
+
+    def __init__(self, tables, ds):
+        table_width, total_width = self._get_width(tables, ds)
+        total_column = TextColumn("{task.fields[coft]}", table_column=Column(width=total_width))
+        text_column = TextColumn("{task.description}", table_column=Column(width=table_width))
+        bar_column = BarColumn(bar_width=80)
+        mofn_column = MofNCompleteColumn(table_column=Column(width=5, justify="right"))
+        time_elapsed_column = TimeElapsedColumn()
+
+        self.progress = Progress(total_column, text_column, bar_column, mofn_column, time_elapsed_column)
+        self.progress_started = False
+        self.tasks = {}
+        self.table_total = 0
+        self.table_completed = 0
+
+    def _get_width(self, tables, ds):
+        length_arr = []
+        if tables:
+            return max([len(x) for x in tables]), len(str(len(tables))) * 2 + 2
+
+        engine = None
+        try:
+            engine = create_engine(ds.to_database_url(), **ds.engine_args())
+            length_arr = [len(x) for x in inspect(engine).get_table_names()]
+        except Exception:
+            pass
+        finally:
+            if engine:
+                engine.dispose()
+        if length_arr:
+            return max(length_arr), len(str(len(length_arr))) * 2 + 2
+        return None, None
+
+    def handle_run_start(self, run_result):
+        pass
+
+    def handle_run_progress(self, run_result, total, completed):
+        self.table_total = total
+        self.table_completed = completed
+        pass
+
+    def handle_run_end(self, run_result):
+        self.progress.stop()
+
+    def handle_fetch_metadata_all_start(self):
+        print("fetching metadata")
+
+    def handle_fetch_metadata_table_start(self, table_name):
+        print(f"fetching metadata for table '{table_name}'")
+
+    def handle_table_start(self, table_result):
+        pass
+
+    def handle_table_progress(self, table_result, total, completed):
+        if completed == 0:
+            table_name = table_result['name']
+            padding = ' ' * (len(str(self.table_total)) - len(str(self.table_completed + 1)))
+            coft = f'[{padding}{self.table_completed+1}/{self.table_total}]'
+            task_id = self.progress.add_task(table_name, total=total, **dict(coft=coft))
+            self.tasks[table_name] = task_id
+            self.progress.start()
+
+    def handle_table_end(self, table_result):
+        self.progress.stop()
+        table_name = table_result['name']
+        task_id = self.tasks[table_name]
+        self.progress.remove_task(task_id)
+
+    def handle_column_start(self, table_name, column_result):
+        pass
+
+    def handle_column_end(self, table_name, column_result):
+        task_id = self.tasks[table_name]
+        self.progress.update(task_id, advance=1)
 
 
 def _agreed_to_run_recommended_assertions(console: Console, interactive: bool):
@@ -396,7 +472,7 @@ class Runner():
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
         engine = create_engine(ds.to_database_url(), **ds.engine_args())
-        profiler = Profiler(engine)
+        profiler = Profiler(engine, RichProfilerEventHandler(tables, ds))
         profile_result = profiler.profile(tables)
 
         output_path = prepare_output_path(created_at, ds, output)
