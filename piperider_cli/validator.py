@@ -4,7 +4,7 @@ from typing import List
 from rich.console import Console
 from rich.markup import escape
 from sqlalchemy import create_engine, inspect
-from piperider_cli.adapter.dbt_adapter import DbtAdapter
+from piperider_cli.adapter import DbtAdapter
 
 from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
 from piperider_cli.configuration import Configuration, PIPERIDER_CONFIG_PATH
