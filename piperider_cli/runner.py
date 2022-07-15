@@ -11,7 +11,7 @@ from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedCo
 from sqlalchemy import create_engine, inspect
 
 from piperider_cli import convert_to_tzlocal, datetime_to_str
-from piperider_cli.adapter.dbt_adapter import DbtAdapter
+from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration, PIPERIDER_OUTPUT_PATH

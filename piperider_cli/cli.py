@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.syntax import Syntax
 
 from piperider_cli import __version__, event
-from piperider_cli.adapter.dbt_adapter import DbtAdapter
+from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.guide import Guide
