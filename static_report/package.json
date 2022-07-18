@@ -21,7 +21,8 @@
     "react-dom": "^18.1.0",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4",
-    "wouter": "2.8.0-alpha.2"
+    "wouter": "2.8.0-alpha.2",
+    "zod": "^3.17.3"
   },
   "devDependencies": {
     "@babel/core": "^7.18.2",
@@ -43,15 +44,17 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^2.6.2",
     "rimraf": "^3.0.2",
+    "ts-to-zod": "^1.11.0",
     "typescript": "^4.7.4"
   },
   "scripts": {
-    "setup": "run-s typing:* embed:html",
+    "setup": "run-s typing:dts typing:zod embed:html",
     "serve:single": "dotenv -e .env.single react-scripts start",
     "serve:comparison": "dotenv -e .env.comparison react-scripts start",
     "start:single": "run-s setup serve:single",
     "start:comparison": "run-s setup serve:comparison",
-    "typing:single": "npx json2ts ../piperider_cli/profiler/schema.json > src/sdlc/single-report-schema.d.ts",
+    "typing:dts": "npx json2ts ../piperider_cli/profiler/schema.json > src/sdlc/single-report-schema.d.ts",
+    "typing:zts": "npx ts-to-zod src/sdlc/single-report-schema.d.ts src/sdlc/single-report-schema.z.ts",
     "embed:html": "node src/sdlc/embed-window-data.js",
     "strip:html": "node src/sdlc/clean-window-data.js",
     "build": "run-s strip:html build:*",
