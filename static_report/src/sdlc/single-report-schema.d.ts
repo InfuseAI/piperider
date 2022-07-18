@@ -34,6 +34,7 @@ export interface TableSchema {
  */
 export interface ColumnSchema {
   total: number;
+  nulls?: number;
   non_nulls: number;
   distinct: number;
   distribution?: null | Distribution;
@@ -41,8 +42,10 @@ export interface ColumnSchema {
   description: string;
   type: "string" | "numeric" | "datetime" | "bool" | "other";
   schema_type: string;
+  valid?: number;
   mismatched?: number;
   profile_duration?: string;
+  elapsed_milli?: number;
   sum?: number;
   avg?: number;
   min?: string | number;
@@ -58,7 +61,7 @@ export interface Distribution {
   type: string;
   labels: (string | null)[];
   counts: number[];
-  bin_edges?: number[];
+  bin_edges?: (number | string)[];
 }
 export interface PipeRiderAssertionResult {
   tests: AssertionTest[];
