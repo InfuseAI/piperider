@@ -293,19 +293,20 @@ def _show_summary(profiled_result, assertion_results, assertion_exceptions, dbt_
     ascii_dbt_table = _show_dbt_test_result_summary(dbt_test_results)
     for t in tables:
         _show_table_summary(ascii_table, t, profiled_result, assertion_results)
-        pass
 
     if ascii_dbt_table:
         # Display DBT Tests Summary
         console.rule('dbt')
         console.print(ascii_dbt_table)
         _show_dbt_test_result(dbt_test_results, failed_only=True, title="Failed DBT Tests")
-        console.rule('PipeRider')
+        if ascii_table.rows:
+            console.rule('PipeRider')
 
     # Display PipeRider Assertions Summary
-    console.print(ascii_table)
-    _show_assertion_result(assertion_results, assertion_exceptions, failed_only=True,
-                           title='Failed Assertions')
+    if ascii_table.rows:
+        console.print(ascii_table)
+        _show_assertion_result(assertion_results, assertion_exceptions, failed_only=True,
+                               title='Failed Assertions')
 
 
 def _show_table_summary(ascii_table: Table, table: str, profiled_result, assertion_results):
