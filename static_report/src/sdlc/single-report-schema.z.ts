@@ -38,8 +38,11 @@ export const columnSchemaSchema = z.object({
   type: z.union([
     z.literal('string'),
     z.literal('numeric'),
+    z.literal('integer'),
     z.literal('datetime'),
-    z.literal('bool'),
+    z.literal('date'),
+    z.literal('time'),
+    z.literal('boolean'),
     z.literal('other'),
   ]),
   schema_type: z.string(),

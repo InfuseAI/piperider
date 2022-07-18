@@ -1,6 +1,7 @@
 import { Flex, Grid } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
+import { ZTableSchema } from '../../types';
 import {
   nestComparisonValueByKey,
   transformDistribution,
@@ -10,6 +11,9 @@ import { CRBarChart } from './CRBarChart';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
 
 export function CRTabProfilingDetails({ base, input }) {
+  ZTableSchema.parse(base);
+  ZTableSchema.parse(input);
+
   const transformedData = nestComparisonValueByKey<ColumnSchema>(
     base.columns,
     input.columns,
@@ -31,12 +35,16 @@ export function CRTabProfilingDetails({ base, input }) {
   );
 }
 
+/**
+ * Partial values due to column-drift across runs
+ */
 type CRProfilingColumnProp = {
   name: string;
   base: ColumnSchema | undefined;
   input: ColumnSchema | undefined;
 };
 function CRProfilingColumn({ name, base, input }: CRProfilingColumnProp) {
+  //FIXME: provide generic type! (broken inference)
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -74,7 +82,7 @@ function CRProfilingColumn({ name, base, input }: CRProfilingColumnProp) {
   return (
     <Flex key={name} direction="column">
       <Grid my={8} templateColumns="500px 1fr" gap={12}>
-        {/* case: base and input not always avail due to column shifts */}
+        {/* case: base and input not always avail due to column shifts, but base will always exist */}
         <CRTableColumnDetails
           baseColumn={base}
           inputColumn={input}
@@ -84,31 +92,19 @@ function CRProfilingColumn({ name, base, input }: CRProfilingColumnProp) {
         {data.length === 1 && <CRBarChart data={data[0]} />}
         {data.length === 2 && (
           <Grid my={4} templateColumns="1fr 1fr" gap={12}>
-            {data[0] ? (
-              <CRBarChart data={data[0]} />
-            ) : (
-              <Flex
-                alignItems="center"
-                justifyContent="center"
-                color="gray.500"
-              >
-                No data available
-              </Flex>
-            )}
-            {data[1] ? (
-              <CRBarChart data={data[1]} />
-            ) : (
-              <Flex
-                alignItems="center"
-                justifyContent="center"
-                color="gray.500"
-              >
-                No data available
-              </Flex>
-            )}
+            {data[0] ? <CRBarChart data={data[0]} /> : <NoData />}
+            {data[1] ? <CRBarChart data={data[1]} /> : <NoData />}
           </Grid>
         )}
       </Grid>
+    </Flex>
+  );
+}
+
+function NoData() {
+  return (
+    <Flex alignItems="center" justifyContent="center" color="gray.500">
+      No data available
     </Flex>
   );
 }

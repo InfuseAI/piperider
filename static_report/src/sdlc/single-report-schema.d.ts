@@ -37,10 +37,10 @@ export interface ColumnSchema {
   nulls?: number;
   non_nulls: number;
   distinct: number;
-  distribution?: null | Distribution; // bad ;P
+  distribution?: null | Distribution;
   name: string;
   description: string;
-  type: 'string' | 'numeric' | 'datetime' | 'bool' | 'other';
+  type: "string" | "numeric" | "integer" | "datetime" | "date" | "time" | "boolean" | "other";
   schema_type: string;
   valid?: number;
   mismatched?: number;
@@ -75,7 +75,7 @@ export interface PipeRiderAssertionResult {
 }
 export interface AssertionTest {
   name: string;
-  status: 'passed' | 'failed';
+  status: "passed" | "failed";
   parameters?: {
     [k: string]: unknown;
   };

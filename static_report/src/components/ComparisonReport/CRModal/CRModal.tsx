@@ -1,0 +1,76 @@
+import {
+  Button,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
+  Text,
+  Modal,
+  ModalHeader,
+  ModalOverlay,
+  ModalContent,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  type UseDisclosureReturn,
+} from '@chakra-ui/react';
+
+import { TestStatus } from '../../shared/TestStatus';
+import { extractExpectedOrActual } from '../../../utils';
+import { ComparisonReportSchema } from '../../../types';
+import { DbtTable } from './CRModalDbtTable';
+import { PipeRiderTable } from './CRModalPiperiderTable';
+
+export type CRModalData = ComparisonReportSchema & {
+  level: 'Column' | 'Table';
+  column: string;
+  name: string;
+};
+
+interface Props extends UseDisclosureReturn {
+  type?: 'piperider' | 'dbt';
+  data?: CRModalData;
+}
+
+export function CRModal({
+  data,
+  type = 'piperider',
+  isOpen,
+  onClose,
+  ...props
+}: Props) {
+  return (
+    <Modal
+      {...props}
+      isOpen={isOpen}
+      size="2xl"
+      onClose={() => {
+        onClose();
+      }}
+    >
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>
+          <Text title={data?.name} noOfLines={1} maxWidth="calc(100% - 50px)">
+            {data?.name}
+          </Text>
+        </ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          {type === 'piperider' ? (
+            <PipeRiderTable data={data} />
+          ) : (
+            <DbtTable data={data} />
+          )}
+        </ModalBody>
+
+        <ModalFooter>
+          <Button onClick={onClose}>Close</Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+}

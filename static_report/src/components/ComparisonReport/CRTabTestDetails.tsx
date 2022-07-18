@@ -13,6 +13,7 @@ import { groupBy } from 'lodash';
 import { nanoid } from 'nanoid';
 import { TestStatus } from '../shared/TestStatus';
 
+//TODO: Props
 export function CRTabTestDetails({ base = [], input = [], ...props }) {
   // group by "level", "column", "name"
   const groupedTests = groupBy(

@@ -18,10 +18,7 @@ import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import { SRTabProfilingDetails } from './SRTabProfilingDetails';
 import { SRTabTestDetails } from './SRTabTestDetails';
 import { SRTableOverview } from './SRTableOverview';
-import {
-  dataSourceSchema,
-  tableSchemaSchema,
-} from '../../sdlc/single-report-schema.z';
+import { dataSourceSchema } from '../../sdlc/single-report-schema.z';
 import { ZTableSchema } from '../../types';
 
 interface Props {

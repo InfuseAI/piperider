@@ -11,8 +11,14 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
+import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
+import { ZTableSchema } from '../../types';
 
-export function CRTabSchemaDetails({ base, input }) {
+type Props = {
+  base: TableSchema;
+  input: TableSchema;
+};
+export function CRTabSchemaDetails({ base, input }: Props) {
   let columns = [];
   let mapIndex = {};
   let i = 0;
@@ -20,7 +26,14 @@ export function CRTabSchemaDetails({ base, input }) {
   let deleted = 0;
   let changed = 0;
 
-  Object.entries<any>(base?.columns || []).forEach(([name, column]) => {
+  ZTableSchema.parse(base);
+  ZTableSchema.parse(input);
+
+  /**
+   * Base Columns - Add up and transform initial columns
+   */
+  // FIXME: deep iterations/lookups should be handled by CLI data schema (ComparisonSchema should have official schema)
+  Object.entries<ColumnSchema>(base.columns).forEach(([name, column]) => {
     mapIndex[column.name] = i;
     columns.push({
       name,
@@ -32,7 +45,11 @@ export function CRTabSchemaDetails({ base, input }) {
     deleted++;
   });
 
-  Object.entries<any>(input?.columns || []).forEach(([name, column]) => {
+  /**
+   * Input Columns - Tally deleted/changed/added and transform final columns
+   */
+  // FIXME: deep iterations/lookups should be handled by CLI data schema (ComparisonSchema should have official schema)
+  Object.entries<ColumnSchema>(input?.columns).forEach(([name, column]) => {
     if (mapIndex.hasOwnProperty(column.name)) {
       const index = mapIndex[column.name];
       const isChanged = columns[index].base.schema_type !== column.schema_type;

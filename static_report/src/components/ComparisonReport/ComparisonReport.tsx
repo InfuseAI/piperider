@@ -19,8 +19,12 @@ import { Main } from '../shared/Main';
 import { getComparisonAssertions } from '../../utils';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { CRModal } from './CRModal';
-import { ComparisonReportSchema } from '../../types';
+import { CRModal } from './CRModal/CRModal';
+import {
+  ComparisonReportSchema,
+  ZComparisonSchema,
+  ZTableSchema,
+} from '../../types';
 import { CRTabProfilingDetails } from './CRTabProfilingDetails';
 import { CRTabSchemaDetails } from './CRTabSchemaDetails';
 import { CRTabTestDetails } from './CRTabTestDetails';
@@ -35,9 +39,13 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
   const modal = useDisclosure();
 
   const { base, input } = data;
-  const baseTables = base.tables[reportName];
-  const inputTables = input.tables[reportName];
+  ZComparisonSchema.parse(data);
+
+  const baseTable = base.tables[reportName];
+  const inputTable = input.tables[reportName];
   const existsDbtTests = base.tables[reportName]?.dbt_assertion_result;
+  ZTableSchema.parse(baseTable);
+  ZTableSchema.parse(inputTable);
 
   const [baseOverview, inputOverview] = getComparisonAssertions({
     data,
@@ -84,7 +92,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
         >
           {/* overview */}
           <Heading fontSize={24}>Overview</Heading>
-          <CRTableOverview baseTables={baseTables} inputTables={inputTables} />
+          <CRTableOverview baseTable={baseTable} inputTable={inputTable} />
 
           <Tabs isLazy>
             <TabList>
@@ -96,11 +104,11 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
 
             <TabPanels>
               <TabPanel>
-                <CRTabSchemaDetails base={baseTables} input={inputTables} />
+                <CRTabSchemaDetails base={baseTable} input={inputTable} />
               </TabPanel>
 
               <TabPanel>
-                <CRTabProfilingDetails base={baseTables} input={inputTables} />
+                <CRTabProfilingDetails base={baseTable} input={inputTable} />
               </TabPanel>
 
               <TabPanel>

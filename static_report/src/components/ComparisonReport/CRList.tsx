@@ -26,7 +26,11 @@ import {
 } from '../../utils';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { ComparisonReportSchema } from '../../types';
+import {
+  ComparisonReportSchema,
+  ZComparisonTableSchema,
+  ZSingleSchema,
+} from '../../types';
 import { TableSchema } from '../../sdlc/single-report-schema';
 
 export function ComparisonReportList({
@@ -35,6 +39,9 @@ export function ComparisonReportList({
   data: ComparisonReportSchema;
 }) {
   const { base, input } = data;
+
+  ZSingleSchema.parse(base);
+  ZSingleSchema.parse(input);
 
   const tables = nestComparisonValueByKey<TableSchema>(
     base.tables,
@@ -135,6 +142,7 @@ export function ComparisonReportList({
               <Tbody data-cy="cr-report-list">
                 {Object.keys(tables).map((key) => {
                   const table = tables[key];
+                  ZComparisonTableSchema.parse(table);
 
                   const [baseOverview, inputOverview] = getComparisonAssertions(
                     {

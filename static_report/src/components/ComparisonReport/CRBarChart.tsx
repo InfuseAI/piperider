@@ -3,6 +3,7 @@ import { useComparisonChart } from '../../hooks/useComparisonChart';
 import { useRef } from 'react';
 import { Flex } from '@chakra-ui/react';
 
+//FIXME: Props
 export function CRBarChart({ data }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
