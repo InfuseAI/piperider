@@ -155,19 +155,14 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
     return results, exceptions
 
 
-def _show_dbt_test_result(console: Console, dbt_test_results, failed_only=False):
-    max_target_len = 0
-    max_assert_len = 0
-    indent = '  ' if failed_only else ''
-    for table, v in dbt_test_results.items():
-        for column, results in v['columns'].items():
-            for r in results:
-                if failed_only and r.get('status') == 'passed':
-                    continue
-                target = f'{table}.{column}'
-                test_name = r.get('name')
-                max_target_len = max(max_target_len, len(target))
-                max_assert_len = max(max_assert_len, len(test_name))
+def _show_dbt_test_result(dbt_test_results, title=None, failed_only=False):
+    console = Console()
+    ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta',
+                        box=box.SIMPLE, title=title)
+    ascii_table.add_column('Status', style='bold white')
+    ascii_table.add_column('Target', style='bold')
+    ascii_table.add_column('Test Name', style='bold green')
+    ascii_table.add_column('Message', style='bold')
 
     for table, v in dbt_test_results.items():
         for column, results in v['columns'].items():
@@ -176,20 +171,29 @@ def _show_dbt_test_result(console: Console, dbt_test_results, failed_only=False)
                     continue
                 success = True if r.get('status') == 'passed' else False
                 test_name = r.get('name')
-                test_name = test_name.ljust(max_assert_len + 1)
-                target = f'{table}.{column}'
-                target = target.ljust(max_target_len + 1)
+                target = f'[yellow]{table}[/yellow].[blue]{column}[/blue]' if column else f'[yellow]{table}[/yellow]'
                 message = r.get('message')
 
                 if success:
-                    console.print(
-                        f'{indent}[[bold green]  OK  [/bold green]] {target} {test_name} Message: {message}')
+                    ascii_table.add_row(
+                        '[[bold green]  OK  [/bold green]]',
+                        target,
+                        test_name,
+                        message
+                    )
                 else:
-                    console.print(
-                        f'{indent}[[bold red]FAILED[/bold red]] {target} {test_name} Message: {message}')
+                    ascii_table.add_row(
+                        '[[bold red]FAILED[/bold red]]',
+                        target,
+                        test_name,
+                        message
+                    )
+    if ascii_table.rows:
+        console.print(ascii_table)
 
 
-def _show_assertion_result(console: Console, results, exceptions, failed_only=False, single_table=None):
+def _show_assertion_result(results, exceptions, failed_only=False, single_table=None, title=None):
+    console = Console()
     if results:
         max_target_len = 0
         max_assert_len = 0
@@ -205,7 +209,7 @@ def _show_assertion_result(console: Console, results, exceptions, failed_only=Fa
             max_assert_len = max(max_assert_len, len(assertion.name))
 
         ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta',
-                            box=box.SIMPLE)
+                            box=box.SIMPLE, title=title)
         ascii_table.add_column('Status', style='bold white')
         ascii_table.add_column('Target', style='bold')
         ascii_table.add_column('TestFunction', style='bold green')
@@ -242,7 +246,8 @@ def _show_assertion_result(console: Console, results, exceptions, failed_only=Fa
                     msg = f'[grey11 on white][purple4]{type(assertion.result.exception).__name__}[/purple4](\'{assertion.result.exception}\')[/grey11 on white]'
                     ascii_table.add_row('', '', '', msg)
 
-        console.print(ascii_table)
+        if ascii_table.rows:
+            console.print(ascii_table)
     # TODO: Handle exceptions
     pass
 
@@ -257,16 +262,21 @@ def _show_recommended_assertion_notice_message(console: Console, results):
             break
 
 
-def _show_dbt_test_result_summary(console: Console, table: str, dbt_test_results):
+def _show_dbt_test_result_summary(dbt_test_results, table: str = None):
     if not dbt_test_results:
-        return False
+        return None
+
+    # Prepare DBT Tests Summary
+    ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta', box=box.SIMPLE_HEAVY)
+    ascii_table.add_column('Table Name', style='bold yellow')
+    ascii_table.add_column('#DBT Tests Executed', style='bold blue', justify='right')
+    ascii_table.add_column('#DBT Tests Failed', style='bold red', justify='right')
 
     num_of_testcases = 0
     num_of_passed_testcases = 0
-    num_of_failed_testcases = 0
 
     for k, v in dbt_test_results.items():
-        if k == table:
+        if table is None or k == table:
             for column, results in v['columns'].items():
                 for r in results:
                     num_of_testcases += 1
@@ -274,18 +284,45 @@ def _show_dbt_test_result_summary(console: Console, table: str, dbt_test_results
                         num_of_passed_testcases += 1
 
             num_of_failed_testcases = num_of_testcases - num_of_passed_testcases
-            if num_of_testcases > 0:
-                console.print(f'  {num_of_testcases} dbt test executed')
-
-            if (num_of_failed_testcases > 0):
-                console.print(f'  {num_of_failed_testcases} of {num_of_testcases} dbt tests failed:')
-                _show_dbt_test_result(console, {k: v}, failed_only=True)
-                return True
-    return False
+            ascii_table.add_row(
+                k,
+                Pretty(num_of_testcases),
+                Pretty(num_of_failed_testcases),
+            )
+    return ascii_table
 
 
-def _show_table_summary(console: Console, table: str, profiled_result, assertion_results, dbt_test_results):
-    profiled_columns = profiled_result.get('col_count')
+def _show_summary(profiled_result, assertion_results, assertion_exceptions, dbt_test_results, table=None):
+    console = Console()
+    tables = profiled_result.get('tables', []) if table is None else [table]
+
+    # Prepare PipeRider Assertions Summary
+    ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta', box=box.SIMPLE_HEAVY)
+    ascii_table.add_column('Table Name', style='bold yellow')
+    ascii_table.add_column('#Columns Profiled', style='bold blue', justify='right')
+    ascii_table.add_column('#Tests Executed', style='bold blue', justify='right')
+    ascii_table.add_column('#Tests Failed', style='bold red', justify='right')
+
+    ascii_dbt_table = _show_dbt_test_result_summary(dbt_test_results)
+    for t in tables:
+        _show_table_summary(ascii_table, t, profiled_result, assertion_results)
+        pass
+
+    if ascii_dbt_table:
+        # Display DBT Tests Summary
+        console.rule('dbt')
+        console.print(ascii_dbt_table)
+        _show_dbt_test_result(dbt_test_results, failed_only=True, title="Failed DBT Tests")
+        console.rule('PipeRider')
+
+    # Display PipeRider Assertions Summary
+    console.print(ascii_table)
+    _show_assertion_result(assertion_results, assertion_exceptions, failed_only=True,
+                           title='Failed Assertions')
+
+
+def _show_table_summary(ascii_table: Table, table: str, profiled_result, assertion_results):
+    profiled_columns = profiled_result['tables'][table].get('col_count')
     num_of_testcases = 0
     num_of_passed_testcases = 0
     num_of_failed_testcases = 0
@@ -302,21 +339,14 @@ def _show_table_summary(console: Console, table: str, profiled_result, assertion
 
     num_of_failed_testcases = num_of_testcases - num_of_passed_testcases
 
-    console.print(f"Table '{table}'")
-    console.print(f'  {profiled_columns} columns profiled')
+    ascii_table.add_row(
+        table,
+        Pretty(profiled_columns),
+        Pretty(num_of_testcases),
+        Pretty(num_of_failed_testcases),
+    )
+    # console.print(f'  {profiled_columns} columns profiled')
 
-    dbt_showed = _show_dbt_test_result_summary(console, table, dbt_test_results)
-    pr = ' PipeRider' if dbt_showed else ''
-    if assertion_results and dbt_showed:
-        console.print()
-
-    if num_of_testcases > 0:
-        console.print(f'  {num_of_testcases}{pr} test executed')
-
-    if (num_of_failed_testcases > 0):
-        console.print(f'  {num_of_failed_testcases} of {num_of_testcases}{pr} tests failed:')
-        _show_assertion_result(console, assertion_results, None, failed_only=True, single_table=table)
-    console.print()
     pass
 
 
@@ -514,11 +544,11 @@ class Runner():
             console.rule('Assertion Results')
             if dbt_test_results:
                 console.rule('dbt')
-                _show_dbt_test_result(console, dbt_test_results)
+                _show_dbt_test_result(dbt_test_results)
                 if assertion_results:
                     console.rule('PipeRider')
             if assertion_results:
-                _show_assertion_result(console, assertion_results, assertion_exceptions)
+                _show_assertion_result(assertion_results, assertion_exceptions)
 
         console.rule('Summary')
 
@@ -537,9 +567,7 @@ class Runner():
         for t in profile_result['tables']:
             profile_result['tables'][t]['piperider_assertion_result'] = _transform_assertion_result(t,
                                                                                                     assertion_results)
-
-            _show_table_summary(console, t, profile_result['tables'][t], assertion_results, dbt_test_results)
-
+        _show_summary(profile_result, assertion_results, assertion_exceptions, dbt_test_results)
         _show_recommended_assertion_notice_message(console, assertion_results)
 
         _append_descriptions(profile_result)
