@@ -199,7 +199,7 @@ def _show_assertion_result(results, exceptions, failed_only=False, single_table=
                             box=box.SIMPLE, title=title)
         ascii_table.add_column('Status', style='bold white')
         ascii_table.add_column('Target', style='bold')
-        ascii_table.add_column('TestFunction', style='bold green')
+        ascii_table.add_column('Test Function', style='bold green')
         ascii_table.add_column('Expected', style='bold')
         ascii_table.add_column('Actual', style='cyan')
 
