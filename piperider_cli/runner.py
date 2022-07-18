@@ -195,19 +195,6 @@ def _show_dbt_test_result(dbt_test_results, title=None, failed_only=False):
 def _show_assertion_result(results, exceptions, failed_only=False, single_table=None, title=None):
     console = Console()
     if results:
-        max_target_len = 0
-        max_assert_len = 0
-        indent = '  ' if failed_only else ''
-        for assertion in results:
-            if single_table and single_table != assertion.table:
-                continue
-            if assertion.column:
-                if failed_only and assertion.result.status():
-                    continue
-                target = f'{assertion.table}.{assertion.column}'
-                max_target_len = max(max_target_len, len(target))
-            max_assert_len = max(max_assert_len, len(assertion.name))
-
         ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta',
                             box=box.SIMPLE, title=title)
         ascii_table.add_column('Status', style='bold white')
