@@ -8,16 +8,17 @@ const X_PADDING = 0.05;
 const TOOLTIPS_BG_COLOR = 'var(--chakra-colors-gray-500)';
 const CHART_COLOR = 'var(--chakra-colors-blue-300)';
 
-export function useSingleChart<T extends SVGSVGElement>({
+//TODO: Remove `as any` type forcing
+interface HookArgs<T> {
+  target: RefObject<SVGSVGElement>;
+  data: T[];
+  dimensions: DOMRect;
+}
+export function useSingleChart<T extends { [key: string]: any }>({
   target,
   data,
   dimensions,
-}: {
-  target: RefObject<T>;
-  // FIXME: data types
-  data: any;
-  dimensions: DOMRect;
-}) {
+}: HookArgs<T>) {
   useEffect(() => {
     if (!target || !dimensions || !data) {
       return;

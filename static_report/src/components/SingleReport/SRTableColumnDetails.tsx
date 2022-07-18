@@ -6,12 +6,15 @@ import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
 import { GeneralTableColumn } from '../shared/GeneralTableColumn';
 import { SRTooltip } from './SRTooltip';
+import { columnSchemaSchema } from '../../sdlc/single-report-schema.z';
 
 type SRTableColumnDetailsProps = {
   column: ColumnSchema;
 };
 
 export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
+  //FIXME: Schema misrepresentation of optional [k?]
+  columnSchemaSchema.omit({ type: true, stddev: true }).parse(column);
   return (
     <Flex direction="column" gap={3}>
       <Box maxWidth="100%">
@@ -22,20 +25,20 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
             color="gray.900"
             fontSize="lg"
             mr={1}
-            title={column.name as string}
+            title={column.name}
             noOfLines={1}
           >
-            {column.name as string}
+            {column.name}
           </Text>
           <SRTooltip
-            label={(column.description as string) || ''}
+            label={column.description}
             prefix={' - via '}
             placement="right-end"
           >
             <InfoOutlineIcon m={'auto 0'} />
           </SRTooltip>
         </Flex>
-        {''}(<Code>{column.schema_type as string}</Code>)
+        {''}(<Code>{column.schema_type}</Code>)
       </Box>
 
       <Flex direction="column" mt={3}>

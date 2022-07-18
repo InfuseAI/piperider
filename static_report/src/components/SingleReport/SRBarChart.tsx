@@ -3,12 +3,13 @@ import { useRef } from 'react';
 import { useResizeObserver } from '../../hooks/useResizeObserver';
 import { useSingleChart } from '../../hooks/useSingleChart';
 
+type Datum = {
+  label: string;
+  value: any;
+  total: number;
+};
 interface Props {
-  data: Array<{
-    label: string;
-    value: any;
-    total: number;
-  }>;
+  data: Array<Datum>;
 }
 
 export function SRBarChart({ data }: Props) {
@@ -16,7 +17,7 @@ export function SRBarChart({ data }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const dimensions = useResizeObserver(containerRef);
 
-  useSingleChart({ target: svgRef, data, dimensions });
+  useSingleChart<Datum>({ target: svgRef, data, dimensions });
 
   return (
     <Flex className="chart" width="100%" ref={containerRef}>

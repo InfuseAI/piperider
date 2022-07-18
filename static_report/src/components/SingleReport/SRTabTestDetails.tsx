@@ -9,6 +9,8 @@ import {
   Td,
   Text,
 } from '@chakra-ui/react';
+import { assertionTestSchema } from '../../sdlc/single-report-schema.z';
+import { z } from 'zod';
 import { AssertionValue } from '../../types';
 import { extractExpectedOrActual } from '../../utils';
 
@@ -47,13 +49,14 @@ export function SRTabTestDetails({ assertionData, type = 'piperider' }: Props) {
           </Thead>
 
           <Tbody>
-            {tableTests.map((tabelTest) => {
-              const isFailed = tabelTest.status === 'failed';
+            {tableTests.map((tableTest) => {
+              assertionTestSchema.parse(tableTest);
+              const isFailed = tableTest.status === 'failed';
               return (
-                <Tr key={tabelTest.name}>
+                <Tr key={tableTest.name}>
                   <Td>Table</Td>
                   <Td>-</Td>
-                  <Td>{tabelTest.name}</Td>
+                  <Td>{tableTest.name}</Td>
                   <Td>
                     {isFailed ? (
                       <Text as="span" role="img">
@@ -66,11 +69,11 @@ export function SRTabTestDetails({ assertionData, type = 'piperider' }: Props) {
                     )}
                   </Td>
                   {type === 'piperider' && (
-                    <Td>{extractExpectedOrActual(tabelTest.expected)}</Td>
+                    <Td>{extractExpectedOrActual(tableTest.expected)}</Td>
                   )}
                   {type === 'piperider' && (
                     <Td color={isFailed ? 'red.500' : 'inherit'}>
-                      {extractExpectedOrActual(tabelTest.actual)}
+                      {extractExpectedOrActual(tableTest.actual)}
                     </Td>
                   )}
                 </Tr>
@@ -79,6 +82,7 @@ export function SRTabTestDetails({ assertionData, type = 'piperider' }: Props) {
 
             {Object.keys(columnsTests).map((key) => {
               const columnTests = columnsTests[key];
+              z.array(assertionTestSchema).parse(columnTests);
 
               return columnTests.map((columnTest) => {
                 const isFailed = columnTest.status === 'failed';

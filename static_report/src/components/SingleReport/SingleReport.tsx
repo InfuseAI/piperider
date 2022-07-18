@@ -18,14 +18,21 @@ import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import { SRTabProfilingDetails } from './SRTabProfilingDetails';
 import { SRTabTestDetails } from './SRTabTestDetails';
 import { SRTableOverview } from './SRTableOverview';
+import {
+  dataSourceSchema,
+  tableSchemaSchema,
+} from '../../sdlc/single-report-schema.z';
 
 interface Props {
   data: SingleReportSchema;
   name: string;
 }
 export default function SingleReport({ data, name }: Props) {
-  const { datasource: source, tables } = data;
+  const { datasource, tables } = data;
   const table = tables[name];
+  //FIXME: column.type sometimes is off??
+  tableSchemaSchema.omit({ columns: true }).parse(table);
+  dataSourceSchema.parse(datasource);
 
   useDocumentTitle(name);
 
@@ -47,7 +54,7 @@ export default function SingleReport({ data, name }: Props) {
             <BreadcrumbItem>
               <Link href="/">
                 <BreadcrumbLink href="/" data-cy="sr-report-breadcrumb-back">
-                  {source.name}
+                  {datasource.name}
                 </BreadcrumbLink>
               </Link>
             </BreadcrumbItem>

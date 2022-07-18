@@ -48,7 +48,7 @@
     "typescript": "^4.7.4"
   },
   "scripts": {
-    "setup": "run-s typing:dts typing:zod embed:html",
+    "setup": "run-s typing:dts typing:zts embed:html",
     "serve:single": "dotenv -e .env.single react-scripts start",
     "serve:comparison": "dotenv -e .env.comparison react-scripts start",
     "start:single": "run-s setup serve:single",

@@ -23,10 +23,17 @@ import {
 } from '../../utils';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
+import {
+  singleReportSchemaSchema,
+  tableSchemaSchema,
+} from '../../sdlc/single-report-schema.z';
 
 type Props = { data: SingleReportSchema };
 export function SingleReportList({ data }: Props) {
   const { id, created_at, datasource, tables } = data;
+  singleReportSchemaSchema
+    .pick({ id: true, created_at: true, datasource: true })
+    .parse({ id, created_at, datasource });
 
   useDocumentTitle('Report List');
 
@@ -78,6 +85,8 @@ export function SingleReportList({ data }: Props) {
             <Tbody data-cy="sr-report-list">
               {Object.keys(tables).map((key) => {
                 const report = tables[key];
+                //FIXME: column.type sometimes is off??
+                tableSchemaSchema.omit({ columns: true }).parse(report);
 
                 const pipeRideroverview = getReportAssertionStatusCounts(
                   report.piperider_assertion_result,
@@ -98,7 +107,7 @@ export function SingleReportList({ data }: Props) {
                       <Td>
                         {report.name}
                         <SRTooltip
-                          label={(report.description as string) || ''}
+                          label={report.description}
                           prefix={' - via '}
                           placement="right-end"
                         >

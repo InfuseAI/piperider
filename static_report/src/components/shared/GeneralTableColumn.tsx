@@ -1,4 +1,5 @@
 import { ColumnSchema } from '../../sdlc/single-report-schema';
+import { columnSchemaSchema } from '../../sdlc/single-report-schema.z';
 import {
   formatNumber,
   formatIntervalMinMax,
@@ -10,6 +11,7 @@ import { MetricsInfo } from './MetrisInfo';
 type Props = { baseColumn: ColumnSchema; inputColumn?: ColumnSchema };
 export function GeneralTableColumn({ baseColumn, inputColumn }: Props) {
   if (baseColumn) {
+    columnSchemaSchema.omit({ type: true, stddev: true }).parse(baseColumn);
     var {
       totalOfTotal: baseTotalOfTotal,
       total: baseTotal,
@@ -22,6 +24,7 @@ export function GeneralTableColumn({ baseColumn, inputColumn }: Props) {
   }
 
   if (inputColumn) {
+    columnSchemaSchema.omit({ type: true, stddev: true }).parse(inputColumn);
     var {
       total: inputTotal,
       mismatchOfTotal: inputMismatchOfTotal,
