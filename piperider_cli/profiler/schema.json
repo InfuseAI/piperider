@@ -85,8 +85,11 @@
                       "enum": [
                         "string",
                         "numeric",
+                        "integer",
                         "datetime",
-                        "bool",
+                        "date",
+                        "time",
+                        "boolean",
                         "other"
                       ]
                     },
@@ -326,8 +329,12 @@
             "type": "string"
           }
         },
-        "expected": true,
-        "actual": true
+        "expected": {
+          "type": "boolean"
+        },
+        "actual": {
+          "type": "boolean"
+        }
       }
     }
   }

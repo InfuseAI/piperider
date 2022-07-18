@@ -22,6 +22,7 @@ import {
   dataSourceSchema,
   tableSchemaSchema,
 } from '../../sdlc/single-report-schema.z';
+import { ZTableSchema } from '../../types';
 
 interface Props {
   data: SingleReportSchema;
@@ -30,8 +31,8 @@ interface Props {
 export default function SingleReport({ data, name }: Props) {
   const { datasource, tables } = data;
   const table = tables[name];
-  //FIXME: column.type sometimes is off??
-  tableSchemaSchema.omit({ columns: true }).parse(table);
+
+  ZTableSchema.parse(table);
   dataSourceSchema.parse(datasource);
 
   useDocumentTitle(name);

@@ -23,10 +23,8 @@ import {
 } from '../../utils';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
-import {
-  singleReportSchemaSchema,
-  tableSchemaSchema,
-} from '../../sdlc/single-report-schema.z';
+import { singleReportSchemaSchema } from '../../sdlc/single-report-schema.z';
+import { ZTableSchema } from '../../types';
 
 type Props = { data: SingleReportSchema };
 export function SingleReportList({ data }: Props) {
@@ -85,8 +83,7 @@ export function SingleReportList({ data }: Props) {
             <Tbody data-cy="sr-report-list">
               {Object.keys(tables).map((key) => {
                 const report = tables[key];
-                //FIXME: column.type sometimes is off??
-                tableSchemaSchema.omit({ columns: true }).parse(report);
+                ZTableSchema.parse(report);
 
                 const pipeRideroverview = getReportAssertionStatusCounts(
                   report.piperider_assertion_result,

@@ -14,8 +14,6 @@ export function SRTabProfilingDetails({ data }: Props) {
   return (
     <Flex direction="column" gap={4}>
       {Object.keys(data).map((key) => {
-        console.log(data[key]);
-
         const column = data[key];
         //FIXME: Schema misrepresentation of optional [k?]
         columnSchemaSchema.omit({ type: true, stddev: true }).parse(column);
