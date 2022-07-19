@@ -421,7 +421,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
             t = select([
                 column.label("c"),
                 func.ntile(n_bucket).over(order_by=column).label("n")
-            ]).cte()
+            ]).where(column.isnot(None)).select_from(table).cte()
             stmt = select([t.c.n, func.min(t.c.c)]).group_by(t.c.n).order_by(t.c.n)
             result = conn.execute(stmt)
             quantile = []
