@@ -1,12 +1,5 @@
 import {
   Button,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
   Text,
   Modal,
   ModalHeader,
@@ -18,8 +11,6 @@ import {
   type UseDisclosureReturn,
 } from '@chakra-ui/react';
 
-import { TestStatus } from '../../shared/TestStatus';
-import { extractExpectedOrActual } from '../../../utils';
 import { ComparisonReportSchema } from '../../../types';
 import { DbtTable } from './CRModalDbtTable';
 import { PipeRiderTable } from './CRModalPiperiderTable';

@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZTableSchema } from '../../types';
 import {
-  nestComparisonValueByKey,
   transformDistribution,
   transformDistributionWithLabels,
-} from '../../utils';
+  nestComparisonValueByKey,
+} from '../../utils/transformers';
 import { CRBarChart } from './CRBarChart';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
 

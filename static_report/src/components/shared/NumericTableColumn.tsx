@@ -1,7 +1,7 @@
 import { Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema } from '../../types';
-import { formatColumnValueWith, formatNumber } from '../../utils';
+import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
 import { MetricsInfo } from './MetrisInfo';
 
 type Props = {

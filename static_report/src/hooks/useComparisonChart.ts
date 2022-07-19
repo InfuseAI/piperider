@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 import { useEffect, RefObject } from 'react';
 
-import { formatNumber } from '../utils';
+import { formatNumber } from '../utils/formatters';
 import { getChartTooltip } from '../utils/chart';
 
 const GROUPED = ['base', 'input'];

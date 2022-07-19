@@ -12,7 +12,7 @@ import {
 import { assertionTestSchema } from '../../sdlc/single-report-schema.z';
 import { z } from 'zod';
 import { AssertionValue } from '../../types';
-import { extractExpectedOrActual } from '../../utils';
+import { formatTestExpectedOrActual } from '../../utils/formatters';
 
 type Props = {
   assertionData: AssertionValue;
@@ -69,11 +69,11 @@ export function SRTabTestDetails({ assertionData, type = 'piperider' }: Props) {
                     )}
                   </Td>
                   {type === 'piperider' && (
-                    <Td>{extractExpectedOrActual(tableTest.expected)}</Td>
+                    <Td>{formatTestExpectedOrActual(tableTest.expected)}</Td>
                   )}
                   {type === 'piperider' && (
                     <Td color={isFailed ? 'red.500' : 'inherit'}>
-                      {extractExpectedOrActual(tableTest.actual)}
+                      {formatTestExpectedOrActual(tableTest.actual)}
                     </Td>
                   )}
                 </Tr>
@@ -104,11 +104,11 @@ export function SRTabTestDetails({ assertionData, type = 'piperider' }: Props) {
                       )}
                     </Td>
                     {type === 'piperider' && (
-                      <Td>{extractExpectedOrActual(columnTest.expected)}</Td>
+                      <Td>{formatTestExpectedOrActual(columnTest.expected)}</Td>
                     )}
                     {type === 'piperider' && (
                       <Td color={isFailed ? 'red.500' : 'inherit'}>
-                        {extractExpectedOrActual(columnTest.actual)}
+                        {formatTestExpectedOrActual(columnTest.actual)}
                       </Td>
                     )}
                   </Tr>

@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { TableSchema } from '../../sdlc/single-report-schema';
 import { ZTableSchema } from '../../types';
-import { getReportAggregateAssertions } from '../../utils';
+import { getReportAggregateAssertions } from '../../utils/assertion';
 
 type Props = {
   baseTable: TableSchema;

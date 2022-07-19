@@ -16,7 +16,7 @@ import { Link } from 'wouter';
 import { useState } from 'react';
 
 import { Main } from '../shared/Main';
-import { getComparisonAssertions } from '../../utils';
+import { getComparisonAssertions } from '../../utils/assertion';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { CRModal } from './CRModal/CRModal';

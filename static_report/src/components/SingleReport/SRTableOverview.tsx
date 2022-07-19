@@ -1,7 +1,8 @@
 import { Flex, Heading, Text } from '@chakra-ui/react';
 import { TableSchema } from '../../sdlc/single-report-schema';
 import { tableSchemaSchema } from '../../sdlc/single-report-schema.z';
-import { formatNumber, getReportAggregateAssertions } from '../../utils';
+import { getReportAggregateAssertions } from '../../utils/assertion';
+import { formatNumber } from '../../utils/formatters';
 
 type Props = { table: TableSchema };
 

@@ -7,7 +7,7 @@ import {
   Tbody,
   Td,
 } from '@chakra-ui/react';
-import { extractExpectedOrActual } from '../../../utils';
+import { formatTestExpectedOrActual } from '../../../utils/formatters';
 import { TestStatus } from '../../shared/TestStatus';
 
 //FIXME: Props
@@ -30,8 +30,8 @@ export function PipeRiderTable({ data }: any) {
             <Td>
               <TestStatus status={data?.base?.status as any} />
             </Td>
-            <Td>{extractExpectedOrActual(data?.base?.expected)}</Td>
-            <Td>{extractExpectedOrActual(data?.base?.actual)}</Td>
+            <Td>{formatTestExpectedOrActual(data?.base?.expected)}</Td>
+            <Td>{formatTestExpectedOrActual(data?.base?.actual)}</Td>
           </Tr>
 
           <Tr>
@@ -39,8 +39,8 @@ export function PipeRiderTable({ data }: any) {
             <Td>
               <TestStatus status={data?.input?.status as any} />
             </Td>
-            <Td>{extractExpectedOrActual(data?.input?.expected)}</Td>
-            <Td>{extractExpectedOrActual(data?.input?.actual)}</Td>
+            <Td>{formatTestExpectedOrActual(data?.input?.expected)}</Td>
+            <Td>{formatTestExpectedOrActual(data?.input?.actual)}</Td>
           </Tr>
         </Tbody>
       </Table>

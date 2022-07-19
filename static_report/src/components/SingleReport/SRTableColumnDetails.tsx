@@ -1,6 +1,6 @@
 import { Box, Code, Flex, Text } from '@chakra-ui/react';
 import { MetricsInfo } from '../shared/MetrisInfo';
-import { getSRCommonMetrics } from '../../utils';
+import { getSRModeMetrics } from '../../utils/formatters';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
@@ -49,7 +49,7 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
         <Flex direction="column">
           <MetricsInfo
             name="Most common"
-            base={getSRCommonMetrics(column)}
+            base={getSRModeMetrics(column)}
             baseWidth={'200px'}
           />
         </Flex>

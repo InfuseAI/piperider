@@ -16,15 +16,15 @@ import { Link } from 'wouter';
 import { Main } from '../shared/Main';
 import { SRTooltip } from './SRTooltip';
 import {
-  getReportAssertionStatusCounts,
   formatReportTime,
   formatNumber,
   formatColumnValueWith,
-} from '../../utils';
+} from '../../utils/formatters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import { singleReportSchemaSchema } from '../../sdlc/single-report-schema.z';
 import { ZTableSchema } from '../../types';
+import { getSingleAssertionStatusCounts } from '../../utils/assertion';
 
 type Props = { data: SingleReportSchema };
 export function SingleReportList({ data }: Props) {
@@ -85,12 +85,12 @@ export function SingleReportList({ data }: Props) {
                 const report = tables[key];
                 ZTableSchema.parse(report);
 
-                const pipeRideroverview = getReportAssertionStatusCounts(
+                const pipeRideroverview = getSingleAssertionStatusCounts(
                   report.piperider_assertion_result,
                 );
 
                 // If running by `piperider run --dbt-test`, it will have this field, vice versa.
-                const dbtOverview = getReportAssertionStatusCounts(
+                const dbtOverview = getSingleAssertionStatusCounts(
                   report.dbt_assertion_result,
                 );
 

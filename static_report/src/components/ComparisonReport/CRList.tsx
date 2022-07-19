@@ -18,12 +18,10 @@ import { nanoid } from 'nanoid';
 import { Main } from '../shared/Main';
 
 import {
-  getComparisonAssertions,
   formatReportTime,
   formatNumber,
-  nestComparisonValueByKey,
   formatColumnValueWith,
-} from '../../utils';
+} from '../../utils/formatters';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import {
@@ -32,6 +30,8 @@ import {
   ZSingleSchema,
 } from '../../types';
 import { TableSchema } from '../../sdlc/single-report-schema';
+import { getComparisonAssertions } from '../../utils/assertion';
+import { nestComparisonValueByKey } from '../../utils/transformers';
 
 export function ComparisonReportList({
   data,

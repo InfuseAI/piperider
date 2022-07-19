@@ -3,9 +3,9 @@ import { ZColSchema } from '../../types';
 import {
   formatNumber,
   formatIntervalMinMax,
-  getColumnDetails,
   formatColumnValueWith,
-} from '../../utils';
+} from '../../utils/formatters';
+import { getColumnDetails } from '../../utils/transformers';
 import { MetricsInfo } from './MetrisInfo';
 
 type Props = { baseColumn: ColumnSchema; inputColumn?: ColumnSchema };
