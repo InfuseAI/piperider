@@ -7,8 +7,12 @@ import type { ColumnSchema } from '../sdlc/single-report-schema';
 /**
  * "Formatters" -- these are your data formatting that returns a formatted value for UI presentation (e.g. number, string, falsey)
  */
-
-export function formatReportTime(time: string) {
+/**
+ *
+ * @param dateStr ISO date string
+ * @returns a formatted date string in 'yyyy/MM/dd HH:mm:ss'
+ */
+export function formatReportTime(dateStr: string) {
   const adjustForUTCOffset = (date) => {
     return new Date(
       date.getUTCFullYear(),
@@ -20,7 +24,7 @@ export function formatReportTime(time: string) {
     );
   };
 
-  return format(adjustForUTCOffset(parseISO(time)), 'yyyy/MM/dd HH:mm:ss');
+  return format(adjustForUTCOffset(parseISO(dateStr)), 'yyyy/MM/dd HH:mm:ss');
 }
 
 /**
@@ -40,7 +44,7 @@ export function formatNumber(
 
 /**
  * @param num fractional number type input
- * @returns a formatted interval string, based on its percentage position
+ * @returns a formatted percentage string, based on its percentage proximity to either ends (<0.1% and >99.9%)
  */
 export function formatIntervalMinMax(num: number) {
   // *  should show <0.1 % if the value is between (0%, 0.1%]
@@ -65,6 +69,8 @@ export function formatIntervalMinMax(num: number) {
 }
 
 //FIXME: is this doing anything since expected|actual are booleans?
+// SR side: No need for object record handling
+// CR side: needs record handling
 export function formatTestExpectedOrActual(value) {
   if (!value) {
     return '-';
