@@ -45,6 +45,7 @@
                   "required": [
                     "total",
                     "non_nulls",
+                    "nulls",
                     "distinct",
                     "name",
                     "description",
@@ -66,14 +67,7 @@
                       "type": "integer"
                     },
                     "distribution": {
-                      "oneOf": [
-                        {
-                          "type": "null"
-                        },
-                        {
-                          "$ref": "#/definitions/distribution"
-                        }
-                      ]
+                      "$ref": "#/definitions/distribution"
                     },
                     "name": {
                       "type": "string"
@@ -84,9 +78,12 @@
                     "type": {
                       "enum": [
                         "string",
+                        "integer",
                         "numeric",
                         "datetime",
-                        "bool",
+                        "date",
+                        "time",
+                        "boolean",
                         "other"
                       ]
                     },

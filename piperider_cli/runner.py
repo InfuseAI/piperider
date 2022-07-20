@@ -428,6 +428,17 @@ def _append_descriptions(profile_result):
             column_v['description'] = 'Description: N/A'
 
 
+def _clean_up_null_properties(table_results):
+    removed = []
+    for col_name, props in table_results.get('columns', {}).items():
+        for k, v in props.items():
+            if v is None:
+                removed.append(dict(col=col_name, key=k))
+
+    for r in removed:
+        del table_results['columns'][r['col']][r['key']]
+
+
 def _append_descriptions_from_assertion(profile_result):
     engine = AssertionEngine(None)
     engine.load_assertion_content()
@@ -555,6 +566,7 @@ class Runner():
         for t in profile_result['tables']:
             profile_result['tables'][t]['piperider_assertion_result'] = _transform_assertion_result(t,
                                                                                                     assertion_results)
+            _clean_up_null_properties(profile_result['tables'][t])
         _show_summary(profile_result, assertion_results, assertion_exceptions, dbt_test_results)
         _show_recommended_assertion_notice_message(console, assertion_results)
 
