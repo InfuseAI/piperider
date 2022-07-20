@@ -329,12 +329,8 @@
             "type": "string"
           }
         },
-        "expected": {
-          "type": "boolean"
-        },
-        "actual": {
-          "type": "boolean"
-        }
+        "expected": {},
+        "actual": {}
       }
     }
   }

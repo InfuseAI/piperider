@@ -27,6 +27,7 @@ export type ReportAssertionStatusCounts = {
  */
 const zWrapForComparison = (base, input) => z.object({ base, input });
 
+//FIXME: omit type of tests.<i>.(expected | actual)
 export const ZColSchema = columnSchemaSchema
   .merge(
     z.object({

@@ -13,8 +13,8 @@ export const assertionTestSchema = z.object({
   status: z.union([z.literal('passed'), z.literal('failed')]),
   parameters: z.record(z.unknown()).optional(),
   tags: z.array(z.string()).optional(),
-  expected: z.boolean().optional(),
-  actual: z.boolean().optional(),
+  expected: z.unknown().optional(),
+  actual: z.unknown().optional(),
 });
 
 export const dbtAssertionResultSchema = z.object({

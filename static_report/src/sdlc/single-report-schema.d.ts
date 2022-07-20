@@ -80,8 +80,8 @@ export interface AssertionTest {
     [k: string]: unknown;
   };
   tags?: string[];
-  expected?: boolean;
-  actual?: boolean;
+  expected?: unknown;
+  actual?: unknown;
 }
 export interface DbtAssertionResult {
   tests: AssertionTest[];
