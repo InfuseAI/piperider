@@ -1,4 +1,5 @@
-import { fill, zip } from 'lodash';
+import fill from 'lodash/fill';
+import zip from 'lodash/zip';
 import { ColumnSchema } from '../sdlc/single-report-schema';
 
 /**

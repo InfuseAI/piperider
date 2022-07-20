@@ -2,7 +2,6 @@
   "name": "piperider-report",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "homepage": "./",
   "dependencies": {
     "@chakra-ui/icons": "^2.0.1",
@@ -26,6 +25,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.18.2",
+    "@craco/craco": "^6.4.5",
     "@types/d3": "^7.4.0",
     "@types/jest": "^28.1.2",
     "@types/lodash": "^4.14.182",
@@ -33,6 +33,7 @@
     "@types/react": "^18.0.14",
     "@types/react-dom": "^18.0.5",
     "chalk": "^5.0.1",
+    "craco-esbuild": "^0.5.1",
     "cypress": "^10.3.0",
     "dotenv-cli": "^6.0.0",
     "eslint": "^8.17.0",
@@ -48,9 +49,10 @@
     "typescript": "^4.7.4"
   },
   "scripts": {
+    "analyze": "npx cra-bundle-analyzer",
     "setup": "run-s typing:dts typing:zts embed:html",
-    "serve:single": "dotenv -e .env.single react-scripts start",
-    "serve:comparison": "dotenv -e .env.comparison react-scripts start",
+    "serve:single": "dotenv -e .env.single craco start",
+    "serve:comparison": "dotenv -e .env.comparison craco start",
     "start:single": "run-s setup serve:single",
     "start:comparison": "run-s setup serve:comparison",
     "typing:dts": "npx json2ts ../piperider_cli/profiler/schema.json > src/sdlc/single-report-schema.d.ts",
@@ -60,8 +62,8 @@
     "build": "run-s strip:html build:*",
     "build:single": "rimraf ../piperider_cli/data/report/single-report && npm run bundle:single && mv build/single-report ../piperider_cli/data/report/single-report",
     "build:comparison": "rimraf ../piperider_cli/data/report/comparison-report && npm run bundle:comparison && mv build/comparison-report ../piperider_cli/data/report/comparison-report",
-    "bundle:single": "dotenv -e .env.single react-scripts build",
-    "bundle:comparison": "dotenv -e .env.comparison react-scripts build",
+    "bundle:single": "dotenv -e .env.single craco build",
+    "bundle:comparison": "dotenv -e .env.comparison craco build",
     "embed:html:e2e": "npm run embed:html -- e2e",
     "setup:e2e": "run-s embed:html:e2e bundle:*",
     "serve:e2e:single": "http-server ./build/single-report -p 3000 --silent",

@@ -9,7 +9,7 @@ import {
   Td,
   Text,
 } from '@chakra-ui/react';
-import { groupBy } from 'lodash';
+import groupBy from 'lodash/groupBy';
 import { nanoid } from 'nanoid';
 import { TestStatus } from '../shared/TestStatus';
 
