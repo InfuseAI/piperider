@@ -2,10 +2,8 @@ import { Flex, Grid, Divider, Text } from '@chakra-ui/react';
 import { SRBarChart } from './SRBarChart';
 import { SRTableColumnDetails } from './SRTableColumnDetails';
 import type { TableSchema } from '../../sdlc/single-report-schema';
-import {
-  columnSchemaSchema,
-  distributionSchema,
-} from '../../sdlc/single-report-schema.z';
+import { distributionSchema } from '../../sdlc/single-report-schema.z';
+import { ZColSchema } from '../../types';
 
 interface Props {
   data: TableSchema['columns'];
@@ -15,8 +13,7 @@ export function SRTabProfilingDetails({ data }: Props) {
     <Flex direction="column" gap={4}>
       {Object.keys(data).map((key) => {
         const column = data[key];
-        //FIXME: Schema misrepresentation of optional [k?]
-        columnSchemaSchema.omit({ type: true, stddev: true }).parse(column);
+        ZColSchema.parse(column);
         const distribution = distributionSchema.parse(column.distribution);
 
         return (

@@ -44,14 +44,18 @@ export const ZColSchema = columnSchemaSchema
     }),
   )
   .omit({
-    //FIXME: remove later once schema is stable
     stddev: true,
     p5: true,
     p25: true,
     p50: true,
     p75: true,
     p95: true,
+    min: true,
+    max: true,
+    sum: true,
+    avg: true,
   });
+//OMISSION: schema is unstable
 
 export const ZTableSchema = tableSchemaSchema
   .merge(z.object({ columns: z.record(ZColSchema) }))

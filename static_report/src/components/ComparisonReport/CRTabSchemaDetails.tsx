@@ -14,64 +14,75 @@ import { nanoid } from 'nanoid';
 import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
 import { ZTableSchema } from '../../types';
 
+type EnrichedColumnData = {
+  added: number;
+  deleted: number;
+  changed: number;
+  columns: (ColumnSchema & {
+    key: string;
+    type: string;
+    changed: boolean;
+  })[];
+};
+const getEnrichedColumnsFor = (columns, type): EnrichedColumnData['columns'] =>
+  Object.entries<ColumnSchema>(columns).map(([key, column]) => ({
+    ...column,
+    key,
+    type,
+    changed: false,
+  }));
+
 type Props = {
   base: TableSchema;
   input: TableSchema;
 };
 export function CRTabSchemaDetails({ base, input }: Props) {
-  let columns = [];
-  let mapIndex = {};
-  let i = 0;
-  let added = 0;
-  let deleted = 0;
-  let changed = 0;
-
   ZTableSchema.parse(base);
   ZTableSchema.parse(input);
 
-  /**
-   * Base Columns - Add up and transform initial columns
-   */
-  // FIXME: deep iterations/lookups should be handled by CLI data schema (ComparisonSchema should have official schema)
-  Object.entries<ColumnSchema>(base.columns).forEach(([name, column]) => {
-    mapIndex[column.name] = i;
-    columns.push({
-      name,
-      changed: true,
-      base: column,
-      input: undefined,
-    });
-    i++;
-    deleted++;
-  });
+  const baseColEntries = getEnrichedColumnsFor(base.columns, 'base');
+  const inputColEntries = getEnrichedColumnsFor(input.columns, 'input');
+  const combinedColEntries = [...baseColEntries, ...inputColEntries];
 
-  /**
-   * Input Columns - Tally deleted/changed/added and transform final columns
-   */
-  // FIXME: deep iterations/lookups should be handled by CLI data schema (ComparisonSchema should have official schema)
-  Object.entries<ColumnSchema>(input?.columns).forEach(([name, column]) => {
-    if (mapIndex.hasOwnProperty(column.name)) {
-      const index = mapIndex[column.name];
-      const isChanged = columns[index].base.schema_type !== column.schema_type;
-      columns[index] = {
-        ...columns[index],
-        input: column,
-        changed: isChanged,
-      };
-      deleted--;
-      if (isChanged) {
-        changed++;
-      }
-    } else {
-      columns.push({
-        name,
-        changed: true,
-        base: undefined,
-        input: column,
-      });
-      added++;
-    }
-  });
+  const addedTest = inputColEntries.length - baseColEntries.length;
+  const deletedTest = baseColEntries.length - inputColEntries.length;
+
+  // Reduce
+  const aggregateEnrichedColumns =
+    combinedColEntries.reduce<EnrichedColumnData>(
+      (acc, column, idx, arr) => {
+        //index offsets when iterating both columns together
+        const currBaseIndex =
+          idx < baseColEntries.length ? idx : idx - baseColEntries.length;
+        const currInputIndex =
+          idx >= baseColEntries.length ? idx : idx + baseColEntries.length;
+
+        //cross-checks if schema type is changed
+        const currBaseSchema = combinedColEntries[currBaseIndex].schema_type;
+        const currInputSchema = combinedColEntries[currInputIndex].schema_type;
+        const isSchemaChanged = currBaseSchema !== currInputSchema;
+        const changed = acc.changed + (isSchemaChanged ? 1 : 0);
+
+        //write schema detail for UI rows
+        const colSchemaDetail = {
+          name: column.name,
+          changed: isSchemaChanged, //per schema change
+          ...column,
+        };
+
+        return {
+          ...acc,
+          changed, // total schema changes
+          columns: [...acc.columns, colSchemaDetail],
+        } as EnrichedColumnData;
+      },
+      { added: addedTest, deleted: deletedTest, changed: 0, columns: [] }, //totals -- initial value
+    );
+
+  // UI vars
+  const { added, deleted, changed, columns } = aggregateEnrichedColumns;
+  const baseColumns = columns.slice(0, baseColEntries.length);
+  const inputColumns = columns.slice(baseColEntries.length);
 
   return (
     <Flex direction="column">
@@ -100,13 +111,13 @@ export function CRTabSchemaDetails({ base, input }: Props) {
               </Tr>
             </Thead>
             <Tbody>
-              {columns.map((column) => (
+              {baseColumns.map((column) => (
                 <Tr
                   key={nanoid(10)}
                   color={column.changed ? 'red.500' : 'inherit'}
                 >
-                  <Td>{column.base?.name ?? '-'}</Td>
-                  <Td>{column.base?.schema_type ?? '-'}</Td>
+                  <Td>{column?.name ?? '-'}</Td>
+                  <Td>{column?.schema_type ?? '-'}</Td>
                 </Tr>
               ))}
             </Tbody>
@@ -126,13 +137,13 @@ export function CRTabSchemaDetails({ base, input }: Props) {
               </Tr>
             </Thead>
             <Tbody>
-              {columns.map((column) => (
+              {inputColumns.map((column) => (
                 <Tr
                   key={nanoid(10)}
                   color={column.changed ? 'red.500' : 'inherit'}
                 >
-                  <Td>{column.input?.name ?? '-'}</Td>
-                  <Td>{column.input?.schema_type ?? '-'}</Td>
+                  <Td>{column?.name ?? '-'}</Td>
+                  <Td>{column?.schema_type ?? '-'}</Td>
                 </Tr>
               ))}
             </Tbody>
