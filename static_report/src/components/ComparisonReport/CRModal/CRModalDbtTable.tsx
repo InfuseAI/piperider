@@ -9,7 +9,9 @@ import {
 } from '@chakra-ui/react';
 import { TestStatus } from '../../shared/TestStatus';
 
-//FIXME: Props
+type Props = {
+  data: {};
+};
 export function DbtTable({ data }) {
   return (
     <TableContainer>

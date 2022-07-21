@@ -1,12 +1,12 @@
 import fill from 'lodash/fill';
 import zip from 'lodash/zip';
-import { ColumnSchema } from '../sdlc/single-report-schema';
+import { ColumnSchema, Distribution } from '../sdlc/single-report-schema';
+import { CRInputData } from '../types';
 
 /**
  * "Transformers" -- these are your data re-shaping transformations, and doesn't return a formatted value and does not directly get presented in UI. Can be a precursor to "formatters"
  */
 
-//FUTURE: cleaner way?
 export function nestComparisonValueByKey<T>(
   base: any,
   input: any,
@@ -30,54 +30,56 @@ export function nestComparisonValueByKey<T>(
   return result;
 }
 
+export type CRDistributionDatum = {
+  label: string;
+  base: number;
+  input: number;
+};
 // for `type` equal to string, datetime
-export function transformDistribution({ base, input }) {
-  const mapIndex = {};
-  const result = [];
+export function transformCRStringDateDistributions({
+  base,
+  input,
+}: CRInputData<Distribution>): CRDistributionDatum[] {
+  // groupby base/input of a found label
+  const mapIdxLookup = new Map<string, number>();
 
-  for (let i = 0; i < base.labels.length; i++) {
-    let label = base.labels[i];
-    let count = base.counts[i];
-    mapIndex[label] = i;
-    result.push({
-      label: label,
-      base: count,
+  const initial = base.labels.map((label, idx) => {
+    mapIdxLookup.set(label, idx);
+    return {
+      label,
+      base: base.counts[idx],
       input: 0,
-    });
-  }
+    };
+  });
+  const result = input.labels.reduce((accum, label, idx, arr) => {
+    const hasLabel = mapIdxLookup.has(label);
+    const count = input.counts[idx];
 
-  for (let i = 0; i < input.labels.length; i++) {
-    let label = input.labels[i];
-    let count = input.counts[i];
-
-    if (mapIndex.hasOwnProperty(label)) {
-      result[mapIndex[label]].input = count;
-    } else {
-      result.push({
-        label: label,
-        base: 0,
-        input: count,
-      });
+    if (hasLabel) {
+      const lookupIdx = mapIdxLookup.get(label);
+      accum[lookupIdx].input = count;
+      return accum;
     }
-  }
+
+    const newLabelItem = { label, base: 0, input: count };
+    return [...accum, newLabelItem];
+  }, initial);
 
   return result;
 }
 
-export function transformDistributionWithLabels({ base, input, labels }) {
-  if (!base) {
-    base = fill(Array(labels.length), 0);
-  }
+type TransSingleDistArgs = { baseCounts: number[]; baseLabels: string[] };
+export function transformBaseDistribution({
+  baseCounts,
+  baseLabels,
+}: TransSingleDistArgs): CRDistributionDatum[] {
+  const emptyCounts = fill(Array(baseLabels.length), 0);
 
-  if (!input) {
-    input = fill(Array(labels.length), 0);
-  }
-
-  const z = zip(labels, base, input);
-  const m = z.map(([label, base, input]) => ({
+  const z = zip<string, number>(baseLabels, baseCounts || emptyCounts);
+  const m = z.map(([label, base]) => ({
     label,
     base,
-    input,
+    input: 0,
   }));
 
   return m;

@@ -11,10 +11,18 @@ import {
 } from '@chakra-ui/react';
 import groupBy from 'lodash/groupBy';
 import { nanoid } from 'nanoid';
+import { CRAssertionTests, CRInputData } from '../../types';
 import { TestStatus } from '../shared/TestStatus';
 
-//TODO: Props
-export function CRTabTestDetails({ base = [], input = [], ...props }) {
+type TestGroupRow = {
+  level: string;
+  column: string;
+  name: string;
+  base?: CRAssertionTests;
+  input?: CRAssertionTests;
+};
+type Props = CRInputData<CRAssertionTests[]> & { onDetailVisible: Function };
+export function CRTabTestDetails({ base = [], input = [], ...props }: Props) {
   // group by "level", "column", "name"
   const groupedTests = groupBy(
     [...base, ...input],
@@ -22,13 +30,13 @@ export function CRTabTestDetails({ base = [], input = [], ...props }) {
   );
 
   const tests = Object.values(groupedTests).map((groupedTest) => {
-    let row: any = {
+    const row: TestGroupRow = {
       level: groupedTest[0].level,
       column: groupedTest[0].column,
       name: groupedTest[0].name,
     };
 
-    (groupedTest as any).forEach((test) => {
+    groupedTest.forEach((test) => {
       if (test.from === 'base') {
         row.base = test;
       } else {

@@ -119,30 +119,14 @@ export function getComparisonAssertions({
   return assertions;
 }
 
-//FIXME: Rename -- hard to understand
-export type ComparisonAssertionTests = {
-  passed: string | number;
-  failed: string | number;
-  tests: {
-    level: string;
-    column: string;
-    from: ComparsionSource;
-    name: string;
-    status: 'passed' | 'failed';
-    parameters: Record<string, unknown>;
-    expected: Record<string, unknown>;
-    actual: number;
-    tags: unknown[];
-  }[];
+type CRAssertionArgs = {
+  assertion: AssertionValue;
+  from: ComparsionSource;
 };
-
 export function getComparisonAssertionTests({
   assertion,
   from,
-}: {
-  assertion: AssertionValue;
-  from: ComparsionSource;
-}) {
+}: CRAssertionArgs) {
   const { passed, failed } = getSingleAssertionStatusCounts(assertion);
 
   if (!assertion) {

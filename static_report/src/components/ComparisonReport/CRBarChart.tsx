@@ -2,9 +2,12 @@ import { useResizeObserver } from '../../hooks/useResizeObserver';
 import { useComparisonChart } from '../../hooks/useComparisonChart';
 import { useRef } from 'react';
 import { Flex } from '@chakra-ui/react';
+import { CRDistributionDatum } from '../../utils/transformers';
 
-//FIXME: Props
-export function CRBarChart({ data }) {
+type Prop = {
+  data: CRDistributionDatum[];
+};
+export function CRBarChart({ data }: Prop) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dimensions = useResizeObserver(containerRef);

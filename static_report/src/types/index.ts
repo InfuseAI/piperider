@@ -22,12 +22,30 @@ export type ReportAssertionStatusCounts = {
   failed: string | number;
 };
 
+export type CRAssertionTests = {
+  level: string;
+  column: string;
+  from: ComparsionSource;
+  name: string;
+  status: 'passed' | 'failed';
+  parameters?: {
+    [k: string]: unknown;
+  };
+  tags?: string[];
+  expected?: unknown;
+  actual?: unknown;
+};
+
+export interface CRInputData<T> {
+  base: T;
+  input: T;
+}
+
 /**
  * This exists due to certain modifications needed on literal enum types (e.g. `type`); Also, for parts of the schema that are incorrect and need to be ignored
  */
 const zWrapForComparison = (base, input) => z.object({ base, input });
 
-//FIXME: omit type of tests.<i>.(expected | actual)
 export const ZColSchema = columnSchemaSchema
   .merge(
     z.object({
@@ -57,9 +75,9 @@ export const ZColSchema = columnSchemaSchema
   });
 //OMISSION: schema is unstable
 
-export const ZTableSchema = tableSchemaSchema
-  .merge(z.object({ columns: z.record(ZColSchema) }))
-  .omit({ columns: true });
+export const ZTableSchema = tableSchemaSchema.merge(
+  z.object({ columns: z.record(ZColSchema) }),
+);
 
 export const ZComparisonTableSchema = zWrapForComparison(
   ZTableSchema,

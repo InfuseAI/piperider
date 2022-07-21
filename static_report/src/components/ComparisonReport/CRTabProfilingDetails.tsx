@@ -3,9 +3,10 @@ import { useEffect, useState } from 'react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZTableSchema } from '../../types';
 import {
-  transformDistribution,
-  transformDistributionWithLabels,
+  transformBaseDistribution,
   nestComparisonValueByKey,
+  transformCRStringDateDistributions,
+  CRDistributionDatum,
 } from '../../utils/transformers';
 import { CRBarChart } from './CRBarChart';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
@@ -36,23 +37,24 @@ export function CRTabProfilingDetails({ base, input }) {
 }
 
 /**
- * Partial values due to column-drift across runs
+ * Optional values due to column-drift across runs
+ * Renders combined single chart when type is string or datetime
+ * Otherwise, renders two charts per distribution
  */
 type CRProfilingColumnProp = {
   name: string;
-  base: ColumnSchema | undefined;
-  input: ColumnSchema | undefined;
+  base?: ColumnSchema;
+  input?: ColumnSchema;
 };
 function CRProfilingColumn({ name, base, input }: CRProfilingColumnProp) {
-  //FIXME: provide generic type! (broken inference)
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<CRDistributionDatum[][]>([]);
 
   useEffect(() => {
     if (
       base?.type === input?.type &&
       (base?.type === 'string' || base?.type === 'datetime')
     ) {
-      const transformResult = transformDistribution({
+      const transformResult = transformCRStringDateDistributions({
         base: base.distribution,
         input: input.distribution,
       });
@@ -60,18 +62,16 @@ function CRProfilingColumn({ name, base, input }: CRProfilingColumnProp) {
       setData([transformResult]);
     } else {
       const baseData = base
-        ? transformDistributionWithLabels({
-            base: base.distribution.counts,
-            input: null,
-            labels: base.distribution.labels,
+        ? transformBaseDistribution({
+            baseCounts: base.distribution.counts,
+            baseLabels: base.distribution.labels,
           })
         : null;
 
       const inputData = input
-        ? transformDistributionWithLabels({
-            base: input.distribution.counts,
-            input: null,
-            labels: input.distribution.labels,
+        ? transformBaseDistribution({
+            baseCounts: input.distribution.counts,
+            baseLabels: input.distribution.labels,
           })
         : null;
 
@@ -89,6 +89,7 @@ function CRProfilingColumn({ name, base, input }: CRProfilingColumnProp) {
           column={base ? base : input}
         />
 
+        {/* Diff between string datetime vs. others */}
         {data.length === 1 && <CRBarChart data={data[0]} />}
         {data.length === 2 && (
           <Grid my={4} templateColumns="1fr 1fr" gap={12}>
