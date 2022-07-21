@@ -9,9 +9,11 @@ import {
 } from '@chakra-ui/react';
 import { formatTestExpectedOrActual } from '../../../utils/formatters';
 import { TestStatus } from '../../shared/TestStatus';
+import { CRModalData } from './CRModal';
 
-//FIXME: Props
-export function PipeRiderTable({ data }: any) {
+type Props = { data: CRModalData };
+export function PipeRiderTable({ data }: Props) {
+  console.log(data);
   return (
     <TableContainer>
       <Table variant="simple">
@@ -28,7 +30,7 @@ export function PipeRiderTable({ data }: any) {
           <Tr>
             <Td fontWeight={700}>Base</Td>
             <Td>
-              <TestStatus status={data?.base?.status as any} />
+              <TestStatus status={data?.base?.status} />
             </Td>
             <Td>{formatTestExpectedOrActual(data?.base?.expected)}</Td>
             <Td>{formatTestExpectedOrActual(data?.base?.actual)}</Td>
@@ -37,7 +39,7 @@ export function PipeRiderTable({ data }: any) {
           <Tr>
             <Td fontWeight={700}>Input</Td>
             <Td>
-              <TestStatus status={data?.input?.status as any} />
+              <TestStatus status={data?.input?.status} />
             </Td>
             <Td>{formatTestExpectedOrActual(data?.input?.expected)}</Td>
             <Td>{formatTestExpectedOrActual(data?.input?.actual)}</Td>

@@ -10,16 +10,17 @@ import {
   ModalFooter,
   type UseDisclosureReturn,
 } from '@chakra-ui/react';
+import { AssertionTest } from '../../../sdlc/single-report-schema';
 
-import { ComparisonReportSchema } from '../../../types';
+import { ComparisonReportSchema, CRInputData } from '../../../types';
 import { DbtTable } from './CRModalDbtTable';
 import { PipeRiderTable } from './CRModalPiperiderTable';
 
-export type CRModalData = ComparisonReportSchema & {
+export type CRModalData = {
   level: 'Column' | 'Table';
   column: string;
   name: string;
-};
+} & CRInputData<AssertionTest & { message?: string }>;
 
 interface Props extends UseDisclosureReturn {
   type?: 'piperider' | 'dbt';

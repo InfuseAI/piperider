@@ -8,11 +8,12 @@ import {
   Td,
 } from '@chakra-ui/react';
 import { TestStatus } from '../../shared/TestStatus';
+import { CRModalData } from './CRModal';
 
-type Props = {
-  data: {};
-};
-export function DbtTable({ data }) {
+type Props = { data: CRModalData };
+export function DbtTable({ data }: Props) {
+  console.log(data);
+
   return (
     <TableContainer>
       <Table variant="simple">
@@ -30,7 +31,7 @@ export function DbtTable({ data }) {
             <Td>
               <TestStatus status={data?.base?.status as any} />
             </Td>
-            <Td>{(data?.base?.message as any) ?? '-'}</Td>
+            <Td>{data?.base?.message ?? '-'}</Td>
           </Tr>
 
           <Tr>
