@@ -13596,6 +13596,7 @@ __metadata:
     react-dom: ^18.1.0
     react-scripts: 5.0.1
     rimraf: ^3.0.2
+    ts-node: ^10.9.1
     ts-to-zod: ^1.11.0
     typescript: ^4.7.4
     web-vitals: ^2.1.4
@@ -16900,7 +16901,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:^10.7.0":
+"ts-node@npm:^10.7.0, ts-node@npm:^10.9.1":
   version: 10.9.1
   resolution: "ts-node@npm:10.9.1"
   dependencies:

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "homepage": "./",
+  "type": "module",
   "dependencies": {
     "@chakra-ui/icons": "^2.0.1",
     "@chakra-ui/react": "^2.1.2",
@@ -45,6 +46,7 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^2.6.2",
     "rimraf": "^3.0.2",
+    "ts-node": "^10.9.1",
     "ts-to-zod": "^1.11.0",
     "typescript": "^4.7.4"
   },
@@ -57,8 +59,8 @@
     "start:comparison": "run-s setup serve:comparison",
     "typing:dts": "npx json2ts ../piperider_cli/profiler/schema.json > src/sdlc/single-report-schema.d.ts",
     "typing:zts": "npx ts-to-zod src/sdlc/single-report-schema.d.ts src/sdlc/single-report-schema.z.ts",
-    "embed:html": "node src/sdlc/embed-window-data.js",
-    "strip:html": "node src/sdlc/clean-window-data.js",
+    "embed:html": "node src/sdlc/embed-window-data",
+    "strip:html": "node src/sdlc/clean-window-data",
     "build": "run-s strip:html build:*",
     "build:single": "rimraf ../piperider_cli/data/report/single-report && npm run bundle:single && mv build/single-report ../piperider_cli/data/report/single-report",
     "build:comparison": "rimraf ../piperider_cli/data/report/comparison-report && npm run bundle:comparison && mv build/comparison-report ../piperider_cli/data/report/comparison-report",
