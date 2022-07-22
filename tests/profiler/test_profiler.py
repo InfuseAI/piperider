@@ -292,6 +292,53 @@ class TestProfiler:
         assert result["non_nulls"] == 4
         assert result["mismatched"] == 2
 
+    def test_string_metrics(self):
+        engine = self.engine = create_engine('sqlite://')
+
+        data = [
+            ("str",),
+            ("hello",),
+            ("hello",),
+            ("hello world",),
+            ("world",),
+            ("",),
+            ("123",),
+            ("2022-07-18",),
+            (None,),
+        ]
+        self.create_table("test", data, columns=[
+            Column("str", String)
+        ])
+        profiler = Profiler(engine)
+        result = profiler.profile()
+        assert result["tables"]["test"]['columns']["str"]["distribution"]["counts"][0] == 2
+        assert result["tables"]["test"]['columns']["str"]["distribution"]["counts"][-1] == 1
+        assert len(result["tables"]["test"]['columns']["str"]["distribution"]["counts"]) == 6
+
+    def test_string_mismatched(self):
+        engine = self.engine = create_engine('sqlite://')
+
+        data = [
+            ("str",),
+            ("hello",),
+            ("hello",),
+            ("hello world",),
+            (123,),
+            ("2022-07-18",),
+            (None,),
+        ]
+        self.create_table("test", data, columns=[
+            Column("str", String)
+        ])
+        with engine.connect() as conn:
+            conn.execute("insert into test values (x'A1B2')")
+        profiler = Profiler(engine)
+        result = profiler.profile()
+        assert result["tables"]["test"]['columns']["str"]["total"] == 7
+        assert result["tables"]["test"]['columns']["str"]["non_nulls"] == 6
+        assert result["tables"]["test"]['columns']["str"]["valid"] == 5
+        assert result["tables"]["test"]['columns']["str"]["mismatched"] == 1
+
     def test_datetime_mismatched(self):
         engine = self.engine = create_engine('sqlite://')
 

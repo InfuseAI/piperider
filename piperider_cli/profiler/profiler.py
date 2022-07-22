@@ -292,16 +292,35 @@ class StringColumnProfiler(BaseColumnProfiler):
     def __init__(self, engine: Engine, table: Table, column: Column):
         super().__init__(engine, table, column)
 
+    def _get_table_cte(self) -> CTE:
+        t = self.table
+        c = self.column
+        if self._get_database_backend() != 'sqlite':
+            cte = select([
+                c.label("c"),
+                c.label("orig")
+            ]).select_from(t).cte()
+        else:
+            cte = select([
+                case(
+                    [(func.typeof(c) == 'blob', None)],
+                    else_=c
+                ).label("c"),
+                c.label("orig"),
+            ]).cte()
+        return cte
+
     def profile(self):
         with self.engine.connect() as conn:
             cte = self._get_table_cte()
             stmt = select([
                 func.count().label("_total"),
-                func.count(cte.c.c).label("_non_nulls"),
+                func.count(cte.c.orig).label("_non_nulls"),
+                func.count(cte.c.c).label("_valid"),
                 func.count(distinct(cte.c.c)).label("_distinct")
             ])
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _distinct = result
+            _total, _non_null, _valid, _distinct = result
             distribution = None
             if _non_null > 0:
                 distribution = profile_topk(conn, cte.c.c)
@@ -309,8 +328,8 @@ class StringColumnProfiler(BaseColumnProfiler):
                 'total': _total,
                 'non_nulls': _non_null,
                 'nulls': _total - _non_null,
-                'valid': _non_null,
-                'mismatched': 0,
+                'valid': _valid,
+                'mismatched': _non_null - _valid,
                 'distinct': _distinct,
                 'distribution': distribution,
             }
@@ -768,7 +787,9 @@ def profile_topk(conn, expr, k=20) -> dict:
     stmt = select([
         expr,
         func.count().label("_count")
-    ]).group_by(
+    ]).where(
+        expr.isnot(None)
+    ).group_by(
         expr
     ).order_by(
         func.count().desc(),
