@@ -8,7 +8,7 @@ import { SingleReportSchema, TableSchema } from '../sdlc/single-report-schema';
 
 export interface ComparisonReportSchema {
   base: SingleReportSchema;
-  input: SingleReportSchema;
+  input: SingleReportSchema; //old code: future key will be `target`
 }
 
 export type ComparsionSource = 'base' | 'target';
@@ -43,9 +43,13 @@ export interface CRTargetData<T> {
 
 /**
  * This exists due to certain modifications needed on literal enum types (e.g. `type`); Also, for parts of the schema that are incorrect and need to be ignored
+ * @param base the baseline value
+ * @param target the `target` -- this value compared against your base
+ * @param flag a flag that allows for escaping the newer `target`, and looking up with `input
+ * @returns Zod validation object with {base, target}
  */
-const zWrapForComparison = (base, input, flag?: boolean) =>
-  z.object({ base, [flag ? 'input' : 'target']: input });
+const zWrapForComparison = (base, target, flag?: boolean) =>
+  z.object({ base, [flag ? 'input' : 'target']: target });
 
 export const ZColSchema = columnSchemaSchema
   .merge(
