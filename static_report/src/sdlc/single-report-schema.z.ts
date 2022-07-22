@@ -29,16 +29,16 @@ export const dataSourceSchema = z.object({
 
 export const columnSchemaSchema = z.object({
   total: z.number(),
-  nulls: z.number().optional(),
+  nulls: z.number(),
   non_nulls: z.number(),
   distinct: z.number(),
-  distribution: distributionSchema.optional().nullable(),
+  distribution: distributionSchema.optional(),
   name: z.string(),
   description: z.string(),
   type: z.union([
     z.literal('string'),
-    z.literal('numeric'),
     z.literal('integer'),
+    z.literal('numeric'),
     z.literal('datetime'),
     z.literal('date'),
     z.literal('time'),

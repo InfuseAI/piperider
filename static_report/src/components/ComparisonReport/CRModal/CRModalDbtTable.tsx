@@ -12,8 +12,6 @@ import { CRModalData } from './CRModal';
 
 type Props = { data: CRModalData };
 export function DbtTable({ data }: Props) {
-  console.log(data);
-
   return (
     <TableContainer>
       <Table variant="simple">

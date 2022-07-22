@@ -141,7 +141,6 @@ export function ComparisonReportList({
               <Tbody data-cy="cr-report-list">
                 {Object.keys(tables).map((key) => {
                   const table = tables[key];
-                  console.log(table);
 
                   ZComparisonTableSchema(false).parse(table);
 

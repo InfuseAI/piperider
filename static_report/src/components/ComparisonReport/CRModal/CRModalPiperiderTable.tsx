@@ -13,7 +13,6 @@ import { CRModalData } from './CRModal';
 
 type Props = { data: CRModalData };
 export function PipeRiderTable({ data }: Props) {
-  console.log(data);
   return (
     <TableContainer>
       <Table variant="simple">
