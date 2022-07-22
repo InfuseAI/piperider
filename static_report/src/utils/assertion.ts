@@ -107,9 +107,12 @@ export function getComparisonAssertions({
   };
 
   const baseTables = { type: 'base', tables: data.base.tables[reportName] };
-  const inputTables = { type: 'input', tables: data.input.tables[reportName] };
+  const targetTables = {
+    type: 'target',
+    tables: data.input.tables[reportName], //legacy 'input' key
+  };
 
-  const assertions = [baseTables, inputTables].map((source) =>
+  const assertions = [baseTables, targetTables].map((source) =>
     getComparisonAssertionTests({
       assertion: source.tables[targets[type]],
       from: source.type as ComparsionSource,

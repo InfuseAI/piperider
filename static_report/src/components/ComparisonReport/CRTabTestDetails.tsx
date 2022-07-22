@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react';
 import groupBy from 'lodash/groupBy';
 import { nanoid } from 'nanoid';
-import { CRAssertionTests, CRInputData } from '../../types';
+import { CRAssertionTests, CRTargetData } from '../../types';
 import { TestStatus } from '../shared/TestStatus';
 
 type TestGroupRow = {
@@ -19,13 +19,13 @@ type TestGroupRow = {
   column: string;
   name: string;
   base?: CRAssertionTests;
-  input?: CRAssertionTests;
+  target?: CRAssertionTests;
 };
-type Props = CRInputData<CRAssertionTests[]> & { onDetailVisible: Function };
-export function CRTabTestDetails({ base = [], input = [], ...props }: Props) {
+type Props = CRTargetData<CRAssertionTests[]> & { onDetailVisible: Function };
+export function CRTabTestDetails({ base = [], target = [], ...props }: Props) {
   // group by "level", "column", "name"
   const groupedTests = groupBy(
-    [...base, ...input],
+    [...base, ...target],
     (test) => `${test.level}_${test.column}_${test.name}`,
   );
 
@@ -40,7 +40,7 @@ export function CRTabTestDetails({ base = [], input = [], ...props }: Props) {
       if (test.from === 'base') {
         row.base = test;
       } else {
-        row.input = test;
+        row.target = test;
       }
     });
 
@@ -64,7 +64,7 @@ export function CRTabTestDetails({ base = [], input = [], ...props }: Props) {
             <Th>Column</Th>
             <Th>Assertion</Th>
             <Th>Base Status</Th>
-            <Th>Input Status</Th>
+            <Th>Target Status</Th>
             <Th />
           </Tr>
         </Thead>
@@ -79,7 +79,7 @@ export function CRTabTestDetails({ base = [], input = [], ...props }: Props) {
                   <TestStatus status={test.base?.status} />
                 </Td>
                 <Td>
-                  <TestStatus status={test.input?.status} />
+                  <TestStatus status={test.target?.status} />
                 </Td>
                 <Td
                   onClick={() => {

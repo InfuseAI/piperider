@@ -1,7 +1,7 @@
 import fill from 'lodash/fill';
 import zip from 'lodash/zip';
 import { ColumnSchema, Distribution } from '../sdlc/single-report-schema';
-import { CRInputData } from '../types';
+import { CRTargetData } from '../types';
 
 /**
  * "Transformers" -- these are your data re-shaping transformations, and doesn't return a formatted value and does not directly get presented in UI. Can be a precursor to "formatters"
@@ -9,8 +9,8 @@ import { CRInputData } from '../types';
 
 export function nestComparisonValueByKey<T>(
   base: any,
-  input: any,
-): Record<string, { base: T; input: T }> {
+  target: any,
+): Record<string, { base: T; target: T }> {
   const result = {};
 
   Object.entries(base).forEach(([key, value]) => {
@@ -20,11 +20,11 @@ export function nestComparisonValueByKey<T>(
     result[key]['base'] = value;
   });
 
-  Object.entries(input).forEach(([key, value]) => {
+  Object.entries(target).forEach(([key, value]) => {
     if (!result[key]) {
       result[key] = {};
     }
-    result[key]['input'] = value;
+    result[key]['target'] = value;
   });
 
   return result;
@@ -33,14 +33,14 @@ export function nestComparisonValueByKey<T>(
 export type CRDistributionDatum = {
   label: string;
   base: number;
-  input: number;
+  target: number;
 };
 // for `type` equal to string, datetime
 export function transformCRStringDateDistributions({
   base,
-  input,
-}: CRInputData<Distribution>): CRDistributionDatum[] {
-  // groupby base/input of a found label
+  target,
+}: CRTargetData<Distribution>): CRDistributionDatum[] {
+  // groupby base/target of a found label
   const mapIdxLookup = new Map<string, number>();
 
   const initial = base.labels.map((label, idx) => {
@@ -48,20 +48,20 @@ export function transformCRStringDateDistributions({
     return {
       label,
       base: base.counts[idx],
-      input: 0,
+      target: 0,
     };
   });
-  const result = input.labels.reduce((accum, label, idx, arr) => {
+  const result = target.labels.reduce((accum, label, idx, arr) => {
     const hasLabel = mapIdxLookup.has(label);
-    const count = input.counts[idx];
+    const count = target.counts[idx];
 
     if (hasLabel) {
       const lookupIdx = mapIdxLookup.get(label);
-      accum[lookupIdx].input = count;
+      accum[lookupIdx].target = count;
       return accum;
     }
 
-    const newLabelItem = { label, base: 0, input: count };
+    const newLabelItem = { label, base: 0, target: count };
     return [...accum, newLabelItem];
   }, initial);
 
@@ -79,7 +79,7 @@ export function transformBaseDistribution({
   const m = z.map(([label, base]) => ({
     label,
     base,
-    input: 0,
+    target: 0,
   }));
 
   return m;

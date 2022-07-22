@@ -9,17 +9,17 @@ import { NumericTableColumn } from '../shared/NumericTableColumn';
 type CRTableColumnDetailsProps = {
   column?: ColumnSchema;
   baseColumn?: ColumnSchema;
-  inputColumn?: ColumnSchema;
+  targetColumn?: ColumnSchema;
 };
 export const CRTableColumnDetails = ({
   column,
   baseColumn,
-  inputColumn,
+  targetColumn,
 }: CRTableColumnDetailsProps) => {
   const emptyLabel = '-';
   ZColSchema.parse(column);
   ZColSchema.parse(baseColumn);
-  ZColSchema.parse(inputColumn);
+  ZColSchema.parse(targetColumn);
 
   return (
     <Flex direction="column" gap={2} minH="250px">
@@ -45,14 +45,14 @@ export const CRTableColumnDetails = ({
               Base
             </Text>
             <Text fontWeight={700} textAlign="right" width="100px">
-              Input
+              Target
             </Text>
           </Flex>
         </Flex>
 
         <Flex direction="column" mt={3}>
           <GeneralTableColumn
-            inputColumn={inputColumn}
+            targetColumn={targetColumn}
             baseColumn={baseColumn}
           />
         </Flex>
@@ -60,7 +60,7 @@ export const CRTableColumnDetails = ({
           <>
             <NumericTableColumn
               baseColumn={baseColumn}
-              inputColumn={inputColumn}
+              targetColumn={targetColumn}
             />
           </>
         )}
@@ -70,12 +70,12 @@ export const CRTableColumnDetails = ({
             <MetricsInfo
               name="Min"
               base={(baseColumn?.min as string | number) ?? emptyLabel}
-              input={(inputColumn?.min as string | number) ?? emptyLabel}
+              target={(targetColumn?.min as string | number) ?? emptyLabel}
             />
             <MetricsInfo
               name="Max"
               base={(baseColumn?.max as string | number) ?? emptyLabel}
-              input={(inputColumn?.max as string | number) ?? emptyLabel}
+              target={(targetColumn?.max as string | number) ?? emptyLabel}
             />
           </Flex>
         )}

@@ -34,21 +34,13 @@ export interface TableSchema {
  */
 export interface ColumnSchema {
   total: number;
-  nulls?: number;
+  nulls: number;
   non_nulls: number;
   distinct: number;
-  distribution?: null | Distribution;
+  distribution?: Distribution;
   name: string;
   description: string;
-  type:
-    | 'string'
-    | 'numeric'
-    | 'integer'
-    | 'datetime'
-    | 'date'
-    | 'time'
-    | 'boolean'
-    | 'other';
+  type: "string" | "integer" | "numeric" | "datetime" | "date" | "time" | "boolean" | "other";
   schema_type: string;
   valid?: number;
   mismatched?: number;
@@ -83,7 +75,7 @@ export interface PipeRiderAssertionResult {
 }
 export interface AssertionTest {
   name: string;
-  status: 'passed' | 'failed';
+  status: "passed" | "failed";
   parameters?: {
     [k: string]: unknown;
   };
