@@ -22,7 +22,7 @@ Key Features:
 - Report comparison: [sample comparsion report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/compare-report/index.html)
 - [Extensible custom assertions](https://docs.piperider.io/data-quality-assertions/custom-assertions)
 - Works with existing [dbt](https://github.com/dbt-labs/dbt-core) projects
-- Automatic test recommendations (Coming Soon)
+- Automatic test recommendations
 
 [Read more](https://blog.infuseai.io/data-reliability-automated-with-piperider-7a823521ef11) about why we created PipeRider.
 
