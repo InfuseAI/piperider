@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { AssertionTest } from '../../../sdlc/single-report-schema';
 
-import { CRInputData } from '../../../types';
+import { CRTargetData } from '../../../types';
 import { DbtTable } from './CRModalDbtTable';
 import { PipeRiderTable } from './CRModalPiperiderTable';
 
@@ -20,12 +20,12 @@ export type CRModalData = {
   level: 'Column' | 'Table';
   column: string;
   name: string;
-} & CRInputData<AssertionTest & { message?: string }>;
-
-interface Props extends UseDisclosureReturn {
+} & CRTargetData<AssertionTest & { message?: string }>;
+export type TestDetail = {
   type?: 'piperider' | 'dbt';
   data?: CRModalData;
-}
+};
+type Props = UseDisclosureReturn & TestDetail;
 
 export function CRModal({
   data,

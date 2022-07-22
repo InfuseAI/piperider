@@ -14,20 +14,20 @@ import { getReportAggregateAssertions } from '../../utils/assertion';
 
 type Props = {
   baseTable: TableSchema;
-  inputTable: TableSchema;
+  targetTable: TableSchema;
 };
 
-export function CRTableOverview({ baseTable, inputTable }: Props) {
+export function CRTableOverview({ baseTable, targetTable }: Props) {
   ZTableSchema.parse(baseTable);
-  ZTableSchema.parse(inputTable);
+  ZTableSchema.parse(targetTable);
 
   const baseAssertions = getReportAggregateAssertions(
     baseTable.piperider_assertion_result,
     baseTable?.dbt_assertion_result,
   );
-  const inputAssertions = getReportAggregateAssertions(
-    inputTable.piperider_assertion_result,
-    inputTable?.dbt_assertion_result,
+  const targetAssertions = getReportAggregateAssertions(
+    targetTable.piperider_assertion_result,
+    targetTable?.dbt_assertion_result,
   );
 
   return (
@@ -37,7 +37,7 @@ export function CRTableOverview({ baseTable, inputTable }: Props) {
           <Tr>
             <Th width="10%" />
             <Th width="45%">Base</Th>
-            <Th width="45%">Input</Th>
+            <Th width="45%">Target</Th>
           </Tr>
         </Thead>
 
@@ -45,17 +45,17 @@ export function CRTableOverview({ baseTable, inputTable }: Props) {
           <Tr>
             <Td>Table</Td>
             <Td>{baseTable?.name ?? '-'}</Td>
-            <Td>{inputTable?.name ?? '-'}</Td>
+            <Td>{targetTable?.name ?? '-'}</Td>
           </Tr>
           <Tr>
             <Td>Rows</Td>
             <Td>{baseTable?.row_count ?? '-'}</Td>
-            <Td>{inputTable?.row_count ?? '-'}</Td>
+            <Td>{targetTable?.row_count ?? '-'}</Td>
           </Tr>
           <Tr>
             <Td>Columns</Td>
             <Td>{baseTable?.col_count ?? '-'}</Td>
-            <Td>{inputTable?.col_count ?? '-'}</Td>
+            <Td>{targetTable?.col_count ?? '-'}</Td>
           </Tr>
           <Tr>
             <Td>Test status</Td>
@@ -79,16 +79,16 @@ export function CRTableOverview({ baseTable, inputTable }: Props) {
             <Td>
               <Text>
                 <Text as="span" fontWeight={700}>
-                  {inputAssertions.passed}{' '}
+                  {targetAssertions.passed}{' '}
                 </Text>
                 Passed
                 {', '}
                 <Text
                   as="span"
                   fontWeight={700}
-                  color={inputAssertions.failed > 0 ? 'red.500' : 'inherit'}
+                  color={targetAssertions.failed > 0 ? 'red.500' : 'inherit'}
                 >
-                  {inputAssertions.failed}{' '}
+                  {targetAssertions.failed}{' '}
                 </Text>
                 Failed
               </Text>

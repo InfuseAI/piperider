@@ -8,8 +8,8 @@ import {
 import { getColumnDetails } from '../../utils/transformers';
 import { MetricsInfo } from './MetrisInfo';
 
-type Props = { baseColumn: ColumnSchema; inputColumn?: ColumnSchema };
-export function GeneralTableColumn({ baseColumn, inputColumn }: Props) {
+type Props = { baseColumn: ColumnSchema; targetColumn?: ColumnSchema };
+export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
   if (baseColumn) {
     ZColSchema.parse(baseColumn);
     var {
@@ -23,67 +23,67 @@ export function GeneralTableColumn({ baseColumn, inputColumn }: Props) {
     } = getColumnDetails(baseColumn);
   }
 
-  if (inputColumn) {
-    ZColSchema.parse(inputColumn);
+  if (targetColumn) {
+    ZColSchema.parse(targetColumn);
     var {
-      total: inputTotal,
-      mismatchOfTotal: inputMismatchOfTotal,
-      validOfTotal: inputValidOfTotal,
-      missingOfTotal: inputMissingOfTotal,
-    } = getColumnDetails(inputColumn);
+      total: targetTotal,
+      mismatchOfTotal: targetMismatchOfTotal,
+      validOfTotal: targetValidOfTotal,
+      missingOfTotal: targetMissingOfTotal,
+    } = getColumnDetails(targetColumn);
   }
 
   //NOTE: `base` will show amount (non-%) in single-reports
-  //NOTE: `input` will show ratio (%) in single-reports
+  //NOTE: `target` will show ratio (%) in single-reports
   return (
     <>
       <MetricsInfo
         name="Total"
         base={formatColumnValueWith(baseTotal, formatNumber)}
-        input={formatColumnValueWith(
-          inputColumn ? inputTotal : baseTotalOfTotal,
-          inputColumn ? formatNumber : formatIntervalMinMax,
+        target={formatColumnValueWith(
+          targetColumn ? targetTotal : baseTotalOfTotal,
+          targetColumn ? formatNumber : formatIntervalMinMax,
         )}
       />
       <MetricsInfo
         name="Valid"
         base={formatColumnValueWith(
-          inputColumn ? baseValidOfTotal : baseTotal,
-          inputColumn ? formatIntervalMinMax : formatNumber,
+          targetColumn ? baseValidOfTotal : baseTotal,
+          targetColumn ? formatIntervalMinMax : formatNumber,
         )}
-        input={formatColumnValueWith(
-          inputColumn ? inputValidOfTotal : baseValidOfTotal,
+        target={formatColumnValueWith(
+          targetColumn ? targetValidOfTotal : baseValidOfTotal,
           formatIntervalMinMax,
         )}
       />
       <MetricsInfo
         name="Mismatched"
         base={formatColumnValueWith(
-          inputColumn ? baseMismatchOfTotal : baseMismatch,
-          inputColumn ? formatIntervalMinMax : formatNumber,
+          targetColumn ? baseMismatchOfTotal : baseMismatch,
+          targetColumn ? formatIntervalMinMax : formatNumber,
         )}
-        input={formatColumnValueWith(
-          inputColumn ? inputMismatchOfTotal : baseMismatchOfTotal,
+        target={formatColumnValueWith(
+          targetColumn ? targetMismatchOfTotal : baseMismatchOfTotal,
           formatIntervalMinMax,
         )}
       />
       <MetricsInfo
         name="Missing"
         base={formatColumnValueWith(
-          inputColumn ? baseMissingOfTotal : baseMissing,
-          inputColumn ? formatIntervalMinMax : formatNumber,
+          targetColumn ? baseMissingOfTotal : baseMissing,
+          targetColumn ? formatIntervalMinMax : formatNumber,
         )}
-        input={formatColumnValueWith(
-          inputColumn ? inputMissingOfTotal : baseMissingOfTotal,
+        target={formatColumnValueWith(
+          targetColumn ? targetMissingOfTotal : baseMissingOfTotal,
           formatIntervalMinMax,
         )}
       />
       <MetricsInfo
         name="Distinct"
         base={formatColumnValueWith(baseColumn?.distinct, formatNumber)}
-        input={
-          inputColumn &&
-          formatColumnValueWith(inputColumn?.distinct, formatNumber)
+        target={
+          targetColumn &&
+          formatColumnValueWith(targetColumn?.distinct, formatNumber)
         }
       />
     </>

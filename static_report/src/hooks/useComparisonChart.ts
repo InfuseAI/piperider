@@ -5,12 +5,12 @@ import { formatNumber } from '../utils/formatters';
 import { getChartTooltip } from '../utils/chart';
 import { CRDistributionDatum } from '../utils/transformers';
 
-const GROUPED = ['base', 'input'];
+const GROUPED = ['base', 'target'];
 const X_PADDING = 0.2;
 const X_SUB_PADDING = 0.05;
 const TOOLTIPS_BG_COLOR = 'var(--chakra-colors-gray-500)';
 const BASE_CHART_COLOR = 'var(--chakra-colors-blue-100)';
-const INPUT_CHART_COLOR = 'var(--chakra-colors-blue-300)';
+const TARGET_CHART_COLOR = 'var(--chakra-colors-blue-300)';
 
 type CRChartHookArgs = {
   target: RefObject<SVGSVGElement>;
@@ -61,7 +61,7 @@ export function useComparisonChart({
     // Y-Axis
     const yScale = d3
       .scaleLinear()
-      .domain([0, d3.max(data, ({ base, input }) => Math.max(base, input))])
+      .domain([0, d3.max(data, ({ base, target }) => Math.max(base, target))])
       .range([dimensions.height, 0]);
     const yAxis = d3.axisLeft(yScale);
     // plox Y axis
@@ -70,7 +70,7 @@ export function useComparisonChart({
     const color = d3
       .scaleOrdinal()
       .domain(GROUPED)
-      .range([BASE_CHART_COLOR, INPUT_CHART_COLOR]);
+      .range([BASE_CHART_COLOR, TARGET_CHART_COLOR]);
 
     const grouped = svg
       .selectAll('.grouped-chart')

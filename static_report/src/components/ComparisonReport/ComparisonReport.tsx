@@ -19,7 +19,7 @@ import { Main } from '../shared/Main';
 import { getComparisonAssertions } from '../../utils/assertion';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { CRModal } from './CRModal/CRModal';
+import { CRModal, TestDetail } from './CRModal/CRModal';
 import {
   ComparisonReportSchema,
   ZComparisonSchema,
@@ -35,24 +35,24 @@ type Props = {
   name: string;
 };
 export default function ComparisonReport({ data, name: reportName }: Props) {
-  const [testDetail, setTestDetail] = useState(null);
+  const [testDetail, setTestDetail] = useState<TestDetail>(null);
   const modal = useDisclosure();
 
-  const { base, input } = data;
-  ZComparisonSchema.parse(data);
+  const { base, input: target } = data;
+  ZComparisonSchema(true).parse(data);
 
   const baseTable = base.tables[reportName];
-  const inputTable = input.tables[reportName];
+  const targetTable = target.tables[reportName];
   const existsDbtTests = base.tables[reportName]?.dbt_assertion_result;
   ZTableSchema.parse(baseTable);
-  ZTableSchema.parse(inputTable);
+  ZTableSchema.parse(targetTable);
 
-  const [baseOverview, inputOverview] = getComparisonAssertions({
+  const [baseOverview, targetOverview] = getComparisonAssertions({
     data,
     reportName,
     type: 'piperider',
   });
-  const [dbtBaseOverview, dbtInputOverview] = getComparisonAssertions({
+  const [dbtBaseOverview, dbtTargetOverview] = getComparisonAssertions({
     data,
     reportName,
     type: 'dbt',
@@ -92,7 +92,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
         >
           {/* overview */}
           <Heading fontSize={24}>Overview</Heading>
-          <CRTableOverview baseTable={baseTable} inputTable={inputTable} />
+          <CRTableOverview baseTable={baseTable} targetTable={targetTable} />
 
           <Tabs isLazy>
             <TabList>
@@ -104,17 +104,20 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
 
             <TabPanels>
               <TabPanel>
-                <CRTabSchemaDetails base={baseTable} input={inputTable} />
+                <CRTabSchemaDetails base={baseTable} target={targetTable} />
               </TabPanel>
 
               <TabPanel>
-                <CRTabProfilingDetails base={baseTable} input={inputTable} />
+                <CRTabProfilingDetails
+                  baseTable={baseTable}
+                  targetTable={targetTable}
+                />
               </TabPanel>
 
               <TabPanel>
                 <CRTabTestDetails
                   base={baseOverview?.tests}
-                  input={inputOverview?.tests}
+                  target={targetOverview?.tests}
                   onDetailVisible={(data) => {
                     setTestDetail({
                       type: 'piperider',
@@ -127,7 +130,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
 
               <TabPanel>
                 {dbtBaseOverview?.tests.length === 0 &&
-                dbtInputOverview?.tests.length === 0 ? (
+                dbtTargetOverview?.tests.length === 0 ? (
                   <Flex
                     justifyContent="center"
                     alignItems="center"
@@ -138,7 +141,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
                 ) : (
                   <CRTabTestDetails
                     base={dbtBaseOverview?.tests}
-                    input={dbtInputOverview?.tests}
+                    target={dbtTargetOverview?.tests}
                     onDetailVisible={(data) => {
                       setTestDetail({
                         type: 'dbt',

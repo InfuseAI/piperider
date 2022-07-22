@@ -11,7 +11,7 @@ export interface ComparisonReportSchema {
   input: SingleReportSchema;
 }
 
-export type ComparsionSource = 'base' | 'input';
+export type ComparsionSource = 'base' | 'target';
 
 export type AssertionValue =
   | TableSchema['piperider_assertion_result']
@@ -36,15 +36,16 @@ export type CRAssertionTests = {
   actual?: unknown;
 };
 
-export interface CRInputData<T> {
+export interface CRTargetData<T> {
   base: T;
-  input: T;
+  target: T;
 }
 
 /**
  * This exists due to certain modifications needed on literal enum types (e.g. `type`); Also, for parts of the schema that are incorrect and need to be ignored
  */
-const zWrapForComparison = (base, input) => z.object({ base, input });
+const zWrapForComparison = (base, input, flag?: boolean) =>
+  z.object({ base, [flag ? 'input' : 'target']: input });
 
 export const ZColSchema = columnSchemaSchema
   .merge(
@@ -79,16 +80,14 @@ export const ZTableSchema = tableSchemaSchema.merge(
   z.object({ columns: z.record(ZColSchema) }),
 );
 
-export const ZComparisonTableSchema = zWrapForComparison(
-  ZTableSchema,
-  ZTableSchema,
-);
+//TODO: temp bypass flag until `input` -> `target` on schema.json
+export const ZComparisonTableSchema = (flag?: boolean) =>
+  zWrapForComparison(ZTableSchema, ZTableSchema, flag);
 
 export const ZSingleSchema = singleReportSchemaSchema.merge(
   z.object({ tables: z.record(ZTableSchema) }),
 );
 
-export const ZComparisonSchema = zWrapForComparison(
-  ZSingleSchema,
-  ZSingleSchema,
-);
+//TODO: temp bypass flag until `input` -> `target` on schema.json
+export const ZComparisonSchema = (flag?: boolean) =>
+  zWrapForComparison(ZSingleSchema, ZSingleSchema, flag);

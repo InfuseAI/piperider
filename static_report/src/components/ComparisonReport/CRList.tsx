@@ -38,14 +38,13 @@ export function ComparisonReportList({
 }: {
   data: ComparisonReportSchema;
 }) {
-  const { base, input } = data;
-
+  const { base, input: target } = data;
   ZSingleSchema.parse(base);
-  ZSingleSchema.parse(input);
+  ZSingleSchema.parse(target);
 
   const tables = nestComparisonValueByKey<TableSchema>(
     base.tables,
-    input.tables,
+    target.tables,
   );
 
   useDocumentTitle('Report List');
@@ -71,14 +70,14 @@ export function ComparisonReportList({
                 <Tr>
                   <Th width="10%" />
                   <Th width="45%">Base</Th>
-                  <Th width="45%">Input</Th>
+                  <Th width="45%">Target</Th>
                 </Tr>
               </Thead>
               <Tbody>
                 <Tr>
                   <Td>ID</Td>
                   <Td>{base.id}</Td>
-                  <Td>{input.id}</Td>
+                  <Td>{target.id}</Td>
                 </Tr>
                 <Tr>
                   <Td>Data Source</Td>
@@ -86,13 +85,13 @@ export function ComparisonReportList({
                     {base.datasource.name}: {base.datasource.type}
                   </Td>
                   <Td>
-                    {input.datasource.name}: {input.datasource.type}
+                    {target.datasource.name}: {target.datasource.type}
                   </Td>
                 </Tr>
                 <Tr>
                   <Td>Generated At</Td>
                   <Td>{formatReportTime(base.created_at)}</Td>
-                  <Td>{formatReportTime(input.created_at)}</Td>
+                  <Td>{formatReportTime(target.created_at)}</Td>
                 </Tr>
               </Tbody>
             </Table>
@@ -104,7 +103,7 @@ export function ComparisonReportList({
             </Heading>
             <Tooltip
               label={
-                'The numbers of passed tests, failed tests, rows, and columns are displayed in a side-by-side comparison (left: BASE; right: INPUT). When the table does not exist in the BASE or INPUT source, it will display "-".'
+                'The numbers of passed tests, failed tests, rows, and columns are displayed in a side-by-side comparison (left: BASE; right: TARGET). When the table does not exist in the BASE or TARGET source, it will display "-".'
               }
             >
               <InfoIcon mt={1} color="gray.400" boxSize={'14px'} />
@@ -142,17 +141,18 @@ export function ComparisonReportList({
               <Tbody data-cy="cr-report-list">
                 {Object.keys(tables).map((key) => {
                   const table = tables[key];
-                  ZComparisonTableSchema.parse(table);
+                  console.log(table);
 
-                  const [baseOverview, inputOverview] = getComparisonAssertions(
-                    {
+                  ZComparisonTableSchema(false).parse(table);
+
+                  const [baseOverview, targetOverview] =
+                    getComparisonAssertions({
                       data,
                       reportName: key,
                       type: 'piperider',
-                    },
-                  );
+                    });
 
-                  const [dbtBaseOverview, dbtInputOverview] =
+                  const [dbtBaseOverview, dbtTargetOverview] =
                     getComparisonAssertions({
                       data,
                       reportName: key,
@@ -171,24 +171,24 @@ export function ComparisonReportList({
                           <Text as="span">{baseOverview.passed}</Text>
                           {' / '}
                           <Text as="span" mr={10}>
-                            {inputOverview.passed}
+                            {targetOverview.passed}
                           </Text>
 
                           <Text as="span">{baseOverview.failed}</Text>
                           {' / '}
-                          <Text as="span">{inputOverview.failed}</Text>
+                          <Text as="span">{targetOverview.failed}</Text>
                         </Td>
 
                         <Td>
                           <Text as="span">{dbtBaseOverview.passed}</Text>
                           {' / '}
                           <Text as="span" mr={10}>
-                            {dbtInputOverview.passed}
+                            {dbtTargetOverview.passed}
                           </Text>
 
                           <Text as="span">{dbtBaseOverview.failed}</Text>
                           {' / '}
-                          <Text as="span">{dbtInputOverview.failed}</Text>
+                          <Text as="span">{dbtTargetOverview.failed}</Text>
                         </Td>
 
                         <Td>
@@ -198,7 +198,7 @@ export function ComparisonReportList({
                           )}
                           {' / '}
                           {formatColumnValueWith(
-                            table.input.row_count,
+                            table.target.row_count,
                             formatNumber,
                           )}
                         </Td>
@@ -209,7 +209,7 @@ export function ComparisonReportList({
                           )}
                           {' / '}
                           {formatColumnValueWith(
-                            table.input.col_count,
+                            table.target.col_count,
                             formatNumber,
                           )}
                         </Td>

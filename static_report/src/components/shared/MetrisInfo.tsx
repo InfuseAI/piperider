@@ -3,17 +3,17 @@ import { Flex, Text } from '@chakra-ui/react';
 interface Props {
   name: string;
   base: string | number;
-  input?: string | number;
+  target?: string | number;
   baseWidth?: string;
-  inputWidth?: string;
+  targetWidth?: string;
 }
 
 export function MetricsInfo({
   name,
   base,
-  input = null,
+  target = null,
   baseWidth = '100px',
-  inputWidth = '100px',
+  targetWidth = '100px',
 }: Props) {
   return (
     <Flex justifyContent="space-between">
@@ -23,9 +23,9 @@ export function MetricsInfo({
           {base}
         </Text>
 
-        {input && (
-          <Text textAlign="right" width={inputWidth}>
-            {input}
+        {target && (
+          <Text textAlign="right" width={targetWidth}>
+            {target}
           </Text>
         )}
       </Flex>

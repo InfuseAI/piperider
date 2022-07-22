@@ -6,10 +6,10 @@ import { MetricsInfo } from './MetrisInfo';
 
 type Props = {
   baseColumn: ColumnSchema;
-  inputColumn?: ColumnSchema;
+  targetColumn?: ColumnSchema;
 };
 
-export function NumericTableColumn({ baseColumn, inputColumn }: Props) {
+export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
   ZColSchema.parse(baseColumn);
   ZColSchema.parse(baseColumn);
   return (
@@ -18,16 +18,17 @@ export function NumericTableColumn({ baseColumn, inputColumn }: Props) {
         <MetricsInfo
           name="Average"
           base={formatColumnValueWith(baseColumn?.avg, formatNumber)}
-          input={
-            inputColumn && formatColumnValueWith(inputColumn?.avg, formatNumber)
+          target={
+            targetColumn &&
+            formatColumnValueWith(targetColumn?.avg, formatNumber)
           }
         />
         <MetricsInfo
           name="Std. Deviation"
           base={formatColumnValueWith(baseColumn?.stddev, formatNumber)}
-          input={
-            inputColumn &&
-            formatColumnValueWith(inputColumn?.stddev, formatNumber)
+          target={
+            targetColumn &&
+            formatColumnValueWith(targetColumn?.stddev, formatNumber)
           }
         />
       </Flex>
@@ -35,50 +36,57 @@ export function NumericTableColumn({ baseColumn, inputColumn }: Props) {
         <MetricsInfo
           name="Min"
           base={formatColumnValueWith(baseColumn?.min, formatNumber)}
-          input={
-            inputColumn && formatColumnValueWith(inputColumn?.min, formatNumber)
+          target={
+            targetColumn &&
+            formatColumnValueWith(targetColumn?.min, formatNumber)
           }
         />
         <MetricsInfo
           name="5%"
           base={formatColumnValueWith(baseColumn?.p5, formatNumber)}
-          input={
-            inputColumn && formatColumnValueWith(inputColumn?.p5, formatNumber)
+          target={
+            targetColumn &&
+            formatColumnValueWith(targetColumn?.p5, formatNumber)
           }
         />
         <MetricsInfo
           name="25%"
           base={formatColumnValueWith(baseColumn?.p25, formatNumber)}
-          input={
-            inputColumn && formatColumnValueWith(inputColumn?.p25, formatNumber)
+          target={
+            targetColumn &&
+            formatColumnValueWith(targetColumn?.p25, formatNumber)
           }
         />
         <MetricsInfo
           name="50%"
           base={formatColumnValueWith(baseColumn?.p50, formatNumber)}
-          input={
-            inputColumn && formatColumnValueWith(inputColumn?.p50, formatNumber)
+          target={
+            targetColumn &&
+            formatColumnValueWith(targetColumn?.p50, formatNumber)
           }
         />
         <MetricsInfo
           name="75%"
           base={formatColumnValueWith(baseColumn?.p75, formatNumber)}
-          input={
-            inputColumn && formatColumnValueWith(inputColumn?.p75, formatNumber)
+          target={
+            targetColumn &&
+            formatColumnValueWith(targetColumn?.p75, formatNumber)
           }
         />
         <MetricsInfo
           name="95%"
           base={formatColumnValueWith(baseColumn?.p95, formatNumber)}
-          input={
-            inputColumn && formatColumnValueWith(inputColumn?.p95, formatNumber)
+          target={
+            targetColumn &&
+            formatColumnValueWith(targetColumn?.p95, formatNumber)
           }
         />
         <MetricsInfo
           name="Max"
           base={formatColumnValueWith(baseColumn?.max, formatNumber)}
-          input={
-            inputColumn && formatColumnValueWith(inputColumn?.max, formatNumber)
+          target={
+            targetColumn &&
+            formatColumnValueWith(targetColumn?.max, formatNumber)
           }
         />
       </Flex>

@@ -37,12 +37,12 @@ export function PipeRiderTable({ data }: Props) {
           </Tr>
 
           <Tr>
-            <Td fontWeight={700}>Input</Td>
+            <Td fontWeight={700}>Target</Td>
             <Td>
-              <TestStatus status={data?.input?.status} />
+              <TestStatus status={data?.target?.status} />
             </Td>
-            <Td>{formatTestExpectedOrActual(data?.input?.expected)}</Td>
-            <Td>{formatTestExpectedOrActual(data?.input?.actual)}</Td>
+            <Td>{formatTestExpectedOrActual(data?.target?.expected)}</Td>
+            <Td>{formatTestExpectedOrActual(data?.target?.actual)}</Td>
           </Tr>
         </Tbody>
       </Table>

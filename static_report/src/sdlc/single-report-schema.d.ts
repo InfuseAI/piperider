@@ -40,15 +40,7 @@ export interface ColumnSchema {
   distribution?: null | Distribution;
   name: string;
   description: string;
-  type:
-    | 'string'
-    | 'numeric'
-    | 'integer'
-    | 'datetime'
-    | 'date'
-    | 'time'
-    | 'boolean'
-    | 'other';
+  type: "string" | "numeric" | "integer" | "datetime" | "date" | "time" | "boolean" | "other";
   schema_type: string;
   valid?: number;
   mismatched?: number;
@@ -83,7 +75,7 @@ export interface PipeRiderAssertionResult {
 }
 export interface AssertionTest {
   name: string;
-  status: 'passed' | 'failed';
+  status: "passed" | "failed";
   parameters?: {
     [k: string]: unknown;
   };

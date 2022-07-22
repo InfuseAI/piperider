@@ -34,18 +34,18 @@ const getEnrichedColumnsFor = (columns, type): EnrichedColumnData['columns'] =>
 
 type Props = {
   base: TableSchema;
-  input: TableSchema;
+  target: TableSchema;
 };
-export function CRTabSchemaDetails({ base, input }: Props) {
+export function CRTabSchemaDetails({ base, target }: Props) {
   ZTableSchema.parse(base);
-  ZTableSchema.parse(input);
+  ZTableSchema.parse(target);
 
   const baseColEntries = getEnrichedColumnsFor(base.columns, 'base');
-  const inputColEntries = getEnrichedColumnsFor(input.columns, 'input');
-  const combinedColEntries = [...baseColEntries, ...inputColEntries];
+  const targetColEntries = getEnrichedColumnsFor(target.columns, 'target');
+  const combinedColEntries = [...baseColEntries, ...targetColEntries];
 
-  const addedTest = inputColEntries.length - baseColEntries.length;
-  const deletedTest = baseColEntries.length - inputColEntries.length;
+  const addedTest = targetColEntries.length - baseColEntries.length;
+  const deletedTest = baseColEntries.length - targetColEntries.length;
 
   // Reduce
   const aggregateEnrichedColumns =
@@ -54,13 +54,14 @@ export function CRTabSchemaDetails({ base, input }: Props) {
         //index offsets when iterating both columns together
         const currBaseIndex =
           idx < baseColEntries.length ? idx : idx - baseColEntries.length;
-        const currInputIndex =
+        const currTargetIndex =
           idx >= baseColEntries.length ? idx : idx + baseColEntries.length;
 
         //cross-checks if schema type is changed
         const currBaseSchema = combinedColEntries[currBaseIndex].schema_type;
-        const currInputSchema = combinedColEntries[currInputIndex].schema_type;
-        const isSchemaChanged = currBaseSchema !== currInputSchema;
+        const currTargetSchema =
+          combinedColEntries[currTargetIndex].schema_type;
+        const isSchemaChanged = currBaseSchema !== currTargetSchema;
         const changed = acc.changed + (isSchemaChanged ? 1 : 0);
 
         //write schema detail for UI rows
@@ -82,7 +83,7 @@ export function CRTabSchemaDetails({ base, input }: Props) {
   // UI vars
   const { added, deleted, changed, columns } = aggregateEnrichedColumns;
   const baseColumns = columns.slice(0, baseColEntries.length);
-  const inputColumns = columns.slice(baseColEntries.length);
+  const targetColumns = columns.slice(baseColEntries.length);
 
   return (
     <Flex direction="column">
@@ -137,7 +138,7 @@ export function CRTabSchemaDetails({ base, input }: Props) {
               </Tr>
             </Thead>
             <Tbody>
-              {inputColumns.map((column) => (
+              {targetColumns.map((column) => (
                 <Tr
                   key={nanoid(10)}
                   color={column.changed ? 'red.500' : 'inherit'}

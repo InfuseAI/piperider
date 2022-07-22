@@ -35,9 +35,9 @@ export function DbtTable({ data }: Props) {
           </Tr>
 
           <Tr>
-            <Td fontWeight={700}>Input</Td>
+            <Td fontWeight={700}>Target</Td>
             <Td>
-              <TestStatus status={data?.input?.status as any} />
+              <TestStatus status={data?.target?.status as any} />
             </Td>
             <Td>{(data?.base?.message as any) ?? '-'}</Td>
           </Tr>
