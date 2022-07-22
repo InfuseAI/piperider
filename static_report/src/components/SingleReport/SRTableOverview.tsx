@@ -1,10 +1,13 @@
 import { Flex, Heading, Text } from '@chakra-ui/react';
 import { TableSchema } from '../../sdlc/single-report-schema';
-import { formatNumber, getReportAggregateAssertions } from '../../utils';
+import { ZTableSchema } from '../../types';
+import { getReportAggregateAssertions } from '../../utils/assertion';
+import { formatNumber } from '../../utils/formatters';
 
 type Props = { table: TableSchema };
 
 export function SRTableOverview({ table }: Props) {
+  ZTableSchema.parse(table);
   const overview = getReportAggregateAssertions(
     table.piperider_assertion_result,
     table.dbt_assertion_result,

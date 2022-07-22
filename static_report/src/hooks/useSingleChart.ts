@@ -1,23 +1,24 @@
 import * as d3 from 'd3';
 import { useEffect, RefObject } from 'react';
 
-import { formatNumber } from '../utils';
+import { formatNumber } from '../utils/formatters';
 import { getChartTooltip } from '../utils/chart';
 
 const X_PADDING = 0.05;
 const TOOLTIPS_BG_COLOR = 'var(--chakra-colors-gray-500)';
 const CHART_COLOR = 'var(--chakra-colors-blue-300)';
 
-export function useSingleChart<T extends SVGSVGElement>({
+//TODO: Remove `as any` type forcing
+interface HookArgs<T> {
+  target: RefObject<SVGSVGElement>;
+  data: T[];
+  dimensions: DOMRect;
+}
+export function useSingleChart<T extends { [key: string]: any }>({
   target,
   data,
   dimensions,
-}: {
-  target: RefObject<T>;
-  // FIXME: data types
-  data: any;
-  dimensions: DOMRect;
-}) {
+}: HookArgs<T>) {
   useEffect(() => {
     if (!target || !dimensions || !data) {
       return;

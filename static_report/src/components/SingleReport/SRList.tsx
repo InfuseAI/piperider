@@ -16,17 +16,22 @@ import { Link } from 'wouter';
 import { Main } from '../shared/Main';
 import { SRTooltip } from './SRTooltip';
 import {
-  getReportAssertionStatusCounts,
   formatReportTime,
   formatNumber,
   formatColumnValueWith,
-} from '../../utils';
+} from '../../utils/formatters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
+import { singleReportSchemaSchema } from '../../sdlc/single-report-schema.z';
+import { ZTableSchema } from '../../types';
+import { getSingleAssertionStatusCounts } from '../../utils/assertion';
 
 type Props = { data: SingleReportSchema };
 export function SingleReportList({ data }: Props) {
   const { id, created_at, datasource, tables } = data;
+  singleReportSchemaSchema
+    .pick({ id: true, created_at: true, datasource: true })
+    .parse({ id, created_at, datasource });
 
   useDocumentTitle('Report List');
 
@@ -78,13 +83,14 @@ export function SingleReportList({ data }: Props) {
             <Tbody data-cy="sr-report-list">
               {Object.keys(tables).map((key) => {
                 const report = tables[key];
+                ZTableSchema.parse(report);
 
-                const pipeRideroverview = getReportAssertionStatusCounts(
+                const pipeRideroverview = getSingleAssertionStatusCounts(
                   report.piperider_assertion_result,
                 );
 
                 // If running by `piperider run --dbt-test`, it will have this field, vice versa.
-                const dbtOverview = getReportAssertionStatusCounts(
+                const dbtOverview = getSingleAssertionStatusCounts(
                   report.dbt_assertion_result,
                 );
 
@@ -98,7 +104,7 @@ export function SingleReportList({ data }: Props) {
                       <Td>
                         {report.name}
                         <SRTooltip
-                          label={(report.description as string) || ''}
+                          label={report.description}
                           prefix={' - via '}
                           placement="right-end"
                         >

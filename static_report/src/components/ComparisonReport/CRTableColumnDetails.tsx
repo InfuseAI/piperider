@@ -1,5 +1,6 @@
 import { Code, Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
+import { ZColSchema } from '../../types';
 import { GeneralTableColumn } from '../shared/GeneralTableColumn';
 import { MetricsInfo } from '../shared/MetrisInfo';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
@@ -16,6 +17,9 @@ export const CRTableColumnDetails = ({
   inputColumn,
 }: CRTableColumnDetailsProps) => {
   const emptyLabel = '-';
+  ZColSchema.parse(column);
+  ZColSchema.parse(baseColumn);
+  ZColSchema.parse(inputColumn);
 
   return (
     <Flex direction="column" gap={2} minH="250px">

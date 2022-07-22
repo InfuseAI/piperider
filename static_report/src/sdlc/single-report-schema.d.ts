@@ -34,15 +34,26 @@ export interface TableSchema {
  */
 export interface ColumnSchema {
   total: number;
+  nulls?: number;
   non_nulls: number;
   distinct: number;
   distribution?: null | Distribution;
   name: string;
   description: string;
-  type: "string" | "numeric" | "datetime" | "bool" | "other";
+  type:
+    | 'string'
+    | 'numeric'
+    | 'integer'
+    | 'datetime'
+    | 'date'
+    | 'time'
+    | 'boolean'
+    | 'other';
   schema_type: string;
+  valid?: number;
   mismatched?: number;
   profile_duration?: string;
+  elapsed_milli?: number;
   sum?: number;
   avg?: number;
   min?: string | number;
@@ -58,7 +69,7 @@ export interface Distribution {
   type: string;
   labels: (string | null)[];
   counts: number[];
-  bin_edges?: number[];
+  bin_edges?: (number | string)[];
 }
 export interface PipeRiderAssertionResult {
   tests: AssertionTest[];
@@ -72,13 +83,13 @@ export interface PipeRiderAssertionResult {
 }
 export interface AssertionTest {
   name: string;
-  status: "passed" | "failed";
+  status: 'passed' | 'failed';
   parameters?: {
     [k: string]: unknown;
   };
   tags?: string[];
-  expected?: true;
-  actual?: true;
+  expected?: unknown;
+  actual?: unknown;
 }
 export interface DbtAssertionResult {
   tests: AssertionTest[];

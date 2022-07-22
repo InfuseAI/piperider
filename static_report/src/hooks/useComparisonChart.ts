@@ -1,8 +1,9 @@
 import * as d3 from 'd3';
 import { useEffect, RefObject } from 'react';
 
-import { formatNumber } from '../utils';
+import { formatNumber } from '../utils/formatters';
 import { getChartTooltip } from '../utils/chart';
+import { CRDistributionDatum } from '../utils/transformers';
 
 const GROUPED = ['base', 'input'];
 const X_PADDING = 0.2;
@@ -11,16 +12,17 @@ const TOOLTIPS_BG_COLOR = 'var(--chakra-colors-gray-500)';
 const BASE_CHART_COLOR = 'var(--chakra-colors-blue-100)';
 const INPUT_CHART_COLOR = 'var(--chakra-colors-blue-300)';
 
-export function useComparisonChart<T extends SVGSVGElement>({
+type CRChartHookArgs = {
+  target: RefObject<SVGSVGElement>;
+  data: CRDistributionDatum[];
+  dimensions: DOMRect;
+};
+
+export function useComparisonChart({
   target,
   data,
   dimensions,
-}: {
-  target: RefObject<T>;
-  // FIXME: data types
-  data: any;
-  dimensions: DOMRect;
-}) {
+}: CRChartHookArgs) {
   useEffect(() => {
     if (!target || !dimensions || !data) {
       return;

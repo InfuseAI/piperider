@@ -9,21 +9,25 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { TableSchema } from '../../sdlc/single-report-schema';
-import { getReportAggregateAssertions } from '../../utils';
+import { ZTableSchema } from '../../types';
+import { getReportAggregateAssertions } from '../../utils/assertion';
 
 type Props = {
-  baseTables: TableSchema;
-  inputTables: TableSchema;
+  baseTable: TableSchema;
+  inputTable: TableSchema;
 };
 
-export function CRTableOverview({ baseTables, inputTables }: Props) {
+export function CRTableOverview({ baseTable, inputTable }: Props) {
+  ZTableSchema.parse(baseTable);
+  ZTableSchema.parse(inputTable);
+
   const baseAssertions = getReportAggregateAssertions(
-    baseTables.piperider_assertion_result,
-    baseTables?.dbt_assertion_result,
+    baseTable.piperider_assertion_result,
+    baseTable?.dbt_assertion_result,
   );
   const inputAssertions = getReportAggregateAssertions(
-    inputTables.piperider_assertion_result,
-    inputTables?.dbt_assertion_result,
+    inputTable.piperider_assertion_result,
+    inputTable?.dbt_assertion_result,
   );
 
   return (
@@ -40,18 +44,18 @@ export function CRTableOverview({ baseTables, inputTables }: Props) {
         <Tbody>
           <Tr>
             <Td>Table</Td>
-            <Td>{(baseTables as any)?.name ?? '-'}</Td>
-            <Td>{(inputTables as any)?.name ?? '-'}</Td>
+            <Td>{baseTable?.name ?? '-'}</Td>
+            <Td>{inputTable?.name ?? '-'}</Td>
           </Tr>
           <Tr>
             <Td>Rows</Td>
-            <Td>{(baseTables as any)?.row_count ?? '-'}</Td>
-            <Td>{(inputTables as any)?.row_count ?? '-'}</Td>
+            <Td>{baseTable?.row_count ?? '-'}</Td>
+            <Td>{inputTable?.row_count ?? '-'}</Td>
           </Tr>
           <Tr>
             <Td>Columns</Td>
-            <Td>{(baseTables as any)?.col_count ?? '-'}</Td>
-            <Td>{(inputTables as any)?.col_count ?? '-'}</Td>
+            <Td>{baseTable?.col_count ?? '-'}</Td>
+            <Td>{inputTable?.col_count ?? '-'}</Td>
           </Tr>
           <Tr>
             <Td>Test status</Td>
