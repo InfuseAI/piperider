@@ -205,11 +205,11 @@ def generate_report(**kwargs):
 
 @cli.command(short_help='Compare two existing reports.')
 @click.option('--base', default=None, type=click.Path(exists=True), help='Specify the base report file.')
-@click.option('--input', default=None, type=click.Path(exists=True), help='Specify the report file to be compared.')
+@click.option('--target', default=None, type=click.Path(exists=True), help='Specify the report file to be compared.')
 @add_options(debug_option)
 def compare_reports(**kwargs):
     'Compare two existing reports selected in interactive mode or by option.'
 
     a = kwargs.get('base')
-    b = kwargs.get('input')
+    b = kwargs.get('target')
     CompareReport.exec(a=a, b=b)

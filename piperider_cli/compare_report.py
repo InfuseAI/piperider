@@ -70,10 +70,10 @@ class ProfilerOutput(object):
 
 
 class ComparisonData(object):
-    def __init__(self, base, input):
+    def __init__(self, base, target):
         self._id = datetime.now().strftime("%Y%m%d%H%M%S")
         self._base = base
-        self._input = input
+        self._target = target
 
     def id(self):
         return self._id
@@ -82,7 +82,8 @@ class ComparisonData(object):
         output = dict(
             created_at=datetime_to_str(datetime.utcnow()),
             base=self._base,
-            input=self._input,
+            # TODO: rename input -> target in schema and result json
+            input=self._target,
         )
         return json.dumps(output)
 
@@ -128,8 +129,8 @@ class CompareReport(object):
 
         if self.a and self.b:
             self.console.print('Selected reports:')
-            self.console.print(f'  Base:  {self.a.path}')
-            self.console.print(f'  Input: {self.b.path}')
+            self.console.print(f'  Base:   {self.a.path}')
+            self.console.print(f'  Target: {self.b.path}')
             return True
         return False
 
