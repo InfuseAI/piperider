@@ -50,6 +50,9 @@
     "ts-to-zod": "^1.11.0",
     "typescript": "^4.7.4"
   },
+  "resolutions": {
+    "nth-check": "2.0.1"
+  },
   "scripts": {
     "analyze": "npx cra-bundle-analyzer",
     "setup": "run-s typing:dts typing:zts embed:html",
