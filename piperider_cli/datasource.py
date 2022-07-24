@@ -79,12 +79,13 @@ class DataSourceField(metaclass=ABCMeta):
         while True:
             console = Console()
             answer = Prompt.ask(f'[[yellow]?[/yellow]] {self.description}', password=password, default=default)
-            if self.validate is None or \
-                isinstance(self.validate, bool) and self.validate is True or \
-                self.validate(None, answer):
+            if self.validate is None \
+                or (isinstance(self.validate, bool) and self.validate is True) \
+                or self.validate(None,
+                                 answer):
                 # Passed validation
                 if is_path is True and os.path.exists(answer) is False:
-                    console.print(f'    [[red]Error[/red]] Input path does not exist.')
+                    console.print('    [[red]Error[/red]] Input path does not exist.')
                     continue
                 break
             else:
@@ -249,7 +250,7 @@ class DataSource(metaclass=ABCMeta):
             if re.match(PROJECT_NAME_REGEX, project_name):
                 break
             else:
-                console.print(f'    [[red]Error[/red]] Input is not a valid project name. Please try again.')
+                console.print('    [[red]Error[/red]] Input is not a valid project name. Please try again.')
 
         console.print('[[yellow]?[/yellow]] Which data source would you like to connect to?')
         for i, (k, v) in enumerate(source_choices):
@@ -257,12 +258,12 @@ class DataSource(metaclass=ABCMeta):
 
         while True:
             try:
-                type_idx = Prompt.ask(f'[[yellow]?[/yellow]] Select a number: ')
+                type_idx = Prompt.ask('[[yellow]?[/yellow]] Select a number: ')
                 type_idx = int(type_idx)
             except Exception:
                 type_idx = 0
             if type_idx > len(source_choices) or type_idx < 1:
-                console.print(f'    [[red]Error[/red]] Input is not a valid index value. Please try again.')
+                console.print('    [[red]Error[/red]] Input is not a valid index value. Please try again.')
             else:
                 cls = source_choices[type_idx - 1][1]
                 break
