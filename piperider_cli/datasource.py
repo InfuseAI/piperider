@@ -8,12 +8,17 @@ from typing import List, Dict
 import inquirer
 import readchar
 from rich.console import Console
+from rich.prompt import Prompt
 from sqlalchemy.exc import SAWarning
 
 from piperider_cli.error import PipeRiderConnectorError
 
+PROJECT_NAME_REGEX = r'^[a-zA-Z0-9]+$'
+
 
 def _default_validate_func(answer, current) -> bool:
+    if current is None:
+        return False
     if isinstance(current, str):
         return current.strip() != ''
     return True
@@ -21,17 +26,18 @@ def _default_validate_func(answer, current) -> bool:
 
 class DataSourceField(metaclass=ABCMeta):
 
-    def __init__(self, name, type, value=None, default=None, description=None, validate=True, optional=False):
+    def __init__(self, name, type, value=None, default=None, description=None, validate=_default_validate_func,
+                 optional=False):
         self.name = name
         self.type = type
         self.default = default
         self.description = description if not optional else f'{description} (optional)'
         self.value = value
         self.optional = optional
-        if optional:
-            self.validate = validate
+        if optional is True:
+            self.validate = True
         else:
-            self.validate = _default_validate_func if validate is True else validate
+            self.validate = validate
 
     def get(self):
         return self.value
@@ -43,9 +49,36 @@ class DataSourceField(metaclass=ABCMeta):
     def question(self):
         raise NotImplementedError
 
+    def question_by_rich(self):
+        password = False
+        is_path = False
+        if self.type == 'password':
+            password = True
+        elif self.type == 'path':
+            is_path = True
+
+        while True:
+            console = Console()
+            answer = Prompt.ask(f'[[yellow]?[/yellow]] {self.description}', password=password, default=self.default)
+            if self.validate is None or \
+                isinstance(self.validate, bool) and self.validate is True or \
+                self.validate(None, answer):
+                # Passed validation
+                if is_path is True and os.path.exists(answer) is False:
+                    console.print(f'    [[red]Error[/red]] Input path does not exist.')
+                    continue
+                break
+            else:
+                if answer is None:
+                    console.print('    [[red]Error[/red]] Input value is required. Please try again.')
+                else:
+                    console.print(f'    [[red]Error[/red]] Invalid input: {answer}')
+        return answer
+
 
 class TextField(DataSourceField):
-    def __init__(self, name, value=None, default=None, description=None, validate=True, optional=False):
+    def __init__(self, name, value=None, default=None, description=None, validate=_default_validate_func,
+                 optional=False):
         super().__init__(name, "text", value, default, description, validate, optional)
 
     def question(self):
@@ -53,7 +86,8 @@ class TextField(DataSourceField):
 
 
 class PathField(DataSourceField):
-    def __init__(self, name, value=None, default=None, description=None, validate=True, optional=False):
+    def __init__(self, name, value=None, default=None, description=None, validate=_default_validate_func,
+                 optional=False):
         super().__init__(name, "path", value, default, description, validate, optional)
 
     def question(self):
@@ -61,7 +95,8 @@ class PathField(DataSourceField):
 
 
 class NumberField(DataSourceField):
-    def __init__(self, name, value=None, default=None, description=None, validate=True, optional=False):
+    def __init__(self, name, value=None, default=None, description=None, validate=_default_validate_func,
+                 optional=False):
         def _is_numeric_func(answer, current) -> bool:
             return current.strip().isnumeric()
 
@@ -83,7 +118,8 @@ class NumberField(DataSourceField):
 
 
 class PasswordField(DataSourceField):
-    def __init__(self, name, value=None, default=None, description=None, validate=True, optional=False):
+    def __init__(self, name, value=None, default=None, description=None, validate=_default_validate_func,
+                 optional=False):
         super().__init__(name, "password", value, default, description, validate, optional)
 
     def question(self):
@@ -151,7 +187,12 @@ class DataSource(metaclass=ABCMeta):
         """
         ask for user filling all fields.
         """
+        if sys.platform == "darwin" or sys.platform == "linux":
+            return self.ask_credential_by_inquirer()
+        else:
+            return self.ask_credential_by_rich()
 
+    def ask_credential_by_inquirer(self):
         if sys.platform == "darwin" or sys.platform == "linux":
             # change readchar key backspace
             readchar.key.BACKSPACE = '\x7F'
@@ -166,8 +207,52 @@ class DataSource(metaclass=ABCMeta):
                 self.credential[f.name] = answers[f.name].strip()
         return self.credential
 
+    def ask_credential_by_rich(self):
+        for f in self.fields:
+            answer = f.question_by_rich()
+            self.credential[f.name] = answer.strip()
+        return self.credential
+
     @staticmethod
     def ask():
+        if sys.platform == "darwin" or sys.platform == "linux":
+            return DataSource.ask_by_inquirer()
+        else:
+            return DataSource.ask_by_rich()
+
+    @staticmethod
+    def ask_by_rich():
+        console = Console()
+        source_choices = [(k, v) for k, v in DATASOURCE_PROVIDERS.items()]
+
+        while True:
+            project_name = Prompt.ask("[[yellow]?[/yellow]] What is your project name? (alphanumeric only)")
+            if re.match(PROJECT_NAME_REGEX, project_name):
+                break
+            else:
+                console.print(f'    [[red]Error[/red]] Input is not a valid project name. Please try again.')
+
+        console.print('[[yellow]?[/yellow]] Which data source would you like to connect to?')
+        for i, (k, v) in enumerate(source_choices):
+            console.print(f'  [green]{i + 1}[/green]: {k}')
+
+        while True:
+            try:
+                type_idx = Prompt.ask(f'[[yellow]?[/yellow]] Select a number: ')
+                type_idx = int(type_idx)
+            except Exception:
+                type_idx = 0
+            if type_idx > len(source_choices) or type_idx < 1:
+                console.print(f'    [[red]Error[/red]] Input is not a valid index value. Please try again.')
+            else:
+                cls = source_choices[type_idx - 1][1]
+                break
+
+        name = project_name
+        return cls, name
+
+    @staticmethod
+    def ask_by_inquirer():
         source_choices = [(k, v) for k, v in DATASOURCE_PROVIDERS.items()]
 
         if sys.platform == "darwin" or sys.platform == "linux":
@@ -177,7 +262,7 @@ class DataSource(metaclass=ABCMeta):
         questions = [
             inquirer.Text('project_name',
                           message='What is your project name? (alphanumeric only)',
-                          validate=lambda ans, x: re.match(r'^[a-zA-Z0-9]+$', x) is not None),
+                          validate=lambda ans, x: re.match(PROJECT_NAME_REGEX, x) is not None),
             inquirer.List('type',
                           message='Which data source would you like to connect to?',
                           choices=source_choices,
