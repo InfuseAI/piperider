@@ -13,7 +13,18 @@ from sqlalchemy.exc import SAWarning
 
 from piperider_cli.error import PipeRiderConnectorError
 
-PROJECT_NAME_REGEX = r'^[a-zA-Z0-9]+$'
+
+def _should_use_fancy_user_input() -> bool:
+    env_flag = os.environ.get('PIPERIDER_FANCY_USER_INPUT', 'true').lower() == 'true'
+    is_a_tty = sys.stdin.isatty() and sys.stdout.isatty()
+    if env_flag is False:
+        return False
+    if is_a_tty is False:
+        return False
+    if sys.platform == "darwin" or sys.platform == "linux":
+        return True
+    else:
+        return False
 
 
 def _default_validate_func(answer, current) -> bool:
@@ -22,6 +33,10 @@ def _default_validate_func(answer, current) -> bool:
     if isinstance(current, str):
         return current.strip() != ''
     return True
+
+
+PROJECT_NAME_REGEX = r'^[a-zA-Z0-9]+$'
+FANCY_USER_INPUT = _should_use_fancy_user_input()
 
 
 class DataSourceField(metaclass=ABCMeta):
@@ -50,16 +65,20 @@ class DataSourceField(metaclass=ABCMeta):
         raise NotImplementedError
 
     def question_by_rich(self):
+        default = self.default
         password = False
         is_path = False
+
         if self.type == 'password':
             password = True
         elif self.type == 'path':
             is_path = True
+        elif self.type == 'number':
+            default = str(default)
 
         while True:
             console = Console()
-            answer = Prompt.ask(f'[[yellow]?[/yellow]] {self.description}', password=password, default=self.default)
+            answer = Prompt.ask(f'[[yellow]?[/yellow]] {self.description}', password=password, default=default)
             if self.validate is None or \
                 isinstance(self.validate, bool) and self.validate is True or \
                 self.validate(None, answer):
@@ -187,7 +206,7 @@ class DataSource(metaclass=ABCMeta):
         """
         ask for user filling all fields.
         """
-        if sys.platform == "darwin" or sys.platform == "linux":
+        if FANCY_USER_INPUT:
             return self.ask_credential_by_inquirer()
         else:
             return self.ask_credential_by_rich()
@@ -215,7 +234,7 @@ class DataSource(metaclass=ABCMeta):
 
     @staticmethod
     def ask():
-        if sys.platform == "darwin" or sys.platform == "linux":
+        if FANCY_USER_INPUT:
             return DataSource.ask_by_inquirer()
         else:
             return DataSource.ask_by_rich()
