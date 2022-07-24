@@ -93,7 +93,7 @@ class DataSourceField(metaclass=ABCMeta):
                     console.print('    [[red]Error[/red]] Input value is required. Please try again.')
                 else:
                     console.print(f'    [[red]Error[/red]] Invalid input: {answer}')
-        return answer
+        return answer if answer is not None else ''
 
 
 class TextField(DataSourceField):
