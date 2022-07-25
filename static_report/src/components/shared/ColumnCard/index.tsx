@@ -5,6 +5,7 @@ import { ZColSchema } from '../../../types';
 import { ColumnCardBodyContainer } from './ColumnCardBodyContainer';
 import { ColumnCardDataVisualContainer } from './ColumnCardDataVisualContainer';
 import { ColumnCardHeader } from './ColumnCardHeader';
+import { ColumnTypeDetailBoolean } from './ColumnTypeDetail/ColumnTypeDetailBoolean';
 import { ColumnTypeDetailDatetime } from './ColumnTypeDetail/ColumnTypeDetailDatetime';
 import { ColumnTypeDetailNumeric } from './ColumnTypeDetail/ColumnTypeDetailNumeric';
 import { ColumnTypeDetailString } from './ColumnTypeDetail/ColumnTypeDetailString';
@@ -12,16 +13,6 @@ import { ColumnTypeDetailString } from './ColumnTypeDetail/ColumnTypeDetailStrin
 /**
    *"type": {
       "enum": [
-        // DEFINED [DEV RDY!]
-        "string",
-        "boolean",
-        "datetime",
-        // UNDEFINED DESIGNS/SPECS
-        "numeric",
-        "integer",
-        "date",
-        "time",
-        "other"
       ]
     },
    */
@@ -46,7 +37,21 @@ export function ColumnCard({ columnDatum, children }: Props) {
         {children}
       </ColumnCardDataVisualContainer>
       <ColumnCardBodyContainer>
-        {/* [ Render Logic: ] Depending on type(s), determine which ColumnTypeDetail** set of metricCells to render */}
+        {
+          // DEFINED [DEV RDY!]
+          // "string",
+          // "boolean", <- as categorical now
+          // "datetime",
+          // "numeric",
+          // // UNDEFINED DESIGNS/SPECS
+          // "integer",
+          // "date",
+          // "time",
+          // "other"
+        }
+        {columnDatum.type === 'boolean' && (
+          <ColumnTypeDetailBoolean columnDatum={columnDatum} />
+        )}
         {columnDatum.type === 'string' && (
           <ColumnTypeDetailString columnDatum={columnDatum} />
         )}

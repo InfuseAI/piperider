@@ -138,3 +138,13 @@ export function formatColumnValueWith(
 ): string {
   return isNaN(input) ? emptyLabel : fn(input);
 }
+
+/**
+ *
+ * @param input string to check for truncation with '...'
+ * @param end position at which to truncate
+ * @returns original or truncated string
+ */
+export function formatTruncateString(input: string, end: number) {
+  return input.length >= end ? input.slice(0, end) + '...' : input;
+}
