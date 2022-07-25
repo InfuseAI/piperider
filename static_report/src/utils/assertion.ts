@@ -27,7 +27,7 @@ export function getReportAggregateAssertions(
   }
 
   if (Number.isInteger(piperiderFailed)) {
-    passed += piperiderFailed as number;
+    failed += piperiderFailed as number;
   }
 
   if (dbtAssertion) {
