@@ -37,8 +37,8 @@ export const columnSchemaSchema = z.object({
   description: z.string(),
   type: z.union([
     z.literal('string'),
-    z.literal('integer'),
     z.literal('numeric'),
+    z.literal('integer'),
     z.literal('datetime'),
     z.literal('date'),
     z.literal('time'),

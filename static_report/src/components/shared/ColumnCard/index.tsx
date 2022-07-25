@@ -42,7 +42,9 @@ export function ColumnCard({ columnDatum, children }: Props) {
       rounded={'lg'}
     >
       <ColumnCardHeader title={title} description={description} />
-      <ColumnCardDataVisualContainer>{children}</ColumnCardDataVisualContainer>
+      <ColumnCardDataVisualContainer title={title}>
+        {children}
+      </ColumnCardDataVisualContainer>
       <ColumnCardBodyContainer>
         {/* [ Render Logic: ] Depending on type(s), determine which ColumnTypeDetail** set of metricCells to render */}
         {columnDatum.type === 'string' && (

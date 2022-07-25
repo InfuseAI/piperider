@@ -40,7 +40,7 @@ export interface ColumnSchema {
   distribution?: Distribution;
   name: string;
   description: string;
-  type: "string" | "integer" | "numeric" | "datetime" | "date" | "time" | "boolean" | "other";
+  type: "string" | "numeric" | "integer" | "datetime" | "date" | "time" | "boolean" | "other";
   schema_type: string;
   valid?: number;
   mismatched?: number;
