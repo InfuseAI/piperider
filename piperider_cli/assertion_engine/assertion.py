@@ -568,6 +568,8 @@ class AssertionEngine:
         def to_dirs(path_list: str):
             if path_list is None:
                 return []
+            if sys.platform == 'win32':
+                return [x.strip() for x in path_list.split(';')]
             return [x.strip() for x in path_list.split(':')]
 
         plugin_dirs = []
