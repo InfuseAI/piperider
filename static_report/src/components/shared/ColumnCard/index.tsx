@@ -2,19 +2,13 @@ import { Flex } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema } from '../../../types';
-import { ColumnCardDataVisualContainer } from './ColumnCardDataVisual';
+import { ColumnCardBodyContainer } from './ColumnCardBodyContainer';
+import { ColumnCardDataVisualContainer } from './ColumnCardDataVisualContainer';
 import { ColumnCardHeader } from './ColumnCardHeader';
+import { ColumnTypeDetailDatetime } from './ColumnTypeDetail/ColumnTypeDetailDatetime';
+import { ColumnTypeDetailNumeric } from './ColumnTypeDetail/ColumnTypeDetailNumeric';
+import { ColumnTypeDetailString } from './ColumnTypeDetail/ColumnTypeDetailString';
 
-// Chart goes as transcluded children of New Column Card
-// -- ColumnCard
-// ------ ColumnCardHeader
-// -------- <{ children_col_name }>
-// -------- <{ children_col_description }>
-// ------ ColumnCardDataVisual
-// -------- <{ children_graph }>
-// ------ ColumnCardBody
-// -------- <{ children_contents }>
-// ---------- <type_base>ColumnDetails
 /**
    *"type": {
       "enum": [
@@ -40,10 +34,27 @@ export function ColumnCard({ columnDatum, children }: Props) {
   const { name: title, description } = columnDatum;
 
   return (
-    <Flex direction={'column'} bg={'gray.500'} width="400px" h={[700]}>
+    <Flex
+      direction={'column'}
+      bg={'gray.300'}
+      minWidth="400px"
+      h={[700]}
+      rounded={'lg'}
+    >
       <ColumnCardHeader title={title} description={description} />
       <ColumnCardDataVisualContainer>{children}</ColumnCardDataVisualContainer>
-      {/* <ColumnCardBody></ColumnCardBody> */}
+      <ColumnCardBodyContainer>
+        {/* [ Render Logic: ] Depending on type(s), determine which ColumnTypeDetail** set of metricCells to render */}
+        {columnDatum.type === 'string' && (
+          <ColumnTypeDetailString columnDatum={columnDatum} />
+        )}
+        {columnDatum.type === 'datetime' && (
+          <ColumnTypeDetailDatetime columnDatum={columnDatum} />
+        )}
+        {columnDatum.type === 'numeric' && (
+          <ColumnTypeDetailNumeric columnDatum={columnDatum} />
+        )}
+      </ColumnCardBodyContainer>
     </Flex>
   );
 }

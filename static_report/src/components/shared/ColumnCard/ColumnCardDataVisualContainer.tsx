@@ -5,5 +5,9 @@ import { Flex } from '@chakra-ui/react';
  * Clickable for showing modal popup zoom of chart
  */
 export function ColumnCardDataVisualContainer({ children }) {
-  return <Flex m={6}>{children}</Flex>;
+  return (
+    <Flex p={6} m={3} bg={'whiteAlpha.700'} rounded={'md'}>
+      {children}
+    </Flex>
+  );
 }

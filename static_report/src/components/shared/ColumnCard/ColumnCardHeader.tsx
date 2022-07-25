@@ -10,13 +10,14 @@ export function ColumnCardHeader({ title, description }: Props) {
       bg={'whiteAlpha.900'}
       justify={'space-between'}
       alignItems={'center'}
-      width="100%"
+      width={'100%'}
+      borderTopRadius={'inherit'}
     >
-      <Text fontWeight={'semibold'} fontSize={'2xl'}>
+      <Text fontWeight={'semibold'} fontSize={'3xl'}>
         {title}
       </Text>
       <SRTooltip label={description} prefix={' - via '} placement="right-end">
-        <InfoIcon color="gray.400" boxSize={'14px'} />
+        <InfoIcon color="gray.400" boxSize={'20px'} mr={3} />
       </SRTooltip>
     </Flex>
   );
