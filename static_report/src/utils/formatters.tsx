@@ -112,7 +112,12 @@ export function getSRModeMetrics(column: ColumnSchema) {
     .filter((x) => x[0] !== null)
     .slice(0, 3);
   const topCount = data[0][1];
-  const tops = data.filter((x) => x[1] === topCount).map((x) => x[0]);
+  const tops = data
+    .filter((x) => x[1] === topCount)
+    .map((x) => {
+      const label = x[0];
+      return label.length >= 40 ? label.slice(0, 40).concat('-') : label;
+    });
 
   if (tops.length > 2) {
     return tops.slice(0, 2).join(', ') + ', ...';

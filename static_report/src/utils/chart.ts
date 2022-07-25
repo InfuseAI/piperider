@@ -16,7 +16,7 @@ export function getChartTooltip({ target, style = {} as any }) {
     .append('div')
     .style('visibility', 'hidden')
     .style('position', 'absolute')
-    .style('z-index', '9')
+    .style('z-index', '1501')
     .style('padding-top', style?.paddingTop || tooltipDefaultStyle.paddingTop)
     .style(
       'padding-bottom',

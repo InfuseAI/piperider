@@ -37,7 +37,7 @@ export function ColumnCard({ columnDatum, children }: Props) {
     <Flex
       direction={'column'}
       bg={'gray.300'}
-      minWidth="400px"
+      width="400px"
       h={[700]}
       rounded={'lg'}
     >
@@ -50,7 +50,7 @@ export function ColumnCard({ columnDatum, children }: Props) {
         {columnDatum.type === 'string' && (
           <ColumnTypeDetailString columnDatum={columnDatum} />
         )}
-        {columnDatum.type === 'datetime' && (
+        {(columnDatum.type === 'datetime' || columnDatum.type === 'date') && (
           <ColumnTypeDetailDatetime columnDatum={columnDatum} />
         )}
         {columnDatum.type === 'numeric' && (
