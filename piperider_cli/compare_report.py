@@ -139,13 +139,19 @@ class CompareReport(object):
             return len(current) == 1
 
         profiler_outputs = self.list_existing_outputs()
+        arrow_alias_msg = ''
+        if sys.platform == "win32" or sys.platform == "cygwin":
+            # change readchar key UP & DOWN by 'w' and 's'
+            readchar.key.UP = 'w'
+            readchar.key.DOWN = 's'
+            arrow_alias_msg = " 'w' to Up, 's' to Down,"
 
         if len(profiler_outputs) < 1:
             raise Exception("Not enough reports to compare. Please run 'piperider run' first.")
 
         questions = [
             inquirer_hack.LimitedCheckboxQuestion('profiler_output',
-                                                  message="Please select a report to compare ( SPACE to select, and ENTER to confirm )",
+                                                  message="Please select a report to compare ({arrow_alias_msg} SPACE to select, and ENTER to confirm )",
                                                   choices=profiler_outputs,
                                                   carousel=True,
                                                   validate=_report_validater,
@@ -170,10 +176,12 @@ class CompareReport(object):
             return len(current) == 2
 
         profiler_outputs = self.list_existing_outputs()
-
-        if sys.platform == "darwin" or sys.platform == "linux":
-            # change readchar key backspace
-            readchar.key.BACKSPACE = '\x7F'
+        arrow_alias_msg = ''
+        if sys.platform == "win32" or sys.platform == "cygwin":
+            # change readchar key UP & DOWN by 'w' and 's'
+            readchar.key.UP = 'w'
+            readchar.key.DOWN = 's'
+            arrow_alias_msg = " 'w' to Up, 's' to Down,"
 
         if len(profiler_outputs) < 2:
             raise Exception("Not enough reports to compare. Please run 'piperider run' first.")
@@ -181,7 +189,7 @@ class CompareReport(object):
         questions = [
             inquirer_hack.LimitedCheckboxQuestion(
                 'profiler_outputs',
-                message="Please select the 2 reports to compare ( SPACE to select, and ENTER to confirm )",
+                message=f"Please select the 2 reports to compare ({arrow_alias_msg} SPACE to select, and ENTER to confirm )",
                 choices=profiler_outputs,
                 carousel=True,
                 validate=_report_validater,
@@ -202,7 +210,8 @@ class CompareReport(object):
             variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA={output};window.PIPERIDER_COMPARISON_REPORT_DATA="";</script>'
         else:
             variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA="";window.PIPERIDER_COMPARISON_REPORT_DATA={output};</script>'
-        html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#', template_html).split(
+        html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#',
+                            template_html).split(
             '#PLACEHOLDER#')
         html = html_parts[0] + variables + html_parts[1]
         return html
