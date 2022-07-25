@@ -502,9 +502,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
             if i != num_buckets - 1:
                 cases += [(column < bound, i)]
             else:
-                cases += [(column < bound, i)]
-                # equal comparing
-                cases += [(func.abs(column - bound) < interval / 100, i)]
+                cases += [(column < bound + interval / 100, i)]
 
         cte_with_bucket = select([
             column.label("c"),
