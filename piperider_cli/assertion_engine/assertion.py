@@ -339,10 +339,20 @@ class AssertionEngine:
         for t in self.assertions_content:
             # only append specified table's assertions
             if t in selected_tables:
-                for ta in self.assertions_content[t].get('tests', []):
+                if self.assertions_content[t] is None:
+                    continue
+                table_assertions = self.assertions_content[t].get('tests') \
+                    if self.assertions_content[t].get('tests') else []
+                for ta in table_assertions:
                     self.assertions.append(AssertionContext(t, None, ta))
-                for c in self.assertions_content[t].get('columns', {}):
-                    for ca in self.assertions_content[t]['columns'][c].get('tests', []):
+
+                columns_content = self.assertions_content[t].get('columns') \
+                    if self.assertions_content[t].get('columns') else {}
+                for c in columns_content:
+                    if columns_content[c] is None:
+                        continue
+                    column_assertions = columns_content[c].get('tests') if columns_content[c].get('tests') else []
+                    for ca in column_assertions:
                         self.assertions.append(AssertionContext(t, c, ca))
 
     def load_all_assertions_for_validation(self) -> (List[str], List[str]):
@@ -351,10 +361,20 @@ class AssertionEngine:
         self.assertions = []
 
         for t in self.assertions_content:
-            for ta in self.assertions_content[t].get('tests', []):
+            if self.assertions_content[t] is None:
+                continue
+            table_assertions = self.assertions_content[t].get('tests') \
+                if self.assertions_content[t].get('tests') else []
+            for ta in table_assertions:
                 self.assertions.append(AssertionContext(t, None, ta))
-            for c in self.assertions_content[t].get('columns', {}):
-                for ca in self.assertions_content[t]['columns'][c].get('tests', []):
+
+            columns_content = self.assertions_content[t].get('columns') \
+                if self.assertions_content[t].get('columns') else {}
+            for c in columns_content:
+                if columns_content[c] is None:
+                    continue
+                column_assertions = columns_content[c].get('tests') if columns_content[c].get('tests') else []
+                for ca in column_assertions:
                     self.assertions.append(AssertionContext(t, c, ca))
 
         return passed_assertion_files, failed_assertion_files

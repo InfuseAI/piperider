@@ -443,13 +443,15 @@ def _append_descriptions_from_assertion(profile_result):
     engine = AssertionEngine(None)
     engine.load_assertion_content()
     for table_name, table_v in engine.assertions_content.items():
-        if table_name not in profile_result['tables']:
+        if table_name not in profile_result['tables'] or table_v is None:
             continue
         table_desc = table_v.get('description', '')
         if table_desc:
             profile_result['tables'][table_name]['description'] = f'{table_desc} - via PipeRider'
-        for column_name, column_v in table_v.get('columns', {}).items():
-            if column_name not in profile_result['tables'][table_name]['columns']:
+
+        columns_content = table_v.get('columns') if table_v.get('columns') else {}
+        for column_name, column_v in columns_content.items():
+            if column_name not in profile_result['tables'][table_name]['columns'] or column_v is None:
                 continue
             column_desc = column_v.get('description', column_name)
             if column_desc:
