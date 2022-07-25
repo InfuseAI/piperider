@@ -3,8 +3,8 @@ import uuid
 
 from ruamel import yaml
 
-from piperider_cli.event.collector import Collector
 from piperider_cli.configuration import Configuration
+from piperider_cli.event.collector import Collector
 
 PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
 PIPERIDER_USER_PROFILE = os.path.join(PIPERIDER_USER_HOME, 'profile.yml')
@@ -95,6 +95,6 @@ def log_event(command, params, status):
         status=status,
     )
     _collector.log_event(prop, 'usage')
-    whitelist = ['run', 'generate-report', 'compare-reports']
+    whitelist = ['init', 'run', 'generate-report', 'compare-reports']
     if command in whitelist:
         _collector.send_events()
