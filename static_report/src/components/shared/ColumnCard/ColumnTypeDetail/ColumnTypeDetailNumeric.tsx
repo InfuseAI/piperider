@@ -7,6 +7,7 @@ import {
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
+import { QuantilesChart } from '../../QuantilesChart';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
@@ -41,7 +42,9 @@ export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
         />
       </Flex>
       <Divider />
-      {/* TODO: Add Quantiles chart here */}
+      <Flex mt={2}>
+        <QuantilesChart columnDatum={columnDatum} />
+      </Flex>
     </Flex>
   );
 };
