@@ -308,6 +308,11 @@ class StringColumnProfiler(BaseColumnProfiler):
                 ).label("c"),
                 c.label("orig"),
             ]).cte()
+        cte = select([
+            cte.c.c,
+            func.length(cte.c.c).label("len"),
+            cte.c.orig
+        ]).select_from(cte).cte()
         return cte
 
     def profile(self):
@@ -317,13 +322,27 @@ class StringColumnProfiler(BaseColumnProfiler):
                 func.count().label("_total"),
                 func.count(cte.c.orig).label("_non_nulls"),
                 func.count(cte.c.c).label("_valid"),
-                func.count(distinct(cte.c.c)).label("_distinct")
+                func.count(distinct(cte.c.c)).label("_distinct"),
+                func.sum(cte.c.len).label("_sum"),
+                func.avg(cte.c.len).label("_avg"),
+                func.min(cte.c.len).label("_min"),
+                func.max(cte.c.len).label("_max"),
+                func.avg(func.cast(cte.c.len, Float) * func.cast(cte.c.len, Float)).label("_square_avg"),
             ])
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _valid, _distinct = result
-            distribution = None
-            if _non_null > 0:
-                distribution = profile_topk(conn, cte.c.c)
+            _total, _non_null, _valid, _distinct, _sum, _avg, _min, _max, _square_avg = result
+            _sum = dtof(_sum)
+            _min = dtof(_min)
+            _max = dtof(_max)
+            _avg = dtof(_avg)
+            _square_avg = dtof(_square_avg)
+            _stddev = math.sqrt(_square_avg - _avg * _avg) if _square_avg and _avg else None
+            topk = None
+            if _valid > 0:
+                topk = profile_topk(conn, cte.c.c)
+            histogram = None
+            if _valid > 0:
+                histogram = profile_histogram(conn, cte, cte.c.len, _min, _max, True)
             return {
                 'total': _total,
                 'non_nulls': _non_null,
@@ -331,7 +350,14 @@ class StringColumnProfiler(BaseColumnProfiler):
                 'valid': _valid,
                 'mismatched': _non_null - _valid,
                 'distinct': _distinct,
-                'distribution': distribution,
+                'min': _min,
+                'max': _max,
+                'sum': _sum,
+                'avg': _avg,
+                'stddev': _stddev,
+                'topk': topk,
+                'histogram': histogram,
+                'distribution': topk,
             }
 
 
@@ -387,7 +413,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
 
             if _valid > 0:
                 quantile = self._profile_quantile(conn, cte, cte.c.c, _valid)
-                distribution = self._profile_histogram(conn, cte, cte.c.c, _min, _max, self.is_integer)
+                distribution = profile_histogram(conn, cte, cte.c.c, _min, _max, self.is_integer)
             else:
                 quantile = {}
                 distribution = None
@@ -403,9 +429,9 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 'max': _max,
                 'sum': _sum,
                 'avg': _avg,
+                'stddev': _stddev,
                 'p5': quantile.get('p5'),
                 'p25': quantile.get('p25'),
-                'stddev': _stddev,
                 'p50': quantile.get('p50'),
                 'p75': quantile.get('p75'),
                 'p95': quantile.get('p95'),
@@ -808,3 +834,89 @@ def profile_topk(conn, expr, k=20) -> dict:
         topk["labels"].append(k)
         topk["counts"].append(v)
     return topk
+
+
+def profile_histogram(
+    conn: Connection,
+    table: FromClause,
+    column: ColumnClause,
+    min: Union[int, float],
+    max: Union[int, float],
+    is_integer: bool,
+    num_buckets: int = HISTOGRAM_NUM_BUCKET
+) -> dict:
+    if is_integer:
+        # min=0, max=50, num_buckets=50  => interval=1, num_buckets=51
+        # min=0, max=70, num_buckets=50  => interval=2, num_buckets=36
+        # min=0, max=100, num_buckets=50 => interval=2, num_buckets=51
+        interval = math.ceil((max - min) / num_buckets) if max > min else 1
+        num_buckets = math.ceil((max - min + 1) / interval)
+    else:
+        interval = (max - min) / num_buckets if max > min else 1
+
+    cases = []
+    for i in range(num_buckets):
+        bound = min + interval * (i + 1)
+        if i != num_buckets - 1:
+            cases += [(column < bound, i)]
+        else:
+            cases += [(column < bound + interval / 100, i)]
+
+    cte_with_bucket = select([
+        column.label("c"),
+        case(cases, else_=None).label("bucket")
+    ]).select_from(
+        table
+    ).where(
+        column.isnot(None)
+    ).cte()
+
+    stmt = select([
+        cte_with_bucket.c.bucket,
+        func.count().label("_count")
+    ]).group_by(
+        cte_with_bucket.c.bucket
+    ).order_by(
+        cte_with_bucket.c.bucket
+    )
+
+    result = conn.execute(stmt)
+
+    counts = []
+    labels = []
+    bin_edges = []
+    for i in range(num_buckets):
+        if is_integer:
+            start = min + i * interval
+            end = min + (i + 1) * interval
+            if interval == 1:
+                label = f"{start}"
+            else:
+                label = f"{start} _ {end}"
+        else:
+            if interval >= 1:
+                start = min + i * interval
+                end = min + (i + 1) * interval
+            else:
+                start = min + i / (1 / interval)
+                end = min + (i + 1) / (1 / interval)
+
+            label = f"{format_float(start)} _ {format_float(end)}"
+
+        labels.append(label)
+        counts.append(0)
+        bin_edges.append(start)
+        if i == num_buckets - 1:
+            bin_edges.append(end)
+
+    for row in result:
+        _bucket, v = row
+        if _bucket is None:
+            continue
+        counts[int(_bucket)] = v
+    return {
+        "type": "histogram",
+        "labels": labels,
+        "counts": counts,
+        "bin_edges": bin_edges,
+    }
