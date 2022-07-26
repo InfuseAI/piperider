@@ -116,6 +116,7 @@ export function useSingleChart<T extends { [key: string]: any }>({
 
     return () => {
       svg.select('svg').remove();
+      tooltip.select('.chart_tooltip').remove();
     };
   }, [target, dimensions, data]);
 }

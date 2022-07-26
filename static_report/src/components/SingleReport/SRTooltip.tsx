@@ -19,7 +19,7 @@ export function SRTooltip({ label, prefix, children, ...props }: Props) {
   );
 
   return (
-    <Tooltip label={richLabel} {...props}>
+    <Tooltip label={richLabel} {...props} closeOnEsc={true}>
       {children}
     </Tooltip>
   );
