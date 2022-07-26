@@ -5,6 +5,10 @@ from sqlalchemy import *
 from typing import List
 
 
+def almost_equal(x, y, threshold=0.01):
+    return abs(x - y) < threshold
+
+
 class TestProfiler:
     engine = None
 
@@ -139,7 +143,7 @@ class TestProfiler:
 
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result['avg'] == 472.0
-        assert abs(result['stddev'] - 376.47) < 0.01
+        assert almost_equal(result['stddev'], 376.47)
         assert result['sum'] == 2360
         assert result['min'] == 10
         assert result['p5'] == 10
@@ -238,7 +242,7 @@ class TestProfiler:
 
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result['avg'] == 448
-        assert abs(result['stddev'] - 407.69) < 0.01
+        assert almost_equal(result['stddev'], 407.69)
         assert result['sum'] == 2240
         assert result['min'] == -110
         assert result['p5'] == -110
@@ -310,10 +314,16 @@ class TestProfiler:
             Column("str", String)
         ])
         profiler = Profiler(engine)
-        result = profiler.profile()
-        assert result["tables"]["test"]['columns']["str"]["distribution"]["counts"][0] == 2
-        assert result["tables"]["test"]['columns']["str"]["distribution"]["counts"][-1] == 1
-        assert len(result["tables"]["test"]['columns']["str"]["distribution"]["counts"]) == 6
+        result = profiler.profile()["tables"]["test"]['columns']["str"]
+        assert result["min"] == 0
+        assert result["max"] == 11
+        assert almost_equal(result["avg"], 5.57)
+        assert almost_equal(result["stddev"], 3.54)
+        assert result["histogram"]["counts"][0] == 1
+        assert result["histogram"]["counts"][-1] == 1
+        assert result["topk"]["counts"][0] == 2
+        assert result["topk"]["counts"][-1] == 1
+        assert len(result["topk"]["counts"]) == 6
 
     def test_string_mismatched(self):
         engine = self.engine = create_engine('sqlite://')
