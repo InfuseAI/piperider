@@ -3,6 +3,7 @@ import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 
 import type { ColumnSchema } from '../sdlc/single-report-schema';
+import { result } from 'cypress/types/lodash';
 
 /**
  * "Formatters" -- these are your data formatting that returns a formatted value for UI presentation (e.g. number, string, falsey)
@@ -103,7 +104,7 @@ export function formatTestExpectedOrActual(value) {
      (1) a:100 => a
      (1) a:100, b:99, c:99 => a
  */
-export function getSRModeMetrics(column: ColumnSchema) {
+export function formatModeMetrics(column: ColumnSchema) {
   if (column.type !== 'string') {
     return null;
   }
@@ -147,4 +148,85 @@ export function formatColumnValueWith(
  */
 export function formatTruncateString(input: string, end: number) {
   return input.length >= end ? input.slice(0, end) + '...' : input;
+}
+/**
+    <10? = Display 1 Digit, or 1 Digit + 1 Decimal -- round@single-decimal
+
+    <1,000? = Display 0 Decimal Places (e.g. 614) --round@single-digit
+
+    <10,000? = Display in 1,000s (Ks) (e.g. 4.5K) --round@single-decimal^
+
+    <100,000? = Display in 1,000,000s (Ms) (e.g. 5.2M) --round@single-decimal^
+    <1,000,000,000? = Display in 1,000,000s (Ms) (e.g. 956M) --round@single-decimal^
+    
+    >=1,000,000,000? = Use E notation to 1 digit. (e.g. 3ᴇ9, 6ᴇ12) --pure scientific method
+    ## only ever 1 DP or 0 DP (depending on magnitude), not more. ##
+
+    Round down if Min Value (e.g. 6.8 => 6) 
+    Round up if Max Value (e.g. 6.8 => 7)
+ * @param input 
+ * @returns 
+ */
+export function formatAsAbbreviatedNumber(
+  input: number | string,
+  rounding?: string,
+) {
+  const billion = 1000000000;
+  const million = 1000000;
+  const thousand = 1000;
+  const hundredThousand = thousand * 1000;
+  // handle rounding on Min/Max values (up|down)
+  const _edgeRound = (num: number) => {
+    if (rounding === 'up') return Math.ceil(num);
+    if (rounding === 'down') return Math.floor(num);
+    return num;
+  };
+
+  // type guard for numbers (e.g. datetime strings)
+  if (typeof input !== 'number') return input;
+  else {
+    // avoid conditional checks for negative ranges
+    // (use this only for qualifying amount groups)
+    const inputAsPositive = Math.abs(input);
+
+    // format as scientific e-notation when really big
+    if (inputAsPositive >= billion)
+      return new Intl.NumberFormat('en-US', {
+        notation: 'scientific',
+        maximumFractionDigits: 1,
+      }).format(_edgeRound(input));
+    // format as 'M' for million between 100k and 1000k
+    else if (inputAsPositive >= hundredThousand && inputAsPositive < billion)
+      return new Intl.NumberFormat('en-US', {
+        style: 'unit',
+        unit: 'liter', //just a placeholder
+        unitDisplay: 'narrow',
+        maximumFractionDigits: 1,
+      })
+        .format(_edgeRound(input / million))
+        .replace('L', 'M');
+    // format as 'K' for thousand between 1k and 99.9k
+    else if (inputAsPositive >= thousand && inputAsPositive < hundredThousand)
+      return new Intl.NumberFormat('en-US', {
+        style: 'unit',
+        unit: 'liter', //just a placeholder
+        unitDisplay: 'narrow',
+        maximumFractionDigits: 1,
+      })
+        .format(_edgeRound(input / thousand))
+        .replace('L', 'K');
+    // format the hundred's as no-decimal value
+    else if (inputAsPositive >= 10 && inputAsPositive < thousand)
+      return new Intl.NumberFormat('en-US', {
+        maximumFractionDigits: 0,
+      }).format(_edgeRound(input));
+    // format the single's with 1-decimal value
+    else if (inputAsPositive >= 0 && inputAsPositive < 10)
+      return new Intl.NumberFormat('en-US', {
+        maximumFractionDigits: 1,
+      }).format(_edgeRound(input));
+  }
+
+  //else
+  return null;
 }

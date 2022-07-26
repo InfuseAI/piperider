@@ -3,7 +3,7 @@ import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
-  getSRModeMetrics,
+  formatModeMetrics,
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
@@ -31,7 +31,7 @@ export const ColumnTypeDetailString: React.FC<Props> = ({ columnDatum }) => {
       <Flex justify={'space-evenly'}>
         <MetricCell
           label={'MOST COMMON'}
-          value={getSRModeMetrics(columnDatum)}
+          value={formatModeMetrics(columnDatum)}
         />
       </Flex>
     </Flex>

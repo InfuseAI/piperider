@@ -10,12 +10,6 @@ import { ColumnTypeDetailDatetime } from './ColumnTypeDetail/ColumnTypeDetailDat
 import { ColumnTypeDetailNumeric } from './ColumnTypeDetail/ColumnTypeDetailNumeric';
 import { ColumnTypeDetailString } from './ColumnTypeDetail/ColumnTypeDetailString';
 
-/**
-   *"type": {
-      "enum": [
-      ]
-    },
-   */
 interface Props {
   columnDatum: ColumnSchema;
   children: ReactNode;
@@ -41,11 +35,10 @@ export function ColumnCard({ columnDatum, children }: Props) {
           // DEFINED [DEV RDY!]
           // "string",
           // "boolean", <- as categorical now
-          // "datetime",
+          // "datetime", // "date",
           // "numeric",
           // // UNDEFINED DESIGNS/SPECS
           // "integer",
-          // "date",
           // "time",
           // "other"
         }

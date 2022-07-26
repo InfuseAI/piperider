@@ -3,7 +3,7 @@ import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
-  getSRModeMetrics,
+  formatModeMetrics,
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
@@ -22,7 +22,10 @@ export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
       <Divider />
       {/* FIXME: Change to correct categorical count */}
       <MetricCell label={'TOTAL CATEGORIES'} value={total} />
-      <MetricCell label={'MOST COMMON'} value={getSRModeMetrics(columnDatum)} />
+      <MetricCell
+        label={'MOST COMMON'}
+        value={formatModeMetrics(columnDatum)}
+      />
     </Flex>
   );
 };
