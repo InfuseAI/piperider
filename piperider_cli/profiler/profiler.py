@@ -2,14 +2,14 @@ import decimal
 import math
 import time
 from datetime import datetime, date
-from typing import Union, List
+from typing import Union, List, Tuple
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, select, func, \
     distinct, case
 from sqlalchemy.sql import FromClause
 from sqlalchemy.sql.elements import ColumnClause
-from sqlalchemy.sql.expression import CTE
+from sqlalchemy.sql.expression import CTE, false, true
 from sqlalchemy.types import Float
 from sqlalchemy.engine import Engine, Connection
 from .event import ProfilerEventHandler, DefaultProfilerEventHandler
@@ -753,7 +753,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
         column: ColumnClause,
         min: Union[date, datetime],
         max: Union[date, datetime]
-    ) -> tuple[dict, str]:
+    ) -> Tuple[dict, str]:
         """
         Profile the histogram of a datetime column. There are three way to create bins of the histogram
 
@@ -869,15 +869,15 @@ class BooleanColumnProfiler(BaseColumnProfiler):
         else:
             cte = select([
                 case(
-                    [(c == True, c),
-                     (c == False, c)],
+                    [(c == true(), c),
+                     (c == false(), c)],
                     else_=None
                 ).label("c"),
                 c.label("orig"),
             ]).cte()
         cte = select([
             cte.c.c,
-            case([(cte.c.c == True, 1)], else_=None).label("true_count"),
+            case([(cte.c.c == true(), 1)], else_=None).label("true_count"),
             cte.c.orig
         ]).select_from(cte).cte()
         return cte
@@ -897,9 +897,6 @@ class BooleanColumnProfiler(BaseColumnProfiler):
             _total, _non_nulls, _valids, _trues, _distinct = result
             _falses = _valids - _trues
 
-            distribution = None
-            if _valids > 0:
-                distribution = profile_topk(conn, cte.c.c, 3)
             return {
                 'total': _total,
                 'non_nulls': _non_nulls,
