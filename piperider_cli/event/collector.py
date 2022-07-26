@@ -1,11 +1,12 @@
-import os
 import json
+import os
 import sys
-from re import I
 import time
-import requests
-import portalocker
 from datetime import datetime
+
+import portalocker
+import requests
+
 from piperider_cli import __version__
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 
@@ -48,6 +49,7 @@ class Collector:
             user_properties=dict(
                 version=__version__,
                 python_version=python_version,
+                platform=sys.platform,
             ),
             event_properties=prop,
         )

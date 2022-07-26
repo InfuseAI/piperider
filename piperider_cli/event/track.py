@@ -67,4 +67,5 @@ class TrackCommand(Command):
             sentry_sdk.flush()
             sys.exit(1)
         finally:
-            event.log_event(ctx.command.name, ctx.params, status)
+            event.log_usage_event(ctx.command.name, ctx.params, status)
+            event.flush_events(ctx.command.name)

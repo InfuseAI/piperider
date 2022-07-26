@@ -10,12 +10,12 @@ from rich.syntax import Syntax
 from piperider_cli import __version__, event
 from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_generator import AssertionGenerator
+from piperider_cli.compare_report import CompareReport
 from piperider_cli.event.track import TrackCommand
+from piperider_cli.generate_report import GenerateReport
 from piperider_cli.guide import Guide
 from piperider_cli.initializer import Initializer
 from piperider_cli.runner import Runner
-from piperider_cli.generate_report import GenerateReport
-from piperider_cli.compare_report import CompareReport
 from piperider_cli.validator import Validator
 
 
@@ -46,6 +46,7 @@ sentry_sdk.init(
     traces_sample_rate=1.0
 )
 sentry_sdk.set_tag("piperider.version", __version__)
+sentry_sdk.set_tag("platform", sys.platform)
 
 event.init()
 
