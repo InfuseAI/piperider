@@ -81,17 +81,27 @@ class TestProfiler:
             ("col",),
             (0,),
             (20,),
+            (None,),
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
-        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
-        assert result["labels"][0] == '0'
-        assert result["counts"][0] == 1
-        assert result["labels"][20] == '20'
-        assert result["counts"][20] == 1
-        assert result["counts"][5] == 0
-        assert result["bin_edges"][0] == 0
-        assert result["bin_edges"][21] == 21
+        result = profiler.profile()["tables"]["test"]['columns']["col"]
+        assert result["total"] == 3
+        assert result["nulls"] == 1
+        assert result["non_nulls"] == 2
+        assert result["valids"] == 2
+        assert result["invalids"] == 0
+        assert result["zeros"] == 1
+        assert result["negatives"] == 0
+        assert result["positives"] == 1
+
+        assert result["distribution"]["labels"][0] == '0'
+        assert result["distribution"]["counts"][0] == 1
+        assert result["distribution"]["labels"][20] == '20'
+        assert result["distribution"]["counts"][20] == 1
+        assert result["distribution"]["counts"][5] == 0
+        assert result["distribution"]["bin_edges"][0] == 0
+        assert result["distribution"]["bin_edges"][21] == 21
 
         #
         engine = self.engine = create_engine('sqlite://')
@@ -184,20 +194,32 @@ class TestProfiler:
 
         data = [
             ("col",),
+            (-20.0,),
             (0.0,),
             (20.0,),
+            (None,),
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
 
         result = profiler.profile()["tables"]["test"]['columns']["col"]
-        assert result['avg'] == 10
-        assert result['stddev'] == 10
-        assert result['sum'] == 20
-        assert result['min'] == 0
-        assert result['p5'] == 0
-        assert result['p25'] == 0
-        assert result['p50'] == 20
+
+        assert result["total"] == 4
+        assert result["nulls"] == 1
+        assert result["non_nulls"] == 3
+        assert result["valids"] == 3
+        assert result["invalids"] == 0
+        assert result["zeros"] == 1
+        assert result["negatives"] == 1
+        assert result["positives"] == 1
+
+        assert result['avg'] == 0
+        assert almost_equal(result['stddev'], 16.33)
+        assert result['sum'] == 0
+        assert result['min'] == -20
+        assert result['p5'] == -20
+        assert result['p25'] == -20
+        assert result['p50'] == 0
         assert result['p75'] == 20
         assert result['p95'] == 20
         assert result['max'] == 20
@@ -205,7 +227,7 @@ class TestProfiler:
         result = result["distribution"]
         assert result["counts"][0] == 1
         assert result["counts"][49] == 1
-        assert result["counts"][25] == 0
+        assert result["counts"][25] == 1
 
         #
         engine = self.engine = create_engine('sqlite://')
@@ -278,7 +300,7 @@ class TestProfiler:
         assert result['max'] is None
         assert result['distribution'] is None
 
-    def test_numeric_mismatched(self):
+    def test_numeric_invalid(self):
         engine = self.engine = create_engine('sqlite://')
 
         data = [
@@ -294,7 +316,7 @@ class TestProfiler:
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 5
         assert result["non_nulls"] == 4
-        assert result["mismatched"] == 2
+        assert result["invalids"] == 2
 
     def test_string_metrics(self):
         engine = self.engine = create_engine('sqlite://')
@@ -315,6 +337,15 @@ class TestProfiler:
         ])
         profiler = Profiler(engine)
         result = profiler.profile()["tables"]["test"]['columns']["str"]
+
+        assert result["total"] == 8
+        assert result["nulls"] == 1
+        assert result["non_nulls"] == 7
+        assert result["valids"] == 7
+        assert result["invalids"] == 0
+        assert result["zero_length"] == 1
+        assert result["non_zero_length"] == 6
+
         assert result["min"] == 0
         assert result["max"] == 11
         assert almost_equal(result["avg"], 5.57)
@@ -325,7 +356,7 @@ class TestProfiler:
         assert result["topk"]["counts"][-1] == 1
         assert len(result["topk"]["counts"]) == 6
 
-    def test_string_mismatched(self):
+    def test_string_invalid(self):
         engine = self.engine = create_engine('sqlite://')
 
         data = [
@@ -343,13 +374,32 @@ class TestProfiler:
         with engine.connect() as conn:
             conn.execute("insert into test values (x'A1B2')")
         profiler = Profiler(engine)
-        result = profiler.profile()
-        assert result["tables"]["test"]['columns']["str"]["total"] == 7
-        assert result["tables"]["test"]['columns']["str"]["non_nulls"] == 6
-        assert result["tables"]["test"]['columns']["str"]["valid"] == 5
-        assert result["tables"]["test"]['columns']["str"]["mismatched"] == 1
+        result = profiler.profile()["tables"]["test"]['columns']["str"]
+        assert result["total"] == 7
+        assert result["non_nulls"] == 6
+        assert result["valids"] == 5
+        assert result["invalids"] == 1
 
-    def test_datetime_mismatched(self):
+    def test_datetime_metric(self):
+        engine = self.engine = create_engine('sqlite://')
+
+        data = [
+            ("col",),
+            (date(2021, 1, 1),),
+            (datetime(2021, 1, 1),),
+            (None,),
+        ]
+
+        self.create_table("test", data, columns=[Column("col", DateTime)])
+        profiler = Profiler(engine)
+        result = profiler.profile()["tables"]["test"]['columns']["col"]
+        assert result["total"] == 3
+        assert result["non_nulls"] == 2
+        assert result["nulls"] == 1
+        assert result["invalids"] == 0
+        assert result["valids"] == 2
+
+    def test_datetime_invalid(self):
         engine = self.engine = create_engine('sqlite://')
 
         data = [
@@ -370,9 +420,31 @@ class TestProfiler:
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 8
         assert result["non_nulls"] == 7
-        assert result["mismatched"] == 2
+        assert result["invalids"] == 2
 
-    def test_boolean_mismatched(self):
+    def test_boolean_metric(self):
+        engine = self.engine = create_engine('sqlite://')
+
+        data = [
+            ("col",),
+            (True,),
+            (True,),
+            (False,),
+            (None,),
+        ]
+
+        self.create_table("test", data, columns=[Column("col", Boolean)])
+        profiler = Profiler(engine)
+        result = profiler.profile()["tables"]["test"]['columns']["col"]
+        assert result["total"] == 4
+        assert result["nulls"] == 1
+        assert result["non_nulls"] == 3
+        assert result["valids"] == 3
+        assert result["invalids"] == 0
+        assert result["trues"] == 2
+        assert result["falses"] == 1
+
+    def test_boolean_invalid(self):
         engine = self.engine = create_engine('sqlite://')
 
         data = [
@@ -384,16 +456,16 @@ class TestProfiler:
             conn.execute("PRAGMA ignore_check_constraints = 1")
             conn.execute("insert into test values (0)")
             conn.execute("insert into test values (1)")
-            conn.execute("insert into test values (2.3)")  # mismatched
+            conn.execute("insert into test values (2.3)")  # invalid
             conn.execute("insert into test values ('1')")
-            conn.execute("insert into test values ('123')")  # mismatched
-            conn.execute("insert into test values (x'A1B2')")  # mismatched
+            conn.execute("insert into test values ('123')")  # invalid
+            conn.execute("insert into test values (x'A1B2')")  # invalid
             conn.execute("insert into test values (NULL)")
         profiler = Profiler(engine)
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 7
         assert result["non_nulls"] == 6
-        assert result["mismatched"] == 3
+        assert result["invalids"] == 3
 
     def test_date_boundary(self):
         # yearly
