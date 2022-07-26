@@ -364,6 +364,13 @@ class StringColumnProfiler(BaseColumnProfiler):
                 'stddev': _stddev,
             }
 
+            # uniqueness
+            _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
+            result.update({
+                "duplicates": _valids - _non_duplicates,
+                "non_duplicates": _non_duplicates,
+            })
+
             # top k
             topk = None
             if _valids > 0:
@@ -463,6 +470,13 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 'avg': _avg,
                 'stddev': _stddev,
             }
+
+            # uniqueness
+            _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
+            result.update({
+                "duplicates": _valids - _non_duplicates,
+                "non_duplicates": _non_duplicates,
+            })
 
             # histogram
             histogram = None
@@ -708,6 +722,13 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 'max': _max.isoformat() if _max is not None else None,
             }
 
+            # uniqueness
+            _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
+            result.update({
+                "duplicates": _valids - _non_duplicates,
+                "non_duplicates": _non_duplicates,
+            })
+
             # histogram
             histogram = None
             _type = None
@@ -848,15 +869,15 @@ class BooleanColumnProfiler(BaseColumnProfiler):
         else:
             cte = select([
                 case(
-                    [(c.is_(True), c),
-                     (c.is_(False), c)],
+                    [(c == True, c),
+                     (c == False, c)],
                     else_=None
                 ).label("c"),
                 c.label("orig"),
             ]).cte()
         cte = select([
             cte.c.c,
-            case([(cte.c.c.is_(True), 1)], else_=None).label("true_count"),
+            case([(cte.c.c == True, 1)], else_=None).label("true_count"),
             cte.c.orig
         ]).select_from(cte).cte()
         return cte
@@ -1007,3 +1028,34 @@ def profile_histogram(
         "counts": counts,
         "bin_edges": bin_edges,
     }
+
+
+def profile_non_duplicate(
+    conn: Connection,
+    table: FromClause,
+    column: ColumnClause,
+) -> int:
+    # with t as (
+    #     select count(column) as c
+    # from table
+    # group by column
+    # having c == 1
+    # )
+    # select
+    # count(c) as non_duplicate
+    # from t;
+    cte = select([
+        func.count(column).label("non_duplicates")
+    ]).select_from(
+        table
+    ).where(
+        column.isnot(None)
+    ).group_by(
+        column
+    ).having(
+        func.count(column) == 1
+    ).cte()
+
+    stmt = select([func.count(cte.c.non_duplicates)]).select_from(cte)
+    non_duplicates, = conn.execute(stmt).fetchone()
+    return non_duplicates
