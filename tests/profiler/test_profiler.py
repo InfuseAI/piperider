@@ -95,13 +95,14 @@ class TestProfiler:
         assert result["negatives"] == 0
         assert result["positives"] == 1
 
-        assert result["distribution"]["labels"][0] == '0'
-        assert result["distribution"]["counts"][0] == 1
-        assert result["distribution"]["labels"][20] == '20'
-        assert result["distribution"]["counts"][20] == 1
-        assert result["distribution"]["counts"][5] == 0
-        assert result["distribution"]["bin_edges"][0] == 0
-        assert result["distribution"]["bin_edges"][21] == 21
+        histogram = result["histogram"]
+        assert histogram["labels"][0] == '0'
+        assert histogram["counts"][0] == 1
+        assert histogram["labels"][20] == '20'
+        assert histogram["counts"][20] == 1
+        assert histogram["counts"][5] == 0
+        assert histogram["bin_edges"][0] == 0
+        assert histogram["bin_edges"][21] == 21
 
         #
         engine = self.engine = create_engine('sqlite://')
@@ -131,7 +132,7 @@ class TestProfiler:
         self.create_table("test", data)
         profiler = Profiler(engine)
 
-        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+        result = profiler.profile()["tables"]["test"]['columns']["col"]["histogram"]
         assert result["labels"][0] == '0'
         assert result["counts"][0] == 1
         assert result["bin_edges"][0] == 0
@@ -163,7 +164,7 @@ class TestProfiler:
         assert result['p95'] == 1000
         assert result['max'] == 1000
 
-        result = result["distribution"]
+        result = result["histogram"]
         assert result["labels"][0] == '10 _ 30'
         assert result["counts"][0] == 1
         assert result["labels"][49] == '990 _ 1010'
@@ -224,7 +225,7 @@ class TestProfiler:
         assert result['p95'] == 20
         assert result['max'] == 20
 
-        result = result["distribution"]
+        result = result["histogram"]
         assert result["counts"][0] == 1
         assert result["counts"][49] == 1
         assert result["counts"][25] == 1
@@ -241,7 +242,7 @@ class TestProfiler:
         ]
         self.create_table("test", data)
         profiler = Profiler(engine)
-        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+        result = profiler.profile()["tables"]["test"]['columns']["col"]["histogram"]
         assert result["labels"][0] == '10.00 _ 29.80'
         assert result["counts"][0] == 1
         assert result["labels"][49] == '980.20 _ 1.0K'
@@ -274,7 +275,7 @@ class TestProfiler:
         assert result['p95'] == 1000
         assert result['max'] == 1000
 
-        result = result["distribution"]
+        result = result["histogram"]
         assert result["labels"][0] == '-110.00 _ -87.80'
         assert result["counts"][0] == 1
         assert result["labels"][27] == '489.40 _ 511.60'
@@ -480,14 +481,13 @@ class TestProfiler:
         profiler = Profiler(engine)
         result = profiler.profile()
         cresult = result["tables"]["test"]['columns']["date"]
-        distribution = cresult["distribution"]
+        histogram = cresult["histogram"]
         assert cresult["min"] == '1900-05-26'
         assert cresult["max"] == '2022-07-26'
-        assert distribution["type"] == 'yearly'
-        assert distribution["counts"][0] == 1
-        assert distribution["counts"][-1] == 2
-        assert distribution["bin_edges"][0] == "1900-01-01"
-        assert distribution["bin_edges"][-1] == "2023-01-01"
+        assert histogram["counts"][0] == 1
+        assert histogram["counts"][-1] == 2
+        assert histogram["bin_edges"][0] == "1900-01-01"
+        assert histogram["bin_edges"][-1] == "2023-01-01"
 
         # monthly
         engine = self.engine = create_engine('sqlite://')
@@ -501,14 +501,13 @@ class TestProfiler:
         profiler = Profiler(engine)
         result = profiler.profile()
         cresult = result["tables"]["test"]['columns']["date"]
-        distribution = cresult["distribution"]
+        histogram = cresult["histogram"]
         assert cresult["min"] == '2021-12-25'
         assert cresult["max"] == '2022-02-26'
-        assert distribution["type"] == 'monthly'
-        assert distribution["counts"][0] == 1
-        assert distribution["counts"][-1] == 2
-        assert distribution["bin_edges"][0] == "2021-12-01"
-        assert distribution["bin_edges"][-1] == "2022-03-01"
+        assert histogram["counts"][0] == 1
+        assert histogram["counts"][-1] == 2
+        assert histogram["bin_edges"][0] == "2021-12-01"
+        assert histogram["bin_edges"][-1] == "2022-03-01"
 
         # daily
         engine = self.engine = create_engine('sqlite://')
@@ -522,14 +521,13 @@ class TestProfiler:
         profiler = Profiler(engine)
         result = profiler.profile()
         cresult = result["tables"]["test"]['columns']["date"]
-        distribution = cresult["distribution"]
+        histogram = cresult["histogram"]
         assert cresult["min"] == '2022-06-24T00:00:00'
         assert cresult["max"] == '2022-07-26T01:02:03'
-        assert distribution["type"] == 'daily'
-        assert distribution["counts"][0] == 1
-        assert distribution["counts"][-1] == 2
-        assert distribution["bin_edges"][0] == "2022-06-24"
-        assert distribution["bin_edges"][-1] == "2022-07-27"
+        assert histogram["counts"][0] == 1
+        assert histogram["counts"][-1] == 2
+        assert histogram["bin_edges"][0] == "2022-06-24"
+        assert histogram["bin_edges"][-1] == "2022-07-27"
 
         # one record or min=max
         engine = self.engine = create_engine('sqlite://')
@@ -542,14 +540,13 @@ class TestProfiler:
         profiler = Profiler(engine)
         result = profiler.profile()
         cresult = result["tables"]["test"]['columns']["date"]
-        distribution = cresult["distribution"]
+        histogram = cresult["histogram"]
         assert cresult["min"] == '2022-01-01'
         assert cresult["max"] == '2022-01-01'
-        assert distribution["type"] == 'daily'
-        assert distribution["counts"][0] == 2
-        assert distribution["counts"][-1] == 2
-        assert distribution["bin_edges"][0] == "2022-01-01"
-        assert distribution["bin_edges"][-1] == "2022-01-02"
+        assert histogram["counts"][0] == 2
+        assert histogram["counts"][-1] == 2
+        assert histogram["bin_edges"][0] == "2022-01-01"
+        assert histogram["bin_edges"][-1] == "2022-01-02"
 
     def test_empty_table(self):
         engine = self.engine = create_engine('sqlite://')
@@ -560,23 +557,24 @@ class TestProfiler:
         self.create_table("test", data, columns=[Column("num", Integer), Column("str", String)])
         profiler = Profiler(engine)
         result = profiler.profile()
-        assert result["tables"]["test"]['columns']["num"]["distribution"] == None
-        assert result["tables"]["test"]['columns']["str"]["distribution"] == None
+        assert result["tables"]["test"]['columns']["num"]["histogram"] == None
+        assert result["tables"]["test"]['columns']["str"]["topk"] == None
 
     def test_one_row_table(self):
         engine = self.engine = create_engine('sqlite://')
 
         data = [
             ("num", "str", "num_empty"),
-            (1, "hello", None),
+            (1.0, "hello", None),
         ]
         self.create_table("test", data, columns=[
-            Column("num", Integer),
+            Column("num", Float),
             Column("str", String),
             Column("num_empty", Integer)
         ])
         profiler = Profiler(engine)
         result = profiler.profile()
-        assert result["tables"]["test"]['columns']["num"]["distribution"]["counts"][0] == 1
-        assert result["tables"]["test"]['columns']["str"]["distribution"]["counts"][0] == 1
-        assert result["tables"]["test"]['columns']["num_empty"]["distribution"] == None
+        assert result["tables"]["test"]['columns']["num"]["histogram"]["counts"][0] == 1
+        assert result["tables"]["test"]['columns']["str"]["topk"]["counts"][0] == 1
+        assert result["tables"]["test"]['columns']["num_empty"]["histogram"] == None
+        assert result["tables"]["test"]['columns']["num_empty"]["topk"] == None

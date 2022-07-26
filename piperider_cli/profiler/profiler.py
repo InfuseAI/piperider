@@ -343,14 +343,11 @@ class StringColumnProfiler(BaseColumnProfiler):
             _max = dtof(_max)
             _avg = dtof(_avg)
             _square_avg = dtof(_square_avg)
-            _stddev = math.sqrt(_square_avg - _avg * _avg) if _square_avg and _avg else None
-            topk = None
-            if _valids > 0:
-                topk = profile_topk(conn, cte.c.c)
-            histogram = None
-            if _valids > 0:
-                histogram = profile_histogram(conn, cte, cte.c.len, _min, _max, True)
-            return {
+            _stddev = None
+            if _square_avg is not None and _avg is not None:
+                _stddev = math.sqrt(_square_avg - _avg * _avg)
+
+            result = {
                 'total': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
@@ -365,10 +362,28 @@ class StringColumnProfiler(BaseColumnProfiler):
                 'sum': _sum,
                 'avg': _avg,
                 'stddev': _stddev,
-                'topk': topk,
-                'histogram': histogram,
-                'distribution': topk,
             }
+
+            # top k
+            topk = None
+            if _valids > 0:
+                topk = profile_topk(conn, cte.c.c)
+            result['topk'] = topk
+
+            # histogram of string length
+            histogram = None
+            if _valids > 0:
+                histogram = profile_histogram(conn, cte, cte.c.len, _min, _max, True)
+            result['histogram'] = histogram
+
+            # deprecated
+            result['distribution'] = {
+                "type": "topk",
+                "labels": topk["values"],
+                "counts": topk["counts"],
+            } if topk else None
+
+            return result
 
 
 class NumericColumnProfiler(BaseColumnProfiler):
@@ -431,14 +446,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
             if _square_avg is not None and _avg is not None:
                 _stddev = math.sqrt(_square_avg - _avg * _avg)
 
-            if _valids > 0:
-                quantile = self._profile_quantile(conn, cte, cte.c.c, _valids)
-                distribution = profile_histogram(conn, cte, cte.c.c, _min, _max, self.is_integer)
-            else:
-                quantile = {}
-                distribution = None
-
-            return {
+            result = {
                 'total': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
@@ -454,13 +462,42 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 'sum': _sum,
                 'avg': _avg,
                 'stddev': _stddev,
+            }
+
+            # histogram
+            histogram = None
+            if _valids > 0:
+                histogram = profile_histogram(conn, cte, cte.c.c, _min, _max, self.is_integer)
+            result['histogram'] = histogram
+
+            # quantile
+            quantile = {}
+            if _valids > 0:
+                quantile = self._profile_quantile(conn, cte, cte.c.c, _valids)
+            result.update({
                 'p5': quantile.get('p5'),
                 'p25': quantile.get('p25'),
                 'p50': quantile.get('p50'),
                 'p75': quantile.get('p75'),
                 'p95': quantile.get('p95'),
-                'distribution': distribution,
-            }
+            })
+
+            # top k (integer only)
+            if self.is_integer:
+                topk = None
+                if _valids > 0:
+                    topk = profile_topk(conn, cte.c.c)
+                result["topk"] = topk
+
+            # deprecated
+            result["distribution"] = {
+                "type": "histogram",
+                "labels": histogram["labels"],
+                "counts": histogram["counts"],
+                "bin_edges": histogram["bin_edges"],
+            } if histogram else None
+
+            return result
 
     def _profile_quantile(
         self,
@@ -659,11 +696,8 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 else:
                     _min = datetime.fromisoformat(_min) if isinstance(_min, str) else _min
                     _max = datetime.fromisoformat(_max) if isinstance(_max, str) else _max
-            distribution = None
-            if _min and _max:
-                distribution = self._profile_histogram(conn, cte, cte.c.c, _min, _max)
 
-            return {
+            result = {
                 'total': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
@@ -672,8 +706,24 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 'distinct': _distinct,
                 'min': _min.isoformat() if _min is not None else None,
                 'max': _max.isoformat() if _max is not None else None,
-                'distribution': distribution,
             }
+
+            # histogram
+            histogram = None
+            _type = None
+            if _min and _max:
+                histogram, _type = self._profile_histogram(conn, cte, cte.c.c, _min, _max)
+            result['histogram'] = histogram
+
+            # deprecated
+            result["distribution"] = {
+                "type": _type,
+                "labels": histogram["labels"],
+                "counts": histogram["counts"],
+                "bin_edges": histogram["bin_edges"],
+            } if histogram else None
+
+            return result
 
     def _profile_histogram(
         self,
@@ -682,7 +732,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
         column: ColumnClause,
         min: Union[date, datetime],
         max: Union[date, datetime]
-    ) -> dict:
+    ) -> tuple[dict, str]:
         """
         Profile the histogram of a datetime column. There are three way to create bins of the histogram
 
@@ -704,8 +754,8 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
         #     if isinstance(max, datetime):
         #         max = max.date()
 
-        distribution = {
-            "type": "",
+        _type = None
+        histogram = {
             "labels": [],
             "counts": [],
             "bin_edges": [],
@@ -724,7 +774,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
 
         days_delta = (max - min).days
         if days_delta > 365 * 4:
-            distribution["type"] = "yearly"
+            _type = "yearly"
             dmin = date(min.year, 1, 1)
             dmax = date(max.year, 1, 1) + relativedelta(years=+1)
             interval_years = math.ceil((dmax.year - dmin.year) / 50)
@@ -732,7 +782,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             num_buckets = math.ceil((dmax.year - dmin.year) / interval.years)
             cte = select([date_trunc("YEAR", column).label("d")]).select_from(table).cte()
         elif days_delta > 60:
-            distribution["type"] = "monthly"
+            _type = "monthly"
             interval = relativedelta(months=+1)
             dmin = date(min.year, min.month, 1)
             dmax = date(max.year, max.month, 1) + interval
@@ -740,7 +790,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             num_buckets = (period.years * 12 + period.months)
             cte = select([date_trunc("MONTH", column).label("d")]).select_from(table).cte()
         else:
-            distribution["type"] = "daily"
+            _type = "daily"
             interval = relativedelta(days=+1)
             dmin = date(min.year, min.month, min.day)
             dmax = date(max.year, max.month, max.day) + interval
@@ -760,10 +810,10 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
 
         for i in range(num_buckets):
             label = f"{dmin + i * interval} - {dmin + (i + 1) * interval}"
-            distribution["labels"].append(label)
-            distribution["bin_edges"].append(str(dmin + i * interval))
-            distribution["counts"].append(0)
-        distribution["bin_edges"].append(str(dmin + num_buckets * interval))
+            histogram["labels"].append(label)
+            histogram["bin_edges"].append(str(dmin + i * interval))
+            histogram["counts"].append(0)
+        histogram["bin_edges"].append(str(dmin + num_buckets * interval))
 
         for row in result:
             date_truncated, v = row
@@ -775,12 +825,12 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 date_truncated = date_truncated.date()
 
             for i in range(num_buckets):
-                date_edge = date.fromisoformat(distribution["bin_edges"][i + 1])
+                date_edge = date.fromisoformat(histogram["bin_edges"][i + 1])
                 if date_truncated < date_edge:
-                    distribution["counts"][i] += v
+                    histogram["counts"][i] += v
                     break
 
-        return distribution
+        return histogram, _type
 
 
 class BooleanColumnProfiler(BaseColumnProfiler):
@@ -824,6 +874,7 @@ class BooleanColumnProfiler(BaseColumnProfiler):
             ]).select_from(cte)
             result = conn.execute(stmt).fetchone()
             _total, _non_nulls, _valids, _trues, _distinct = result
+            _falses = _valids - _trues
 
             distribution = None
             if _valids > 0:
@@ -835,9 +886,15 @@ class BooleanColumnProfiler(BaseColumnProfiler):
                 'valids': _valids,
                 'invalids': _non_nulls - _valids,
                 'trues': _trues,
-                'falses': _valids - _trues,
+                'falses': _falses,
                 'distinct': _distinct,
-                'distribution': distribution,
+
+                # deprecated
+                'distribution': {
+                    'type': "topk",
+                    'labels': ["False", "True"],
+                    'counts': [_falses, _trues]
+                }
             }
 
 
@@ -855,15 +912,14 @@ def profile_topk(conn, expr, k=20) -> dict:
     result = conn.execute(stmt)
 
     topk = {
-        "type": "topk",  # Top K Items
-        "labels": [],
+        "values": [],
         "counts": [],
     }
     for row in result:
         k, v = row
         if k is not None:
             k = str(k)
-        topk["labels"].append(k)
+        topk["values"].append(k)
         topk["counts"].append(v)
     return topk
 
@@ -947,7 +1003,6 @@ def profile_histogram(
             continue
         counts[int(_bucket)] = v
     return {
-        "type": "histogram",
         "labels": labels,
         "counts": counts,
         "bin_edges": bin_edges,
