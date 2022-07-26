@@ -207,7 +207,7 @@ def generate_report(**kwargs):
 @click.option('--base', default=None, type=click.Path(exists=True), help='Specify the base report file.')
 @click.option('--target', default=None, type=click.Path(exists=True), help='Specify the report file to be compared.')
 @click.option('--last', default=None, is_flag=True, help='Compare the last two reports.')
-@click.option('--datasource', default=None, type=click.Path(exists=True), help='Specify the datasource.')
+@click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME', help='Specify the datasource.')
 @add_options(debug_option)
 def compare_reports(**kwargs):
     'Compare two existing reports selected in interactive mode or by option.'
