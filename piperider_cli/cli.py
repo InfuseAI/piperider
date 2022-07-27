@@ -73,10 +73,11 @@ def cli(ctx: click.Context):
         Guide().show_tips(ctx.command.name)
 
 
+# It works after click>=8
 cli.command_class = TrackCommand
 
 
-@cli.command(short_help='Show version information.')
+@cli.command(short_help='Show version information.', cls=TrackCommand)
 def version():
     'Show version information.'
     console = Console()
@@ -95,7 +96,7 @@ def version():
         pass
 
 
-@cli.command(short_help='Initialize a PipeRider project.')
+@cli.command(short_help='Initialize a PipeRider project.', cls=TrackCommand)
 @click.option('--no-auto-search', type=click.BOOL, default=False, is_flag=True,
               help="Disable auto detection of dbt projects.")
 @click.option('--dbt-project-dir', type=click.Path(exists=True), default=None,
@@ -139,7 +140,7 @@ def init(**kwargs):
         console.print(config)
 
 
-@cli.command(short_help='Check project configuration.')
+@cli.command(short_help='Check project configuration.', cls=TrackCommand)
 @add_options(debug_option)
 def diagnose(**kwargs):
     'Check project configuration, datasource, connections, and assertion configuration.'
@@ -153,7 +154,7 @@ def diagnose(**kwargs):
         sys.exit(1)
 
 
-@cli.command(short_help='Profile data source, run assertions, and generate report(s).')
+@cli.command(short_help='Profile data source, run assertions, and generate report(s).', cls=TrackCommand)
 @click.option('--datasource', default=None, type=click.STRING, help='Datasource to use.', metavar='DATASOURCE_NAME')
 @click.option('--table', default=None, type=click.STRING, help='Table to use.', metavar='TABLE_NAME')
 @click.option('--output', default=None, type=click.Path(), help='Directory to save the results.')
@@ -185,7 +186,7 @@ def run(**kwargs):
         GenerateReport.exec()
 
 
-@cli.command(short_help='Generate recommended assertions.')
+@cli.command(short_help='Generate recommended assertions.', cls=TrackCommand)
 @click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
 @add_options(debug_option)
 def generate_assertions(**kwargs):
@@ -194,7 +195,7 @@ def generate_assertions(**kwargs):
     AssertionGenerator.exec(input=input)
 
 
-@cli.command(short_help='Generate a report.')
+@cli.command(short_help='Generate a report.', cls=TrackCommand)
 @click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
 @add_options(debug_option)
 def generate_report(**kwargs):
@@ -203,7 +204,7 @@ def generate_report(**kwargs):
     GenerateReport.exec(input=kwargs.get('input'))
 
 
-@cli.command(short_help='Compare two existing reports.')
+@cli.command(short_help='Compare two existing reports.', cls=TrackCommand)
 @click.option('--base', default=None, type=click.Path(exists=True), help='Specify the base report file.')
 @click.option('--target', default=None, type=click.Path(exists=True), help='Specify the report file to be compared.')
 @add_options(debug_option)
