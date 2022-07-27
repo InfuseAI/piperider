@@ -35,6 +35,9 @@ def recommended_column_min_assertion(table, column, profiling_result) -> Recomme
     column_type = column_metric['type']
     if column_type == 'numeric':
         total = column_metric['total']
+        if not total:
+            return None
+
         column_min = column_metric['min']
         distribution_counts = column_metric['distribution']['counts'] if column_metric['distribution'] else []
 
@@ -63,6 +66,9 @@ def recommended_column_max_assertion(table, column, profiling_result) -> Recomme
     column_type = column_metric['type']
     if column_type == 'numeric':
         total = column_metric['total']
+        if not total:
+            return None
+
         column_max = column_metric['max']
         distribution_counts = column_metric['distribution']['counts'] if column_metric['distribution'] else []
 

@@ -193,7 +193,7 @@ class AssertionResult:
         if self._exception:
             return self
 
-        if not self.actual or not self._expected:
+        if self.actual is None or not self._expected:
             return self.fail_with_assertion_implementation_error()
 
         return self
