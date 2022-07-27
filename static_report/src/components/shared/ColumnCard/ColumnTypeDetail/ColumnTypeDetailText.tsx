@@ -9,7 +9,7 @@ import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
 
 type Props = { columnDatum: ColumnSchema };
-export const ColumnTypeDetailString: React.FC<Props> = ({ columnDatum }) => {
+export const ColumnTypeDetailText: React.FC<Props> = ({ columnDatum }) => {
   const { missing, distinct, distinctOfTotal } = getColumnDetails(columnDatum);
 
   return (
