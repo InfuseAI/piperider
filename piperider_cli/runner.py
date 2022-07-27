@@ -42,10 +42,7 @@ class RunEventPayload:
         # 'recommended-assertions': 0,
 
     def to_dict(self):
-        result = {}
-        for k, v in self.__dict__.items():
-            result[k.replace('_', '-')] = v
-        return result
+        return self.__dict__
 
 
 class RichProfilerEventHandler(ProfilerEventHandler):
