@@ -106,6 +106,17 @@ def version():
 def init(**kwargs):
     'Initialize a PipeRider project in interactive mode. The configurations are saved in ".piperider".'
 
+    from rich.console import Console
+    c = Console()
+    y = '''
+    foo: hi
+    bar:
+      - name: a
+        type: sqlite
+    '''
+    config = Syntax(y, "yaml", theme="monokai", line_numbers=True)
+    c.print(config, style="white")
+    sys.exit(0)
     console = Console()
     piperider_config_dir = os.path.join(os.getcwd(), '.piperider')
     # TODO show the process and message to users

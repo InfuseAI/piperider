@@ -26,6 +26,7 @@ def _test_ipython() -> bool:
     else:
         return True
 
+
 def _should_use_fancy_user_input() -> bool:
     env_flag = os.environ.get('PIPERIDER_FANCY_USER_INPUT', 'true').lower() == 'true'
     is_a_tty = sys.stdin.isatty() and sys.stdout.isatty()
