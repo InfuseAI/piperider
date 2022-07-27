@@ -14,6 +14,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
     ZColSchema.parse(baseColumn);
     var {
       totalOfTotal: baseTotalOfTotal,
+      valid: baseValid,
       total: baseTotal,
       mismatch: baseMismatch,
       missing: baseMissing,
@@ -48,7 +49,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       <MetricsInfo
         name="Valid"
         base={formatColumnValueWith(
-          targetColumn ? baseValidOfTotal : baseTotal,
+          targetColumn ? baseValidOfTotal : baseValid,
           targetColumn ? formatIntervalMinMax : formatNumber,
         )}
         target={formatColumnValueWith(
