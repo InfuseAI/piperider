@@ -24,6 +24,30 @@ from piperider_cli.error import PipeRiderCredentialError
 from piperider_cli.profiler import Profiler, ProfilerEventHandler
 
 
+class RunEventPayload:
+
+    def __init__(self):
+        # all fields
+        self.tables = 0
+        self.columns = []
+        self.rows = []
+        self.dbt_command = ''
+        self.passed_assertions = 0
+        self.failed_assertions = 0
+        self.passed_dbt_testcases = 0
+        self.failed_dbt_testcases = 0
+        # TODO: Modify assertion engine to provide following information
+        # 'build-in-assertions': 0,
+        # 'custom-assertions': 0,
+        # 'recommended-assertions': 0,
+
+    def to_dict(self):
+        result = {}
+        for k, v in self.__dict__.items():
+            result[k.replace('_', '-')] = v
+        return result
+
+
 class RichProfilerEventHandler(ProfilerEventHandler):
 
     def __init__(self, tables, ds):
@@ -284,12 +308,8 @@ def _show_dbt_test_result_summary(dbt_test_results, table: str = None):
 def _show_summary(profiled_result, assertion_results, assertion_exceptions, dbt_test_results, table=None):
     console = Console()
     tables = profiled_result.get('tables', []) if table is None else [table]
-    summary = {
-        'passed_assertions': 0,
-        'failed_assertions': 0,
-        'passed_dbt_tests': 0,
-        'failed_dbt_tests': 0,
-    }
+    event_payload = RunEventPayload()
+    event_payload.tables = len(tables)
 
     # Prepare PipeRider Assertions Summary
     ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta', box=box.SIMPLE_HEAVY)
@@ -299,12 +319,14 @@ def _show_summary(profiled_result, assertion_results, assertion_exceptions, dbt_
     ascii_table.add_column('#Tests Failed', style='bold red', justify='right')
 
     ascii_dbt_table, passed, failed = _show_dbt_test_result_summary(dbt_test_results)
-    summary['passed_dbt_tests'] = passed
-    summary['failed_dbt_tests'] = failed
+    event_payload.passed_dbt_testcases = passed
+    event_payload.failed_dbt_testcases = failed
     for t in tables:
         passed, failed = _show_table_summary(ascii_table, t, profiled_result, assertion_results)
-        summary['passed_assertions'] += passed
-        summary['failed_assertions'] += failed
+        event_payload.passed_assertions += passed
+        event_payload.failed_assertions += failed
+        event_payload.columns.append(profiled_result['tables'][t]['col_count'])
+        event_payload.rows.append(profiled_result['tables'][t]['row_count'])
 
     if ascii_dbt_table:
         # Display DBT Tests Summary
@@ -320,7 +342,7 @@ def _show_summary(profiled_result, assertion_results, assertion_exceptions, dbt_
         _show_assertion_result(assertion_results, assertion_exceptions, failed_only=True,
                                title='Failed Assertions')
 
-    return summary
+    return event_payload
 
 
 def _show_table_summary(ascii_table: Table, table: str, profiled_result, assertion_results):
@@ -479,20 +501,6 @@ class Runner():
              skip_recommend=False):
         console = Console()
         configuration = Configuration.load()
-        event_payload = {
-            'tables': 0,
-            'columns': [],
-            'rows': [],
-            'dbt-command': dbt_command,
-            'passed-assertions': 0,
-            'failed-assertions': 0,
-            'passed-dbt-testcases': 0,
-            'failed-dbt-testcases': 0,
-            # TODO: Modify assertion engine to provide following information
-            # 'build-in-assertions': 0,
-            # 'custom-assertions': 0,
-            # 'recommended-assertions': 0,
-        }
         datasources = {}
         datasource_names = []
         for ds in configuration.dataSources:
@@ -596,7 +604,7 @@ class Runner():
             profile_result['tables'][t]['piperider_assertion_result'] = _transform_assertion_result(t,
                                                                                                     assertion_results)
             _clean_up_null_properties(profile_result['tables'][t])
-        assertion_statistics = _show_summary(profile_result, assertion_results, assertion_exceptions, dbt_test_results)
+        event_payload = _show_summary(profile_result, assertion_results, assertion_exceptions, dbt_test_results)
         _show_recommended_assertion_notice_message(console, assertion_results)
 
         _append_descriptions(profile_result)
@@ -609,13 +617,8 @@ class Runner():
         if skip_report:
             console.print(f'Results saved to {output_path}')
 
-        # Prepare telemetry data for run event
-        event_payload['tables'] = len(profile_result.get('tables', {}))
-        for _, v in profile_result.get('tables', {}).items():
-            event_payload['columns'].append(v['col_count'])
-            event_payload['rows'].append(v['row_count'])
-        event_payload.update(assertion_statistics)
         # TODO: Calculate # of build-in, customized and recommended assertions
-        event.log_event(event_payload, 'run')
+        event_payload.dbt_command = dbt_command
+        event.log_event(event_payload.to_dict(), 'run')
 
         return 0
