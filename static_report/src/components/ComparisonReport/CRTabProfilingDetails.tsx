@@ -58,21 +58,24 @@ function CRProfilingColumn({ name, base, target }: CRProfilingColumnProp) {
       base?.type === target?.type &&
       (base?.type === 'string' || base?.type === 'datetime')
     ) {
-      const transformResult = transformCRStringDateDistributions({
-        base: base.distribution,
-        target: target.distribution,
-      });
+      const transformResult =
+        base?.distribution && target?.distribution
+          ? transformCRStringDateDistributions({
+              base: base.distribution,
+              target: target.distribution,
+            })
+          : null;
 
       setData([transformResult]);
     } else {
-      const baseData = base
+      const baseData = base?.distribution
         ? transformBaseDistribution({
             baseCounts: base.distribution.counts,
             baseLabels: base.distribution.labels,
           })
         : null;
 
-      const targetData = target
+      const targetData = target?.distribution
         ? transformBaseDistribution({
             baseCounts: target.distribution.counts,
             baseLabels: target.distribution.labels,
