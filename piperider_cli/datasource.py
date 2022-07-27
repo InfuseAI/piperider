@@ -16,9 +16,11 @@ from piperider_cli.error import PipeRiderConnectorError
 
 def _test_ipython() -> bool:
     try:
+        print('test ipython!')
         get_ipython()
         print('is ipython!')
-    except NameError:
+    except Exception as e:
+        print(str(e))
         return False
     else:
         return True
