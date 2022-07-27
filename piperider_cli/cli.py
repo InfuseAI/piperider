@@ -114,7 +114,7 @@ def init(**kwargs):
       - name: a
         type: sqlite
     '''
-    theme = "fruity" if test_ipython() else "monokai"
+    theme = "native" if test_ipython() else "monokai"
     print(test_ipython())
     print(theme)
     config = Syntax(y, "yaml", theme=theme, line_numbers=True)
