@@ -1,4 +1,5 @@
 #! /bin/bash
+set -x
 API_KEY=${AMPLITUDE_API_KEY:-}
 SECRET_KEY=${AMPLITUDE_SECRET_KEY:-}
 API_ENDPOINT='https://amplitude.com/api/2/release'
@@ -20,11 +21,11 @@ fi
 
 curl -X POST $API_ENDPOINT \
   -H "Content-Type: application/json" \
-  -H "Authorization: Basic $API_KEY:$SECRET_KEY" \
+  -u "$API_KEY:$SECRET_KEY" \
   -d "{
     \"release_start\": \"$RELEASE_START\",
     \"title\": \"$TITLE\",
-    \"version\": \"$VERSION\",
+    \"version\": \"$VERSION\"
   }"
 
 echo "[Done] Amplitude release created: $TITLE"
