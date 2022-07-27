@@ -2,10 +2,10 @@ import { useResizeObserver } from '../../hooks/useResizeObserver';
 import { useComparisonChart } from '../../hooks/useComparisonChart';
 import { useRef } from 'react';
 import { Flex } from '@chakra-ui/react';
-import { CRDistributionDatum } from '../../utils/transformers';
+import { CRHistogramDatum } from '../../utils/transformers';
 
 type Prop = {
-  data: CRDistributionDatum[];
+  data: CRHistogramDatum[];
 };
 export function CRBarChart({ data }: Prop) {
   const svgRef = useRef<SVGSVGElement>(null);

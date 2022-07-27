@@ -1,6 +1,6 @@
 import fill from 'lodash/fill';
 import zip from 'lodash/zip';
-import { ColumnSchema, Distribution } from '../sdlc/single-report-schema';
+import { ColumnSchema, Histogram } from '../sdlc/single-report-schema';
 import { CRTargetData } from '../types';
 
 /**
@@ -30,16 +30,16 @@ export function nestComparisonValueByKey<T>(
   return result;
 }
 
-export type CRDistributionDatum = {
+export type CRHistogramDatum = {
   label: string;
   base: number;
   target: number;
 };
 // for `type` equal to string, datetime
-export function transformCRStringDateDistributions({
+export function transformCRStringDateHistograms({
   base,
   target,
-}: CRTargetData<Distribution>): CRDistributionDatum[] {
+}: CRTargetData<Histogram>): CRHistogramDatum[] {
   // groupby base/target of a found label
   const mapIdxLookup = new Map<string, number>();
 
@@ -69,10 +69,10 @@ export function transformCRStringDateDistributions({
 }
 
 type TransSingleDistArgs = { baseCounts: number[]; baseLabels: string[] };
-export function transformBaseDistribution({
+export function transformBaseHistogram({
   baseCounts,
   baseLabels,
-}: TransSingleDistArgs): CRDistributionDatum[] {
+}: TransSingleDistArgs): CRHistogramDatum[] {
   const emptyCounts = fill(Array(baseLabels.length), 0);
 
   const z = zip<string, number>(baseLabels, baseCounts || emptyCounts);

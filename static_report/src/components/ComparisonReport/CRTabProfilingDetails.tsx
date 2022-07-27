@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
 import { ZTableSchema } from '../../types';
 import {
-  transformBaseDistribution,
+  transformBaseHistogram,
   nestComparisonValueByKey,
-  transformCRStringDateDistributions,
-  CRDistributionDatum,
+  transformCRStringDateHistograms,
+  CRHistogramDatum,
 } from '../../utils/transformers';
 import { CRBarChart } from './CRBarChart';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
@@ -43,7 +43,7 @@ export function CRTabProfilingDetails({ baseTable, targetTable }: Props) {
 /**
  * Optional values due to column-drift across runs
  * Renders combined single chart when type is string or datetime
- * Otherwise, renders two charts per distribution
+ * Otherwise, renders two charts per histogram
  */
 type CRProfilingColumnProp = {
   name: string;
@@ -51,34 +51,31 @@ type CRProfilingColumnProp = {
   target?: ColumnSchema;
 };
 function CRProfilingColumn({ name, base, target }: CRProfilingColumnProp) {
-  const [data, setData] = useState<CRDistributionDatum[][]>([]);
+  const [data, setData] = useState<CRHistogramDatum[][]>([]);
 
   useEffect(() => {
     if (
       base?.type === target?.type &&
       (base?.type === 'string' || base?.type === 'datetime')
     ) {
-      const transformResult =
-        base?.distribution && target?.distribution
-          ? transformCRStringDateDistributions({
-              base: base.distribution,
-              target: target.distribution,
-            })
-          : null;
+      const transformResult = transformCRStringDateHistograms({
+        base: base.histogram,
+        target: target.histogram,
+      });
 
       setData([transformResult]);
     } else {
-      const baseData = base?.distribution
-        ? transformBaseDistribution({
-            baseCounts: base.distribution.counts,
-            baseLabels: base.distribution.labels,
+      const baseData = base
+        ? transformBaseHistogram({
+            baseCounts: base.histogram.counts,
+            baseLabels: base.histogram.labels,
           })
         : null;
 
-      const targetData = target?.distribution
-        ? transformBaseDistribution({
-            baseCounts: target.distribution.counts,
-            baseLabels: target.distribution.labels,
+      const targetData = target
+        ? transformBaseHistogram({
+            baseCounts: target.histogram.counts,
+            baseLabels: target.histogram.labels,
           })
         : null;
 

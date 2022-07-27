@@ -3,7 +3,7 @@ import { useEffect, RefObject } from 'react';
 
 import { formatNumber } from '../utils/formatters';
 import { getChartTooltip } from '../utils/chart';
-import { CRDistributionDatum } from '../utils/transformers';
+import { CRHistogramDatum } from '../utils/transformers';
 
 const GROUPED = ['base', 'target'];
 const X_PADDING = 0.2;
@@ -14,7 +14,7 @@ const TARGET_CHART_COLOR = 'var(--chakra-colors-blue-300)';
 
 type CRChartHookArgs = {
   target: RefObject<SVGSVGElement>;
-  data: CRDistributionDatum[];
+  data: CRHistogramDatum[];
   dimensions: DOMRect;
 };
 

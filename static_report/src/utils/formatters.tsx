@@ -3,7 +3,6 @@ import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 
 import type { ColumnSchema } from '../sdlc/single-report-schema';
-import { result } from 'cypress/types/lodash';
 
 /**
  * "Formatters" -- these are your data formatting that returns a formatted value for UI presentation (e.g. number, string, falsey)
@@ -109,7 +108,7 @@ export function formatModeMetrics(column: ColumnSchema) {
     return null;
   }
 
-  const data = zip(column.distribution?.labels, column.distribution?.counts)
+  const data = zip(column.histogram.labels, column.histogram.counts)
     .filter((x) => x[0] !== null)
     .slice(0, 3);
   const topCount = data[0][1];

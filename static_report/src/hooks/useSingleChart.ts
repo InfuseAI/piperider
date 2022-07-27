@@ -116,7 +116,8 @@ export function useSingleChart<T extends { [key: string]: any }>({
 
     return () => {
       svg.select('svg').remove();
-      tooltip.select('.chart_tooltip').remove();
+      //FIXME: still not removed when `esc` on modals
+      svg.selectAll('.chart_tooltip').remove();
     };
   }, [target, dimensions, data]);
 }

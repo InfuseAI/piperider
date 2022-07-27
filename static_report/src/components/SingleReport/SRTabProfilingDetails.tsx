@@ -1,6 +1,7 @@
 import { Flex, Text } from '@chakra-ui/react';
 import { SRBarChart } from './SRBarChart';
 import type { TableSchema } from '../../sdlc/single-report-schema';
+import { histogramSchema } from '../../sdlc/single-report-schema.z';
 import { ZColSchema } from '../../types';
 import { ColumnCard } from '../shared/ColumnCard';
 import { nanoid } from 'nanoid';
@@ -14,16 +15,15 @@ export function SRTabProfilingDetails({ data }: Props) {
       {Object.keys(data).map((key) => {
         const column = data[key];
         ZColSchema.parse(column);
-
-        const distribution = column.distribution;
+        const histogram = histogramSchema.parse(column.histogram);
 
         return (
           <ColumnCard key={nanoid()} columnDatum={column}>
-            {distribution ? (
+            {histogram ? (
               <SRBarChart
-                data={distribution.labels.map((label, i) => ({
+                data={histogram.labels.map((label, i) => ({
                   label,
-                  value: distribution.counts[i],
+                  value: histogram.counts[i],
                   total: column.total,
                 }))}
               />
