@@ -15,6 +15,22 @@ PIPERIDER_WORKING_DIR = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
 PIPERIDER_EVENT_PATH = os.path.join(PIPERIDER_WORKING_DIR, '.unsend_events.json')
 
 
+def is_executed_manually():
+    # some CI service puts the "CI" var
+    if os.environ.get('CI', 'false') == 'true':
+        return False
+
+    # For CiecleCI exceptions
+    if os.environ.get('CIRCLECI', 'false') == 'true':
+        return False
+
+    # if not tty, it probably runs automatically
+    if not sys.stdout.isatty():
+        return False
+
+    return True
+
+
 class Collector:
     def __init__(self):
         self._api_endpoint = 'https://api.amplitude.com/2/httpapi'
@@ -50,6 +66,7 @@ class Collector:
             user_properties=dict(
                 version=__version__,
                 python_version=python_version,
+                manual=is_executed_manually()
             ),
             event_properties=prop,
             platform=sys.platform,
