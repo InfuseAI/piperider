@@ -17,6 +17,7 @@ from piperider_cli.error import PipeRiderConnectorError
 def _test_ipython() -> bool:
     try:
         print('test ipython!')
+        from IPython import get_ipython
         get_ipython()
         print('is ipython!')
     except Exception as e:
