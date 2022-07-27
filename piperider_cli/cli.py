@@ -107,18 +107,30 @@ def init(**kwargs):
     'Initialize a PipeRider project in interactive mode. The configurations are saved in ".piperider".'
 
     from rich.console import Console
-    c = Console()
+    c1 = Console(force_jupyter=False)
+    c = Console(force_jupyter=True)
     y = '''
     foo: hi
     bar:
       - name: a
         type: sqlite
     '''
-    theme = "native" if test_ipython() else "monokai"
-    print(test_ipython())
-    print(theme)
-    config = Syntax(y, "yaml", theme=theme, line_numbers=True)
+    config = Syntax(y, "yaml", theme="nord-darker", line_numbers=True)
     c.print(config, style="white")
+    config = Syntax(y, "yaml", theme="gruvbox-dark", line_numbers=True)
+    c.print(config, style="white")
+    config = Syntax(y, "yaml", theme="material", line_numbers=True)
+    c.print(config, style="white")
+    config = Syntax(y, "yaml", theme="dracula", line_numbers=True)
+    c.print(config, style="white")
+    config = Syntax(y, "yaml", theme="nord-darker", line_numbers=True)
+    c1.print(config, style="white")
+    config = Syntax(y, "yaml", theme="gruvbox-dark", line_numbers=True)
+    c1.print(config, style="white")
+    config = Syntax(y, "yaml", theme="material", line_numbers=True)
+    c1.print(config, style="white")
+    config = Syntax(y, "yaml", theme="dracula", line_numbers=True)
+    c1.print(config, style="white")
     sys.exit(0)
     console = Console()
     piperider_config_dir = os.path.join(os.getcwd(), '.piperider')
