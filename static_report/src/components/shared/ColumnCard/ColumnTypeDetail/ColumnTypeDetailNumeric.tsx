@@ -12,7 +12,7 @@ import { QuantilesChart } from '../../QuantilesChart';
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
   const { stddev, avg } = columnDatum;
-  const { missing, mismatch } = getColumnDetails(columnDatum);
+  const { missing, invalids } = getColumnDetails(columnDatum);
 
   return (
     <Flex direction={'column'}>
@@ -24,9 +24,9 @@ export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
         />
         <Divider orientation="vertical" />
         <MetricCell
-          label={'MISMATCHED'}
-          value={formatColumnValueWith(mismatch, formatIntervalMinMax)}
-          subvalue={mismatch}
+          label={'INVALID'}
+          value={formatColumnValueWith(invalids, formatIntervalMinMax)}
+          subvalue={invalids}
         />
       </Flex>
       <Divider />

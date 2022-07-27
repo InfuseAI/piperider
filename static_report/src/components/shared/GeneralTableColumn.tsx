@@ -16,9 +16,9 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       totalOfTotal: baseTotalOfTotal,
       valid: baseValid,
       total: baseTotal,
-      mismatch: baseMismatch,
+      invalids: baseInvalids,
       missing: baseMissing,
-      mismatchOfTotal: baseMismatchOfTotal,
+      invalidsOfTotal: baseInvalidsOfTotal,
       validOfTotal: baseValidOfTotal,
       missingOfTotal: baseMissingOfTotal,
     } = getColumnDetails(baseColumn);
@@ -28,7 +28,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
     ZColSchema.parse(targetColumn);
     var {
       total: targetTotal,
-      mismatchOfTotal: targetMismatchOfTotal,
+      invalidsOfTotal: targetInvalidsOfTotal,
       validOfTotal: targetValidOfTotal,
       missingOfTotal: targetMissingOfTotal,
     } = getColumnDetails(targetColumn);
@@ -58,13 +58,13 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         )}
       />
       <MetricsInfo
-        name="Mismatched"
+        name="Invalid"
         base={formatColumnValueWith(
-          targetColumn ? baseMismatchOfTotal : baseMismatch,
+          targetColumn ? baseInvalidsOfTotal : baseInvalids,
           targetColumn ? formatIntervalMinMax : formatNumber,
         )}
         target={formatColumnValueWith(
-          targetColumn ? targetMismatchOfTotal : baseMismatchOfTotal,
+          targetColumn ? targetInvalidsOfTotal : baseInvalidsOfTotal,
           formatIntervalMinMax,
         )}
       />

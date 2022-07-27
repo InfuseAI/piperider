@@ -93,7 +93,7 @@ export function formatTestExpectedOrActual(value) {
 
 /**
   show the most common values (aka Mode)
-  * give null if type mismatch
+  * give null if type invalids
   * skip null value
   * show top 2 if the values share the same counting, examples:
      (more than 2) a:100, b:100, c:100 => a, b, ...
