@@ -16,12 +16,9 @@ from piperider_cli.error import PipeRiderConnectorError
 
 def _test_ipython() -> bool:
     try:
-        print('test ipython!')
         from IPython import get_ipython
         get_ipython()
-        print('is ipython!')
-    except Exception as e:
-        print(str(e))
+    except Exception:
         return False
     else:
         return True
@@ -31,7 +28,6 @@ def _should_use_fancy_user_input() -> bool:
     env_flag = os.environ.get('PIPERIDER_FANCY_USER_INPUT', 'true').lower() == 'true'
     is_a_tty = sys.stdin.isatty() and sys.stdout.isatty()
     is_ipython = _test_ipython()
-    print(f'is_ipython: {is_ipython}')
 
     if env_flag is False:
         return False
