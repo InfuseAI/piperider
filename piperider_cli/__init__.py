@@ -75,4 +75,14 @@ def convert_to_tzlocal(input):
     return input.replace(tzinfo=from_zone).astimezone(to_zone)
 
 
+def test_ipython() -> bool:
+    try:
+        from IPython import get_ipython
+        get_ipython()
+    except Exception:
+        return False
+    else:
+        return True
+
+
 __version__ = get_version()

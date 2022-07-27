@@ -7,7 +7,7 @@ import sentry_sdk
 from rich.console import Console
 from rich.syntax import Syntax
 
-from piperider_cli import __version__, event
+from piperider_cli import __version__, event, test_ipython
 from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.event.track import TrackCommand
@@ -114,7 +114,8 @@ def init(**kwargs):
       - name: a
         type: sqlite
     '''
-    config = Syntax(y, "yaml", theme="monokai", line_numbers=True)
+    theme = "fruity" if test_ipython() else "monokai"
+    config = Syntax(y, "yaml", theme=theme, line_numbers=True)
     c.print(config, style="white")
     sys.exit(0)
     console = Console()
