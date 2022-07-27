@@ -1,6 +1,9 @@
 import { Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { histogramSchema } from '../../../sdlc/single-report-schema.z';
+import {
+  histogramSchema,
+  topkSchema,
+} from '../../../sdlc/single-report-schema.z';
 import { ZColSchema } from '../../../types';
 import { SRBarChart } from '../../SingleReport/SRBarChart';
 import { ColumnCardBodyContainer } from './ColumnCardBodyContainer';
@@ -17,9 +20,10 @@ interface Props {
 }
 export function ColumnCard({ columnDatum }: Props) {
   ZColSchema.parse(columnDatum);
-  const { name: title, description } = columnDatum;
+  const { name: title, description, topk, histogram } = columnDatum;
+  const chartData = topk?.values || histogram.labels;
+  const valueCounts = topk?.counts || histogram.counts;
 
-  const histogram = histogramSchema.parse(columnDatum.histogram);
   return (
     <Flex
       direction={'column'}
@@ -30,11 +34,11 @@ export function ColumnCard({ columnDatum }: Props) {
     >
       <ColumnCardHeader title={title} description={description} />
       <ColumnCardDataVisualContainer title={title}>
-        {histogram ? (
+        {chartData ? (
           <SRBarChart
-            data={histogram.labels.map((label, i) => ({
+            data={chartData.map((label, i) => ({
               label,
-              value: histogram.counts[i],
+              value: valueCounts[i],
               total: columnDatum.total,
             }))}
           />

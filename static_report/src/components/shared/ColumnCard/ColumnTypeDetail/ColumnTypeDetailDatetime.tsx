@@ -4,21 +4,19 @@ import {
   formatColumnValueWith,
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
-import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailDatetime: React.FC<Props> = ({ columnDatum }) => {
-  const { min, max } = columnDatum;
-  const { missing, invalids } = getColumnDetails(columnDatum);
+  const { nulls, min, max, invalids } = columnDatum;
 
   return (
     <Flex direction={'column'}>
       <Flex justify={'space-evenly'}>
         <MetricCell
-          label={'MISSING'}
-          value={formatColumnValueWith(missing, formatIntervalMinMax)}
-          subvalue={missing}
+          label={'NULLS'}
+          value={formatColumnValueWith(nulls, formatIntervalMinMax)}
+          subvalue={nulls}
         />
         <Divider orientation="vertical" />
         <MetricCell

@@ -12,15 +12,18 @@ type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailCategorical: React.FC<Props> = ({
   columnDatum,
 }) => {
-  const { missing, distinct, distinctOfTotal } = getColumnDetails(columnDatum);
+  const { nulls, distinct } = columnDatum;
+  const { distinctOfTotal } = getColumnDetails(columnDatum);
+
+  console.log(columnDatum);
 
   return (
     <Flex direction={'column'}>
       <Flex justify={'space-evenly'}>
         <MetricCell
-          label={'MISSING'}
-          value={formatColumnValueWith(missing, formatIntervalMinMax)}
-          subvalue={missing}
+          label={'NULLS'}
+          value={formatColumnValueWith(nulls, formatIntervalMinMax)}
+          subvalue={nulls}
         />
         <Divider orientation="vertical" />
         <MetricCell

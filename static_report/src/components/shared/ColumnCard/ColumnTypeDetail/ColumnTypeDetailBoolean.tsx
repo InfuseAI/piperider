@@ -5,19 +5,18 @@ import {
   formatIntervalMinMax,
   formatModeMetrics,
 } from '../../../../utils/formatters';
-import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
-  const { missing, total } = getColumnDetails(columnDatum);
+  const { total, nulls } = columnDatum;
 
   return (
     <Flex direction={'column'}>
       <MetricCell
-        label={'MISSING'}
-        value={formatColumnValueWith(missing, formatIntervalMinMax)}
-        subvalue={missing}
+        label={'NULLS'}
+        value={formatColumnValueWith(nulls, formatIntervalMinMax)}
+        subvalue={nulls}
       />
       <Divider />
       {/* FIXME: Change to correct categorical count */}

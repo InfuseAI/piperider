@@ -13,24 +13,25 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
   if (baseColumn) {
     ZColSchema.parse(baseColumn);
     var {
-      totalOfTotal: baseTotalOfTotal,
-      valid: baseValid,
+      nulls: baseNulls,
       total: baseTotal,
       invalids: baseInvalids,
-      missing: baseMissing,
+    } = baseColumn;
+    var {
+      totalOfTotal: baseTotalOfTotal,
       invalidsOfTotal: baseInvalidsOfTotal,
-      validOfTotal: baseValidOfTotal,
-      missingOfTotal: baseMissingOfTotal,
+      validsOfTotal: baseValidsOfTotal,
+      nullsOfTotal: baseNullsOfTotal,
     } = getColumnDetails(baseColumn);
   }
 
   if (targetColumn) {
+    var { total: targetTotal } = targetColumn;
     ZColSchema.parse(targetColumn);
     var {
-      total: targetTotal,
       invalidsOfTotal: targetInvalidsOfTotal,
-      validOfTotal: targetValidOfTotal,
-      missingOfTotal: targetMissingOfTotal,
+      validsOfTotal: targetValidsOfTotal,
+      nullsOfTotal: targetNullsOfTotal,
     } = getColumnDetails(targetColumn);
   }
 
@@ -49,11 +50,11 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       <MetricsInfo
         name="Valid"
         base={formatColumnValueWith(
-          targetColumn ? baseValidOfTotal : baseValid,
+          targetColumn ? baseValidsOfTotal : baseTotal,
           targetColumn ? formatIntervalMinMax : formatNumber,
         )}
         target={formatColumnValueWith(
-          targetColumn ? targetValidOfTotal : baseValidOfTotal,
+          targetColumn ? targetValidsOfTotal : baseValidsOfTotal,
           formatIntervalMinMax,
         )}
       />
@@ -69,13 +70,13 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         )}
       />
       <MetricsInfo
-        name="Missing"
+        name="Nulls"
         base={formatColumnValueWith(
-          targetColumn ? baseMissingOfTotal : baseMissing,
+          targetColumn ? baseNullsOfTotal : baseNulls,
           targetColumn ? formatIntervalMinMax : formatNumber,
         )}
         target={formatColumnValueWith(
-          targetColumn ? targetMissingOfTotal : baseMissingOfTotal,
+          targetColumn ? targetNullsOfTotal : baseNullsOfTotal,
           formatIntervalMinMax,
         )}
       />

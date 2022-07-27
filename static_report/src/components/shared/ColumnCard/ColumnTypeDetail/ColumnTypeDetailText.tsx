@@ -3,22 +3,24 @@ import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
-  formatModeMetrics,
+  formatNumber,
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailText: React.FC<Props> = ({ columnDatum }) => {
-  const { missing, distinct, distinctOfTotal } = getColumnDetails(columnDatum);
+  const { distinct, invalids, valids, nulls, stddev, avg } = columnDatum;
+  const { distinctOfTotal, invalidsOfTotal, validsOfTotal } =
+    getColumnDetails(columnDatum);
 
   return (
     <Flex direction={'column'}>
       <Flex justify={'space-evenly'}>
         <MetricCell
-          label={'MISSING'}
-          value={formatColumnValueWith(missing, formatIntervalMinMax)}
-          subvalue={missing}
+          label={'NULLS'}
+          value={formatColumnValueWith(nulls, formatIntervalMinMax)}
+          subvalue={nulls}
         />
         <Divider orientation="vertical" />
         <MetricCell
@@ -27,11 +29,31 @@ export const ColumnTypeDetailText: React.FC<Props> = ({ columnDatum }) => {
           subvalue={distinct}
         />
       </Flex>
+      <Flex justify={'space-evenly'}>
+        <MetricCell
+          label={'VALID'}
+          value={formatColumnValueWith(validsOfTotal, formatIntervalMinMax)}
+          subvalue={valids}
+        />
+        <Divider orientation="vertical" />
+        <MetricCell
+          label={'INVALID'}
+          value={formatColumnValueWith(invalidsOfTotal, formatIntervalMinMax)}
+          subvalue={invalids}
+        />
+      </Flex>
       <Divider />
       <Flex justify={'space-evenly'}>
         <MetricCell
-          label={'MOST COMMON'}
-          value={formatModeMetrics(columnDatum)}
+          label={'AVERAGE'}
+          value={formatColumnValueWith(avg, formatNumber)}
+          subvalue={'Text Length'}
+        />
+        <Divider orientation="vertical" />
+        <MetricCell
+          label={'STANDARD DEVIATION'}
+          value={formatColumnValueWith(stddev, formatNumber)}
+          subvalue={'Text Length'}
         />
       </Flex>
     </Flex>

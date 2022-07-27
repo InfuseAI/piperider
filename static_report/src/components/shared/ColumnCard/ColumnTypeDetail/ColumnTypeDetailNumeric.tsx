@@ -5,22 +5,20 @@ import {
   formatIntervalMinMax,
   formatNumber,
 } from '../../../../utils/formatters';
-import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
 import { QuantilesChart } from '../../QuantilesChart';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
-  const { stddev, avg } = columnDatum;
-  const { missing, invalids } = getColumnDetails(columnDatum);
+  const { invalids, nulls, stddev, avg } = columnDatum;
 
   return (
     <Flex direction={'column'}>
       <Flex justify={'space-evenly'}>
         <MetricCell
-          label={'MISSING'}
-          value={formatColumnValueWith(missing, formatIntervalMinMax)}
-          subvalue={missing}
+          label={'NULLS'}
+          value={formatColumnValueWith(nulls, formatIntervalMinMax)}
+          subvalue={nulls}
         />
         <Divider orientation="vertical" />
         <MetricCell

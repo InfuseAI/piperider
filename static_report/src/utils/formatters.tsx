@@ -104,23 +104,10 @@ export function formatTestExpectedOrActual(value) {
      (1) a:100, b:99, c:99 => a
  */
 export function formatModeMetrics(column: ColumnSchema) {
-  if (column.type !== 'string') {
-    return null;
-  }
+  const tops = column.topk.values.slice(0, 3);
 
-  const data = zip(column.histogram.labels, column.histogram.counts)
-    .filter((x) => x[0] !== null)
-    .slice(0, 3);
-  const topCount = data[0][1];
-  const tops = data
-    .filter((x) => x[1] === topCount)
-    .map((x) => {
-      const label = x[0];
-      return label.length >= 40 ? label.slice(0, 40).concat('-') : label;
-    });
-
-  if (tops.length > 2) {
-    return tops.slice(0, 2).join(', ') + ', ...';
+  if (tops.length > 3) {
+    return tops.slice(0, 3).join(', ') + ', ...';
   }
   return tops.join(', ');
 }
