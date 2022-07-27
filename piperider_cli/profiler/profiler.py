@@ -429,31 +429,67 @@ class NumericColumnProfiler(BaseColumnProfiler):
         """
 
         if self._get_database_backend() == 'sqlite':
-            # with t as (
-            #   select
-            #     column as c,
-            #     ntile(20) over (order by column) as n
-            #   from table
-            # )
-            # select n, min(c) from t group by n order by n
-            n_bucket = total if total < 100 else 100
-            t = select([
-                column.label("c"),
-                func.ntile(n_bucket).over(order_by=column).label("n")
-            ]).where(column.isnot(None)).select_from(table).cte()
-            stmt = select([t.c.n, func.min(t.c.c)]).group_by(t.c.n).order_by(t.c.n)
-            result = conn.execute(stmt)
-            quantile = []
-            for row in result:
-                n, v = row
-                quantile.append(v)
-            return {
-                'p5': dtof(quantile[5 * n_bucket // 100]),
-                'p25': dtof(quantile[25 * n_bucket // 100]),
-                'p50': dtof(quantile[50 * n_bucket // 100]),
-                'p75': dtof(quantile[75 * n_bucket // 100]),
-                'p95': dtof(quantile[95 * n_bucket // 100]),
-            }
+            import sqlite3
+            version = sqlite3.sqlite_version.split(".")
+
+            major = int(version[0]) if len(version) >= 2 else 0
+            minor = int(version[1]) if len(version) >= 2 else 0
+
+            if major > 3 or (major == 3 and minor >= 25):
+                # use window function if sqlite version >= 3.25.0
+                # see https://www.sqlite.org/windowfunctions.html
+
+                # with t as (
+                #   select
+                #     column as c,
+                #     ntile(20) over (order by column) as n
+                #   from table
+                # )
+                # select n, min(c) from t group by n order by n
+                n_bucket = total if total < 100 else 100
+                t = select([
+                    column.label("c"),
+                    func.ntile(n_bucket).over(order_by=column).label("n")
+                ]).where(column.isnot(None)).select_from(table).cte()
+                stmt = select([t.c.n, func.min(t.c.c)]).group_by(t.c.n).order_by(t.c.n)
+                result = conn.execute(stmt)
+                quantile = []
+                for row in result:
+                    n, v = row
+                    quantile.append(v)
+                return {
+                    'p5': dtof(quantile[5 * n_bucket // 100]),
+                    'p25': dtof(quantile[25 * n_bucket // 100]),
+                    'p50': dtof(quantile[50 * n_bucket // 100]),
+                    'p75': dtof(quantile[75 * n_bucket // 100]),
+                    'p95': dtof(quantile[95 * n_bucket // 100]),
+                }
+            else:
+                # Query for each quantile
+                def ntile(n):
+                    offset = n * total // 100
+
+                    stmt = select([
+                        column
+                    ]).select_from(
+                        table
+                    ).where(
+                        column.isnot(None)
+                    ).order_by(
+                        column
+                    ).offset(
+                        offset
+                    ).limit(1)
+                    result, = conn.execute(stmt).fetchone()
+                    return dtof(result)
+
+                return {
+                    'p5': ntile(5),
+                    'p25': ntile(25),
+                    'p50': ntile(50),
+                    'p75': ntile(75),
+                    'p95': ntile(95),
+                }
         else:
             # https://docs.sqlalchemy.org/en/14/core/functions.html#sqlalchemy.sql.functions.percentile_disc
             #
