@@ -2,7 +2,7 @@
 # For generating comparison_data.json from `piperider-getting-started`
 # NOTE: This file assumes you are calling from the root of repo
 
-# runtest002 -> invoke piperider compare-reports --base <> --input <>
+# runtest002 -> invoke piperider compare-reports --base <> --target <>
 
 cd piperider-getting-started
 E2E_SR_REPORTS="./.piperider/outputs/*"
@@ -12,5 +12,5 @@ for FILE_PATH in $E2E_SR_REPORTS; do
 done
 
 # generate comparison report
-piperider compare-reports --base ${ARR_PATHS[0]}/run.json --input ${ARR_PATHS[1]}/run.json
+piperider compare-reports --base ${ARR_PATHS[0]}/run.json --target ${ARR_PATHS[1]}/run.json
 cd ..
