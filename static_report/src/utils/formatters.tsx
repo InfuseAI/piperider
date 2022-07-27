@@ -108,7 +108,7 @@ export function getSRModeMetrics(column: ColumnSchema) {
     return null;
   }
 
-  const data = zip(column.distribution.labels, column.distribution.counts)
+  const data = zip(column.distribution?.labels, column.distribution?.counts)
     .filter((x) => x[0] !== null)
     .slice(0, 3);
   const topCount = data[0][1];
