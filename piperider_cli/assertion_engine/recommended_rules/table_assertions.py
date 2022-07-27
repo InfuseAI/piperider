@@ -34,7 +34,10 @@ def recommended_column_min_assertion(table, column, profiling_result) -> Recomme
     column_metric = profiling_result['tables'][table]['columns'][column]
     column_type = column_metric['type']
     if column_type == 'numeric':
-        total = column_metric['total']
+        valids = column_metric['valid']
+        if not valids:
+            return None
+
         column_min = column_metric['min']
         distribution_counts = column_metric['distribution']['counts'] if column_metric['distribution'] else []
 
@@ -44,7 +47,7 @@ def recommended_column_min_assertion(table, column, profiling_result) -> Recomme
             if i == len(distribution_counts) // 2:
                 break
 
-        if count / total > 0.95:
+        if count / valids > 0.95:
             test_function_name = 'assert_column_min_in_range'
             assertion_values = {
                 'min': sorted([round(column_min * 0.9, 4), round(column_min * 1.1, 4)])
@@ -62,7 +65,10 @@ def recommended_column_max_assertion(table, column, profiling_result) -> Recomme
     column_metric = profiling_result['tables'][table]['columns'][column]
     column_type = column_metric['type']
     if column_type == 'numeric':
-        total = column_metric['total']
+        valids = column_metric['valid']
+        if not valids:
+            return None
+
         column_max = column_metric['max']
         distribution_counts = column_metric['distribution']['counts'] if column_metric['distribution'] else []
 
@@ -72,7 +78,7 @@ def recommended_column_max_assertion(table, column, profiling_result) -> Recomme
             if i == len(distribution_counts) // 2:
                 break
 
-        if count / total > 0.95:
+        if count / valids > 0.95:
             test_function_name = 'assert_column_max_in_range'
             assertion_values = {
                 'max': sorted([round(column_max * 0.9, 4), round(column_max * 1.1, 4)])
