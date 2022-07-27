@@ -60,10 +60,14 @@ jobs:
           # add commit sha to version command
           echo "$GITHUB_SHA" > piperider_cli/data/COMMIT
 
+          # put config includes tracking api key
+          echo "$CONFIG" > ./piperider_cli/data/CONFIG
+
           # release to PyPI
           make release
         env:
           PYPIRC: ${{ secrets.PYPI_NIGHTLY }}
+          CONFIG: ${{ secrets.DEV_CONFIG }}
           ALPHA_VERSION: ${{ inputs.alpha_version || '' }}
 
       - name: Mark Sentry Release

@@ -8,6 +8,7 @@ from piperider_cli.event.collector import Collector
 
 PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
 PIPERIDER_USER_PROFILE = os.path.join(PIPERIDER_USER_HOME, 'profile.yml')
+PIPERIDER_FLUSH_EVENTS_WHITELIST = ['init', 'run', 'generate-report', 'compare-reports']
 
 _collector = Collector()
 _yml = yaml.YAML()
@@ -75,7 +76,20 @@ def _obtain_project_info(datasource=None):
         return {}
 
 
-def log_event(command, params, status):
+def flush_events(command=None):
+    if command and command in PIPERIDER_FLUSH_EVENTS_WHITELIST:
+        _collector.send_events()
+
+
+def log_usage_event(command, params, status):
+    prop = dict(
+        command=command,
+        status=status,
+    )
+    log_event(prop, 'usage', params=params)
+
+
+def log_event(prop, event_type, **kwargs):
     with open(PIPERIDER_USER_PROFILE, 'r') as f:
         user_profile = _yml.load(f)
     # TODO: default anonymous_tracking to false if field is not present
@@ -87,14 +101,12 @@ def log_event(command, params, status):
     if not _collector.is_ready():
         return
 
-    ds = params.get('datasource')
+    ds = None
+    if kwargs.get('params'):
+        ds = kwargs.get('params').get('datasource')
     project_info = _obtain_project_info(datasource=ds)
-    prop = dict(
+    payload = dict(
         **project_info,
-        command=command,
-        status=status,
+        **prop,
     )
-    _collector.log_event(prop, 'usage')
-    whitelist = ['init', 'run', 'generate-report', 'compare-reports']
-    if command in whitelist:
-        _collector.send_events()
+    _collector.log_event(payload, event_type)

@@ -1,11 +1,13 @@
-import os
 import json
+import os
+import platform
 import sys
-from re import I
 import time
-import requests
-import portalocker
 from datetime import datetime
+
+import portalocker
+import requests
+
 from piperider_cli import __version__
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 
@@ -50,6 +52,9 @@ class Collector:
                 python_version=python_version,
             ),
             event_properties=prop,
+            platform=sys.platform,
+            os_version=platform.platform(),
+            app_version=__version__,
         )
 
         # TODO: handle exception when writing to file
