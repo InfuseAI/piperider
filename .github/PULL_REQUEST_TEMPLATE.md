@@ -1,6 +1,6 @@
 <!--  Thanks for sending a pull request!  Here are some check items for you: -->
 
-** PR checklist **
+**PR checklist**
 
 - [ ] Ensure you have added or ran the appropriate tests for your PR.
 - [ ] DCO signed
