@@ -136,7 +136,7 @@ def init(**kwargs):
     with open(os.path.join(piperider_config_dir, 'config.yml'), 'r') as f:
         console.rule('.piperider/config.yml')
         config = Syntax(f.read(), "yaml", theme="monokai", line_numbers=True)
-        console.print(config)
+        console.print(config, style="white")
 
 
 @cli.command(short_help='Check project configuration.')
