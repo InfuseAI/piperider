@@ -488,9 +488,10 @@ class Runner():
             'failed-assertions': 0,
             'passed-dbt-testcases': 0,
             'failed-dbt-testcases': 0,
-            'build-in-assertions': 0,
-            'custom-assertions': 0,
-            'recommended-assertions': 0,
+            # TODO: Modify assertion engine to provide following information
+            # 'build-in-assertions': 0,
+            # 'custom-assertions': 0,
+            # 'recommended-assertions': 0,
         }
         datasources = {}
         datasource_names = []
@@ -609,12 +610,12 @@ class Runner():
             console.print(f'Results saved to {output_path}')
 
         # Prepare telemetry data for run event
-        event_payload['tables'] = len(tables)
-        for _, v in profile_result['tables', {}].items():
+        event_payload['tables'] = len(profile_result.get('tables', {}))
+        for _, v in profile_result.get('tables', {}).items():
             event_payload['columns'].append(v['col_count'])
             event_payload['rows'].append(v['row_count'])
         event_payload.update(assertion_statistics)
         # TODO: Calculate # of build-in, customized and recommended assertions
-        event.send_event('run', event_payload)
+        event.log_event(event_payload, 'run')
 
         return 0

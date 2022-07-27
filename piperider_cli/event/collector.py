@@ -1,5 +1,6 @@
 import json
 import os
+import platform
 import sys
 import time
 from datetime import datetime
@@ -49,9 +50,11 @@ class Collector:
             user_properties=dict(
                 version=__version__,
                 python_version=python_version,
-                platform=sys.platform,
             ),
             event_properties=prop,
+            platform=sys.platform,
+            os_version=platform.platform(),
+            app_version=__version__,
         )
 
         # TODO: handle exception when writing to file
