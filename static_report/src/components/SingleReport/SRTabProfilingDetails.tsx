@@ -1,6 +1,9 @@
 import { Flex, Text } from '@chakra-ui/react';
 import { SRBarChart } from './SRBarChart';
-import type { TableSchema } from '../../sdlc/single-report-schema';
+import type {
+  ColumnSchema,
+  TableSchema,
+} from '../../sdlc/single-report-schema';
 import { histogramSchema } from '../../sdlc/single-report-schema.z';
 import { ZColSchema } from '../../types';
 import { ColumnCard } from '../shared/ColumnCard';
@@ -15,7 +18,11 @@ export function SRTabProfilingDetails({ data }: Props) {
       {Object.keys(data).map((key) => {
         const column = data[key];
         ZColSchema.parse(column);
+        console.log(column.schema_type);
+
         const histogram = histogramSchema.parse(column.histogram);
+
+        _getColumnUI(column.type, column.distinct);
 
         return (
           <ColumnCard key={nanoid()} columnDatum={column}>
@@ -35,4 +42,16 @@ export function SRTabProfilingDetails({ data }: Props) {
       })}
     </Flex>
   );
+}
+
+function _getColumnUI(columnType: ColumnSchema['type'], distinctCount: number) {
+  const isCategorical = distinctCount <= 100; //this is arbitrary
+  if (columnType === 'boolean') return <></>;
+  if (columnType === 'string' && isCategorical) return <></>;
+  if (columnType === 'string' && !isCategorical) return <></>;
+  if (columnType === 'integer' && isCategorical) return <></>;
+  if (columnType === 'integer' && !isCategorical) return <></>;
+  if (columnType === 'numeric') return <></>;
+
+  return <Text>The column type: {columnType} cannot be displayed</Text>;
 }
