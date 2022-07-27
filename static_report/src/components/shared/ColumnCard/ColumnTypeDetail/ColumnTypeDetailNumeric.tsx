@@ -7,6 +7,7 @@ import {
 } from '../../../../utils/formatters';
 import { MetricCell } from '../../MetricCell';
 import { QuantilesChart } from '../../QuantilesChart';
+import { AVG, INVALIDS, NULLS, STDDEV } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
@@ -16,13 +17,13 @@ export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
     <Flex direction={'column'}>
       <Flex justify={'space-evenly'}>
         <MetricCell
-          label={'NULLS'}
+          label={NULLS}
           value={formatColumnValueWith(nulls, formatIntervalMinMax)}
           subvalue={nulls}
         />
         <Divider orientation="vertical" />
         <MetricCell
-          label={'INVALID'}
+          label={INVALIDS}
           value={formatColumnValueWith(invalids, formatIntervalMinMax)}
           subvalue={invalids}
         />
@@ -30,12 +31,12 @@ export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
       <Divider />
       <Flex justify={'space-evenly'}>
         <MetricCell
-          label={'AVERAGE'}
+          label={AVG}
           value={formatColumnValueWith(avg, formatNumber)}
         />
         <Divider orientation="vertical" />
         <MetricCell
-          label={'STD DEVIATION'}
+          label={STDDEV}
           value={formatColumnValueWith(stddev, formatNumber)}
         />
       </Flex>

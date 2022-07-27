@@ -7,6 +7,7 @@ import {
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
+import { DISTINCTS, MODE, NULLS } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailCategorical: React.FC<Props> = ({
@@ -15,29 +16,24 @@ export const ColumnTypeDetailCategorical: React.FC<Props> = ({
   const { nulls, distinct } = columnDatum;
   const { distinctOfTotal } = getColumnDetails(columnDatum);
 
-  console.log(columnDatum);
-
   return (
     <Flex direction={'column'}>
       <Flex justify={'space-evenly'}>
         <MetricCell
-          label={'NULLS'}
+          label={NULLS}
           value={formatColumnValueWith(nulls, formatIntervalMinMax)}
           subvalue={nulls}
         />
         <Divider orientation="vertical" />
         <MetricCell
-          label={'DISTINCT'}
+          label={DISTINCTS}
           value={formatColumnValueWith(distinctOfTotal, formatIntervalMinMax)}
           subvalue={distinct}
         />
       </Flex>
       <Divider />
       <Flex justify={'space-evenly'}>
-        <MetricCell
-          label={'MOST COMMON'}
-          value={formatModeMetrics(columnDatum)}
-        />
+        <MetricCell label={MODE} value={formatModeMetrics(columnDatum)} />
       </Flex>
     </Flex>
   );

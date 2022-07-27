@@ -1,4 +1,3 @@
-import zip from 'lodash/zip';
 import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 

@@ -1,0 +1,10 @@
+export const DISTINCTS = 'DISTINCT';
+export const NULLS = 'NULL';
+export const NONNULLs = 'NON-NULL';
+export const VALIDS = 'VALID';
+export const INVALIDS = 'INVALID';
+export const MIN = 'START';
+export const MAX = 'END';
+export const STDDEV = 'STANDARD DEVIATION';
+export const AVG = 'AVERAGE';
+export const MODE = 'MOST COMMON';

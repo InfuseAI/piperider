@@ -1,9 +1,5 @@
 import { Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import {
-  histogramSchema,
-  topkSchema,
-} from '../../../sdlc/single-report-schema.z';
 import { ZColSchema } from '../../../types';
 import { SRBarChart } from '../../SingleReport/SRBarChart';
 import { ColumnCardBodyContainer } from './ColumnCardBodyContainer';

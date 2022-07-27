@@ -5,6 +5,7 @@ import {
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
 import { MetricCell } from '../../MetricCell';
+import { INVALIDS, MAX, MIN, NULLS } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailDatetime: React.FC<Props> = ({ columnDatum }) => {
@@ -14,22 +15,22 @@ export const ColumnTypeDetailDatetime: React.FC<Props> = ({ columnDatum }) => {
     <Flex direction={'column'}>
       <Flex justify={'space-evenly'}>
         <MetricCell
-          label={'NULLS'}
+          label={NULLS}
           value={formatColumnValueWith(nulls, formatIntervalMinMax)}
           subvalue={nulls}
         />
         <Divider orientation="vertical" />
         <MetricCell
-          label={'INVALID'}
+          label={INVALIDS}
           value={formatColumnValueWith(invalids, formatIntervalMinMax)}
           subvalue={invalids}
         />
       </Flex>
       <Divider />
       <Flex justify={'space-evenly'}>
-        <MetricCell label={'START'} value={min} />
+        <MetricCell label={MIN} value={min} />
         <Divider orientation="vertical" />
-        <MetricCell label={'END'} value={max} />
+        <MetricCell label={MAX} value={max} />
       </Flex>
     </Flex>
   );

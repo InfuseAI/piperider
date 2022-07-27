@@ -25,7 +25,15 @@ export const ColumnCardDataVisualContainer: React.FC<Props> = ({
   const { onOpen, isOpen, onClose } = useDisclosure();
   return (
     <>
-      <Flex px={6} m={3} bg={'whiteAlpha.700'} rounded={'md'} onClick={onOpen}>
+      <Flex
+        px={9}
+        mt={6}
+        mb={9}
+        mx={3}
+        bg={'whiteAlpha.700'}
+        rounded={'md'}
+        onClick={onOpen}
+      >
         {children}
       </Flex>
       <Modal size={'4xl'} isOpen={isOpen} onClose={onClose}>

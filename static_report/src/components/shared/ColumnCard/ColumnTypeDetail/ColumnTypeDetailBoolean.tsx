@@ -6,6 +6,7 @@ import {
   formatModeMetrics,
 } from '../../../../utils/formatters';
 import { MetricCell } from '../../MetricCell';
+import { MODE, NULLS } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
@@ -14,17 +15,14 @@ export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
   return (
     <Flex direction={'column'}>
       <MetricCell
-        label={'NULLS'}
+        label={NULLS}
         value={formatColumnValueWith(nulls, formatIntervalMinMax)}
         subvalue={nulls}
       />
       <Divider />
       {/* FIXME: Change to correct categorical count */}
       <MetricCell label={'TOTAL CATEGORIES'} value={total} />
-      <MetricCell
-        label={'MOST COMMON'}
-        value={formatModeMetrics(columnDatum)}
-      />
+      <MetricCell label={MODE} value={formatModeMetrics(columnDatum)} />
     </Flex>
   );
 };
