@@ -3,14 +3,15 @@ import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
+  formatNumber,
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
-import { INVALIDS, NULLS } from './constants';
+import { BOOLEANCOUNT, FALSES, INVALIDS, NULLS, TRUES } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
-  const { total, nulls, trues, falses, invalids } = columnDatum;
+  const { nulls, trues, falses, invalids } = columnDatum;
   const { invalidsOfTotal } = getColumnDetails(columnDatum);
 
   return (
@@ -31,15 +32,15 @@ export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
       <Divider />
       <Flex justify={'space-evenly'}>
         <MetricCell
-          label={NULLS}
-          value={formatColumnValueWith(nulls, formatIntervalMinMax)}
-          subvalue={nulls}
+          label={TRUES}
+          value={formatColumnValueWith(trues, formatNumber)}
+          subvalue={BOOLEANCOUNT}
         />
         <Divider orientation="vertical" />
         <MetricCell
-          label={INVALIDS}
-          value={formatColumnValueWith(invalidsOfTotal, formatIntervalMinMax)}
-          subvalue={invalids}
+          label={FALSES}
+          value={formatColumnValueWith(falses, formatNumber)}
+          subvalue={BOOLEANCOUNT}
         />
       </Flex>
     </Flex>

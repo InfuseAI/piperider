@@ -7,9 +7,11 @@ type Props = {
 export const ColumnCardBodyContainer: React.FC<Props> = ({ children }) => {
   return (
     <Flex
-      p={3}
+      p={2}
       bg={'whiteAlpha.900'}
       height={'inherit'}
+      maxHeight={330}
+      overflowY="scroll"
       direction="column"
       borderBottomRadius={'inherit'}
     >

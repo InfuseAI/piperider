@@ -86,7 +86,16 @@ export function transformBaseHistogram({
 }
 
 export function getColumnDetails(columnData: ColumnSchema) {
-  const { nulls, non_nulls, total, invalids, distinct, valids } = columnData;
+  const {
+    nulls,
+    non_nulls,
+    total,
+    invalids,
+    distinct,
+    valids,
+    non_duplicates,
+    duplicates,
+  } = columnData;
 
   const hasNoNull = non_nulls === total;
 
@@ -94,6 +103,8 @@ export function getColumnDetails(columnData: ColumnSchema) {
   const invalidsOfTotal = invalids / total;
   const nullsOfTotal = nulls / total;
   const distinctOfTotal = distinct / valids;
+  const duplicatesOfTotal = duplicates / total;
+  const nonDuplicatesOfTotal = non_duplicates / total;
   const totalOfTotal = total / total;
 
   return {
@@ -102,6 +113,8 @@ export function getColumnDetails(columnData: ColumnSchema) {
     validsOfTotal,
     invalidsOfTotal,
     nullsOfTotal,
+    duplicatesOfTotal,
+    nonDuplicatesOfTotal,
     totalOfTotal,
   };
 }
