@@ -138,7 +138,6 @@ def init(**kwargs):
         theme = "fruity" if test_ipython() else "monokai"
         config = Syntax(f.read(), "yaml", theme=theme, line_numbers=True)
         console.print(config, style="white")
-        console.print(config, style="dim white")
 
 
 @cli.command(short_help='Check project configuration.')
