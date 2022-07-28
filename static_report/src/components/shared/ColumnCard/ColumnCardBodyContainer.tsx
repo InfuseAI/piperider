@@ -11,7 +11,7 @@ export const ColumnCardBodyContainer: React.FC<Props> = ({ children }) => {
       bg={'whiteAlpha.900'}
       height={'inherit'}
       maxHeight={330}
-      overflowY="scroll"
+      overflowY="auto"
       direction="column"
       borderBottomRadius={'inherit'}
     >

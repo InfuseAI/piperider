@@ -16,9 +16,8 @@ export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
 
   return (
     <Flex direction={'column'}>
-      <DataCompositionMetrics columnDatum={columnDatum} />
-      <Divider />
-      <Flex justify={'space-evenly'}>
+      <DataCompositionMetrics columnDatum={columnDatum}>
+        <Divider orientation="vertical" />
         <MetricCell
           label={NEGATIVES}
           value={formatColumnValueWith(negatives, formatNumber)}
@@ -33,7 +32,8 @@ export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
           label={POSITIVES}
           value={formatColumnValueWith(positives, formatNumber)}
         />
-      </Flex>
+      </DataCompositionMetrics>
+      <Divider />
       <Divider />
       <StatisticalMetrics columnDatum={columnDatum} />
       <Divider />

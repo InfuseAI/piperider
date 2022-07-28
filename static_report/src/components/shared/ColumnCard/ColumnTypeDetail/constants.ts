@@ -1,5 +1,5 @@
 export const DISTINCTS = 'DISTINCT';
-export const NULLS = 'NULL';
+export const NULLS = 'MISSING';
 export const NONNULLs = 'NON-NULL';
 export const DUPLICATES = 'DUPLICATE';
 export const NONDUPLICATES = 'NON-DUPLICATE';
@@ -13,7 +13,7 @@ export const STDDEV = 'SD';
 export const PLUSMINUS = '±';
 export const AVG = 'AVERAGE';
 export const MODE = 'MOST COMMON';
-export const NONZEROLENGTH = 'NON-ZERO-LENGTH';
+export const NONZEROLENGTH = 'NON-EMPTY';
 export const ZEROLENGTH = 'ZERO-LENGTH';
 export const TEXTLENGTH = 'Text Length';
 export const TEXTCOUNT = 'Words';

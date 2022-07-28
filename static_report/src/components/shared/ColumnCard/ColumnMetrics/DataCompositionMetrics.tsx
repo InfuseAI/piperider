@@ -1,4 +1,5 @@
 import { Flex, Divider } from '@chakra-ui/react';
+import { ReactNode } from 'react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
@@ -6,12 +7,12 @@ import {
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
-import { NULLS, TOTAL, INVALIDS } from '../ColumnTypeDetail/constants';
+import { NULLS, INVALIDS } from '../ColumnTypeDetail/constants';
 
-type Props = { columnDatum: ColumnSchema };
-export function DataCompositionMetrics({ columnDatum }: Props) {
-  const { total, nulls, invalids } = columnDatum;
-  const { invalidsOfTotal, totalOfTotal } = getColumnDetails(columnDatum);
+type Props = { columnDatum: ColumnSchema; children?: ReactNode };
+export function DataCompositionMetrics({ columnDatum, children }: Props) {
+  const { nulls, invalids } = columnDatum;
+  const { invalidsOfTotal } = getColumnDetails(columnDatum);
 
   return (
     <Flex justify={'space-evenly'}>
@@ -26,12 +27,7 @@ export function DataCompositionMetrics({ columnDatum }: Props) {
         value={formatColumnValueWith(invalidsOfTotal, formatIntervalMinMax)}
         subvalue={invalids}
       />
-      <Divider orientation="vertical" />
-      <MetricCell
-        label={TOTAL}
-        value={formatColumnValueWith(totalOfTotal, formatIntervalMinMax)}
-        subvalue={total}
-      />
+      {children}
     </Flex>
   );
 }
