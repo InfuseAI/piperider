@@ -2,17 +2,20 @@ import { Divider, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
+  formatIntervalMinMax,
   formatNumber,
 } from '../../../../utils/formatters';
+import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
 import { QuantilesChart } from '../../QuantilesChart';
 import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
 import { StatisticalMetrics } from '../ColumnMetrics/StatisticalMetrics';
-import { NEGATIVES, POSITIVES, ZEROS } from './constants';
+import { NEGATIVES, ZEROS } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
-  const { negatives, zeros, positives } = columnDatum;
+  const { negatives, zeros } = columnDatum;
+  const { negativesOfTotal, zerosOfTotal } = getColumnDetails(columnDatum);
 
   return (
     <Flex direction={'column'}>
@@ -20,17 +23,14 @@ export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
         <Divider orientation="vertical" />
         <MetricCell
           label={NEGATIVES}
-          value={formatColumnValueWith(negatives, formatNumber)}
+          value={formatColumnValueWith(negativesOfTotal, formatIntervalMinMax)}
+          subvalue={negatives}
         />
         <Divider orientation="vertical" />
         <MetricCell
           label={ZEROS}
-          value={formatColumnValueWith(zeros, formatNumber)}
-        />
-        <Divider orientation="vertical" />
-        <MetricCell
-          label={POSITIVES}
-          value={formatColumnValueWith(positives, formatNumber)}
+          value={formatColumnValueWith(zerosOfTotal, formatIntervalMinMax)}
+          subvalue={zeros}
         />
       </DataCompositionMetrics>
       <Divider />

@@ -1,33 +1,29 @@
-import { Divider, Flex } from '@chakra-ui/react';
+import { Divider, Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
-  formatNumber,
+  formatIntervalMinMax,
 } from '../../../../utils/formatters';
+import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
 import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
 import { StatisticalMetrics } from '../ColumnMetrics/StatisticalMetrics';
 import { UniquenessMetrics } from '../ColumnMetrics/UniquenessMetrics';
-import { NONZEROLENGTH, ZEROLENGTH } from './constants';
+import { ZEROLENGTH } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailText: React.FC<Props> = ({ columnDatum }) => {
-  const { non_zero_length, zero_length } = columnDatum;
-
-  console.log(columnDatum);
+  const { zero_length } = columnDatum;
+  const { zeroLengthOfTotal } = getColumnDetails(columnDatum);
 
   return (
     <Flex direction={'column'}>
       <DataCompositionMetrics columnDatum={columnDatum}>
         <Divider orientation="vertical" />
         <MetricCell
-          label={NONZEROLENGTH}
-          value={formatColumnValueWith(non_zero_length, formatNumber)}
-        />
-        <Divider orientation="vertical" />
-        <MetricCell
           label={ZEROLENGTH}
-          value={formatColumnValueWith(zero_length, formatNumber)}
+          value={formatColumnValueWith(zeroLengthOfTotal, formatIntervalMinMax)}
+          subvalue={zero_length}
         />
       </DataCompositionMetrics>
       <Divider />

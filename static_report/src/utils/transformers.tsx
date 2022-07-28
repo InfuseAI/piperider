@@ -95,6 +95,9 @@ export function getColumnDetails(columnData: ColumnSchema) {
     valids,
     non_duplicates,
     duplicates,
+    zero_length,
+    negatives,
+    zeros,
   } = columnData;
 
   const hasNoNull = non_nulls === total;
@@ -105,10 +108,16 @@ export function getColumnDetails(columnData: ColumnSchema) {
   const distinctOfTotal = distinct / valids;
   const duplicatesOfTotal = duplicates / total;
   const nonDuplicatesOfTotal = non_duplicates / total;
+  const zeroLengthOfTotal = zero_length / total;
+  const negativesOfTotal = negatives / total;
+  const zerosOfTotal = zeros / total;
   const totalOfTotal = total / total;
 
   return {
+    negativesOfTotal,
+    zerosOfTotal,
     hasNoNull,
+    zeroLengthOfTotal,
     distinctOfTotal,
     validsOfTotal,
     invalidsOfTotal,

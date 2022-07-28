@@ -106,7 +106,7 @@ export function formatModeMetrics(column: ColumnSchema) {
   const tops = column.topk.values.slice(0, 3);
 
   if (tops.length > 3) {
-    return tops.slice(0, 3).join(', ') + ', ...';
+    return tops.slice(0, 3).join(', ') + ', etc.';
   }
   return tops.join(', ');
 }
@@ -145,6 +145,8 @@ export function formatTruncateString(input: string, end: number) {
     <1,000,000,000? = Display in 1,000,000s (Ms) (e.g. 956M) --round@single-decimal^
     
     >=1,000,000,000? = Use E notation to 1 digit. (e.g. 3ᴇ9, 6ᴇ12) --pure scientific method
+
+    FIXME: Add Trillion and Billion Threshholds (T | B)
     ## only ever 1 DP or 0 DP (depending on magnitude), not more. ##
 
     Round down if Min Value (e.g. 6.8 => 6) 

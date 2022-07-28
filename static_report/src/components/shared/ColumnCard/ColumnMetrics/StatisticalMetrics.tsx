@@ -1,4 +1,4 @@
-import { Flex, Divider } from '@chakra-ui/react';
+import { Flex, Divider, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
@@ -22,7 +22,11 @@ export function StatisticalMetrics({ columnDatum }: Props) {
   const subvalue = isTextType ? TEXTLENGTH : '';
 
   return (
-    <>
+    <Flex direction={'column'}>
+      <Text textAlign={'center'} fontWeight={'bold'} my={2}>
+        Statistics
+      </Text>
+      <Divider />
       <Flex justify={'space-evenly'}>
         <MetricCell
           label={AVG}
@@ -52,6 +56,6 @@ export function StatisticalMetrics({ columnDatum }: Props) {
           subvalue={subvalue}
         />
       </Flex>
-    </>
+    </Flex>
   );
 }

@@ -1,4 +1,4 @@
-import { Flex, Divider } from '@chakra-ui/react';
+import { Flex, Divider, Text } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
@@ -15,19 +15,25 @@ export function DataCompositionMetrics({ columnDatum, children }: Props) {
   const { invalidsOfTotal } = getColumnDetails(columnDatum);
 
   return (
-    <Flex justify={'space-evenly'}>
-      <MetricCell
-        label={NULLS}
-        value={formatColumnValueWith(nulls, formatIntervalMinMax)}
-        subvalue={nulls}
-      />
-      <Divider orientation="vertical" />
-      <MetricCell
-        label={INVALIDS}
-        value={formatColumnValueWith(invalidsOfTotal, formatIntervalMinMax)}
-        subvalue={invalids}
-      />
-      {children}
+    <Flex direction={'column'}>
+      <Text textAlign={'center'} fontWeight={'bold'} my={2}>
+        Data Composition
+      </Text>
+      <Divider />
+      <Flex justify={'space-evenly'}>
+        <MetricCell
+          label={NULLS}
+          value={formatColumnValueWith(nulls, formatIntervalMinMax)}
+          subvalue={nulls}
+        />
+        <Divider orientation="vertical" />
+        <MetricCell
+          label={INVALIDS}
+          value={formatColumnValueWith(invalidsOfTotal, formatIntervalMinMax)}
+          subvalue={invalids}
+        />
+        {children}
+      </Flex>
     </Flex>
   );
 }

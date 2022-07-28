@@ -16,9 +16,7 @@ interface Props {
 }
 export function ColumnCard({ columnDatum }: Props) {
   ZColSchema.parse(columnDatum);
-  const { name: title, description, topk, histogram } = columnDatum;
-  const chartData = topk?.values || histogram.labels;
-  const valueCounts = topk?.counts || histogram.counts;
+  const { name: title, description } = columnDatum;
 
   return (
     <Flex
@@ -28,20 +26,11 @@ export function ColumnCard({ columnDatum }: Props) {
       h={[700]}
       my={3}
       rounded={'lg'}
+      overflowX={'hidden'}
     >
       <ColumnCardHeader title={title} description={description} />
       <ColumnCardDataVisualContainer title={title}>
-        {chartData ? (
-          <SRBarChart
-            data={chartData.map((label, i) => ({
-              label,
-              value: valueCounts[i],
-              total: columnDatum.total,
-            }))}
-          />
-        ) : (
-          <Text>No data available</Text>
-        )}
+        {_getDataChart(columnDatum)}
       </ColumnCardDataVisualContainer>
       <ColumnCardBodyContainer>
         {_getColumnBodyContentUI(columnDatum)}
@@ -50,6 +39,43 @@ export function ColumnCard({ columnDatum }: Props) {
   );
 }
 
+/**
+ * Handles logic for rendering the right charts
+ * @param columnDatum
+ * @returns *Chart Component
+ */
+function _getDataChart(columnDatum: ColumnSchema) {
+  const { topk, histogram, distinct, type } = columnDatum;
+
+  const isCategorical =
+    distinct <= 100 && (type === 'string' || type === 'integer'); //this is arbitrary
+  const chartData = isCategorical ? topk?.values : histogram.labels;
+  const valueCounts = isCategorical ? topk?.counts : histogram.counts;
+
+  // isCategorical && console.log('CATEGORICAL', columnDatum);
+  // !isCategorical && console.log('NONCATEGORICAL', columnDatum);
+
+  return chartData ? (
+    <>
+      {/* <h1>{isCategorical ? 'Category' : 'Non-Category'}</h1> */}
+      <SRBarChart
+        data={chartData.map((label, i) => ({
+          label,
+          value: valueCounts[i],
+          total: columnDatum.total,
+        }))}
+      />
+    </>
+  ) : (
+    <Text>No data available</Text>
+  );
+}
+
+/**
+ * Handles the logic for rendering the right Column Details
+ * @param columnDatum
+ * @returns ColumnTypeDetail* Component
+ */
 function _getColumnBodyContentUI(columnDatum: ColumnSchema) {
   const { type, distinct } = columnDatum;
   const isCategorical = distinct <= 100; //this is arbitrary
