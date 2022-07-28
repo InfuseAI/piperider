@@ -5,11 +5,11 @@
   },
   "CHECKS": {
     "prefixes": [
-      "[Feature]",
-      "[Bug]",
-      "[Release]",
-      "[Document]",
-      "[Chore]"
+      "[Feature] ",
+      "[Bug] ",
+      "[Release] ",
+      "[Document] ",
+      "[Chore] "
     ],
     "ignoreLabels": [
       "Skip PR Title Check"
