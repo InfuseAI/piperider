@@ -104,7 +104,7 @@ jobs:
           if [ "$ALPHA_VERSION" != '' ]; then
             echo "[Skip] Mark Amplitude Release"
           else
-            bash ./github/scripts/bump_amplitude_release.sh $VERSION
+            bash .github/scripts/bump_amplitude_release.sh $VERSION
           fi
         env:
           ALPHA_VERSION: ${{ inputs.alpha_version || '' }}
