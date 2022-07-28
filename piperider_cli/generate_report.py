@@ -1,10 +1,11 @@
 import json
 import os
 import re
+import shutil
 
 from rich.console import Console
 
-from piperider_cli import clone_directory
+from piperider_cli import clone_directory, raise_exception_when_output_directory_not_writable
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 from piperider_cli.error import PipeRiderNoProfilingResultError
 
@@ -59,8 +60,9 @@ def _get_run_json_path(input=None):
 
 class GenerateReport():
     @staticmethod
-    def exec(input=None):
+    def exec(input=None, output=None):
         console = Console()
+        raise_exception_when_output_directory_not_writable(output)
 
         from piperider_cli import data
         report_template_dir = os.path.join(os.path.dirname(data.__file__), 'report', 'single-report')
@@ -79,8 +81,17 @@ class GenerateReport():
 
         console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {run_json_path}')
 
-        dir = os.path.dirname(run_json_path)
-        clone_directory(report_template_dir, dir)
+        def output_report(target_directory):
+            clone_directory(report_template_dir, target_directory)
+            _generate_static_html(result, report_template_html, target_directory)
 
-        _generate_static_html(result, report_template_html, dir)
-        console.print(f"Report generated in {dir}/index.html")
+        # output the report to the default directory (same with the run.json)
+        default_output_directory = os.path.dirname(run_json_path)
+        output_report(default_output_directory)
+
+        if output:
+            output_report(output)
+            shutil.copyfile(run_json_path, os.path.join(output, os.path.basename(run_json_path)))
+            console.print(f"Report generated in {output}/index.html")
+        else:
+            console.print(f"Report generated in {default_output_directory}/index.html")
