@@ -525,7 +525,7 @@ class AssertionEngine:
 
             try:
                 result = assertion_instance.execute(assertion, assertion.table, assertion.column, metrics_result)
-                result.is_builtin = assertion_instance.__class__.__module__.startswith(get_assertion.__module__)
+                assertion.is_builtin = assertion_instance.__class__.__module__.startswith(get_assertion.__module__)
                 result.validate()
             except Exception as e:
                 assertion.result.fail_with_exception(e)
