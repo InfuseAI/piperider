@@ -98,3 +98,16 @@ jobs:
           SHORTCUT_API_TOKEN: ${{ secrets.SHORTCUT_API_TOKEN }}
           SLACK_CHANNEL: '#dev'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mark Amplitude Release
+        run: |
+          if [ "$ALPHA_VERSION" != '' ]; then
+            echo "[Skip] Mark Amplitude Release"
+          else
+            bash ./github/scripts/bump_amplitude_release.sh $VERSION
+          fi
+        env:
+          ALPHA_VERSION: ${{ inputs.alpha_version || '' }}
+          VERSION: ${{ steps.release_pypi.outputs.nightly_version }}
+          AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_DEV_API_KEY }}
+          AMPLITUDE_SECRET_KEY: ${{ secrets.AMPLITUDE_DEV_SECRET_KEY }}

@@ -70,6 +70,14 @@ jobs:
           ignore_empty: true
           ignore_missing: true
           version: ${{ steps.release_pypi.outputs.version }}
+      - name: Mark Amplitude Release
+        run: |
+          bash ./github/scripts/bump_amplitude_release.sh $VERSION $ENVIRONMENT
+        env:
+          VERSION: ${{ steps.release_pypi.outputs.version }}
+          ENVIRONMENT: ${{ steps.release_pypi.outputs.sentry_env || 'production' }}
+          AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_PROD_API_KEY }}
+          AMPLITUDE_SECRET_KEY: ${{ secrets.AMPLITUDE_PROD_SECRET_KEY }}
       - name: Notify release to Slack
         id: slack
         uses: slackapi/slack-github-action@v1.19.0
