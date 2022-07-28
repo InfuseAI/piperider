@@ -89,11 +89,12 @@ class ComparisonData(object):
 
 
 class CompareReport(object):
-    def __init__(self, profiler_output_path, a=None, b=None):
+    def __init__(self, profiler_output_path, a=None, b=None, datasource=None):
         self.profiler_output_path = profiler_output_path
         self.console = Console()
         self.a: ProfilerOutput = ProfilerOutput(a) if a else None
         self.b: ProfilerOutput = ProfilerOutput(b) if b else None
+        self.datasource = datasource
 
     def list_existing_outputs(self, output_search_path=None):
         """
@@ -109,7 +110,10 @@ class CompareReport(object):
                     run_json = os.path.join(root, dir, 'run.json')
                     if not os.path.exists(run_json):
                         continue
-                    outputs.append(ProfilerOutput(run_json))
+                    output = ProfilerOutput(run_json)
+                    if self.datasource and output.name != self.datasource:
+                        continue
+                    outputs.append(output)
             outputs.sort(key=lambda x: (x.name, x.created_at), reverse=True)
             return outputs
 
@@ -118,8 +122,18 @@ class CompareReport(object):
 
         return _walk_throw_runs(output_search_path)
 
-    def select_reports(self):
-        if self.a is None and self.b is None:
+    def get_the_last_two_reports(self):
+        outputs = self.list_existing_outputs()
+        outputs.sort(key=lambda x: x.created_at)
+        outputs = list(filter(lambda x: x.name == outputs[-1].name, outputs))
+        if len(outputs) < 2:
+            return None, None
+        return outputs[-2:]
+
+    def select_reports(self, use_last_two=None):
+        if use_last_two:
+            self.a, self.b = self.get_the_last_two_reports()
+        elif self.a is None and self.b is None:
             self.a, self.b = self.select_two_reports()
         elif self.a and self.b is None:
             self.b = self.select_one_report()
@@ -223,11 +237,11 @@ class CompareReport(object):
         return ComparisonData(self.a.load(), self.b.load())
 
     @staticmethod
-    def exec(a=None, b=None):
+    def exec(*, a=None, b=None, last=None, datasource=None):
         console = Console()
 
-        report = CompareReport(PIPERIDER_OUTPUT_PATH, a, b)
-        if not report.select_reports():
+        report = CompareReport(PIPERIDER_OUTPUT_PATH, a, b, datasource=datasource)
+        if not report.select_reports(use_last_two=last):
             raise Exception('No valid reports found')
         comparison_data = report.generate_data()
 
