@@ -158,7 +158,7 @@ def diagnose(**kwargs):
 @cli.command(short_help='Profile data source, run assertions, and generate report(s).', cls=TrackCommand)
 @click.option('--datasource', default=None, type=click.STRING, help='Datasource to use.', metavar='DATASOURCE_NAME')
 @click.option('--table', default=None, type=click.STRING, help='Table to use.', metavar='TABLE_NAME')
-@click.option('--output', default=None, type=click.Path(), help='Directory to save the results.')
+@click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--no-interaction', is_flag=True, help='Disable interactive mode.')
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
 @click.option('--skip-recommend', is_flag=True, help='Skip recommending assertions.')
@@ -184,7 +184,7 @@ def run(**kwargs):
                       skip_recommend=skip_recommend,
                       dbt_command=dbt_command)
     if not skip_report and ret == 0:
-        GenerateReport.exec()
+        GenerateReport.exec(None, output)
 
 
 @cli.command(short_help='Generate recommended assertions.', cls=TrackCommand)
@@ -198,18 +198,20 @@ def generate_assertions(**kwargs):
 
 @cli.command(short_help='Generate a report.', cls=TrackCommand)
 @click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
+@click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @add_options(debug_option)
 def generate_report(**kwargs):
     'Generate a report from the latest raw result or specified result. By default, the raw results are saved in ".piperider/outputs".'
-
-    GenerateReport.exec(input=kwargs.get('input'))
+    GenerateReport.exec(input=kwargs.get('input'), output=kwargs.get('output'))
 
 
 @cli.command(short_help='Compare two existing reports.', cls=TrackCommand)
 @click.option('--base', default=None, type=click.Path(exists=True), help='Specify the base report file.')
 @click.option('--target', default=None, type=click.Path(exists=True), help='Specify the report file to be compared.')
 @click.option('--last', default=None, is_flag=True, help='Compare the last two reports.')
-@click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME', help='Specify the datasource.')
+@click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
+              help='Specify the datasource.')
+@click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @add_options(debug_option)
 def compare_reports(**kwargs):
     'Compare two existing reports selected in interactive mode or by option.'
@@ -218,4 +220,4 @@ def compare_reports(**kwargs):
     b = kwargs.get('target')
     last = kwargs.get('last')
     datasource = kwargs.get('datasource')
-    CompareReport.exec(a=a, b=b, last=last, datasource=datasource)
+    CompareReport.exec(a=a, b=b, last=last, datasource=datasource, output=kwargs.get('output'))

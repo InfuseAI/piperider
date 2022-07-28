@@ -76,3 +76,23 @@ def convert_to_tzlocal(input):
 
 
 __version__ = get_version()
+
+
+def ensure_directory_writable(directory):
+    d = os.path.abspath(directory)
+
+    if os.path.exists(d):
+        if not os.path.isdir(directory):
+            return False
+        return os.access(d, os.W_OK)
+    else:
+        try:
+            os.makedirs(directory)
+        except BaseException:
+            return False
+
+
+def raise_exception_when_output_directory_not_writable(output):
+    if output:
+        if not ensure_directory_writable(output):
+            raise Exception(f'The `-o {output}` is not writable')

@@ -8,7 +8,8 @@ import readchar
 from rich.console import Console
 
 import piperider_cli.hack.inquirer as inquirer_hack
-from piperider_cli import datetime_to_str, str_to_datetime, clone_directory
+from piperider_cli import datetime_to_str, str_to_datetime, clone_directory, \
+    raise_exception_when_output_directory_not_writable
 from piperider_cli.configuration import PIPERIDER_OUTPUT_PATH, PIPERIDER_COMPARISON_PATH
 
 
@@ -237,8 +238,9 @@ class CompareReport(object):
         return ComparisonData(self.a.load(), self.b.load())
 
     @staticmethod
-    def exec(*, a=None, b=None, last=None, datasource=None):
+    def exec(*, a=None, b=None, last=None, datasource=None, output=None):
         console = Console()
+        raise_exception_when_output_directory_not_writable(output)
 
         report = CompareReport(PIPERIDER_OUTPUT_PATH, a, b, datasource=datasource)
         if not report.select_reports(use_last_two=last):
@@ -250,18 +252,22 @@ class CompareReport(object):
         with open(os.path.join(report_template_dir, 'index.html')) as f:
             report_template_html = f.read()
 
-        data_id = comparison_data.id()
-        dir = os.path.join(PIPERIDER_COMPARISON_PATH, data_id)
-        clone_directory(report_template_dir, dir)
+        def output_report(directory):
+            clone_directory(report_template_dir, directory)
+            filename = os.path.join(directory, 'index.html')
+            with open(filename, 'w') as f:
+                html = report.setup_report_variables(report_template_html, False, comparison_data.to_json())
+                f.write(html)
 
-        filename = os.path.join(dir, 'index.html')
-        with open(filename, 'w') as f:
-            html = report.setup_report_variables(report_template_html, False, comparison_data.to_json())
-            f.write(html)
+            return filename
+
+        data_id = comparison_data.id()
+        default_report_directory = os.path.join(PIPERIDER_COMPARISON_PATH, data_id)
+        filename = output_report(default_report_directory)
+
+        if output:
+            clone_directory(default_report_directory, output)
+            filename = os.path.join(output, 'index.html')
 
         console.print()
         console.print(f"Comparison report: {filename}")
-
-        # TODO for debugging intermediate data, remove this
-        with open(os.path.join(dir, 'comparison_data.json'), 'w') as f:
-            f.write(comparison_data.to_json())

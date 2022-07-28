@@ -13,7 +13,8 @@ from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedCo
 from rich.table import Table
 from sqlalchemy import create_engine, inspect
 
-from piperider_cli import convert_to_tzlocal, datetime_to_str
+from piperider_cli import convert_to_tzlocal, datetime_to_str, clone_directory, \
+    raise_exception_when_output_directory_not_writable
 from piperider_cli import event
 from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_engine import AssertionEngine
@@ -433,12 +434,11 @@ def _get_table_list(table, default_schema, dbt_adapter):
     return tables
 
 
-def prepare_output_path(created_at, ds, output):
+def prepare_default_output_path(created_at, ds):
     latest_symlink_path = os.path.join(PIPERIDER_OUTPUT_PATH, 'latest')
     output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
                                f"{ds.name}-{convert_to_tzlocal(created_at).strftime('%Y%m%d%H%M%S')}")
-    if output:
-        output_path = output
+
     if not os.path.exists(output_path):
         os.makedirs(output_path, exist_ok=True)
 
@@ -497,6 +497,8 @@ class Runner():
     def exec(datasource=None, table=None, output=None, interaction=True, skip_report=False, dbt_command='',
              skip_recommend=False):
         console = Console()
+        raise_exception_when_output_directory_not_writable(output)
+
         configuration = Configuration.load()
         datasources = {}
         datasource_names = []
@@ -564,7 +566,7 @@ class Runner():
         except Exception as e:
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
-        output_path = prepare_output_path(created_at, ds, output)
+        output_path = prepare_default_output_path(created_at, ds)
 
         # output profiling result
         with open(os.path.join(output_path, ".profiler.json"), "w") as f:
@@ -611,8 +613,12 @@ class Runner():
 
         with open(output_file, 'w') as f:
             f.write(json.dumps(profile_result, indent=4))
+
+        if output:
+            clone_directory(output_path, output)
+
         if skip_report:
-            console.print(f'Results saved to {output_path}')
+            console.print(f'Results saved to {output if output else output_path}')
 
         # TODO: Calculate # of build-in, customized and recommended assertions
         event_payload.dbt_command = dbt_command
