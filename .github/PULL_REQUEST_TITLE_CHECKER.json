@@ -1,0 +1,23 @@
+{
+  "LABEL": {
+    "name": "PR Title Check Failed",
+    "color": "FC6666"
+  },
+  "CHECKS": {
+    "prefixes": [
+      "[Feature]",
+      "[Bug]",
+      "[Release]",
+      "[Document]",
+      "[Chore]"
+    ],
+    "ignoreLabels": [
+      "Skip PR Title Check"
+    ]
+  },
+  "MESSAGES": {
+    "success": "PR Title Check Passed",
+    "failure": "PR Title Check Failed",
+    "notice": "PR title should should start with one of the following prefixes: [Feature], [Bug], [Release], [Document], [Chore]"
+  }
+}
