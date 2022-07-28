@@ -4,12 +4,14 @@ import {
   formatColumnValueWith,
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
+import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
-import { INVALIDS, MAX, MIN, NULLS } from './constants';
+import { INVALIDS, START, END, NULLS, DISTINCTS } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailDatetime: React.FC<Props> = ({ columnDatum }) => {
-  const { nulls, min, max, invalids } = columnDatum;
+  const { distinct, nulls, min, max, invalids } = columnDatum;
+  const { distinctOfTotal } = getColumnDetails(columnDatum);
 
   return (
     <Flex direction={'column'}>
@@ -21,6 +23,12 @@ export const ColumnTypeDetailDatetime: React.FC<Props> = ({ columnDatum }) => {
         />
         <Divider orientation="vertical" />
         <MetricCell
+          label={DISTINCTS}
+          value={formatColumnValueWith(distinctOfTotal, formatIntervalMinMax)}
+          subvalue={distinct}
+        />
+        <Divider orientation="vertical" />
+        <MetricCell
           label={INVALIDS}
           value={formatColumnValueWith(invalids, formatIntervalMinMax)}
           subvalue={invalids}
@@ -28,9 +36,9 @@ export const ColumnTypeDetailDatetime: React.FC<Props> = ({ columnDatum }) => {
       </Flex>
       <Divider />
       <Flex justify={'space-evenly'}>
-        <MetricCell label={MIN} value={min} />
+        <MetricCell label={START} value={min} />
         <Divider orientation="vertical" />
-        <MetricCell label={MAX} value={max} />
+        <MetricCell label={END} value={max} />
       </Flex>
     </Flex>
   );

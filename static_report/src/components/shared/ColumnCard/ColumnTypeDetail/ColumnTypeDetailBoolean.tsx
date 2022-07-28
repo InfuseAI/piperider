@@ -3,26 +3,45 @@ import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
-  formatModeMetrics,
 } from '../../../../utils/formatters';
+import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
-import { MODE, NULLS } from './constants';
+import { INVALIDS, NULLS } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
-  const { total, nulls } = columnDatum;
+  const { total, nulls, trues, falses, invalids } = columnDatum;
+  const { invalidsOfTotal } = getColumnDetails(columnDatum);
 
   return (
     <Flex direction={'column'}>
-      <MetricCell
-        label={NULLS}
-        value={formatColumnValueWith(nulls, formatIntervalMinMax)}
-        subvalue={nulls}
-      />
+      <Flex justify={'space-evenly'}>
+        <MetricCell
+          label={NULLS}
+          value={formatColumnValueWith(nulls, formatIntervalMinMax)}
+          subvalue={nulls}
+        />
+        <Divider orientation="vertical" />
+        <MetricCell
+          label={INVALIDS}
+          value={formatColumnValueWith(invalidsOfTotal, formatIntervalMinMax)}
+          subvalue={invalids}
+        />
+      </Flex>
       <Divider />
-      {/* FIXME: Change to correct categorical count */}
-      <MetricCell label={'TOTAL CATEGORIES'} value={total} />
-      <MetricCell label={MODE} value={formatModeMetrics(columnDatum)} />
+      <Flex justify={'space-evenly'}>
+        <MetricCell
+          label={NULLS}
+          value={formatColumnValueWith(nulls, formatIntervalMinMax)}
+          subvalue={nulls}
+        />
+        <Divider orientation="vertical" />
+        <MetricCell
+          label={INVALIDS}
+          value={formatColumnValueWith(invalidsOfTotal, formatIntervalMinMax)}
+          subvalue={invalids}
+        />
+      </Flex>
     </Flex>
   );
 };

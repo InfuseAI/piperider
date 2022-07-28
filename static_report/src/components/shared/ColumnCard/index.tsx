@@ -26,6 +26,7 @@ export function ColumnCard({ columnDatum }: Props) {
       bg={'gray.300'}
       width="400px"
       h={[700]}
+      my={3}
       rounded={'lg'}
     >
       <ColumnCardHeader title={title} description={description} />
