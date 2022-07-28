@@ -169,6 +169,7 @@ class AssertionResult:
         self._exception: Exception = None
         self.actual: dict = None
         self._expected: dict = None
+        self.is_builtin = False
 
     def status(self):
         return self._success
@@ -521,8 +522,10 @@ class AssertionEngine:
         from piperider_cli.assertion_engine.types import get_assertion
         try:
             assertion_instance = get_assertion(assertion.name)
+
             try:
                 result = assertion_instance.execute(assertion, assertion.table, assertion.column, metrics_result)
+                assertion.is_builtin = assertion_instance.__class__.__module__.startswith(get_assertion.__module__)
                 result.validate()
             except Exception as e:
                 assertion.result.fail_with_exception(e)
