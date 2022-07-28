@@ -72,7 +72,7 @@ jobs:
           version: ${{ steps.release_pypi.outputs.version }}
       - name: Mark Amplitude Release
         run: |
-          bash ./github/scripts/bump_amplitude_release.sh $VERSION $ENVIRONMENT
+          bash .github/scripts/bump_amplitude_release.sh $VERSION $ENVIRONMENT
         env:
           VERSION: ${{ steps.release_pypi.outputs.version }}
           ENVIRONMENT: ${{ steps.release_pypi.outputs.sentry_env || 'production' }}
