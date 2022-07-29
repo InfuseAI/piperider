@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { writeFile, readdir, readFile } from 'fs/promises';
+import { readFileSync } from 'fs';
 import { parse } from 'node-html-parser';
 
 export const generateFile = async (fileName, fileData) => {
@@ -46,6 +47,10 @@ export const getEmbeddedIndexHTML = async (dataMap) => {
   try {
     const html = parse(Buffer.from(await readFile(PATH_TO_INDEX)).toString());
     html.querySelector('#piperider-report-variables').textContent = `
+        // PipeRider metadata
+        window.PIPERIDER_METADATA = ${JSON.stringify(
+          dataMap.get(METADATA_KEY) || '',
+        )};
         // ${SINGLE_KEY} report
         window.PIPERIDER_SINGLE_REPORT_DATA = ${JSON.stringify(
           dataMap.get(SINGLE_KEY) || '',
@@ -64,6 +69,7 @@ export const getEmbeddedIndexHTML = async (dataMap) => {
 
 export const isE2E = process.argv[2] === 'e2e';
 export const log = console.log;
+export const METADATA_KEY = 'metadata';
 export const SINGLE_KEY = 'single';
 export const COMPARISON_KEY = 'comparison';
 export const PATH_TO_INDEX = 'public/index.html';
@@ -74,3 +80,7 @@ export const PATH_TO_SINGLE_REPORT_DATA_JSON =
   '../' +
   (isE2E ? `${MOUNT_PATH_TO_E2E_DATA}` : `.piperider`) +
   `/outputs/latest/${FILENAME_SINGLE}`;
+export const PATH_TO_METADATA_DATA_JSON = 'piperider-metadata.json';
+export const PIPERIDER_VERSION = readFileSync('../piperider_cli/VERSION')
+  .toString()
+  .replace('\n', '');

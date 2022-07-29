@@ -10,6 +10,9 @@ import {
   PATH_TO_INDEX,
   PATH_TO_SINGLE_REPORT_DATA_JSON,
   SINGLE_KEY,
+  PATH_TO_METADATA_DATA_JSON,
+  METADATA_KEY,
+  PIPERIDER_VERSION,
 } from './core.js';
 
 /**
@@ -27,6 +30,16 @@ const insertDataToHTML = async () => {
   log(PATH_TO_SINGLE_REPORT_DATA_JSON);
   log(PATH_TO_COMPARISON_REPORT_DATA_JSON);
 
+  // Set PipeRider Metadata
+  let metadata = {
+    name: 'PipeRider',
+    version: PIPERIDER_VERSION,
+    sentry_dns:
+      'https://41930bf397884adfb2617fe350231439@o1081482.ingest.sentry.io/6463955',
+    sentry_env: 'development',
+  };
+  await generateFile(PATH_TO_METADATA_DATA_JSON, JSON.stringify(metadata));
+
   await setMapValues(
     reportDataMap,
     PATH_TO_SINGLE_REPORT_DATA_JSON,
@@ -38,6 +51,8 @@ const insertDataToHTML = async () => {
     PATH_TO_COMPARISON_REPORT_DATA_JSON,
     COMPARISON_KEY,
   );
+
+  await setMapValues(reportDataMap, PATH_TO_METADATA_DATA_JSON, METADATA_KEY);
 
   // Embed Report Data to HTML and Rewrite
   const embedHtml = await getEmbeddedIndexHTML(reportDataMap);

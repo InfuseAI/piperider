@@ -5,6 +5,7 @@ declare global {
   interface Window {
     PIPERIDER_SINGLE_REPORT_DATA: SingleReportSchema;
     PIPERIDER_COMPARISON_REPORT_DATA: ComparisonReportSchema;
+    PIPERIDER_METADATA: any;
   }
   namespace NodeJS {
     interface ProcessEnv {

@@ -1,7 +1,9 @@
 import logging
 import os
+import re
 import sys
 from datetime import datetime
+
 from dateutil import tz
 
 
@@ -76,6 +78,24 @@ def convert_to_tzlocal(input):
 
 
 __version__ = get_version()
+
+
+def set_sentry_env():
+    if '.dev' in __version__:
+        return 'development'
+    elif re.match(r'^\d+\.\d+\.\d+\.\d{8}[a|b|rc]?.*$', __version__):
+        return 'nightly'
+    elif 'a' in __version__:
+        return 'alpha'
+    elif 'b' in __version__:
+        return 'beta'
+    elif 'rc' in __version__:
+        return 'release-candidate'
+    return 'production'
+
+
+sentry_dns = "https://41930bf397884adfb2617fe350231439@o1081482.ingest.sentry.io/6463955"
+sentry_env = set_sentry_env()
 
 
 def ensure_directory_writable(directory):

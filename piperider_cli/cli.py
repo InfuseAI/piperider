@@ -1,5 +1,4 @@
 import os.path
-import re
 import sys
 
 import click
@@ -7,7 +6,7 @@ import sentry_sdk
 from rich.console import Console
 from rich.syntax import Syntax
 
-from piperider_cli import __version__, event
+from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.compare_report import CompareReport
@@ -18,26 +17,10 @@ from piperider_cli.initializer import Initializer
 from piperider_cli.runner import Runner
 from piperider_cli.validator import Validator
 
-
-def set_sentry_env():
-    if '.dev' in __version__:
-        return 'development'
-    elif re.match('^\d+\.\d+\.\d+\.\d{8}[a|b|rc]?.*$', __version__):
-        return 'nightly'
-    elif 'a' in __version__:
-        return 'alpha'
-    elif 'b' in __version__:
-        return 'beta'
-    elif 'rc' in __version__:
-        return 'release-candidate'
-    return 'production'
-
-
-sentry_env = set_sentry_env()
 release_version = __version__ if sentry_env != 'development' else None
 
 sentry_sdk.init(
-    "https://41930bf397884adfb2617fe350231439@o1081482.ingest.sentry.io/6463955",
+    sentry_dns,
     environment=sentry_env,
     release=release_version,
     # Set traces_sample_rate to 1.0 to capture 100%
