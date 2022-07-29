@@ -83,7 +83,7 @@ export default function SingleReport({ data, name }: Props) {
             </TabList>
 
             <TabPanels>
-              <TabPanel bg={'blackAlpha.400'}>
+              <TabPanel>
                 <SRTabProfilingDetails data={table.columns} />
               </TabPanel>
 

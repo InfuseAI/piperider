@@ -9,7 +9,7 @@ interface Props {
 }
 export function SRTabProfilingDetails({ data }: Props) {
   return (
-    <Flex direction="row" flexWrap={'wrap'} gap={4} justify={'center'}>
+    <Flex direction="row" flexWrap={'wrap'} gap={4}>
       {Object.keys(data).map((key) => {
         const column = data[key];
         ZColSchema.parse(column);

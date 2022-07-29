@@ -26,9 +26,11 @@ export const ColumnCardDataVisualContainer: React.FC<Props> = ({
   return (
     <>
       <Flex
-        p={9}
-        my={6}
+        px={12}
+        py={9}
+        my={3}
         mx={3}
+        maxHeight={'300px'}
         bg={'whiteAlpha.700'}
         rounded={'md'}
         onClick={onOpen}

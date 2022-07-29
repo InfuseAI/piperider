@@ -18,6 +18,7 @@ export function UniquenessMetrics({ columnDatum }: Props) {
       <Text textAlign={'center'} fontWeight={'bold'} my={2}>
         Uniqueness
       </Text>
+      <Divider />
       <Flex justify={'space-evenly'}>
         <MetricCell
           label={DISTINCTS}

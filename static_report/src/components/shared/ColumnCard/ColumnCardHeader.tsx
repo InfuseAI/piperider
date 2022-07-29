@@ -8,7 +8,7 @@ export function ColumnCardHeader({ title, description }: Props) {
   return (
     <Flex
       p={2}
-      bg={'whiteAlpha.900'}
+      bg={'white'}
       justify={'space-between'}
       alignItems={'center'}
       width={'100%'}

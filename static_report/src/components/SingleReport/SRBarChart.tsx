@@ -20,7 +20,7 @@ export function SRBarChart({ data }: Props) {
   useSingleChart<Datum>({ target: svgRef, data, dimensions });
 
   return (
-    <Flex className="chart" width="100%" minHeight={250} ref={containerRef}>
+    <Flex className="chart" width="100%" minHeight={230} ref={containerRef}>
       <svg width="100%" overflow="visible" ref={svgRef}>
         <g className="x-axis" />
         <g className="y-axis" />
