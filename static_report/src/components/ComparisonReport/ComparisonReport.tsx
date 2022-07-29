@@ -105,16 +105,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
 
             <TabPanels>
               <TabPanel>
-                {baseTable?.columns && targetTable?.columns ? (
-                  <CRTabSchemaDetails base={baseTable} target={targetTable} />
-                ) : (
-                  <Text>
-                    <p>
-                      There seems to be a mismatch between your report columns.
-                    </p>
-                    Please check your run.json
-                  </Text>
-                )}
+                <CRTabSchemaDetails base={baseTable} target={targetTable} />
               </TabPanel>
 
               <TabPanel>
