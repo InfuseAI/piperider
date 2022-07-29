@@ -29,11 +29,11 @@ export const getComparisonDataPath = async (e2eFlag) => {
   }
 };
 export const getFileData = async (pathToReport) => {
-  const testing = (
-    await readdir('../piperider-getting-started/.piperider/comparisons/')
-  ).pop();
+  const prePath = await readdir(
+    pathToReport.slice(0, pathToReport.lastIndexOf('/')),
+  );
   try {
-    log(`Check if comparison exists first: ${testing}`);
+    log(`Check if comparison has json first: ${prePath}`);
     log(chalk.yellow(`Reading path: ${pathToReport} from ${process.cwd()}`));
     return JSON.parse(
       Buffer.from(
