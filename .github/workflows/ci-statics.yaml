@@ -64,7 +64,6 @@ jobs:
       uses: cypress-io/github-action@v2
       with:
         install: false
-        working-directory: ./static_report
         config-file: cypress.config.ts
         build: npm run setup:e2e
         start: |
