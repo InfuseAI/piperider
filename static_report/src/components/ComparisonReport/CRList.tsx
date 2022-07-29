@@ -10,7 +10,6 @@ import {
   Thead,
   Tr,
   Tooltip,
-  Box,
 } from '@chakra-ui/react';
 import { InfoIcon, WarningIcon } from '@chakra-ui/icons';
 import { Link } from 'wouter';
@@ -163,24 +162,27 @@ export function ComparisonReportList({
 
                   //For asymmetric/mismatched columns
                   //FIXME: The fix requires downstream UI rework/refactor to allow for proper mismatched column handling
-                  const isDisabled =
+                  const isAsymmetricColumns =
                     !table.base?.columns || !table.target?.columns;
 
                   return (
                     <Link
                       key={nanoid()}
                       style={{ cursor: 'not-allowed' }}
-                      href={isDisabled ? '#' : `/tables/${key}`}
+                      href={isAsymmetricColumns ? '#' : `/tables/${key}`}
                     >
                       <Tr
                         data-cy="cr-report-list-item"
-                        cursor={isDisabled ? 'not-allowed' : 'pointer'}
+                        cursor={isAsymmetricColumns ? 'not-allowed' : 'pointer'}
                         _hover={{ bgColor: 'blackAlpha.50' }}
                       >
                         <Td>
-                          <Tooltip label="There seems to be a mismatch on the base and/or target columns. So there's currently no way to display the comparison between them.">
+                          <Tooltip
+                            isDisabled={!isAsymmetricColumns}
+                            label="There seems to be a mismatch on the base and/or target columns. So there's currently no way to display the comparison between them."
+                          >
                             <Flex>
-                              {isDisabled && <WarningIcon />}
+                              {isAsymmetricColumns && <WarningIcon />}
                               <Text ml={2}>{key}</Text>
                             </Flex>
                           </Tooltip>
