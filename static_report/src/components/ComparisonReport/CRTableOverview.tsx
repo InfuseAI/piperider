@@ -9,7 +9,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { TableSchema } from '../../sdlc/single-report-schema';
-import { ZTableSchema } from '../../types';
+import { zReport, ZTableSchema } from '../../types';
 import { getReportAggregateAssertions } from '../../utils/assertion';
 
 type Props = {
@@ -18,15 +18,15 @@ type Props = {
 };
 
 export function CRTableOverview({ baseTable, targetTable }: Props) {
-  ZTableSchema.parse(baseTable);
-  ZTableSchema.parse(targetTable);
+  zReport(ZTableSchema.safeParse(baseTable));
+  zReport(ZTableSchema.safeParse(targetTable));
 
   const baseAssertions = getReportAggregateAssertions(
-    baseTable.piperider_assertion_result,
+    baseTable?.piperider_assertion_result,
     baseTable?.dbt_assertion_result,
   );
   const targetAssertions = getReportAggregateAssertions(
-    targetTable.piperider_assertion_result,
+    targetTable?.piperider_assertion_result,
     targetTable?.dbt_assertion_result,
   );
 
