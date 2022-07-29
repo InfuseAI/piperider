@@ -238,7 +238,7 @@ class CompareReport(object):
         return ComparisonData(self.a.load(), self.b.load())
 
     @staticmethod
-    def exec(*, a=None, b=None, last=None, datasource=None, output=None):
+    def exec(*, a=None, b=None, last=None, datasource=None, output=None, debug=False):
         console = Console()
         raise_exception_when_output_directory_not_writable(output)
 
@@ -271,3 +271,8 @@ class CompareReport(object):
 
         console.print()
         console.print(f"Comparison report: {filename}")
+
+        if debug:
+            # Write comparison data to file
+            with open(os.path.join(default_report_directory, 'comparison_data.json'), 'w') as f:
+                f.write(comparison_data.to_json())
