@@ -37,12 +37,6 @@ jobs:
     - name: Prepare Piperider Data (2 runs; 1 comparison)
       working-directory: .
       run: |
-        sudo apt-get install expect dejagnu
-        mkdir -p ~/.piperider
-        cat << EOF > ~/.piperider/profile.yml
-        user_id: 00000000000000000000000000000000
-        anonymous_tracking: true
-        EOF
         pwd
         pip install -r requirements.txt
 
@@ -59,8 +53,6 @@ jobs:
     - name: Install Dependencies
       run: |
         yarn install --immutable
-        ls -a ../piperider-getting-started/.piperider/outputs
-        ls -a ../piperider-getting-started/.piperider/comparisons
         npm run embed:html:e2e
 
     - name: Cypress run (E2E)
