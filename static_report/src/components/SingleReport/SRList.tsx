@@ -23,15 +23,17 @@ import {
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import { singleReportSchemaSchema } from '../../sdlc/single-report-schema.z';
-import { ZTableSchema } from '../../types';
+import { zReport, ZTableSchema } from '../../types';
 import { getSingleAssertionStatusCounts } from '../../utils/assertion';
 
 type Props = { data: SingleReportSchema };
 export function SingleReportList({ data }: Props) {
   const { id, created_at, datasource, tables } = data;
-  singleReportSchemaSchema
-    .pick({ id: true, created_at: true, datasource: true })
-    .parse({ id, created_at, datasource });
+  zReport(
+    singleReportSchemaSchema
+      .pick({ id: true, created_at: true, datasource: true })
+      .safeParse({ id, created_at, datasource }),
+  );
 
   useDocumentTitle('Report List');
 
@@ -83,7 +85,7 @@ export function SingleReportList({ data }: Props) {
             <Tbody data-cy="sr-report-list">
               {Object.keys(tables).map((key) => {
                 const report = tables[key];
-                ZTableSchema.parse(report);
+                zReport(ZTableSchema.safeParse(report));
 
                 const pipeRideroverview = getSingleAssertionStatusCounts(
                   report.piperider_assertion_result,

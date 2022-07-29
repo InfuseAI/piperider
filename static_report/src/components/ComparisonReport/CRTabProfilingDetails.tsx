@@ -1,7 +1,7 @@
 import { Flex, Grid } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
-import { ZTableSchema } from '../../types';
+import { zReport, ZTableSchema } from '../../types';
 import {
   transformBaseDistribution,
   nestComparisonValueByKey,
@@ -16,8 +16,8 @@ type Props = {
   targetTable: TableSchema;
 };
 export function CRTabProfilingDetails({ baseTable, targetTable }: Props) {
-  ZTableSchema.parse(baseTable);
-  ZTableSchema.parse(targetTable);
+  zReport(ZTableSchema.safeParse(baseTable));
+  zReport(ZTableSchema.safeParse(targetTable));
 
   const transformedData = nestComparisonValueByKey<ColumnSchema>(
     baseTable.columns,

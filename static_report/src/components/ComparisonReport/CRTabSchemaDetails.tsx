@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
-import { ZTableSchema } from '../../types';
+import { zReport, ZTableSchema } from '../../types';
 
 type EnrichedColumnData = {
   added: number;
@@ -37,8 +37,8 @@ type Props = {
   target: TableSchema;
 };
 export function CRTabSchemaDetails({ base, target }: Props) {
-  ZTableSchema.parse(base);
-  ZTableSchema.parse(target);
+  zReport(ZTableSchema.safeParse(base));
+  zReport(ZTableSchema.safeParse(target));
 
   const baseColEntries = getEnrichedColumnsFor(base.columns, 'base');
   const targetColEntries = getEnrichedColumnsFor(target.columns, 'target');

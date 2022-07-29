@@ -1,6 +1,6 @@
 import { Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
-import { ZColSchema } from '../../types';
+import { ZColSchema, zReport } from '../../types';
 import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
 import { MetricsInfo } from './MetrisInfo';
 
@@ -10,8 +10,8 @@ type Props = {
 };
 
 export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
-  ZColSchema.parse(baseColumn);
-  ZColSchema.parse(baseColumn);
+  zReport(ZColSchema.safeParse(baseColumn));
+  zReport(ZColSchema.safeParse(baseColumn));
   return (
     <>
       <Flex direction="column">

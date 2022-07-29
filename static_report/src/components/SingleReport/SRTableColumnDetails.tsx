@@ -6,13 +6,13 @@ import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
 import { GeneralTableColumn } from '../shared/GeneralTableColumn';
 import { SRTooltip } from './SRTooltip';
-import { ZColSchema } from '../../types';
+import { ZColSchema, zReport } from '../../types';
 
 type SRTableColumnDetailsProps = {
   column: ColumnSchema;
 };
 export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
-  ZColSchema.omit({ type: true, stddev: true }).parse(column);
+  zReport(ZColSchema.safeParse(column));
   return (
     <Flex direction="column" gap={3}>
       <Box maxWidth="100%">

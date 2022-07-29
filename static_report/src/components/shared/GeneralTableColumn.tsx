@@ -1,5 +1,5 @@
 import { ColumnSchema } from '../../sdlc/single-report-schema';
-import { ZColSchema } from '../../types';
+import { ZColSchema, zReport } from '../../types';
 import {
   formatNumber,
   formatIntervalMinMax,
@@ -11,7 +11,7 @@ import { MetricsInfo } from './MetrisInfo';
 type Props = { baseColumn: ColumnSchema; targetColumn?: ColumnSchema };
 export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
   if (baseColumn) {
-    ZColSchema.parse(baseColumn);
+    zReport(ZColSchema.safeParse(baseColumn));
     var {
       totalOfTotal: baseTotalOfTotal,
       valid: baseValid,
@@ -25,7 +25,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
   }
 
   if (targetColumn) {
-    ZColSchema.parse(targetColumn);
+    zReport(ZColSchema.safeParse(targetColumn));
     var {
       total: targetTotal,
       mismatchOfTotal: targetMismatchOfTotal,
