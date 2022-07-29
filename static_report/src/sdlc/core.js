@@ -30,7 +30,7 @@ export const getComparisonDataPath = async (e2eFlag) => {
 };
 export const getFileData = async (pathToReport) => {
   try {
-    log(chalk.yellow(`Reading path: ${pathToReport}`));
+    log(chalk.yellow(`Reading path: ${pathToReport} from ${process.cwd()}`));
     return JSON.parse(
       Buffer.from(
         await readFile(pathToReport, {
