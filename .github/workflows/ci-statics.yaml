@@ -45,11 +45,11 @@ jobs:
         EOF
         pwd
         pip install -r requirements.txt
+
         which piperider
         piperider version
-        runtest e2e-tests/testsuite/getting-started/001-run.exp
         
-        bash static_report/src/sdlc/generate-comparisons.sh
+        bash static_report/src/sdlc/generate-e2e-data.sh
 
         ls -a piperider-getting-started/.piperider/outputs
         ls -a piperider-getting-started/.piperider/comparisons
@@ -66,9 +66,7 @@ jobs:
         install: false
         working-directory: ./static_report
         config-file: cypress.config.ts
-        build: |
-          ls ../piperider-getting-started/.piperider/comparisons/ 
-          npm run setup:e2e
+        build: npm run setup:e2e
         start: |
           npm run serve:e2e:single
           npm run serve:e2e:comparison
