@@ -3,7 +3,6 @@ import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
-  formatNumber,
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';

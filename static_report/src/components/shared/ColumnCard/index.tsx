@@ -22,7 +22,7 @@ export function ColumnCard({ columnDatum }: Props) {
     <Flex
       direction={'column'}
       bg={'gray.300'}
-      width="400px"
+      width={{ xl: '30%', lg: '45%', md: '100%', base: '100%' }}
       h={[700]}
       my={3}
       rounded={'lg'}

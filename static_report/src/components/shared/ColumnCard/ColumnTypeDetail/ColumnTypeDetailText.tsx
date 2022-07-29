@@ -1,4 +1,4 @@
-import { Divider, Flex, Text } from '@chakra-ui/react';
+import { Divider, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
