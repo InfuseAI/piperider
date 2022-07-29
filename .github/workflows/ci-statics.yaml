@@ -66,7 +66,9 @@ jobs:
         install: false
         working-directory: ./static_report
         config-file: cypress.config.ts
-        build: ls ../piperider-getting-started/.piperider/comparisons/ && npm run setup:e2e
+        build: |
+          ls ../piperider-getting-started/.piperider/comparisons/ 
+          npm run setup:e2e
         start: |
           npm run serve:e2e:single
           npm run serve:e2e:comparison
