@@ -12,5 +12,5 @@ for FILE_PATH in $E2E_SR_REPORTS; do
 done
 
 # generate comparison report
-piperider compare-reports --base ${ARR_PATHS[0]}/run.json --target ${ARR_PATHS[1]}/run.json
+piperider compare-reports --base ${ARR_PATHS[0]}/run.json --target ${ARR_PATHS[1]}/run.json --debug
 cd ..
