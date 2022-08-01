@@ -161,17 +161,7 @@ export function formatTruncateString(input: string, end: number) {
  * @param input 
  * @returns 
  */
-export function formatAsAbbreviatedNumber(
-  input: number | string,
-  rounding?: string,
-) {
-  // handle rounding on Min/Max values (up|down)
-  const _edgeRound = (num: number) => {
-    if (rounding === 'up') return Math.ceil(num);
-    if (rounding === 'down') return Math.floor(num);
-    return num;
-  };
-
+export function formatAsAbbreviatedNumber(input: number | string) {
   // type guard for numbers (e.g. datetime strings)
   if (typeof input !== 'number') return input;
   else {
@@ -201,7 +191,7 @@ export function formatAsAbbreviatedNumber(
         unitDisplay: 'narrow',
         maximumFractionDigits: isLargeTrillions ? 0 : 2,
       })
-        .format(_edgeRound(input / 1.0e12))
+        .format(input / 1.0e12)
         .replace('L', 'T');
     // format as 'B', 'M', 'K' (billions to thousands)
     else if (isBillions || isMillions || isThousands) {
@@ -215,14 +205,14 @@ export function formatAsAbbreviatedNumber(
         unitDisplay: 'narrow',
         maximumFractionDigits: 1,
       })
-        .format(_edgeRound(input / lookup.base))
+        .format(input / lookup.base)
         .replace('L', lookup.unit);
     }
     // format as unlabeled (1 to 999)
     else if (isOnesTensHundreds)
       return new Intl.NumberFormat('en-US', {
         maximumFractionDigits: 0,
-      }).format(_edgeRound(input));
+      }).format(input);
     // format as fractionals (< 1)
     else
       return new Intl.NumberFormat('en-US', {
@@ -231,6 +221,6 @@ export function formatAsAbbreviatedNumber(
           isLargeFractionals || inputAsPositive === 0
             ? 'standard'
             : 'scientific',
-      }).format(_edgeRound(input));
+      }).format(input);
   }
 }
