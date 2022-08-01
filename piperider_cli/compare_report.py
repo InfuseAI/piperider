@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import sys
 from datetime import datetime
 
@@ -11,6 +10,7 @@ import piperider_cli.hack.inquirer as inquirer_hack
 from piperider_cli import datetime_to_str, str_to_datetime, clone_directory, \
     raise_exception_when_output_directory_not_writable
 from piperider_cli.configuration import PIPERIDER_OUTPUT_PATH, PIPERIDER_COMPARISON_PATH
+from piperider_cli.generate_report import setup_report_variables
 
 
 class ProfilerOutput(object):
@@ -216,21 +216,6 @@ class CompareReport(object):
             return answers['profiler_outputs'][0], answers['profiler_outputs'][1]
         return None, None
 
-    def setup_report_variables(self, template_html: str, is_single: bool, data):
-        if isinstance(data, dict):
-            output = json.dumps(data)
-        else:
-            output = data
-        if is_single:
-            variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA={output};window.PIPERIDER_COMPARISON_REPORT_DATA="";</script>'
-        else:
-            variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA="";window.PIPERIDER_COMPARISON_REPORT_DATA={output};</script>'
-        html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#',
-                            template_html).split(
-            '#PLACEHOLDER#')
-        html = html_parts[0] + variables + html_parts[1]
-        return html
-
     def generate_data(self) -> ComparisonData:
         if self.a is None or self.b is None:
             raise Exception("Please select reports to compare first.")
@@ -256,7 +241,7 @@ class CompareReport(object):
             clone_directory(report_template_dir, directory)
             filename = os.path.join(directory, 'index.html')
             with open(filename, 'w') as f:
-                html = report.setup_report_variables(report_template_html, False, comparison_data.to_json())
+                html = setup_report_variables(report_template_html, False, comparison_data.to_json())
                 f.write(html)
 
             return filename
