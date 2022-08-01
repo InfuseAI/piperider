@@ -69,6 +69,12 @@
                     "distribution": {
                       "$ref": "#/definitions/distribution"
                     },
+                    "histogram": {
+                      "$ref": "#/definitions/histogram"
+                    },
+                    "topk": {
+                      "$ref": "#/definitions/topk"
+                    },
                     "name": {
                       "type": "string"
                     },
@@ -91,10 +97,37 @@
                     "schema_type": {
                       "type": "string"
                     },
-                    "valid": {
+                    "valids": {
                       "type": "integer"
                     },
-                    "mismatched": {
+                    "invalids": {
+                      "type": "integer"
+                    },
+                    "zeros": {
+                      "type": "integer"
+                    },
+                    "negatives": {
+                      "type": "integer"
+                    },
+                    "positives": {
+                      "type": "integer"
+                    },
+                    "zero_length": {
+                      "type": "integer"
+                    },
+                    "non_zero_length": {
+                      "type": "integer"
+                    },
+                    "trues": {
+                      "type": "integer"
+                    },
+                    "falses": {
+                      "type": "integer"
+                    },
+                    "duplicates": {
+                      "type": "integer"
+                    },
+                    "non_duplicates": {
                       "type": "integer"
                     },
                     "profile_duration": {
@@ -293,6 +326,80 @@
                 "type": "string"
               }
             ]
+          }
+        }
+      }
+    },
+    "histogram": {
+      "title": "Histogram",
+      "type": "object",
+      "required": [
+        "labels",
+        "counts",
+        "bin_edges"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "counts": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "bin_edges": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "topk": {
+      "title": "Topk",
+      "type": "object",
+      "required": [
+        "values",
+        "counts"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "values": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          }
+        },
+        "counts": {
+          "type": "array",
+          "items": {
+            "type": "integer"
           }
         }
       }
