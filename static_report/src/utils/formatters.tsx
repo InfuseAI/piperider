@@ -135,9 +135,17 @@ export function formatTruncateString(input: string, end: number) {
   return input.length >= end ? input.slice(0, end) + '...' : input;
 }
 /**
-    <10? = Display 1 Digit, or 1 Digit + 1 Decimal -- round@single-decimal
+     * base < -2 => 2dp, scientific
+     * base < 0 => 3dp
+     * base < 3 => 2dp
+     * base < 6 => 1dp, K
+     * base < 9 => 1dp, M
+     * base < 12 => 1dp, T
+     * base < 15 => 1dp, B
+     * base >= 15 => 0dp, B
+    <10? = Display 1 Digit + 1 Decimal -- round@single-decimal
 
-    <1,000? = Display 0 Decimal Places (e.g. 614) --round@single-digit
+    <1,000? = Display 0 Decimal (e.g. 614) --round@single-digit
 
     <10,000? = Display in 1,000s (Ks) (e.g. 4.5K) --round@single-decimal^
 
@@ -146,7 +154,6 @@ export function formatTruncateString(input: string, end: number) {
     
     >=1,000,000,000? = Use E notation to 1 digit. (e.g. 3ᴇ9, 6ᴇ12) --pure scientific method
 
-    FIXME: Add Trillion and Billion Threshholds (T | B)
     ## only ever 1 DP or 0 DP (depending on magnitude), not more. ##
 
     Round down if Min Value (e.g. 6.8 => 6) 
@@ -158,10 +165,6 @@ export function formatAsAbbreviatedNumber(
   input: number | string,
   rounding?: string,
 ) {
-  const billion = 1000000000;
-  const million = 1000000;
-  const thousand = 1000;
-  const hundredThousand = thousand * 1000;
   // handle rounding on Min/Max values (up|down)
   const _edgeRound = (num: number) => {
     if (rounding === 'up') return Math.ceil(num);
@@ -172,48 +175,62 @@ export function formatAsAbbreviatedNumber(
   // type guard for numbers (e.g. datetime strings)
   if (typeof input !== 'number') return input;
   else {
-    // avoid conditional checks for negative ranges
-    // (use this only for qualifying amount groups)
+    // convert negatives
     const inputAsPositive = Math.abs(input);
 
-    // format as scientific e-notation when really big
-    if (inputAsPositive >= billion)
+    const twoDecimal = 10 ** -2;
+    const thousand = 10 ** 3;
+    const million = 10 ** 6;
+    const billion = 10 ** 9;
+    const trillion = 10 ** 12;
+    const trillionPlus = 10 ** 15;
+
+    const isLargeFractionals = inputAsPositive >= twoDecimal;
+    const isOnesTensHundreds = inputAsPositive >= 1;
+    const isThousands = inputAsPositive >= thousand;
+    const isMillions = inputAsPositive >= million;
+    const isBillions = inputAsPositive >= billion;
+    const isSmallTrillions = inputAsPositive >= trillion;
+    const isLargeTrillions = inputAsPositive >= trillionPlus;
+
+    // format as 'T' and beyond (trillions+)
+    if (isLargeTrillions || isSmallTrillions)
       return new Intl.NumberFormat('en-US', {
-        notation: 'scientific',
-        maximumFractionDigits: 1,
-      }).format(_edgeRound(input));
-    // format as 'M' for million between 100k and 1000k
-    else if (inputAsPositive >= hundredThousand && inputAsPositive < billion)
+        style: 'unit',
+        unit: 'liter', //just a placeholder
+        unitDisplay: 'narrow',
+        maximumFractionDigits: isLargeTrillions ? 0 : 2,
+      })
+        .format(_edgeRound(input / 1.0e12))
+        .replace('L', 'T');
+    // format as 'B', 'M', 'K' (billions to thousands)
+    else if (isBillions || isMillions || isThousands) {
+      const lookup = {
+        base: isBillions ? billion : isMillions ? million : thousand,
+        unit: isBillions ? 'B' : isMillions ? 'M' : 'K',
+      };
       return new Intl.NumberFormat('en-US', {
         style: 'unit',
         unit: 'liter', //just a placeholder
         unitDisplay: 'narrow',
         maximumFractionDigits: 1,
       })
-        .format(_edgeRound(input / million))
-        .replace('L', 'M');
-    // format as 'K' for thousand between 1k and 99.9k
-    else if (inputAsPositive >= thousand && inputAsPositive < hundredThousand)
-      return new Intl.NumberFormat('en-US', {
-        style: 'unit',
-        unit: 'liter', //just a placeholder
-        unitDisplay: 'narrow',
-        maximumFractionDigits: 1,
-      })
-        .format(_edgeRound(input / thousand))
-        .replace('L', 'K');
-    // format the hundred's as no-decimal value
-    else if (inputAsPositive >= 10 && inputAsPositive < thousand)
+        .format(_edgeRound(input / lookup.base))
+        .replace('L', lookup.unit);
+    }
+    // format as unlabeled (1 to 999)
+    else if (isOnesTensHundreds)
       return new Intl.NumberFormat('en-US', {
         maximumFractionDigits: 0,
       }).format(_edgeRound(input));
-    // format the single's with 1-decimal value
-    else if (inputAsPositive >= 0 && inputAsPositive < 10)
+    // format as fractionals (< 1)
+    else
       return new Intl.NumberFormat('en-US', {
-        maximumFractionDigits: 1,
+        maximumFractionDigits: isLargeFractionals ? 3 : 2,
+        notation:
+          isLargeFractionals || inputAsPositive === 0
+            ? 'standard'
+            : 'scientific',
       }).format(_edgeRound(input));
   }
-
-  //else
-  return null;
 }

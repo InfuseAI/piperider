@@ -24,7 +24,7 @@ export function StatisticalMetrics({ columnDatum }: Props) {
   return (
     <Flex direction={'column'}>
       <Text textAlign={'center'} fontWeight={'bold'} my={2}>
-        Statistics
+        General Statistics
       </Text>
       <Divider />
       <Flex justify={'space-evenly'}>
