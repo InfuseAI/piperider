@@ -38,7 +38,6 @@ def setup_report_variables(template_html: str, is_single: bool, data):
     else:
         output = data
     metadata = json.dumps(prepare_piperider_metadata())
-    print(metadata)
     if is_single:
         variables = f'<script id="piperider-report-variables">\n' \
                     f'window.PIPERIDER_METADATA={metadata};' \
