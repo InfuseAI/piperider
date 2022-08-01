@@ -1,6 +1,14 @@
 import chalk from 'chalk';
+import { config } from 'dotenv';
 import { writeFile, readdir, readFile } from 'fs/promises';
 import { parse } from 'node-html-parser';
+import path from 'path';
+import YAML from 'yaml';
+
+// Load dotenv development configuration
+config({
+  path: '.env.development',
+});
 
 export const generateFile = async (fileName, fileData) => {
   try {
@@ -73,13 +81,23 @@ export const getMetadata = async () => {
   const sentryDns = Buffer.from(await readFile('../piperider_cli/SENTRY_DNS'))
     .toString()
     .replace('\n', '');
+  let amplitudeUserID = '';
+  try {
+    let piperiderProfilePath = `${process.env.HOME}/.piperider/profile.yml`;
+    const piperiderProfile = YAML.parse(
+      Buffer.from(await readFile(piperiderProfilePath)).toString(),
+    );
+    amplitudeUserID = piperiderProfile.user_id;
+  } catch (e) {
+    // Skip if no user id found
+  }
   return {
     name: 'PipeRider',
     version: appVersion,
     sentry_dns: sentryDns,
     sentry_env: 'development',
-    amplitude_api_key: 'xxx',
-    amplitude_user_id: '',
+    amplitude_api_key: process.env.AMPLITUDE_API_KEY,
+    amplitude_user_id: amplitudeUserID,
   };
 };
 
