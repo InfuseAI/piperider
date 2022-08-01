@@ -10,16 +10,15 @@ import { ComparisonReportList } from './components/ComparisonReport/CRList';
 import * as Sentry from '@sentry/browser';
 import { BrowserTracing } from '@sentry/tracing';
 
-const sentry_dns = window.PIPERIDER_METADATA.sentry_dns || null;
-if (sentry_dns) {
-  const sentry_env = window.PIPERIDER_METADATA.sentry_env || 'development';
-  const piperider_version = window.PIPERIDER_METADATA.version || 'unknown';
-  const release_version =
-    sentry_env === 'development' ? null : piperider_version;
+const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
+if (sentryDns) {
+  const sentryEnv = window.PIPERIDER_METADATA.sentry_env || 'development';
+  const appVersion = window.PIPERIDER_METADATA.version;
+  const releaseVersion = sentryEnv === 'development' ? null : appVersion;
   Sentry.init({
-    dsn: sentry_dns,
-    environment: sentry_env,
-    release: release_version,
+    dsn: sentryDns,
+    environment: sentryEnv,
+    release: releaseVersion,
     integrations: [new BrowserTracing()],
 
     // Set tracesSampleRate to 1.0 to capture 100%
@@ -27,7 +26,7 @@ if (sentry_dns) {
     // We recommend adjusting this value in production
     tracesSampleRate: 1.0,
   });
-  Sentry.setTag('piperider.version', piperider_version);
+  Sentry.setTag('piperider.version', appVersion);
 }
 
 const SingleReport = lazy(

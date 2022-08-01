@@ -5,6 +5,7 @@ import {
   getComparisonDataPath,
   getEmbeddedIndexHTML,
   getFileData,
+  getMetadata,
   isE2E,
   log,
   PATH_TO_INDEX,
@@ -12,7 +13,6 @@ import {
   SINGLE_KEY,
   PATH_TO_METADATA_DATA_JSON,
   METADATA_KEY,
-  PIPERIDER_VERSION,
 } from './core.js';
 
 /**
@@ -31,13 +31,7 @@ const insertDataToHTML = async () => {
   log(PATH_TO_COMPARISON_REPORT_DATA_JSON);
 
   // Set PipeRider Metadata
-  let metadata = {
-    name: 'PipeRider',
-    version: PIPERIDER_VERSION,
-    sentry_dns:
-      'https://41930bf397884adfb2617fe350231439@o1081482.ingest.sentry.io/6463955',
-    sentry_env: 'development',
-  };
+  const metadata = await getMetadata();
   await generateFile(PATH_TO_METADATA_DATA_JSON, JSON.stringify(metadata));
 
   await setMapValues(

@@ -43,6 +43,13 @@ def get_version():
         return version
 
 
+def get_sentry_dns():
+    dns_file = os.path.normpath(os.path.join(os.path.dirname(__file__), 'SENTRY_DNS'))
+    with open(dns_file) as f:
+        dns = f.read().strip()
+        return dns
+
+
 def clone_directory(src, dst):
     if sys.version_info >= (3, 8):
         # dirs_exist_ok only available after 3.8
@@ -94,7 +101,7 @@ def set_sentry_env():
     return 'production'
 
 
-sentry_dns = "https://41930bf397884adfb2617fe350231439@o1081482.ingest.sentry.io/6463955"
+sentry_dns = get_sentry_dns()
 sentry_env = set_sentry_env()
 
 

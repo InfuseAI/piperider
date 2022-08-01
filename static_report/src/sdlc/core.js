@@ -1,6 +1,5 @@
 import chalk from 'chalk';
 import { writeFile, readdir, readFile } from 'fs/promises';
-import { readFileSync } from 'fs';
 import { parse } from 'node-html-parser';
 
 export const generateFile = async (fileName, fileData) => {
@@ -67,6 +66,23 @@ export const getEmbeddedIndexHTML = async (dataMap) => {
   }
 };
 
+export const getMetadata = async () => {
+  const appVersion = Buffer.from(await readFile('../piperider_cli/VERSION'))
+    .toString()
+    .replace('\n', '');
+  const sentryDns = Buffer.from(await readFile('../piperider_cli/SENTRY_DNS'))
+    .toString()
+    .replace('\n', '');
+  return {
+    name: 'PipeRider',
+    version: appVersion,
+    sentry_dns: sentryDns,
+    sentry_env: 'development',
+    amplitude_api_key: 'xxx',
+    amplitude_user_id: '',
+  };
+};
+
 export const isE2E = process.argv[2] === 'e2e';
 export const log = console.log;
 export const METADATA_KEY = 'metadata';
@@ -81,6 +97,3 @@ export const PATH_TO_SINGLE_REPORT_DATA_JSON =
   (isE2E ? `${MOUNT_PATH_TO_E2E_DATA}` : `.piperider`) +
   `/outputs/latest/${FILENAME_SINGLE}`;
 export const PATH_TO_METADATA_DATA_JSON = 'piperider-metadata.json';
-export const PIPERIDER_VERSION = readFileSync('../piperider_cli/VERSION')
-  .toString()
-  .replace('\n', '');
