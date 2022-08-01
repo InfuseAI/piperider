@@ -1,6 +1,7 @@
 import { Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema } from '../../../types';
+import { checkColumnCategorical } from '../../../utils/transformers';
 import { SRBarChart } from '../../SingleReport/SRBarChart';
 import { ColumnCardBodyContainer } from './ColumnCardBodyContainer';
 import { ColumnCardDataVisualContainer } from './ColumnCardDataVisualContainer';
@@ -47,15 +48,11 @@ export function ColumnCard({ columnDatum }: Props) {
  * @returns *Chart Component
  */
 function _getDataChart(columnDatum: ColumnSchema) {
-  const { topk, histogram, distinct, type } = columnDatum;
+  const { topk, histogram } = columnDatum;
 
-  const isCategorical =
-    distinct <= 100 && (type === 'string' || type === 'integer'); //this is arbitrary
+  const isCategorical = checkColumnCategorical(columnDatum);
   const chartData = isCategorical ? topk?.values : histogram.labels;
   const valueCounts = isCategorical ? topk?.counts : histogram.counts;
-
-  // isCategorical && console.log('CATEGORICAL', columnDatum);
-  // !isCategorical && console.log('NONCATEGORICAL', columnDatum);
 
   return chartData ? (
     <>
@@ -63,6 +60,8 @@ function _getDataChart(columnDatum: ColumnSchema) {
       <SRBarChart
         data={chartData.map((label, i) => ({
           label,
+          isCategorical,
+          type: columnDatum.type,
           value: valueCounts[i],
           total: columnDatum.total,
         }))}

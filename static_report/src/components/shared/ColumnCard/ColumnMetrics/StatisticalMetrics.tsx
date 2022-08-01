@@ -4,56 +4,54 @@ import {
   formatColumnValueWith,
   formatNumber,
 } from '../../../../utils/formatters';
+import { checkColumnCategorical } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
 import {
   AVG,
   MAX,
   MIN,
   STDDEV,
-  TEXTLENGTH,
   PLUSMINUS,
 } from '../ColumnTypeDetail/constants';
 
 type Props = { columnDatum: ColumnSchema };
 export function StatisticalMetrics({ columnDatum }: Props) {
-  const { avg, stddev, min, max } = columnDatum;
+  const { avg, stddev, min, max, type } = columnDatum;
 
-  const isTextType = columnDatum.type === 'string';
-  const subvalue = isTextType ? TEXTLENGTH : '';
+  const isTextType = type === 'string';
+  const isCategorical = checkColumnCategorical(columnDatum);
+  const titleNoun = isTextType && !isCategorical ? 'Length' : 'Data';
 
   return (
     <Flex direction={'column'}>
       <Text textAlign={'center'} fontWeight={'bold'} my={2}>
-        General Statistics
+        {titleNoun} Statistics
       </Text>
       <Divider />
-      <Flex justify={'space-evenly'}>
-        <MetricCell
-          label={AVG}
-          value={formatColumnValueWith(avg, formatNumber)}
-          subvalue={subvalue}
-        />
-        <Divider orientation="vertical" />
-        <MetricCell
-          label={STDDEV}
-          value={PLUSMINUS + formatColumnValueWith(stddev, formatNumber)}
-          subvalue={subvalue}
-        />
-        <Divider orientation="vertical" />
-      </Flex>
+      {avg && (
+        <Flex justify={'space-evenly'}>
+          <MetricCell
+            label={AVG}
+            value={formatColumnValueWith(avg, formatNumber)}
+          />
+          <Divider orientation="vertical" />
+          <MetricCell
+            label={STDDEV}
+            value={PLUSMINUS + formatColumnValueWith(stddev, formatNumber)}
+          />
+          <Divider orientation="vertical" />
+        </Flex>
+      )}
       <Divider />
-      {/* Maybe hide when typeof numerical? */}
       <Flex justify={'space-evenly'}>
         <MetricCell
           label={MIN}
           value={formatColumnValueWith(min, formatNumber)}
-          subvalue={subvalue}
         />
         <Divider orientation="vertical" />
         <MetricCell
           label={MAX}
           value={formatColumnValueWith(max, formatNumber)}
-          subvalue={subvalue}
         />
       </Flex>
     </Flex>

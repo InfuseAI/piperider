@@ -22,6 +22,7 @@
     "nanoid": "^3.3.4",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
+    "react-icons": "^4.4.0",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4",
     "wouter": "2.8.0-alpha.2",

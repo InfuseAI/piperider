@@ -1,4 +1,11 @@
+import { Datum } from './../components/SingleReport/SRBarChart';
 import * as d3 from 'd3';
+import {
+  CATEGORY_RANGE,
+  TEXTLENGTH,
+  DATE_RANGE,
+  VALUE_RANGE,
+} from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
 
 const tooltipDefaultStyle = {
   paddingTop: 'var(--chakra-space-2)',
@@ -42,4 +49,19 @@ export function getChartTooltip({ target, style = {} as any }) {
     );
 
   return tooltip;
+}
+
+/**
+ * get the metric label to display, based on column's generic type
+ */
+export function getLabelTitle({ type, isCategorical }: Datum): string {
+  const labelTitle = isCategorical
+    ? CATEGORY_RANGE
+    : type === 'string'
+    ? TEXTLENGTH
+    : type === 'datetime'
+    ? DATE_RANGE
+    : VALUE_RANGE;
+
+  return labelTitle;
 }

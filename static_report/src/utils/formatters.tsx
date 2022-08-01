@@ -118,10 +118,11 @@ export function formatModeMetrics(column: ColumnSchema) {
  * @returns
  */
 export function formatColumnValueWith(
-  input,
+  input: any,
   fn: Function,
   emptyLabel = '-',
 ): string {
+  if (typeof input === 'string') return input;
   return isNaN(input) ? emptyLabel : fn(input);
 }
 

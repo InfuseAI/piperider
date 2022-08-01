@@ -127,3 +127,8 @@ export function getColumnDetails(columnData: ColumnSchema) {
     totalOfTotal,
   };
 }
+
+export function checkColumnCategorical(columnDatum: ColumnSchema): boolean {
+  const { distinct, type } = columnDatum;
+  return distinct <= 100 && (type === 'string' || type === 'integer'); //this is arbitrary
+}

@@ -27,6 +27,7 @@ export const ColumnTypeDetailCategorical: React.FC<Props> = ({
           subvalue={valids}
         />
       </DataCompositionMetrics>
+      <Divider />
       <UniquenessMetrics columnDatum={columnDatum} />
       <Divider />
       <Flex justify={'space-evenly'}>
