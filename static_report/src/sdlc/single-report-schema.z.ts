@@ -74,6 +74,7 @@ export const columnSchemaSchema = z.object({
   elapsed_milli: z.number().optional(),
   sum: z.number().optional(),
   avg: z.number().optional(),
+  stddev: z.number().optional(),
   min: z.union([z.string(), z.number()]).optional(),
   max: z.union([z.string(), z.number()]).optional(),
   p5: z.number().optional(),
@@ -81,7 +82,6 @@ export const columnSchemaSchema = z.object({
   p50: z.number().optional(),
   p75: z.number().optional(),
   p95: z.number().optional(),
-  stddev: z.number().optional(),
 });
 
 export const pipeRiderAssertionResultSchema = z.object({

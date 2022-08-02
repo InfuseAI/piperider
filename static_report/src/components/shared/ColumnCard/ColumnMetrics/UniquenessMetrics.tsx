@@ -21,12 +21,14 @@ export function UniquenessMetrics({ columnDatum }: Props) {
       <Divider />
       <Flex justify={'space-evenly'}>
         <MetricCell
+          metaKey="distinct"
           label={DISTINCTS}
           value={formatColumnValueWith(distinctOfTotal, formatIntervalMinMax)}
           subvalue={distinct}
         />
         <Divider orientation="vertical" />
         <MetricCell
+          metaKey="duplicates"
           label={DUPLICATES}
           value={formatColumnValueWith(duplicatesOfTotal, formatIntervalMinMax)}
           subvalue={duplicates}

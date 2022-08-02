@@ -59,7 +59,7 @@
                       "type": "integer"
                     },
                     "nulls": {
-                      "description": "the count of values that are null type",
+                      "description": "The count of values that are null type",
                       "type": "integer"
                     },
                     "non_nulls": {
@@ -105,39 +105,39 @@
                       "type": "string"
                     },
                     "valids": {
-                      "description": "the count of values that are non-null and not invalid",
+                      "description": "The count of values that are non-null and not invalid",
                       "type": "integer"
                     },
                     "invalids": {
-                      "description": "the count of values that are non-null and invalid",
+                      "description": "The count of values that are non-null and invalid",
                       "type": "integer"
                     },
                     "zeros": {
-                      "description": "count of numerical values that equal zero exactly",
+                      "description": "The count of numerical values that equal zero exactly",
                       "type": "integer"
                     },
                     "negatives": {
-                      "description": "count of numerical values that are less than zero",
+                      "description": "The count of numerical values that are less than zero",
                       "type": "integer"
                     },
                     "positives": {
-                      "description": "count of numerical values that are more than zero",
+                      "description": "The count of numerical values that are more than zero",
                       "type": "integer"
                     },
                     "zero_length": {
-                      "description": "count of string values with zero lengths exactly",
+                      "description": "The count of string values with zero lengths exactly",
                       "type": "integer"
                     },
                     "non_zero_length": {
-                      "description": "count of string values with non-zero lengths",
+                      "description": "The count of string values with non-zero lengths",
                       "type": "integer"
                     },
                     "trues": {
-                      "description": "count of boolean true values",
+                      "description": "The count of boolean true values",
                       "type": "integer"
                     },
                     "falses": {
-                      "description": "count of boolean false values",
+                      "description": "The count of boolean false values",
                       "type": "integer"
                     },
                     "duplicates": {

@@ -22,6 +22,7 @@ export const ColumnTypeDetailCategorical: React.FC<Props> = ({
       <DataCompositionMetrics columnDatum={columnDatum}>
         <Divider orientation="vertical" />
         <MetricCell
+          metaKey="valids"
           label={VALIDS}
           value={formatColumnValueWith(validsOfTotal, formatIntervalMinMax)}
           subvalue={valids}
@@ -31,7 +32,11 @@ export const ColumnTypeDetailCategorical: React.FC<Props> = ({
       <UniquenessMetrics columnDatum={columnDatum} />
       <Divider />
       <Flex justify={'space-evenly'}>
-        <MetricCell label={MODE} value={formatModeMetrics(columnDatum)} />
+        <MetricCell
+          metaKey="topk"
+          label={MODE}
+          value={formatModeMetrics(columnDatum)}
+        />
       </Flex>
     </Flex>
   );

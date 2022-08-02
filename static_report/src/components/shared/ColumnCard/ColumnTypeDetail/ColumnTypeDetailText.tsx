@@ -16,11 +16,15 @@ export const ColumnTypeDetailText: React.FC<Props> = ({ columnDatum }) => {
   const { zero_length } = columnDatum;
   const { zeroLengthOfTotal } = getColumnDetails(columnDatum);
 
+  // setup script for extracting metadata descriptions
+  // import + consume metadata constants from schema.json
+
   return (
     <Flex direction={'column'}>
       <DataCompositionMetrics columnDatum={columnDatum}>
         <Divider orientation="vertical" />
         <MetricCell
+          metaKey={'zero_length'}
           label={ZEROLENGTH}
           value={formatColumnValueWith(zeroLengthOfTotal, formatIntervalMinMax)}
           subvalue={zero_length}

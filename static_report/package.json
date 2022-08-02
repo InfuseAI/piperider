@@ -59,7 +59,8 @@
   },
   "scripts": {
     "analyze": "npx cra-bundle-analyzer",
-    "setup": "run-s typing:dts typing:zts embed:html",
+    "extract:metadata": "node src/sdlc/extract-schema-metadata",
+    "setup": "run-s typing:dts typing:zts extract:metadata embed:html lint:fix",
     "serve:single": "dotenv -e .env.single craco start",
     "serve:comparison": "dotenv -e .env.comparison craco start",
     "start:single": "run-s setup serve:single",
@@ -74,7 +75,7 @@
     "bundle:single": "dotenv -e .env.single craco build",
     "bundle:comparison": "dotenv -e .env.comparison craco build",
     "embed:html:e2e": "npm run embed:html -- e2e",
-    "setup:e2e": "run-s embed:html:e2e bundle:*",
+    "setup:e2e": "run-s embed:html:e2e extract:metadata bundle:*",
     "serve:e2e:single": "http-server ./build/single-report -p 3000 --silent",
     "serve:e2e:comparison": "http-server ./build/comparison-report -p 3001 --silent",
     "eject": "react-scripts eject",

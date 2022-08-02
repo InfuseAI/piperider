@@ -31,11 +31,13 @@ export function StatisticalMetrics({ columnDatum }: Props) {
       {avg && (
         <Flex justify={'space-evenly'}>
           <MetricCell
+            metaKey="avg"
             label={AVG}
             value={formatColumnValueWith(avg, formatNumber)}
           />
           <Divider orientation="vertical" />
           <MetricCell
+            metaKey="stddev"
             label={STDDEV}
             value={PLUSMINUS + formatColumnValueWith(stddev, formatNumber)}
           />
@@ -45,11 +47,13 @@ export function StatisticalMetrics({ columnDatum }: Props) {
       <Divider />
       <Flex justify={'space-evenly'}>
         <MetricCell
+          metaKey="min"
           label={MIN}
           value={formatColumnValueWith(min, formatNumber)}
         />
         <Divider orientation="vertical" />
         <MetricCell
+          metaKey="max"
           label={MAX}
           value={formatColumnValueWith(max, formatNumber)}
         />

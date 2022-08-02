@@ -22,12 +22,14 @@ export function DataCompositionMetrics({ columnDatum, children }: Props) {
       <Divider />
       <Flex justify={'space-evenly'}>
         <MetricCell
+          metaKey="nulls"
           label={NULLS}
           value={formatColumnValueWith(nulls, formatIntervalMinMax)}
           subvalue={nulls}
         />
         <Divider orientation="vertical" />
         <MetricCell
+          metaKey="invalids"
           label={INVALIDS}
           value={formatColumnValueWith(invalidsOfTotal, formatIntervalMinMax)}
           subvalue={invalids}

@@ -2,7 +2,6 @@ import chalk from 'chalk';
 import { config } from 'dotenv';
 import { writeFile, readdir, readFile } from 'fs/promises';
 import { parse } from 'node-html-parser';
-import path from 'path';
 import YAML from 'yaml';
 
 // Load dotenv development configuration
@@ -101,6 +100,44 @@ export const getMetadata = async () => {
   };
 };
 
+export const getSchemaDescriptions = async () => {
+  log(chalk.yellow(`Reading path: ${PATH_TO_SCHEMA_JSON}`));
+  try {
+    const schemaJson = JSON.parse(
+      Buffer.from(
+        await readFile(PATH_TO_SCHEMA_JSON, {
+          encoding: 'utf-8',
+        }),
+      ),
+    );
+    const defProperties = schemaJson?.definitions;
+    const colProperties =
+      schemaJson?.properties.tables.patternProperties['.+'].properties.columns
+        .patternProperties['.+'].properties;
+    const descriptions = Object.entries({
+      ...colProperties,
+      ...defProperties,
+    }).reduce((prev, [key, { description }]) => {
+      if (description) prev[key] = description;
+      return prev;
+    }, {});
+    const filePath = 'src/sdlc/schema-meta.ts';
+
+    writeFile(
+      filePath,
+      `export const schemaMetaDescriptions = ${JSON.stringify(
+        descriptions,
+        undefined,
+        2,
+      )}
+    `,
+    );
+    log(chalk.green(`Created file: ${filePath}`));
+  } catch (e) {
+    throw new Error(chalk.red(e));
+  }
+};
+
 export const isE2E = process.argv[2] === 'e2e';
 export const log = console.log;
 export const METADATA_KEY = 'metadata';
@@ -115,3 +152,4 @@ export const PATH_TO_SINGLE_REPORT_DATA_JSON =
   (isE2E ? `${MOUNT_PATH_TO_E2E_DATA}` : `.piperider`) +
   `/outputs/latest/${FILENAME_SINGLE}`;
 export const PATH_TO_METADATA_DATA_JSON = 'piperider-metadata.json';
+export const PATH_TO_SCHEMA_JSON = `../piperider_cli/profiler/schema.json`;
