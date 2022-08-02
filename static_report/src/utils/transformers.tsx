@@ -86,11 +86,11 @@ export function transformBaseDistribution({
 }
 
 export function getColumnDetails(columnData: ColumnSchema) {
-  const { non_nulls, total, mismatched } = columnData;
+  const { non_nulls, total, nulls } = columnData;
 
   const hasNoNull = non_nulls === total;
 
-  const mismatch = mismatched || 0;
+  const mismatch = nulls || 0;
   const valid = non_nulls - mismatch;
   const missing = total - non_nulls;
 
