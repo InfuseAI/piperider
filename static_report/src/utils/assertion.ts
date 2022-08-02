@@ -5,6 +5,7 @@ import {
   ReportAssertionStatusCounts,
   ComparisonReportSchema,
   ComparsionSource,
+  zReport,
 } from '../types';
 
 /**
@@ -17,7 +18,11 @@ export function getReportAggregateAssertions(
   let passed = 0;
   let failed = 0;
 
-  ZTableSchema.shape.piperider_assertion_result.parse(piperiderAssertions);
+  zReport(
+    ZTableSchema.shape.piperider_assertion_result.safeParse(
+      piperiderAssertions,
+    ),
+  );
 
   const { passed: piperiderPassed, failed: piperiderFailed } =
     getSingleAssertionStatusCounts(piperiderAssertions);
@@ -31,7 +36,7 @@ export function getReportAggregateAssertions(
   }
 
   if (dbtAssertion) {
-    ZTableSchema.shape.dbt_assertion_result.parse(dbtAssertion);
+    zReport(ZTableSchema.shape.dbt_assertion_result.safeParse(dbtAssertion));
     const { passed: dbtPassed, failed: dbtFailed } =
       getSingleAssertionStatusCounts(dbtAssertion);
 
@@ -112,12 +117,13 @@ export function getComparisonAssertions({
     tables: data.input.tables[reportName], //legacy 'input' key
   };
 
-  const assertions = [baseTables, targetTables].map((source) =>
-    getComparisonAssertionTests({
-      assertion: source.tables[targets[type]],
+  //Warning: targetTables.tables can be undefined when mismatched
+  const assertions = [baseTables, targetTables].map((source) => {
+    return getComparisonAssertionTests({
+      assertion: source.tables && source.tables[targets[type]],
       from: source.type as ComparsionSource,
-    }),
-  );
+    });
+  });
 
   return assertions;
 }

@@ -11,7 +11,7 @@ import {
   Tr,
   Tooltip,
 } from '@chakra-ui/react';
-import { InfoIcon } from '@chakra-ui/icons';
+import { InfoIcon, WarningIcon } from '@chakra-ui/icons';
 import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
 
@@ -27,6 +27,7 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import {
   ComparisonReportSchema,
   ZComparisonTableSchema,
+  zReport,
   ZSingleSchema,
 } from '../../types';
 import { TableSchema } from '../../sdlc/single-report-schema';
@@ -39,8 +40,9 @@ export function ComparisonReportList({
   data: ComparisonReportSchema;
 }) {
   const { base, input: target } = data;
-  ZSingleSchema.parse(base);
-  ZSingleSchema.parse(target);
+
+  zReport(ZSingleSchema.safeParse(base));
+  zReport(ZSingleSchema.safeParse(target));
 
   const tables = nestComparisonValueByKey<TableSchema>(
     base.tables,
@@ -142,7 +144,7 @@ export function ComparisonReportList({
                 {Object.keys(tables).map((key) => {
                   const table = tables[key];
 
-                  ZComparisonTableSchema(false).parse(table);
+                  ZComparisonTableSchema(false).safeParse(table);
 
                   const [baseOverview, targetOverview] =
                     getComparisonAssertions({
@@ -158,14 +160,33 @@ export function ComparisonReportList({
                       type: 'dbt',
                     });
 
+                  //For asymmetric/mismatched columns
+                  //FIXME: The fix requires downstream UI rework/refactor to allow for proper mismatched column handling
+                  const isAsymmetricColumns =
+                    !table.base?.columns || !table.target?.columns;
+
                   return (
-                    <Link key={nanoid()} href={`/tables/${key}`}>
+                    <Link
+                      key={nanoid()}
+                      style={{ cursor: 'not-allowed' }}
+                      href={isAsymmetricColumns ? '#' : `/tables/${key}`}
+                    >
                       <Tr
                         data-cy="cr-report-list-item"
-                        cursor="pointer"
+                        cursor={isAsymmetricColumns ? 'not-allowed' : 'pointer'}
                         _hover={{ bgColor: 'blackAlpha.50' }}
                       >
-                        <Td>{key}</Td>
+                        <Td>
+                          <Tooltip
+                            isDisabled={!isAsymmetricColumns}
+                            label="There seems to be a mismatch on the base and/or target columns. So there's currently no way to display the comparison between them."
+                          >
+                            <Flex>
+                              {isAsymmetricColumns && <WarningIcon />}
+                              <Text ml={2}>{key}</Text>
+                            </Flex>
+                          </Tooltip>
+                        </Td>
                         <Td>
                           <Text as="span">{baseOverview.passed}</Text>
                           {' / '}
@@ -189,26 +210,26 @@ export function ComparisonReportList({
                           {' / '}
                           <Text as="span">{dbtTargetOverview.failed}</Text>
                         </Td>
-
+                        {/* base | target can have mismatched columns */}
                         <Td>
                           {formatColumnValueWith(
-                            table.base.row_count,
+                            table.base?.row_count,
                             formatNumber,
                           )}
                           {' / '}
                           {formatColumnValueWith(
-                            table.target.row_count,
+                            table.target?.row_count,
                             formatNumber,
                           )}
                         </Td>
                         <Td>
                           {formatColumnValueWith(
-                            table.base.col_count,
+                            table.base?.col_count,
                             formatNumber,
                           )}
                           {' / '}
                           {formatColumnValueWith(
-                            table.target.col_count,
+                            table.target?.col_count,
                             formatNumber,
                           )}
                         </Td>

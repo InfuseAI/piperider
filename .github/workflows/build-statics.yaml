@@ -8,7 +8,8 @@ on:
       # Trigger when PR is closed
     paths:
       - "static_report/**"
-      # Trigger when diffs detected in statics source code
+      - "piperider_cli/**"
+      # Trigger when diffs detected in cli and report sources
     branches:
       - main
       # Only PR target is `main`

@@ -32,6 +32,7 @@ const insertDataToHTML = async () => {
 
   // Set PipeRider Metadata
   const metadata = await getMetadata();
+  log(metadata);
   await generateFile(PATH_TO_METADATA_DATA_JSON, JSON.stringify(metadata));
 
   await setMapValues(

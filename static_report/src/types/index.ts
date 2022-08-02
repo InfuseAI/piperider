@@ -42,6 +42,14 @@ export interface CRTargetData<T> {
 }
 
 /**
+ * console.error only when error exists, for z.safeParse()
+ * @param result Zod ReturnType
+ */
+export const zReport = (result) => {
+  result.error && console.error(result.error);
+};
+
+/**
  * This exists due to certain modifications needed on literal enum types (e.g. `type`); Also, for parts of the schema that are incorrect and need to be ignored
  * @param base the baseline value
  * @param target the `target` -- this value compared against your base

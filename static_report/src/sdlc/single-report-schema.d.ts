@@ -38,12 +38,23 @@ export interface ColumnSchema {
   non_nulls: number;
   distinct: number;
   distribution?: Distribution;
+  histogram?: Histogram;
+  topk?: Topk;
   name: string;
   description: string;
   type: "string" | "integer" | "numeric" | "datetime" | "date" | "time" | "boolean" | "other";
   schema_type: string;
-  valid?: number;
-  mismatched?: number;
+  valids?: number;
+  invalids?: number;
+  zeros?: number;
+  negatives?: number;
+  positives?: number;
+  zero_length?: number;
+  non_zero_length?: number;
+  trues?: number;
+  falses?: number;
+  duplicates?: number;
+  non_duplicates?: number;
   profile_duration?: string;
   elapsed_milli?: number;
   sum?: number;
@@ -62,6 +73,15 @@ export interface Distribution {
   labels: (string | null)[];
   counts: number[];
   bin_edges?: (number | string)[];
+}
+export interface Histogram {
+  labels: (string | null)[];
+  counts: number[];
+  bin_edges: (number | string)[];
+}
+export interface Topk {
+  values: (string | number)[];
+  counts: number[];
 }
 export interface PipeRiderAssertionResult {
   tests: AssertionTest[];
