@@ -1,8 +1,9 @@
-import { InfoIcon } from '@chakra-ui/icons';
 import { ColorProps, Flex, Icon, Text, Tooltip } from '@chakra-ui/react';
+import { InfoIcon } from '@chakra-ui/icons';
+import { AiOutlineFileText } from 'react-icons/ai';
 import { BiText, BiQuestionMark } from 'react-icons/bi';
 import { BsCalendarDate } from 'react-icons/bs';
-import { TbCircles } from 'react-icons/tb';
+import { TbCircleHalf, TbCircles } from 'react-icons/tb';
 import { TiSortNumerically } from 'react-icons/ti';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { formatTruncateString } from '../../../utils/formatters';
@@ -63,5 +64,9 @@ function getIconForColumnType(columnDatum: ColumnSchema): {
     return { backgroundColor: 'red.500', icon: TiSortNumerically };
   if (type === 'datetime')
     return { backgroundColor: 'teal.500', icon: BsCalendarDate };
+  if (type === 'boolean')
+    return { backgroundColor: 'pink.500', icon: TbCircleHalf };
+  if (type === 'other')
+    return { backgroundColor: 'limegreen', icon: AiOutlineFileText };
   return { backgroundColor: 'gray.500', icon: BiQuestionMark };
 }

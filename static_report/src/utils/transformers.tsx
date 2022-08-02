@@ -105,7 +105,7 @@ export function getColumnDetails(columnData: ColumnSchema) {
   const validsOfTotal = valids / total;
   const invalidsOfTotal = invalids / total;
   const nullsOfTotal = nulls / total;
-  const distinctOfTotal = distinct / valids;
+  const distinctOfTotal = distinct / total;
   const duplicatesOfTotal = duplicates / total;
   const nonDuplicatesOfTotal = non_duplicates / total;
   const zeroLengthOfTotal = zero_length / total;

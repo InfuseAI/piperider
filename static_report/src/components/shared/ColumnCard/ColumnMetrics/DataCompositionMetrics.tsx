@@ -12,7 +12,7 @@ import { NULLS, INVALIDS } from '../ColumnTypeDetail/constants';
 type Props = { columnDatum: ColumnSchema; children?: ReactNode };
 export function DataCompositionMetrics({ columnDatum, children }: Props) {
   const { nulls, invalids } = columnDatum;
-  const { invalidsOfTotal } = getColumnDetails(columnDatum);
+  const { invalidsOfTotal, nullsOfTotal } = getColumnDetails(columnDatum);
 
   return (
     <Flex direction={'column'}>
@@ -24,7 +24,7 @@ export function DataCompositionMetrics({ columnDatum, children }: Props) {
         <MetricCell
           metaKey="nulls"
           label={NULLS}
-          value={formatColumnValueWith(nulls, formatIntervalMinMax)}
+          value={formatColumnValueWith(nullsOfTotal, formatIntervalMinMax)}
           subvalue={nulls}
         />
         <Divider orientation="vertical" />

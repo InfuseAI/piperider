@@ -12,7 +12,10 @@ import { nanoid } from 'nanoid';
 import { schemaMetaDescriptions } from '../../sdlc/schema-meta';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema } from '../../types';
-import { formatAsAbbreviatedNumber } from '../../utils/formatters';
+import {
+  formatAsAbbreviatedNumber,
+  formatColumnValueWith,
+} from '../../utils/formatters';
 
 type Props = {
   columnDatum: ColumnSchema;
@@ -52,7 +55,7 @@ export const QuantilesChart: React.FC<Props> = ({ columnDatum }) => {
             {quantileData.map((d) => {
               return (
                 <Td pr={0} pl={2} key={nanoid()} textAlign={'center'}>
-                  {formatAsAbbreviatedNumber(d.value)}
+                  {formatColumnValueWith(d.value, formatAsAbbreviatedNumber)}
                 </Td>
               );
             })}

@@ -1,4 +1,4 @@
-import { Divider, Flex } from '@chakra-ui/react';
+import { Flex, Divider } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
@@ -9,30 +9,28 @@ import { MetricCell } from '../../MetricCell';
 import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
 import { StatisticalMetrics } from '../ColumnMetrics/StatisticalMetrics';
 import { UniquenessMetrics } from '../ColumnMetrics/UniquenessMetrics';
-import { ZEROLENGTH } from './constants';
+import { VALIDS } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
-export const ColumnTypeDetailText: React.FC<Props> = ({ columnDatum }) => {
-  const { zero_length } = columnDatum;
-  const { zeroLengthOfTotal } = getColumnDetails(columnDatum);
+export const ColumnTypeDetailOther: React.FC<Props> = ({ columnDatum }) => {
+  const { valids } = columnDatum;
+  const { validsOfTotal } = getColumnDetails(columnDatum);
 
   return (
     <Flex direction={'column'}>
       <DataCompositionMetrics columnDatum={columnDatum}>
         <Divider orientation="vertical" />
+        <Divider orientation="vertical" />
         <MetricCell
-          metaKey={'zero_length'}
-          label={ZEROLENGTH}
-          value={formatColumnValueWith(zeroLengthOfTotal, formatIntervalMinMax)}
-          subvalue={zero_length}
+          metaKey="valids"
+          label={VALIDS}
+          value={formatColumnValueWith(validsOfTotal, formatIntervalMinMax)}
+          subvalue={valids}
         />
       </DataCompositionMetrics>
       <Divider />
       <UniquenessMetrics columnDatum={columnDatum} />
       <Divider />
-      <StatisticalMetrics columnDatum={columnDatum} />
-      <Divider />
-      <Flex justify={'space-evenly'}></Flex>
     </Flex>
   );
 };

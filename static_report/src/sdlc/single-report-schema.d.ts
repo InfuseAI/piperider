@@ -49,6 +49,14 @@ export interface ColumnSchema {
    * The count of distinct kinds of values (e.g. [a,b,c,c] => [a,b,c])
    */
   distinct: number;
+  /**
+   * The count of values that are recurring (e.g. [a,b,c,c] => [c,c])
+   */
+  duplicates?: number;
+  /**
+   * The count of values that are non-recurring (e.g. [a,b,c,c] => [a,b])
+   */
+  non_duplicates?: number;
   distribution?: Distribution;
   histogram?: Histogram;
   topk?: Topk;
@@ -112,14 +120,6 @@ export interface ColumnSchema {
    * The count of boolean false values
    */
   falses?: number;
-  /**
-   * The count of values that are recurring (e.g. [a,b,c,c] => [c,c])
-   */
-  duplicates?: number;
-  /**
-   * The count of values that are non-recurring (e.g. [a,b,c,c] => [a,b])
-   */
-  non_duplicates?: number;
   profile_duration?: string;
   elapsed_milli?: number;
   /**

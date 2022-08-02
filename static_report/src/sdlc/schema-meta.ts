@@ -3,6 +3,10 @@ export const schemaMetaDescriptions = {
   nulls: 'The count of values that are null type',
   non_nulls: 'The count of non null values',
   distinct: 'The count of distinct kinds of values (e.g. [a,b,c,c] => [a,b,c])',
+  duplicates:
+    'The count of values that are recurring (e.g. [a,b,c,c] => [c,c])',
+  non_duplicates:
+    'The count of values that are non-recurring (e.g. [a,b,c,c] => [a,b])',
   topk: 'The statistical mode value of the most common or frequent value',
   name: 'Name of this column',
   description: 'Descriptor of this column',
@@ -18,10 +22,6 @@ export const schemaMetaDescriptions = {
   non_zero_length: 'The count of string values with non-zero lengths',
   trues: 'The count of boolean true values',
   falses: 'The count of boolean false values',
-  duplicates:
-    'The count of values that are recurring (e.g. [a,b,c,c] => [c,c])',
-  non_duplicates:
-    'The count of values that are non-recurring (e.g. [a,b,c,c] => [a,b])',
   sum: "The sum of a column's values",
   avg: "The mean average of a column's values",
   stddev: "The standard deviation of a column's values",

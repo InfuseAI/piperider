@@ -10,6 +10,7 @@ import { ColumnTypeDetailBoolean } from './ColumnTypeDetail/ColumnTypeDetailBool
 import { ColumnTypeDetailCategorical } from './ColumnTypeDetail/ColumnTypeDetailCategorical';
 import { ColumnTypeDetailDatetime } from './ColumnTypeDetail/ColumnTypeDetailDatetime';
 import { ColumnTypeDetailNumeric } from './ColumnTypeDetail/ColumnTypeDetailNumeric';
+import { ColumnTypeDetailOther } from './ColumnTypeDetail/ColumnTypeDetailOther';
 import { ColumnTypeDetailText } from './ColumnTypeDetail/ColumnTypeDetailText';
 
 interface Props {
@@ -51,24 +52,26 @@ function _getDataChart(columnDatum: ColumnSchema) {
   const { topk, histogram } = columnDatum;
 
   const isCategorical = checkColumnCategorical(columnDatum);
-  const chartData = isCategorical ? topk?.values : histogram.labels;
-  const valueCounts = isCategorical ? topk?.counts : histogram.counts;
+
+  const chartData = isCategorical ? topk?.values : histogram?.labels;
+  const valueCounts = isCategorical ? topk?.counts : histogram?.counts;
 
   return chartData ? (
-    <>
-      {/* <h1>{isCategorical ? 'Category' : 'Non-Category'}</h1> */}
-      <SRBarChart
-        data={chartData.map((label, i) => ({
-          label,
-          isCategorical,
-          type: columnDatum.type,
-          value: valueCounts[i],
-          total: columnDatum.total,
-        }))}
-      />
-    </>
+    <SRBarChart
+      data={chartData.map((label, i) => ({
+        label,
+        isCategorical,
+        type: columnDatum.type,
+        value: valueCounts[i],
+        total: columnDatum.total,
+      }))}
+    />
   ) : (
-    <Text>No data available</Text>
+    <Flex h={230} alignItems={'center'} w={'100%'}>
+      <Text textAlign={'center'} w={'inherit'}>
+        No data available
+      </Text>
+    </Flex>
   );
 }
 
@@ -94,6 +97,12 @@ function _getColumnBodyContentUI(columnDatum: ColumnSchema) {
 
   if (type === 'numeric' || (type === 'integer' && !isCategorical))
     return <ColumnTypeDetailNumeric columnDatum={columnDatum} />;
+  if (type === 'other')
+    return <ColumnTypeDetailOther columnDatum={columnDatum} />;
 
-  return <Text>The column type: {type} cannot be displayed</Text>;
+  return (
+    <Text textAlign={'center'} w={'inherit'}>
+      The column type: {type} cannot be displayed
+    </Text>
+  );
 }

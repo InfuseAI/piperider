@@ -24,7 +24,7 @@ export const MetricCell: React.FC<Props> = ({
         isDisabled={!Boolean(metaDescription)}
         placement={'top'}
       >
-        <Flex alignItems={'center'}>
+        <Flex alignItems={'center'} w={'fit-content'}>
           <Text lineHeight={'5'} fontSize={'small'}>
             {label}
           </Text>
@@ -36,5 +36,3 @@ export const MetricCell: React.FC<Props> = ({
     </Flex>
   );
 };
-
-//TODO: add tooltip, if ref metadata exists

@@ -7,6 +7,7 @@ import {
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
+import { QuantilesChart } from '../../QuantilesChart';
 import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
 import { UniquenessMetrics } from '../ColumnMetrics/UniquenessMetrics';
 import { MODE, VALIDS } from './constants';
@@ -16,7 +17,8 @@ export const ColumnTypeDetailCategorical: React.FC<Props> = ({
   columnDatum,
 }) => {
   const { validsOfTotal } = getColumnDetails(columnDatum);
-  const { valids } = columnDatum;
+  const { valids, type } = columnDatum;
+
   return (
     <Flex direction={'column'}>
       <DataCompositionMetrics columnDatum={columnDatum}>
@@ -38,6 +40,14 @@ export const ColumnTypeDetailCategorical: React.FC<Props> = ({
           value={formatModeMetrics(columnDatum)}
         />
       </Flex>
+      {type === 'integer' && (
+        <>
+          <Divider />
+          <Flex mt={2}>
+            <QuantilesChart columnDatum={columnDatum} />
+          </Flex>
+        </>
+      )}
     </Flex>
   );
 };

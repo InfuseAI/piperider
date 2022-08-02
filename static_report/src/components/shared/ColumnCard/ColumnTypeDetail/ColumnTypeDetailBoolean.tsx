@@ -1,4 +1,4 @@
-import { Divider, Flex } from '@chakra-ui/react';
+import { Divider, Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
@@ -7,40 +7,41 @@ import {
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
-import { BOOLEANCOUNT, FALSES, INVALIDS, NULLS, TRUES } from './constants';
+import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
+import { FALSES, TRUES, VALIDS } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
-  const { nulls, trues, falses, invalids } = columnDatum;
-  const { invalidsOfTotal } = getColumnDetails(columnDatum);
+  const { trues, falses, valids } = columnDatum;
+  const { validsOfTotal } = getColumnDetails(columnDatum);
 
   return (
     <Flex direction={'column'}>
-      <Flex justify={'space-evenly'}>
-        <MetricCell
-          label={NULLS}
-          value={formatColumnValueWith(nulls, formatIntervalMinMax)}
-          subvalue={nulls}
-        />
+      <DataCompositionMetrics columnDatum={columnDatum}>
         <Divider orientation="vertical" />
         <MetricCell
-          label={INVALIDS}
-          value={formatColumnValueWith(invalidsOfTotal, formatIntervalMinMax)}
-          subvalue={invalids}
+          metaKey="valids"
+          label={VALIDS}
+          value={formatColumnValueWith(validsOfTotal, formatIntervalMinMax)}
+          subvalue={valids}
         />
-      </Flex>
+      </DataCompositionMetrics>
+      <Divider />
+      <Text textAlign={'center'} fontWeight={'bold'} my={2}>
+        Boolean Statistics
+      </Text>
       <Divider />
       <Flex justify={'space-evenly'}>
         <MetricCell
           label={TRUES}
           value={formatColumnValueWith(trues, formatNumber)}
-          subvalue={BOOLEANCOUNT}
+          metaKey={'trues'}
         />
         <Divider orientation="vertical" />
         <MetricCell
           label={FALSES}
           value={formatColumnValueWith(falses, formatNumber)}
-          subvalue={BOOLEANCOUNT}
+          metaKey={'falses'}
         />
       </Flex>
     </Flex>

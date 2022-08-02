@@ -1,5 +1,6 @@
 import { Text, Tooltip } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
+import { NO_VALUE } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
 
 import type { ColumnSchema } from '../sdlc/single-report-schema';
 
@@ -102,8 +103,9 @@ export function formatTestExpectedOrActual(value) {
      (1) a:100 => a
      (1) a:100, b:99, c:99 => a
  */
-export function formatModeMetrics(column: ColumnSchema) {
-  const tops = column.topk.values.slice(0, 3);
+export function formatModeMetrics({ topk }: ColumnSchema) {
+  if (!topk) return NO_VALUE;
+  const tops = topk.values.slice(0, 3);
 
   if (tops.length > 3) {
     return tops.slice(0, 3).join(', ') + ', etc.';
