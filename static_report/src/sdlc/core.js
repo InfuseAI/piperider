@@ -2,7 +2,6 @@ import chalk from 'chalk';
 import { config } from 'dotenv';
 import { writeFile, readdir, readFile } from 'fs/promises';
 import { parse } from 'node-html-parser';
-import path from 'path';
 import YAML from 'yaml';
 
 // Load dotenv development configuration
@@ -37,11 +36,7 @@ export const getComparisonDataPath = async (e2eFlag) => {
   }
 };
 export const getFileData = async (pathToReport) => {
-  const prePath = await readdir(
-    pathToReport.slice(0, pathToReport.lastIndexOf('/')),
-  );
   try {
-    log(`Check if comparison has json first: ${prePath}`);
     log(chalk.yellow(`Reading path: ${pathToReport} from ${process.cwd()}`));
     return JSON.parse(
       Buffer.from(
@@ -93,7 +88,7 @@ export const getMetadata = async () => {
     );
     amplitudeUserID = piperiderProfile.user_id;
   } catch (e) {
-    // Skip if no user id found
+    throw new Error(chalk.red(e));
   }
   return {
     name: 'PipeRider',

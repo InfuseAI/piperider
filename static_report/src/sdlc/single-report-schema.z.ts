@@ -8,6 +8,17 @@ export const distributionSchema = z.object({
   bin_edges: z.array(z.union([z.number(), z.string()])).optional(),
 });
 
+export const histogramSchema = z.object({
+  labels: z.array(z.string().nullable()),
+  counts: z.array(z.number()),
+  bin_edges: z.array(z.union([z.number(), z.string()])),
+});
+
+export const topkSchema = z.object({
+  values: z.array(z.union([z.string(), z.number()])),
+  counts: z.array(z.number()),
+});
+
 export const assertionTestSchema = z.object({
   name: z.string(),
   status: z.union([z.literal('passed'), z.literal('failed')]),
@@ -33,6 +44,8 @@ export const columnSchemaSchema = z.object({
   non_nulls: z.number(),
   distinct: z.number(),
   distribution: distributionSchema.optional(),
+  histogram: histogramSchema.optional(),
+  topk: topkSchema.optional(),
   name: z.string(),
   description: z.string(),
   type: z.union([
@@ -46,8 +59,17 @@ export const columnSchemaSchema = z.object({
     z.literal('other'),
   ]),
   schema_type: z.string(),
-  valid: z.number().optional(),
-  mismatched: z.number().optional(),
+  valids: z.number().optional(),
+  invalids: z.number().optional(),
+  zeros: z.number().optional(),
+  negatives: z.number().optional(),
+  positives: z.number().optional(),
+  zero_length: z.number().optional(),
+  non_zero_length: z.number().optional(),
+  trues: z.number().optional(),
+  falses: z.number().optional(),
+  duplicates: z.number().optional(),
+  non_duplicates: z.number().optional(),
   profile_duration: z.string().optional(),
   elapsed_milli: z.number().optional(),
   sum: z.number().optional(),
