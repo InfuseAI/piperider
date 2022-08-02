@@ -21,12 +21,14 @@ export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
       <DataCompositionMetrics columnDatum={columnDatum}>
         <Divider orientation="vertical" />
         <MetricCell
+          metaKey="negatives"
           label={NEGATIVES}
           value={formatColumnValueWith(negativesOfTotal, formatIntervalMinMax)}
           subvalue={negatives}
         />
         <Divider orientation="vertical" />
         <MetricCell
+          metaKey="zeros"
           label={ZEROS}
           value={formatColumnValueWith(zerosOfTotal, formatIntervalMinMax)}
           subvalue={zeros}

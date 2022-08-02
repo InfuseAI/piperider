@@ -25,8 +25,10 @@ export const MetricCell: React.FC<Props> = ({
         placement={'top'}
       >
         <Flex alignItems={'center'}>
-          <InfoIcon color="gray.400" boxSize={'12px'} mr={3} />
-          <Text fontSize={'small'}>{label}</Text>
+          <Text lineHeight={'5'} fontSize={'small'}>
+            {label}
+          </Text>
+          <InfoIcon color="gray.400" boxSize={'12px'} ml={2} />
         </Flex>
       </Tooltip>
       <Text fontWeight={'bold'}>{value}</Text>

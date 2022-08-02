@@ -55,7 +55,7 @@
                   "additionalProperties": false,
                   "properties": {
                     "total": {
-                      "description": "the total count of values, regardless validity",
+                      "description": "The total count of values, regardless validity",
                       "type": "integer"
                     },
                     "nulls": {
@@ -70,6 +70,14 @@
                       "description": "The count of distinct kinds of values (e.g. [a,b,c,c] => [a,b,c])",
                       "type": "integer"
                     },
+                    "duplicates": {
+                      "description": "The count of values that are recurring (e.g. [a,b,c,c] => [c,c])",
+                      "type": "integer"
+                    },
+                    "non_duplicates": {
+                      "description": "The count of values that are non-recurring (e.g. [a,b,c,c] => [a,b])",
+                      "type": "integer"
+                    },
                     "distribution": {
                       "$ref": "#/definitions/distribution"
                     },
@@ -80,11 +88,11 @@
                       "$ref": "#/definitions/topk"
                     },
                     "name": {
-                      "description": "name of this column",
+                      "description": "Name of this column",
                       "type": "string"
                     },
                     "description": {
-                      "description": "descriptor of this column",
+                      "description": "Descriptor of this column",
                       "type": "string"
                     },
                     "type": {
@@ -109,7 +117,7 @@
                       "type": "integer"
                     },
                     "invalids": {
-                      "description": "The count of values that are non-null and invalid",
+                      "description": "The count of values that don't match the schema type. For example, a string in a numeric column.",
                       "type": "integer"
                     },
                     "zeros": {
@@ -140,14 +148,6 @@
                       "description": "The count of boolean false values",
                       "type": "integer"
                     },
-                    "duplicates": {
-                      "description": "The count of values that are recurring (e.g. [a,b,c,c] => [c,c])",
-                      "type": "integer"
-                    },
-                    "non_duplicates": {
-                      "description": "The count of values that are non-recurring (e.g. [a,b,c,c] => [a,b])",
-                      "type": "integer"
-                    },
                     "profile_duration": {
                       "type": "string"
                     },
@@ -155,19 +155,19 @@
                       "type": "integer"
                     },
                     "sum": {
-                      "description": "The sum of all dataset values",
+                      "description": "The sum of a column's values",
                       "type": "number"
                     },
                     "avg": {
-                      "description": "the mean average statistic of dataset",
+                      "description": "The mean average of a column's values",
                       "type": "number"
                     },
                     "stddev": {
-                      "description": "the standard deviation statistic of dataset",
+                      "description": "The standard deviation of a column's values",
                       "type": "number"
                     },
                     "min": {
-                      "description": "The minimum value of the dataset's quantiles; can be numerical or datetime string",
+                      "description": "The minimum value of a column's range; can be numerical or datetime string",
                       "oneOf": [
                         {
                           "type": "string"
@@ -178,7 +178,7 @@
                       ]
                     },
                     "max": {
-                      "description": "The maximum value of the dataset's quantiles; can be numerical or datetime string",
+                      "description": "The maximum value of a columns's range; can be numerical or datetime string",
                       "oneOf": [
                         {
                           "type": "string"

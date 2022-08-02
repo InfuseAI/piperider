@@ -34,11 +34,11 @@ export interface TableSchema {
  */
 export interface ColumnSchema {
   /**
-   * the total count of values, regardless validity
+   * The total count of values, regardless validity
    */
   total: number;
   /**
-   * the count of values that are null type
+   * The count of values that are null type
    */
   nulls: number;
   /**
@@ -53,11 +53,11 @@ export interface ColumnSchema {
   histogram?: Histogram;
   topk?: Topk;
   /**
-   * name of this column
+   * Name of this column
    */
   name: string;
   /**
-   * descriptor of this column
+   * Descriptor of this column
    */
   description: string;
   /**
@@ -77,39 +77,39 @@ export interface ColumnSchema {
    */
   schema_type: string;
   /**
-   * the count of values that are non-null and not invalid
+   * The count of values that are non-null and not invalid
    */
   valids?: number;
   /**
-   * the count of values that are non-null and invalid
+   * The count of values that don't match the schema type. For example, a string in a numeric column.
    */
   invalids?: number;
   /**
-   * count of numerical values that equal zero exactly
+   * The count of numerical values that equal zero exactly
    */
   zeros?: number;
   /**
-   * count of numerical values that are less than zero
+   * The count of numerical values that are less than zero
    */
   negatives?: number;
   /**
-   * count of numerical values that are more than zero
+   * The count of numerical values that are more than zero
    */
   positives?: number;
   /**
-   * count of string values with zero lengths exactly
+   * The count of string values with zero lengths exactly
    */
   zero_length?: number;
   /**
-   * count of string values with non-zero lengths
+   * The count of string values with non-zero lengths
    */
   non_zero_length?: number;
   /**
-   * count of boolean true values
+   * The count of boolean true values
    */
   trues?: number;
   /**
-   * count of boolean false values
+   * The count of boolean false values
    */
   falses?: number;
   /**
@@ -123,23 +123,23 @@ export interface ColumnSchema {
   profile_duration?: string;
   elapsed_milli?: number;
   /**
-   * The sum of all dataset values
+   * The sum of a column's values
    */
   sum?: number;
   /**
-   * the mean average statistic of dataset
+   * The mean average of a column's values
    */
   avg?: number;
   /**
-   * the standard deviation statistic of dataset
+   * The standard deviation of a column's values
    */
   stddev?: number;
   /**
-   * The minimum value of the dataset's quantiles; can be numerical or datetime string
+   * The minimum value of a column's range; can be numerical or datetime string
    */
   min?: string | number;
   /**
-   * The maximum value of the dataset's quantiles; can be numerical or datetime string
+   * The maximum value of a columns's range; can be numerical or datetime string
    */
   max?: string | number;
   /**
