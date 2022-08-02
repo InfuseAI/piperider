@@ -17,7 +17,7 @@ interface Props {
 }
 export function ColumnCard({ columnDatum }: Props) {
   ZColSchema.parse(columnDatum);
-  const { name: title, description } = columnDatum;
+  const { name: title } = columnDatum;
 
   return (
     <Flex
@@ -31,7 +31,7 @@ export function ColumnCard({ columnDatum }: Props) {
       rounded={'lg'}
       overflowX={'hidden'}
     >
-      <ColumnCardHeader title={title} description={description} />
+      <ColumnCardHeader columnDatum={columnDatum} />
       <ColumnCardDataVisualContainer title={title}>
         {_getDataChart(columnDatum)}
       </ColumnCardDataVisualContainer>

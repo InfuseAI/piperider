@@ -1,4 +1,4 @@
-import { Text } from '@chakra-ui/react';
+import { Text, Tooltip } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 
 import type { ColumnSchema } from '../sdlc/single-report-schema';
@@ -130,10 +130,15 @@ export function formatColumnValueWith(
  *
  * @param input string to check for truncation with '...'
  * @param end position at which to truncate
- * @returns original or truncated string
+ * @returns original or tooltip-wrapped truncated string
  */
 export function formatTruncateString(input: string, end: number) {
-  return input.length >= end ? input.slice(0, end) + '...' : input;
+  const shouldTruncate = input.length >= end;
+  return shouldTruncate ? (
+    <Tooltip label={input}>{input.slice(0, end) + '...'}</Tooltip>
+  ) : (
+    input
+  );
 }
 /**
      * base < -2 => 2dp, scientific

@@ -1,10 +1,18 @@
 import { InfoIcon } from '@chakra-ui/icons';
-import { Flex, Text } from '@chakra-ui/react';
+import { ColorProps, Flex, Icon, Text, Tooltip } from '@chakra-ui/react';
+import { BiText, BiQuestionMark } from 'react-icons/bi';
+import { BsCalendarDate } from 'react-icons/bs';
+import { TbCircles } from 'react-icons/tb';
+import { TiSortNumerically } from 'react-icons/ti';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { formatTruncateString } from '../../../utils/formatters';
+import { checkColumnCategorical } from '../../../utils/transformers';
 import { SRTooltip } from '../../SingleReport/SRTooltip';
 
-type Props = { title: string; description: string };
-export function ColumnCardHeader({ title, description }: Props) {
+type Props = { columnDatum: ColumnSchema };
+export function ColumnCardHeader({ columnDatum }: Props) {
+  const { description, name, schema_type } = columnDatum;
+  const { backgroundColor, icon } = getIconForColumnType(columnDatum);
   return (
     <Flex
       p={2}
@@ -14,12 +22,46 @@ export function ColumnCardHeader({ title, description }: Props) {
       width={'100%'}
       borderTopRadius={'inherit'}
     >
-      <Text fontWeight={'semibold'} fontSize={'3xl'}>
-        {formatTruncateString(title, 15)}
-      </Text>
-      <SRTooltip label={description} prefix={' - via '} placement="right-end">
+      <Flex alignItems={'center'}>
+        <Tooltip label={schema_type} shouldWrapChildren={true}>
+          <Icon
+            mt={1}
+            mx={2}
+            p={1}
+            rounded={'md'}
+            color={'white'}
+            backgroundColor={backgroundColor}
+            as={icon}
+            boxSize={7}
+          />
+        </Tooltip>
+        <Text fontWeight={'semibold'} fontSize={'3xl'}>
+          {formatTruncateString(name, 10)}
+        </Text>
+      </Flex>
+      <SRTooltip label={description} prefix={' - via '}>
         <InfoIcon color="gray.400" boxSize={'20px'} mr={3} />
       </SRTooltip>
     </Flex>
   );
+}
+
+function getIconForColumnType(columnDatum: ColumnSchema): {
+  backgroundColor: ColorProps['color'];
+  icon: any; //IconType not provided
+} {
+  const { type } = columnDatum;
+  const isCategorical = checkColumnCategorical(columnDatum);
+
+  if (isCategorical)
+    return {
+      backgroundColor: 'purple.500',
+      icon: TbCircles,
+    };
+  if (type === 'string') return { backgroundColor: 'blue.500', icon: BiText };
+  if (type === 'numeric')
+    return { backgroundColor: 'red.500', icon: TiSortNumerically };
+  if (type === 'datetime')
+    return { backgroundColor: 'teal.500', icon: BsCalendarDate };
+  return { backgroundColor: 'gray.500', icon: BiQuestionMark };
 }
