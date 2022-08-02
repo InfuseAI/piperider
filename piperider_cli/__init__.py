@@ -115,6 +115,7 @@ def ensure_directory_writable(directory):
     else:
         try:
             os.makedirs(directory)
+            return True
         except BaseException:
             return False
 
@@ -122,4 +123,4 @@ def ensure_directory_writable(directory):
 def raise_exception_when_output_directory_not_writable(output):
     if output:
         if not ensure_directory_writable(output):
-            raise Exception(f'The `-o {output}` is not writable')
+            raise Exception(f'The path "{output}" is not writable')
