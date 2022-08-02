@@ -3659,6 +3659,70 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sentry/browser@npm:^7.8.0":
+  version: 7.8.0
+  resolution: "@sentry/browser@npm:7.8.0"
+  dependencies:
+    "@sentry/core": 7.8.0
+    "@sentry/types": 7.8.0
+    "@sentry/utils": 7.8.0
+    tslib: ^1.9.3
+  checksum: 58e0b19f90cc31fbdda65165698187a30a5f0c337a4a6ec6d991770ceaabe7e032383bb6f1a3a69ed39c55666ef9f6eb7f4fb04aa5b931d46b0cb9a8204a8538
+  languageName: node
+  linkType: hard
+
+"@sentry/core@npm:7.8.0":
+  version: 7.8.0
+  resolution: "@sentry/core@npm:7.8.0"
+  dependencies:
+    "@sentry/hub": 7.8.0
+    "@sentry/types": 7.8.0
+    "@sentry/utils": 7.8.0
+    tslib: ^1.9.3
+  checksum: b1c06975702b69db512faed5453d0604bfba50bfbff7b5d1c2d55947b71dc99ce0178a7892824e4a7dc0aa7330ef8039a12633b636ce35144f567077d6741bdd
+  languageName: node
+  linkType: hard
+
+"@sentry/hub@npm:7.8.0":
+  version: 7.8.0
+  resolution: "@sentry/hub@npm:7.8.0"
+  dependencies:
+    "@sentry/types": 7.8.0
+    "@sentry/utils": 7.8.0
+    tslib: ^1.9.3
+  checksum: d77256fa8cfc8628d9b99229fe57b815aa73eebcdcc93fc9368f0c45ad2c26a7ebf7e1dbe60d6a48b44a97ff46db1f5cea198d4ac00eb987efb18f9ed054879b
+  languageName: node
+  linkType: hard
+
+"@sentry/tracing@npm:^7.8.0":
+  version: 7.8.0
+  resolution: "@sentry/tracing@npm:7.8.0"
+  dependencies:
+    "@sentry/hub": 7.8.0
+    "@sentry/types": 7.8.0
+    "@sentry/utils": 7.8.0
+    tslib: ^1.9.3
+  checksum: 1f94c1a4a4df37c9e038b9e049061c2327ff098e133ac56472dddc547d1c083fd9e40cd01872257aa477c7f84d12d29345cd401942db753c1eb6200d8f2eab3b
+  languageName: node
+  linkType: hard
+
+"@sentry/types@npm:7.8.0":
+  version: 7.8.0
+  resolution: "@sentry/types@npm:7.8.0"
+  checksum: dffc5676723d22a514b914d6c3dd4f66764189197983f7b4ed9aa3c47d30ef7352326c317b829e945575a8ef6373878b73d7cd4144c0c076b27a0acf2831d816
+  languageName: node
+  linkType: hard
+
+"@sentry/utils@npm:7.8.0":
+  version: 7.8.0
+  resolution: "@sentry/utils@npm:7.8.0"
+  dependencies:
+    "@sentry/types": 7.8.0
+    tslib: ^1.9.3
+  checksum: 70010369b99189a5115e8cfc8fe38eb266b05ca6ef48a0b7bb70c3fab0a09fbd9d467d8865cc1ef1ad7485f3f5ac5752d148e5489eb5ae3ad5bf0658647b9aee
+  languageName: node
+  linkType: hard
+
 "@sinclair/typebox@npm:^0.24.1":
   version: 0.24.19
   resolution: "@sinclair/typebox@npm:0.24.19"
@@ -13560,6 +13624,8 @@ __metadata:
     "@craco/craco": ^6.4.5
     "@emotion/react": ^11.9.0
     "@emotion/styled": ^11.8.1
+    "@sentry/browser": ^7.8.0
+    "@sentry/tracing": ^7.8.0
     "@types/d3": ^7.4.0
     "@types/jest": ^28.1.2
     "@types/lodash": ^4.14.182
@@ -16972,7 +17038,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^1.0.0, tslib@npm:^1.8.1":
+"tslib@npm:^1.0.0, tslib@npm:^1.8.1, tslib@npm:^1.9.3":
   version: 1.14.1
   resolution: "tslib@npm:1.14.1"
   checksum: dbe628ef87f66691d5d2959b3e41b9ca0045c3ee3c7c7b906cc1e328b39f199bb1ad9e671c39025bd56122ac57dfbf7385a94843b1cc07c60a4db74795829acd

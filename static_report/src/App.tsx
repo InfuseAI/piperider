@@ -7,6 +7,28 @@ import { useHashLocation } from './hooks/useHashLcocation';
 import { SingleReportList } from './components/SingleReport/SRList';
 import { ComparisonReportList } from './components/ComparisonReport/CRList';
 
+import * as Sentry from '@sentry/browser';
+import { BrowserTracing } from '@sentry/tracing';
+
+const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
+if (sentryDns) {
+  const sentryEnv = window.PIPERIDER_METADATA.sentry_env || 'development';
+  const appVersion = window.PIPERIDER_METADATA.version;
+  const releaseVersion = sentryEnv === 'development' ? null : appVersion;
+  Sentry.init({
+    dsn: sentryDns,
+    environment: sentryEnv,
+    release: releaseVersion,
+    integrations: [new BrowserTracing()],
+
+    // Set tracesSampleRate to 1.0 to capture 100%
+    // of transactions for performance monitoring.
+    // We recommend adjusting this value in production
+    tracesSampleRate: 1.0,
+  });
+  Sentry.setTag('piperider.version', appVersion);
+}
+
 const SingleReport = lazy(
   () => import('./components/SingleReport/SingleReport'),
 );

@@ -2,14 +2,14 @@ import decimal
 import math
 import time
 from datetime import datetime, date
-from typing import Union, List
+from typing import Union, List, Tuple
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, select, func, \
     distinct, case
 from sqlalchemy.sql import FromClause
 from sqlalchemy.sql.elements import ColumnClause
-from sqlalchemy.sql.expression import CTE
+from sqlalchemy.sql.expression import CTE, false, true
 from sqlalchemy.types import Float
 from sqlalchemy.engine import Engine, Connection
 from .event import ProfilerEventHandler, DefaultProfilerEventHandler
@@ -239,11 +239,11 @@ class BaseColumnProfiler:
         Get the CTE to normalize the
         - table name
         - column name as column "c"
-        - (Optional) Remove the mismatched data.
+        - (Optional) Remove the invalid data.
 
         Columns
         - "c": the transformed valid to use data
-            null: if the column value is null or mismatched
+            null: if the column value is null or invalid
             otherwise: orginal column value or transformed value.
         - "orig": the original column
 
@@ -251,7 +251,7 @@ class BaseColumnProfiler:
 
         valid       = count(c)
         non_nulls   = count(orig)
-        mismatched  = non_nulls - valid
+        invalids    = non_nulls - valid
 
         :return: CTE
         """
@@ -275,14 +275,14 @@ class BaseColumnProfiler:
                 func.count(distinct(cte.c.c)).label("_distinct")
             ])
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _distinct = result
+            _total, _non_nulls, _distinct = result
 
             return {
                 'total': _total,
-                'non_nulls': _non_null,
-                'nulls': _total - _non_null,
-                'valid': _non_null,
-                'mismatched': 0,
+                'non_nulls': _non_nulls,
+                'nulls': _total - _non_nulls,
+                'valids': _non_nulls,
+                'invalids': 0,
                 'distinct': _distinct,
                 'distribution': None,
             }
@@ -308,6 +308,17 @@ class StringColumnProfiler(BaseColumnProfiler):
                 ).label("c"),
                 c.label("orig"),
             ]).cte()
+        cte = select([
+            cte.c.c,
+            func.length(cte.c.c).label("len"),
+            cte.c.orig
+        ]).select_from(cte).cte()
+        cte = select([
+            cte.c.c,
+            cte.c.len,
+            case([(cte.c.len == 0, 1)], else_=None).label("zero_length"),
+            cte.c.orig
+        ]).select_from(cte).cte()
         return cte
 
     def profile(self):
@@ -316,23 +327,70 @@ class StringColumnProfiler(BaseColumnProfiler):
             stmt = select([
                 func.count().label("_total"),
                 func.count(cte.c.orig).label("_non_nulls"),
-                func.count(cte.c.c).label("_valid"),
-                func.count(distinct(cte.c.c)).label("_distinct")
+                func.count(cte.c.c).label("_valids"),
+                func.count(cte.c.zero_length).label("_zero_length"),
+                func.count(distinct(cte.c.c)).label("_distinct"),
+                func.sum(cte.c.len).label("_sum"),
+                func.avg(cte.c.len).label("_avg"),
+                func.min(cte.c.len).label("_min"),
+                func.max(cte.c.len).label("_max"),
+                func.avg(func.cast(cte.c.len, Float) * func.cast(cte.c.len, Float)).label("_square_avg"),
             ])
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _valid, _distinct = result
-            distribution = None
-            if _non_null > 0:
-                distribution = profile_topk(conn, cte.c.c)
-            return {
+            _total, _non_nulls, _valids, _zero_length, _distinct, _sum, _avg, _min, _max, _square_avg = result
+            _sum = dtof(_sum)
+            _min = dtof(_min)
+            _max = dtof(_max)
+            _avg = dtof(_avg)
+            _square_avg = dtof(_square_avg)
+            _stddev = None
+            if _square_avg is not None and _avg is not None:
+                _stddev = math.sqrt(_square_avg - _avg * _avg)
+
+            result = {
                 'total': _total,
-                'non_nulls': _non_null,
-                'nulls': _total - _non_null,
-                'valid': _valid,
-                'mismatched': _non_null - _valid,
+                'non_nulls': _non_nulls,
+                'nulls': _total - _non_nulls,
+                'valids': _valids,
+                'invalids': _non_nulls - _valids,
+                'zero_length': _zero_length,
+                'non_zero_length': _valids - _zero_length,
+
                 'distinct': _distinct,
-                'distribution': distribution,
+                'min': _min,
+                'max': _max,
+                'sum': _sum,
+                'avg': _avg,
+                'stddev': _stddev,
             }
+
+            # uniqueness
+            _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
+            result.update({
+                "duplicates": _valids - _non_duplicates,
+                "non_duplicates": _non_duplicates,
+            })
+
+            # top k
+            topk = None
+            if _valids > 0:
+                topk = profile_topk(conn, cte.c.c)
+            result['topk'] = topk
+
+            # histogram of string length
+            histogram = None
+            if _valids > 0:
+                histogram = profile_histogram(conn, cte, cte.c.len, _min, _max, True)
+            result['histogram'] = histogram
+
+            # deprecated
+            result['distribution'] = {
+                "type": "topk",
+                "labels": topk["values"],
+                "counts": topk["counts"],
+            } if topk else None
+
+            return result
 
 
 class NumericColumnProfiler(BaseColumnProfiler):
@@ -359,6 +417,12 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 ).label("c"),
                 c.label("orig")
             ]).cte(name="T")
+        cte = select([
+            cte.c.c,
+            case([(cte.c.c == 0, 1)], else_=None).label("zero"),
+            case([(cte.c.c < 0, 1)], else_=None).label("negative"),
+            cte.c.orig
+        ]).select_from(cte).cte()
         return cte
 
     def profile(self):
@@ -368,7 +432,9 @@ class NumericColumnProfiler(BaseColumnProfiler):
             stmt = select([
                 func.count().label("_total"),
                 func.count(cte.c.orig).label("_non_nulls"),
-                func.count(cte.c.c).label("_valid"),
+                func.count(cte.c.c).label("_valids"),
+                func.count(cte.c.zero).label("_zeros"),
+                func.count(cte.c.negative).label("_negatives"),
                 func.count(distinct(cte.c.c)).label("_distinct"),
                 func.sum(cte.c.c).label("_sum"),
                 func.avg(cte.c.c).label("_avg"),
@@ -377,40 +443,75 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 func.avg(func.cast(cte.c.c, Float) * func.cast(cte.c.c, Float)).label("_square_avg"),
             ])
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _valid, _distinct, _sum, _avg, _min, _max, _square_avg = result
+            _total, _non_nulls, _valids, _zeros, _negatives, _distinct, _sum, _avg, _min, _max, _square_avg = result
             _sum = dtof(_sum)
             _min = dtof(_min)
             _max = dtof(_max)
             _avg = dtof(_avg)
             _square_avg = dtof(_square_avg)
-            _stddev = math.sqrt(_square_avg - _avg * _avg) if _square_avg and _avg else None
+            _stddev = None
+            if _square_avg is not None and _avg is not None:
+                _stddev = math.sqrt(_square_avg - _avg * _avg)
 
-            if _valid > 0:
-                quantile = self._profile_quantile(conn, cte, cte.c.c, _valid)
-                distribution = self._profile_histogram(conn, cte, cte.c.c, _min, _max, self.is_integer)
-            else:
-                quantile = {}
-                distribution = None
-
-            return {
+            result = {
                 'total': _total,
-                'non_nulls': _non_null,
-                'nulls': _total - _non_null,
-                'valid': _valid,
-                'mismatched': _non_null - _valid,
+                'non_nulls': _non_nulls,
+                'nulls': _total - _non_nulls,
+                'valids': _valids,
+                'invalids': _non_nulls - _valids,
+                'zeros': _zeros,
+                'negatives': _negatives,
+                'positives': _valids - _zeros - _negatives,
+
                 'distinct': _distinct,
                 'min': _min,
                 'max': _max,
                 'sum': _sum,
                 'avg': _avg,
+                'stddev': _stddev,
+            }
+
+            # uniqueness
+            _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
+            result.update({
+                "duplicates": _valids - _non_duplicates,
+                "non_duplicates": _non_duplicates,
+            })
+
+            # histogram
+            histogram = None
+            if _valids > 0:
+                histogram = profile_histogram(conn, cte, cte.c.c, _min, _max, self.is_integer)
+            result['histogram'] = histogram
+
+            # quantile
+            quantile = {}
+            if _valids > 0:
+                quantile = self._profile_quantile(conn, cte, cte.c.c, _valids)
+            result.update({
                 'p5': quantile.get('p5'),
                 'p25': quantile.get('p25'),
-                'stddev': _stddev,
                 'p50': quantile.get('p50'),
                 'p75': quantile.get('p75'),
                 'p95': quantile.get('p95'),
-                'distribution': distribution,
-            }
+            })
+
+            # top k (integer only)
+            if self.is_integer:
+                topk = None
+                if _valids > 0:
+                    topk = profile_topk(conn, cte.c.c)
+                result["topk"] = topk
+
+            # deprecated
+            result["distribution"] = {
+                "type": "histogram",
+                "labels": histogram["labels"],
+                "counts": histogram["counts"],
+                "bin_edges": histogram["bin_edges"],
+            } if histogram else None
+
+            return result
 
     def _profile_quantile(
         self,
@@ -631,13 +732,13 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             stmt = select([
                 func.count().label("_total"),
                 func.count(cte.c.orig).label("_non_nulls"),
-                func.count(cte.c.c).label("_valid"),
+                func.count(cte.c.c).label("_valids"),
                 func.count(distinct(cte.c.c)).label("_distinct"),
                 func.min(cte.c.c).label("_min"),
                 func.max(cte.c.c).label("_max"),
             ])
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _valid, _distinct, _min, _max = result
+            _total, _non_nulls, _valids, _distinct, _min, _max = result
             if self._get_database_backend() == 'sqlite':
                 if isinstance(self.column.type, Date):
                     _min = datetime.fromisoformat(_min).date() if isinstance(_min, str) else _min
@@ -645,21 +746,41 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 else:
                     _min = datetime.fromisoformat(_min) if isinstance(_min, str) else _min
                     _max = datetime.fromisoformat(_max) if isinstance(_max, str) else _max
-            distribution = None
-            if _min and _max:
-                distribution = self._profile_histogram(conn, cte, cte.c.c, _min, _max)
 
-            return {
+            result = {
                 'total': _total,
-                'non_nulls': _non_null,
-                'nulls': _total - _non_null,
-                'valid': _valid,
-                'mismatched': _non_null - _valid,
+                'non_nulls': _non_nulls,
+                'nulls': _total - _non_nulls,
+                'valids': _valids,
+                'invalids': _non_nulls - _valids,
                 'distinct': _distinct,
                 'min': _min.isoformat() if _min is not None else None,
                 'max': _max.isoformat() if _max is not None else None,
-                'distribution': distribution,
             }
+
+            # uniqueness
+            _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
+            result.update({
+                "duplicates": _valids - _non_duplicates,
+                "non_duplicates": _non_duplicates,
+            })
+
+            # histogram
+            histogram = None
+            _type = None
+            if _min and _max:
+                histogram, _type = self._profile_histogram(conn, cte, cte.c.c, _min, _max)
+            result['histogram'] = histogram
+
+            # deprecated
+            result["distribution"] = {
+                "type": _type,
+                "labels": histogram["labels"],
+                "counts": histogram["counts"],
+                "bin_edges": histogram["bin_edges"],
+            } if histogram else None
+
+            return result
 
     def _profile_histogram(
         self,
@@ -668,7 +789,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
         column: ColumnClause,
         min: Union[date, datetime],
         max: Union[date, datetime]
-    ) -> dict:
+    ) -> Tuple[dict, str]:
         """
         Profile the histogram of a datetime column. There are three way to create bins of the histogram
 
@@ -690,8 +811,8 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
         #     if isinstance(max, datetime):
         #         max = max.date()
 
-        distribution = {
-            "type": "",
+        _type = None
+        histogram = {
             "labels": [],
             "counts": [],
             "bin_edges": [],
@@ -710,7 +831,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
 
         days_delta = (max - min).days
         if days_delta > 365 * 4:
-            distribution["type"] = "yearly"
+            _type = "yearly"
             dmin = date(min.year, 1, 1)
             dmax = date(max.year, 1, 1) + relativedelta(years=+1)
             interval_years = math.ceil((dmax.year - dmin.year) / 50)
@@ -718,7 +839,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             num_buckets = math.ceil((dmax.year - dmin.year) / interval.years)
             cte = select([date_trunc("YEAR", column).label("d")]).select_from(table).cte()
         elif days_delta > 60:
-            distribution["type"] = "monthly"
+            _type = "monthly"
             interval = relativedelta(months=+1)
             dmin = date(min.year, min.month, 1)
             dmax = date(max.year, max.month, 1) + interval
@@ -726,7 +847,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             num_buckets = (period.years * 12 + period.months)
             cte = select([date_trunc("MONTH", column).label("d")]).select_from(table).cte()
         else:
-            distribution["type"] = "daily"
+            _type = "daily"
             interval = relativedelta(days=+1)
             dmin = date(min.year, min.month, min.day)
             dmax = date(max.year, max.month, max.day) + interval
@@ -746,10 +867,10 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
 
         for i in range(num_buckets):
             label = f"{dmin + i * interval} - {dmin + (i + 1) * interval}"
-            distribution["labels"].append(label)
-            distribution["bin_edges"].append(str(dmin + i * interval))
-            distribution["counts"].append(0)
-        distribution["bin_edges"].append(str(dmin + num_buckets * interval))
+            histogram["labels"].append(label)
+            histogram["bin_edges"].append(str(dmin + i * interval))
+            histogram["counts"].append(0)
+        histogram["bin_edges"].append(str(dmin + num_buckets * interval))
 
         for row in result:
             date_truncated, v = row
@@ -761,12 +882,12 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 date_truncated = date_truncated.date()
 
             for i in range(num_buckets):
-                date_edge = date.fromisoformat(distribution["bin_edges"][i + 1])
+                date_edge = date.fromisoformat(histogram["bin_edges"][i + 1])
                 if date_truncated < date_edge:
-                    distribution["counts"][i] += v
+                    histogram["counts"][i] += v
                     break
 
-        return distribution
+        return histogram, _type
 
 
 class BooleanColumnProfiler(BaseColumnProfiler):
@@ -784,12 +905,17 @@ class BooleanColumnProfiler(BaseColumnProfiler):
         else:
             cte = select([
                 case(
-                    [(c.is_(True), c),
-                     (c.is_(False), c)],
+                    [(c == true(), c),
+                     (c == false(), c)],
                     else_=None
                 ).label("c"),
                 c.label("orig"),
             ]).cte()
+        cte = select([
+            cte.c.c,
+            case([(cte.c.c == true(), 1)], else_=None).label("true_count"),
+            cte.c.orig
+        ]).select_from(cte).cte()
         return cte
 
     def profile(self):
@@ -799,23 +925,30 @@ class BooleanColumnProfiler(BaseColumnProfiler):
             stmt = select([
                 func.count().label("_total"),
                 func.count(cte.c.orig).label("_non_nulls"),
-                func.count(cte.c.c).label("_valid"),
+                func.count(cte.c.c).label("_valids"),
+                func.count(cte.c.true_count).label("_trues"),
                 func.count(distinct(cte.c.c)).label("_distinct"),
             ]).select_from(cte)
             result = conn.execute(stmt).fetchone()
-            _total, _non_null, _valid, _distinct = result
+            _total, _non_nulls, _valids, _trues, _distinct = result
+            _falses = _valids - _trues
 
-            distribution = None
-            if _valid > 0:
-                distribution = profile_topk(conn, cte.c.c, 3)
             return {
                 'total': _total,
-                'non_nulls': _non_null,
-                'nulls': _total - _non_null,
-                'valid': _valid,
-                'mismatched': _non_null - _valid,
+                'non_nulls': _non_nulls,
+                'nulls': _total - _non_nulls,
+                'valids': _valids,
+                'invalids': _non_nulls - _valids,
+                'trues': _trues,
+                'falses': _falses,
                 'distinct': _distinct,
-                'distribution': distribution,
+
+                # deprecated
+                'distribution': {
+                    'type': "topk",
+                    'labels': ["False", "True"],
+                    'counts': [_falses, _trues]
+                }
             }
 
 
@@ -833,14 +966,129 @@ def profile_topk(conn, expr, k=20) -> dict:
     result = conn.execute(stmt)
 
     topk = {
-        "type": "topk",  # Top K Items
-        "labels": [],
+        "values": [],
         "counts": [],
     }
     for row in result:
         k, v = row
         if k is not None:
             k = str(k)
-        topk["labels"].append(k)
+        topk["values"].append(k)
         topk["counts"].append(v)
     return topk
+
+
+def profile_histogram(
+    conn: Connection,
+    table: FromClause,
+    column: ColumnClause,
+    min: Union[int, float],
+    max: Union[int, float],
+    is_integer: bool,
+    num_buckets: int = HISTOGRAM_NUM_BUCKET
+) -> dict:
+    if is_integer:
+        # min=0, max=50, num_buckets=50  => interval=1, num_buckets=51
+        # min=0, max=70, num_buckets=50  => interval=2, num_buckets=36
+        # min=0, max=100, num_buckets=50 => interval=2, num_buckets=51
+        interval = math.ceil((max - min) / num_buckets) if max > min else 1
+        num_buckets = math.ceil((max - min + 1) / interval)
+    else:
+        interval = (max - min) / num_buckets if max > min else 1
+
+    cases = []
+    for i in range(num_buckets):
+        bound = min + interval * (i + 1)
+        if i != num_buckets - 1:
+            cases += [(column < bound, i)]
+        else:
+            cases += [(column < bound + interval / 100, i)]
+
+    cte_with_bucket = select([
+        column.label("c"),
+        case(cases, else_=None).label("bucket")
+    ]).select_from(
+        table
+    ).where(
+        column.isnot(None)
+    ).cte()
+
+    stmt = select([
+        cte_with_bucket.c.bucket,
+        func.count().label("_count")
+    ]).group_by(
+        cte_with_bucket.c.bucket
+    ).order_by(
+        cte_with_bucket.c.bucket
+    )
+
+    result = conn.execute(stmt)
+
+    counts = []
+    labels = []
+    bin_edges = []
+    for i in range(num_buckets):
+        if is_integer:
+            start = min + i * interval
+            end = min + (i + 1) * interval
+            if interval == 1:
+                label = f"{start}"
+            else:
+                label = f"{start} _ {end}"
+        else:
+            if interval >= 1:
+                start = min + i * interval
+                end = min + (i + 1) * interval
+            else:
+                start = min + i / (1 / interval)
+                end = min + (i + 1) / (1 / interval)
+
+            label = f"{format_float(start)} _ {format_float(end)}"
+
+        labels.append(label)
+        counts.append(0)
+        bin_edges.append(start)
+        if i == num_buckets - 1:
+            bin_edges.append(end)
+
+    for row in result:
+        _bucket, v = row
+        if _bucket is None:
+            continue
+        counts[int(_bucket)] = v
+    return {
+        "labels": labels,
+        "counts": counts,
+        "bin_edges": bin_edges,
+    }
+
+
+def profile_non_duplicate(
+    conn: Connection,
+    table: FromClause,
+    column: ColumnClause,
+) -> int:
+    # with t as (
+    #     select count(column) as c
+    # from table
+    # group by column
+    # having c == 1
+    # )
+    # select
+    # count(c) as non_duplicate
+    # from t;
+    cte = select([
+        func.count(column).label("non_duplicates")
+    ]).select_from(
+        table
+    ).where(
+        column.isnot(None)
+    ).group_by(
+        column
+    ).having(
+        func.count(column) == 1
+    ).cte()
+
+    stmt = select([func.count(cte.c.non_duplicates)]).select_from(cte)
+    non_duplicates, = conn.execute(stmt).fetchone()
+    return non_duplicates

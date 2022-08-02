@@ -5,11 +5,14 @@ import {
   getComparisonDataPath,
   getEmbeddedIndexHTML,
   getFileData,
+  getMetadata,
   isE2E,
   log,
   PATH_TO_INDEX,
   PATH_TO_SINGLE_REPORT_DATA_JSON,
   SINGLE_KEY,
+  PATH_TO_METADATA_DATA_JSON,
+  METADATA_KEY,
 } from './core.js';
 
 /**
@@ -23,6 +26,14 @@ const insertDataToHTML = async () => {
   );
   const reportDataMap = new Map();
 
+  // Read Report Data (Comparison/Single)
+  log(PATH_TO_SINGLE_REPORT_DATA_JSON);
+  log(PATH_TO_COMPARISON_REPORT_DATA_JSON);
+
+  // Set PipeRider Metadata
+  const metadata = await getMetadata();
+  await generateFile(PATH_TO_METADATA_DATA_JSON, JSON.stringify(metadata));
+
   await setMapValues(
     reportDataMap,
     PATH_TO_SINGLE_REPORT_DATA_JSON,
@@ -34,6 +45,8 @@ const insertDataToHTML = async () => {
     PATH_TO_COMPARISON_REPORT_DATA_JSON,
     COMPARISON_KEY,
   );
+
+  await setMapValues(reportDataMap, PATH_TO_METADATA_DATA_JSON, METADATA_KEY);
 
   // Embed Report Data to HTML and Rewrite
   const embedHtml = await getEmbeddedIndexHTML(reportDataMap);

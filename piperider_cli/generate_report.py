@@ -5,11 +5,24 @@ import shutil
 
 from rich.console import Console
 
+from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli import clone_directory, raise_exception_when_output_directory_not_writable
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 from piperider_cli.error import PipeRiderNoProfilingResultError
 
 PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
+
+
+def prepare_piperider_metadata():
+    metadata = {
+        'name': 'PipeRider',
+        'sentry_env': sentry_env,
+        'sentry_dns': sentry_dns,
+        'version': __version__,
+        'amplitude_api_key': event._get_api_key(),
+        'amplitude_user_id': event._collector._user_id,
+    }
+    return metadata
 
 
 def _validate_input_result(result):
@@ -24,10 +37,17 @@ def setup_report_variables(template_html: str, is_single: bool, data):
         output = json.dumps(data)
     else:
         output = data
+    metadata = json.dumps(prepare_piperider_metadata())
     if is_single:
-        variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA={output};window.PIPERIDER_COMPARISON_REPORT_DATA="";</script>'
+        variables = f'<script id="piperider-report-variables">\n' \
+                    f'window.PIPERIDER_METADATA={metadata};' \
+                    f'window.PIPERIDER_SINGLE_REPORT_DATA={output};' \
+                    f'window.PIPERIDER_COMPARISON_REPORT_DATA="";</script>'
     else:
-        variables = f'<script id="piperider-report-variables">\nwindow.PIPERIDER_SINGLE_REPORT_DATA="";window.PIPERIDER_COMPARISON_REPORT_DATA={output};</script>'
+        variables = f'<script id="piperider-report-variables">\n' \
+                    f'window.PIPERIDER_METADATA={metadata};' \
+                    f'window.PIPERIDER_SINGLE_REPORT_DATA="";' \
+                    f'window.PIPERIDER_COMPARISON_REPORT_DATA={output};</script>'
     html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#', template_html).split(
         '#PLACEHOLDER#')
     html = html_parts[0] + variables + html_parts[1]

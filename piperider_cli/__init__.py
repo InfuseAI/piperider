@@ -1,7 +1,9 @@
 import logging
 import os
+import re
 import sys
 from datetime import datetime
+
 from dateutil import tz
 
 
@@ -41,6 +43,13 @@ def get_version():
         return version
 
 
+def get_sentry_dns():
+    dns_file = os.path.normpath(os.path.join(os.path.dirname(__file__), 'SENTRY_DNS'))
+    with open(dns_file) as f:
+        dns = f.read().strip()
+        return dns
+
+
 def clone_directory(src, dst):
     if sys.version_info >= (3, 8):
         # dirs_exist_ok only available after 3.8
@@ -76,6 +85,24 @@ def convert_to_tzlocal(input):
 
 
 __version__ = get_version()
+
+
+def set_sentry_env():
+    if '.dev' in __version__:
+        return 'development'
+    elif re.match(r'^\d+\.\d+\.\d+\.\d{8}[a|b|rc]?.*$', __version__):
+        return 'nightly'
+    elif 'a' in __version__:
+        return 'alpha'
+    elif 'b' in __version__:
+        return 'beta'
+    elif 'rc' in __version__:
+        return 'release-candidate'
+    return 'production'
+
+
+sentry_dns = get_sentry_dns()
+sentry_env = set_sentry_env()
 
 
 def ensure_directory_writable(directory):

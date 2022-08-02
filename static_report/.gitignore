@@ -11,3 +11,4 @@ npm-debug.log*
 !.yarn/versions
 yarn-debug.log*
 yarn-error.log*
+piperider-metadata.json
