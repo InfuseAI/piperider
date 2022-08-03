@@ -52,11 +52,11 @@ def format_float(val: Union[int, float]) -> str:
     elif base < 9:
         return f"{val / (10 ** 6):.1f}M"
     elif base < 12:
-        return f"{val / (10 ** 9):.1f}T"
+        return f"{val / (10 ** 9):.1f}B"
     elif base < 15:
-        return f"{val / (10 ** 12):.1f}B"
+        return f"{val / (10 ** 12):.1f}T"
     else:
-        return f"{val / (10 ** 12):.0f}B"
+        return f"{val / (10 ** 12):.0f}T"
 
 
 class Profiler:
