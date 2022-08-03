@@ -51,15 +51,15 @@ export const CRTableColumnDetails = ({
         <Flex direction="column" mt={3}>
           {/* Case: Cast provided undefined to null */}
           <GeneralTableColumn
-            targetColumn={targetColumn || null}
             baseColumn={baseColumn}
+            targetColumn={targetColumn || null}
           />
         </Flex>
         {baseColumn?.type === 'numeric' && (
           <>
             <NumericTableColumn
               baseColumn={baseColumn}
-              targetColumn={targetColumn}
+              targetColumn={targetColumn || null}
             />
           </>
         )}
