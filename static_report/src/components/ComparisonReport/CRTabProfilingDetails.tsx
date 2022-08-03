@@ -58,13 +58,10 @@ function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
       base?.type === target?.type &&
       (base?.type === 'string' || base?.type === 'datetime')
     ) {
-      const transformResult =
-        base?.distribution && target?.distribution
-          ? transformCRStringDateDistributions({
-              base: base.distribution,
-              target: target.distribution,
-            })
-          : null;
+      const transformResult = transformCRStringDateDistributions({
+        base: base?.distribution,
+        target: target?.distribution,
+      });
 
       setData([transformResult]);
     } else {
@@ -99,11 +96,15 @@ function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
 
         <Grid
           my={4}
-          templateColumns={`1fr ${isSingleChartOnly && '1fr'}`}
+          templateColumns={`1fr ${isSingleChartOnly ? '' : '1fr'}`}
           gap={isSingleChartOnly ? 0 : 12}
         >
           {data[0] ? <CRBarChart data={data[0]} /> : <NoData />}
-          {data[1] ? <CRBarChart data={data[1]} /> : <NoData />}
+          {data[1] ? (
+            <CRBarChart data={data[1]} />
+          ) : isSingleChartOnly ? null : (
+            <NoData />
+          )}
         </Grid>
       </Grid>
     </Flex>

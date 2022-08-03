@@ -3,7 +3,7 @@ import { Flex, Text } from '@chakra-ui/react';
 interface Props {
   name: string;
   firstSlot?: string | number;
-  secondSlot?: string | number;
+  secondSlot?: string | number | null;
   firstSlotWidth?: string;
   secondSlotWidth?: string;
 }

@@ -20,7 +20,7 @@ type Props = {
 };
 export function SRTabTestDetails({ assertionData, type = 'piperider' }: Props) {
   const tableTests = assertionData?.tests;
-  const columnsTests = assertionData?.columns;
+  const columnsTests = assertionData?.columns || {};
 
   if (
     !tableTests ||
