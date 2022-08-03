@@ -12,36 +12,42 @@ import {
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
-import { zReport, ZTableSchema } from '../../types';
+import { ComparsionSource, zReport, ZTableSchema } from '../../types';
 
 type EnrichedColumnData = {
   added: number;
   deleted: number;
   changed: number;
-  columns: (ColumnSchema & {
-    key: string;
-    type: string;
-    changed: boolean;
-  })[];
+  columns:
+    | (ColumnSchema & {
+        key: string;
+        type: string;
+        changed: boolean;
+      })[];
 };
-const getEnrichedColumnsFor = (columns, type): EnrichedColumnData['columns'] =>
-  Object.entries<ColumnSchema>(columns).map(([key, column]) => ({
-    ...column,
-    key,
-    type,
-    changed: false,
-  }));
+const getEnrichedColumnsFor = (
+  columns: TableSchema['columns'] | undefined,
+  type: ComparsionSource,
+) =>
+  columns
+    ? Object.entries(columns).map(([key, column]) => ({
+        ...column,
+        key,
+        type,
+        changed: false,
+      }))
+    : [];
 
 type Props = {
-  base: TableSchema;
-  target: TableSchema;
+  base?: TableSchema | undefined;
+  target?: TableSchema | undefined;
 };
 export function CRTabSchemaDetails({ base, target }: Props) {
   zReport(ZTableSchema.safeParse(base));
   zReport(ZTableSchema.safeParse(target));
 
-  const baseColEntries = getEnrichedColumnsFor(base.columns, 'base');
-  const targetColEntries = getEnrichedColumnsFor(target.columns, 'target');
+  const baseColEntries = getEnrichedColumnsFor(base?.columns, 'base');
+  const targetColEntries = getEnrichedColumnsFor(target?.columns, 'target');
   const combinedColEntries = [...baseColEntries, ...targetColEntries];
 
   const addedTest = targetColEntries.length - baseColEntries.length;
@@ -58,9 +64,9 @@ export function CRTabSchemaDetails({ base, target }: Props) {
           idx >= baseColEntries.length ? idx : idx + baseColEntries.length;
 
         //cross-checks if schema type is changed
-        const currBaseSchema = combinedColEntries[currBaseIndex].schema_type;
+        const currBaseSchema = combinedColEntries[currBaseIndex]?.schema_type;
         const currTargetSchema =
-          combinedColEntries[currTargetIndex].schema_type;
+          combinedColEntries[currTargetIndex]?.schema_type;
         const isSchemaChanged = currBaseSchema !== currTargetSchema;
         const changed = acc.changed + (isSchemaChanged ? 1 : 0);
 
@@ -103,6 +109,7 @@ export function CRTabSchemaDetails({ base, target }: Props) {
       </Text>
 
       <Flex justifyContent={'space-evenly'}>
+        {/* Base Columns */}
         <TableContainer width="50%">
           <Table variant="simple">
             <Thead>
@@ -129,6 +136,7 @@ export function CRTabSchemaDetails({ base, target }: Props) {
           <Divider orientation={'vertical'} />
         </Flex>
 
+        {/* Target Columns */}
         <TableContainer width="50%">
           <Table variant="simple">
             <Thead>

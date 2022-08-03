@@ -15,6 +15,8 @@ export function MetricsInfo({
   baseWidth = '100px',
   targetWidth = '100px',
 }: Props) {
+  console.log(name, base, target);
+
   return (
     <Flex justifyContent="space-between">
       <Text fontWeight={700}>{name}</Text>

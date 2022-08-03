@@ -4,25 +4,28 @@ import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
 import { zReport, ZTableSchema } from '../../types';
 import {
   transformBaseDistribution,
-  nestComparisonValueByKey,
+  transformAsNestedBaseTargetRecord,
   transformCRStringDateDistributions,
   CRDistributionDatum,
 } from '../../utils/transformers';
 import { CRBarChart } from './CRBarChart';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
 
-type Props = {
-  baseTable: TableSchema;
-  targetTable: TableSchema;
+type CRTabProfilingDetailsProps = {
+  baseTable?: TableSchema | undefined;
+  targetTable?: TableSchema | undefined;
 };
-export function CRTabProfilingDetails({ baseTable, targetTable }: Props) {
+export function CRTabProfilingDetails({
+  baseTable,
+  targetTable,
+}: CRTabProfilingDetailsProps) {
   zReport(ZTableSchema.safeParse(baseTable));
   zReport(ZTableSchema.safeParse(targetTable));
 
-  const transformedData = nestComparisonValueByKey<ColumnSchema>(
-    baseTable.columns,
-    targetTable.columns,
-  );
+  const transformedData = transformAsNestedBaseTargetRecord<
+    TableSchema['columns'],
+    ColumnSchema
+  >(baseTable?.columns, targetTable?.columns);
 
   return (
     <>
@@ -31,8 +34,8 @@ export function CRTabProfilingDetails({ baseTable, targetTable }: Props) {
           <CRProfilingColumn
             key={key}
             name={key}
-            base={value.base}
-            target={value.target}
+            base={value?.base}
+            target={value?.target}
           />
         );
       })}
@@ -45,12 +48,12 @@ export function CRTabProfilingDetails({ baseTable, targetTable }: Props) {
  * Renders combined single chart when type is string or datetime
  * Otherwise, renders two charts per distribution
  */
-type CRProfilingColumnProp = {
+type CRProfilingColumnProps = {
   name: string;
   base?: ColumnSchema;
   target?: ColumnSchema;
 };
-function CRProfilingColumn({ name, base, target }: CRProfilingColumnProp) {
+function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
   const [data, setData] = useState<CRDistributionDatum[][]>([]);
 
   useEffect(() => {
@@ -89,12 +92,7 @@ function CRProfilingColumn({ name, base, target }: CRProfilingColumnProp) {
   return (
     <Flex key={name} direction="column">
       <Grid my={8} templateColumns="500px 1fr" gap={12}>
-        {/* case: base and target not always avail due to column shifts, but base will always exist */}
-        <CRTableColumnDetails
-          baseColumn={base}
-          targetColumn={target}
-          column={base ? base : target}
-        />
+        <CRTableColumnDetails baseColumn={base} targetColumn={target} />
 
         {/* Diff between string datetime vs. others */}
         {data.length === 1 && <CRBarChart data={data[0]} />}

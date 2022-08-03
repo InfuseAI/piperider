@@ -2,22 +2,20 @@ import { Code, Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import { GeneralTableColumn } from '../shared/GeneralTableColumn';
-import { MetricsInfo } from '../shared/MetrisInfo';
+import { MetricsInfo } from '../shared/MetricsInfo';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
 
 // props made optional as they can be undefined
 type CRTableColumnDetailsProps = {
-  column?: ColumnSchema;
-  baseColumn?: ColumnSchema;
-  targetColumn?: ColumnSchema;
+  baseColumn?: ColumnSchema | undefined;
+  targetColumn?: ColumnSchema | undefined;
 };
 export const CRTableColumnDetails = ({
-  column,
   baseColumn,
   targetColumn,
 }: CRTableColumnDetailsProps) => {
   const emptyLabel = '-';
-  zReport(ZColSchema.safeParse(column));
+  const fallback = baseColumn || targetColumn;
   zReport(ZColSchema.safeParse(baseColumn));
   zReport(ZColSchema.safeParse(targetColumn));
 
@@ -33,11 +31,11 @@ export const CRTableColumnDetails = ({
               fontSize="lg"
               mr={1}
               noOfLines={1}
-              title={column.name}
+              title={fallback.name}
             >
-              {column.name}
+              {fallback.name}
             </Text>
-            {''}(<Code>{column.schema_type}</Code>)
+            {''}(<Code>{fallback.schema_type}</Code>)
           </Text>
 
           <Flex gap={8}>
@@ -56,7 +54,7 @@ export const CRTableColumnDetails = ({
             baseColumn={baseColumn}
           />
         </Flex>
-        {column.type === 'numeric' && (
+        {fallback.type === 'numeric' && (
           <>
             <NumericTableColumn
               baseColumn={baseColumn}
@@ -65,7 +63,7 @@ export const CRTableColumnDetails = ({
           </>
         )}
 
-        {column.type === 'datetime' && (
+        {fallback.type === 'datetime' && (
           <Flex direction="column">
             <MetricsInfo
               name="Min"

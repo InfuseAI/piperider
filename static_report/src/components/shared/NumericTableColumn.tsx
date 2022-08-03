@@ -2,7 +2,7 @@ import { Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
-import { MetricsInfo } from './MetrisInfo';
+import { MetricsInfo } from './MetricsInfo';
 
 type Props = {
   baseColumn: ColumnSchema;

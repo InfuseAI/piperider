@@ -30,9 +30,12 @@ import {
   zReport,
   ZSingleSchema,
 } from '../../types';
-import { TableSchema } from '../../sdlc/single-report-schema';
+import {
+  SingleReportSchema,
+  TableSchema,
+} from '../../sdlc/single-report-schema';
 import { getComparisonAssertions } from '../../utils/assertion';
-import { nestComparisonValueByKey } from '../../utils/transformers';
+import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
 
 export function ComparisonReportList({
   data,
@@ -44,10 +47,10 @@ export function ComparisonReportList({
   zReport(ZSingleSchema.safeParse(base));
   zReport(ZSingleSchema.safeParse(target));
 
-  const tables = nestComparisonValueByKey<TableSchema>(
-    base.tables,
-    target.tables,
-  );
+  const tables = transformAsNestedBaseTargetRecord<
+    SingleReportSchema['tables'],
+    TableSchema
+  >(base.tables, target.tables);
 
   useDocumentTitle('Report List');
 
@@ -160,8 +163,7 @@ export function ComparisonReportList({
                       type: 'dbt',
                     });
 
-                  //For asymmetric/mismatched columns
-                  //FIXME: The fix requires downstream UI rework/refactor to allow for proper mismatched column handling
+                  //For asymmetric/non-matching columns
                   const isAsymmetricColumns =
                     !table.base?.columns || !table.target?.columns;
 
@@ -169,23 +171,17 @@ export function ComparisonReportList({
                     <Link
                       key={nanoid()}
                       style={{ cursor: 'not-allowed' }}
-                      href={isAsymmetricColumns ? '#' : `/tables/${key}`}
+                      href={`/tables/${key}`}
                     >
                       <Tr
                         data-cy="cr-report-list-item"
-                        cursor={isAsymmetricColumns ? 'not-allowed' : 'pointer'}
                         _hover={{ bgColor: 'blackAlpha.50' }}
+                        cursor={'pointer'}
                       >
                         <Td>
-                          <Tooltip
-                            isDisabled={!isAsymmetricColumns}
-                            label="There seems to be a mismatch on the base and/or target columns. So there's currently no way to display the comparison between them."
-                          >
-                            <Flex>
-                              {isAsymmetricColumns && <WarningIcon />}
-                              <Text ml={2}>{key}</Text>
-                            </Flex>
-                          </Tooltip>
+                          <Flex>
+                            <Text ml={2}>{key}</Text>
+                          </Flex>
                         </Td>
                         <Td>
                           <Text as="span">{baseOverview.passed}</Text>

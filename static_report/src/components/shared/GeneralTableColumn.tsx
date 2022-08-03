@@ -6,7 +6,7 @@ import {
   formatColumnValueWith,
 } from '../../utils/formatters';
 import { getColumnDetails } from '../../utils/transformers';
-import { MetricsInfo } from './MetrisInfo';
+import { MetricsInfo } from './MetricsInfo';
 
 type Props = { baseColumn: ColumnSchema; targetColumn?: ColumnSchema };
 export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
@@ -21,6 +21,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       mismatchOfTotal: baseMismatchOfTotal,
       validOfTotal: baseValidOfTotal,
       missingOfTotal: baseMissingOfTotal,
+      distinctOfTotal: baseDistinctOfTotal,
     } = getColumnDetails(baseColumn);
   }
 
@@ -31,11 +32,14 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       mismatchOfTotal: targetMismatchOfTotal,
       validOfTotal: targetValidOfTotal,
       missingOfTotal: targetMissingOfTotal,
+      distinctOfTotal: targetDistinctOfTotal,
     } = getColumnDetails(targetColumn);
   }
 
   //NOTE: `base` will show amount (non-%) in single-reports
   //NOTE: `target` will show ratio (%) in single-reports
+  console.log(baseColumn.distinct, targetColumn?.distinct);
+
   return (
     <>
       <MetricsInfo
@@ -82,10 +86,10 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       <MetricsInfo
         name="Distinct"
         base={formatColumnValueWith(baseColumn?.distinct, formatNumber)}
-        target={
-          targetColumn &&
-          formatColumnValueWith(targetColumn?.distinct, formatNumber)
-        }
+        target={formatColumnValueWith(
+          targetColumn ? targetDistinctOfTotal : baseDistinctOfTotal,
+          formatIntervalMinMax,
+        )}
       />
     </>
   );
