@@ -1,4 +1,4 @@
-from piperider_cli.assertion_engine.recommended_rules.recommender_assertion import RecommendedAssertion
+from .recommender_assertion import RecommendedAssertion
 
 
 def recommended_table_row_count_assertion(table, column, profiling_result) -> RecommendedAssertion:
@@ -121,3 +121,13 @@ def recommended_column_not_null_assertion(table, column, profiling_result) -> Re
         return assertion
     else:
         return None
+
+
+RecommendedRules = [
+    recommended_table_row_count_assertion,
+    recommended_column_schema_type_assertion,
+    recommended_column_min_assertion,
+    recommended_column_max_assertion,
+    recommended_column_unique_assertion,
+    recommended_column_not_null_assertion,
+]
