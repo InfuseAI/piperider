@@ -51,8 +51,9 @@ export const CRTableColumnDetails = ({
         </Flex>
 
         <Flex direction="column" mt={3}>
+          {/* Case: Cast provided undefined to null */}
           <GeneralTableColumn
-            targetColumn={targetColumn}
+            targetColumn={targetColumn || null}
             baseColumn={baseColumn}
           />
         </Flex>
@@ -69,13 +70,13 @@ export const CRTableColumnDetails = ({
           <Flex direction="column">
             <MetricsInfo
               name="Min"
-              base={(baseColumn?.min as string | number) ?? emptyLabel}
-              target={(targetColumn?.min as string | number) ?? emptyLabel}
+              firstSlot={baseColumn?.min ?? emptyLabel}
+              secondSlot={targetColumn?.min ?? emptyLabel}
             />
             <MetricsInfo
               name="Max"
-              base={(baseColumn?.max as string | number) ?? emptyLabel}
-              target={(targetColumn?.max as string | number) ?? emptyLabel}
+              firstSlot={baseColumn?.max ?? emptyLabel}
+              secondSlot={targetColumn?.max ?? emptyLabel}
             />
           </Flex>
         )}

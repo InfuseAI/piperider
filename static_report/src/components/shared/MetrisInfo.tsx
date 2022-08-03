@@ -2,30 +2,30 @@ import { Flex, Text } from '@chakra-ui/react';
 
 interface Props {
   name: string;
-  base: string | number;
-  target?: string | number;
-  baseWidth?: string;
-  targetWidth?: string;
+  firstSlot: string | number;
+  secondSlot?: string | number;
+  firstSlotWidth?: string;
+  secondSlotWidth?: string;
 }
 
 export function MetricsInfo({
   name,
-  base,
-  target = null,
-  baseWidth = '100px',
-  targetWidth = '100px',
+  firstSlot,
+  secondSlot = null,
+  firstSlotWidth = '100px',
+  secondSlotWidth = '100px',
 }: Props) {
   return (
     <Flex justifyContent="space-between">
       <Text fontWeight={700}>{name}</Text>
       <Flex gap={{ lg: 5, md: 1 }}>
-        <Text textAlign="right" width={baseWidth} noOfLines={1}>
-          {base}
+        <Text textAlign="right" width={firstSlotWidth} noOfLines={1}>
+          {firstSlot}
         </Text>
 
-        {target && (
-          <Text textAlign="right" width={targetWidth}>
-            {target}
+        {secondSlot && (
+          <Text textAlign="right" width={secondSlotWidth}>
+            {secondSlot}
           </Text>
         )}
       </Flex>
