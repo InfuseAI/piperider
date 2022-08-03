@@ -4,7 +4,7 @@ import { useResizeObserver } from '../../hooks/useResizeObserver';
 import { useSingleChart } from '../../hooks/useSingleChart';
 
 type Datum = {
-  label: string;
+  label: string | null;
   value: any;
   total: number;
 };

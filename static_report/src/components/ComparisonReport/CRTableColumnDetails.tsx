@@ -7,7 +7,6 @@ import { NumericTableColumn } from '../shared/NumericTableColumn';
 
 // props made optional as they can be undefined
 type CRTableColumnDetailsProps = {
-  column?: ColumnSchema;
   baseColumn?: ColumnSchema;
   targetColumn?: ColumnSchema;
 };
@@ -33,11 +32,11 @@ export const CRTableColumnDetails = ({
               fontSize="lg"
               mr={1}
               noOfLines={1}
-              title={column.name}
+              title={fallback?.name}
             >
-              {column.name}
+              {fallback?.name}
             </Text>
-            {''}(<Code>{column.schema_type}</Code>)
+            {''}(<Code>{fallback?.schema_type}</Code>)
           </Text>
 
           <Flex gap={8}>
@@ -57,7 +56,7 @@ export const CRTableColumnDetails = ({
             baseColumn={baseColumn}
           />
         </Flex>
-        {column.type === 'numeric' && (
+        {baseColumn?.type === 'numeric' && (
           <>
             <NumericTableColumn
               baseColumn={baseColumn}
@@ -66,7 +65,7 @@ export const CRTableColumnDetails = ({
           </>
         )}
 
-        {column.type === 'datetime' && (
+        {baseColumn?.type === 'datetime' && (
           <Flex direction="column">
             <MetricsInfo
               name="Min"

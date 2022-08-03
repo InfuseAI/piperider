@@ -105,7 +105,7 @@ export function formatTestExpectedOrActual(value) {
  */
 export function getSRModeMetrics(column: ColumnSchema) {
   if (column.type !== 'string') {
-    return null;
+    return;
   }
 
   const data = zip(column.distribution?.labels, column.distribution?.counts)

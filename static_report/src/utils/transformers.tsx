@@ -7,9 +7,9 @@ import { CRTargetData } from '../types';
  * "Transformers" -- these are your data re-shaping transformations, and doesn't return a formatted value and does not directly get presented in UI. Can be a precursor to "formatters"
  */
 
-export function nestComparisonValueByKey<T>(
-  base: any,
-  target: any,
+export function transformAsNestedBaseTargetRecord<K, T>(
+  base?: K,
+  target?: K,
 ): Record<string, { base: T; target: T }> {
   const result = {};
 
@@ -31,7 +31,7 @@ export function nestComparisonValueByKey<T>(
 }
 
 export type CRDistributionDatum = {
-  label: string;
+  label: string | null;
   base: number;
   target: number;
 };
@@ -68,7 +68,10 @@ export function transformCRStringDateDistributions({
   return result;
 }
 
-type TransSingleDistArgs = { baseCounts: number[]; baseLabels: string[] };
+type TransSingleDistArgs = {
+  baseCounts: number[];
+  baseLabels: (string | null)[];
+};
 export function transformBaseDistribution({
   baseCounts,
   baseLabels,

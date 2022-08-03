@@ -8,7 +8,7 @@ import {
 import { getColumnDetails } from '../../utils/transformers';
 import { MetricsInfo } from './MetrisInfo';
 
-type Props = { baseColumn: ColumnSchema; targetColumn?: ColumnSchema | null };
+type Props = { baseColumn?: ColumnSchema; targetColumn?: ColumnSchema | null };
 export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
   if (baseColumn) {
     zReport(ZColSchema.safeParse(baseColumn));

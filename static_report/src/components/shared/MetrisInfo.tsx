@@ -2,7 +2,7 @@ import { Flex, Text } from '@chakra-ui/react';
 
 interface Props {
   name: string;
-  firstSlot: string | number;
+  firstSlot?: string | number;
   secondSlot?: string | number;
   firstSlotWidth?: string;
   secondSlotWidth?: string;
@@ -11,7 +11,7 @@ interface Props {
 export function MetricsInfo({
   name,
   firstSlot,
-  secondSlot = null,
+  secondSlot,
   firstSlotWidth = '100px',
   secondSlotWidth = '100px',
 }: Props) {

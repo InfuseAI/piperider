@@ -74,9 +74,9 @@ export function CRTabSchemaDetails({ base, target }: Props) {
 
         //write schema detail for UI rows
         const colSchemaDetail = {
+          ...column,
           name: column.name,
           changed: isSchemaChanged, //per schema change
-          ...column,
         };
 
         return {
