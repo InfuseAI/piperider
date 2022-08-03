@@ -8,8 +8,8 @@ import { CRTargetData } from '../types';
  */
 
 export function transformAsNestedBaseTargetRecord<K, T>(
-  base: K,
-  target: K,
+  base?: K,
+  target?: K,
 ): Record<string, { base: T; target: T }> {
   const result = {};
 
@@ -31,7 +31,7 @@ export function transformAsNestedBaseTargetRecord<K, T>(
 }
 
 export type CRDistributionDatum = {
-  label: string;
+  label: string | null;
   base: number;
   target: number;
 };
@@ -68,7 +68,10 @@ export function transformCRStringDateDistributions({
   return result;
 }
 
-type TransSingleDistArgs = { baseCounts: number[]; baseLabels: string[] };
+type TransSingleDistArgs = {
+  baseCounts: number[];
+  baseLabels: (string | null)[];
+};
 export function transformBaseDistribution({
   baseCounts,
   baseLabels,

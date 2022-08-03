@@ -12,8 +12,8 @@ import { CRBarChart } from './CRBarChart';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
 
 type CRTabProfilingDetailsProps = {
-  baseTable?: TableSchema | undefined;
-  targetTable?: TableSchema | undefined;
+  baseTable?: TableSchema;
+  targetTable?: TableSchema;
 };
 export function CRTabProfilingDetails({
   baseTable,
@@ -54,7 +54,7 @@ type CRProfilingColumnProps = {
   target?: ColumnSchema;
 };
 function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
-  const [data, setData] = useState<CRDistributionDatum[][]>([]);
+  const [data, setData] = useState<(CRDistributionDatum[] | null)[]>([]);
 
   useEffect(() => {
     if (
@@ -89,19 +89,20 @@ function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
     }
   }, [base, target]);
 
+  const isSingleChartOnly = data.length === 1;
   return (
     <Flex key={name} direction="column">
       <Grid my={8} templateColumns="500px 1fr" gap={12}>
         <CRTableColumnDetails baseColumn={base} targetColumn={target} />
 
-        {/* Diff between string datetime vs. others */}
-        {data.length === 1 && <CRBarChart data={data[0]} />}
-        {data.length === 2 && (
-          <Grid my={4} templateColumns="1fr 1fr" gap={12}>
-            {data[0] ? <CRBarChart data={data[0]} /> : <NoData />}
-            {data[1] ? <CRBarChart data={data[1]} /> : <NoData />}
-          </Grid>
-        )}
+        <Grid
+          my={4}
+          templateColumns={`1fr ${isSingleChartOnly && '1fr'}`}
+          gap={isSingleChartOnly ? 0 : 12}
+        >
+          {data[0] ? <CRBarChart data={data[0]} /> : <NoData />}
+          {data[1] ? <CRBarChart data={data[1]} /> : <NoData />}
+        </Grid>
       </Grid>
     </Flex>
   );

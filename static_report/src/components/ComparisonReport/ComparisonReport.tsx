@@ -36,7 +36,7 @@ type Props = {
   name: string;
 };
 export default function ComparisonReport({ data, name: reportName }: Props) {
-  const [testDetail, setTestDetail] = useState<TestDetail>(null);
+  const [testDetail, setTestDetail] = useState<TestDetail | null>(null);
   const modal = useDisclosure();
 
   const { base, input: target } = data;

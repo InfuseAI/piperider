@@ -5,11 +5,34 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
+export interface SingleReportSchema {
+  tables: {
+    [k: string]: TableSchema;
+  };
+  id: string;
+  created_at: string;
+  datasource: DataSource;
+}
 /**
  * This interface was referenced by `undefined`'s JSON-Schema definition
  * via the `patternProperty` ".+".
  */
-export type ColumnSchema = {
+export interface TableSchema {
+  name: string;
+  description: string;
+  row_count: number;
+  col_count: number;
+  columns: {
+    [k: string]: ColumnSchema;
+  };
+  piperider_assertion_result: null | PipeRiderAssertionResult;
+  dbt_assertion_result?: null | DbtAssertionResult;
+}
+/**
+ * This interface was referenced by `undefined`'s JSON-Schema definition
+ * via the `patternProperty` ".+".
+ */
+export interface ColumnSchema {
   total: number;
   nulls: number;
   non_nulls: number;
@@ -44,30 +67,6 @@ export type ColumnSchema = {
   p75?: number;
   p95?: number;
   stddev?: number;
-} | null;
-
-export interface SingleReportSchema {
-  tables: {
-    [k: string]: TableSchema;
-  };
-  id: string;
-  created_at: string;
-  datasource: DataSource;
-}
-/**
- * This interface was referenced by `undefined`'s JSON-Schema definition
- * via the `patternProperty` ".+".
- */
-export interface TableSchema {
-  name: string;
-  description: string;
-  row_count: number;
-  col_count: number;
-  columns: {
-    [k: string]: ColumnSchema;
-  };
-  piperider_assertion_result: null | PipeRiderAssertionResult;
-  dbt_assertion_result?: null | DbtAssertionResult;
 }
 export interface Distribution {
   type: string;
