@@ -19,11 +19,14 @@ type EnrichedColumnData = {
   deleted: number;
   changed: number;
   columns:
-    | (ColumnSchema & {
-        key: string;
-        type: string;
-        changed: boolean;
-      })[];
+    | (
+        | (ColumnSchema & {
+            key: string;
+            type: string;
+            changed: boolean;
+          })
+        | null
+      )[];
 };
 const getEnrichedColumnsFor = (
   columns: TableSchema['columns'] | undefined,
@@ -46,6 +49,7 @@ export function CRTabSchemaDetails({ base, target }: Props) {
   zReport(ZTableSchema.safeParse(base));
   zReport(ZTableSchema.safeParse(target));
 
+  const emptyLabel = '-';
   const baseColEntries = getEnrichedColumnsFor(base?.columns, 'base');
   const targetColEntries = getEnrichedColumnsFor(target?.columns, 'target');
   const combinedColEntries = [...baseColEntries, ...targetColEntries];
@@ -59,7 +63,7 @@ export function CRTabSchemaDetails({ base, target }: Props) {
   // Reduce
   const aggregateEnrichedColumns =
     combinedColEntries.reduce<EnrichedColumnData>(
-      (acc, column, idx, arr) => {
+      (acc, column, idx) => {
         //index offsets when iterating both columns together
         const currBaseIndex =
           idx < baseColEntries.length ? idx : idx - baseColEntries.length;
@@ -94,6 +98,18 @@ export function CRTabSchemaDetails({ base, target }: Props) {
   const baseColumns = columns.slice(0, baseColEntries.length);
   const targetColumns = columns.slice(baseColEntries.length);
 
+  // Equalize target columns view (fill with null comparisons)
+  const equalizedBaseColumns = equalizeColumns(
+    baseColumns,
+    targetColumns,
+    deltaAdded,
+  );
+  const equalizedTargetColumns = equalizeColumns(
+    targetColumns,
+    baseColumns,
+    deltaDeleted,
+  );
+
   return (
     <Flex direction="column">
       <Text mb={4} p={2}>
@@ -122,13 +138,13 @@ export function CRTabSchemaDetails({ base, target }: Props) {
               </Tr>
             </Thead>
             <Tbody>
-              {baseColumns.map((column) => (
+              {equalizedBaseColumns.map((column) => (
                 <Tr
                   key={nanoid(10)}
-                  color={column.changed ? 'red.500' : 'inherit'}
+                  color={column?.changed ? 'red.500' : 'inherit'}
                 >
-                  <Td>{column?.name ?? '-'}</Td>
-                  <Td>{column?.schema_type ?? '-'}</Td>
+                  <Td>{column?.name ?? emptyLabel}</Td>
+                  <Td>{column?.schema_type ?? emptyLabel}</Td>
                 </Tr>
               ))}
             </Tbody>
@@ -149,13 +165,13 @@ export function CRTabSchemaDetails({ base, target }: Props) {
               </Tr>
             </Thead>
             <Tbody>
-              {targetColumns.map((column) => (
+              {equalizedTargetColumns.map((column) => (
                 <Tr
                   key={nanoid(10)}
-                  color={column.changed ? 'red.500' : 'inherit'}
+                  color={column?.changed ? 'red.500' : 'inherit'}
                 >
-                  <Td>{column?.name ?? '-'}</Td>
-                  <Td>{column?.schema_type ?? '-'}</Td>
+                  <Td>{column?.name ?? emptyLabel}</Td>
+                  <Td>{column?.schema_type ?? emptyLabel}</Td>
                 </Tr>
               ))}
             </Tbody>
@@ -164,4 +180,11 @@ export function CRTabSchemaDetails({ base, target }: Props) {
       </Flex>
     </Flex>
   );
+}
+
+function equalizeColumns(source, target, delta: number) {
+  if (source.length < target.length) {
+    return [...source, ...Array(delta).fill(null)];
+  }
+  return source;
 }

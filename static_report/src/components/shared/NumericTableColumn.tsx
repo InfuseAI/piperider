@@ -17,16 +17,16 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
       <Flex direction="column">
         <MetricsInfo
           name="Average"
-          base={formatColumnValueWith(baseColumn?.avg, formatNumber)}
-          target={
+          firstSlot={formatColumnValueWith(baseColumn?.avg, formatNumber)}
+          secondSlot={
             targetColumn &&
             formatColumnValueWith(targetColumn?.avg, formatNumber)
           }
         />
         <MetricsInfo
           name="Std. Deviation"
-          base={formatColumnValueWith(baseColumn?.stddev, formatNumber)}
-          target={
+          firstSlot={formatColumnValueWith(baseColumn?.stddev, formatNumber)}
+          secondSlot={
             targetColumn &&
             formatColumnValueWith(targetColumn?.stddev, formatNumber)
           }
@@ -35,56 +35,56 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
       <Flex direction="column">
         <MetricsInfo
           name="Min"
-          base={formatColumnValueWith(baseColumn?.min, formatNumber)}
-          target={
+          firstSlot={formatColumnValueWith(baseColumn?.min, formatNumber)}
+          secondSlot={
             targetColumn &&
             formatColumnValueWith(targetColumn?.min, formatNumber)
           }
         />
         <MetricsInfo
           name="5%"
-          base={formatColumnValueWith(baseColumn?.p5, formatNumber)}
-          target={
+          firstSlot={formatColumnValueWith(baseColumn?.p5, formatNumber)}
+          secondSlot={
             targetColumn &&
             formatColumnValueWith(targetColumn?.p5, formatNumber)
           }
         />
         <MetricsInfo
           name="25%"
-          base={formatColumnValueWith(baseColumn?.p25, formatNumber)}
-          target={
+          firstSlot={formatColumnValueWith(baseColumn?.p25, formatNumber)}
+          secondSlot={
             targetColumn &&
             formatColumnValueWith(targetColumn?.p25, formatNumber)
           }
         />
         <MetricsInfo
           name="50%"
-          base={formatColumnValueWith(baseColumn?.p50, formatNumber)}
-          target={
+          firstSlot={formatColumnValueWith(baseColumn?.p50, formatNumber)}
+          secondSlot={
             targetColumn &&
             formatColumnValueWith(targetColumn?.p50, formatNumber)
           }
         />
         <MetricsInfo
           name="75%"
-          base={formatColumnValueWith(baseColumn?.p75, formatNumber)}
-          target={
+          firstSlot={formatColumnValueWith(baseColumn?.p75, formatNumber)}
+          secondSlot={
             targetColumn &&
             formatColumnValueWith(targetColumn?.p75, formatNumber)
           }
         />
         <MetricsInfo
           name="95%"
-          base={formatColumnValueWith(baseColumn?.p95, formatNumber)}
-          target={
+          firstSlot={formatColumnValueWith(baseColumn?.p95, formatNumber)}
+          secondSlot={
             targetColumn &&
             formatColumnValueWith(targetColumn?.p95, formatNumber)
           }
         />
         <MetricsInfo
           name="Max"
-          base={formatColumnValueWith(baseColumn?.max, formatNumber)}
-          target={
+          firstSlot={formatColumnValueWith(baseColumn?.max, formatNumber)}
+          secondSlot={
             targetColumn &&
             formatColumnValueWith(targetColumn?.max, formatNumber)
           }

@@ -11,7 +11,7 @@ import {
   Tr,
   Tooltip,
 } from '@chakra-ui/react';
-import { InfoIcon, WarningIcon } from '@chakra-ui/icons';
+import { InfoIcon } from '@chakra-ui/icons';
 import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
 
@@ -162,10 +162,6 @@ export function ComparisonReportList({
                       reportName: key,
                       type: 'dbt',
                     });
-
-                  //For asymmetric/non-matching columns
-                  const isAsymmetricColumns =
-                    !table.base?.columns || !table.target?.columns;
 
                   return (
                     <Link
