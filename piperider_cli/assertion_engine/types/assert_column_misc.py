@@ -96,10 +96,10 @@ def assert_column_unique(context: AssertionContext, table: str, column: str, met
     if context.asserts:
         return context.result.fail_with_no_assert_is_required()
 
-    non_nulls = column_metrics.get('non_nulls')
+    valids = column_metrics.get('valids')
     distinct = column_metrics.get('distinct')
 
-    success = (non_nulls == distinct)
+    success = (valids == distinct)
     context.result.actual = dict(success=success)
 
     if success:
