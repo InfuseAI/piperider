@@ -76,8 +76,6 @@ export function transformBaseDistribution({
   baseCounts,
   baseLabels,
 }: TransSingleDistArgs): CRDistributionDatum[] {
-  // const emptyCounts: number[] = Array(baseLabels.length).fill(0);
-  // const z = zip<string | null, number>(baseLabels, baseCounts || emptyCounts);
   const result = baseCounts.map((count, idx) => ({
     label: baseLabels[idx],
     base: count,
