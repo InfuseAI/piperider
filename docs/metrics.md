@@ -63,14 +63,15 @@ The text length statistic of a column.
 
 Analyze the uniqueness of a column
 
-Distinct: The distinct number of value
+- Distinct: Count of distinct items
+- Duplicates: Count of recurring items
 
-Duplicates: The count of recurring value 
+For example, if a dataset is `(NULL, a, a, b, b, c, d, e)`
 
-For example, if a dataset is (NULL, a, a, b, b, c, d, e)
-
-Distinct = 5, (a, b, c, d, e)
-Duplicates = 4, (a, a, b, b)
+- Distinct = 5, `(a, b, c, d, e)`
+- Duplicates = 4, `(a, a, b, b)`
+- Non-duplicates = 3, `(c, d, e)`
+- Missing = 1
 
 The total number = missing + duplicates + non-duplicates
 
@@ -78,9 +79,9 @@ The total number = missing + duplicates + non-duplicates
 
 | Metric | Description | Column Type | Field | Since |
 | --- | --- | --- | --- | --- |
-| Distinct | The count of distinct value | integer, string, datetime,  | `distinct` |  |
-| Duplicates | Count of recurring value | integer, numeric, string, datetime | `duplicates` | 0.6.0 |
-| Non duplicates | Count of non-recurring value | integer, numeric, string, datetime | `non_duplicates` | 0.6.0 |
+| Distinct | Count of distinct items | integer, string, datetime,  | `distinct` |  |
+| Duplicates | Count of recurring items | integer, numeric, string, datetime | `duplicates` | 0.6.0 |
+| Non duplicates | Count of non-recurring items | integer, numeric, string, datetime | `non_duplicates` | 0.6.0 |
 
 ### Quantiles
 
