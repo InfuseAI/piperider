@@ -44,8 +44,11 @@ export function CRTabSchemaDetails({ base, target }: Props) {
   const targetColEntries = getEnrichedColumnsFor(target.columns, 'target');
   const combinedColEntries = [...baseColEntries, ...targetColEntries];
 
-  const addedTest = targetColEntries.length - baseColEntries.length;
-  const deletedTest = baseColEntries.length - targetColEntries.length;
+  //Should tally based on the change
+  const deltaAdded = targetColEntries.length - baseColEntries.length;
+  const addedTest = deltaAdded < 0 ? 0 : deltaAdded; // round negatives to 0
+  const deltaDeleted = baseColEntries.length - targetColEntries.length;
+  const deletedTest = deltaDeleted < 0 ? 0 : deltaDeleted;
 
   // Reduce
   const aggregateEnrichedColumns =
@@ -77,7 +80,7 @@ export function CRTabSchemaDetails({ base, target }: Props) {
           columns: [...acc.columns, colSchemaDetail],
         } as EnrichedColumnData;
       },
-      { added: addedTest, deleted: deletedTest, changed: 0, columns: [] }, //totals -- initial value
+      { added: addedTest, deleted: deletedTest, changed: 0, columns: [] }, //accumulator -- initial value
     );
 
   // UI vars
