@@ -15,7 +15,7 @@ PIPERIDER_WORKING_DIR = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
 PIPERIDER_EVENT_PATH = os.path.join(PIPERIDER_WORKING_DIR, '.unsend_events.json')
 
 
-def is_executed_manually():
+def _is_executed_manually() -> bool:
     # some CI service puts the "CI" var
     if os.environ.get('CI', 'false') == 'true':
         return False
@@ -40,6 +40,7 @@ class Collector:
         self._unsend_events_file = PIPERIDER_EVENT_PATH
         self._delete_threshold = 1000
         self._upload_threshold = 10
+        self._manual: bool = _is_executed_manually()
 
         self._check_required_files()
 
@@ -58,15 +59,22 @@ class Collector:
         # Use local timezone
         created_at = datetime.now()
         python_version = f'{sys.version_info.major}.{sys.version_info.minor}'
+
+        # when the piperider is running in automation use cases
+        # replace the user id with project_id to avoid so many unique user id
+        user_id = self._user_id
+        if self._manual is False:
+            user_id = prop.get('project_id', self._user_id)
+
         event = dict(
-            user_id=self._user_id,
+            user_id=user_id,
             event_type=event_type,
             ip='$remote',
             time=int(time.mktime(created_at.timetuple())),
             user_properties=dict(
                 version=__version__,
                 python_version=python_version,
-                manual=is_executed_manually()
+                manual=self._manual
             ),
             event_properties=prop,
             platform=sys.platform,
