@@ -15,7 +15,7 @@ const TARGET_CHART_COLOR = 'var(--chakra-colors-blue-300)';
 type CRChartHookArgs = {
   target: RefObject<SVGSVGElement>;
   data: CRDistributionDatum[];
-  dimensions: DOMRect;
+  dimensions: DOMRect | null;
 };
 
 export function useComparisonChart({
@@ -29,11 +29,12 @@ export function useComparisonChart({
     }
 
     const svg = d3.select(target.current);
+    const labels = data.map((d) => d.label || '');
 
     // X-Axis
     const xScale = d3
       .scaleBand()
-      .domain(data.map((d) => d.label))
+      .domain(labels)
       .range([0, dimensions.width])
       .padding(X_PADDING);
 
@@ -45,11 +46,10 @@ export function useComparisonChart({
 
     const xAxis = d3.axisBottom(xScale).tickFormat((value, i) => {
       const xAxisItemLength = xScale.domain().length - 1;
+      const isFrontMiddleEndPos =
+        i === 0 || i === xAxisItemLength / 2 || i === xAxisItemLength;
 
-      if (i === 0 || i === xAxisItemLength / 2 || i === xAxisItemLength) {
-        return value;
-      }
-      return null;
+      return isFrontMiddleEndPos ? value : '';
     });
 
     // plox X axis
@@ -61,7 +61,10 @@ export function useComparisonChart({
     // Y-Axis
     const yScale = d3
       .scaleLinear()
-      .domain([0, d3.max(data, ({ base, target }) => Math.max(base, target))])
+      .domain([
+        0,
+        d3.max(data, ({ base, target }) => Math.max(base, target)) as number,
+      ])
       .range([dimensions.height, 0]);
     const yAxis = d3.axisLeft(yScale);
     // plox Y axis
@@ -92,7 +95,7 @@ export function useComparisonChart({
       )
       .enter()
       .append('rect')
-      .attr('x', (d) => xSubGroup(d.key))
+      .attr('x', (d) => xSubGroup(d.key) as number)
       .attr('y', (d) => yScale(d.value))
       .attr('width', (d) => xSubGroup.bandwidth())
       .attr('height', (d: any) => dimensions.height - yScale(d.value))
@@ -109,7 +112,7 @@ export function useComparisonChart({
       )
       .join('rect')
       .attr('class', 'overlay-bars')
-      .attr('x', (d) => xSubGroup(d.key))
+      .attr('x', (d) => xSubGroup(d.key) as number)
       .attr('y', () => 0)
       .attr('width', xSubGroup.bandwidth())
       .attr('height', () => dimensions.height)

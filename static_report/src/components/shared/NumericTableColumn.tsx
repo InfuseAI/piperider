@@ -2,14 +2,17 @@ import { Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
-import { MetricsInfo } from './MetrisInfo';
+import { MetricsInfo } from './MetricsInfo';
 
 type Props = {
   baseColumn: ColumnSchema;
-  targetColumn?: ColumnSchema;
+  targetColumn?: ColumnSchema | null;
 };
 
 export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
+  const isTargetNull = targetColumn === null;
+  const isTargetUndefined = targetColumn === undefined;
+  const emptyLabel = '-';
   zReport(ZColSchema.safeParse(baseColumn));
   zReport(ZColSchema.safeParse(baseColumn));
   return (
@@ -17,76 +20,103 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
       <Flex direction="column">
         <MetricsInfo
           name="Average"
-          base={formatColumnValueWith(baseColumn?.avg, formatNumber)}
-          target={
-            targetColumn &&
-            formatColumnValueWith(targetColumn?.avg, formatNumber)
+          firstSlot={formatColumnValueWith(baseColumn?.avg, formatNumber)}
+          secondSlot={
+            isTargetNull
+              ? emptyLabel
+              : isTargetUndefined
+              ? undefined
+              : formatColumnValueWith(targetColumn?.avg, formatNumber)
           }
         />
         <MetricsInfo
           name="Std. Deviation"
-          base={formatColumnValueWith(baseColumn?.stddev, formatNumber)}
-          target={
-            targetColumn &&
-            formatColumnValueWith(targetColumn?.stddev, formatNumber)
+          firstSlot={formatColumnValueWith(baseColumn?.stddev, formatNumber)}
+          secondSlot={
+            isTargetNull
+              ? emptyLabel
+              : isTargetUndefined
+              ? undefined
+              : formatColumnValueWith(targetColumn?.stddev, formatNumber)
           }
         />
       </Flex>
       <Flex direction="column">
         <MetricsInfo
           name="Min"
-          base={formatColumnValueWith(baseColumn?.min, formatNumber)}
-          target={
-            targetColumn &&
-            formatColumnValueWith(targetColumn?.min, formatNumber)
+          firstSlot={formatColumnValueWith(baseColumn?.min, formatNumber)}
+          secondSlot={
+            isTargetNull
+              ? emptyLabel
+              : isTargetUndefined
+              ? undefined
+              : formatColumnValueWith(targetColumn?.min, formatNumber)
           }
         />
         <MetricsInfo
           name="5%"
-          base={formatColumnValueWith(baseColumn?.p5, formatNumber)}
-          target={
-            targetColumn &&
-            formatColumnValueWith(targetColumn?.p5, formatNumber)
+          firstSlot={formatColumnValueWith(baseColumn?.p5, formatNumber)}
+          secondSlot={
+            isTargetNull
+              ? emptyLabel
+              : isTargetUndefined
+              ? undefined
+              : formatColumnValueWith(targetColumn?.p5, formatNumber)
           }
         />
         <MetricsInfo
           name="25%"
-          base={formatColumnValueWith(baseColumn?.p25, formatNumber)}
-          target={
-            targetColumn &&
-            formatColumnValueWith(targetColumn?.p25, formatNumber)
+          firstSlot={formatColumnValueWith(baseColumn?.p25, formatNumber)}
+          secondSlot={
+            isTargetNull
+              ? emptyLabel
+              : isTargetUndefined
+              ? undefined
+              : formatColumnValueWith(targetColumn?.p25, formatNumber)
           }
         />
         <MetricsInfo
           name="50%"
-          base={formatColumnValueWith(baseColumn?.p50, formatNumber)}
-          target={
-            targetColumn &&
-            formatColumnValueWith(targetColumn?.p50, formatNumber)
+          firstSlot={formatColumnValueWith(baseColumn?.p50, formatNumber)}
+          secondSlot={
+            isTargetNull
+              ? emptyLabel
+              : isTargetUndefined
+              ? undefined
+              : formatColumnValueWith(targetColumn?.p50, formatNumber)
           }
         />
         <MetricsInfo
           name="75%"
-          base={formatColumnValueWith(baseColumn?.p75, formatNumber)}
-          target={
-            targetColumn &&
-            formatColumnValueWith(targetColumn?.p75, formatNumber)
+          firstSlot={formatColumnValueWith(baseColumn?.p75, formatNumber)}
+          secondSlot={
+            isTargetNull
+              ? emptyLabel
+              : isTargetUndefined
+              ? undefined
+              : formatColumnValueWith(targetColumn?.p75, formatNumber)
           }
         />
         <MetricsInfo
           name="95%"
-          base={formatColumnValueWith(baseColumn?.p95, formatNumber)}
-          target={
-            targetColumn &&
-            formatColumnValueWith(targetColumn?.p95, formatNumber)
+          firstSlot={formatColumnValueWith(baseColumn?.p95, formatNumber)}
+          secondSlot={
+            isTargetNull
+              ? emptyLabel
+              : isTargetUndefined
+              ? undefined
+              : formatColumnValueWith(targetColumn?.p95, formatNumber)
           }
         />
         <MetricsInfo
           name="Max"
-          base={formatColumnValueWith(baseColumn?.max, formatNumber)}
-          target={
-            targetColumn &&
-            formatColumnValueWith(targetColumn?.max, formatNumber)
+          firstSlot={formatColumnValueWith(baseColumn?.max, formatNumber)}
+          secondSlot={
+            isTargetNull
+              ? emptyLabel
+              : isTargetUndefined
+              ? undefined
+              : formatColumnValueWith(targetColumn?.max, formatNumber)
           }
         />
       </Flex>

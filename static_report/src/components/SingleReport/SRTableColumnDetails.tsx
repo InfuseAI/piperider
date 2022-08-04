@@ -1,5 +1,5 @@
 import { Box, Code, Flex, Text } from '@chakra-ui/react';
-import { MetricsInfo } from '../shared/MetrisInfo';
+import { MetricsInfo } from '../shared/MetricsInfo';
 import { getSRModeMetrics } from '../../utils/formatters';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
@@ -47,8 +47,8 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
         <Flex direction="column">
           <MetricsInfo
             name="Most common"
-            base={getSRModeMetrics(column)}
-            baseWidth={'200px'}
+            firstSlot={getSRModeMetrics(column)}
+            firstSlotWidth={'200px'}
           />
         </Flex>
       )}
@@ -57,9 +57,9 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
 
       {column.type === 'datetime' && (
         <Flex direction="column">
-          <MetricsInfo name="Min" base={column.min as number} />
+          <MetricsInfo name="Min" firstSlot={column.min as number} />
 
-          <MetricsInfo name="Max" base={column.max as number} />
+          <MetricsInfo name="Max" firstSlot={column.max as number} />
         </Flex>
       )}
     </Flex>

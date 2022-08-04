@@ -16,7 +16,6 @@
     "moduleResolution": "node",
     "noEmit": true,
     "noImplicitAny": false,
-    "strictNullChecks": false,
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
