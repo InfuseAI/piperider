@@ -9,6 +9,7 @@ declare global {
     version: string;
     amplitude_api_key: string;
     amplitude_user_id: string;
+    amplitude_project_id: string;
   }
   interface Window {
     PIPERIDER_SINGLE_REPORT_DATA: SingleReportSchema;
