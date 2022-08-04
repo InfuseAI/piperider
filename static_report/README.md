@@ -91,11 +91,10 @@ Currently, a cypress smoke-test is written inside [static_report/cypress/e2e/spe
 >
 > - See it in action locally: [cypress e2e video](https://www.loom.com/share/7f576a39d2fd45ff91a06929b3ba4811)
 > - Following Cypress's setup [guide](https://docs.cypress.io/guides/getting-started/installing-cypress), especially if you are using a linux environment.
-> - You may need some dependencies: `runtest`, `expect`, `dejagnu` (this helps execute automation scripts from `*.exp` files)
 
 You can run the following from our github action [.github/workflows/build-statics.yaml](https://github.com/InfuseAI/piperider/tree/main/.github/workflows/build-statics.yaml):
 
-1. Under the step `Prepare Piperider Data (2 runs; 1 comparison)`: clone (from [piperider-getting-started](https://github.com/InfuseAI/piperider-getting-started) repo, and execute/generate the report mocks you need from the cloned repo `data/*.db` automatically.
+1. Under the step `Prepare Piperider Data`: clone (from [piperider-getting-started](https://github.com/InfuseAI/piperider-getting-started) repo, and execute/generate the report mocks you need from the cloned repo `data/*.db` automatically.
 
    ```bash
       # install local python source

@@ -2,8 +2,9 @@
 # For generating comparison_data.json from `piperider-getting-started`
 # NOTE: This file assumes you are calling from the root of repo
 # NOTE: Pass parameters to shell call e.g. $1
-
-rm -rf piperider-getting-started
+if [ $2 = "clean" ]; then
+	rm -rf piperider-getting-started
+fi
 
 # First 2 run.jsons
 if [ $1 = "first" ]; then
@@ -24,7 +25,8 @@ if [ $1 = "first" ]; then
 fi
 
 # edge-cases (another run.json)
-if ["$1" = "second"]; then
+if [ "$1" = "second" ]; then
+	cd piperider-getting-started
 	echo "initializing...$1"
 	# Fetch data sqlite - Third run.json #3 (diff table)
 	curl -o data/sp500.db https://piperider-data.s3.ap-northeast-1.amazonaws.com/integration-test-sqlite/profiler-e2e.db
@@ -32,7 +34,7 @@ if ["$1" = "second"]; then
 	piperider run --no-interaction --debug # third run
 fi
 
-# Gather base/target refs for comparison-report
+# Gather single run base/target refs for comparison-report
 E2E_SR_REPORTS="./.piperider/outputs/*"
 ARR_PATHS=()
 for FILE_PATH in $E2E_SR_REPORTS; do

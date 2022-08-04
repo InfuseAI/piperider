@@ -38,7 +38,7 @@ jobs:
       run: |
         yarn install --immutable
 
-    - name: Prepare Piperider Data (2 runs; 1 comparison)
+    - name: Prepare Piperider Data & E2E Builds (2+1 runs; 1+1 comparison)
       working-directory: .
       run: |
         pwd
@@ -47,17 +47,25 @@ jobs:
         which piperider
         piperider version
         
-        bash static_report/src/sdlc/generate-e2e-data.sh
+        bash static_report/src/sdlc/generate-e2e-data.sh first
 
         ls -a piperider-getting-started/.piperider/outputs
         ls -a piperider-getting-started/.piperider/comparisons
-        
-        echo "Piperider Data Generated. Ready for html embedding"
 
-    - name: Setup builds
-      run: |
+        cd static_report
         npm run embed:html:e2e
-        npm run build:e2e
+        npm run build:e2e1
+        cd ..
+
+        bash static_report/src/sdlc/generate-e2e-data.sh second
+
+        ls -a piperider-getting-started/.piperider/outputs
+        ls -a piperider-getting-started/.piperider/comparisons
+
+        cd static_report
+        npm run embed:html:e2e
+        npm run build:e2e2
+        cd ..
 
     - name: Cypress run (E2E)
     # Parallelization only for cypress dashboard https://www.cypress.io/pricing/
@@ -67,10 +75,10 @@ jobs:
         working-directory: ./static_report
         config-file: cypress.config.ts
         start: |
-          npm run serve:e2e:single
-          npm run serve:e2e:comparison
-          npm run serve:e2e:single-edge-cases
-          npm run serve:e2e:comparison-asymmetric-cases
+          npm run serve:e2e:norm:single
+          npm run serve:e2e:norm:comparison
+          npm run serve:e2e:case:single-edge
+          npm run serve:e2e:case:comparison-asymmetric
         wait-on: 'http://localhost:3000, http://localhost:3001, http://localhost:4000, http://localhost:4001'
 
     - name: Build Apps
