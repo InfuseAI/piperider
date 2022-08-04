@@ -92,24 +92,4 @@ Currently, a cypress smoke-test is written inside [static_report/cypress/e2e/spe
 > - See it in action locally: [cypress e2e video](https://www.loom.com/share/7f576a39d2fd45ff91a06929b3ba4811)
 > - Following Cypress's setup [guide](https://docs.cypress.io/guides/getting-started/installing-cypress), especially if you are using a linux environment.
 
-You can run the following from our github action [.github/workflows/build-statics.yaml](https://github.com/InfuseAI/piperider/tree/main/.github/workflows/build-statics.yaml):
-
-1. Under the step `Prepare Piperider Data`: clone (from [piperider-getting-started](https://github.com/InfuseAI/piperider-getting-started) repo, and execute/generate the report mocks you need from the cloned repo `data/*.db` automatically.
-
-   ```bash
-      # install local python source
-      pip install -r requirements.txt
-      #execute auto scripts (generate 2 runs & 1 comparison)
-      runtest e2e-tests/testsuite/getting-started/001-run.exp
-      bash static_report/src/sdlc/generate-comparisons.sh
-
-      # verify they exist
-      ls -a piperider-getting-started/.piperider/outputs
-      ls -a piperider-getting-started/.piperider/comparisons
-   ```
-
-1. Run `npm run setup:e2e` which will build the e2e statics against generated jsons found under the `piperider-getting-started/.piperider/..` directory.
-1. Run `npm run serve:e2e:single` and/or `npm run serve:e2e:comparison` to serve those statics, which replicate the cypress runtime
-1. Now run `npx cypress open` to spawn the cypress app
-1. Proceed within cypress app to E2E testing, and select the test file to run against the served statics.
-1. You can continue developing and the E2E testing should hot reload when changes occur (sometimes a hard refresh may be necessary)
+You can run the following from our github action [.github/workflows/build-statics.yaml](https://github.com/InfuseAI/piperider/tree/main/.github/workflows/build-statics.yaml)
