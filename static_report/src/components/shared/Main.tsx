@@ -1,6 +1,7 @@
 import { Flex, useColorMode } from '@chakra-ui/react';
 
 import { Footer } from './Footer';
+import { Sidebar } from './Sidebar';
 
 export function Main({ children, ...props }) {
   const { colorMode } = useColorMode();
@@ -8,19 +9,23 @@ export function Main({ children, ...props }) {
   const color = { light: 'black', dark: 'white' };
 
   return (
-    <Flex
-      direction="column"
-      alignItems="center"
-      justifyContent="flex-start"
-      bg={bgColor[colorMode]}
-      color={color[colorMode]}
-      width="100%"
-      minHeight="100vh"
-      {...props}
-    >
-      {children}
+    <Flex>
+      <Sidebar />
 
-      <Footer />
+      <Flex
+        direction="column"
+        alignItems="center"
+        justifyContent="flex-start"
+        bg={bgColor[colorMode]}
+        color={color[colorMode]}
+        width="100%"
+        minHeight="100vh"
+        {...props}
+      >
+        {children}
+
+        <Footer />
+      </Flex>
     </Flex>
   );
 }
