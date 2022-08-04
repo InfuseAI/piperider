@@ -2,7 +2,7 @@ import { Code, Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import { GeneralTableColumn } from '../shared/GeneralTableColumn';
-import { MetricsInfo } from '../shared/MetrisInfo';
+import { MetricsInfo } from '../shared/MetricsInfo';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
 
 // props made optional as they can be undefined
@@ -11,12 +11,11 @@ type CRTableColumnDetailsProps = {
   targetColumn?: ColumnSchema;
 };
 export const CRTableColumnDetails = ({
-  column,
   baseColumn,
   targetColumn,
 }: CRTableColumnDetailsProps) => {
   const emptyLabel = '-';
-  zReport(ZColSchema.safeParse(column));
+  const fallback = baseColumn || targetColumn;
   zReport(ZColSchema.safeParse(baseColumn));
   zReport(ZColSchema.safeParse(targetColumn));
 

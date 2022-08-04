@@ -6,7 +6,7 @@ import {
   formatColumnValueWith,
 } from '../../utils/formatters';
 import { getColumnDetails } from '../../utils/transformers';
-import { MetricsInfo } from './MetrisInfo';
+import { MetricsInfo } from './MetricsInfo';
 
 type Props = { baseColumn?: ColumnSchema; targetColumn?: ColumnSchema | null };
 export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
@@ -21,6 +21,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       mismatchOfTotal: baseMismatchOfTotal,
       validOfTotal: baseValidOfTotal,
       missingOfTotal: baseMissingOfTotal,
+      distinctOfTotal: baseDistinctOfTotal,
     } = getColumnDetails(baseColumn);
   }
 
@@ -31,6 +32,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       mismatchOfTotal: targetMismatchOfTotal,
       validOfTotal: targetValidOfTotal,
       missingOfTotal: targetMissingOfTotal,
+      distinctOfTotal: targetDistinctOfTotal,
     } = getColumnDetails(targetColumn);
   }
 

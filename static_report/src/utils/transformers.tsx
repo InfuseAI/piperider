@@ -11,14 +11,14 @@ export function transformAsNestedBaseTargetRecord<K, T>(
 ): Record<string, { base: T; target: T }> {
   const result = {};
 
-  Object.entries(base).forEach(([key, value]) => {
+  Object.entries(base || {}).forEach(([key, value]) => {
     if (!result[key]) {
       result[key] = {};
     }
     result[key]['base'] = value;
   });
 
-  Object.entries(target).forEach(([key, value]) => {
+  Object.entries(target || {}).forEach(([key, value]) => {
     if (!result[key]) {
       result[key] = {};
     }
@@ -86,7 +86,7 @@ export function transformBaseDistribution({
 }
 
 export function getColumnDetails(columnData: ColumnSchema) {
-  const { non_nulls, total, mismatched } = columnData;
+  const { non_nulls, total, mismatched, distinct } = columnData;
 
   const hasNoNull = non_nulls === total;
 
@@ -97,6 +97,7 @@ export function getColumnDetails(columnData: ColumnSchema) {
   const validOfTotal = valid / total;
   const mismatchOfTotal = mismatch / total;
   const missingOfTotal = missing / total;
+  const distinctOfTotal = distinct / total;
   const totalOfTotal = total / total;
 
   return {
@@ -104,6 +105,7 @@ export function getColumnDetails(columnData: ColumnSchema) {
     mismatch,
     valid,
     missing,
+    distinctOfTotal,
     validOfTotal,
     mismatchOfTotal,
     missingOfTotal,
