@@ -718,7 +718,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 case(
                     [(func.typeof(c) == 'text', func.datetime(c)),
                      (func.typeof(c) == 'integer', func.datetime(c, 'unixepoch')),
-                     (func.typeof(c) == 'real', func.datetime(c, 'unixepoch'))],
+                     (func.typeof(c) == 'real', func.datetime(c))],
                     else_=None
                 ).label("c"),
                 c.label("orig"),
