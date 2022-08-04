@@ -3,7 +3,7 @@ from typing import Callable, List, Dict
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
-from piperider_cli.assertion_engine.recommended_rules import RecommendedAssertion, RecommendedRules
+from .recommended_rules import RecommendedAssertion, RecommendedRules
 
 recommended_rule_parameter_keys = ['table', 'column', 'profiling_result']
 
@@ -90,7 +90,7 @@ class AssertionRecommender:
         return self.generated_assertions
 
     def load_recommended_rules(self):
-        for k, callback in RecommendedRules.__dict__.items():
+        for callback in RecommendedRules:
             if isinstance(callback, Callable):
                 args = inspect.signature(callback)
                 parameters = list(args.parameters.keys())

@@ -156,6 +156,9 @@
         "o_totalprice": {
           "total": 1000,
           "non_nulls": 1000,
+          "nulls": 0,
+          "valids": 1000,
+          "invalids": 0,
           "distinct": 1000,
           "min": 1106.99,
           "max": 440269.51,
