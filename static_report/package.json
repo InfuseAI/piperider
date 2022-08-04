@@ -26,7 +26,7 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4",
     "wouter": "2.8.0-alpha.2",
-    "zod": "^3.17.3"
+    "zod": "^3.17.10"
   },
   "devDependencies": {
     "@babel/core": "^7.18.2",

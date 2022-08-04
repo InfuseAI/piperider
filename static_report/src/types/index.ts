@@ -37,9 +37,17 @@ export type CRAssertionTests = {
 };
 
 export interface CRTargetData<T> {
-  base: T;
-  target: T;
+  base?: T;
+  target?: T;
 }
+
+/**
+ * console.warn only when error exists, for z.safeParse()
+ * @param result Zod ReturnType
+ */
+export const zReport = (result) => {
+  result.error && console.warn(result.error);
+};
 
 /**
  * This exists due to certain modifications needed on literal enum types (e.g. `type`); Also, for parts of the schema that are incorrect and need to be ignored
@@ -51,34 +59,7 @@ export interface CRTargetData<T> {
 const zWrapForComparison = (base, target, flag?: boolean) =>
   z.object({ base, [flag ? 'input' : 'target']: target });
 
-export const ZColSchema = columnSchemaSchema
-  .merge(
-    z.object({
-      type: z.enum([
-        'string',
-        'integer',
-        'numeric',
-        'datetime',
-        'date',
-        'time',
-        'boolean',
-        'other',
-      ]),
-    }),
-  )
-  .omit({
-    stddev: true,
-    p5: true,
-    p25: true,
-    p50: true,
-    p75: true,
-    p95: true,
-    min: true,
-    max: true,
-    sum: true,
-    avg: true,
-  });
-//OMISSION: schema is unstable
+export const ZColSchema = columnSchemaSchema;
 
 export const ZTableSchema = tableSchemaSchema.merge(
   z.object({ columns: z.record(ZColSchema) }),

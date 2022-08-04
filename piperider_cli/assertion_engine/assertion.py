@@ -9,8 +9,8 @@ from deepmerge import always_merger
 from ruamel import yaml
 from ruamel.yaml.comments import CommentedMap
 
-from piperider_cli.assertion_engine.recommender import AssertionRecommender
-from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
+from .recommender import AssertionRecommender
+from .recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.error import \
     AssertionError, \
     IllegalStateAssertionError

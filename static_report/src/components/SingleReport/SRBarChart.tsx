@@ -7,7 +7,7 @@ import { ColumnSchema } from '../../sdlc/single-report-schema';
 export type Datum = {
   type: ColumnSchema['type'];
   isCategorical: boolean;
-  label: string | number;
+  label: string | null;
   value: any;
   total: number;
 };

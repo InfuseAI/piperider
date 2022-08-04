@@ -14,7 +14,7 @@ const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns) {
   const sentryEnv = window.PIPERIDER_METADATA.sentry_env || 'development';
   const appVersion = window.PIPERIDER_METADATA.version;
-  const releaseVersion = sentryEnv === 'development' ? null : appVersion;
+  const releaseVersion = sentryEnv === 'development' ? undefined : appVersion;
   Sentry.init({
     dsn: sentryDns,
     environment: sentryEnv,

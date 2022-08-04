@@ -6,7 +6,7 @@ import reportWebVitals from './utils/reportWebVitals';
 import theme from './utils/theme';
 import 'inter-ui/inter-latin.css';
 
-const rootElement = document.getElementById('root');
+const rootElement = document.getElementById('root') as HTMLElement;
 const root = createRoot(rootElement);
 
 root.render(

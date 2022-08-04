@@ -37,7 +37,7 @@ export const getComparisonDataPath = async (e2eFlag) => {
 };
 export const getFileData = async (pathToReport) => {
   try {
-    log(chalk.yellow(`Reading path: ${pathToReport}`));
+    log(chalk.yellow(`Reading path: ${pathToReport} from ${process.cwd()}`));
     return JSON.parse(
       Buffer.from(
         await readFile(pathToReport, {
@@ -88,7 +88,7 @@ export const getMetadata = async () => {
     );
     amplitudeUserID = piperiderProfile.user_id;
   } catch (e) {
-    // Skip if no user id found
+    throw new Error(chalk.red(e));
   }
   return {
     name: 'PipeRider',

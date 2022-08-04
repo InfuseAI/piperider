@@ -1,24 +1,26 @@
 import { ColumnSchema } from '../../sdlc/single-report-schema';
-import { ZColSchema } from '../../types';
+import { ZColSchema, zReport } from '../../types';
 import {
   formatNumber,
   formatIntervalMinMax,
   formatColumnValueWith,
 } from '../../utils/formatters';
 import { getColumnDetails } from '../../utils/transformers';
-import { MetricsInfo } from './MetrisInfo';
+import { MetricsInfo } from './MetricsInfo';
 
-type Props = { baseColumn: ColumnSchema; targetColumn?: ColumnSchema };
+type Props = { baseColumn?: ColumnSchema; targetColumn?: ColumnSchema | null };
 export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
   if (baseColumn) {
-    ZColSchema.parse(baseColumn);
+    zReport(ZColSchema.safeParse(baseColumn));
     var {
       nulls: baseNulls,
       total: baseTotal,
+      valids: baseValids,
       invalids: baseInvalids,
     } = baseColumn;
     var {
       totalOfTotal: baseTotalOfTotal,
+      distinctOfTotal: baseDistinctOfTotal,
       invalidsOfTotal: baseInvalidsOfTotal,
       validsOfTotal: baseValidsOfTotal,
       nullsOfTotal: baseNullsOfTotal,
@@ -30,6 +32,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
     ZColSchema.parse(targetColumn);
     var {
       invalidsOfTotal: targetInvalidsOfTotal,
+      distinctOfTotal: targetDistinctOfTotal,
       validsOfTotal: targetValidsOfTotal,
       nullsOfTotal: targetNullsOfTotal,
     } = getColumnDetails(targetColumn);
@@ -37,55 +40,80 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
 
   //NOTE: `base` will show amount (non-%) in single-reports
   //NOTE: `target` will show ratio (%) in single-reports
+  //`null` identifies provided prop of null value
+  //`undefined` represents unprovided prop
+  const isTargetNull = targetColumn === null;
+  const emptyLabel = '-';
+
   return (
     <>
       <MetricsInfo
         name="Total"
-        base={formatColumnValueWith(baseTotal, formatNumber)}
-        target={formatColumnValueWith(
-          targetColumn ? targetTotal : baseTotalOfTotal,
-          targetColumn ? formatNumber : formatIntervalMinMax,
-        )}
+        firstSlot={formatColumnValueWith(baseTotal, formatNumber)}
+        secondSlot={
+          isTargetNull
+            ? emptyLabel
+            : formatColumnValueWith(
+                targetColumn ? targetTotal : baseTotalOfTotal,
+                targetColumn ? formatNumber : formatIntervalMinMax,
+              )
+        }
       />
       <MetricsInfo
         name="Valid"
-        base={formatColumnValueWith(
-          targetColumn ? baseValidsOfTotal : baseTotal,
+        firstSlot={formatColumnValueWith(
+          targetColumn ? baseValidsOfTotal : baseValids,
           targetColumn ? formatIntervalMinMax : formatNumber,
         )}
-        target={formatColumnValueWith(
-          targetColumn ? targetValidsOfTotal : baseValidsOfTotal,
-          formatIntervalMinMax,
-        )}
+        secondSlot={
+          isTargetNull
+            ? emptyLabel
+            : formatColumnValueWith(
+                targetColumn ? targetValidsOfTotal : baseValidsOfTotal,
+                formatIntervalMinMax,
+              )
+        }
       />
       <MetricsInfo
-        name="Invalid"
-        base={formatColumnValueWith(
+        name="Mismatched"
+        firstSlot={formatColumnValueWith(
           targetColumn ? baseInvalidsOfTotal : baseInvalids,
           targetColumn ? formatIntervalMinMax : formatNumber,
         )}
-        target={formatColumnValueWith(
-          targetColumn ? targetInvalidsOfTotal : baseInvalidsOfTotal,
-          formatIntervalMinMax,
-        )}
+        secondSlot={
+          isTargetNull
+            ? emptyLabel
+            : formatColumnValueWith(
+                targetColumn ? targetInvalidsOfTotal : baseInvalidsOfTotal,
+                formatIntervalMinMax,
+              )
+        }
       />
       <MetricsInfo
-        name="Nulls"
-        base={formatColumnValueWith(
+        name="Missing"
+        firstSlot={formatColumnValueWith(
           targetColumn ? baseNullsOfTotal : baseNulls,
           targetColumn ? formatIntervalMinMax : formatNumber,
         )}
-        target={formatColumnValueWith(
-          targetColumn ? targetNullsOfTotal : baseNullsOfTotal,
-          formatIntervalMinMax,
-        )}
+        secondSlot={
+          isTargetNull
+            ? emptyLabel
+            : formatColumnValueWith(
+                targetColumn ? targetNullsOfTotal : baseNullsOfTotal,
+                formatIntervalMinMax,
+              )
+        }
       />
       <MetricsInfo
         name="Distinct"
-        base={formatColumnValueWith(baseColumn?.distinct, formatNumber)}
-        target={
-          targetColumn &&
-          formatColumnValueWith(targetColumn?.distinct, formatNumber)
+        firstSlot={formatColumnValueWith(baseColumn?.distinct, formatNumber)}
+        secondSlot={
+          isTargetNull
+            ? emptyLabel
+            : formatColumnValueWith(
+                targetColumn ? targetDistinctOfTotal : baseDistinctOfTotal,
+                formatIntervalMinMax,
+              )
         }
       />
     </>

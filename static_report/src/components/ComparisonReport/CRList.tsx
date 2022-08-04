@@ -27,11 +27,15 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import {
   ComparisonReportSchema,
   ZComparisonTableSchema,
+  zReport,
   ZSingleSchema,
 } from '../../types';
-import { TableSchema } from '../../sdlc/single-report-schema';
+import {
+  SingleReportSchema,
+  TableSchema,
+} from '../../sdlc/single-report-schema';
 import { getComparisonAssertions } from '../../utils/assertion';
-import { nestComparisonValueByKey } from '../../utils/transformers';
+import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
 
 export function ComparisonReportList({
   data,
@@ -39,13 +43,14 @@ export function ComparisonReportList({
   data: ComparisonReportSchema;
 }) {
   const { base, input: target } = data;
-  ZSingleSchema.parse(base);
-  ZSingleSchema.parse(target);
 
-  const tables = nestComparisonValueByKey<TableSchema>(
-    base.tables,
-    target.tables,
-  );
+  zReport(ZSingleSchema.safeParse(base));
+  zReport(ZSingleSchema.safeParse(target));
+
+  const tables = transformAsNestedBaseTargetRecord<
+    SingleReportSchema['tables'],
+    TableSchema
+  >(base.tables, target.tables);
 
   useDocumentTitle('Report List');
 
@@ -142,7 +147,7 @@ export function ComparisonReportList({
                 {Object.keys(tables).map((key) => {
                   const table = tables[key];
 
-                  ZComparisonTableSchema(false).parse(table);
+                  ZComparisonTableSchema(false).safeParse(table);
 
                   const [baseOverview, targetOverview] =
                     getComparisonAssertions({
@@ -159,13 +164,21 @@ export function ComparisonReportList({
                     });
 
                   return (
-                    <Link key={nanoid()} href={`/tables/${key}`}>
+                    <Link
+                      key={nanoid()}
+                      style={{ cursor: 'not-allowed' }}
+                      href={`/tables/${key}`}
+                    >
                       <Tr
                         data-cy="cr-report-list-item"
-                        cursor="pointer"
                         _hover={{ bgColor: 'blackAlpha.50' }}
+                        cursor={'pointer'}
                       >
-                        <Td>{key}</Td>
+                        <Td>
+                          <Flex>
+                            <Text ml={2}>{key}</Text>
+                          </Flex>
+                        </Td>
                         <Td>
                           <Text as="span">{baseOverview.passed}</Text>
                           {' / '}
@@ -189,26 +202,26 @@ export function ComparisonReportList({
                           {' / '}
                           <Text as="span">{dbtTargetOverview.failed}</Text>
                         </Td>
-
+                        {/* base | target can have mismatched columns */}
                         <Td>
                           {formatColumnValueWith(
-                            table.base.row_count,
+                            table.base?.row_count,
                             formatNumber,
                           )}
                           {' / '}
                           {formatColumnValueWith(
-                            table.target.row_count,
+                            table.target?.row_count,
                             formatNumber,
                           )}
                         </Td>
                         <Td>
                           {formatColumnValueWith(
-                            table.base.col_count,
+                            table.base?.col_count,
                             formatNumber,
                           )}
                           {' / '}
                           {formatColumnValueWith(
-                            table.target.col_count,
+                            table.target?.col_count,
                             formatNumber,
                           )}
                         </Td>

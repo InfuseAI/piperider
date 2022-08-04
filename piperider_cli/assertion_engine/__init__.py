@@ -1,1 +1,1 @@
-from piperider_cli.assertion_engine.assertion import AssertionEngine, AssertionContext, AssertionResult, ValidationResult
+from .assertion import AssertionEngine, AssertionContext, AssertionResult, ValidationResult
