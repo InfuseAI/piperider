@@ -53,8 +53,8 @@ jobs:
         ls -a piperider-getting-started/.piperider/comparisons
 
         cd static_report
-        npm run embed:html:e2e
-        npm run build:e2e1
+        npm run embed:html -- e2e
+        npm run bundle:e2e1
         cd ..
 
         bash static_report/src/sdlc/generate-e2e-data.sh second
@@ -63,8 +63,8 @@ jobs:
         ls -a piperider-getting-started/.piperider/comparisons
 
         cd static_report
-        npm run embed:html:e2e
-        npm run build:e2e2
+        npm run embed:html -- e2e
+        npm run bundle:e2e2
         cd ..
 
     - name: Cypress run (E2E)

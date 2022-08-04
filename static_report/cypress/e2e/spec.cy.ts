@@ -26,6 +26,20 @@ describe('Home Page', () => {
     // Return to Index
     cy.get('[data-cy="sr-report-breadcrumb-back"]').click();
   });
+  it('should open and close the feedback modal', () => {
+    cy.visit('http://localhost:3000');
+
+    // open the feedback modal
+    const feebackIcon = cy.get('[data-cy="open-feedback-modal"]');
+    feebackIcon.click();
+    cy.get('[data-cy="feedback-modal"]').should('be.visible');
+
+    // close the feedback modal
+    const closeButton = cy.get('[data-cy="close-feedback-modal"]');
+    closeButton.click();
+    cy.get('[data-cy="feedback-modal"]').should('not.be.visible');
+  });
+
   it('Navigate thru Normal CR Pages', () => {
     // ARRANGE
     cy.visit('http://localhost:3001');
@@ -108,19 +122,6 @@ describe('Home Page', () => {
 
     // Return to Index
     cy.get('[data-cy="cr-report-breadcrumb-back"]').click();
-
-  it('should open and close the feedback modal', () => {
-    cy.visit('http://localhost:3000');
-
-    // open the feedback modal
-    const feebackIcon = cy.get('[data-cy="open-feedback-modal"]');
-    feebackIcon.click();
-    cy.get('[data-cy="feedback-modal"]').should('be.visible');
-
-    // close the feedback modal
-    const closeButton = cy.get('[data-cy="close-feedback-modal"]');
-    closeButton.click();
-    cy.get('[data-cy="feedback-modal"]').should('not.be.visible');
   });
 });
 
