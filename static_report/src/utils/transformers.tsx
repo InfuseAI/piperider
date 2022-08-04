@@ -69,13 +69,14 @@ export function transformCRStringDateHistograms({
 }
 
 type TransSingleDistArgs = {
-  baseCounts: number[];
-  baseLabels: (string | null)[];
+  baseCounts?: number[];
+  baseLabels?: (string | null)[];
 };
 export function transformBaseHistogram({
   baseCounts,
   baseLabels,
-}: TransSingleDistArgs): CRHistogramDatum[] {
+}: TransSingleDistArgs): CRHistogramDatum[] | null {
+  if (!baseLabels || !baseCounts) return null;
   const result = baseCounts.map((count, idx) => ({
     label: baseLabels[idx],
     base: count,
@@ -102,16 +103,17 @@ export function getColumnDetails(columnData: ColumnSchema) {
 
   const hasNoNull = non_nulls === total;
 
-  const validsOfTotal = valids ? valids / total : null;
-  const invalidsOfTotal = invalids ? invalids / total : null;
-  const nullsOfTotal = nulls / total;
-  const distinctOfTotal = distinct / total;
-  const duplicatesOfTotal = duplicates ? duplicates / total : null;
-  const nonDuplicatesOfTotal = non_duplicates ? non_duplicates / total : null;
-  const zeroLengthOfTotal = zero_length ? zero_length / total : null;
-  const negativesOfTotal = negatives ? negatives / total : null;
-  const zerosOfTotal = zeros ? zeros / total : null;
-  const totalOfTotal = total / total;
+  const validsOfTotal = valids && total ? valids / total : null;
+  const invalidsOfTotal = invalids && total ? invalids / total : null;
+  const nullsOfTotal = nulls && total ? nulls / total : null;
+  const distinctOfTotal = distinct && total ? distinct / total : null;
+  const duplicatesOfTotal = duplicates && total ? duplicates / total : null;
+  const nonDuplicatesOfTotal =
+    non_duplicates && total ? non_duplicates / total : null;
+  const zeroLengthOfTotal = zero_length && total ? zero_length / total : null;
+  const negativesOfTotal = negatives && total ? negatives / total : null;
+  const zerosOfTotal = zeros && total ? zeros / total : null;
+  const totalOfTotal = total ? total / total : null;
 
   return {
     negativesOfTotal,
@@ -130,5 +132,7 @@ export function getColumnDetails(columnData: ColumnSchema) {
 
 export function checkColumnCategorical(columnDatum: ColumnSchema): boolean {
   const { distinct, type } = columnDatum;
-  return distinct <= 100 && (type === 'string' || type === 'integer'); //this is arbitrary
+  return typeof distinct === 'number'
+    ? distinct <= 100 && (type === 'string' || type === 'numeric')
+    : false; //this is arbitrary
 }

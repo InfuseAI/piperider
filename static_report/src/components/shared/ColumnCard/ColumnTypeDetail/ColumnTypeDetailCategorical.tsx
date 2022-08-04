@@ -40,7 +40,7 @@ export const ColumnTypeDetailCategorical: React.FC<Props> = ({
           value={formatModeMetrics(columnDatum)}
         />
       </Flex>
-      {type === 'integer' && (
+      {type === 'numeric' && (
         <>
           <Divider />
           <Flex mt={2}>

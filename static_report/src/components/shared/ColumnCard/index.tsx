@@ -49,21 +49,21 @@ export function ColumnCard({ columnDatum }: Props) {
  * @returns *Chart Component
  */
 function _getDataChart(columnDatum: ColumnSchema) {
-  const { topk, histogram } = columnDatum;
+  const { topk, histogram, total, type } = columnDatum;
 
   const isCategorical = checkColumnCategorical(columnDatum);
 
   const chartData = isCategorical ? topk?.values : histogram?.labels;
   const valueCounts = isCategorical ? topk?.counts : histogram?.counts;
 
-  return chartData ? (
+  return chartData && valueCounts && total ? (
     <SRBarChart
       data={chartData.map((label, i) => ({
         label,
         isCategorical,
-        type: columnDatum.type,
         value: valueCounts[i],
-        total: columnDatum.total,
+        type,
+        total,
       }))}
     />
   ) : (
@@ -82,20 +82,17 @@ function _getDataChart(columnDatum: ColumnSchema) {
  */
 function _getColumnBodyContentUI(columnDatum: ColumnSchema) {
   const { type, distinct } = columnDatum;
-  const isCategorical = distinct <= 100; //this is arbitrary
+  const isCategorical = distinct ? distinct <= 100 : false; //this is arbitrary
+
+  if ((type === 'string' || type === 'numeric') && isCategorical)
+    return <ColumnTypeDetailCategorical columnDatum={columnDatum} />;
   if (type === 'boolean')
     return <ColumnTypeDetailBoolean columnDatum={columnDatum} />;
-
-  if (type === 'string' && !isCategorical)
+  if (type === 'string')
     return <ColumnTypeDetailText columnDatum={columnDatum} />;
-
   if (type === 'datetime')
     return <ColumnTypeDetailDatetime columnDatum={columnDatum} />;
-
-  if ((type === 'string' || type === 'integer') && isCategorical)
-    return <ColumnTypeDetailCategorical columnDatum={columnDatum} />;
-
-  if (type === 'numeric' || (type === 'integer' && !isCategorical))
+  if (type === 'numeric')
     return <ColumnTypeDetailNumeric columnDatum={columnDatum} />;
   if (type === 'other')
     return <ColumnTypeDetailOther columnDatum={columnDatum} />;

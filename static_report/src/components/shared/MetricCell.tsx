@@ -15,7 +15,8 @@ export const MetricCell: React.FC<Props> = ({
   subvalue,
   metaKey,
 }) => {
-  const metaDescription = schemaMetaDescriptions[metaKey];
+  const metaDescription =
+    typeof metaKey === 'string' ? schemaMetaDescriptions[metaKey] : null;
 
   return (
     <Flex direction={'column'} w={'100%'} mx={2} my={2}>

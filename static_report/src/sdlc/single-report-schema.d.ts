@@ -19,9 +19,9 @@ export interface SingleReportSchema {
  */
 export interface TableSchema {
   name: string;
-  description: string;
-  row_count: number;
-  col_count: number;
+  description?: string;
+  row_count?: number;
+  col_count?: number;
   columns: {
     [k: string]: ColumnSchema;
   };
@@ -36,19 +36,19 @@ export interface ColumnSchema {
   /**
    * The total count of values, regardless validity
    */
-  total: number;
+  total?: number;
   /**
    * The count of values that are null type
    */
-  nulls: number;
+  nulls?: number;
   /**
    * The count of non null values
    */
-  non_nulls: number;
+  non_nulls?: number;
   /**
    * The count of distinct kinds of values (e.g. [a,b,c,c] => [a,b,c])
    */
-  distinct: number;
+  distinct?: number;
   /**
    * The count of values that are recurring (e.g. [a,b,c,c] => [c,c])
    */
@@ -67,19 +67,11 @@ export interface ColumnSchema {
   /**
    * Descriptor of this column
    */
-  description: string;
+  description?: string;
   /**
    * Generic types of schema, python-based
    */
-  type:
-    | 'string'
-    | 'numeric'
-    | 'integer'
-    | 'datetime'
-    | 'date'
-    | 'time'
-    | 'boolean'
-    | 'other';
+  type: 'string' | 'numeric' | 'datetime' | 'boolean' | 'other';
   /**
    * The column type definition in SQL database
    */

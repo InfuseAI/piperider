@@ -20,12 +20,12 @@ import {
 type Props = {
   columnDatum: ColumnSchema;
 };
-export const QuantilesChart: React.FC<Props> = ({ columnDatum }) => {
+export function QuantilesChart({ columnDatum }: Props) {
   ZColSchema.parse(columnDatum);
   const { min, p5, p25, p50, p75, p95, max } = columnDatum;
   const quantileData: {
     label: string;
-    value: number | string;
+    value?: number | string;
     metaKey: keyof ColumnSchema;
   }[] = [
     { label: 'Min', value: min, metaKey: 'min' },
@@ -64,4 +64,4 @@ export const QuantilesChart: React.FC<Props> = ({ columnDatum }) => {
       </Table>
     </TableContainer>
   );
-};
+}

@@ -1,11 +1,11 @@
 import { Text, Tooltip } from '@chakra-ui/react';
 import React from 'react';
 
-type Props = { label: string; prefix: string } & {
+type Props = { label?: string; prefix: string } & {
   children: React.ReactNode;
   [k: string]: any;
 };
-export function SRTooltip({ label, prefix, children, ...props }: Props) {
+export function SRTooltip({ label = '', prefix, children, ...props }: Props) {
   const match = label.match(`${prefix}(?<src>\\w+)$`);
   const richLabel = match?.groups?.src ? (
     <Text>
