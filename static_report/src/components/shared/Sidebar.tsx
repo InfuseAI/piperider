@@ -85,6 +85,7 @@ export function Sidebar() {
       <Box>
         <Divider borderColor="black" my={4} />
         <Flex
+          data-cy="open-feedback-modal"
           alignItems="center"
           direction="column"
           cursor="pointer"
@@ -101,9 +102,9 @@ export function Sidebar() {
         <ModalContent>
           <ModalHeader>Send Feedback</ModalHeader>
           <ModalCloseButton />
-          <ModalBody>
+          <ModalBody data-cy="feedback-modal">
             <Textarea
-              placeholder="We are always improving and would love ot hear your thoughts!"
+              placeholder="We are always improving and would love to hear your thoughts!"
               value={feedback}
               onChange={(event) => {
                 event.preventDefault();
@@ -122,10 +123,15 @@ export function Sidebar() {
           </ModalBody>
 
           <ModalFooter>
-            <Button mr={3} onClick={modal.onClose}>
+            <Button
+              data-cy="close-feedback-modal"
+              mr={3}
+              onClick={modal.onClose}
+            >
               Close
             </Button>
             <Button
+              data-cy="send-feedback"
               colorScheme="piperider"
               isLoading={isSending}
               onClick={async () => {
