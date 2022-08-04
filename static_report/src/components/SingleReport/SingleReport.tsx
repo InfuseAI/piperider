@@ -19,7 +19,7 @@ import { SRTabProfilingDetails } from './SRTabProfilingDetails';
 import { SRTabTestDetails } from './SRTabTestDetails';
 import { SRTableOverview } from './SRTableOverview';
 import { dataSourceSchema } from '../../sdlc/single-report-schema.z';
-import { ZTableSchema } from '../../types';
+import { ZTableSchema, zReport } from '../../types';
 
 interface Props {
   data: SingleReportSchema;
@@ -29,8 +29,8 @@ export default function SingleReport({ data, name }: Props) {
   const { datasource, tables } = data;
   const table = tables[name];
 
-  ZTableSchema.parse(table);
-  dataSourceSchema.parse(datasource);
+  zReport(ZTableSchema.safeParse(table));
+  zReport(dataSourceSchema.safeParse(datasource));
 
   useDocumentTitle(name);
 

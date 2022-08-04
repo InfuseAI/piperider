@@ -1,18 +1,18 @@
 import { Box, Code, Flex, Text } from '@chakra-ui/react';
-import { MetricsInfo } from '../shared/MetrisInfo';
+import { MetricsInfo } from '../shared/MetricsInfo';
 import { getSRModeMetrics } from '../../utils/formatters';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
 import { GeneralTableColumn } from '../shared/GeneralTableColumn';
 import { SRTooltip } from './SRTooltip';
-import { ZColSchema } from '../../types';
+import { ZColSchema, zReport } from '../../types';
 
 type SRTableColumnDetailsProps = {
   column: ColumnSchema;
 };
 export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
-  ZColSchema.omit({ type: true, stddev: true }).parse(column);
+  zReport(ZColSchema.safeParse(column));
   return (
     <Flex direction="column" gap={3}>
       <Box maxWidth="100%">
@@ -47,8 +47,8 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
         <Flex direction="column">
           <MetricsInfo
             name="Most common"
-            base={getSRModeMetrics(column)}
-            baseWidth={'200px'}
+            firstSlot={getSRModeMetrics(column)}
+            firstSlotWidth={'200px'}
           />
         </Flex>
       )}
@@ -57,9 +57,9 @@ export const SRTableColumnDetails = ({ column }: SRTableColumnDetailsProps) => {
 
       {column.type === 'datetime' && (
         <Flex direction="column">
-          <MetricsInfo name="Min" base={column.min as number} />
+          <MetricsInfo name="Min" firstSlot={column.min as number} />
 
-          <MetricsInfo name="Max" base={column.max as number} />
+          <MetricsInfo name="Max" firstSlot={column.max as number} />
         </Flex>
       )}
     </Flex>

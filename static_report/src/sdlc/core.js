@@ -29,8 +29,12 @@ export const getComparisonDataPath = async (e2eFlag) => {
   }
 };
 export const getFileData = async (pathToReport) => {
+  const prePath = await readdir(
+    pathToReport.slice(0, pathToReport.lastIndexOf('/')),
+  );
   try {
-    log(chalk.yellow(`Reading path: ${pathToReport}`));
+    log(`Check if comparison has json first: ${prePath}`);
+    log(chalk.yellow(`Reading path: ${pathToReport} from ${process.cwd()}`));
     return JSON.parse(
       Buffer.from(
         await readFile(pathToReport, {

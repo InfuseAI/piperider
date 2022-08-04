@@ -103,12 +103,12 @@ export function formatTestExpectedOrActual(value) {
      (1) a:100 => a
      (1) a:100, b:99, c:99 => a
  */
-export function getSRModeMetrics(column: ColumnSchema) {
-  if (column.type !== 'string') {
-    return null;
+export function getSRModeMetrics({ type, distribution }: ColumnSchema) {
+  if (type !== 'string' || !distribution) {
+    return;
   }
 
-  const data = zip(column.distribution?.labels, column.distribution?.counts)
+  const data = zip(distribution.labels, distribution.counts)
     .filter((x) => x[0] !== null)
     .slice(0, 3);
   const topCount = data[0][1];

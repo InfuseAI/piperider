@@ -23,10 +23,6 @@ const insertDataToHTML = async () => {
   );
   const reportDataMap = new Map();
 
-  // Read Report Data (Comparison/Single)
-  log(PATH_TO_SINGLE_REPORT_DATA_JSON);
-  log(PATH_TO_COMPARISON_REPORT_DATA_JSON);
-
   await setMapValues(
     reportDataMap,
     PATH_TO_SINGLE_REPORT_DATA_JSON,

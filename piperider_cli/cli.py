@@ -220,4 +220,5 @@ def compare_reports(**kwargs):
     b = kwargs.get('target')
     last = kwargs.get('last')
     datasource = kwargs.get('datasource')
-    CompareReport.exec(a=a, b=b, last=last, datasource=datasource, output=kwargs.get('output'))
+    CompareReport.exec(a=a, b=b, last=last, datasource=datasource, output=kwargs.get('output'),
+                       debug=kwargs.get('debug', False))

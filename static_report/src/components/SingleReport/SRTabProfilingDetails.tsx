@@ -2,7 +2,7 @@ import { Flex, Grid, Divider, Text } from '@chakra-ui/react';
 import { SRBarChart } from './SRBarChart';
 import { SRTableColumnDetails } from './SRTableColumnDetails';
 import type { TableSchema } from '../../sdlc/single-report-schema';
-import { ZColSchema } from '../../types';
+import { ZColSchema, zReport } from '../../types';
 
 interface Props {
   data: TableSchema['columns'];
@@ -12,7 +12,7 @@ export function SRTabProfilingDetails({ data }: Props) {
     <Flex direction="column" gap={4}>
       {Object.keys(data).map((key) => {
         const column = data[key];
-        ZColSchema.parse(column);
+        zReport(ZColSchema.safeParse(column));
 
         const distribution = column.distribution;
 

@@ -22,7 +22,7 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4",
     "wouter": "2.8.0-alpha.2",
-    "zod": "^3.17.3"
+    "zod": "^3.17.10"
   },
   "devDependencies": {
     "@babel/core": "^7.18.2",
@@ -70,7 +70,7 @@
     "bundle:single": "dotenv -e .env.single craco build",
     "bundle:comparison": "dotenv -e .env.comparison craco build",
     "embed:html:e2e": "npm run embed:html -- e2e",
-    "setup:e2e": "run-s embed:html:e2e bundle:*",
+    "build:e2e": "pwd && run-s bundle:*",
     "serve:e2e:single": "http-server ./build/single-report -p 3000 --silent",
     "serve:e2e:comparison": "http-server ./build/comparison-report -p 3001 --silent",
     "eject": "react-scripts eject",

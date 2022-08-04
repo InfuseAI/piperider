@@ -23,6 +23,7 @@ import { CRModal, TestDetail } from './CRModal/CRModal';
 import {
   ComparisonReportSchema,
   ZComparisonSchema,
+  zReport,
   ZTableSchema,
 } from '../../types';
 import { CRTabProfilingDetails } from './CRTabProfilingDetails';
@@ -35,17 +36,18 @@ type Props = {
   name: string;
 };
 export default function ComparisonReport({ data, name: reportName }: Props) {
-  const [testDetail, setTestDetail] = useState<TestDetail>(null);
+  const [testDetail, setTestDetail] = useState<TestDetail | null>(null);
   const modal = useDisclosure();
 
   const { base, input: target } = data;
-  ZComparisonSchema(true).parse(data);
+  zReport(ZComparisonSchema(true).safeParse(data));
 
   const baseTable = base.tables[reportName];
   const targetTable = target.tables[reportName];
   const existsDbtTests = base.tables[reportName]?.dbt_assertion_result;
-  ZTableSchema.parse(baseTable);
-  ZTableSchema.parse(targetTable);
+
+  zReport(ZTableSchema.safeParse(baseTable));
+  zReport(ZTableSchema.safeParse(targetTable));
 
   const [baseOverview, targetOverview] = getComparisonAssertions({
     data,
@@ -90,7 +92,6 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
           direction="column"
           gap={8}
         >
-          {/* overview */}
           <Heading fontSize={24}>Overview</Heading>
           <CRTableOverview baseTable={baseTable} targetTable={targetTable} />
 

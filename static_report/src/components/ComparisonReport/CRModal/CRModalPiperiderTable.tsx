@@ -11,7 +11,7 @@ import { formatTestExpectedOrActual } from '../../../utils/formatters';
 import { TestStatus } from '../../shared/TestStatus';
 import { CRModalData } from './CRModal';
 
-type Props = { data: CRModalData };
+type Props = { data?: CRModalData };
 export function PipeRiderTable({ data }: Props) {
   return (
     <TableContainer>

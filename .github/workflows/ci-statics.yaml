@@ -37,19 +37,13 @@ jobs:
     - name: Prepare Piperider Data (2 runs; 1 comparison)
       working-directory: .
       run: |
-        sudo apt-get install expect dejagnu
-        mkdir -p ~/.piperider
-        cat << EOF > ~/.piperider/profile.yml
-        user_id: 00000000000000000000000000000000
-        anonymous_tracking: true
-        EOF
         pwd
         pip install -r requirements.txt
+
         which piperider
         piperider version
-        runtest e2e-tests/testsuite/getting-started/001-run.exp
         
-        bash static_report/src/sdlc/generate-comparisons.sh
+        bash static_report/src/sdlc/generate-e2e-data.sh
 
         ls -a piperider-getting-started/.piperider/outputs
         ls -a piperider-getting-started/.piperider/comparisons
@@ -57,7 +51,9 @@ jobs:
         echo "Piperider Data Generated. Ready for html embedding"
 
     - name: Install Dependencies
-      run: yarn install --immutable
+      run: |
+        yarn install --immutable
+        npm run embed:html:e2e
 
     - name: Cypress run (E2E)
     # Parallelization only for cypress dashboard https://www.cypress.io/pricing/
@@ -66,7 +62,7 @@ jobs:
         install: false
         working-directory: ./static_report
         config-file: cypress.config.ts
-        build: npm run setup:e2e
+        build: npm run build:e2e
         start: |
           npm run serve:e2e:single
           npm run serve:e2e:comparison

@@ -12,7 +12,7 @@ const CHART_COLOR = 'var(--chakra-colors-blue-300)';
 interface HookArgs<T> {
   target: RefObject<SVGSVGElement>;
   data: T[];
-  dimensions: DOMRect;
+  dimensions: DOMRect | null;
 }
 export function useSingleChart<T extends { [key: string]: any }>({
   target,
@@ -75,7 +75,7 @@ export function useSingleChart<T extends { [key: string]: any }>({
       .data(data)
       .join('rect')
       .attr('class', 'overlay-bars')
-      .attr('x', (s: any) => xScale(s.label))
+      .attr('x', (s) => xScale(s.label) as number)
       .attr('y', () => 0)
       .attr('width', xScale.bandwidth())
       .attr('height', () => dimensions.height)

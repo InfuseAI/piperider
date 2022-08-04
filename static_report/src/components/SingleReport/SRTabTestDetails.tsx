@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { assertionTestSchema } from '../../sdlc/single-report-schema.z';
 import { z } from 'zod';
-import { AssertionValue } from '../../types';
+import { AssertionValue, zReport } from '../../types';
 import { formatTestExpectedOrActual } from '../../utils/formatters';
 
 type Props = {
@@ -20,7 +20,7 @@ type Props = {
 };
 export function SRTabTestDetails({ assertionData, type = 'piperider' }: Props) {
   const tableTests = assertionData?.tests;
-  const columnsTests = assertionData?.columns;
+  const columnsTests = assertionData?.columns || {};
 
   if (
     !tableTests ||
@@ -50,7 +50,7 @@ export function SRTabTestDetails({ assertionData, type = 'piperider' }: Props) {
 
           <Tbody>
             {tableTests.map((tableTest) => {
-              assertionTestSchema.parse(tableTest);
+              zReport(assertionTestSchema.safeParse(tableTest));
               const isFailed = tableTest.status === 'failed';
               return (
                 <Tr key={tableTest.name}>
@@ -82,7 +82,7 @@ export function SRTabTestDetails({ assertionData, type = 'piperider' }: Props) {
 
             {Object.keys(columnsTests).map((key) => {
               const columnTests = columnsTests[key];
-              z.array(assertionTestSchema).parse(columnTests);
+              zReport(z.array(assertionTestSchema).safeParse(columnTests));
 
               return columnTests.map((columnTest) => {
                 const isFailed = columnTest.status === 'failed';
