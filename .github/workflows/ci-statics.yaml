@@ -34,6 +34,10 @@ jobs:
       with:
         python-version: 3.8
 
+    - name: Install Node.js Dependencies
+      run: |
+        yarn install --immutable
+
     - name: Prepare Piperider Data (2 runs; 1 comparison)
       working-directory: .
       run: |
@@ -50,10 +54,10 @@ jobs:
         
         echo "Piperider Data Generated. Ready for html embedding"
 
-    - name: Install Dependencies
+    - name: Setup builds
       run: |
-        yarn install --immutable
         npm run embed:html:e2e
+        npm run build:e2e
 
     - name: Cypress run (E2E)
     # Parallelization only for cypress dashboard https://www.cypress.io/pricing/
@@ -62,11 +66,12 @@ jobs:
         install: false
         working-directory: ./static_report
         config-file: cypress.config.ts
-        build: npm run build:e2e
         start: |
           npm run serve:e2e:single
           npm run serve:e2e:comparison
-        wait-on: 'http://localhost:3000, http://localhost:3001' 
+          npm run serve:e2e:single-edge-cases
+          npm run serve:e2e:comparison-asymmetric-cases
+        wait-on: 'http://localhost:3000, http://localhost:3001, http://localhost:4000, http://localhost:4001'
 
     - name: Build Apps
       run: npm run build
