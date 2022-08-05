@@ -81,15 +81,25 @@ export const getMetadata = async () => {
     .toString()
     .replace('\n', '');
   let amplitudeUserID = '';
+  let amplitudeProjectID = '';
   try {
-    let piperiderProfilePath = `${process.env.HOME}/.piperider/profile.yml`;
+    const piperiderProfilePath = `${process.env.HOME}/.piperider/profile.yml`;
+    const piperiderConfigPath =
+      process.argv[2] === 'e2e'
+        ? '../piperider-getting-started/.piperider/config.yml'
+        : '../.piperider/config.yml';
     const piperiderProfile = YAML.parse(
       Buffer.from(await readFile(piperiderProfilePath)).toString(),
     );
+    const piperiderConfig = YAML.parse(
+      Buffer.from(await readFile(piperiderConfigPath)).toString(),
+    );
     amplitudeUserID = piperiderProfile.user_id;
+    amplitudeProjectID = piperiderConfig.telemetry.id;
   } catch (e) {
     throw new Error(chalk.red(e));
   }
+
   return {
     name: 'PipeRider',
     version: appVersion,
@@ -97,6 +107,7 @@ export const getMetadata = async () => {
     sentry_env: 'development',
     amplitude_api_key: process.env.AMPLITUDE_API_KEY,
     amplitude_user_id: amplitudeUserID,
+    amplitude_project_id: amplitudeProjectID,
   };
 };
 
