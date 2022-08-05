@@ -51,9 +51,12 @@ jobs:
         
         echo "Piperider Data Generated. Ready for html embedding"
 
-    - name: Install Dependencies
+    - uses: bahmutov/npm-install@v1
+      with:
+        install-command: yarn --frozen-lockfile --silent
+
+    - name: Embed HTML Window Data
       run: |
-        yarn install --immutable
         npm run embed:html:e2e
 
     - name: Cypress run (E2E)

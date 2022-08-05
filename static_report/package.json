@@ -75,7 +75,7 @@
     "bundle:single": "dotenv -e .env.single craco build",
     "bundle:comparison": "dotenv -e .env.comparison craco build",
     "embed:html:e2e": "npm run embed:html -- e2e",
-    "setup:e2e": "run-s embed:html:e2e extract:metadata bundle:*",
+    "setup:e2e": "run-s embed:html:e2e extract:metadata lint:fix bundle:*",
     "serve:e2e:single": "http-server ./build/single-report -p 3000 --silent",
     "serve:e2e:comparison": "http-server ./build/comparison-report -p 3001 --silent",
     "eject": "react-scripts eject",
