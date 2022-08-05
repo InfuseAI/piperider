@@ -11,6 +11,7 @@ import {
 import { TableSchema } from '../../sdlc/single-report-schema';
 import { zReport, ZTableSchema } from '../../types';
 import { getReportAggregateAssertions } from '../../utils/assertion';
+import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
 
 type Props = {
   baseTable: TableSchema;
@@ -44,18 +45,18 @@ export function CRTableOverview({ baseTable, targetTable }: Props) {
         <Tbody>
           <Tr>
             <Td>Table</Td>
-            <Td>{baseTable?.name ?? '-'}</Td>
-            <Td>{targetTable?.name ?? '-'}</Td>
+            <Td>{baseTable?.name ?? NO_VALUE}</Td>
+            <Td>{targetTable?.name ?? NO_VALUE}</Td>
           </Tr>
           <Tr>
             <Td>Rows</Td>
-            <Td>{baseTable?.row_count ?? '-'}</Td>
-            <Td>{targetTable?.row_count ?? '-'}</Td>
+            <Td>{baseTable?.row_count ?? NO_VALUE}</Td>
+            <Td>{targetTable?.row_count ?? NO_VALUE}</Td>
           </Tr>
           <Tr>
             <Td>Columns</Td>
-            <Td>{baseTable?.col_count ?? '-'}</Td>
-            <Td>{targetTable?.col_count ?? '-'}</Td>
+            <Td>{baseTable?.col_count ?? NO_VALUE}</Td>
+            <Td>{targetTable?.col_count ?? NO_VALUE}</Td>
           </Tr>
           <Tr>
             <Td>Test status</Td>

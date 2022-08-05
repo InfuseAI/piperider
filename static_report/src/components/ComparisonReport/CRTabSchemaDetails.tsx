@@ -13,6 +13,7 @@ import {
 import { nanoid } from 'nanoid';
 import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
 import { ComparsionSource, zReport, ZTableSchema } from '../../types';
+import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
 
 type EnrichedColumnData = {
   added: number;
@@ -49,7 +50,6 @@ export function CRTabSchemaDetails({ base, target }: Props) {
   zReport(ZTableSchema.safeParse(base));
   zReport(ZTableSchema.safeParse(target));
 
-  const emptyLabel = '-';
   const baseColEntries = getEnrichedColumnsFor(base?.columns, 'base');
   const targetColEntries = getEnrichedColumnsFor(target?.columns, 'target');
   const combinedColEntries = [...baseColEntries, ...targetColEntries];
@@ -143,8 +143,8 @@ export function CRTabSchemaDetails({ base, target }: Props) {
                   key={nanoid(10)}
                   color={column?.changed ? 'red.500' : 'inherit'}
                 >
-                  <Td>{column?.name ?? emptyLabel}</Td>
-                  <Td>{column?.schema_type ?? emptyLabel}</Td>
+                  <Td>{column?.name ?? NO_VALUE}</Td>
+                  <Td>{column?.schema_type ?? NO_VALUE}</Td>
                 </Tr>
               ))}
             </Tbody>
@@ -170,8 +170,8 @@ export function CRTabSchemaDetails({ base, target }: Props) {
                   key={nanoid(10)}
                   color={column?.changed ? 'red.500' : 'inherit'}
                 >
-                  <Td>{column?.name ?? emptyLabel}</Td>
-                  <Td>{column?.schema_type ?? emptyLabel}</Td>
+                  <Td>{column?.name ?? NO_VALUE}</Td>
+                  <Td>{column?.schema_type ?? NO_VALUE}</Td>
                 </Tr>
               ))}
             </Tbody>

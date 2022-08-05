@@ -73,7 +73,7 @@ export function formatIntervalMinMax(num: number) {
 // CR side: needs record handling
 export function formatTestExpectedOrActual(value) {
   if (!value) {
-    return '-';
+    return NO_VALUE;
   }
 
   // Needed due to comparison's get assertions DS
@@ -122,7 +122,7 @@ export function formatModeMetrics({ topk }: ColumnSchema) {
 export function formatColumnValueWith(
   input: any,
   fn: Function,
-  emptyLabel = '-',
+  emptyLabel = NO_VALUE,
 ): string {
   if (typeof input === 'string') return input;
   return isNaN(input) ? emptyLabel : fn(input);
@@ -143,31 +143,16 @@ export function formatTruncateString(input: string, end: number) {
   );
 }
 /**
-     * base < -2 => 2dp, scientific
-     * base < 0 => 3dp
-     * base < 3 => 2dp
-     * base < 6 => 1dp, K
-     * base < 9 => 1dp, M
-     * base < 12 => 1dp, T
-     * base < 15 => 1dp, B
-     * base >= 15 => 0dp, B
-    <10? = Display 1 Digit + 1 Decimal -- round@single-decimal
-
-    <1,000? = Display 0 Decimal (e.g. 614) --round@single-digit
-
-    <10,000? = Display in 1,000s (Ks) (e.g. 4.5K) --round@single-decimal^
-
-    <100,000? = Display in 1,000,000s (Ms) (e.g. 5.2M) --round@single-decimal^
-    <1,000,000,000? = Display in 1,000,000s (Ms) (e.g. 956M) --round@single-decimal^
-    
-    >=1,000,000,000? = Use E notation to 1 digit. (e.g. 3ᴇ9, 6ᴇ12) --pure scientific method
-
-    ## only ever 1 DP or 0 DP (depending on magnitude), not more. ##
-
-    Round down if Min Value (e.g. 6.8 => 6) 
-    Round up if Max Value (e.g. 6.8 => 7)
- * @param input 
- * @returns 
+ * base < -2 => 2dp, scientific (small decimals)
+ * base < 0 => 3dp (big decimals)
+ * base < 3 => 2dp (ones, tens, hundreds)
+ * base < 6 => 1dp, K (thousands)
+ * base < 9 => 1dp, M (millions)
+ * base < 12 => 1dp, T (trillions)
+ * base < 15 => 1dp, B (billions)
+ * base >= 15 => 0dp, B (billions)
+ * @param input
+ * @returns a formatted number by abbreviation, based on its order of magnitude
  */
 export function formatAsAbbreviatedNumber(input: number | string) {
   // type guard for numbers (e.g. datetime strings)

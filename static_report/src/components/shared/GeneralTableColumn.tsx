@@ -6,6 +6,7 @@ import {
   formatColumnValueWith,
 } from '../../utils/formatters';
 import { getColumnDetails } from '../../utils/transformers';
+import { NO_VALUE } from './ColumnCard/ColumnTypeDetail/constants';
 import { MetricsInfo } from './MetricsInfo';
 
 type Props = { baseColumn?: ColumnSchema; targetColumn?: ColumnSchema | null };
@@ -43,7 +44,6 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
   //`null` identifies provided prop of null value
   //`undefined` represents unprovided prop
   const isTargetNull = targetColumn === null;
-  const emptyLabel = '-';
 
   return (
     <>
@@ -52,7 +52,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         firstSlot={formatColumnValueWith(baseTotal, formatNumber)}
         secondSlot={
           isTargetNull
-            ? emptyLabel
+            ? NO_VALUE
             : formatColumnValueWith(
                 targetColumn ? targetTotal : baseTotalOfTotal,
                 targetColumn ? formatNumber : formatIntervalMinMax,
@@ -67,7 +67,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         )}
         secondSlot={
           isTargetNull
-            ? emptyLabel
+            ? NO_VALUE
             : formatColumnValueWith(
                 targetColumn ? targetValidsOfTotal : baseValidsOfTotal,
                 formatIntervalMinMax,
@@ -82,7 +82,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         )}
         secondSlot={
           isTargetNull
-            ? emptyLabel
+            ? NO_VALUE
             : formatColumnValueWith(
                 targetColumn ? targetInvalidsOfTotal : baseInvalidsOfTotal,
                 formatIntervalMinMax,
@@ -97,7 +97,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         )}
         secondSlot={
           isTargetNull
-            ? emptyLabel
+            ? NO_VALUE
             : formatColumnValueWith(
                 targetColumn ? targetNullsOfTotal : baseNullsOfTotal,
                 formatIntervalMinMax,
@@ -109,7 +109,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         firstSlot={formatColumnValueWith(baseColumn?.distinct, formatNumber)}
         secondSlot={
           isTargetNull
-            ? emptyLabel
+            ? NO_VALUE
             : formatColumnValueWith(
                 targetColumn ? targetDistinctOfTotal : baseDistinctOfTotal,
                 formatIntervalMinMax,

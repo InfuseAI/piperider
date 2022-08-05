@@ -1,6 +1,7 @@
 import { Code, Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
+import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
 import { GeneralTableColumn } from '../shared/GeneralTableColumn';
 import { MetricsInfo } from '../shared/MetricsInfo';
 import { NumericTableColumn } from '../shared/NumericTableColumn';
@@ -14,7 +15,6 @@ export const CRTableColumnDetails = ({
   baseColumn,
   targetColumn,
 }: CRTableColumnDetailsProps) => {
-  const emptyLabel = '-';
   const fallback = baseColumn || targetColumn;
   zReport(ZColSchema.safeParse(baseColumn));
   zReport(ZColSchema.safeParse(targetColumn));
@@ -68,13 +68,13 @@ export const CRTableColumnDetails = ({
           <Flex direction="column">
             <MetricsInfo
               name="Min"
-              firstSlot={baseColumn?.min ?? emptyLabel}
-              secondSlot={targetColumn?.min ?? emptyLabel}
+              firstSlot={baseColumn?.min ?? NO_VALUE}
+              secondSlot={targetColumn?.min ?? NO_VALUE}
             />
             <MetricsInfo
               name="Max"
-              firstSlot={baseColumn?.max ?? emptyLabel}
-              secondSlot={targetColumn?.max ?? emptyLabel}
+              firstSlot={baseColumn?.max ?? NO_VALUE}
+              secondSlot={targetColumn?.max ?? NO_VALUE}
             />
           </Flex>
         )}
