@@ -7,6 +7,7 @@ from rich.console import Console
 
 from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli import clone_directory, raise_exception_when_output_directory_not_writable
+from piperider_cli.configuration import Configuration
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 from piperider_cli.error import PipeRiderNoProfilingResultError
 
@@ -14,6 +15,8 @@ PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'out
 
 
 def prepare_piperider_metadata():
+    configuration = Configuration.load()
+    project_id = configuration.get_telemetry_id()
     metadata = {
         'name': 'PipeRider',
         'sentry_env': sentry_env,
@@ -21,6 +24,7 @@ def prepare_piperider_metadata():
         'version': __version__,
         'amplitude_api_key': event._get_api_key(),
         'amplitude_user_id': event._collector._user_id,
+        'amplitude_project_id': project_id,
     }
     return metadata
 
