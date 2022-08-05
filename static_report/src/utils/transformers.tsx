@@ -148,7 +148,7 @@ export function getColumnTypeChartData(
   const dataValues = isCategorical
     ? topk?.values
     : isBoolean
-    ? ['trues', 'falses']
+    ? ['TRUES', 'FALSES']
     : histogram?.labels;
   const dataCounts = isCategorical
     ? topk?.counts

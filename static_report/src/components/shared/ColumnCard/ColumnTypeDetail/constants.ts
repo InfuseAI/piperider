@@ -23,6 +23,6 @@ export const NEGATIVES = 'NEGATIVES';
 export const ZEROS = 'ZEROS';
 export const TRUES = 'TRUES';
 export const FALSES = 'FALSES';
-export const BOOLEANCOUNT = 'Boolean Count';
+export const BOOLEANCOUNT = 'Boolean Value';
 export const TOTAL = 'TOTAL';
 export const NO_VALUE = '-';

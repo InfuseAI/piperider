@@ -7,7 +7,6 @@ import {
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
 import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
-import { StatisticalMetrics } from '../ColumnMetrics/StatisticalMetrics';
 import { UniquenessMetrics } from '../ColumnMetrics/UniquenessMetrics';
 import { VALIDS } from './constants';
 

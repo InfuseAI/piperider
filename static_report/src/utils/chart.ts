@@ -5,6 +5,7 @@ import {
   TEXTLENGTH,
   DATE_RANGE,
   VALUE_RANGE,
+  BOOLEANCOUNT,
 } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
 
 const tooltipDefaultStyle = {
@@ -59,6 +60,8 @@ export function getLabelTitle({ type, isCategorical }: BarChartDatum): string {
     ? CATEGORY_RANGE
     : type === 'string'
     ? TEXTLENGTH
+    : type === 'boolean'
+    ? BOOLEANCOUNT
     : type === 'datetime'
     ? DATE_RANGE
     : VALUE_RANGE;
