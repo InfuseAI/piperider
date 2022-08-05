@@ -18,32 +18,19 @@ export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
   return (
     <Flex direction={'column'}>
       <DataCompositionMetrics columnDatum={columnDatum}>
-        <Divider orientation="vertical" />
-        <MetricCell
-          metaKey="valids"
-          label={VALIDS}
-          value={formatColumnValueWith(validsOfTotal, formatIntervalMinMax)}
-          subvalue={valids}
-        />
-      </DataCompositionMetrics>
-      <Divider />
-      <Text textAlign={'center'} fontWeight={'bold'} my={2}>
-        Boolean Statistics
-      </Text>
-      <Divider />
-      <Flex justify={'space-evenly'}>
-        <MetricCell
-          label={TRUES}
-          value={formatColumnValueWith(trues, formatNumber)}
-          metaKey={'trues'}
-        />
-        <Divider orientation="vertical" />
         <MetricCell
           label={FALSES}
           value={formatColumnValueWith(falses, formatNumber)}
           metaKey={'falses'}
         />
-      </Flex>
+        <Divider orientation="vertical" />
+        <MetricCell
+          label={TRUES}
+          value={formatColumnValueWith(trues, formatNumber)}
+          metaKey={'trues'}
+        />
+      </DataCompositionMetrics>
+      <Divider />
     </Flex>
   );
 };

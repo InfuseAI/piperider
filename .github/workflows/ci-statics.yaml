@@ -7,6 +7,7 @@ on:
       # Trigger when PR is created and/or head of branch is updated.
     paths:
       - "static_report/**"
+      - "piperider_cli/**"
       # Trigger when diffs detected in statics source code
     branches:
       - main
@@ -62,7 +63,7 @@ jobs:
         install: false
         working-directory: ./static_report
         config-file: cypress.config.ts
-        build: npm run build:e2e
+        build: npm run setup:e2e
         start: |
           npm run serve:e2e:single
           npm run serve:e2e:comparison
