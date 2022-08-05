@@ -53,6 +53,7 @@ jobs:
 
     - uses: bahmutov/npm-install@v1
       with:
+        working-directory: ./static_report
         install-command: yarn --frozen-lockfile --silent
 
     - name: Embed HTML Window Data
