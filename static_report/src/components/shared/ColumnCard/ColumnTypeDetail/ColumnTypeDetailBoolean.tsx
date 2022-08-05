@@ -1,19 +1,16 @@
-import { Divider, Flex, Text } from '@chakra-ui/react';
+import { Divider, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
-  formatIntervalMinMax,
   formatNumber,
 } from '../../../../utils/formatters';
-import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
 import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
-import { FALSES, TRUES, VALIDS } from './constants';
+import { FALSES, TRUES } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
-  const { trues, falses, valids } = columnDatum;
-  const { validsOfTotal } = getColumnDetails(columnDatum);
+  const { trues, falses } = columnDatum;
 
   return (
     <Flex direction={'column'}>
