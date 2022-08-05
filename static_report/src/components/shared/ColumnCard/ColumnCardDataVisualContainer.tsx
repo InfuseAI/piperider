@@ -17,10 +17,11 @@ import { ReactNode } from 'react';
  * Children clickable for showing modal popup zoom of chart
  * FIXME: clear all tooltips upon onCLose event
  */
-type Props = { children: ReactNode; title: string };
+type Props = { children: ReactNode; title: string; allowModalPopup?: boolean };
 export const ColumnCardDataVisualContainer: React.FC<Props> = ({
   title,
   children,
+  allowModalPopup,
 }) => {
   const { onOpen, isOpen, onClose } = useDisclosure();
   return (
@@ -33,7 +34,7 @@ export const ColumnCardDataVisualContainer: React.FC<Props> = ({
         maxHeight={'300px'}
         bg={'whiteAlpha.700'}
         rounded={'md'}
-        onClick={onOpen}
+        onClick={() => allowModalPopup && onOpen()}
       >
         {children}
       </Flex>

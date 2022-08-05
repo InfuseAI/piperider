@@ -4,15 +4,15 @@ import { useResizeObserver } from '../../hooks/useResizeObserver';
 import { useSingleChart } from '../../hooks/useSingleChart';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 
-export type Datum = {
+export interface BarChartDatum {
   type: ColumnSchema['type'];
   isCategorical: boolean;
   label: string | null;
   value: any;
   total: number;
-};
+}
 interface Props {
-  data: Array<Datum>;
+  data: Array<BarChartDatum>;
 }
 
 export function SRBarChart({ data }: Props) {

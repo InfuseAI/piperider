@@ -3,7 +3,7 @@ import { useEffect, RefObject } from 'react';
 
 import { formatNumber } from '../utils/formatters';
 import { getChartTooltip, getLabelTitle } from '../utils/chart';
-import { Datum } from '../components/SingleReport/SRBarChart';
+import { BarChartDatum } from '../components/SingleReport/SRBarChart';
 
 const X_PADDING = 0.05;
 const TOOLTIPS_BG_COLOR = 'var(--chakra-colors-gray-500)';
@@ -11,7 +11,7 @@ const CHART_COLOR = 'var(--chakra-colors-blue-300)';
 
 interface HookArgs {
   target: RefObject<SVGSVGElement>;
-  data: Datum[];
+  data: BarChartDatum[];
   dimensions: DOMRect | null;
 }
 export function useSingleChart({ target, data, dimensions }: HookArgs) {

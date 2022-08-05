@@ -1,7 +1,10 @@
 import { Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema } from '../../../types';
-import { checkColumnCategorical } from '../../../utils/transformers';
+import {
+  checkColumnCategorical,
+  getColumnTypeChartData,
+} from '../../../utils/transformers';
 import { SRBarChart } from '../../SingleReport/SRBarChart';
 import { ColumnCardBodyContainer } from './ColumnCardBodyContainer';
 import { ColumnCardDataVisualContainer } from './ColumnCardDataVisualContainer';
@@ -33,7 +36,10 @@ export function ColumnCard({ columnDatum }: Props) {
       overflowX={'hidden'}
     >
       <ColumnCardHeader columnDatum={columnDatum} />
-      <ColumnCardDataVisualContainer title={title}>
+      <ColumnCardDataVisualContainer
+        title={title}
+        allowModalPopup={Boolean(getColumnTypeChartData(columnDatum))}
+      >
         {_getDataChart(columnDatum)}
       </ColumnCardDataVisualContainer>
       <ColumnCardBodyContainer>
@@ -49,23 +55,10 @@ export function ColumnCard({ columnDatum }: Props) {
  * @returns *Chart Component
  */
 function _getDataChart(columnDatum: ColumnSchema) {
-  const { topk, histogram, total, type } = columnDatum;
+  const chartData = getColumnTypeChartData(columnDatum);
 
-  const isCategorical = checkColumnCategorical(columnDatum);
-
-  const chartData = isCategorical ? topk?.values : histogram?.labels;
-  const valueCounts = isCategorical ? topk?.counts : histogram?.counts;
-
-  return chartData && valueCounts && total ? (
-    <SRBarChart
-      data={chartData.map((label, i) => ({
-        label,
-        isCategorical,
-        value: valueCounts[i],
-        type,
-        total,
-      }))}
-    />
+  return chartData ? (
+    <SRBarChart data={chartData} />
   ) : (
     <Flex h={230} alignItems={'center'} w={'100%'}>
       <Text textAlign={'center'} w={'inherit'}>
@@ -81,19 +74,19 @@ function _getDataChart(columnDatum: ColumnSchema) {
  * @returns ColumnTypeDetail* Component
  */
 function _getColumnBodyContentUI(columnDatum: ColumnSchema) {
-  const { type, distinct } = columnDatum;
-  const isCategorical = distinct ? distinct <= 100 : false; //this is arbitrary
+  const { type } = columnDatum;
+  const isCategorical = checkColumnCategorical(columnDatum);
 
-  if ((type === 'string' || type === 'numeric') && isCategorical)
+  if ((type === 'string' || type === 'integer') && isCategorical)
     return <ColumnTypeDetailCategorical columnDatum={columnDatum} />;
+  if (type === 'numeric' || type === 'integer')
+    return <ColumnTypeDetailNumeric columnDatum={columnDatum} />;
   if (type === 'boolean')
     return <ColumnTypeDetailBoolean columnDatum={columnDatum} />;
   if (type === 'string')
     return <ColumnTypeDetailText columnDatum={columnDatum} />;
   if (type === 'datetime')
     return <ColumnTypeDetailDatetime columnDatum={columnDatum} />;
-  if (type === 'numeric')
-    return <ColumnTypeDetailNumeric columnDatum={columnDatum} />;
   if (type === 'other')
     return <ColumnTypeDetailOther columnDatum={columnDatum} />;
 

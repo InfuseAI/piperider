@@ -92,6 +92,7 @@
                       "enum": [
                         "string",
                         "numeric",
+                        "integer",
                         "datetime",
                         "boolean",
                         "other"

@@ -1,3 +1,4 @@
+import { BarChartDatum } from '../components/SingleReport/SRBarChart';
 import { ColumnSchema, Histogram } from '../sdlc/single-report-schema';
 import { CRTargetData } from '../types';
 
@@ -133,6 +134,34 @@ export function getColumnDetails(columnData: ColumnSchema) {
 export function checkColumnCategorical(columnDatum: ColumnSchema): boolean {
   const { distinct, type } = columnDatum;
   return typeof distinct === 'number'
-    ? distinct <= 100 && (type === 'string' || type === 'numeric')
+    ? distinct <= 100 && (type === 'string' || type === 'integer')
     : false; //this is arbitrary
+}
+
+export function getColumnTypeChartData(
+  columnDatum: ColumnSchema,
+): BarChartDatum[] | undefined {
+  const { topk, histogram, trues, falses, type, total } = columnDatum;
+  const isCategorical = checkColumnCategorical(columnDatum);
+  const isBoolean = type === 'boolean';
+
+  const dataValues = isCategorical
+    ? topk?.values
+    : isBoolean
+    ? ['trues', 'falses']
+    : histogram?.labels;
+  const dataCounts = isCategorical
+    ? topk?.counts
+    : isBoolean
+    ? [trues, falses]
+    : histogram?.counts;
+
+  if (dataValues && dataCounts && total)
+    return dataValues.map((label, i) => ({
+      label,
+      isCategorical,
+      value: dataCounts[i],
+      type,
+      total,
+    }));
 }

@@ -1,4 +1,4 @@
-import { Datum } from './../components/SingleReport/SRBarChart';
+import { BarChartDatum } from './../components/SingleReport/SRBarChart';
 import * as d3 from 'd3';
 import {
   CATEGORY_RANGE,
@@ -54,7 +54,7 @@ export function getChartTooltip({ target, style = {} as any }) {
 /**
  * get the metric label to display, based on column's generic type
  */
-export function getLabelTitle({ type, isCategorical }: Datum): string {
+export function getLabelTitle({ type, isCategorical }: BarChartDatum): string {
   const labelTitle = isCategorical
     ? CATEGORY_RANGE
     : type === 'string'
