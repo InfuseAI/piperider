@@ -3,7 +3,7 @@ import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
-  formatModeMetrics,
+  formatTopKMetrics,
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
@@ -18,6 +18,7 @@ export const ColumnTypeDetailCategorical: React.FC<Props> = ({
 }) => {
   const { validsOfTotal } = getColumnDetails(columnDatum);
   const { valids, type } = columnDatum;
+  const { topValues, topCounts } = formatTopKMetrics(columnDatum);
 
   return (
     <Flex direction={'column'}>
@@ -33,13 +34,14 @@ export const ColumnTypeDetailCategorical: React.FC<Props> = ({
       <Divider />
       <UniquenessMetrics columnDatum={columnDatum} />
       <Divider />
-      <Flex justify={'space-evenly'}>
+      {topValues && topCounts && (
         <MetricCell
           metaKey="topk"
           label={MODE}
-          value={formatModeMetrics(columnDatum)}
+          value={topValues}
+          subvalue={topCounts}
         />
-      </Flex>
+      )}
       {type === 'numeric' && (
         <>
           <Divider />

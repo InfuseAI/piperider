@@ -119,7 +119,7 @@ export interface ColumnSchema {
    */
   sum?: number;
   /**
-   * The mean average of a column's values
+   * The average of a column's values
    */
   avg?: number;
   /**
@@ -127,11 +127,11 @@ export interface ColumnSchema {
    */
   stddev?: number;
   /**
-   * The minimum value of a column's range; can be numerical or datetime string
+   * The minimum value of a column's range
    */
   min?: string | number;
   /**
-   * The maximum value of a columns's range; can be numerical or datetime string
+   * The maximum value of a columns's range
    */
   max?: string | number;
   /**
@@ -167,7 +167,7 @@ export interface Histogram {
   bin_edges: (number | string)[];
 }
 /**
- * The statistical mode value of the most common or frequent value
+ * The most common or frequent value
  */
 export interface Topk {
   values: (string | number)[];

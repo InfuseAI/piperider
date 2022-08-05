@@ -5,7 +5,7 @@ import { ColumnSchema } from '../../sdlc/single-report-schema';
 
 type Props = {
   label: string;
-  value: string | number;
+  value?: string | number;
   subvalue?: string | number;
   metaKey?: keyof ColumnSchema;
 };

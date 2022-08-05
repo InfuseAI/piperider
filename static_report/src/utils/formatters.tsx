@@ -103,14 +103,17 @@ export function formatTestExpectedOrActual(value) {
      (1) a:100 => a
      (1) a:100, b:99, c:99 => a
  */
-export function formatModeMetrics({ topk }: ColumnSchema) {
-  if (!topk) return NO_VALUE;
-  const tops = topk.values.slice(0, 3);
+export function formatTopKMetrics({ topk }: ColumnSchema) {
+  if (!topk) return {};
+  const { counts, values } = topk;
+  const trailingEllipsis = values.length < 2 ? '' : ', ...';
+  const topValues = `${values[0]}${trailingEllipsis}`;
+  const topCounts = `${counts[0]}`;
 
-  if (tops.length > 3) {
-    return tops.slice(0, 3).join(', ') + ', etc.';
-  }
-  return tops.join(', ');
+  return {
+    topValues,
+    topCounts,
+  };
 }
 /**
  * A method to handle falsey non-numbers (relevant for comparison reports with column shifts, where base/target values can be undefined)

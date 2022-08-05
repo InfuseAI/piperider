@@ -60,7 +60,7 @@ function getIconForColumnType(columnDatum: ColumnSchema): {
       icon: TbCircles,
     };
   if (type === 'string') return { backgroundColor: 'blue.500', icon: BiText };
-  if (type === 'numeric')
+  if (type === 'numeric' || type === 'integer')
     return { backgroundColor: 'red.500', icon: TiSortNumerically };
   if (type === 'datetime')
     return { backgroundColor: 'teal.500', icon: BsCalendarDate };

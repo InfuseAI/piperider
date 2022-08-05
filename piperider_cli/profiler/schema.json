@@ -149,7 +149,7 @@
                       "type": "number"
                     },
                     "avg": {
-                      "description": "The mean average of a column's values",
+                      "description": "The average of a column's values",
                       "type": "number"
                     },
                     "stddev": {
@@ -157,7 +157,7 @@
                       "type": "number"
                     },
                     "min": {
-                      "description": "The minimum value of a column's range; can be numerical or datetime string",
+                      "description": "The minimum value of a column's range",
                       "oneOf": [
                         {
                           "type": "string"
@@ -168,7 +168,7 @@
                       ]
                     },
                     "max": {
-                      "description": "The maximum value of a columns's range; can be numerical or datetime string",
+                      "description": "The maximum value of a columns's range",
                       "oneOf": [
                         {
                           "type": "string"
@@ -393,7 +393,7 @@
       }
     },
     "topk": {
-      "description": "The statistical mode value of the most common or frequent value",
+      "description": "The most common or frequent value",
       "title": "Topk",
       "type": "object",
       "required": [
