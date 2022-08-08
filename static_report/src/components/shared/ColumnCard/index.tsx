@@ -33,7 +33,7 @@ export function ColumnCard({ columnDatum }: Props) {
       h={[700]}
       my={3}
       rounded={'lg'}
-      overflowX={'hidden'}
+      overflowX={'clip'}
     >
       <ColumnCardHeader columnDatum={columnDatum} />
       <ColumnCardDataVisualContainer
