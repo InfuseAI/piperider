@@ -3,11 +3,12 @@ import { useEffect, useState } from 'react';
 import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
 import { zReport, ZTableSchema } from '../../types';
 import {
-  transformBaseHistogram,
+  getColumnTypeChartData,
   transformAsNestedBaseTargetRecord,
   transformCRStringDateHistograms,
   CRHistogramDatum,
 } from '../../utils/transformers';
+import { BarChartDatum, SRBarChart } from '../SingleReport/SRBarChart';
 import { CRBarChart } from './CRBarChart';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
 
@@ -54,39 +55,37 @@ type CRProfilingColumnProps = {
   target?: ColumnSchema;
 };
 function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
-  const [data, setData] = useState<(CRHistogramDatum[] | null)[]>([]);
+  const [combinedData, setCombinedData] = useState<CRHistogramDatum[] | null>(
+    null,
+  );
+  const [splitData, setSplitData] = useState<
+    (BarChartDatum[] | null | undefined)[]
+  >([]);
 
   useEffect(() => {
-    if (
-      base?.type === target?.type &&
-      (base?.type === 'string' || base?.type === 'datetime')
-    ) {
+    const isSameGenericType = base?.type === target?.type;
+    const isStringOrDatetime =
+      base?.type === 'string' || base?.type === 'datetime';
+
+    // Determine combined data histograms
+    if (isSameGenericType && isStringOrDatetime) {
       const transformResult = transformCRStringDateHistograms({
         base: base?.histogram,
         target: target?.histogram,
       });
 
-      setData([transformResult]);
+      setCombinedData(transformResult);
     } else {
-      const baseData = base
-        ? transformBaseHistogram({
-            baseCounts: base?.histogram?.counts,
-            baseLabels: base?.histogram?.labels,
-          })
-        : null;
+      // Determine split data histograms
+      const transformBaseResult = getColumnTypeChartData(base);
+      const transformTargetResult = getColumnTypeChartData(target);
 
-      const targetData = target
-        ? transformBaseHistogram({
-            baseCounts: target?.histogram?.counts,
-            baseLabels: target?.histogram?.labels,
-          })
-        : null;
-
-      setData([baseData, targetData]);
+      // Needs to show mismatched columns (null | undefined)
+      setSplitData([transformBaseResult, transformTargetResult]);
     }
   }, [base, target]);
 
-  const isSingleChartOnly = data.length === 1;
+  // Show combined base|target chart or split charts
   return (
     <Flex key={name} direction="column">
       <Grid my={8} templateColumns="500px 1fr" gap={12}>
@@ -94,13 +93,18 @@ function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
 
         <Grid
           my={4}
-          templateColumns={`1fr ${isSingleChartOnly ? '' : '1fr'}`}
-          gap={isSingleChartOnly ? 0 : 12}
+          templateColumns={`1fr ${combinedData ? '' : '1fr'}`}
+          gap={combinedData ? 0 : 12}
         >
-          {data[0] ? <CRBarChart data={data[0]} /> : <NoData />}
-          {data[1] ? (
-            <CRBarChart data={data[1]} />
-          ) : isSingleChartOnly ? null : (
+          {combinedData && <CRBarChart data={combinedData} />}
+          {splitData[0] ? (
+            <SRBarChart data={splitData[0]} />
+          ) : combinedData ? null : (
+            <NoData />
+          )}
+          {splitData[1] ? (
+            <SRBarChart data={splitData[1]} />
+          ) : combinedData ? null : (
             <NoData />
           )}
         </Grid>
