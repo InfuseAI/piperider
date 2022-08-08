@@ -148,6 +148,9 @@ class Profiler:
             result["row_count"] = row_count
         self.event_handler.handle_table_progress(result, col_count, col_index)
 
+        basic_profiler = BasicGroupProfiler(self.engine, table)
+        print(basic_profiler.profile())
+
         # Profile columns
         for column in table.columns:
             columns[column.name] = self._profile_column(table, column)
@@ -211,6 +214,136 @@ class Profiler:
         self.event_handler.handle_column_end(table.name, result)
 
         return result
+
+
+class BasicGroupProfiler:
+    engine: Engine = None
+    table: Table = None
+
+    def __init__(self, engine: Engine, table: Table):
+        self.engine = engine
+        self.table = table
+
+    def _get_database_backend(self) -> str:
+        """
+        Helper function to return the sqlalchemy engine backend
+        :return:
+        """
+        return self.engine.url.get_backend_name()
+
+    def _get_table_cte(self) -> CTE:
+        t = self.table
+        clauses = []
+        if self._get_database_backend() != 'sqlite':
+            for column in t.columns:
+                clauses.extend([
+                    column,
+                    column
+                ])
+            cte = select(clauses).select_from(t).cte()
+        else:
+            for column in t.columns:
+                if isinstance(column.type, String):
+                    clauses.extend([
+                        case(
+                            [(func.typeof(column) == 'blob', None)],
+                            else_=column
+                        ),
+                        column
+                    ])
+                elif isinstance(column.type, Integer) or isinstance(column.type, Numeric):
+                    clauses.extend([
+                        case(
+                            [(func.typeof(column) == 'text', None),
+                             (func.typeof(column) == 'blob', None)],
+                            else_=column
+                        ),
+                        column
+                    ])
+                elif isinstance(column.type, Date) or isinstance(column.type, DateTime):
+                    clauses.extend([
+                        case(
+                            [(func.typeof(column) == 'text', func.datetime(column)),
+                             (func.typeof(column) == 'integer', func.datetime(column, 'unixepoch')),
+                             (func.typeof(column) == 'real', func.datetime(column, 'unixepoch'))],
+                            else_=None
+                        ),
+                        column,
+                    ])
+                elif isinstance(column.type, Boolean):
+                    clauses.extend([
+                        case(
+                            [(column == true(), column),
+                             (column == false(), column)],
+                            else_=None
+                        ),
+                        column,
+                    ])
+                else:
+                    clauses.extend([
+                        column,
+                        column
+                    ])
+
+            cte = select(clauses).select_from(t).cte()
+
+        return cte
+
+    def profile(self) -> dict:
+        """
+        Profile basic metrics of a column
+
+        :return: the profiling result. The result dict is json serializable
+        """
+        columns = {}
+        with self.engine.connect() as conn:
+            cte = self._get_table_cte()
+            clauses = [func.count().label("_total")]
+            for i in range(0, len(cte.c), 2):
+                clauses.append(func.count(cte.c[i]))                # valids
+                clauses.append(func.count(distinct(cte.c[i])))      # distinct
+                clauses.append(func.count(cte.c[i + 1]))            # non_nulls
+            stmt = select(clauses).select_from(cte)
+            result = conn.execute(stmt).fetchone()
+
+            _total = result[0]
+
+            t = self.table
+            for i, column in enumerate(t.columns):
+                if isinstance(column.type, String):
+                    generic_type = 'string'
+                elif isinstance(column.type, Integer) or isinstance(column.type, Numeric):
+                    generic_type = 'integer'
+                elif isinstance(column.type, Numeric):
+                    generic_type = 'numeric'
+                elif isinstance(column.type, Date) or isinstance(column.type, DateTime):
+                    generic_type = 'datetime'
+                elif isinstance(column.type, Boolean):
+                    generic_type = 'boolean'
+                else:
+                    generic_type = 'other'
+
+                column_profile = {
+                    "name": column.name,
+                    "type": generic_type,
+                    "schema_type": str(column.type),
+                    "total": _total
+                }
+
+                _valids = result[i * 3 + 1]
+                _distinct = result[i * 3 + 2]
+                _non_nulls = result[i * 3 + 3]
+
+                column_profile['non_nulls'] = _non_nulls
+                column_profile['nulls'] = _total - _non_nulls
+                column_profile['valids'] = _valids
+                column_profile['invalids'] = _non_nulls - _valids
+                column_profile['distinct'] = _distinct
+                column_profile['distribution'] = None
+
+                columns[column.name] = column_profile
+
+        return columns
 
 
 class BaseColumnProfiler:
