@@ -6,6 +6,7 @@ import {
   formatColumnValueWith,
 } from '../../utils/formatters';
 import { getColumnDetails } from '../../utils/transformers';
+import { NO_VALUE } from './ColumnCard/ColumnTypeDetail/constants';
 import { MetricsInfo } from './MetricsInfo';
 
 type Props = { baseColumn?: ColumnSchema; targetColumn?: ColumnSchema | null };
@@ -13,26 +14,28 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
   if (baseColumn) {
     zReport(ZColSchema.safeParse(baseColumn));
     var {
-      totalOfTotal: baseTotalOfTotal,
-      valid: baseValid,
+      nulls: baseNulls,
       total: baseTotal,
-      mismatch: baseMismatch,
-      missing: baseMissing,
-      mismatchOfTotal: baseMismatchOfTotal,
-      validOfTotal: baseValidOfTotal,
-      missingOfTotal: baseMissingOfTotal,
+      valids: baseValids,
+      invalids: baseInvalids,
+    } = baseColumn;
+    var {
+      totalOfTotal: baseTotalOfTotal,
       distinctOfTotal: baseDistinctOfTotal,
+      invalidsOfTotal: baseInvalidsOfTotal,
+      validsOfTotal: baseValidsOfTotal,
+      nullsOfTotal: baseNullsOfTotal,
     } = getColumnDetails(baseColumn);
   }
 
   if (targetColumn) {
-    zReport(ZColSchema.safeParse(targetColumn));
+    var { total: targetTotal } = targetColumn;
+    ZColSchema.parse(targetColumn);
     var {
-      total: targetTotal,
-      mismatchOfTotal: targetMismatchOfTotal,
-      validOfTotal: targetValidOfTotal,
-      missingOfTotal: targetMissingOfTotal,
+      invalidsOfTotal: targetInvalidsOfTotal,
       distinctOfTotal: targetDistinctOfTotal,
+      validsOfTotal: targetValidsOfTotal,
+      nullsOfTotal: targetNullsOfTotal,
     } = getColumnDetails(targetColumn);
   }
 
@@ -41,7 +44,6 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
   //`null` identifies provided prop of null value
   //`undefined` represents unprovided prop
   const isTargetNull = targetColumn === null;
-  const emptyLabel = '-';
 
   return (
     <>
@@ -50,7 +52,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         firstSlot={formatColumnValueWith(baseTotal, formatNumber)}
         secondSlot={
           isTargetNull
-            ? emptyLabel
+            ? NO_VALUE
             : formatColumnValueWith(
                 targetColumn ? targetTotal : baseTotalOfTotal,
                 targetColumn ? formatNumber : formatIntervalMinMax,
@@ -60,14 +62,14 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       <MetricsInfo
         name="Valid"
         firstSlot={formatColumnValueWith(
-          targetColumn ? baseValidOfTotal : baseValid,
+          targetColumn ? baseValidsOfTotal : baseValids,
           targetColumn ? formatIntervalMinMax : formatNumber,
         )}
         secondSlot={
           isTargetNull
-            ? emptyLabel
+            ? NO_VALUE
             : formatColumnValueWith(
-                targetColumn ? targetValidOfTotal : baseValidOfTotal,
+                targetColumn ? targetValidsOfTotal : baseValidsOfTotal,
                 formatIntervalMinMax,
               )
         }
@@ -75,14 +77,14 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       <MetricsInfo
         name="Mismatched"
         firstSlot={formatColumnValueWith(
-          targetColumn ? baseMismatchOfTotal : baseMismatch,
+          targetColumn ? baseInvalidsOfTotal : baseInvalids,
           targetColumn ? formatIntervalMinMax : formatNumber,
         )}
         secondSlot={
           isTargetNull
-            ? emptyLabel
+            ? NO_VALUE
             : formatColumnValueWith(
-                targetColumn ? targetMismatchOfTotal : baseMismatchOfTotal,
+                targetColumn ? targetInvalidsOfTotal : baseInvalidsOfTotal,
                 formatIntervalMinMax,
               )
         }
@@ -90,14 +92,14 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       <MetricsInfo
         name="Missing"
         firstSlot={formatColumnValueWith(
-          targetColumn ? baseMissingOfTotal : baseMissing,
+          targetColumn ? baseNullsOfTotal : baseNulls,
           targetColumn ? formatIntervalMinMax : formatNumber,
         )}
         secondSlot={
           isTargetNull
-            ? emptyLabel
+            ? NO_VALUE
             : formatColumnValueWith(
-                targetColumn ? targetMissingOfTotal : baseMissingOfTotal,
+                targetColumn ? targetNullsOfTotal : baseNullsOfTotal,
                 formatIntervalMinMax,
               )
         }
@@ -107,7 +109,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         firstSlot={formatColumnValueWith(baseColumn?.distinct, formatNumber)}
         secondSlot={
           isTargetNull
-            ? emptyLabel
+            ? NO_VALUE
             : formatColumnValueWith(
                 targetColumn ? targetDistinctOfTotal : baseDistinctOfTotal,
                 formatIntervalMinMax,

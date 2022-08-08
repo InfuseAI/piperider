@@ -2,7 +2,7 @@ import { Flex, Heading, Text } from '@chakra-ui/react';
 import { TableSchema } from '../../sdlc/single-report-schema';
 import { zReport, ZTableSchema } from '../../types';
 import { getReportAggregateAssertions } from '../../utils/assertion';
-import { formatNumber } from '../../utils/formatters';
+import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
 
 type Props = { table: TableSchema };
 
@@ -25,13 +25,13 @@ export function SRTableOverview({ table }: Props) {
       <Text>
         Rows:{' '}
         <Text as="span" fontWeight={700}>
-          {formatNumber(table.row_count)}
+          {formatColumnValueWith(table.row_count, formatNumber)}
         </Text>
       </Text>
       <Text>
         Columns:{' '}
         <Text as="span" fontWeight={700}>
-          {formatNumber(table.col_count)}
+          {formatColumnValueWith(table.col_count, formatNumber)}
         </Text>
       </Text>
       <Text>

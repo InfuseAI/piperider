@@ -49,7 +49,7 @@ export default function SingleReport({ data, name }: Props) {
   return (
     <Main>
       <Flex direction="column" minH="calc(100vh + 1px)" width="100%">
-        <Flex mx="10%" mt={4}>
+        <Flex mx="5%" mt={4}>
           <Breadcrumb fontSize="lg">
             <BreadcrumbItem>
               <Link href="/">
@@ -72,7 +72,7 @@ export default function SingleReport({ data, name }: Props) {
           borderRadius="md"
           p={6}
           mt={3}
-          mx="10%"
+          mx="5%"
           direction="column"
         >
           <SRTableOverview table={table} />

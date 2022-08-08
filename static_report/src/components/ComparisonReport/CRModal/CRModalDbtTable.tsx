@@ -7,6 +7,7 @@ import {
   Tbody,
   Td,
 } from '@chakra-ui/react';
+import { NO_VALUE } from '../../shared/ColumnCard/ColumnTypeDetail/constants';
 import { TestStatus } from '../../shared/TestStatus';
 import { CRModalData } from './CRModal';
 
@@ -29,7 +30,7 @@ export function DbtTable({ data }: Props) {
             <Td>
               <TestStatus status={data?.base?.status} />
             </Td>
-            <Td>{data?.base?.message ?? '-'}</Td>
+            <Td>{data?.base?.message ?? NO_VALUE}</Td>
           </Tr>
 
           <Tr>
@@ -37,7 +38,7 @@ export function DbtTable({ data }: Props) {
             <Td>
               <TestStatus status={data?.target?.status} />
             </Td>
-            <Td>{data?.base?.message ?? '-'}</Td>
+            <Td>{data?.base?.message ?? NO_VALUE}</Td>
           </Tr>
         </Tbody>
       </Table>

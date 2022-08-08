@@ -19,9 +19,9 @@ export interface SingleReportSchema {
  */
 export interface TableSchema {
   name: string;
-  description: string;
-  row_count: number;
-  col_count: number;
+  description?: string;
+  row_count?: number;
+  col_count?: number;
   columns: {
     [k: string]: ColumnSchema;
   };
@@ -33,40 +33,127 @@ export interface TableSchema {
  * via the `patternProperty` ".+".
  */
 export interface ColumnSchema {
-  total: number;
-  nulls: number;
-  non_nulls: number;
-  distinct: number;
+  /**
+   * The total count of values, regardless validity
+   */
+  total?: number;
+  /**
+   * The count of values that are null type
+   */
+  nulls?: number;
+  /**
+   * The count of non null values
+   */
+  non_nulls?: number;
+  /**
+   * The count of distinct kinds of values (e.g. [a,b,c,c] => [a,b,c])
+   */
+  distinct?: number;
+  /**
+   * The count of values that are recurring (e.g. [a,b,c,c] => [c,c])
+   */
+  duplicates?: number;
+  /**
+   * The count of values that are non-recurring (e.g. [a,b,c,c] => [a,b])
+   */
+  non_duplicates?: number;
   distribution?: Distribution;
   histogram?: Histogram;
   topk?: Topk;
+  /**
+   * Name of this column
+   */
   name: string;
-  description: string;
-  type: "string" | "integer" | "numeric" | "datetime" | "date" | "time" | "boolean" | "other";
+  /**
+   * Descriptor of this column
+   */
+  description?: string;
+  /**
+   * Generic types of schema, python-based
+   */
+  type: 'string' | 'numeric' | 'integer' | 'datetime' | 'boolean' | 'other';
+  /**
+   * The column type definition in SQL database
+   */
   schema_type: string;
+  /**
+   * The count of values that are non-null and not invalid
+   */
   valids?: number;
+  /**
+   * The count of values that don't match the schema type. For example, a string in a numeric column.
+   */
   invalids?: number;
+  /**
+   * The count of numerical values that equal zero exactly
+   */
   zeros?: number;
+  /**
+   * The count of numerical values that are less than zero
+   */
   negatives?: number;
+  /**
+   * The count of numerical values that are more than zero
+   */
   positives?: number;
+  /**
+   * The count of string values with zero lengths exactly
+   */
   zero_length?: number;
+  /**
+   * The count of string values with non-zero lengths
+   */
   non_zero_length?: number;
+  /**
+   * The count of boolean true values
+   */
   trues?: number;
+  /**
+   * The count of boolean false values
+   */
   falses?: number;
-  duplicates?: number;
-  non_duplicates?: number;
   profile_duration?: string;
   elapsed_milli?: number;
+  /**
+   * The sum of a column's values
+   */
   sum?: number;
+  /**
+   * The average of a column's values
+   */
   avg?: number;
-  min?: string | number;
-  max?: string | number;
-  p5?: number;
-  p25?: number;
-  p50?: number;
-  p75?: number;
-  p95?: number;
+  /**
+   * The standard deviation of a column's values
+   */
   stddev?: number;
+  /**
+   * The minimum value of a column's range
+   */
+  min?: string | number;
+  /**
+   * The maximum value of a columns's range
+   */
+  max?: string | number;
+  /**
+   * The quantile value of the dataset (5th percentile)
+   */
+  p5?: number;
+  /**
+   * The quantile value of the dataset (25th percentile)
+   */
+  p25?: number;
+  /**
+   * The quantile value of the dataset (50th percentile)
+   */
+  p50?: number;
+  /**
+   * The quantile value of the dataset (75th percentile)
+   */
+  p75?: number;
+  /**
+   * The quantile value of the dataset (95th percentile)
+   */
+  p95?: number;
 }
 export interface Distribution {
   type: string;
@@ -79,6 +166,9 @@ export interface Histogram {
   counts: number[];
   bin_edges: (number | string)[];
 }
+/**
+ * The most common or frequent value
+ */
 export interface Topk {
   values: (string | number)[];
   counts: number[];
@@ -95,7 +185,7 @@ export interface PipeRiderAssertionResult {
 }
 export interface AssertionTest {
   name: string;
-  status: "passed" | "failed";
+  status: 'passed' | 'failed';
   parameters?: {
     [k: string]: unknown;
   };

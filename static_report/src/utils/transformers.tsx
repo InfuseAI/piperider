@@ -1,4 +1,5 @@
-import { ColumnSchema, Distribution } from '../sdlc/single-report-schema';
+import { BarChartDatum } from '../components/SingleReport/SRBarChart';
+import { ColumnSchema, Histogram } from '../sdlc/single-report-schema';
 import { CRTargetData } from '../types';
 
 /**
@@ -28,16 +29,16 @@ export function transformAsNestedBaseTargetRecord<K, T>(
   return result;
 }
 
-export type CRDistributionDatum = {
+export type CRHistogramDatum = {
   label: string | null;
   base: number;
   target: number;
 };
 // for `type` equal to string, datetime
-export function transformCRStringDateDistributions({
+export function transformCRStringDateHistograms({
   base: baseDistribution,
   target: targetDistribution,
-}: CRTargetData<Distribution>): CRDistributionDatum[] | null {
+}: CRTargetData<Histogram>): CRHistogramDatum[] | null {
   // groupby base/target of a found label
   const mapIdxLookup = new Map<string, number>();
   if (!baseDistribution || !targetDistribution) return null;
@@ -69,13 +70,14 @@ export function transformCRStringDateDistributions({
 }
 
 type TransSingleDistArgs = {
-  baseCounts: number[];
-  baseLabels: (string | null)[];
+  baseCounts?: number[];
+  baseLabels?: (string | null)[];
 };
-export function transformBaseDistribution({
+export function transformBaseHistogram({
   baseCounts,
   baseLabels,
-}: TransSingleDistArgs): CRDistributionDatum[] {
+}: TransSingleDistArgs): CRHistogramDatum[] | null {
+  if (!baseLabels || !baseCounts) return null;
   const result = baseCounts.map((count, idx) => ({
     label: baseLabels[idx],
     base: count,
@@ -86,30 +88,80 @@ export function transformBaseDistribution({
 }
 
 export function getColumnDetails(columnData: ColumnSchema) {
-  const { non_nulls, total, nulls, distinct } = columnData;
+  const {
+    nulls,
+    non_nulls,
+    total,
+    invalids,
+    distinct,
+    valids,
+    non_duplicates,
+    duplicates,
+    zero_length,
+    negatives,
+    zeros,
+  } = columnData;
 
   const hasNoNull = non_nulls === total;
 
-  const mismatch = nulls || 0;
-  const valid = non_nulls - mismatch;
-  const missing = total - non_nulls;
-
-  const validOfTotal = valid / total;
-  const mismatchOfTotal = mismatch / total;
-  const missingOfTotal = missing / total;
-  const distinctOfTotal = distinct / total;
-  const totalOfTotal = total / total;
+  const validsOfTotal = valids && total ? valids / total : null;
+  const invalidsOfTotal = invalids && total ? invalids / total : null;
+  const nullsOfTotal = nulls && total ? nulls / total : null;
+  const distinctOfTotal = distinct && total ? distinct / total : null;
+  const duplicatesOfTotal = duplicates && total ? duplicates / total : null;
+  const nonDuplicatesOfTotal =
+    non_duplicates && total ? non_duplicates / total : null;
+  const zeroLengthOfTotal = zero_length && total ? zero_length / total : null;
+  const negativesOfTotal = negatives && total ? negatives / total : null;
+  const zerosOfTotal = zeros && total ? zeros / total : null;
+  const totalOfTotal = total ? total / total : null;
 
   return {
+    negativesOfTotal,
+    zerosOfTotal,
     hasNoNull,
-    mismatch,
-    valid,
-    missing,
+    zeroLengthOfTotal,
     distinctOfTotal,
-    validOfTotal,
-    mismatchOfTotal,
-    missingOfTotal,
+    validsOfTotal,
+    invalidsOfTotal,
+    nullsOfTotal,
+    duplicatesOfTotal,
+    nonDuplicatesOfTotal,
     totalOfTotal,
-    total,
   };
+}
+
+export function checkColumnCategorical(columnDatum: ColumnSchema): boolean {
+  const { distinct, type } = columnDatum;
+  return typeof distinct === 'number'
+    ? distinct <= 100 && (type === 'string' || type === 'integer')
+    : false; //this is arbitrary
+}
+
+export function getColumnTypeChartData(
+  columnDatum: ColumnSchema,
+): BarChartDatum[] | undefined {
+  const { topk, histogram, trues, falses, type, total } = columnDatum;
+  const isCategorical = checkColumnCategorical(columnDatum);
+  const isBoolean = type === 'boolean';
+
+  const dataValues = isCategorical
+    ? topk?.values
+    : isBoolean
+    ? ['TRUES', 'FALSES']
+    : histogram?.labels;
+  const dataCounts = isCategorical
+    ? topk?.counts
+    : isBoolean
+    ? [trues, falses]
+    : histogram?.counts;
+
+  if (dataValues && dataCounts && total)
+    return dataValues.map((label, i) => ({
+      label,
+      isCategorical,
+      value: dataCounts[i],
+      type,
+      total,
+    }));
 }

@@ -1,3 +1,4 @@
+import { NO_VALUE } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
 import { TableSchema } from '../sdlc/single-report-schema';
 import {
   ZTableSchema,
@@ -59,7 +60,7 @@ export function getSingleAssertionStatusCounts(
   assertion: AssertionValue,
 ): ReportAssertionStatusCounts {
   if (!assertion) {
-    return { passed: '-', failed: '-' };
+    return { passed: NO_VALUE, failed: NO_VALUE };
   }
 
   const tableStatus = assertion.tests.reduce(
@@ -149,7 +150,7 @@ export function getComparisonAssertionTests({
   const table = assertion.tests.map((test) => ({
     ...test,
     level: 'Table',
-    column: '-',
+    column: NO_VALUE,
     from,
   }));
 

@@ -39,22 +39,22 @@ export const dataSourceSchema = z.object({
 });
 
 export const columnSchemaSchema = z.object({
-  total: z.number(),
-  nulls: z.number(),
-  non_nulls: z.number(),
-  distinct: z.number(),
+  total: z.number().optional(),
+  nulls: z.number().optional(),
+  non_nulls: z.number().optional(),
+  distinct: z.number().optional(),
+  duplicates: z.number().optional(),
+  non_duplicates: z.number().optional(),
   distribution: distributionSchema.optional(),
   histogram: histogramSchema.optional(),
   topk: topkSchema.optional(),
   name: z.string(),
-  description: z.string(),
+  description: z.string().optional(),
   type: z.union([
     z.literal('string'),
-    z.literal('integer'),
     z.literal('numeric'),
+    z.literal('integer'),
     z.literal('datetime'),
-    z.literal('date'),
-    z.literal('time'),
     z.literal('boolean'),
     z.literal('other'),
   ]),
@@ -68,12 +68,11 @@ export const columnSchemaSchema = z.object({
   non_zero_length: z.number().optional(),
   trues: z.number().optional(),
   falses: z.number().optional(),
-  duplicates: z.number().optional(),
-  non_duplicates: z.number().optional(),
   profile_duration: z.string().optional(),
   elapsed_milli: z.number().optional(),
   sum: z.number().optional(),
   avg: z.number().optional(),
+  stddev: z.number().optional(),
   min: z.union([z.string(), z.number()]).optional(),
   max: z.union([z.string(), z.number()]).optional(),
   p5: z.number().optional(),
@@ -81,7 +80,6 @@ export const columnSchemaSchema = z.object({
   p50: z.number().optional(),
   p75: z.number().optional(),
   p95: z.number().optional(),
-  stddev: z.number().optional(),
 });
 
 export const pipeRiderAssertionResultSchema = z.object({
@@ -91,9 +89,9 @@ export const pipeRiderAssertionResultSchema = z.object({
 
 export const tableSchemaSchema = z.object({
   name: z.string(),
-  description: z.string(),
-  row_count: z.number(),
-  col_count: z.number(),
+  description: z.string().optional(),
+  row_count: z.number().optional(),
+  col_count: z.number().optional(),
   columns: z.record(columnSchemaSchema),
   piperider_assertion_result: pipeRiderAssertionResultSchema.nullable(),
   dbt_assertion_result: dbtAssertionResultSchema.optional().nullable(),

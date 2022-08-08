@@ -2,23 +2,19 @@ import * as d3 from 'd3';
 import { useEffect, RefObject } from 'react';
 
 import { formatNumber } from '../utils/formatters';
-import { getChartTooltip } from '../utils/chart';
+import { getChartTooltip, getLabelTitle } from '../utils/chart';
+import { BarChartDatum } from '../components/SingleReport/SRBarChart';
 
 const X_PADDING = 0.05;
 const TOOLTIPS_BG_COLOR = 'var(--chakra-colors-gray-500)';
 const CHART_COLOR = 'var(--chakra-colors-blue-300)';
 
-//TODO: Remove `as any` type forcing
-interface HookArgs<T> {
+interface HookArgs {
   target: RefObject<SVGSVGElement>;
-  data: T[];
+  data: BarChartDatum[];
   dimensions: DOMRect | null;
 }
-export function useSingleChart<T extends { [key: string]: any }>({
-  target,
-  data,
-  dimensions,
-}: HookArgs<T>) {
+export function useSingleChart({ target, data, dimensions }: HookArgs) {
   useEffect(() => {
     if (!target || !dimensions || !data) {
       return;
@@ -28,7 +24,7 @@ export function useSingleChart<T extends { [key: string]: any }>({
 
     const xScale = d3
       .scaleBand()
-      .domain(data.map((d) => d.label))
+      .domain(data.map((d) => String(d.label)))
       .range([0, dimensions.width])
       .padding(X_PADDING);
 
@@ -75,19 +71,20 @@ export function useSingleChart<T extends { [key: string]: any }>({
       .data(data)
       .join('rect')
       .attr('class', 'overlay-bars')
-      .attr('x', (s) => xScale(s.label) as number)
+      .attr('x', (s) => xScale(String(s.label)) as number)
       .attr('y', () => 0)
       .attr('width', xScale.bandwidth())
       .attr('height', () => dimensions.height)
       .style('opacity', 0)
       .on('mouseover', function (event, data) {
-        const { label, value, total } = data as any;
+        const { label, value, total } = data;
+        const labelTitle = getLabelTitle(data);
 
         tooltip
           .html(
             `
           <div>
-            <p>Label: ${label}</p>
+            <p>${labelTitle}: ${label}</p>
             <p>Count: ${formatNumber(value)}</p>
             <p>Percentage: ${Number((value / total) * 100).toFixed(3)}%</p>
           </div>
@@ -116,6 +113,8 @@ export function useSingleChart<T extends { [key: string]: any }>({
 
     return () => {
       svg.select('svg').remove();
+      //FIXME: still not removed when `esc` on modals
+      svg.selectAll('.chart_tooltip').remove();
     };
   }, [target, dimensions, data]);
 }

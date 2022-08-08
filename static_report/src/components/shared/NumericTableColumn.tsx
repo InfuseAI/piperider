@@ -2,6 +2,7 @@ import { Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
+import { NO_VALUE } from './ColumnCard/ColumnTypeDetail/constants';
 import { MetricsInfo } from './MetricsInfo';
 
 type Props = {
@@ -12,7 +13,6 @@ type Props = {
 export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
   const isTargetNull = targetColumn === null;
   const isTargetUndefined = targetColumn === undefined;
-  const emptyLabel = '-';
   zReport(ZColSchema.safeParse(baseColumn));
   zReport(ZColSchema.safeParse(baseColumn));
   return (
@@ -23,7 +23,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           firstSlot={formatColumnValueWith(baseColumn?.avg, formatNumber)}
           secondSlot={
             isTargetNull
-              ? emptyLabel
+              ? NO_VALUE
               : isTargetUndefined
               ? undefined
               : formatColumnValueWith(targetColumn?.avg, formatNumber)
@@ -34,7 +34,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           firstSlot={formatColumnValueWith(baseColumn?.stddev, formatNumber)}
           secondSlot={
             isTargetNull
-              ? emptyLabel
+              ? NO_VALUE
               : isTargetUndefined
               ? undefined
               : formatColumnValueWith(targetColumn?.stddev, formatNumber)
@@ -47,7 +47,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           firstSlot={formatColumnValueWith(baseColumn?.min, formatNumber)}
           secondSlot={
             isTargetNull
-              ? emptyLabel
+              ? NO_VALUE
               : isTargetUndefined
               ? undefined
               : formatColumnValueWith(targetColumn?.min, formatNumber)
@@ -58,7 +58,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           firstSlot={formatColumnValueWith(baseColumn?.p5, formatNumber)}
           secondSlot={
             isTargetNull
-              ? emptyLabel
+              ? NO_VALUE
               : isTargetUndefined
               ? undefined
               : formatColumnValueWith(targetColumn?.p5, formatNumber)
@@ -69,7 +69,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           firstSlot={formatColumnValueWith(baseColumn?.p25, formatNumber)}
           secondSlot={
             isTargetNull
-              ? emptyLabel
+              ? NO_VALUE
               : isTargetUndefined
               ? undefined
               : formatColumnValueWith(targetColumn?.p25, formatNumber)
@@ -80,7 +80,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           firstSlot={formatColumnValueWith(baseColumn?.p50, formatNumber)}
           secondSlot={
             isTargetNull
-              ? emptyLabel
+              ? NO_VALUE
               : isTargetUndefined
               ? undefined
               : formatColumnValueWith(targetColumn?.p50, formatNumber)
@@ -91,7 +91,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           firstSlot={formatColumnValueWith(baseColumn?.p75, formatNumber)}
           secondSlot={
             isTargetNull
-              ? emptyLabel
+              ? NO_VALUE
               : isTargetUndefined
               ? undefined
               : formatColumnValueWith(targetColumn?.p75, formatNumber)
@@ -102,7 +102,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           firstSlot={formatColumnValueWith(baseColumn?.p95, formatNumber)}
           secondSlot={
             isTargetNull
-              ? emptyLabel
+              ? NO_VALUE
               : isTargetUndefined
               ? undefined
               : formatColumnValueWith(targetColumn?.p95, formatNumber)
@@ -113,7 +113,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           firstSlot={formatColumnValueWith(baseColumn?.max, formatNumber)}
           secondSlot={
             isTargetNull
-              ? emptyLabel
+              ? NO_VALUE
               : isTargetUndefined
               ? undefined
               : formatColumnValueWith(targetColumn?.max, formatNumber)
