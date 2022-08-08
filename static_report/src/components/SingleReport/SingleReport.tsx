@@ -14,6 +14,7 @@ import { Link } from 'wouter';
 import { Main } from '../shared/Main';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { AmplitudeEvents, amplitudeTrack } from '../../utils/amplitudeEvents';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import { SRTabProfilingDetails } from './SRTabProfilingDetails';
 import { SRTabTestDetails } from './SRTabTestDetails';
@@ -25,6 +26,7 @@ interface Props {
   data: SingleReportSchema;
   name: string;
 }
+
 export default function SingleReport({ data, name }: Props) {
   const { datasource, tables } = data;
   const table = tables[name];
@@ -77,9 +79,48 @@ export default function SingleReport({ data, name }: Props) {
 
           <Tabs isLazy>
             <TabList>
-              <Tab>Profiling</Tab>
-              <Tab data-cy="sr-report-tab-item">Tests</Tab>
-              {table.dbt_assertion_result && <Tab>dbt Tests</Tab>}
+              <Tab
+                onClick={() => {
+                  amplitudeTrack({
+                    eventName: AmplitudeEvents.PAGE_VIEW,
+                    eventProperties: {
+                      type: 'single-report',
+                      tab: 'Profiling',
+                    },
+                  });
+                }}
+              >
+                Profiling
+              </Tab>
+              <Tab
+                data-cy="sr-report-tab-item"
+                onClick={() => {
+                  amplitudeTrack({
+                    eventName: AmplitudeEvents.PAGE_VIEW,
+                    eventProperties: {
+                      type: 'single-report',
+                      tab: 'Tests',
+                    },
+                  });
+                }}
+              >
+                Tests
+              </Tab>
+              {table.dbt_assertion_result && (
+                <Tab
+                  onClick={() => {
+                    amplitudeTrack({
+                      eventName: AmplitudeEvents.PAGE_VIEW,
+                      eventProperties: {
+                        type: 'single-report',
+                        tab: 'dbt Tests',
+                      },
+                    });
+                  }}
+                >
+                  dbt Tests
+                </Tab>
+              )}
             </TabList>
 
             <TabPanels>

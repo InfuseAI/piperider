@@ -5,6 +5,52 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@amplitude/analytics-browser@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@amplitude/analytics-browser@npm:1.1.2"
+  dependencies:
+    "@amplitude/analytics-connector": ^1.4.5
+    "@amplitude/analytics-core": ^0.6.4
+    "@amplitude/analytics-types": ^0.6.1
+    "@amplitude/ua-parser-js": ^0.7.31
+    tslib: ^2.3.1
+  checksum: c72badf2fd629217ef817a220f66b4060024c1be6a64b5ca761dbe7974b14862a8c96e6af0faccef8d4c0f6c2c6a28492921c7f62576f272331ef0b42660e322
+  languageName: node
+  linkType: hard
+
+"@amplitude/analytics-connector@npm:^1.4.5":
+  version: 1.4.5
+  resolution: "@amplitude/analytics-connector@npm:1.4.5"
+  dependencies:
+    "@amplitude/ua-parser-js": 0.7.31
+  checksum: 3c030167b008216bffca9411e0af80c327ec6e2c75b151566d38770abd5c7aa978372e05cebdb180b1e8b6e43753296783c62fef0a234afa26105e9c12a1aadc
+  languageName: node
+  linkType: hard
+
+"@amplitude/analytics-core@npm:^0.6.4":
+  version: 0.6.4
+  resolution: "@amplitude/analytics-core@npm:0.6.4"
+  dependencies:
+    "@amplitude/analytics-types": ^0.6.1
+    tslib: ^2.3.1
+  checksum: 7d0f3becf0dd26fc35a637e2f742e3d5c60dbe318c3394f27c0bbee294a73ee2e4e525e80740c0cc2f1dfb4d4a47aeaa788bf4d81473cba06b987973decb2cc3
+  languageName: node
+  linkType: hard
+
+"@amplitude/analytics-types@npm:^0.6.1":
+  version: 0.6.1
+  resolution: "@amplitude/analytics-types@npm:0.6.1"
+  checksum: a68f82461330b2b7d4e09177f687a3cb5c4b157055a88ba58ce206e8a2a29918c296dbac822f9e96d1821aa8b879ef8b9d263ad86cb1c18dd7176c6e10875e48
+  languageName: node
+  linkType: hard
+
+"@amplitude/ua-parser-js@npm:0.7.31, @amplitude/ua-parser-js@npm:^0.7.31":
+  version: 0.7.31
+  resolution: "@amplitude/ua-parser-js@npm:0.7.31"
+  checksum: c72e7c8656dd77a6c2ece9e3817929022aeadf731470e53fecddce03232d87977fd5b09d76c570a2a5bed97f5dd463fe6379aac7a6c4b2d2393f14486d385eec
+  languageName: node
+  linkType: hard
+
 "@ampproject/remapping@npm:^2.1.0":
   version: 2.2.0
   resolution: "@ampproject/remapping@npm:2.2.0"
@@ -13615,6 +13661,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "piperider-report@workspace:."
   dependencies:
+    "@amplitude/analytics-browser": ^1.1.2
+    "@amplitude/analytics-types": ^0.6.1
     "@babel/core": ^7.18.2
     "@chakra-ui/icons": ^2.0.1
     "@chakra-ui/react": ^2.1.2

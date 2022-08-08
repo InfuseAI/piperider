@@ -19,6 +19,7 @@ import { Main } from '../shared/Main';
 import { getComparisonAssertions } from '../../utils/assertion';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { AmplitudeEvents, amplitudeTrack } from '../../utils/amplitudeEvents';
 import { CRModal, TestDetail } from './CRModal/CRModal';
 import {
   ComparisonReportSchema,
@@ -97,10 +98,62 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
 
           <Tabs isLazy>
             <TabList>
-              <Tab>Schema</Tab>
-              <Tab data-cy="cr-report-tab-item-profiling">Profiling</Tab>
-              <Tab data-cy="cr-report-tab-item-tests">Tests</Tab>
-              {existsDbtTests && <Tab>dbt Tests</Tab>}
+              <Tab
+                onClick={() => {
+                  amplitudeTrack({
+                    eventName: AmplitudeEvents.PAGE_VIEW,
+                    eventProperties: {
+                      type: 'comparison-report',
+                      tab: 'Schema',
+                    },
+                  });
+                }}
+              >
+                Schema
+              </Tab>
+              <Tab
+                data-cy="cr-report-tab-item-profiling"
+                onClick={() => {
+                  amplitudeTrack({
+                    eventName: AmplitudeEvents.PAGE_VIEW,
+                    eventProperties: {
+                      type: 'comparison-report',
+                      tab: 'Profiling',
+                    },
+                  });
+                }}
+              >
+                Profiling
+              </Tab>
+              <Tab
+                data-cy="cr-report-tab-item-tests"
+                onClick={() => {
+                  amplitudeTrack({
+                    eventName: AmplitudeEvents.PAGE_VIEW,
+                    eventProperties: {
+                      type: 'comparison-report',
+                      tab: 'Tests',
+                    },
+                  });
+                }}
+              >
+                Tests
+              </Tab>
+              {existsDbtTests && (
+                <Tab
+                  onClick={() => {
+                    amplitudeTrack({
+                      eventName: AmplitudeEvents.PAGE_VIEW,
+                      eventProperties: {
+                        type: 'comparison-report',
+                        tab: 'dbt Tests',
+                      },
+                    });
+                  }}
+                >
+                  dbt Tests
+                </Tab>
+              )}
             </TabList>
 
             <TabPanels>
