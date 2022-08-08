@@ -18,6 +18,7 @@ import { Main } from '../shared/Main';
 import { getComparisonAssertions } from '../../utils/assertion';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useAmplitudeOnMount } from '../../hooks/useAmplitudeOnMount';
 import { AmplitudeEvents, amplitudeTrack } from '../../utils/amplitudeEvents';
 import { CRModal, TestDetail } from './CRModal/CRModal';
 import {
@@ -61,6 +62,15 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
   });
 
   useDocumentTitle(reportName);
+
+  // For calculating user stay purposes
+  useAmplitudeOnMount({
+    eventName: AmplitudeEvents.PAGE_VIEW,
+    eventProperties: {
+      type: 'comparison-report',
+      tab: 'Schema',
+    },
+  });
 
   return (
     <Main>

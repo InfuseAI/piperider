@@ -14,6 +14,7 @@ import { Link } from 'wouter';
 import { Main } from '../shared/Main';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useAmplitudeOnMount } from '../../hooks/useAmplitudeOnMount';
 import { AmplitudeEvents, amplitudeTrack } from '../../utils/amplitudeEvents';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import { SRTabProfilingDetails } from './SRTabProfilingDetails';
@@ -35,6 +36,15 @@ export default function SingleReport({ data, name }: Props) {
   zReport(dataSourceSchema.safeParse(datasource));
 
   useDocumentTitle(name);
+
+  // For calculating user stay purposes
+  useAmplitudeOnMount({
+    eventName: AmplitudeEvents.PAGE_VIEW,
+    eventProperties: {
+      type: 'single-report',
+      tab: 'Profiling',
+    },
+  });
 
   if (!data) {
     return (
