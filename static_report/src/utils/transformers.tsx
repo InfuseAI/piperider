@@ -69,26 +69,6 @@ export function transformCRStringDateHistograms({
   return result;
 }
 
-type TransSingleDistArgs = {
-  counts?: number[];
-  labels?: (string | null)[];
-};
-export function transformCRHistogram({
-  counts,
-  labels,
-}: TransSingleDistArgs): CRHistogramDatum[] | null {
-  if (!labels || !counts) return null;
-  const result = counts.map((count, idx) => {
-    return {
-      label: labels[idx],
-      base: count,
-      target: 0,
-    };
-  });
-
-  return result;
-}
-
 export function getColumnDetails(columnData: ColumnSchema) {
   const {
     nulls,
