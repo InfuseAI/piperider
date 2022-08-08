@@ -277,7 +277,6 @@ class CompareReport(object):
         console.print()
         console.print(f"Comparison report: {report_path}")
 
-        if debug:
-            # Write comparison data to file
-            with open(os.path.join(default_report_directory, 'comparison_data.json'), 'w') as f:
-                f.write(comparison_data.to_json())
+        # Write comparison data to file
+        with open(os.path.join(default_report_directory, 'comparison_data.json'), 'w') as f:
+            f.write(comparison_data.to_json())

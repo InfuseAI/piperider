@@ -6,6 +6,7 @@ import { NotFound } from './components/shared/NotFound';
 import { useHashLocation } from './hooks/useHashLcocation';
 import { SingleReportList } from './components/SingleReport/SRList';
 import { ComparisonReportList } from './components/ComparisonReport/CRList';
+import { ServeIndex } from './components/Serve/ServeIndex';
 
 import * as Sentry from '@sentry/browser';
 import { BrowserTracing } from '@sentry/tracing';
@@ -97,7 +98,19 @@ function AppComparison() {
   );
 }
 
+function AppServeIndex() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <ServeIndex data={window.PIPERIDER_SERVE_INDEX_DATA} />
+    </Suspense>
+  );
+}
+
 function App() {
+  if (process.env.REACT_APP_SERVE_INDEX === 'true') {
+    return <AppServeIndex />;
+  }
+
   if (process.env.REACT_APP_SINGLE_REPORT === 'true') {
     return <AppSingle />;
   } else {

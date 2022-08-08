@@ -37,6 +37,9 @@ setup(name='piperider',
           'portalocker',
           'requests',
           'deepmerge',
+          'Flask<3',
+          'gunicorn<21; platform_system != "Windows"',
+          'waitress<3; platform_system == "Windows"',
       ],
       extras_require={
           'snowflake': [
