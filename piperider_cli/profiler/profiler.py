@@ -590,6 +590,12 @@ class NumericColumnProfiler(BaseColumnProfiler):
                     'p75': ntile(75),
                     'p95': ntile(95),
                 }
+        elif self._get_database_backend() == 'bigquery':
+            # BigQuery does not support WITHIN, change to use over
+            #   Ref: https://github.com/great-expectations/great_expectations/blob/develop/great_expectations/dataset/sqlalchemy_dataset.py#L1019:9
+            selects = [
+                func.percentile_disc(column, percentile).over() for percentile in [0.05, 0.25, 0.5, 0.75, 0.95]
+            ]
         else:
             # https://docs.sqlalchemy.org/en/14/core/functions.html#sqlalchemy.sql.functions.percentile_disc
             #
@@ -603,15 +609,16 @@ class NumericColumnProfiler(BaseColumnProfiler):
             selects = [
                 func.percentile_disc(percentile).within_group(column) for percentile in [0.05, 0.25, 0.5, 0.75, 0.95]
             ]
-            stmt = select(selects).select_from(table)
-            result = conn.execute(stmt).fetchone()
-            return {
-                'p5': dtof(result[0]),
-                'p25': dtof(result[1]),
-                'p50': dtof(result[2]),
-                'p75': dtof(result[3]),
-                'p95': dtof(result[4]),
-            }
+
+        stmt = select(selects).select_from(table)
+        result = conn.execute(stmt).fetchone()
+        return {
+            'p5': dtof(result[0]),
+            'p25': dtof(result[1]),
+            'p50': dtof(result[2]),
+            'p75': dtof(result[3]),
+            'p95': dtof(result[4]),
+        }
 
     def _profile_histogram(
         self,
