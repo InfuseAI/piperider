@@ -120,7 +120,7 @@ def ensure_directory_writable(directory):
             return False
 
 
-def raise_exception_when_output_directory_not_writable(output):
+def raise_exception_when_directory_not_writable(output):
     if output:
         if not ensure_directory_writable(output):
             raise Exception(f'The path "{output}" is not writable')

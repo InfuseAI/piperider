@@ -6,12 +6,10 @@ import shutil
 from rich.console import Console
 
 from piperider_cli import __version__, sentry_dns, sentry_env, event
-from piperider_cli import clone_directory, raise_exception_when_output_directory_not_writable
+from piperider_cli import clone_directory, raise_exception_when_directory_not_writable
 from piperider_cli.configuration import Configuration
-from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 from piperider_cli.error import PipeRiderNoProfilingResultError
-
-PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
+from piperider_cli.filesystem import FileSystem
 
 
 def prepare_piperider_metadata():
@@ -65,7 +63,7 @@ def _generate_static_html(result, html, output_path):
         f.write(html)
 
 
-def _get_run_json_path(input=None):
+def _get_run_json_path(filesystem: FileSystem, input=None):
     console = Console()
     run_json = None
     if input:
@@ -77,24 +75,27 @@ def _get_run_json_path(input=None):
         else:
             run_json = input
     else:
-        latest = os.path.join(PIPERIDER_OUTPUT_PATH, 'latest')
+        latest = os.path.join(filesystem.get_output_dir(), 'latest')
         run_json = os.path.join(latest, 'run.json')
     return run_json
 
 
-class GenerateReport():
+class GenerateReport:
     @staticmethod
-    def exec(input=None, output=None):
+    def exec(input=None, report_dir=None, output=None):
+        filesystem = FileSystem(report_dir=report_dir)
+        raise_exception_when_directory_not_writable(output)
+
         console = Console()
-        raise_exception_when_output_directory_not_writable(output)
 
         from piperider_cli import data
         report_template_dir = os.path.join(os.path.dirname(data.__file__), 'report', 'single-report')
         with open(os.path.join(report_template_dir, 'index.html')) as f:
             report_template_html = f.read()
 
-        run_json_path = _get_run_json_path(input)
+        run_json_path = _get_run_json_path(filesystem, input)
         if not os.path.isfile(run_json_path):
+            print(os.path.abspath(run_json_path))
             raise PipeRiderNoProfilingResultError(run_json_path)
 
         with open(run_json_path) as f:

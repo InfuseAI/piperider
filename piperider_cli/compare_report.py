@@ -8,8 +8,8 @@ from rich.console import Console
 
 import piperider_cli.hack.inquirer as inquirer_hack
 from piperider_cli import datetime_to_str, str_to_datetime, clone_directory, \
-    raise_exception_when_output_directory_not_writable
-from piperider_cli.configuration import PIPERIDER_OUTPUT_PATH, PIPERIDER_COMPARISON_PATH
+    raise_exception_when_directory_not_writable
+from piperider_cli.filesystem import FileSystem
 from piperider_cli.generate_report import setup_report_variables
 
 
@@ -89,9 +89,9 @@ class ComparisonData(object):
         return json.dumps(output)
 
 
-def prepare_default_output_path(created_at):
-    latest_symlink_path = os.path.join(PIPERIDER_COMPARISON_PATH, 'latest')
-    comparison_path = os.path.join(PIPERIDER_COMPARISON_PATH, created_at)
+def prepare_default_output_path(comparison_dir: str, created_at):
+    latest_symlink_path = os.path.join(comparison_dir, 'latest')
+    comparison_path = os.path.join(comparison_dir, created_at)
 
     if not os.path.exists(comparison_path):
         os.makedirs(comparison_path, exist_ok=True)
@@ -242,11 +242,13 @@ class CompareReport(object):
         return ComparisonData(self.a.load(), self.b.load())
 
     @staticmethod
-    def exec(*, a=None, b=None, last=None, datasource=None, output=None, debug=False):
+    def exec(*, a=None, b=None, last=None, datasource=None, report_dir=None, output=None, debug=False):
         console = Console()
-        raise_exception_when_output_directory_not_writable(output)
 
-        report = CompareReport(PIPERIDER_OUTPUT_PATH, a, b, datasource=datasource)
+        filesystem = FileSystem(report_dir=report_dir)
+        raise_exception_when_directory_not_writable(output)
+
+        report = CompareReport(filesystem.get_output_dir(), a, b, datasource=datasource)
         if not report.select_reports(use_last_two=last):
             raise Exception('No valid reports found')
         comparison_data = report.generate_data()
@@ -264,9 +266,9 @@ class CompareReport(object):
                 f.write(html)
 
         data_id = comparison_data.id()
-        default_report_directory = prepare_default_output_path(data_id)
+        default_report_directory = prepare_default_output_path(filesystem.get_comparison_dir(), data_id)
         output_report(default_report_directory)
-        report_path = os.path.join(PIPERIDER_COMPARISON_PATH, 'latest', 'index.html')
+        report_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'index.html')
 
         if output:
             clone_directory(default_report_directory, output)
