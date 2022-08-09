@@ -89,6 +89,25 @@ class ComparisonData(object):
         return json.dumps(output)
 
 
+def prepare_default_output_path(created_at):
+    latest_symlink_path = os.path.join(PIPERIDER_COMPARISON_PATH, 'latest')
+    comparison_path = os.path.join(PIPERIDER_COMPARISON_PATH, created_at)
+
+    if not os.path.exists(comparison_path):
+        os.makedirs(comparison_path, exist_ok=True)
+
+    # Create a symlink pointing to the latest comparison directory
+    if os.path.islink(latest_symlink_path):
+        os.unlink(latest_symlink_path)
+    if not os.path.exists(latest_symlink_path):
+        os.symlink(comparison_path, latest_symlink_path)
+    else:
+        console = Console()
+        console.print(f'[bold yellow]Warning: {latest_symlink_path} already exists[/bold yellow]')
+
+    return comparison_path
+
+
 class CompareReport(object):
     def __init__(self, profiler_output_path, a=None, b=None, datasource=None):
         self.profiler_output_path = profiler_output_path
@@ -244,18 +263,17 @@ class CompareReport(object):
                 html = setup_report_variables(report_template_html, False, comparison_data.to_json())
                 f.write(html)
 
-            return filename
-
         data_id = comparison_data.id()
-        default_report_directory = os.path.join(PIPERIDER_COMPARISON_PATH, data_id)
-        filename = output_report(default_report_directory)
+        default_report_directory = prepare_default_output_path(data_id)
+        output_report(default_report_directory)
+        report_path = os.path.join(PIPERIDER_COMPARISON_PATH, 'latest', 'index.html')
 
         if output:
             clone_directory(default_report_directory, output)
-            filename = os.path.join(output, 'index.html')
+            report_path = os.path.join(output, 'index.html')
 
         console.print()
-        console.print(f"Comparison report: {filename}")
+        console.print(f"Comparison report: {report_path}")
 
         if debug:
             # Write comparison data to file
