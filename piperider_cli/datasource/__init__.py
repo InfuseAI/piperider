@@ -107,13 +107,14 @@ class DataSource(metaclass=ABCMeta):
         answers = inquirer.prompt(questions, raise_keyboard_interrupt=True)
         if answers:
             for f in self.fields:
-                self.credential[f.name] = answers[f.name].strip()
+                self.credential[f.name] = answers[f.name].strip() if answers[f.name] else None
         return self.credential
 
     def ask_credential_by_rich(self):
+
         for f in self.fields:
-            answer = f.question_by_rich()
-            self.credential[f.name] = answer.strip()
+            answer = f.question_by_rich(self.credential)
+            self.credential[f.name] = answer.strip() if answer else None
         return self.credential
 
     @staticmethod
@@ -181,7 +182,13 @@ def _list_datasource_providers():
     from .snowflake import SnowflakeDataSource
     from .postgres import PostgresDataSource
     from .sqlite import SqliteDataSource
-    return dict(snowflake=SnowflakeDataSource, postgres=PostgresDataSource, sqlite=SqliteDataSource)
+    from .bigquery import BigQueryDataSource
+    return dict(
+        snowflake=SnowflakeDataSource,
+        bigquery=BigQueryDataSource,
+        postgres=PostgresDataSource,
+        sqlite=SqliteDataSource,
+    )
 
 
 DATASOURCE_PROVIDERS = _list_datasource_providers()

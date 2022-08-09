@@ -46,6 +46,11 @@ setup(name='piperider',
               # you need a postgres for m1 to install psycopg2
               'psycopg2-binary'
           ],
+          'bigquery': [
+              'pyarrow',
+              'pybigquery',
+              'google-cloud-bigquery-storage'
+          ],
           'dev': [
               'pytest>=4.6',
               'pytest-flake8',
