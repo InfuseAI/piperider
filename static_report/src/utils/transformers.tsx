@@ -36,25 +36,25 @@ export type CRHistogramDatum = {
 };
 // for `type` equal to string, datetime
 export function transformCRStringDateHistograms({
-  base: baseDistribution,
-  target: targetDistribution,
+  base: baseHistogram,
+  target: targetHistogram,
 }: CRTargetData<Histogram>): CRHistogramDatum[] | null {
   // groupby base/target of a found label
   const mapIdxLookup = new Map<string, number>();
-  if (!baseDistribution || !targetDistribution) return null;
+  if (!baseHistogram || !targetHistogram) return null;
 
-  const initial = baseDistribution.labels.map((label, idx) => {
+  const initial = baseHistogram.labels.map((label, idx) => {
     mapIdxLookup.set(label || String(idx), idx);
     return {
       label,
-      base: baseDistribution.counts[idx],
+      base: baseHistogram.counts[idx],
       target: 0,
     };
   });
-  const result = targetDistribution.labels.reduce((accum, label, idx) => {
+  const result = targetHistogram.labels.reduce((accum, label, idx) => {
     const key = label || String(idx);
     const hasLabel = mapIdxLookup.has(key);
-    const count = targetDistribution.counts[idx];
+    const count = targetHistogram.counts[idx];
 
     if (hasLabel) {
       const lookupIdx = mapIdxLookup.get(key) as number;
@@ -65,24 +65,6 @@ export function transformCRStringDateHistograms({
     const newLabelItem = { label, base: 0, target: count };
     return [...accum, newLabelItem];
   }, initial);
-
-  return result;
-}
-
-type TransSingleDistArgs = {
-  baseCounts?: number[];
-  baseLabels?: (string | null)[];
-};
-export function transformBaseHistogram({
-  baseCounts,
-  baseLabels,
-}: TransSingleDistArgs): CRHistogramDatum[] | null {
-  if (!baseLabels || !baseCounts) return null;
-  const result = baseCounts.map((count, idx) => ({
-    label: baseLabels[idx],
-    base: count,
-    target: 0,
-  }));
 
   return result;
 }
@@ -139,8 +121,9 @@ export function checkColumnCategorical(columnDatum: ColumnSchema): boolean {
 }
 
 export function getColumnTypeChartData(
-  columnDatum: ColumnSchema,
+  columnDatum?: ColumnSchema,
 ): BarChartDatum[] | undefined {
+  if (!columnDatum) return;
   const { topk, histogram, trues, falses, type, total } = columnDatum;
   const isCategorical = checkColumnCategorical(columnDatum);
   const isBoolean = type === 'boolean';

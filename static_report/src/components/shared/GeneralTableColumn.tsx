@@ -75,7 +75,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         }
       />
       <MetricsInfo
-        name="Mismatched"
+        name="Invalid"
         firstSlot={formatColumnValueWith(
           targetColumn ? baseInvalidsOfTotal : baseInvalids,
           targetColumn ? formatIntervalMinMax : formatNumber,
@@ -106,7 +106,10 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       />
       <MetricsInfo
         name="Distinct"
-        firstSlot={formatColumnValueWith(baseColumn?.distinct, formatNumber)}
+        firstSlot={formatColumnValueWith(
+          baseDistinctOfTotal,
+          formatIntervalMinMax,
+        )}
         secondSlot={
           isTargetNull
             ? NO_VALUE
