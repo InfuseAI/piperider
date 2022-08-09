@@ -19,7 +19,7 @@ import { getComparisonAssertions } from '../../utils/assertion';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAmplitudeOnMount } from '../../hooks/useAmplitudeOnMount';
-import { AmplitudeEvents, amplitudeTrack } from '../../utils/amplitudeEvents';
+import { AMPLITUDE_EVENTS, amplitudeTrack } from '../../utils/amplitudeEvents';
 import { CRModal, TestDetail } from './CRModal/CRModal';
 import {
   ComparisonReportSchema,
@@ -65,7 +65,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
 
   // For calculating user stay purposes
   useAmplitudeOnMount({
-    eventName: AmplitudeEvents.PAGE_VIEW,
+    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {
       type: 'comparison-report',
       tab: 'Schema',
@@ -108,7 +108,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
               <Tab
                 onClick={() => {
                   amplitudeTrack({
-                    eventName: AmplitudeEvents.PAGE_VIEW,
+                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
                     eventProperties: {
                       type: 'comparison-report',
                       tab: 'Schema',
@@ -122,7 +122,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
                 data-cy="cr-report-tab-item-profiling"
                 onClick={() => {
                   amplitudeTrack({
-                    eventName: AmplitudeEvents.PAGE_VIEW,
+                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
                     eventProperties: {
                       type: 'comparison-report',
                       tab: 'Profiling',
@@ -136,7 +136,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
                 data-cy="cr-report-tab-item-tests"
                 onClick={() => {
                   amplitudeTrack({
-                    eventName: AmplitudeEvents.PAGE_VIEW,
+                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
                     eventProperties: {
                       type: 'comparison-report',
                       tab: 'Tests',
@@ -150,7 +150,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
                 <Tab
                   onClick={() => {
                     amplitudeTrack({
-                      eventName: AmplitudeEvents.PAGE_VIEW,
+                      eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
                       eventProperties: {
                         type: 'comparison-report',
                         tab: 'dbt Tests',

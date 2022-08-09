@@ -15,7 +15,7 @@ import { Main } from '../shared/Main';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAmplitudeOnMount } from '../../hooks/useAmplitudeOnMount';
-import { AmplitudeEvents, amplitudeTrack } from '../../utils/amplitudeEvents';
+import { AMPLITUDE_EVENTS, amplitudeTrack } from '../../utils/amplitudeEvents';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import { SRTabProfilingDetails } from './SRTabProfilingDetails';
 import { SRTabTestDetails } from './SRTabTestDetails';
@@ -39,7 +39,7 @@ export default function SingleReport({ data, name }: Props) {
 
   // For calculating user stay purposes
   useAmplitudeOnMount({
-    eventName: AmplitudeEvents.PAGE_VIEW,
+    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {
       type: 'single-report',
       tab: 'Profiling',
@@ -92,7 +92,7 @@ export default function SingleReport({ data, name }: Props) {
               <Tab
                 onClick={() => {
                   amplitudeTrack({
-                    eventName: AmplitudeEvents.PAGE_VIEW,
+                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
                     eventProperties: {
                       type: 'single-report',
                       tab: 'Profiling',
@@ -106,7 +106,7 @@ export default function SingleReport({ data, name }: Props) {
                 data-cy="sr-report-tab-item"
                 onClick={() => {
                   amplitudeTrack({
-                    eventName: AmplitudeEvents.PAGE_VIEW,
+                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
                     eventProperties: {
                       type: 'single-report',
                       tab: 'Tests',
@@ -120,7 +120,7 @@ export default function SingleReport({ data, name }: Props) {
                 <Tab
                   onClick={() => {
                     amplitudeTrack({
-                      eventName: AmplitudeEvents.PAGE_VIEW,
+                      eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
                       eventProperties: {
                         type: 'single-report',
                         tab: 'dbt Tests',

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 
-import { AmplitudeTrack, amplitudeTrack } from '../utils/amplitudeEvents';
+import { AmplitudeTrackEvent, amplitudeTrack } from '../utils/amplitudeEvents';
 
-export function useAmplitudeOnMount(event: AmplitudeTrack) {
+export function useAmplitudeOnMount(event: AmplitudeTrackEvent) {
   useEffect(() => {
     amplitudeTrack({ ...event });
     // eslint-disable-next-line react-hooks/exhaustive-deps
