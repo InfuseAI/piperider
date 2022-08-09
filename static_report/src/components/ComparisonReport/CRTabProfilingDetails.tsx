@@ -95,8 +95,7 @@ function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
           my={4}
           templateColumns={`1fr ${combinedData ? '' : '1fr'}`}
           gap={combinedData ? 0 : 12}
-          className="foobarbaz"
-          overflowX={'clip'}
+          overflowX={'hidden'}
         >
           {combinedData ? (
             <CRBarChart data={combinedData} />
