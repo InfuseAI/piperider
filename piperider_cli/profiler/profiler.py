@@ -6,12 +6,13 @@ from typing import Union, List, Tuple
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, select, func, \
-    distinct, case
+    distinct, case, text
+from sqlalchemy.engine import Engine, Connection
 from sqlalchemy.sql import FromClause
 from sqlalchemy.sql.elements import ColumnClause
 from sqlalchemy.sql.expression import CTE, false, true
 from sqlalchemy.types import Float
-from sqlalchemy.engine import Engine, Connection
+
 from .event import ProfilerEventHandler, DefaultProfilerEventHandler
 
 HISTOGRAM_NUM_BUCKET = 50
@@ -824,6 +825,10 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                     return func.strftime("%Y-%m-01", args[1])
                 else:
                     return func.strftime("%Y-%m-%d", args[1])
+            elif self._get_database_backend() == 'bigquery':
+                date_expression = args[1]
+                date_part = args[0]
+                return func.date_trunc(date_expression, text(date_part))
             else:
                 return func.date_trunc(*args)
 
