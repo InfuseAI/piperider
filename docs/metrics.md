@@ -27,7 +27,7 @@ Describe the composition of the data in one column.
 | Missing count | The count of null values. | All types | `nulls` | 0.6.0 |
 | Non null count | The count of non-null values. | All types | `non_nulls` |  |
 | Invalid count | The count of values that does not match the schema type. For example, a string in a numeric column. It only happen in sqlite | All types | `invalids` | 0.6.0 |
-| Valid count | The count of non-null and not invalid values | All types | `valids` | 0.6.0 |
+| Valid count | The count of non-null minus invalid values | All types | `valids` | 0.6.0 |
 | Zero count | The count of zero values | integer, numeric | `zeros` | 0.6.0 |
 | Negative value count | The count of negative values | integer, numeric | `negatives` | 0.6.0 |
 | Positive value count | The count of positive values | integer, numeric | `positives` | 0.6.0 |
