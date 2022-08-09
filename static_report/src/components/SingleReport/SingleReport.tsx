@@ -14,7 +14,8 @@ import { Link } from 'wouter';
 import { Main } from '../shared/Main';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { AmplitudeEvents, amplitudeTrack } from '../../utils/amplitudeEvents';
+import { useAmplitudeOnMount } from '../../hooks/useAmplitudeOnMount';
+import { AMPLITUDE_EVENTS, amplitudeTrack } from '../../utils/amplitudeEvents';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import { SRTabProfilingDetails } from './SRTabProfilingDetails';
 import { SRTabTestDetails } from './SRTabTestDetails';
@@ -35,6 +36,15 @@ export default function SingleReport({ data, name }: Props) {
   zReport(dataSourceSchema.safeParse(datasource));
 
   useDocumentTitle(name);
+
+  // For calculating user stay purposes
+  useAmplitudeOnMount({
+    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+    eventProperties: {
+      type: 'single-report',
+      tab: 'Profiling',
+    },
+  });
 
   if (!data) {
     return (
@@ -82,7 +92,7 @@ export default function SingleReport({ data, name }: Props) {
               <Tab
                 onClick={() => {
                   amplitudeTrack({
-                    eventName: AmplitudeEvents.PAGE_VIEW,
+                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
                     eventProperties: {
                       type: 'single-report',
                       tab: 'Profiling',
@@ -96,7 +106,7 @@ export default function SingleReport({ data, name }: Props) {
                 data-cy="sr-report-tab-item"
                 onClick={() => {
                   amplitudeTrack({
-                    eventName: AmplitudeEvents.PAGE_VIEW,
+                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
                     eventProperties: {
                       type: 'single-report',
                       tab: 'Tests',
@@ -110,7 +120,7 @@ export default function SingleReport({ data, name }: Props) {
                 <Tab
                   onClick={() => {
                     amplitudeTrack({
-                      eventName: AmplitudeEvents.PAGE_VIEW,
+                      eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
                       eventProperties: {
                         type: 'single-report',
                         tab: 'dbt Tests',

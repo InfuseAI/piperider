@@ -1,11 +1,11 @@
 import { track } from '@amplitude/analytics-browser';
 import type { EventOptions } from '@amplitude/analytics-types';
 
-export const AmplitudeEvents = {
+export const AMPLITUDE_EVENTS = {
   PAGE_VIEW: 'Page View',
 };
 
-export type AmplitudeTrack = {
+export type AmplitudeTrackEvent = {
   eventName: string;
   eventProperties?: Record<string, unknown>;
   eventOptions?: EventOptions;
@@ -15,7 +15,7 @@ export function amplitudeTrack({
   eventName,
   eventProperties,
   eventOptions,
-}: AmplitudeTrack) {
+}: AmplitudeTrackEvent) {
   const API_KEY = window.PIPERIDER_METADATA.amplitude_api_key;
 
   if (!API_KEY) {
