@@ -64,7 +64,7 @@ class Collector:
         # replace the user id with project_id to avoid so many unique user id
         user_id = self._user_id
         if self._manual is False:
-            user_id = prop.get('project_id', self._user_id)
+            user_id = f"{prop.get('project_id', self._user_id)}_CI"
 
         event = dict(
             user_id=user_id,
