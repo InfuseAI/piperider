@@ -147,6 +147,7 @@ def diagnose(**kwargs):
 @click.option('--skip-recommend', is_flag=True, help='Skip recommending assertions.')
 @click.option('--dbt-test', is_flag=True, help='Run dbt test.')
 @click.option('--dbt-build', is_flag=True, help='Run dbt build.')
+@click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @add_options(debug_option)
 def run(**kwargs):
     'Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
@@ -165,27 +166,30 @@ def run(**kwargs):
                       interaction=not kwargs.get('no_interaction'),
                       skip_report=skip_report,
                       skip_recommend=skip_recommend,
-                      dbt_command=dbt_command)
+                      dbt_command=dbt_command,
+                      report_dir=kwargs.get('report_dir'))
     if not skip_report and ret == 0:
-        GenerateReport.exec(None, output)
+        GenerateReport.exec(None, kwargs.get('report_dir'), output)
 
 
 @cli.command(short_help='Generate recommended assertions.', cls=TrackCommand)
 @click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
+@click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @add_options(debug_option)
 def generate_assertions(**kwargs):
     'Generate recommended assertions based on the latest result. By default, the profiling result will be loaded from ".piperider/outputs".'
     input = kwargs.get('input')
-    AssertionGenerator.exec(input=input)
+    AssertionGenerator.exec(input=input, report_dir=kwargs.get('report_dir'))
 
 
 @cli.command(short_help='Generate a report.', cls=TrackCommand)
 @click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
+@click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @add_options(debug_option)
 def generate_report(**kwargs):
     'Generate a report from the latest raw result or specified result. By default, the raw results are saved in ".piperider/outputs".'
-    GenerateReport.exec(input=kwargs.get('input'), output=kwargs.get('output'))
+    GenerateReport.exec(input=kwargs.get('input'), report_dir=kwargs.get('report_dir'), output=kwargs.get('output'))
 
 
 @cli.command(short_help='Compare two existing reports.', cls=TrackCommand)
@@ -195,6 +199,7 @@ def generate_report(**kwargs):
 @click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
               help='Specify the datasource.')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
+@click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @add_options(debug_option)
 def compare_reports(**kwargs):
     'Compare two existing reports selected in interactive mode or by option.'
@@ -203,5 +208,6 @@ def compare_reports(**kwargs):
     b = kwargs.get('target')
     last = kwargs.get('last')
     datasource = kwargs.get('datasource')
-    CompareReport.exec(a=a, b=b, last=last, datasource=datasource, output=kwargs.get('output'),
+    CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
+                       report_dir=kwargs.get('report_dir'), output=kwargs.get('output'),
                        debug=kwargs.get('debug', False))

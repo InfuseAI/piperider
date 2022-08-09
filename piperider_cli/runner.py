@@ -14,14 +14,15 @@ from rich.table import Table
 from sqlalchemy import create_engine, inspect
 
 from piperider_cli import convert_to_tzlocal, datetime_to_str, clone_directory, \
-    raise_exception_when_output_directory_not_writable
+    raise_exception_when_directory_not_writable
 from piperider_cli import event
 from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
-from piperider_cli.configuration import Configuration, PIPERIDER_OUTPUT_PATH
+from piperider_cli.configuration import Configuration
 from piperider_cli.datasource import DataSource
 from piperider_cli.error import PipeRiderCredentialError
+from piperider_cli.filesystem import FileSystem
 from piperider_cli.profiler import Profiler, ProfilerEventHandler
 
 
@@ -411,9 +412,9 @@ def _get_table_list(table, default_schema, dbt_adapter):
     return tables
 
 
-def prepare_default_output_path(created_at, ds):
-    latest_symlink_path = os.path.join(PIPERIDER_OUTPUT_PATH, 'latest')
-    output_path = os.path.join(PIPERIDER_OUTPUT_PATH,
+def prepare_default_output_path(filesytem: FileSystem, created_at, ds):
+    latest_symlink_path = os.path.join(filesytem.get_output_dir(), 'latest')
+    output_path = os.path.join(filesytem.get_output_dir(),
                                f"{ds.name}-{convert_to_tzlocal(created_at).strftime('%Y%m%d%H%M%S')}")
 
     if not os.path.exists(output_path):
@@ -511,11 +512,13 @@ def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_resu
 class Runner():
     @staticmethod
     def exec(datasource=None, table=None, output=None, interaction=True, skip_report=False, dbt_command='',
-             skip_recommend=False):
+             skip_recommend=False, report_dir: str = None):
         console = Console()
-        raise_exception_when_output_directory_not_writable(output)
+
+        raise_exception_when_directory_not_writable(output)
 
         configuration = Configuration.load()
+        filesytem = FileSystem(report_dir=report_dir)
         datasources = {}
         datasource_names = []
         for ds in configuration.dataSources:
@@ -582,7 +585,7 @@ class Runner():
         except Exception as e:
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
-        output_path = prepare_default_output_path(created_at, ds)
+        output_path = prepare_default_output_path(filesytem, created_at, ds)
 
         # output profiling result
         with open(os.path.join(output_path, ".profiler.json"), "w") as f:

@@ -18,9 +18,6 @@ from piperider_cli.error import \
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
 PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'credentials.yml')
-PIPERIDER_OUTPUT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
-PIPERIDER_REPORT_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'reports')
-PIPERIDER_COMPARISON_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'comparisons')
 
 # ref: https://docs.getdbt.com/dbt-cli/configure-your-profile
 DBT_PROFILES_DIR_DEFAULT = '~/.dbt/'
@@ -30,7 +27,7 @@ DBT_PROFILE_FILE = 'profiles.yml'
 class Configuration(object):
     """
     Configuration represents the config file in the piperider project
-    at $PROJECT_ROOT./piperider/config.yml
+    at $PROJECT_ROOT/.piperider/config.yml
     """
 
     def __init__(self, dataSources: List[DataSource], **kwargs):
@@ -38,6 +35,14 @@ class Configuration(object):
         self.telemetry_id = kwargs.get('telemetry_id', None)
         if self.telemetry_id is None:
             self.telemetry_id = uuid.uuid4().hex
+        self.report_dir = self._to_report_dir(kwargs.get('report_dir', '.'))
+
+    def _to_report_dir(self, dirname: str):
+        if dirname is None or dirname.strip() == '':
+            dirname = '.'
+        if dirname.startswith('.'):
+            return os.path.abspath(os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, dirname))
+        return os.path.abspath(dirname)
 
     def get_telemetry_id(self):
         return self.telemetry_id
@@ -145,6 +150,7 @@ class Configuration(object):
         return cls(
             dataSources=data_sources,
             telemetry_id=config.get('telemetry', {}).get('id'),
+            report_dir=config.get('report_dir', '.')
         )
 
     def dump(self, path):
