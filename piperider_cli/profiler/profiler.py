@@ -272,10 +272,9 @@ class BaseColumnProfiler:
             stmt = select([
                 func.count().label("_total"),
                 func.count(cte.c.c).label("_non_nulls"),
-                func.count(distinct(cte.c.c)).label("_distinct")
             ])
             result = conn.execute(stmt).fetchone()
-            _total, _non_nulls, _distinct = result
+            _total, _non_nulls, = result
 
             return {
                 'total': _total,
@@ -283,7 +282,6 @@ class BaseColumnProfiler:
                 'nulls': _total - _non_nulls,
                 'valids': _non_nulls,
                 'invalids': 0,
-                'distinct': _distinct,
                 'distribution': None,
             }
 
