@@ -5,7 +5,7 @@ from datetime import datetime, date
 from typing import Union, List, Tuple
 
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, select, func, \
+from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, ARRAY, select, func, \
     distinct, case, text
 from sqlalchemy.engine import Engine, Connection
 from sqlalchemy.sql import FromClause
@@ -123,9 +123,23 @@ class Profiler:
 
         return result
 
+    def _drop_unsupported_columns(self, table: Table):
+        array_columns = []
+        candidate_columns = []
+
+        for column in table.columns:
+            if isinstance(column.type, ARRAY):
+                array_columns.append(column.name + '.')
+            if any(column.name.startswith(bypass_column) for bypass_column in array_columns):
+                # Skip columns under an array
+                continue
+            candidate_columns.append(column)
+        return candidate_columns
+
     def _profile_table(self, table: Table) -> dict:
+        candidate_columns = self._drop_unsupported_columns(table)
         col_index = 0
-        col_count = len(table.columns)
+        col_count = len(candidate_columns)
         columns = {}
         result = {
             "name": table.name,
@@ -150,7 +164,7 @@ class Profiler:
         self.event_handler.handle_table_progress(result, col_count, col_index)
 
         # Profile columns
-        for column in table.columns:
+        for column in candidate_columns:
             columns[column.name] = self._profile_column(table, column)
             col_index = col_index + 1
             self.event_handler.handle_table_progress(result, col_count, col_index)
