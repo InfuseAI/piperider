@@ -161,10 +161,11 @@ export function Sidebar() {
               </FormControl>
 
               <FormControl>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Email (optional)</FormLabel>
                 <Input
                   type="email"
                   value={userEmail}
+                  placeholder="Email address (optional)"
                   onChange={(event) => {
                     setUserEmail(event.target.value);
                   }}
