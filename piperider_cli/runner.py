@@ -585,12 +585,6 @@ class Runner():
         except Exception as e:
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
-        output_path = prepare_default_output_path(filesytem, created_at, ds)
-
-        # output profiling result
-        with open(os.path.join(output_path, ".profiler.json"), "w") as f:
-            f.write(json.dumps(profile_result))
-
         # TODO stop here if tests was not needed.
         assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
                                                                       profile_result, created_at, skip_recommend)
@@ -617,6 +611,7 @@ class Runner():
                     continue
                 profile_result['tables'][k]['dbt_assertion_result'] = v
 
+        output_path = prepare_default_output_path(filesytem, created_at, ds)
         output_file = os.path.join(output_path, 'run.json')
         for t in profile_result['tables']:
             profile_result['tables'][t]['piperider_assertion_result'] = _transform_assertion_result(t,
