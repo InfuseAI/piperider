@@ -18,7 +18,7 @@ class BigQueryDataSource(DataSource):
                       default=['google-application-credential', 'service-account-keyfile']),
             PathField('keyfile', description='The path of GCP Service Account Key File',
                       default=DEFAULT_GCP_CREDENTIALS if os.path.exists(DEFAULT_GCP_CREDENTIALS) else None,
-                      ignore=lambda answers: 'service-account-keyfile' is not answers['method']),
+                      ignore=lambda answers: 'service-account-keyfile' != answers['method']),
             TextField('dataset', description='The name of BigQuery DataSet'),
         ]
 
