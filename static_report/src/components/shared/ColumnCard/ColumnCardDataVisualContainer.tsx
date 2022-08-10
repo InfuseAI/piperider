@@ -15,22 +15,22 @@ import { ReactNode } from 'react';
 /**
  * Container to display one chart.
  * Children clickable for showing modal popup zoom of chart
- * FIXME: clear all tooltips upon onCLose event
  */
 type Props = { children: ReactNode; title: string; allowModalPopup?: boolean };
-export const ColumnCardDataVisualContainer: React.FC<Props> = ({
+export function ColumnCardDataVisualContainer({
   title,
   children,
   allowModalPopup,
-}) => {
+}: Props) {
   const { onOpen, isOpen, onClose } = useDisclosure();
   return (
     <>
       <Flex
-        px={12}
-        py={9}
+        px={6}
+        py={6}
         my={3}
         mx={3}
+        height={'300px'}
         maxHeight={'300px'}
         bg={'whiteAlpha.700'}
         rounded={'md'}
@@ -38,7 +38,7 @@ export const ColumnCardDataVisualContainer: React.FC<Props> = ({
       >
         {children}
       </Flex>
-      <Modal size={'4xl'} isOpen={isOpen} onClose={onClose}>
+      <Modal size={'full'} isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent p={12}>
           <ModalHeader>{title}</ModalHeader>
@@ -56,4 +56,4 @@ export const ColumnCardDataVisualContainer: React.FC<Props> = ({
       </Modal>
     </>
   );
-};
+}

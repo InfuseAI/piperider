@@ -207,7 +207,7 @@ export function formatAsAbbreviatedNumber(input: number | string) {
     // format as unlabeled (1 to 999)
     else if (isOnesTensHundreds)
       return new Intl.NumberFormat('en-US', {
-        maximumFractionDigits: 0,
+        maximumFractionDigits: 1,
       }).format(input);
     // format as fractionals (< 1)
     else
