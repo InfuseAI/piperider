@@ -14,6 +14,7 @@ import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { Link } from 'wouter';
 
 import { Main } from '../shared/Main';
+import { AccordionOverview } from '../shared/AccordionOverview';
 import { ToggleList, type ToggleListView } from '../shared/ToggleList';
 import { SRTooltip } from './SRTooltip';
 import {
@@ -55,7 +56,9 @@ export function SingleReportList({ data }: Props) {
         toggleView={(nextView) => setView(nextView)}
       />
 
-      <Flex
+      <AccordionOverview tables={tables} />
+
+      {/* <Flex
         direction="column"
         border="1px solid"
         borderColor="gray.300"
@@ -166,7 +169,7 @@ export function SingleReportList({ data }: Props) {
             </Tbody>
           </Table>
         </TableContainer>
-      </Flex>
+      </Flex> */}
     </Main>
   );
 }
