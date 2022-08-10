@@ -13,6 +13,7 @@ import { formatAsAbbreviatedNumber } from '../../../utils/formatters';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 // TODO: Replace SRBarChart (gradually)
+// FIXME: Tooltip hover mode should trigger selected bar as 'Active'
 
 /**
  * Histogram Chart that can display generic data types such as Numeric, Datetime, Integer
@@ -38,7 +39,7 @@ export function HistogramChartSimple({ data }: Props) {
         intersect: false,
         callbacks: {
           title([{ dataIndex }]) {
-            const result = getDisplayedBinItem(bin_edges, dataIndex);
+            const result = formatDisplayedBinItem(bin_edges, dataIndex);
 
             return result;
           },
@@ -56,7 +57,7 @@ export function HistogramChartSimple({ data }: Props) {
           callback: function (val, index, ticks) {
             // val is an chartjs indexObject, not actual index's value; thus using original bin_edges
             if (index === ticks.length) return null;
-            const result = getDisplayedBinItem(bin_edges, index);
+            const result = formatDisplayedBinItem(bin_edges, index);
 
             const isStartOrEnd = index === 0 || index === ticks.length - 1;
 
@@ -89,10 +90,10 @@ export function HistogramChartSimple({ data }: Props) {
         data: counts,
         backgroundColor: '#63B3ED',
         borderColor: '#4299E1',
+        hoverBackgroundColor: '#002A53',
         borderWidth: 1,
         categoryPercentage: 1, // tells bar to fill "bin area"
         barPercentage: 1, //tells bar to fill "bar area"
-        hoverBackgroundColor: 'red',
       },
     ],
   };
@@ -103,7 +104,7 @@ export function HistogramChartSimple({ data }: Props) {
 /**
  * @returns a formatted, abbreviated, histogram bin display text
  */
-function getDisplayedBinItem(
+function formatDisplayedBinItem(
   binEdges: Histogram['bin_edges'],
   currentIndex: number,
 ) {

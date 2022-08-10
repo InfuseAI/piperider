@@ -6,8 +6,6 @@ import {
   getColumnTypeChartData,
 } from '../../../utils/transformers';
 import { SRBarChart } from '../../SingleReport/SRBarChart';
-import { FilledBarGraph } from '../Charts/FilledBarChart';
-import { HistogramChart } from '../Charts/HistogramChart';
 import { HistogramChartSimple } from '../Charts/HistogramChartSimple';
 import { ColumnCardBodyContainer } from './ColumnCardBodyContainer';
 import { ColumnCardDataVisualContainer } from './ColumnCardDataVisualContainer';
@@ -58,14 +56,13 @@ export function ColumnCard({ columnDatum }: Props) {
  * @returns *Chart Component
  */
 function _getDataChart(columnDatum: ColumnSchema) {
-  const { type, histogram, name } = columnDatum;
+  const { type, histogram } = columnDatum;
   const chartData = getColumnTypeChartData(columnDatum);
+  const isCategorical = checkColumnCategorical(columnDatum);
 
-  if (
-    (type === 'numeric' || type === 'integer') &&
-    histogram &&
-    name === 'HIGH'
-  ) {
+  if ((type === 'string' || type === 'integer') && isCategorical) {
+  }
+  if ((type === 'numeric' || type === 'integer') && histogram) {
     return <HistogramChartSimple data={histogram} />;
   }
   return chartData ? (
