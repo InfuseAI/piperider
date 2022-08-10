@@ -14,6 +14,7 @@ import { formatAsAbbreviatedNumber } from '../../../utils/formatters';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 // TODO: Replace SRBarChart (gradually)
 // FIXME: Tooltip hover mode should trigger selected bar as 'Active'
+// FIXME: Tooltip for text type/datetime
 
 /**
  * Histogram Chart that can display generic data types such as Numeric, Datetime, Integer
@@ -56,8 +57,12 @@ export function HistogramChartSimple({ data }: Props) {
           format: { maximumFractionDigits: 2 },
           callback: function (val, index, ticks) {
             // val is an chartjs indexObject, not actual index's value; thus using original bin_edges
+            const delimiter = ' - ';
             if (index === ticks.length) return null;
-            const result = formatDisplayedBinItem(bin_edges, index);
+            const result = formatDisplayedBinItem(bin_edges, index).split(
+              delimiter,
+            );
+            result.splice(1, 0, delimiter);
 
             const isStartOrEnd = index === 0 || index === ticks.length - 1;
 

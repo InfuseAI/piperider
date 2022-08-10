@@ -28,8 +28,6 @@ export const ColumnTypeDetailOther: React.FC<Props> = ({ columnDatum }) => {
         />
       </DataCompositionMetrics>
       <Divider />
-      <UniquenessMetrics columnDatum={columnDatum} />
-      <Divider />
     </Flex>
   );
 };
