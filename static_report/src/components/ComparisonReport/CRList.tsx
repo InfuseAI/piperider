@@ -55,7 +55,12 @@ export function ComparisonReportList({
   useDocumentTitle('Report List');
 
   return (
-    <Main>
+    <Main
+      isSingleReport={false}
+      time={`${formatReportTime(base.created_at)} -> ${formatReportTime(
+        target.created_at,
+      )}`}
+    >
       <Flex
         direction="column"
         border="1px solid"

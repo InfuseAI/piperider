@@ -1,11 +1,18 @@
 import { Flex, useColorMode } from '@chakra-ui/react';
-import { useEffect } from 'react';
+import { useEffect, ReactNode } from 'react';
 import * as amplitude from '@amplitude/analytics-browser';
 
+import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { Sidebar } from './Sidebar';
 
-export function Main({ children, ...props }) {
+type Props = {
+  children: ReactNode;
+  time: string;
+  isSingleReport: boolean;
+};
+
+export function Main({ children, isSingleReport, ...props }: Props) {
   const { colorMode } = useColorMode();
   const bgColor = { light: 'gray.50', dark: 'gray.900' };
   const color = { light: 'black', dark: 'white' };
@@ -20,22 +27,26 @@ export function Main({ children, ...props }) {
   }, []);
 
   return (
-    <Flex>
-      <Sidebar />
+    <Flex direction="column">
+      <Navbar isSingleReport={isSingleReport} time={props.time} />
 
-      <Flex
-        direction="column"
-        alignItems="center"
-        justifyContent="flex-start"
-        bg={bgColor[colorMode]}
-        color={color[colorMode]}
-        width="100%"
-        minHeight="100vh"
-        {...props}
-      >
-        {children}
+      <Flex mt={2}>
+        <Sidebar />
 
-        <Footer />
+        <Flex
+          direction="column"
+          alignItems="center"
+          justifyContent="flex-start"
+          bg={bgColor[colorMode]}
+          color={color[colorMode]}
+          width="100%"
+          minHeight="100vh"
+          {...props}
+        >
+          {children}
+
+          <Footer />
+        </Flex>
       </Flex>
     </Flex>
   );

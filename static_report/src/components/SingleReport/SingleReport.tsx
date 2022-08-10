@@ -22,6 +22,7 @@ import { SRTabTestDetails } from './SRTabTestDetails';
 import { SRTableOverview } from './SRTableOverview';
 import { dataSourceSchema } from '../../sdlc/single-report-schema.z';
 import { ZTableSchema, zReport } from '../../types';
+import { formatReportTime } from '../../utils/formatters';
 
 interface Props {
   data: SingleReportSchema;
@@ -48,7 +49,7 @@ export default function SingleReport({ data, name }: Props) {
 
   if (!data) {
     return (
-      <Main>
+      <Main isSingleReport time="-">
         <Flex justifyContent="center" alignItems="center" minHeight="100vh">
           No profile data found.
         </Flex>
@@ -57,7 +58,7 @@ export default function SingleReport({ data, name }: Props) {
   }
 
   return (
-    <Main>
+    <Main isSingleReport time={formatReportTime(data.created_at)}>
       <Flex direction="column" minH="calc(100vh + 1px)" width="100%">
         <Flex mx="5%" mt={4}>
           <Breadcrumb fontSize="lg">

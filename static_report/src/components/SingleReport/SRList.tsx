@@ -38,7 +38,7 @@ export function SingleReportList({ data }: Props) {
   useDocumentTitle('Report List');
 
   return (
-    <Main>
+    <Main isSingleReport time={formatReportTime(created_at)}>
       <Flex
         direction="column"
         border="1px solid"

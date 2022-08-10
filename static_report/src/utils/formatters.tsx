@@ -24,7 +24,7 @@ export function formatReportTime(dateStr: string) {
     );
   };
 
-  return format(adjustForUTCOffset(parseISO(dateStr)), 'yyyy/MM/dd HH:mm:ss');
+  return format(adjustForUTCOffset(parseISO(dateStr)), 'yyyy-MM-dd HH:mm:ss');
 }
 
 /**

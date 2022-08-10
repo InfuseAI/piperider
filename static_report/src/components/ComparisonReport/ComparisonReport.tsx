@@ -31,6 +31,7 @@ import { CRTabProfilingDetails } from './CRTabProfilingDetails';
 import { CRTabSchemaDetails } from './CRTabSchemaDetails';
 import { CRTabTestDetails } from './CRTabTestDetails';
 import { CRTableOverview } from './CRTableOverview';
+import { formatReportTime } from '../../utils/formatters';
 
 type Props = {
   data: ComparisonReportSchema;
@@ -73,7 +74,12 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
   });
 
   return (
-    <Main>
+    <Main
+      isSingleReport={false}
+      time={`${formatReportTime(base.created_at)} -> ${formatReportTime(
+        target.created_at,
+      )}`}
+    >
       <Flex direction="column" minH="calc(100vh + 1px)" width="inherit">
         <Flex mx="5%" mt={4}>
           <Breadcrumb fontSize="lg">
