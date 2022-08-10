@@ -16,6 +16,7 @@ import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
 
 import { Main } from '../shared/Main';
+import { ToggleList, type ToggleListView } from '../shared/ToggleList';
 
 import {
   formatReportTime,
@@ -36,6 +37,8 @@ import {
 } from '../../sdlc/single-report-schema';
 import { getComparisonAssertions } from '../../utils/assertion';
 import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { CR_LIST_VIEW } from '../../utils/localStorageKeys';
 
 export function ComparisonReportList({
   data,
@@ -43,6 +46,10 @@ export function ComparisonReportList({
   data: ComparisonReportSchema;
 }) {
   const { base, input: target } = data;
+  const [view, setView] = useLocalStorage<ToggleListView>(
+    CR_LIST_VIEW,
+    'summary',
+  );
 
   zReport(ZSingleSchema.safeParse(base));
   zReport(ZSingleSchema.safeParse(target));
@@ -61,6 +68,14 @@ export function ComparisonReportList({
         target.created_at,
       )}`}
     >
+      {/* TODO: need to confirm how to display, for now using `base` */}
+      <ToggleList
+        sourceName={data.base.datasource.name}
+        sourceType={data.base.datasource.type}
+        currentView={view}
+        toggleView={(nextView) => setView(nextView)}
+      />
+
       <Flex
         direction="column"
         border="1px solid"

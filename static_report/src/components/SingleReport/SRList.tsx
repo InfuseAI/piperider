@@ -14,6 +14,7 @@ import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { Link } from 'wouter';
 
 import { Main } from '../shared/Main';
+import { ToggleList, type ToggleListView } from '../shared/ToggleList';
 import { SRTooltip } from './SRTooltip';
 import {
   formatReportTime,
@@ -25,10 +26,18 @@ import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import { singleReportSchemaSchema } from '../../sdlc/single-report-schema.z';
 import { zReport, ZTableSchema } from '../../types';
 import { getSingleAssertionStatusCounts } from '../../utils/assertion';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { SR_LIST_VIEW } from '../../utils/localStorageKeys';
 
 type Props = { data: SingleReportSchema };
+
 export function SingleReportList({ data }: Props) {
   const { id, created_at, datasource, tables } = data;
+  const [view, setView] = useLocalStorage<ToggleListView>(
+    SR_LIST_VIEW,
+    'summary',
+  );
+
   zReport(
     singleReportSchemaSchema
       .pick({ id: true, created_at: true, datasource: true })
@@ -39,6 +48,13 @@ export function SingleReportList({ data }: Props) {
 
   return (
     <Main isSingleReport time={formatReportTime(created_at)}>
+      <ToggleList
+        sourceName={datasource.name}
+        sourceType={datasource.type}
+        currentView={view}
+        toggleView={(nextView) => setView(nextView)}
+      />
+
       <Flex
         direction="column"
         border="1px solid"
