@@ -8,26 +8,30 @@ import {
   ChartData,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { Histogram } from '../../../sdlc/single-report-schema';
+import { ColumnSchema, Histogram } from '../../../sdlc/single-report-schema';
 import { formatAsAbbreviatedNumber } from '../../../utils/formatters';
+import {
+  DATE_RANGE,
+  TEXTLENGTH,
+  VALUE_RANGE,
+} from '../ColumnCard/ColumnTypeDetail/constants';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
-// TODO: Replace SRBarChart (gradually)
 // FIXME: Tooltip hover mode should trigger selected bar as 'Active'
-// FIXME: Tooltip for text type/datetime
 
 /**
  * Histogram Chart that can display generic data types such as Numeric, Datetime, Integer
  * Should handle columns that don't have `histogram` property (TBD)
- * X: The Min/Max of the domain data range is the width of charting area
- * Y: The Min/Max of the domain data range is the height of charting area
- * counts: Abbreviated based on K, Mn, Bn, Tr (see formatters)
+ * X: The Min/Max of the labels range is the scaled width of charting area
+ * Y: The Min/Max of the counts range is the scaled height of charting area
+ * Counts: Abbreviated based on K, Mn, Bn, Tr (see formatters)
  * Guides: horizontal dashed lines, at the 30/60/90 percentile
  */
 interface Props {
   data: Histogram;
+  type: ColumnSchema['type'];
 }
-export function HistogramChart({ data }: Props) {
+export function HistogramChart({ data, type }: Props) {
   const { counts, bin_edges } = data;
 
   const chartOptions: ChartOptions<'bar'> = {
@@ -41,8 +45,14 @@ export function HistogramChart({ data }: Props) {
         callbacks: {
           title([{ dataIndex }]) {
             const result = formatDisplayedBinItem(bin_edges, dataIndex);
+            const prefix =
+              type === 'datetime'
+                ? DATE_RANGE
+                : type === 'string'
+                ? TEXTLENGTH
+                : VALUE_RANGE;
 
-            return result;
+            return `${prefix}: ${result}`;
           },
         },
       },

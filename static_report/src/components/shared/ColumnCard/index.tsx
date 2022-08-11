@@ -72,7 +72,7 @@ function _getDataChart(columnDatum: ColumnSchema) {
       type === 'datetime') &&
     histogram
   ) {
-    return <HistogramChart data={histogram} />;
+    return <HistogramChart data={histogram} type={type} />;
   }
   if (type === 'boolean') {
     const counts = [trues, falses, nulls, invalids].map((v) => (v ? v : 0));
