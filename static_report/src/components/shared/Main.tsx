@@ -12,9 +12,10 @@ export function Main({ children, ...props }) {
 
   useEffect(() => {
     const API_KEY = window.PIPERIDER_METADATA.amplitude_api_key;
+    const USER_ID = window.PIPERIDER_METADATA.amplitude_user_id;
 
     if (API_KEY) {
-      amplitude.init(API_KEY);
+      amplitude.init(API_KEY, USER_ID);
     }
   }, []);
 
