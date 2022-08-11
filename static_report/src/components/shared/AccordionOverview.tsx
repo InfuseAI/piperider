@@ -21,10 +21,15 @@ import {
 } from 'react-icons/fi';
 import { nanoid } from 'nanoid';
 
+import { SRBarChart } from '../SingleReport/SRBarChart';
 import { zReport, ZTableSchema } from '../../types';
 import { getReportAggregateAssertions } from '../../utils/assertion';
 import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
-import { type SingleReportSchema } from '../../sdlc/single-report-schema';
+import { getColumnTypeChartData } from '../../utils/transformers';
+import {
+  type SingleReportSchema,
+  type AssertionTest,
+} from '../../sdlc/single-report-schema';
 
 export function AccordionOverview({
   tables,
@@ -34,7 +39,7 @@ export function AccordionOverview({
       <Grid templateColumns="1fr 2fr 1fr" px={4} my={6}>
         <Text width="100px">Name</Text>
         <Text width="">Summary</Text>
-        <Text>Rules</Text>
+        <Text>Assertions</Text>
       </Grid>
 
       <Flex direction="column" gap={8}>
@@ -46,6 +51,7 @@ export function AccordionOverview({
             report.piperider_assertion_result,
             report.dbt_assertion_result,
           );
+          const totalAssertions = assertions.passed + assertions.failed;
           const hasFailed = assertions.failed > 0;
 
           const columns = Object.keys(report.columns).map((key) => key);
@@ -101,7 +107,9 @@ export function AccordionOverview({
                               )}
                               /{' '}
                               <Text as="span">
-                                {assertions.passed + assertions.failed} rules
+                                {totalAssertions === 0
+                                  ? 'none'
+                                  : `${totalAssertions} assertions`}
                               </Text>
                             </Flex>
                           </GridItem>
@@ -151,48 +159,76 @@ export function AccordionOverview({
                     </AccordionButton>
 
                     <AccordionPanel bgColor="white">
-                      <Stack gap={6}>
-                        <Grid
-                          templateColumns="218px 1.1fr 1fr 20px"
-                          alignItems="center"
-                        >
-                          <GridItem>
-                            <Flex alignItems="center">
-                              <Icon
-                                as={FiCornerDownRight}
-                                color="gray.300"
-                                boxSize={5}
-                              />
-                              <Icon
-                                as={FiAlertCircle}
-                                color="piperider.500"
-                                mx={2}
-                                boxSize={5}
-                              />
-                              EspanolText
-                            </Flex>
-                          </GridItem>
+                      <Stack gap={8} py={6}>
+                        {Object.keys(
+                          report.piperider_assertion_result?.columns || {},
+                        ).map((colName) => {
+                          const colAssertions =
+                            report.piperider_assertion_result?.columns?.[
+                              colName
+                            ];
 
-                          <GridItem>
-                            <img src="https://via.placeholder.com/300x40" />
-                          </GridItem>
+                          const chartData = getColumnTypeChartData(
+                            report.columns[colName],
+                          );
 
-                          <GridItem>
-                            <SRRulesSummaryLabel
-                              success={0}
-                              fail={2}
-                              total={13}
-                            />
-                          </GridItem>
+                          return (
+                            <Grid
+                              key={colName}
+                              templateColumns="218px 1.1fr 1fr 20px"
+                              alignItems="center"
+                            >
+                              <GridItem>
+                                <Flex alignItems="center">
+                                  <Icon
+                                    as={FiCornerDownRight}
+                                    color="gray.300"
+                                    boxSize={5}
+                                  />
+                                  <Icon
+                                    as={FiAlertCircle}
+                                    color="piperider.500"
+                                    mx={2}
+                                    boxSize={5}
+                                  />
+                                  <Text noOfLines={1}>{colName}</Text>
+                                </Flex>
+                              </GridItem>
 
-                          <GridItem>
-                            <Icon
-                              as={FiChevronRight}
-                              color="piperider.500"
-                              boxSize={6}
-                            />
-                          </GridItem>
-                        </Grid>
+                              {/* TODO: profiling chart */}
+                              <GridItem>
+                                {chartData ? (
+                                  <Flex width="400px" mx={4}>
+                                    <SRBarChart
+                                      data={chartData}
+                                      height="60px"
+                                    />
+                                  </Flex>
+                                ) : (
+                                  'No data avaliable'
+                                )}
+                              </GridItem>
+
+                              <GridItem>
+                                {!colAssertions ? (
+                                  <Text color="gray.500">no assertions</Text>
+                                ) : (
+                                  <SRAssertionsSummaryLabel
+                                    assertions={colAssertions}
+                                  />
+                                )}
+                              </GridItem>
+
+                              <GridItem>
+                                <Icon
+                                  as={FiChevronRight}
+                                  color="piperider.500"
+                                  boxSize={6}
+                                />
+                              </GridItem>
+                            </Grid>
+                          );
+                        })}
                       </Stack>
                     </AccordionPanel>
                   </>
@@ -225,21 +261,19 @@ function ColumnLabel({
   );
 }
 
-function SRRulesSummaryLabel({
-  total,
-  success,
-  fail,
+function SRAssertionsSummaryLabel({
+  assertions,
 }: {
-  total: number;
-  success: number;
-  fail: number;
+  assertions: AssertionTest[];
 }) {
-  // TODO: remove `success`, calculate `isPassed` from upstream
-  const isPassed = success === total;
-
-  if (total === 0) {
-    return <Text color="gray.500">no rules</Text>;
-  }
+  const total = assertions.length;
+  const fail = assertions.reduce((acc, test) => {
+    if (test.status === 'failed') {
+      acc++;
+    }
+    return acc;
+  }, 0);
+  const isPassed = fail === 0;
 
   return (
     <Flex gap={2} alignItems="center">

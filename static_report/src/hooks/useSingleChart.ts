@@ -14,6 +14,7 @@ interface HookArgs {
   data: BarChartDatum[];
   dimensions: DOMRect | null;
 }
+
 export function useSingleChart({ target, data, dimensions }: HookArgs) {
   useEffect(() => {
     if (!target || !dimensions || !data) {
