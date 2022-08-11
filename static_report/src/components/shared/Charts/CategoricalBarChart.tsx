@@ -21,9 +21,7 @@ interface Props {
  * @param data the topk value (categorical counts)
  * @returns
  */
-export function CategoricalBarChart({ data }: Props) {
-  const { counts, values } = data;
-
+export function CategoricalBarChart({ data: { counts, values } }: Props) {
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -48,11 +46,11 @@ export function CategoricalBarChart({ data }: Props) {
   const categoryPercentage = 0.5;
   const borderRadius = 10;
   const chartData: ChartData<'bar'> = {
-    labels: values,
+    labels: values.slice(0, 5), // showing top cats
     datasets: [
       {
         indexAxis: 'y',
-        data: counts,
+        data: counts.slice(0, 5), // showing top cats
         backgroundColor: '#63B3ED',
         hoverBackgroundColor: '#002A53',
         borderWidth: 0,
@@ -76,16 +74,16 @@ export function CategoricalBarChart({ data }: Props) {
       const dataset = data.datasets[0];
       const fontColor = '#36454f';
       const fontSize = 14;
-      const offsetY = 10;
       const barHeight =
         (height / y.ticks.length) * barPercentage * categoryPercentage;
 
+      const radiusOffset = dataset.data.length < 5 ? 5 : 0;
       dataset.data.forEach((datum, index) => {
         const yPos = y.getPixelForValue(index);
-        const barTopLabelYPos = yPos - fontSize - offsetY;
         const barTopYPos = yPos - barHeight / 2;
         const barBottomYPos = yPos + barHeight / 2;
-        const drawRadius = 5 + borderRadius / 2;
+        const barTopLabelYPos = barTopYPos - fontSize / 2;
+        const drawRadius = radiusOffset + borderRadius / 2;
 
         // draw custom label value text
         const rawValue = dataset.data[index];
