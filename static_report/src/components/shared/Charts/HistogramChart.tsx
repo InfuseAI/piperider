@@ -1,13 +1,20 @@
-import { Group } from '@visx/group';
-import { Bar } from '@visx/shape';
-import { appleStock } from '@visx/mock-data';
-import { scaleLinear, scaleBand } from '@visx/scale';
-import useMeasure from 'react-use-measure';
-import { ColumnSchema, Histogram } from '../../../sdlc/single-report-schema';
-import { AxisBottom, AxisLeft } from '@visx/axis';
+import {
+  ChartOptions,
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  ChartData,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import { Histogram } from '../../../sdlc/single-report-schema';
+import { formatAsAbbreviatedNumber } from '../../../utils/formatters';
 
-// TODO: Tooltip, Responsive
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 // TODO: Replace SRBarChart (gradually)
+// FIXME: Tooltip hover mode should trigger selected bar as 'Active'
+// FIXME: Tooltip for text type/datetime
 
 /**
  * Histogram Chart that can display generic data types such as Numeric, Datetime, Integer
@@ -18,59 +25,100 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
  * Guides: horizontal dashed lines, at the 30/60/90 percentile
  */
 interface Props {
-  data: ColumnSchema;
+  data: Histogram;
 }
 export function HistogramChart({ data }: Props) {
-  const margins = 36;
-  //margins
-  //w+h
-  const defaultWidth = 330;
-  const defaultHeight = 300;
-  const [ref, bounds] = useMeasure();
+  const { counts, bin_edges } = data;
 
-  const width = bounds.width || defaultWidth;
-  const height = bounds.height || defaultHeight;
+  const chartOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      tooltip: {
+        mode: 'index',
+        position: 'nearest',
+        intersect: false,
+        callbacks: {
+          title([{ dataIndex }]) {
+            const result = formatDisplayedBinItem(bin_edges, dataIndex);
 
-  // const innerWidth = width - margins;
-  // const innerHeight = height - margins;
+            return result;
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        beginAtZero: false,
+        grid: { display: false },
+        ticks: {
+          maxRotation: 0,
+          autoSkip: false,
+          format: { maximumFractionDigits: 2 },
+          callback: function (val, index, ticks) {
+            // val is an chartjs indexObject, not actual index's value; thus using original bin_edges
+            const delimiter = ' - ';
+            if (index === ticks.length) return null;
+            const result = formatDisplayedBinItem(bin_edges, index).split(
+              delimiter,
+            );
+            result.splice(1, 0, delimiter);
 
-  //create scales
-  const getXValues = (d?: Histogram) =>
-    (d?.bin_edges || []).map((labelItem) => Number(labelItem));
-  const getYValues = (d?: Histogram) =>
-    (d?.counts || []).map((countItem) => Number(countItem));
+            const isStartOrEnd = index === 0 || index === ticks.length - 1;
 
-  const xValues = getXValues(data.histogram);
-  const xMin = Math.min(...xValues);
-  const xMax = Math.max(...xValues);
-  const xScale = scaleLinear<number>({
-    domain: [xMin, xMax],
-    range: [0, width],
-  });
+            //preserve all gridline items by defaulting empty-string
+            return isStartOrEnd ? result : '';
+          },
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'lightgray',
+          borderDash: [2, 2],
+        },
+        ticks: {
+          callback: function (val) {
+            return formatAsAbbreviatedNumber(val);
+          },
+        },
+      },
+    },
+  };
 
-  const yValues = getYValues(data.histogram);
-  const yMin = Math.min(...yValues);
-  const yMax = Math.max(...yValues);
-  const yScale = scaleLinear<number>({
-    range: [height - margins, 0], // y scales top-to-bottom
-    domain: [yMin - 1, yMax + 1], //plot min, max
-  });
+  // defaults to `category` type, as `bin edges` are used as-is.
+  // this means that the x-axis ticks are explicitly provided, not inferred or automatically spread over the chart area.
+  const chartData: ChartData<'bar'> = {
+    labels: bin_edges.slice(0, -1), //offset final edge
+    datasets: [
+      {
+        data: counts,
+        backgroundColor: '#63B3ED',
+        borderColor: '#4299E1',
+        hoverBackgroundColor: '#002A53',
+        borderWidth: 1,
+        categoryPercentage: 1, // tells bar to fill "bin area"
+        barPercentage: 1, //tells bar to fill "bar area"
+      },
+    ],
+  };
 
-  // console.log(data.histogram?.bin_edges, [xMin, xMax]);
+  return <Bar options={chartOptions} data={chartData} />;
+}
 
-  // viewBox allows charts to respond to changes in use-measure's bounds
-  return (
-    <svg
-      ref={ref}
-      height="100%"
-      width="100%"
-      viewBox={`0 0 ${width} ${height}`}
-    >
-      <Group>Bar</Group>
-      <Group>{/* <AxisLeft left={margins} scale={yScale} /> */}</Group>
-      <Group>
-        <AxisBottom top={height - margins} scale={xScale} />
-      </Group>
-    </svg>
-  );
+/**
+ * @returns a formatted, abbreviated, histogram bin display text
+ */
+function formatDisplayedBinItem(
+  binEdges: Histogram['bin_edges'],
+  currentIndex: number,
+) {
+  const startEdge = binEdges[currentIndex];
+  const endEdge = binEdges[currentIndex + 1];
+
+  const formattedStart = formatAsAbbreviatedNumber(startEdge);
+  const formattedEnd = formatAsAbbreviatedNumber(endEdge);
+
+  const result = `${formattedStart} - ${formattedEnd}`;
+  return result;
 }

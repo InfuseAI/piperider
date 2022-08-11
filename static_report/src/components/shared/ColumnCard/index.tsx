@@ -6,8 +6,9 @@ import {
   getColumnTypeChartData,
 } from '../../../utils/transformers';
 import { SRBarChart } from '../../SingleReport/SRBarChart';
+import { BooleanPieChart } from '../Charts/BooleanPieChart';
 import { CategoricalBarChart } from '../Charts/CategoricalBarChart';
-import { HistogramChartSimple } from '../Charts/HistogramChartSimple';
+import { HistogramChart } from '../Charts/HistogramChart';
 import { ColumnCardBodyContainer } from './ColumnCardBodyContainer';
 import { ColumnCardDataVisualContainer } from './ColumnCardDataVisualContainer';
 import { ColumnCardHeader } from './ColumnCardHeader';
@@ -71,11 +72,13 @@ function _getDataChart(columnDatum: ColumnSchema) {
       type === 'datetime') &&
     histogram
   ) {
-    return <HistogramChartSimple data={histogram} />;
+    return <HistogramChart data={histogram} />;
   }
-  return chartData ? (
-    <SRBarChart data={chartData} />
-  ) : (
+  if (type === 'boolean' && topk) {
+    return <BooleanPieChart data={topk} />;
+  }
+
+  return (
     <Flex h={230} alignItems={'center'} w={'100%'}>
       <Text textAlign={'center'} w={'inherit'}>
         No data available
