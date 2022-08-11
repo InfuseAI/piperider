@@ -1,75 +1,73 @@
 import {
   ChartOptions,
   Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
   Tooltip,
   ChartData,
+  ArcElement,
+  Legend,
 } from 'chart.js';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { Bar } from 'react-chartjs-2';
-import { Topk } from '../../../sdlc/single-report-schema';
-import { formatAsAbbreviatedNumber } from '../../../utils/formatters';
+import { Pie } from 'react-chartjs-2';
+import { formatIntervalMinMax, formatNumber } from '../../../utils/formatters';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
+ChartJS.register(ArcElement, Tooltip, Legend);
 interface Props {
-  data: Topk;
+  data: {
+    labels: string[];
+    counts: number[];
+    ratios: number[];
+  };
 }
 /**
- * A horizontal bar chart that visualized categorical dataset plotted against each category group
- * @param data the topk value (categorical counts)
+ * A pie chart that visualizes boolean dataset
+ * composition: null + invalid + trues + falses = 100%
+ * @param data the counts labels & values
  * @returns
  */
-export function BooleanPieChart({ data }: Props) {
-  const { counts, values } = data;
-
-  const chartOptions: ChartOptions<'bar'> = {
+export function BooleanPieChart({ data: { counts, labels, ratios } }: Props) {
+  const chartOptions: ChartOptions<'pie'> = {
     responsive: true,
     maintainAspectRatio: false,
-    indexAxis: 'y',
-    scales: {
-      x: {
-        display: false,
-      },
-      y: {
-        display: false,
-      },
+    layout: {
+      padding: 10,
     },
     plugins: {
-      tooltip: {
-        mode: 'y',
-        position: 'nearest',
-        intersect: false,
-      },
-      datalabels: {
+      legend: {
+        position: 'left',
         labels: {
-          title: {
-            align: 'end',
-            anchor: 'end',
-            formatter(val) {
-              return isNaN(val) ? val : formatAsAbbreviatedNumber(val);
-            },
+          textAlign: 'left',
+          boxHeight: 15,
+          boxWidth: 15,
+          generateLabels({ data: { datasets, labels } }) {
+            return datasets[0].data.map((data, i) => ({
+              text: `${labels?.[i]} \n ${formatIntervalMinMax(
+                ratios[i],
+              )} / ${data}`,
+              fillStyle: datasets?.[0]?.backgroundColor?.[i],
+            }));
           },
         },
       },
     },
   };
-  const chartData: ChartData<'bar'> = {
-    labels: values,
+  const chartData: ChartData<'pie'> = {
+    labels,
     datasets: [
       {
-        indexAxis: 'y',
         data: counts,
-        backgroundColor: '#63B3ED',
-        borderColor: '#4299E1',
-        borderRadius: 24,
-        hoverBackgroundColor: '#002A53',
-        categoryPercentage: 0.5,
+        borderWidth: 0,
+        backgroundColor: ['#63B3ED', '#D9D9D9', '#FF0861', '#FFCF36'],
+        hoverOffset: 4,
       },
     ],
   };
-  return (
-    <Bar data={chartData} options={chartOptions} plugins={[ChartDataLabels]} />
-  );
+  return <Pie data={chartData} options={chartOptions} />;
 }
+
+// const enhanceTooltip: Plugin<'pie'> = {
+//   beforeRender(chart) {
+//     chart.legend?.legendItems?.forEach(label => {
+
+//     })
+//   }
+
+// }
