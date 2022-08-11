@@ -5,7 +5,6 @@ import {
   checkColumnCategorical,
   getColumnTypeChartData,
 } from '../../../utils/transformers';
-import { SRBarChart } from '../../SingleReport/SRBarChart';
 import { BooleanPieChart } from '../Charts/BooleanPieChart';
 import { CategoricalBarChart } from '../Charts/CategoricalBarChart';
 import { HistogramChart } from '../Charts/HistogramChart';
@@ -18,6 +17,7 @@ import { ColumnTypeDetailDatetime } from './ColumnTypeDetail/ColumnTypeDetailDat
 import { ColumnTypeDetailNumeric } from './ColumnTypeDetail/ColumnTypeDetailNumeric';
 import { ColumnTypeDetailOther } from './ColumnTypeDetail/ColumnTypeDetailOther';
 import { ColumnTypeDetailText } from './ColumnTypeDetail/ColumnTypeDetailText';
+import { FALSES, INVALIDS, NULLS, TRUES } from './ColumnTypeDetail/constants';
 
 interface Props {
   columnDatum: ColumnSchema;
@@ -58,8 +58,8 @@ export function ColumnCard({ columnDatum }: Props) {
  * @returns *Chart Component
  */
 function _getDataChart(columnDatum: ColumnSchema) {
-  const { type, histogram, topk } = columnDatum;
-  const chartData = getColumnTypeChartData(columnDatum);
+  const { total, type, histogram, topk, trues, falses, nulls, invalids } =
+    columnDatum;
   const isCategorical = checkColumnCategorical(columnDatum);
 
   if ((type === 'string' || type === 'integer') && topk && isCategorical) {
@@ -74,8 +74,13 @@ function _getDataChart(columnDatum: ColumnSchema) {
   ) {
     return <HistogramChart data={histogram} />;
   }
-  if (type === 'boolean' && topk) {
-    return <BooleanPieChart data={topk} />;
+  if (type === 'boolean') {
+    const counts = [trues, falses, nulls, invalids].map((v) => (v ? v : 0));
+    const labels = [TRUES, FALSES, NULLS, INVALIDS].map(
+      (v) => v.charAt(0) + v.slice(1).toLowerCase(),
+    );
+    const ratios = counts.map((v) => v / Number(total));
+    return <BooleanPieChart data={{ counts, labels, ratios }} />;
   }
 
   return (

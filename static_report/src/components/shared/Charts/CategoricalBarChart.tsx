@@ -1,4 +1,3 @@
-import { border } from '@chakra-ui/styled-system';
 import {
   ChartOptions,
   Chart as ChartJS,
@@ -47,7 +46,7 @@ export function CategoricalBarChart({ data }: Props) {
   };
   const barPercentage = 0.6;
   const categoryPercentage = 0.5;
-  const borderRadius = 24;
+  const borderRadius = 10;
   const chartData: ChartData<'bar'> = {
     labels: values,
     datasets: [
@@ -70,26 +69,31 @@ export function CategoricalBarChart({ data }: Props) {
     beforeDatasetDraw({
       ctx,
       data,
-      chartArea: { top, left, right, width, height },
-      scales: { x, y },
+      chartArea: { left, right, height },
+      scales: { y },
     }) {
       ctx.save();
       const dataset = data.datasets[0];
       const fontColor = '#36454f';
       const fontSize = 14;
-      const offsetY = 8;
+      const offsetY = 10;
       const barHeight =
         (height / y.ticks.length) * barPercentage * categoryPercentage;
 
       dataset.data.forEach((datum, index) => {
-        // draw custom label value text
-        const rawValue = dataset.data[index];
         const yPos = y.getPixelForValue(index);
         const barTopLabelYPos = yPos - fontSize - offsetY;
+        const barTopYPos = yPos - barHeight / 2;
+        const barBottomYPos = yPos + barHeight / 2;
+        const drawRadius = 5 + borderRadius / 2;
+
+        // draw custom label value text
+        const rawValue = dataset.data[index];
         const value =
           typeof rawValue !== 'number'
             ? rawValue
             : formatAsAbbreviatedNumber(rawValue);
+
         ctx.fillStyle = fontColor;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
@@ -107,48 +111,79 @@ export function CategoricalBarChart({ data }: Props) {
         ctx.fillText(String(title), left, barTopLabelYPos);
 
         // draw custom progress bar backdrop
-        const barTopYPos = yPos - barHeight / 2;
-        const barBottomYPos = yPos + barHeight / 2;
-        const drawRadius = borderRadius / 2;
-        ctx.beginPath();
-        //start top-left shoulder
-        ctx.moveTo(left + drawRadius, barTopYPos);
-        // to top-right shoulder
-        ctx.lineTo(right - drawRadius, barTopYPos);
-        // top-right arc to middle edge
-        ctx.arcTo(
-          right,
+        drawRoundedBarBackdrop(ctx, {
+          leftBound: left,
+          rightBound: right,
           barTopYPos,
-          right,
-          barTopYPos + drawRadius,
-          drawRadius,
-        );
-        // bottom-right arc to bottom shoulder
-        ctx.arcTo(
-          right,
-          barBottomYPos,
-          right - drawRadius,
           barBottomYPos,
           drawRadius,
-        );
-        // to top-left shoulder
-        ctx.lineTo(left + drawRadius, barBottomYPos);
-        ctx.arcTo(
-          left,
-          barBottomYPos,
-          left,
-          barBottomYPos - drawRadius,
-          drawRadius,
-        );
-        ctx.arcTo(left, barTopYPos, left + drawRadius, barTopYPos, drawRadius);
-        // ctx.fillRect(left, yPos - barHeight / 2, width, barHeight);
-        ctx.fillStyle = String(dataset.borderColor);
-        ctx.closePath();
-        ctx.fill();
+          fillColor: String(dataset.borderColor),
+        });
       });
     },
   };
   return (
     <Bar data={chartData} options={chartOptions} plugins={[progressBar]} />
   );
+}
+
+interface DrawRoundedArgs {
+  leftBound: number;
+  rightBound: number;
+  barTopYPos: number;
+  barBottomYPos: number;
+  drawRadius: number;
+  fillColor: string;
+}
+function drawRoundedBarBackdrop(
+  ctx: CanvasRenderingContext2D,
+  {
+    leftBound,
+    rightBound,
+    drawRadius,
+    barBottomYPos,
+    barTopYPos,
+    fillColor,
+  }: DrawRoundedArgs,
+) {
+  ctx.beginPath();
+  //start top-left shoulder
+  ctx.moveTo(leftBound + drawRadius, barTopYPos);
+  // to top-right shoulder
+  ctx.lineTo(rightBound - drawRadius, barTopYPos);
+  // top-right arc to middle edge
+  ctx.arcTo(
+    rightBound,
+    barTopYPos,
+    rightBound,
+    barTopYPos + drawRadius,
+    drawRadius,
+  );
+  // bottom-right arc to bottom shoulder
+  ctx.arcTo(
+    rightBound,
+    barBottomYPos,
+    rightBound - drawRadius,
+    barBottomYPos,
+    drawRadius,
+  );
+  // to top-left shoulder
+  ctx.lineTo(leftBound + drawRadius, barBottomYPos);
+  ctx.arcTo(
+    leftBound,
+    barBottomYPos,
+    leftBound,
+    barBottomYPos - drawRadius,
+    drawRadius,
+  );
+  ctx.arcTo(
+    leftBound,
+    barTopYPos,
+    leftBound + drawRadius,
+    barTopYPos,
+    drawRadius,
+  );
+  ctx.fillStyle = fillColor;
+  ctx.closePath();
+  ctx.fill();
 }

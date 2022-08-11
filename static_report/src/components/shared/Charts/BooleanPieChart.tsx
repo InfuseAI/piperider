@@ -7,9 +7,9 @@ import {
   Legend,
 } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
-import { formatIntervalMinMax, formatNumber } from '../../../utils/formatters';
+import { formatIntervalMinMax } from '../../../utils/formatters';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip);
 interface Props {
   data: {
     labels: string[];
@@ -60,14 +60,5 @@ export function BooleanPieChart({ data: { counts, labels, ratios } }: Props) {
       },
     ],
   };
-  return <Pie data={chartData} options={chartOptions} />;
+  return <Pie data={chartData} options={chartOptions} plugins={[Legend]} />;
 }
-
-// const enhanceTooltip: Plugin<'pie'> = {
-//   beforeRender(chart) {
-//     chart.legend?.legendItems?.forEach(label => {
-
-//     })
-//   }
-
-// }
