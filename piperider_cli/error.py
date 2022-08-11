@@ -32,7 +32,7 @@ class PipeRiderCredentialError(PipeRiderError):
 
 class DbtProfileBigQueryAuthWithTokenUnsupportedError(PipeRiderError):
     def __init__(self):
-        self.message = f"PipeRider haven't supported dbt BigQuery method with 'oauth-secrets' yet."
+        self.message = "PipeRider haven't supported dbt BigQuery method with 'oauth-secrets' yet."
 
     hint = "Please reference the document of dbt BigQuery Profile for more details.\n" \
            "    ref: https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#authentication-methods"
