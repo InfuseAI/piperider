@@ -70,8 +70,8 @@ class DataSourceField(metaclass=ABCMeta):
         password = False
         is_path = False
 
-        if isinstance(self.ignore, bool) and self.ignore is True \
-            or isinstance(self.ignore, Callable) and self.ignore(answers):
+        ignore = self.ignore
+        if isinstance(ignore, bool) and ignore is True or isinstance(ignore, Callable) and ignore(answers):
             return None
 
         if self.type == 'password':
