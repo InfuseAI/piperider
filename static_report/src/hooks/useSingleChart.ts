@@ -66,7 +66,7 @@ export function useSingleChart({ target, data, dimensions }: HookArgs) {
       .style('fill', CHART_COLOR);
 
     // plot backdrop hover area
-    const tooltip = getChartTooltip({ target: '.chart' });
+    const tooltip = getChartTooltip({ target: '#chart-tooltip' });
     svg
       .selectAll('.overlay-bars')
       .data(data)
@@ -114,8 +114,6 @@ export function useSingleChart({ target, data, dimensions }: HookArgs) {
 
     return () => {
       svg.select('svg').remove();
-      //FIXME: still not removed when `esc` on modals
-      svg.selectAll('.chart_tooltip').remove();
     };
   }, [target, dimensions, data]);
 }

@@ -22,7 +22,6 @@ export function getChartTooltip({ target, style = {} as any }) {
   const tooltip = d3
     .select(target)
     .append('div')
-    .attr('class', 'chart_tooltip')
     .style('visibility', 'hidden')
     .style('position', 'absolute')
     .style('z-index', '1501')

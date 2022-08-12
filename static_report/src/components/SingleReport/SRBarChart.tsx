@@ -24,7 +24,7 @@ export function SRBarChart({ data, height = '230px' }: Props) {
   useSingleChart({ target: svgRef, data, dimensions });
 
   return (
-    <Flex className="chart" width="100%" height={height} ref={containerRef}>
+    <Flex width="100%" height={height} ref={containerRef}>
       <svg width="100%" overflow="visible" ref={svgRef}>
         <g className="x-axis" />
         <g className="y-axis" />
