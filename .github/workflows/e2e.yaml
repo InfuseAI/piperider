@@ -50,6 +50,8 @@ jobs:
           schema_file=$(find ~ -name "schema.json")
           for run in $(find ~ -name "run.json")
           do
+             echo "checking $run"
+             tail -20 "$run"
              jsonschema -i "$run" "$schema_file"
           done
 
