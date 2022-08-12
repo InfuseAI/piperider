@@ -6,19 +6,27 @@ import {
   BarElement,
   Tooltip,
   ChartData,
+  ScaleOptionsByType,
+  CartesianScaleTypeRegistry,
+  TimeScale,
+  TimeSeriesScale,
 } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import { Chart } from 'react-chartjs-2';
 import { ColumnSchema, Histogram } from '../../../sdlc/single-report-schema';
-import { formatAsAbbreviatedNumber } from '../../../utils/formatters';
+import {
+  formatAsAbbreviatedNumber,
+  formatIntervalMinMax,
+} from '../../../utils/formatters';
 import {
   DATE_RANGE,
   TEXTLENGTH,
   VALUE_RANGE,
 } from '../ColumnCard/ColumnTypeDetail/constants';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
-// FIXME: Tooltip hover mode should trigger selected bar as 'Active'
+import 'chartjs-adapter-date-fns';
+import { DeepPartial } from 'chart.js/types/utils';
 
+ChartJS.register(TimeSeriesScale, LinearScale, BarElement, Tooltip);
 /**
  * Histogram Chart that can display generic data types such as Numeric, Datetime, Integer
  * Should handle columns that don't have `histogram` property (TBD)
@@ -30,10 +38,44 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 interface Props {
   data: Histogram;
   type: ColumnSchema['type'];
+  total: number;
 }
-export function HistogramChart({ data, type }: Props) {
+export function HistogramChart({ data, type, total }: Props) {
   const { counts, bin_edges } = data;
 
+  const newData = counts.map((v, i) => ({ x: bin_edges[i + 1], y: v }));
+  const isDatetime = type === 'datetime';
+
+  //swap x-scale when histogram is datetime
+  const xScale: DeepPartial<
+    ScaleOptionsByType<keyof CartesianScaleTypeRegistry>
+  > = isDatetime
+    ? {
+        type: 'timeseries', // each datum is spread w/ equal distance
+        adapters: {
+          date: {},
+        },
+        time: {
+          minUnit: 'day',
+        },
+        grid: { display: false, offset: false },
+        ticks: {
+          maxRotation: 30,
+          autoSkip: true,
+        },
+      }
+    : {
+        type: 'linear',
+        beginAtZero: false,
+        offset: true,
+        // grid: { display: false },
+        ticks: {
+          maxRotation: 30,
+          autoSkip: true,
+          // labelOffset: 15,
+          format: { maximumFractionDigits: 2 },
+        },
+      };
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -45,42 +87,23 @@ export function HistogramChart({ data, type }: Props) {
         callbacks: {
           title([{ dataIndex }]) {
             const result = formatDisplayedBinItem(bin_edges, dataIndex);
-            const prefix =
-              type === 'datetime'
-                ? DATE_RANGE
-                : type === 'string'
-                ? TEXTLENGTH
-                : VALUE_RANGE;
+            const percentOfTotal = formatIntervalMinMax(
+              counts[dataIndex] / total,
+            );
 
-            return `${prefix}: ${result}`;
+            const prefix = isDatetime
+              ? DATE_RANGE
+              : type === 'string'
+              ? TEXTLENGTH
+              : VALUE_RANGE;
+
+            return `${prefix}: ${result}\n(${percentOfTotal})`;
           },
         },
       },
     },
     scales: {
-      x: {
-        beginAtZero: false,
-        grid: { display: false },
-        ticks: {
-          maxRotation: 0,
-          autoSkip: false,
-          format: { maximumFractionDigits: 2 },
-          callback: function (val, index, ticks) {
-            // val is an chartjs indexObject, not actual index's value; thus using original bin_edges
-            const delimiter = ' - ';
-            if (index === ticks.length) return null;
-            const result = formatDisplayedBinItem(bin_edges, index).split(
-              delimiter,
-            );
-            result.splice(1, 0, delimiter);
-
-            const isStartOrEnd = index === 0 || index === ticks.length - 1;
-
-            //preserve all gridline items by defaulting empty-string
-            return isStartOrEnd ? result : '';
-          },
-        },
-      },
+      x: xScale,
       y: {
         beginAtZero: true,
         grid: {
@@ -96,13 +119,12 @@ export function HistogramChart({ data, type }: Props) {
     },
   };
 
-  // defaults to `category` type, as `bin edges` are used as-is.
-  // this means that the x-axis ticks are explicitly provided, not inferred or automatically spread over the chart area.
-  const chartData: ChartData<'bar'> = {
-    labels: bin_edges.slice(0, -1), //offset final edge
+  // Histograms are a mix between bar and scatter options (union)
+  // uses cartesian x,y coordinates to plot and infer labels
+  const chartData: ChartData<'bar' | 'scatter'> = {
     datasets: [
       {
-        data: counts,
+        data: newData as any, //infer `any` to allow datestring
         backgroundColor: '#63B3ED',
         borderColor: '#4299E1',
         hoverBackgroundColor: '#002A53',
@@ -113,7 +135,8 @@ export function HistogramChart({ data, type }: Props) {
     ],
   };
 
-  return <Bar options={chartOptions} data={chartData} />;
+  //infer `any` to allow for union data configurations & options
+  return <Chart type="bar" options={chartOptions} data={chartData as any} />;
 }
 
 /**

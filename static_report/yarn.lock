@@ -6346,6 +6346,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chartjs-adapter-date-fns@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "chartjs-adapter-date-fns@npm:2.0.0"
+  peerDependencies:
+    chart.js: ^3.0.0
+  checksum: 08ee2f99da4a15434e28da733cb0489fe94012ac1a493fbf01d660bcf17df3bb28ce767939c2881b67b3bbefe1a7ffe70dcea4cbd860ab6c2c670d90816e8176
+  languageName: node
+  linkType: hard
+
 "chartjs-plugin-datalabels@npm:^2.1.0":
   version: 2.1.0
   resolution: "chartjs-plugin-datalabels@npm:2.1.0"
@@ -13705,6 +13714,7 @@ __metadata:
     "@types/react-dom": ^18.0.5
     chalk: ^5.0.1
     chart.js: ^3.9.1
+    chartjs-adapter-date-fns: ^2.0.0
     chartjs-plugin-datalabels: ^2.1.0
     craco-esbuild: ^0.5.1
     cypress: ^10.3.0

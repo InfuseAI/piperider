@@ -63,7 +63,7 @@ function _getDataChart(columnDatum: ColumnSchema) {
   const isCategorical = checkColumnCategorical(columnDatum);
 
   if ((type === 'string' || type === 'integer') && topk && isCategorical) {
-    return <CategoricalBarChart data={topk} />;
+    return <CategoricalBarChart data={topk} total={total || 0} />;
   }
   if (
     (type === 'numeric' ||
@@ -72,7 +72,7 @@ function _getDataChart(columnDatum: ColumnSchema) {
       type === 'datetime') &&
     histogram
   ) {
-    return <HistogramChart data={histogram} type={type} />;
+    return <HistogramChart data={histogram} type={type} total={total ?? 0} />;
   }
   if (type === 'boolean') {
     const counts = [trues, falses, nulls, invalids].map((v) => (v ? v : 0));

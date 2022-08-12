@@ -10,18 +10,25 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { Topk } from '../../../sdlc/single-report-schema';
-import { formatAsAbbreviatedNumber } from '../../../utils/formatters';
+import {
+  formatAsAbbreviatedNumber,
+  formatIntervalMinMax,
+} from '../../../utils/formatters';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 interface Props {
   data: Topk;
+  total: number;
 }
 /**
  * A horizontal progress bar chart that visualized categorical dataset plotted against each category group
  * @param data the topk value (categorical counts)
  * @returns
  */
-export function CategoricalBarChart({ data: { counts, values } }: Props) {
+export function CategoricalBarChart({
+  data: { counts, values },
+  total,
+}: Props) {
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -39,6 +46,16 @@ export function CategoricalBarChart({ data: { counts, values } }: Props) {
         mode: 'y',
         position: 'nearest',
         intersect: false,
+        callbacks: {
+          title([{ dataIndex, dataset }]) {
+            const result = dataset.data[dataIndex];
+            const percentOfTotal = formatIntervalMinMax(
+              counts[dataIndex] / total,
+            );
+
+            return `${result}\n(${percentOfTotal})`;
+          },
+        },
       },
     },
   };
