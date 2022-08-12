@@ -18,13 +18,16 @@
 
 Key Features:
 
-- Instant quality assessment in HTML report: [sample report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/single-run-0.5.0/index.html)
-- Report comparison: [sample comparsion report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.5.1/index.html)
+- Instant quality assessment in HTML
+  report: [sample report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/single-run-0.5.0/index.html)
+- Report
+  comparison: [sample comparsion report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.5.1/index.html)
 - [Extensible custom assertions](https://docs.piperider.io/data-quality-assertions/custom-assertions)
 - Works with existing [dbt](https://github.com/dbt-labs/dbt-core) projects
 - Automatic test recommendations
 
-[Read more](https://blog.infuseai.io/data-reliability-automated-with-piperider-7a823521ef11) about why we created PipeRider.
+[Read more](https://blog.infuseai.io/data-reliability-automated-with-piperider-7a823521ef11) about why we created
+PipeRider.
 
 # Getting started
 
@@ -40,6 +43,7 @@ By default, PipeRider supports built-in SQLite connector, extra connectors are a
 |---|---|
 | snowflake | pip install 'piperider[snowflake]'  |
 | postgres  | pip install 'piperider[postgres]'  |
+| bigquery | pip install 'piperider[bigquery]'  |
 
 Use comma to install multiple connectors in one line:
 
@@ -48,7 +52,6 @@ pip install 'piperider[postgres,snowflake]'
 ```
 
 You can follow the [quick start guide](https://docs.piperider.io/quick-start) to learn more about PipeRider.
-
 
 ## Attach PipeRider to a dbt project
 
@@ -84,12 +87,16 @@ You can use `piperider compare-report` to compare 2 reports.
 | [Roadmap] | PipeRider Roadmap |
 
 [Documentation]: https://docs.piperider.io/
+
 [Sample_Project]: https://github.com/InfuseAI/infuse-finance
+
 [dbt_Sample_Project]: https://github.com/InfuseAI/dbt-infuse-finance
+
 [Roadmap]: https://github.com/orgs/InfuseAI/projects/1/views/1
 
-
 # Get involved
+
 ## Contributions
 
-We welcome contributions. See the [Set up dev environment](DEVELOP.md) and the [Contributing guildline](CONTRIBUTING.md) to get started.
+We welcome contributions. See the [Set up dev environment](DEVELOP.md) and the [Contributing guildline](CONTRIBUTING.md)
+to get started.

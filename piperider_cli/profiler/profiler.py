@@ -5,13 +5,14 @@ from datetime import datetime, date
 from typing import Union, List, Tuple
 
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, select, func, \
-    distinct, case
+from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, ARRAY, select, func, \
+    distinct, case, text
+from sqlalchemy.engine import Engine, Connection
 from sqlalchemy.sql import FromClause
 from sqlalchemy.sql.elements import ColumnClause
 from sqlalchemy.sql.expression import CTE, false, true
 from sqlalchemy.types import Float
-from sqlalchemy.engine import Engine, Connection
+
 from .event import ProfilerEventHandler, DefaultProfilerEventHandler
 
 HISTOGRAM_NUM_BUCKET = 50
@@ -122,9 +123,23 @@ class Profiler:
 
         return result
 
+    def _drop_unsupported_columns(self, table: Table):
+        array_columns = []
+        candidate_columns = []
+
+        for column in table.columns:
+            if isinstance(column.type, ARRAY):
+                array_columns.append(column.name + '.')
+            if any(column.name.startswith(bypass_column) for bypass_column in array_columns):
+                # Skip columns under an array
+                continue
+            candidate_columns.append(column)
+        return candidate_columns
+
     def _profile_table(self, table: Table) -> dict:
+        candidate_columns = self._drop_unsupported_columns(table)
         col_index = 0
-        col_count = len(table.columns)
+        col_count = len(candidate_columns)
         columns = {}
         result = {
             "name": table.name,
@@ -149,7 +164,7 @@ class Profiler:
         self.event_handler.handle_table_progress(result, col_count, col_index)
 
         # Profile columns
-        for column in table.columns:
+        for column in candidate_columns:
             columns[column.name] = self._profile_column(table, column)
             col_index = col_index + 1
             self.event_handler.handle_table_progress(result, col_count, col_index)
@@ -589,6 +604,12 @@ class NumericColumnProfiler(BaseColumnProfiler):
                     'p75': ntile(75),
                     'p95': ntile(95),
                 }
+        elif self._get_database_backend() == 'bigquery':
+            # BigQuery does not support WITHIN, change to use over
+            #   Ref: https://github.com/great-expectations/great_expectations/blob/develop/great_expectations/dataset/sqlalchemy_dataset.py#L1019:9
+            selects = [
+                func.percentile_disc(column, percentile).over() for percentile in [0.05, 0.25, 0.5, 0.75, 0.95]
+            ]
         else:
             # https://docs.sqlalchemy.org/en/14/core/functions.html#sqlalchemy.sql.functions.percentile_disc
             #
@@ -602,15 +623,16 @@ class NumericColumnProfiler(BaseColumnProfiler):
             selects = [
                 func.percentile_disc(percentile).within_group(column) for percentile in [0.05, 0.25, 0.5, 0.75, 0.95]
             ]
-            stmt = select(selects).select_from(table)
-            result = conn.execute(stmt).fetchone()
-            return {
-                'p5': dtof(result[0]),
-                'p25': dtof(result[1]),
-                'p50': dtof(result[2]),
-                'p75': dtof(result[3]),
-                'p95': dtof(result[4]),
-            }
+
+        stmt = select(selects).select_from(table)
+        result = conn.execute(stmt).fetchone()
+        return {
+            'p5': dtof(result[0]),
+            'p25': dtof(result[1]),
+            'p50': dtof(result[2]),
+            'p75': dtof(result[3]),
+            'p95': dtof(result[4]),
+        }
 
     def _profile_histogram(
         self,
@@ -824,6 +846,10 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                     return func.strftime("%Y-%m-01", args[1])
                 else:
                     return func.strftime("%Y-%m-%d", args[1])
+            elif self._get_database_backend() == 'bigquery':
+                date_expression = args[1]
+                date_part = args[0]
+                return func.date_trunc(date_expression, text(date_part))
             else:
                 return func.date_trunc(*args)
 

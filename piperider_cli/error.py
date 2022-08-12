@@ -30,6 +30,14 @@ class PipeRiderCredentialError(PipeRiderError):
     hint = "Please execute command 'piperider init' to move forward."
 
 
+class DbtProfileBigQueryAuthWithTokenUnsupportedError(PipeRiderError):
+    def __init__(self):
+        self.message = "PipeRider haven't supported dbt BigQuery method with 'oauth-secrets' yet."
+
+    hint = "Please reference the document of dbt BigQuery Profile for more details.\n" \
+           "    ref: https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#authentication-methods"
+
+
 class PipeRiderNoProfilingResultError(PipeRiderError):
     def __init__(self, result_file):
         self.result_file = result_file

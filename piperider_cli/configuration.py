@@ -13,7 +13,8 @@ from piperider_cli.error import \
     DbtProjectNotFoundError, \
     DbtProfileNotFoundError, \
     DbtProjectInvalidError, \
-    DbtProfileInvalidError
+    DbtProfileInvalidError, \
+    DbtProfileBigQueryAuthWithTokenUnsupportedError
 
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
@@ -77,7 +78,7 @@ class Configuration(object):
 
         profile_name = dbt_project.get('profile')
         target_name = dbt_profile.get(profile_name, {}).get('target')
-        credential = dbt_profile.get(profile_name, {}).get('outputs', {}).get(target_name, {})
+        credential = _load_credential_from_dbt_profile(dbt_profile, profile_name, target_name)
         type_name = credential.get('type')
         dbt = {
             'profile': profile_name,
@@ -132,7 +133,9 @@ class Configuration(object):
                 if '~' in profile_path:
                     profile_path = os.path.expanduser(profile_path)
                 profile = _load_dbt_profile(profile_path)
-                credential = profile.get(dbt.get('profile'), {}).get('outputs', {}).get(dbt.get('target', {}))
+                profile_name = dbt.get('profile')
+                target_name = dbt.get('target')
+                credential = _load_credential_from_dbt_profile(profile, profile_name, target_name)
                 # TODO: extract duplicate code from func 'from_dbt_project'
                 if credential.get('pass') and credential.get('password') is None:
                     credential['password'] = credential.pop('pass')
@@ -233,3 +236,23 @@ def _load_dbt_profile(path):
         return yaml.safe_load(template.render())
     except Exception as e:
         raise DbtProfileInvalidError(path, e)
+
+
+def _load_credential_from_dbt_profile(dbt_profile, profile_name, target_name):
+    credential = dbt_profile.get(profile_name, {}).get('outputs', {}).get(target_name, {})
+
+    if credential.get('type') != 'bigquery':
+        return credential
+
+    # BigQuery Data Source
+    from piperider_cli.datasource.bigquery import AUTH_METHOD_OAUTH_SECRETS
+    # DBT profile support 4 types of methods to authenticate with BigQuery:
+    #   [ 'oauth', 'oauth-secrets', 'service-account', 'service-account-json' ]
+    # Ref: https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#authentication-methods
+    if credential.get('method') == 'oauth-secrets':
+        credential['method'] = AUTH_METHOD_OAUTH_SECRETS
+        # TODO: Currently SqlAlchemy haven't support using access token to authenticate with BigQuery.
+        #       Ref: https://github.com/googleapis/python-bigquery-sqlalchemy/pull/459
+        raise DbtProfileBigQueryAuthWithTokenUnsupportedError
+
+    return credential
