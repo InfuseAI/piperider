@@ -1,4 +1,3 @@
-import { BarChartDatum } from '../components/SingleReport/SRBarChart';
 import { ColumnSchema, Histogram } from '../sdlc/single-report-schema';
 import { CRTargetData } from '../types';
 
@@ -113,11 +112,14 @@ export function getColumnDetails(columnData: ColumnSchema) {
   };
 }
 
-export function checkColumnCategorical(columnDatum: ColumnSchema): boolean {
-  const { distinct, type } = columnDatum;
-  return typeof distinct === 'number'
-    ? distinct <= 100 && (type === 'string' || type === 'integer')
-    : false; //this is arbitrary
+export function checkColumnCategorical(columnDatum?: ColumnSchema): boolean {
+  if (columnDatum) {
+    const { distinct, type } = columnDatum;
+    return typeof distinct === 'number'
+      ? distinct <= 100 && (type === 'string' || type === 'integer')
+      : false; //this is arbitrary
+  }
+  return false;
 }
 
 export function getColumnTypeChartData(
@@ -147,4 +149,11 @@ export function getColumnTypeChartData(
       type,
       total,
     }));
+}
+interface BarChartDatum {
+  type: ColumnSchema['type'];
+  isCategorical: boolean;
+  label: string | null;
+  value: any;
+  total: number;
 }

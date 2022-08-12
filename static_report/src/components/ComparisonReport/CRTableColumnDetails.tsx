@@ -1,4 +1,5 @@
-import { Code, Flex, Text } from '@chakra-ui/react';
+import { InfoIcon } from '@chakra-ui/icons';
+import { Flex, Text, Tooltip } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
@@ -22,30 +23,29 @@ export const CRTableColumnDetails = ({
   return (
     <Flex direction="column" gap={2} minH="250px">
       <Flex direction="column" gap={3}>
-        <Flex justifyContent="space-between">
-          <Text maxWidth="calc(100% - 250px)">
-            <Text
-              as="span"
-              fontWeight={700}
-              color="gray.900"
-              fontSize="lg"
-              mr={1}
-              noOfLines={1}
-              title={fallback?.name}
-            >
-              {fallback?.name}
-            </Text>
-            {''}(<Code>{fallback?.schema_type}</Code>)
+        <Flex justifyContent={'center'}>
+          <Text
+            as="span"
+            fontWeight={700}
+            color="gray.900"
+            fontSize="lg"
+            mr={1}
+            noOfLines={1}
+            title={fallback?.name}
+          >
+            {fallback?.name}
           </Text>
-
-          <Flex gap={8}>
-            <Text fontWeight={700} textAlign="right" width="100px">
-              Base
-            </Text>
-            <Text fontWeight={700} textAlign="right" width="100px">
-              Target
-            </Text>
-          </Flex>
+          <Tooltip label={fallback?.schema_type}>
+            <InfoIcon mt={1} color="gray.400" boxSize={'14px'} />
+          </Tooltip>
+        </Flex>
+        <Flex gap={8}>
+          <Text ml={'16'} fontWeight={700} textAlign="right" width="100px">
+            Base
+          </Text>
+          <Text fontWeight={700} textAlign="right" width="100px">
+            Target
+          </Text>
         </Flex>
 
         <Flex direction="column" mt={3}>
@@ -55,13 +55,12 @@ export const CRTableColumnDetails = ({
             targetColumn={targetColumn || null}
           />
         </Flex>
+
         {baseColumn?.type === 'numeric' && (
-          <>
-            <NumericTableColumn
-              baseColumn={baseColumn}
-              targetColumn={targetColumn || null}
-            />
-          </>
+          <NumericTableColumn
+            baseColumn={baseColumn}
+            targetColumn={targetColumn || null}
+          />
         )}
 
         {baseColumn?.type === 'datetime' && (

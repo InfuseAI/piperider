@@ -1,14 +1,12 @@
 import {
   ChartOptions,
   Chart as ChartJS,
-  CategoryScale,
   LinearScale,
   BarElement,
   Tooltip,
   ChartData,
   ScaleOptionsByType,
   CartesianScaleTypeRegistry,
-  TimeScale,
   TimeSeriesScale,
 } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
@@ -29,11 +27,9 @@ import { DeepPartial } from 'chart.js/types/utils';
 ChartJS.register(TimeSeriesScale, LinearScale, BarElement, Tooltip);
 /**
  * Histogram Chart that can display generic data types such as Numeric, Datetime, Integer
- * Should handle columns that don't have `histogram` property (TBD)
  * X: The Min/Max of the labels range is the scaled width of charting area
  * Y: The Min/Max of the counts range is the scaled height of charting area
  * Counts: Abbreviated based on K, Mn, Bn, Tr (see formatters)
- * Guides: horizontal dashed lines, at the 30/60/90 percentile
  */
 interface Props {
   data: Histogram;
@@ -45,6 +41,8 @@ export function HistogramChart({ data, type, total }: Props) {
 
   const newData = counts.map((v, i) => ({ x: bin_edges[i + 1], y: v }));
   const isDatetime = type === 'datetime';
+  // to make histogram edge display on tick
+  const labelOffset = bin_edges.length < 11 ? 120 / bin_edges.length : 0;
 
   //swap x-scale when histogram is datetime
   const xScale: DeepPartial<
@@ -58,7 +56,8 @@ export function HistogramChart({ data, type, total }: Props) {
         time: {
           minUnit: 'day',
         },
-        grid: { display: false, offset: false },
+        bounds: 'data',
+        grid: { display: true, offset: true },
         ticks: {
           maxRotation: 30,
           autoSkip: true,
@@ -66,14 +65,15 @@ export function HistogramChart({ data, type, total }: Props) {
       }
     : {
         type: 'linear',
-        beginAtZero: false,
-        offset: true,
-        // grid: { display: false },
+        bounds: 'data',
+        grid: { display: false },
         ticks: {
           maxRotation: 30,
           autoSkip: true,
-          // labelOffset: 15,
-          format: { maximumFractionDigits: 2 },
+          labelOffset,
+          callback(val) {
+            return formatAsAbbreviatedNumber(val);
+          },
         },
       };
   const chartOptions: ChartOptions<'bar'> = {

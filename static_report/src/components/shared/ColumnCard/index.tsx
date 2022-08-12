@@ -43,7 +43,7 @@ export function ColumnCard({ columnDatum }: Props) {
         title={title}
         allowModalPopup={Boolean(getColumnTypeChartData(columnDatum))}
       >
-        {_getDataChart(columnDatum)}
+        {getDataChart(columnDatum)}
       </ColumnCardDataVisualContainer>
       <ColumnCardBodyContainer>
         {_getColumnBodyContentUI(columnDatum)}
@@ -57,7 +57,7 @@ export function ColumnCard({ columnDatum }: Props) {
  * @param columnDatum
  * @returns *Chart Component
  */
-function _getDataChart(columnDatum: ColumnSchema) {
+export function getDataChart(columnDatum: ColumnSchema) {
   const { total, type, histogram, topk, trues, falses, nulls, invalids } =
     columnDatum;
   const isCategorical = checkColumnCategorical(columnDatum);

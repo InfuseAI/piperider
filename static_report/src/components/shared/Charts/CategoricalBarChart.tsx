@@ -2,7 +2,6 @@ import {
   ChartOptions,
   Chart as ChartJS,
   CategoryScale,
-  LinearScale,
   BarElement,
   Tooltip,
   ChartData,
@@ -15,16 +14,14 @@ import {
   formatIntervalMinMax,
 } from '../../../utils/formatters';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
+ChartJS.register(CategoryScale, BarElement, Tooltip);
+/**
+ * A horizontal progress bar chart that visualizes categorical dataset, plotted 1:1 to each category group
+ */
 interface Props {
   data: Topk;
   total: number;
 }
-/**
- * A horizontal progress bar chart that visualized categorical dataset plotted against each category group
- * @param data the topk value (categorical counts)
- * @returns
- */
 export function CategoricalBarChart({
   data: { counts, values },
   total,

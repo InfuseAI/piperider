@@ -16,8 +16,10 @@ export function MetricsInfo({
   secondSlotWidth = '100px',
 }: Props) {
   return (
-    <Flex justifyContent="space-between">
-      <Text fontWeight={700}>{name}</Text>
+    <Flex>
+      <Text width={'5em'} fontWeight={700}>
+        {name}
+      </Text>
       <Flex gap={{ lg: 5, md: 1 }}>
         <Text textAlign="right" width={firstSlotWidth} noOfLines={1}>
           {firstSlot}
