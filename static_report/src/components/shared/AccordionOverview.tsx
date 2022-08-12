@@ -10,22 +10,26 @@ import {
   Center,
   Stack,
   Icon,
+  Tooltip,
 } from '@chakra-ui/react';
-import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   FiCornerDownRight,
   FiAlertCircle,
   FiCheck,
   FiX,
   FiChevronRight,
+  FiGrid,
 } from 'react-icons/fi';
 import { nanoid } from 'nanoid';
 
-import { SRBarChart } from '../SingleReport/SRBarChart';
+import { SRBarChart, type BarChartDatum } from '../SingleReport/SRBarChart';
 import { zReport, ZTableSchema } from '../../types';
 import { getReportAggregateAssertions } from '../../utils/assertion';
 import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
-import { getColumnTypeChartData } from '../../utils/transformers';
+import {
+  getColumnTypeChartData,
+  getIconForColumnType,
+} from '../../utils/transformers';
 import {
   type SingleReportSchema,
   type AssertionTest,
@@ -42,11 +46,10 @@ export function AccordionOverview({
         <Text>Assertions</Text>
       </Grid>
 
-      <Flex direction="column" gap={8}>
+      <Accordion allowToggle>
         {Object.keys(tables).map((key) => {
           const report = tables[key];
           zReport(ZTableSchema.safeParse(report));
-
           const assertions = getReportAggregateAssertions(
             report.piperider_assertion_result,
             report.dbt_assertion_result,
@@ -58,7 +61,7 @@ export function AccordionOverview({
           const isGreaterThanFiveCols = columns.length > 5;
 
           return (
-            <Accordion key={nanoid()} allowToggle>
+            <Flex key={nanoid()}>
               <AccordionItem>
                 {({ isExpanded }) => (
                   <>
@@ -71,9 +74,18 @@ export function AccordionOverview({
                         >
                           <GridItem>
                             <Center>
-                              <InfoOutlineIcon color="piperider.500" />
+                              <Icon as={FiGrid} color="piperider.500" />
                               <Text mx={1}>{report.name}</Text>
-                              <InfoOutlineIcon ml={1} />
+
+                              {!isExpanded && (
+                                <Tooltip
+                                  label={report.description}
+                                  placement="right-end"
+                                  shouldWrapChildren
+                                >
+                                  <Icon as={FiAlertCircle} ml={1} />
+                                </Tooltip>
+                              )}
                             </Center>
                           </GridItem>
                           <GridItem>
@@ -142,7 +154,15 @@ export function AccordionOverview({
                                 <Flex gap={3} alignItems="center">
                                   {/* Pick up the top 5 columns */}
                                   {columns.slice(0, 5).map((name) => (
-                                    <ColumnLabel key={name} name={name} />
+                                    <ColumnLabel
+                                      key={name}
+                                      name={name}
+                                      icon={
+                                        getIconForColumnType(
+                                          report.columns[name],
+                                        ).icon
+                                      }
+                                    />
                                   ))}
                                   {isGreaterThanFiveCols && (
                                     <ColumnLabel
@@ -172,61 +192,43 @@ export function AccordionOverview({
                             report.columns[colName],
                           );
 
+                          const { icon: colIcon } = getIconForColumnType(
+                            report.columns[colName],
+                          );
+
                           return (
-                            <Grid
+                            <ColumnDetail
                               key={colName}
-                              templateColumns="218px 1.1fr 1fr 20px"
-                              alignItems="center"
-                            >
-                              <GridItem>
-                                <Flex alignItems="center">
-                                  <Icon
-                                    as={FiCornerDownRight}
-                                    color="gray.300"
-                                    boxSize={5}
-                                  />
-                                  <Icon
-                                    as={FiAlertCircle}
-                                    color="piperider.500"
-                                    mx={2}
-                                    boxSize={5}
-                                  />
-                                  <Text noOfLines={1}>{colName}</Text>
-                                </Flex>
-                              </GridItem>
+                              name={colName}
+                              colAssertions={colAssertions}
+                              chartData={chartData}
+                              icon={colIcon}
+                            />
+                          );
+                        })}
 
-                              {/* TODO: profiling chart */}
-                              <GridItem>
-                                {chartData ? (
-                                  <Flex width="400px" mx={4}>
-                                    <SRBarChart
-                                      data={chartData}
-                                      height="60px"
-                                    />
-                                  </Flex>
-                                ) : (
-                                  'No data avaliable'
-                                )}
-                              </GridItem>
+                        {Object.keys(
+                          report.dbt_assertion_result?.columns || {},
+                        ).map((colName) => {
+                          const colAssertions =
+                            report.dbt_assertion_result?.columns?.[colName];
 
-                              <GridItem>
-                                {!colAssertions ? (
-                                  <Text color="gray.500">no assertions</Text>
-                                ) : (
-                                  <SRAssertionsSummaryLabel
-                                    assertions={colAssertions}
-                                  />
-                                )}
-                              </GridItem>
+                          const chartData = getColumnTypeChartData(
+                            report.columns[colName],
+                          );
 
-                              <GridItem>
-                                <Icon
-                                  as={FiChevronRight}
-                                  color="piperider.500"
-                                  boxSize={6}
-                                />
-                              </GridItem>
-                            </Grid>
+                          const { icon: colIcon } = getIconForColumnType(
+                            report.columns[colName],
+                          );
+
+                          return (
+                            <ColumnDetail
+                              key={colName}
+                              name={colName}
+                              colAssertions={colAssertions}
+                              chartData={chartData}
+                              icon={colIcon}
+                            />
                           );
                         })}
                       </Stack>
@@ -234,25 +236,73 @@ export function AccordionOverview({
                   </>
                 )}
               </AccordionItem>
-            </Accordion>
+            </Flex>
           );
         })}
-      </Flex>
+      </Accordion>
     </Flex>
+  );
+}
+
+function ColumnDetail({
+  name,
+  icon,
+  chartData,
+  colAssertions,
+}: {
+  name: string;
+  icon: any;
+  chartData: BarChartDatum[] | undefined;
+  colAssertions: AssertionTest[] | undefined;
+}) {
+  return (
+    <Grid key={name} templateColumns="218px 2.2fr 1fr 20px" alignItems="center">
+      <GridItem>
+        <Flex alignItems="center">
+          <Icon as={FiCornerDownRight} color="gray.300" boxSize={5} />
+          <Icon as={icon} color="piperider.500" mx={2} boxSize={5} />
+          <Text noOfLines={1}>{name}</Text>
+        </Flex>
+      </GridItem>
+
+      <GridItem>
+        {chartData ? (
+          <Flex width="400px" mx={4}>
+            <SRBarChart data={chartData} height="60px" />
+          </Flex>
+        ) : (
+          <Text>No data avaliable</Text>
+        )}
+      </GridItem>
+
+      <GridItem>
+        {!colAssertions ? (
+          <Text color="gray.500">no assertions</Text>
+        ) : (
+          <SRAssertionsSummaryLabel assertions={colAssertions} />
+        )}
+      </GridItem>
+
+      <GridItem>
+        <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
+      </GridItem>
+    </Grid>
   );
 }
 
 function ColumnLabel({
   name,
   visibleIcon = true,
+  icon = FiGrid,
 }: {
   visibleIcon?: boolean;
   name: string;
+  icon?: any;
 }) {
   return (
     <Flex borderRadius="md" bgColor="gray.100" py={0.5} px={1}>
       <Center>
-        {visibleIcon && <InfoOutlineIcon color="piperider.500" mr={1} />}
+        {visibleIcon && <Icon as={icon} color="piperider.500" mr={1} />}
         <Text as="span" fontSize="sm" color="gray.600">
           {name}
         </Text>
