@@ -35,11 +35,11 @@ import {
   type AssertionTest,
 } from '../../sdlc/single-report-schema';
 
-export function AccordionOverview({
+export function SRAccordionOverview({
   tables,
 }: Pick<SingleReportSchema, 'tables'>) {
   return (
-    <Flex direction="column" width="900px">
+    <Flex direction="column" width="900px" minHeight="650px">
       <Grid templateColumns="1fr 2fr 1fr" px={4} my={6}>
         <Text width="100px">Name</Text>
         <Text width="">Summary</Text>
@@ -256,7 +256,7 @@ function ColumnDetail({
   colAssertions: AssertionTest[] | undefined;
 }) {
   return (
-    <Grid key={name} templateColumns="218px 2.2fr 1fr 20px" alignItems="center">
+    <Grid key={name} templateColumns="218px 2.2fr 1fr 2rem" alignItems="center">
       <GridItem>
         <Flex alignItems="center">
           <Icon as={FiCornerDownRight} color="gray.300" boxSize={5} />

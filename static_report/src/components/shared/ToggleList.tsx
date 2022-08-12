@@ -6,8 +6,12 @@ import {
   ButtonGroup,
   Tooltip,
 } from '@chakra-ui/react';
-import { InfoOutlineIcon } from '@chakra-ui/icons';
-import { FiDatabase, FiCreditCard, FiBookOpen } from 'react-icons/fi';
+import {
+  FiDatabase,
+  FiCreditCard,
+  FiBookOpen,
+  FiAlertCircle,
+} from 'react-icons/fi';
 
 export type ToggleListView = 'schema' | 'summary';
 
@@ -34,10 +38,15 @@ export function ToggleList({
       borderBottomColor="gray.300"
     >
       <Flex gap={1} alignItems="center">
-        <Icon as={FiDatabase} />
+        <Icon as={FiDatabase} boxSize={4} />
         <Text fontSize="large">{sourceName}</Text>
-        <Tooltip label={sourceType} prefix="" placement="right-end">
-          <Icon as={InfoOutlineIcon} />
+        <Tooltip
+          label={sourceType}
+          prefix=""
+          placement="right-end"
+          shouldWrapChildren
+        >
+          <Icon as={FiAlertCircle} />
         </Tooltip>
       </Flex>
 

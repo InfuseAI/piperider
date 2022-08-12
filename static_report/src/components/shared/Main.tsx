@@ -1,4 +1,4 @@
-import { Flex, useColorMode } from '@chakra-ui/react';
+import { Flex, FlexProps, useColorMode } from '@chakra-ui/react';
 import { useEffect, ReactNode } from 'react';
 import * as amplitude from '@amplitude/analytics-browser';
 
@@ -6,13 +6,13 @@ import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { Sidebar } from './Sidebar';
 
-type Props = {
+interface Props extends FlexProps {
   children: ReactNode;
   time: string;
   isSingleReport: boolean;
-};
+}
 
-export function Main({ children, isSingleReport, ...props }: Props) {
+export function Main({ children, isSingleReport, time, ...props }: Props) {
   const { colorMode } = useColorMode();
   const bgColor = { light: 'gray.50', dark: 'gray.900' };
   const color = { light: 'black', dark: 'white' };
@@ -28,7 +28,7 @@ export function Main({ children, isSingleReport, ...props }: Props) {
 
   return (
     <Flex direction="column">
-      <Navbar isSingleReport={isSingleReport} time={props.time} />
+      <Navbar isSingleReport={isSingleReport} time={time} />
 
       <Flex mt={2}>
         <Sidebar />

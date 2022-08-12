@@ -104,7 +104,7 @@ export function Sidebar() {
         </Flex>
       </Box>
 
-      <Modal {...modal} size="2xl">
+      <Modal {...modal} size="2xl" autoFocus={false}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Send feedback to PipeRider</ModalHeader>
