@@ -1,4 +1,4 @@
-import { Text, Tooltip } from '@chakra-ui/react';
+import { Text } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 import { NO_VALUE } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
 
