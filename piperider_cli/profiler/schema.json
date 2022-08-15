@@ -17,9 +17,6 @@
           "required": [
             "name",
             "columns",
-            "description",
-            "row_count",
-            "col_count",
             "piperider_assertion_result"
           ],
           "additionalProperties": false,
@@ -45,12 +42,7 @@
                   "required": [
                     "name",
                     "type",
-                    "schema_type",
-                    "description",
-                    "total",
-                    "nulls",
-                    "non_nulls",
-                    "distinct"
+                    "schema_type"
                   ],
                   "additionalProperties": false,
                   "properties": {
