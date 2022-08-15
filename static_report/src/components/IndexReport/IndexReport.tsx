@@ -153,7 +153,7 @@ export function IndexReport({ data }) {
 
                         return (
                           <LinkBox as={Tr} _hover={{ bg: 'blackAlpha.50' }}>
-                            <Td w={0} pt={1} pb={1}>
+                            <Td w={0} p={1}>
                               <Checkbox
                                 py={3}
                                 pl={5}
