@@ -1,66 +1,77 @@
 import {
+  Box,
+  Button,
+  Center,
+  Checkbox,
   Flex,
+  HStack,
   Heading,
+  LinkBox,
+  LinkOverlay,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
   Table,
   TableContainer,
+  Tabs,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
   Tr,
-  Tab,
-  Tabs,
-  TabList,
-  TabPanels,
-  TabPanel,
-  LinkBox,
-  LinkOverlay,
-  Checkbox,
-  Box,
-  Text,
-  Button,
-  Center,
+  VStack,
 } from '@chakra-ui/react';
 
 import { useState } from 'react';
 import { Main } from '../shared/Main';
 import { formatReportTime } from '../../utils/formatters';
 
-function useForceUpdate() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [value, setValue] = useState(0);
-  return () => setValue((value) => value + 1);
-}
-
-const style = {
-  opacity: 0.96,
-  backgroundColor: '#F8F8F8',
-  border: '1px solid #E7E7E7',
-  borderRadius: '15px',
-  padding: '15px',
-  position: 'fixed',
-  bottom: '10px',
-  height: '80px',
-  width: '35%',
-  zIndex: 3,
-};
-
-function StickyFooter({ checkState, onCompareClick }) {
+function StickyFooter({
+  checkState,
+  onCompareClick,
+  error,
+}: {
+  checkState: string[];
+  onCompareClick: () => void;
+  error?: string;
+}) {
   return (
     <Center>
-      <Box sx={style}>
+      <Box
+        bgColor="gray.100"
+        borderRadius="15px"
+        bottom="10px"
+        opacity="0.95"
+        p={4}
+        pos="fixed"
+        w="40%"
+        zIndex={3}
+      >
         <Center>
-          <Box w={70} textAlign={['left']}>
-            <Text>Base: </Text>
-            <Text>Target: </Text>
-          </Box>
-          <Box mr={30}>
-            <Text>{checkState[0]}</Text>
-            <Text>{checkState[1]}</Text>
-          </Box>
-          <Box m={'auto 0'}>
-            <Button onClick={onCompareClick}>Compare</Button>
-          </Box>
+          <VStack>
+            <HStack spacing="20px">
+              <Box w="56px" textAlign={['left']}>
+                <Text fontWeight="semibold">Base: </Text>
+                <Text fontWeight="semibold">Target: </Text>
+              </Box>
+              <Box>
+                <Text>{checkState[0]}</Text>
+                <Text>{checkState[1]}</Text>
+              </Box>
+              <Box m={'auto 0'}>
+                <Button colorScheme="blue" onClick={onCompareClick}>
+                  Compare
+                </Button>
+              </Box>
+            </HStack>
+            {error && (
+              <Text color="red.500" fontWeight="semibold">
+                {error}
+              </Text>
+            )}
+          </VStack>
         </Center>
       </Box>
     </Center>
@@ -69,30 +80,37 @@ function StickyFooter({ checkState, onCompareClick }) {
 
 export function ServeIndex({ data }) {
   const [checkState, setCheckState] = useState<string[]>([]);
-  const forceUpdate = useForceUpdate();
+  const [errorState, setErrorState] = useState();
 
   const onSelectChanged = (name: string, checked: boolean) => {
-    setCheckState((prev) => {
-      const index = prev.indexOf(name);
-      if (checked && index === -1) {
-        prev.push(name);
-        if (prev.length > 2) {
-          prev.shift();
-        }
-      } else if (!checked && index >= 0) {
-        prev.splice(index, 1);
+    const index = checkState.indexOf(name);
+    if (checked && index === -1) {
+      checkState.push(name);
+      if (checkState.length > 2) {
+        checkState.shift();
       }
-      return prev;
-    });
+    } else if (!checked && index >= 0) {
+      checkState.splice(index, 1);
+    }
+    const newState = checkState.map((s) => s);
+    setCheckState(newState);
   };
 
   const onCompareClick = (base: string, target: string) => {
     fetch(`/compare?base=${base}&target=${target}`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        throw Error(
+          `Network response was not ok (status: ${res.status}). Please try again later.`,
+        );
+      })
       .then(() => {
         alert("Compare report generated. Please check 'Comparisons' tab.");
         window.location.reload();
-      });
+      })
+      .catch((error) => setErrorState(error.message));
   };
 
   return (
@@ -130,37 +148,45 @@ export function ServeIndex({ data }) {
                   </Thead>
                   <Tbody>
                     {data &&
-                      data.single.map((item) => (
-                        <LinkBox as={Tr} _hover={{ bg: 'blackAlpha.50' }}>
-                          <Td w={0}>
-                            <Checkbox
-                              value={item.name}
-                              size="lg"
-                              zIndex={2}
-                              isChecked={checkState.includes(item.name)}
-                              onChange={(event) => {
-                                onSelectChanged(
-                                  item.name,
-                                  event.target.checked,
-                                );
-                                forceUpdate();
-                              }}
-                            />
-                          </Td>
-                          <Td>
-                            <LinkOverlay
-                              href={`/single-run/${item.name}/`}
-                              isExternal={true}
-                            >
-                              {item.name}
-                            </LinkOverlay>
-                          </Td>
-                          <Td>
-                            {item.datasource.name}: {item.datasource.type}
-                          </Td>
-                          <Td>{formatReportTime(item.created_at)}</Td>
-                        </LinkBox>
-                      ))}
+                      data.single.map((item) => {
+                        const created_at = formatReportTime(item.created_at);
+
+                        return (
+                          <LinkBox as={Tr} _hover={{ bg: 'blackAlpha.50' }}>
+                            <Td w={0} pt={1} pb={1}>
+                              <Checkbox
+                                p={5}
+                                size="lg"
+                                value={item.name}
+                                zIndex={2}
+                                isChecked={checkState.includes(item.name)}
+                                isDisabled={
+                                  checkState.length === 2 &&
+                                  !checkState.includes(item.name)
+                                }
+                                onChange={(event) => {
+                                  onSelectChanged(
+                                    item.name,
+                                    event.target.checked,
+                                  );
+                                }}
+                              />
+                            </Td>
+                            <Td>
+                              <LinkOverlay
+                                href={`/single-run/${item.name}/`}
+                                isExternal={true}
+                              >
+                                {item.name}
+                              </LinkOverlay>
+                            </Td>
+                            <Td>
+                              {item.datasource.name}: {item.datasource.type}
+                            </Td>
+                            <Td>{created_at}</Td>
+                          </LinkBox>
+                        );
+                      })}
                   </Tbody>
                 </Table>
               </TableContainer>
@@ -185,34 +211,39 @@ export function ServeIndex({ data }) {
                   </Thead>
                   <Tbody>
                     {data &&
-                      data.comparison.map((item) => (
-                        <LinkBox as={Tr} _hover={{ bg: 'blackAlpha.50' }}>
-                          <Td>
-                            <LinkOverlay
-                              href={`/comparison/${item.name}/`}
-                              isExternal={true}
-                            >
-                              {item.name}
-                            </LinkOverlay>
-                          </Td>
-                          <Td>
-                            {item.base.datasource.name}:{' '}
-                            {item.base.datasource.type}
-                          </Td>
-                          <Td>
-                            {item.base.created_at &&
-                              formatReportTime(item.base.created_at)}
-                          </Td>
-                          <Td>
-                            {item.target.datasource.name}:{' '}
-                            {item.target.datasource.type}
-                          </Td>
-                          <Td>
-                            {item.target.created_at &&
-                              formatReportTime(item.target.created_at)}
-                          </Td>
-                        </LinkBox>
-                      ))}
+                      data.comparison.map((item) => {
+                        const base_created_at =
+                          (item.base.created_at &&
+                            formatReportTime(item.base.created_at)) ||
+                          '-';
+                        const target_created_at =
+                          (item.target.created_at &&
+                            formatReportTime(item.target.created_at)) ||
+                          '-';
+
+                        return (
+                          <LinkBox as={Tr} _hover={{ bg: 'blackAlpha.50' }}>
+                            <Td>
+                              <LinkOverlay
+                                href={`/comparison/${item.name}/`}
+                                isExternal={true}
+                              >
+                                {item.name}
+                              </LinkOverlay>
+                            </Td>
+                            <Td>
+                              {item.base.datasource.name}:{' '}
+                              {item.base.datasource.type}
+                            </Td>
+                            <Td>{base_created_at}</Td>
+                            <Td>
+                              {item.target.datasource.name}:{' '}
+                              {item.target.datasource.type}
+                            </Td>
+                            <Td>{target_created_at}</Td>
+                          </LinkBox>
+                        );
+                      })}
                   </Tbody>
                 </Table>
               </TableContainer>
@@ -226,6 +257,7 @@ export function ServeIndex({ data }) {
             onCompareClick={() => {
               onCompareClick(checkState[0], checkState[1]);
             }}
+            error={errorState}
           />
         )}
       </Flex>
