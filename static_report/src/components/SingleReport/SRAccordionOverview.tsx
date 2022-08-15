@@ -268,7 +268,7 @@ function ColumnDetail({
       <GridItem>
         {chartData ? (
           <Flex width="400px" mx={4}>
-            <SRBarChart data={chartData} height="60px" />
+            <SRBarChart data={chartData} height="60px" xTicks={3} yTicks={3} />
           </Flex>
         ) : (
           <Text>No data avaliable</Text>

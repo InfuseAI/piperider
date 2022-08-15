@@ -13,9 +13,16 @@ interface HookArgs {
   target: RefObject<SVGSVGElement>;
   data: BarChartDatum[];
   dimensions: DOMRect | null;
+  xTicks?: number;
+  yTicks?: number;
 }
 
-export function useSingleChart({ target, data, dimensions }: HookArgs) {
+export function useSingleChart({
+  target,
+  data,
+  dimensions,
+  ...props
+}: HookArgs) {
   useEffect(() => {
     if (!target || !dimensions || !data) {
       return;
@@ -38,6 +45,11 @@ export function useSingleChart({ target, data, dimensions }: HookArgs) {
       return null;
     });
 
+    // if setting x ticks
+    if (props?.xTicks) {
+      xAxis.ticks(props.xTicks);
+    }
+
     // plot X axis
     svg
       .select('.x-axis')
@@ -50,6 +62,11 @@ export function useSingleChart({ target, data, dimensions }: HookArgs) {
       .domain([0, d3.max(data, ({ value }) => value)])
       .range([dimensions.height, 0]);
     const yAxis = d3.axisLeft(yScale);
+
+    // if setting y ticks
+    if (props?.yTicks) {
+      yAxis.ticks(props.yTicks);
+    }
 
     // plot Y axis
     svg.select('.y-axis').call(yAxis as any);
@@ -115,5 +132,5 @@ export function useSingleChart({ target, data, dimensions }: HookArgs) {
     return () => {
       svg.select('svg').remove();
     };
-  }, [target, dimensions, data]);
+  }, [target, dimensions, data, props.xTicks, props.yTicks]);
 }

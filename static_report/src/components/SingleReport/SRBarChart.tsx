@@ -14,14 +14,22 @@ export interface BarChartDatum {
 interface Props {
   data: Array<BarChartDatum>;
   height?: number | string;
+  xTicks?: number;
+  yTicks?: number;
 }
 
-export function SRBarChart({ data, height = '230px' }: Props) {
+export function SRBarChart({ data, height = '230px', ...props }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dimensions = useResizeObserver(containerRef);
 
-  useSingleChart({ target: svgRef, data, dimensions });
+  useSingleChart({
+    target: svgRef,
+    data,
+    dimensions,
+    xTicks: props?.xTicks,
+    yTicks: props?.yTicks,
+  });
 
   return (
     <Flex width="100%" height={height} ref={containerRef}>
