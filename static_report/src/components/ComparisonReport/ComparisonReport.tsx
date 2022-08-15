@@ -74,7 +74,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
 
   return (
     <Main>
-      <Flex direction="column" minH="calc(100vh + 1px)" width="100%">
+      <Flex direction="column" minH="calc(100vh + 1px)" width="inherit">
         <Flex mx="5%" mt={4}>
           <Breadcrumb fontSize="lg">
             <BreadcrumbItem>

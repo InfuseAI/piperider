@@ -21,14 +21,14 @@ export const CRTableColumnDetails = ({
   zReport(ZColSchema.safeParse(targetColumn));
 
   return (
-    <Flex direction="column" gap={2} minH="250px">
-      <Flex direction="column" gap={3}>
-        <Flex justifyContent={'center'}>
+    <Flex direction="column" gap={2} minH="250px" border={'1px solid darkgray'}>
+      <Flex direction="column" gap={3} m={4}>
+        <Flex alignItems={'center'}>
           <Text
             as="span"
             fontWeight={700}
             color="gray.900"
-            fontSize="lg"
+            fontSize="xl"
             mr={1}
             noOfLines={1}
             title={fallback?.name}

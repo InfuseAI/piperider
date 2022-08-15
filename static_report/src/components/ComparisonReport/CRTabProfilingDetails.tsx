@@ -9,7 +9,7 @@ import {
   checkColumnCategorical,
 } from '../../utils/transformers';
 import { getDataChart } from '../shared/ColumnCard';
-import { CRBarChart } from './CRBarChart';
+import { ColumnCardDataVisualContainer } from '../shared/ColumnCard/ColumnCardDataVisualContainer';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
 
 type CRTabProfilingDetailsProps = {
@@ -75,21 +75,23 @@ function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
   // Show combined base|target chart or split charts
   return (
     <Flex key={name} direction="column">
-      <Grid my={8} templateColumns="400px 1fr" gap={12}>
+      <Grid my={8} templateColumns="400px 1fr" gap={12} overflowX={'hidden'}>
         <CRTableColumnDetails baseColumn={base} targetColumn={target} />
 
-        <Flex my={4}>
-          {combinedData ? (
+        <Flex my={4} alignItems={'center'}>
+          {/* {combinedData ? (
             <CRBarChart data={combinedData} />
           ) : combinedData ? (
             <NoData />
-          ) : null}
-          <Box width={'50%'}>
+          ) : null} */}
+          <ColumnCardDataVisualContainer>
             {base ? getDataChart(base) : combinedData ? null : <NoData />}
-          </Box>
-          <Box width={'50%'}>
+          </ColumnCardDataVisualContainer>
+          {/* <Box width={'45%'} mr={4}>
+          </Box> */}
+          <ColumnCardDataVisualContainer>
             {target ? getDataChart(target) : combinedData ? null : <NoData />}
-          </Box>
+          </ColumnCardDataVisualContainer>
         </Flex>
       </Grid>
     </Flex>

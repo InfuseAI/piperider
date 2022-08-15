@@ -33,10 +33,8 @@ export function ColumnCard({ columnDatum }: Props) {
       width={{ xl: '32%', lg: '45%', md: '100%', base: '100%' }}
       border="1px solid"
       borderColor={'gray.300'}
-      h={[700]}
       my={3}
       rounded={'lg'}
-      overflowX={'hidden'}
     >
       <ColumnCardHeader columnDatum={columnDatum} />
       <ColumnCardDataVisualContainer
@@ -61,6 +59,8 @@ export function getDataChart(columnDatum: ColumnSchema) {
   const { total, type, histogram, topk, trues, falses, nulls, invalids } =
     columnDatum;
   const isCategorical = checkColumnCategorical(columnDatum);
+
+  console.log(type, { isCategorical }, { distinct: columnDatum.distinct });
 
   if ((type === 'string' || type === 'integer') && topk && isCategorical) {
     return <CategoricalBarChart data={topk} total={total || 0} />;

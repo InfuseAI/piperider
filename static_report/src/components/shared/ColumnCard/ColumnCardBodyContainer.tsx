@@ -9,9 +9,7 @@ export const ColumnCardBodyContainer: React.FC<Props> = ({ children }) => {
     <Flex
       p={2}
       bg={'white'}
-      height={'inherit'}
-      maxHeight={330}
-      overflowY="auto"
+      height={'100%'}
       direction="column"
       borderBottomRadius={'inherit'}
     >
