@@ -24,7 +24,7 @@ import {
   formatColumnValueWith,
 } from '../../utils/formatters';
 
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { CRAccordionOverview } from './CRAccordionOverview';
 import {
   ComparisonReportSchema,
   ZComparisonTableSchema,
@@ -38,6 +38,7 @@ import {
 import { getComparisonAssertions } from '../../utils/assertion';
 import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { CR_LIST_VIEW } from '../../utils/localStorageKeys';
 
 export function ComparisonReportList({
@@ -54,10 +55,10 @@ export function ComparisonReportList({
   zReport(ZSingleSchema.safeParse(base));
   zReport(ZSingleSchema.safeParse(target));
 
-  const tables = transformAsNestedBaseTargetRecord<
-    SingleReportSchema['tables'],
-    TableSchema
-  >(base.tables, target.tables);
+  // const tables = transformAsNestedBaseTargetRecord<
+  //   SingleReportSchema['tables'],
+  //   TableSchema
+  // >(base.tables, target.tables);
 
   useDocumentTitle('Report List');
 
@@ -76,7 +77,9 @@ export function ComparisonReportList({
         toggleView={(nextView) => setView(nextView)}
       />
 
-      <Flex
+      <CRAccordionOverview data={data} />
+
+      {/* <Flex
         direction="column"
         border="1px solid"
         borderColor="gray.300"
@@ -222,7 +225,6 @@ export function ComparisonReportList({
                           {' / '}
                           <Text as="span">{dbtTargetOverview.failed}</Text>
                         </Td>
-                        {/* base | target can have mismatched columns */}
                         <Td>
                           {formatColumnValueWith(
                             table.base?.row_count,
@@ -253,7 +255,7 @@ export function ComparisonReportList({
             </Table>
           </TableContainer>
         </Flex>
-      </Flex>
+      </Flex> */}
     </Main>
   );
 }
