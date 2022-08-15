@@ -122,38 +122,29 @@ export function checkColumnCategorical(columnDatum?: ColumnSchema): boolean {
   return false;
 }
 
-export function getColumnTypeChartData(
+/**
+ * Determines the chart kind suitable for column.type
+ * @param columnDatum
+ * @returns a string literal describing the chart kind
+ */
+type ChartKind = 'topk' | 'histogram' | 'pie' | undefined;
+export function getChartKindByColumnType(
   columnDatum?: ColumnSchema,
-): BarChartDatum[] | undefined {
+): ChartKind {
   if (!columnDatum) return;
-  const { topk, histogram, trues, falses, type, total } = columnDatum;
+  const { topk, histogram, trues, falses, type } = columnDatum;
   const isCategorical = checkColumnCategorical(columnDatum);
-  const isBoolean = type === 'boolean';
+  const isPieKind = type === 'boolean' && trues && falses;
+  const isCategoryKind =
+    type === 'string' || (type === 'integer' && topk && isCategorical);
+  const isHistogramKind =
+    (type === 'numeric' ||
+      type === 'integer' ||
+      type === 'string' ||
+      type === 'datetime') &&
+    histogram;
 
-  const dataValues = isCategorical
-    ? topk?.values
-    : isBoolean
-    ? ['TRUES', 'FALSES']
-    : histogram?.labels;
-  const dataCounts = isCategorical
-    ? topk?.counts
-    : isBoolean
-    ? [trues, falses]
-    : histogram?.counts;
-
-  if (dataValues && dataCounts && total)
-    return dataValues.map((label, i) => ({
-      label,
-      isCategorical,
-      value: dataCounts[i],
-      type,
-      total,
-    }));
-}
-interface BarChartDatum {
-  type: ColumnSchema['type'];
-  isCategorical: boolean;
-  label: string | null;
-  value: any;
-  total: number;
+  if (isPieKind) return 'pie';
+  if (isCategoryKind) return 'topk';
+  if (isHistogramKind) return 'histogram';
 }

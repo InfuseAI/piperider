@@ -139,11 +139,7 @@ export function formatColumnValueWith(
  */
 export function formatTruncateString(input: string, end: number) {
   const shouldTruncate = input.length >= end;
-  return shouldTruncate ? (
-    <Tooltip label={input}>{input.slice(0, end) + '...'}</Tooltip>
-  ) : (
-    input
-  );
+  return shouldTruncate ? input.slice(0, end) + '...' : input;
 }
 /**
  * base < -2 => 2dp, scientific (small decimals)

@@ -12,6 +12,7 @@ import { Topk } from '../../../sdlc/single-report-schema';
 import {
   formatAsAbbreviatedNumber,
   formatIntervalMinMax,
+  formatTruncateString,
 } from '../../../utils/formatters';
 
 ChartJS.register(CategoryScale, BarElement, Tooltip);
@@ -120,7 +121,11 @@ export function CategoricalBarChart({
         ctx.fillStyle = fontColor;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
-        ctx.fillText(String(title), left, barTopLabelYPos);
+        ctx.fillText(
+          formatTruncateString(String(title), 50),
+          left,
+          barTopLabelYPos,
+        );
 
         // draw custom progress bar backdrop
         drawRoundedBarBackdrop(ctx, {

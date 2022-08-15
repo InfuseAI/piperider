@@ -3,7 +3,7 @@ import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema } from '../../../types';
 import {
   checkColumnCategorical,
-  getColumnTypeChartData,
+  getChartKindByColumnType,
 } from '../../../utils/transformers';
 import { BooleanPieChart } from '../Charts/BooleanPieChart';
 import { CategoricalBarChart } from '../Charts/CategoricalBarChart';
@@ -39,7 +39,7 @@ export function ColumnCard({ columnDatum }: Props) {
       <ColumnCardHeader columnDatum={columnDatum} />
       <ColumnCardDataVisualContainer
         title={title}
-        allowModalPopup={Boolean(getColumnTypeChartData(columnDatum))}
+        allowModalPopup={Boolean(getChartKindByColumnType(columnDatum))}
       >
         {getDataChart(columnDatum)}
       </ColumnCardDataVisualContainer>
@@ -58,23 +58,18 @@ export function ColumnCard({ columnDatum }: Props) {
 export function getDataChart(columnDatum: ColumnSchema) {
   const { total, type, histogram, topk, trues, falses, nulls, invalids } =
     columnDatum;
-  const isCategorical = checkColumnCategorical(columnDatum);
+  const chartKind = getChartKindByColumnType(columnDatum);
 
-  console.log(type, { isCategorical }, { distinct: columnDatum.distinct });
-
-  if ((type === 'string' || type === 'integer') && topk && isCategorical) {
+  //TopK dataset
+  if (chartKind === 'topk' && topk) {
     return <CategoricalBarChart data={topk} total={total || 0} />;
   }
-  if (
-    (type === 'numeric' ||
-      type === 'integer' ||
-      type === 'string' ||
-      type === 'datetime') &&
-    histogram
-  ) {
+  //histogram dataset
+  if (chartKind === 'histogram' && histogram) {
     return <HistogramChart data={histogram} type={type} total={total ?? 0} />;
   }
-  if (type === 'boolean') {
+  //pie dataset
+  if (chartKind === 'pie') {
     const counts = [trues, falses, nulls, invalids].map((v) => (v ? v : 0));
     const labels = [TRUES, FALSES, NULLS, INVALIDS].map(
       (v) => v.charAt(0) + v.slice(1).toLowerCase(),

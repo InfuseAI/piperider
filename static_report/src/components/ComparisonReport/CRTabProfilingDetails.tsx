@@ -1,4 +1,4 @@
-import { Box, Flex, Grid } from '@chakra-ui/react';
+import { Flex, Grid } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
 import { zReport, ZTableSchema } from '../../types';
@@ -79,16 +79,9 @@ function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
         <CRTableColumnDetails baseColumn={base} targetColumn={target} />
 
         <Flex my={4} alignItems={'center'}>
-          {/* {combinedData ? (
-            <CRBarChart data={combinedData} />
-          ) : combinedData ? (
-            <NoData />
-          ) : null} */}
           <ColumnCardDataVisualContainer>
             {base ? getDataChart(base) : combinedData ? null : <NoData />}
           </ColumnCardDataVisualContainer>
-          {/* <Box width={'45%'} mr={4}>
-          </Box> */}
           <ColumnCardDataVisualContainer>
             {target ? getDataChart(target) : combinedData ? null : <NoData />}
           </ColumnCardDataVisualContainer>
