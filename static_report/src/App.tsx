@@ -6,7 +6,7 @@ import { NotFound } from './components/shared/NotFound';
 import { useHashLocation } from './hooks/useHashLcocation';
 import { SingleReportList } from './components/SingleReport/SRList';
 import { ComparisonReportList } from './components/ComparisonReport/CRList';
-import { ServeIndex } from './components/Serve/ServeIndex';
+import { IndexReport } from './components/IndexReport/IndexReport';
 
 import * as Sentry from '@sentry/browser';
 import { BrowserTracing } from '@sentry/tracing';
@@ -98,17 +98,17 @@ function AppComparison() {
   );
 }
 
-function AppServeIndex() {
+function AppIndexReport() {
   return (
     <Suspense fallback={<Loading />}>
-      <ServeIndex data={window.PIPERIDER_SERVE_INDEX_DATA} />
+      <IndexReport data={window.PIPERIDER_INDEX_REPORT_DATA} />
     </Suspense>
   );
 }
 
 function App() {
-  if (process.env.REACT_APP_SERVE_INDEX === 'true') {
-    return <AppServeIndex />;
+  if (process.env.REACT_APP_INDEX_REPORT === 'true') {
+    return <AppIndexReport />;
   }
 
   if (process.env.REACT_APP_SINGLE_REPORT === 'true') {

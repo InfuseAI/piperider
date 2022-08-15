@@ -23,7 +23,7 @@ def create_app(report_dir, single_dir, comparison_dir):
         comparison_item = request.args.get('hl')
         if comparison_item:
             pass
-        html_file = os.path.join(STATIC_DIR, 'serve-index/index.html')
+        html_file = os.path.join(STATIC_DIR, 'index-report/index.html')
         if not os.path.exists(html_file):
             return '', 404
         with open(html_file) as f:
@@ -67,7 +67,7 @@ def create_app(report_dir, single_dir, comparison_dir):
 
     @app.route("/<path:path>")
     def serve_static(path):
-        return _serve_static('', 'serve-index', path)
+        return _serve_static('', 'index-report', path)
 
     def _serve_static(parent, source, path):
         folder = os.path.join(parent, source)
@@ -85,7 +85,7 @@ def create_app(report_dir, single_dir, comparison_dir):
         }
         variables = f'<script id="piperider-report-variables">\n' \
                     f'window.PIPERIDER_METADATA={json.dumps(metadata)};' \
-                    f'window.PIPERIDER_SERVE_INDEX_DATA={json.dumps(data)};</script>'
+                    f'window.PIPERIDER_INDEX_REPORT_DATA={json.dumps(data)};</script>'
         html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#', template_html).split(
             '#PLACEHOLDER#')
         html = html_parts[0] + variables + html_parts[1]

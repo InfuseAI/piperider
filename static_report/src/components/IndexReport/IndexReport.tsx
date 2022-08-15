@@ -78,7 +78,7 @@ function StickyFooter({
   );
 }
 
-export function ServeIndex({ data }) {
+export function IndexReport({ data }) {
   const [checkState, setCheckState] = useState<string[]>([]);
   const [errorState, setErrorState] = useState();
 
