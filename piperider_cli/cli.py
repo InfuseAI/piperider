@@ -215,10 +215,11 @@ def compare_reports(**kwargs):
 
 
 @cli.command(short_help='Serve a local server.', cls=TrackCommand)
-@click.option('--port', default=None, type=click.INT, help='Specify the listen port.')
+@click.option('--host', default='localhost', type=click.STRING, help='Specify the host.')
+@click.option('--port', default=8000, type=click.INT, help='Specify the listen port.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @add_options(debug_option)
 def serve(**kwargs):
     'Serve a local server.'
 
-    _run_server('localhost', port=kwargs.get('port', 8000), workers=1, report_dir=kwargs.get('report_dir'))
+    _run_server(host=kwargs.get('host'), port=kwargs.get('port'), workers=1, report_dir=kwargs.get('report_dir'))
