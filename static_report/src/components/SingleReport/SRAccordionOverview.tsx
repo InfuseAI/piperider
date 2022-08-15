@@ -48,17 +48,16 @@ export function SRAccordionOverview({
 
       <Accordion allowToggle>
         {Object.keys(tables).map((key) => {
-          const report = tables[key];
-          zReport(ZTableSchema.safeParse(report));
+          const table = tables[key];
+          zReport(ZTableSchema.safeParse(table));
           const assertions = getReportAggregateAssertions(
-            report.piperider_assertion_result,
-            report.dbt_assertion_result,
+            table.piperider_assertion_result,
+            table.dbt_assertion_result,
           );
           const totalAssertions = assertions.passed + assertions.failed;
           const hasFailed = assertions.failed > 0;
 
-          const columns = Object.keys(report.columns).map((key) => key);
-          const isGreaterThanFiveCols = columns.length > 5;
+          const columns = Object.keys(table.columns).map((key) => key);
 
           return (
             <Flex key={nanoid()}>
@@ -66,7 +65,12 @@ export function SRAccordionOverview({
                 {({ isExpanded }) => (
                   <>
                     <AccordionButton bgColor="white" borderRadius="md">
-                      <Flex direction="column" gap={4} py="10px" height="90px">
+                      <Flex
+                        direction="column"
+                        gap={4}
+                        py="10px"
+                        height={isExpanded ? '135px' : '90px'}
+                      >
                         <Grid
                           templateColumns="1fr 2fr 1fr"
                           justifyItems="flex-start"
@@ -75,11 +79,11 @@ export function SRAccordionOverview({
                           <GridItem>
                             <Center>
                               <Icon as={FiGrid} color="piperider.500" />
-                              <Text mx={1}>{report.name}</Text>
+                              <Text mx={1}>{table.name}</Text>
 
                               {!isExpanded && (
                                 <Tooltip
-                                  label={report.description}
+                                  label={table.description}
                                   placement="right-end"
                                   shouldWrapChildren
                                 >
@@ -93,7 +97,7 @@ export function SRAccordionOverview({
                               <Text>Rows</Text>
                               <Text>
                                 {formatColumnValueWith(
-                                  report.row_count,
+                                  table.row_count,
                                   formatNumber,
                                 )}
                               </Text>
@@ -107,7 +111,7 @@ export function SRAccordionOverview({
                                 </Text>
                               ) : (
                                 <Center
-                                  bgColor={hasFailed ? 'inherit' : '#DEFFEB'}
+                                  bgColor="#DEFFEB"
                                   py={0.5}
                                   px={1}
                                   borderRadius="md"
@@ -117,7 +121,9 @@ export function SRAccordionOverview({
                                   All
                                 </Center>
                               )}
-                              /{' '}
+                              <Text as="span" color="gray.500">
+                                /
+                              </Text>
                               <Text as="span">
                                 {totalAssertions === 0
                                   ? 'none'
@@ -127,9 +133,7 @@ export function SRAccordionOverview({
                           </GridItem>
                         </Grid>
                         <Grid
-                          templateColumns={
-                            isExpanded ? '218px 1fr' : '218px 1fr'
-                          }
+                          templateColumns="218px 1fr"
                           justifyItems="flex-start"
                           width="calc(900px - 30px)"
                         >
@@ -138,38 +142,54 @@ export function SRAccordionOverview({
                           </GridItem>
                           <GridItem>
                             {isExpanded ? (
-                              <Text color="gray.500" noOfLines={1}>
+                              <Text
+                                color="gray.500"
+                                noOfLines={3}
+                                textAlign="left"
+                              >
                                 <Text as="span">Description</Text>{' '}
                                 <Text
                                   as="span"
                                   ml={4}
-                                  title={report.description}
+                                  title={table.description}
                                 >
-                                  {report.description}
+                                  {table.description}
                                 </Text>
                               </Text>
                             ) : (
-                              <Flex mr="30px" color="gray.500" maxW="550px">
-                                <Text mr={4}>Columns</Text>
-                                <Flex gap={3} alignItems="center">
-                                  {/* Pick up the top 5 columns */}
-                                  {columns.slice(0, 5).map((name) => (
+                              <Flex mr="30px" color="gray.500" maxWidth="650px">
+                                <Text
+                                  as="span"
+                                  minWidth="95px"
+                                  maxWidth="205px"
+                                  textAlign="left"
+                                >
+                                  {table.col_count} Columns
+                                </Text>
+                                <Flex
+                                  __css={{
+                                    display: 'flex',
+                                    gap: 3,
+                                    alignItems: 'center',
+                                    maxWidth: '100%',
+                                    overflowX: 'scroll',
+                                    scrollbarWidth: 'none',
+                                    '&::-webkit-scrollbar': {
+                                      display: 'none',
+                                    },
+                                  }}
+                                >
+                                  {columns.map((name) => (
                                     <ColumnLabel
                                       key={name}
                                       name={name}
                                       icon={
                                         getIconForColumnType(
-                                          report.columns[name],
+                                          table.columns[name],
                                         ).icon
                                       }
                                     />
                                   ))}
-                                  {isGreaterThanFiveCols && (
-                                    <ColumnLabel
-                                      name={'...'}
-                                      visibleIcon={false}
-                                    />
-                                  )}
                                 </Flex>
                               </Flex>
                             )}
@@ -181,51 +201,30 @@ export function SRAccordionOverview({
                     <AccordionPanel bgColor="white">
                       <Stack gap={8} py={6}>
                         {Object.keys(
-                          report.piperider_assertion_result?.columns || {},
+                          table.piperider_assertion_result?.columns || {},
                         ).map((colName) => {
-                          const colAssertions =
-                            report.piperider_assertion_result?.columns?.[
+                          const mergedColAssertions = [
+                            ...(table.piperider_assertion_result?.columns?.[
                               colName
-                            ];
+                            ] || []),
+                            ...(table.dbt_assertion_result?.columns?.[
+                              colName
+                            ] || []),
+                          ];
 
                           const chartData = getColumnTypeChartData(
-                            report.columns[colName],
+                            table.columns[colName],
                           );
 
                           const { icon: colIcon } = getIconForColumnType(
-                            report.columns[colName],
+                            table.columns[colName],
                           );
 
                           return (
                             <ColumnDetail
                               key={colName}
                               name={colName}
-                              colAssertions={colAssertions}
-                              chartData={chartData}
-                              icon={colIcon}
-                            />
-                          );
-                        })}
-
-                        {Object.keys(
-                          report.dbt_assertion_result?.columns || {},
-                        ).map((colName) => {
-                          const colAssertions =
-                            report.dbt_assertion_result?.columns?.[colName];
-
-                          const chartData = getColumnTypeChartData(
-                            report.columns[colName],
-                          );
-
-                          const { icon: colIcon } = getIconForColumnType(
-                            report.columns[colName],
-                          );
-
-                          return (
-                            <ColumnDetail
-                              key={colName}
-                              name={colName}
-                              colAssertions={colAssertions}
+                              colAssertions={mergedColAssertions}
                               chartData={chartData}
                               icon={colIcon}
                             />
