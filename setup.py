@@ -51,6 +51,11 @@ setup(name='piperider',
               'pybigquery',
               'google-cloud-bigquery-storage'
           ],
+          'redshift': [
+              'sqlalchemy-redshift',
+              'redshift-connector',
+              'psycopg2-binary',
+          ],
           'dev': [
               'pytest>=4.6',
               'pytest-flake8',

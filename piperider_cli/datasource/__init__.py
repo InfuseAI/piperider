@@ -183,9 +183,11 @@ def _list_datasource_providers():
     from .postgres import PostgresDataSource
     from .sqlite import SqliteDataSource
     from .bigquery import BigQueryDataSource
+    from .redshift import RedshiftDataSource
     return dict(
         snowflake=SnowflakeDataSource,
         bigquery=BigQueryDataSource,
+        redshift=RedshiftDataSource,
         postgres=PostgresDataSource,
         sqlite=SqliteDataSource,
     )
