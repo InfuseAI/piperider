@@ -610,6 +610,12 @@ class NumericColumnProfiler(BaseColumnProfiler):
             selects = [
                 func.percentile_disc(column, percentile).over() for percentile in [0.05, 0.25, 0.5, 0.75, 0.95]
             ]
+        elif self._get_database_backend() == 'redshift':
+            # ref: https://docs.aws.amazon.com/redshift/latest/dg/r_APPROXIMATE_PERCENTILE_DISC.html
+            selects = [
+                func.approximate_percentile_disc(percentile).within_group(column) for percentile in
+                [0.05, 0.25, 0.5, 0.75, 0.95]
+            ]
         else:
             # https://docs.sqlalchemy.org/en/14/core/functions.html#sqlalchemy.sql.functions.percentile_disc
             #

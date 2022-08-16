@@ -1,9 +1,20 @@
+from sqlalchemy import text
+from sqlalchemy.sql import quoted_name
+from sqlalchemy.sql.functions import OrderedSetAgg
+
 from piperider_cli.error import PipeRiderConnectorError
 from . import DataSource
 from .field import TextField, NumberField, ListField, PasswordField
 
 AUTH_METHOD_PASSWORD = 'password'
 AUTH_METHOD_IAM = 'iam'
+
+
+class ApproximatePercentileDisc(OrderedSetAgg):
+    identifier = "approximate_percentile_disc"
+    inherit_cache = True
+    name = quoted_name(text("APPROXIMATE PERCENTILE_DISC"), False)
+    array_for_multi_clause = True
 
 
 class RedshiftDataSource(DataSource):
@@ -38,17 +49,26 @@ class RedshiftDataSource(DataSource):
         dbname = credential.get('dbname')
 
         from sqlalchemy_redshift.dialect import RedshiftDialect
+        import boto3
 
         RedshiftDialect.supports_statement_cache = True
 
         if credential.get('method') == AUTH_METHOD_PASSWORD:
             password = credential.get('password')
-            return f"redshift+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
+        else:
+            cluster_id = credential.get('cluster_id')
+            client = boto3.client('redshift')
+            cluster_creds = client.get_cluster_credentials(DbUser=user,
+                                                           DbName=dbname,
+                                                           ClusterIdentifier=cluster_id,
+                                                           AutoCreate=False)
+            password = cluster_creds['DbPassword']
 
-        return f"redshift+psycopg2://{user}@{host}:{port}/{dbname}"
+        return f"redshift+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
 
     def engine_args(self):
-        return dict(connect_args={'connect_timeout': 5})
+        args = dict(connect_args={'connect_timeout': 5})
+        return args
 
     def verify_connector(self):
         try:
