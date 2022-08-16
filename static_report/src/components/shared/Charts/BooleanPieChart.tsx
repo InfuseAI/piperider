@@ -19,9 +19,8 @@ interface Props {
 }
 /**
  * A pie chart that visualizes boolean dataset
- * composition: null + invalid + trues + falses = 100%
  * @param data the counts labels & values
- * @returns
+ * @returns a pie chart that shows the composition: null + invalid + trues + falses = 100%
  */
 export function BooleanPieChart({ data: { counts, labels, ratios } }: Props) {
   const chartOptions: ChartOptions<'pie'> = {

@@ -1,7 +1,8 @@
-import { InfoIcon } from '@chakra-ui/icons';
-import { Flex, Text, Tooltip } from '@chakra-ui/react';
+import { Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
+import { formatDate } from '../../utils/formatters';
+import { ColumnCardHeader } from '../shared/ColumnCard/ColumnCardHeader';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
 import { GeneralTableColumn } from '../shared/GeneralTableColumn';
 import { MetricsInfo } from '../shared/MetricsInfo';
@@ -21,24 +22,15 @@ export const CRTableColumnDetails = ({
   zReport(ZColSchema.safeParse(targetColumn));
 
   return (
-    <Flex direction="column" gap={2} minH="250px" border={'1px solid darkgray'}>
+    <Flex
+      direction="column"
+      gap={2}
+      minH="250px"
+      border={'1px solid darkgray'}
+      rounded={'2xl'}
+    >
+      {fallback && <ColumnCardHeader columnDatum={fallback} />}
       <Flex direction="column" gap={3} m={4}>
-        <Flex alignItems={'center'}>
-          <Text
-            as="span"
-            fontWeight={700}
-            color="gray.900"
-            fontSize="xl"
-            mr={1}
-            noOfLines={1}
-            title={fallback?.name}
-          >
-            {fallback?.name}
-          </Text>
-          <Tooltip label={fallback?.schema_type}>
-            <InfoIcon mt={1} color="gray.400" boxSize={'14px'} />
-          </Tooltip>
-        </Flex>
         <Flex gap={8}>
           <Text ml={'16'} fontWeight={700} textAlign="right" width="100px">
             Base
@@ -67,13 +59,13 @@ export const CRTableColumnDetails = ({
           <Flex direction="column">
             <MetricsInfo
               name="Min"
-              firstSlot={baseColumn?.min ?? NO_VALUE}
-              secondSlot={targetColumn?.min ?? NO_VALUE}
+              firstSlot={formatDate(String(baseColumn?.min)) ?? NO_VALUE}
+              secondSlot={formatDate(String(targetColumn?.min)) ?? NO_VALUE}
             />
             <MetricsInfo
               name="Max"
-              firstSlot={baseColumn?.max ?? NO_VALUE}
-              secondSlot={targetColumn?.max ?? NO_VALUE}
+              firstSlot={formatDate(String(baseColumn?.max)) ?? NO_VALUE}
+              secondSlot={formatDate(String(targetColumn?.max)) ?? NO_VALUE}
             />
           </Flex>
         )}

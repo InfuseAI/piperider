@@ -43,7 +43,7 @@ export function ColumnCardHeader({ columnDatum }: Props) {
           textOverflow={'ellipsis'}
           overflow={'hidden'}
           whiteSpace={'nowrap'}
-          width={400}
+          width={300}
         >
           {name}
         </Text>

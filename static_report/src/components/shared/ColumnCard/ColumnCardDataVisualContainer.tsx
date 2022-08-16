@@ -32,7 +32,7 @@ export function ColumnCardDataVisualContainer({
         mx={3}
         minHeight={'300px'}
         maxHeight={'300px'}
-        width={'100%'}
+        width={'calc(100% - 24px)'}
         bg={'whiteAlpha.700'}
         rounded={'md'}
         onClick={() => allowModalPopup && onOpen()}

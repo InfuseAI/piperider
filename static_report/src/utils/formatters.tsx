@@ -1,5 +1,5 @@
 import { Text } from '@chakra-ui/react';
-import { format, parseISO } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 import { NO_VALUE } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
 
 import type { ColumnSchema } from '../sdlc/single-report-schema';
@@ -7,8 +7,8 @@ import type { ColumnSchema } from '../sdlc/single-report-schema';
 /**
  * "Formatters" -- these are your data formatting that returns a formatted value for UI presentation (e.g. number, string, falsey)
  */
+
 /**
- *
  * @param dateStr ISO date string
  * @returns a formatted date string in 'yyyy/MM/dd HH:mm:ss'
  */
@@ -40,6 +40,13 @@ export function formatNumber(
   options?: Intl.NumberFormatOptions,
 ) {
   return new Intl.NumberFormat(locales, options).format(num);
+}
+
+export function formatDate(input: string) {
+  const parsed = Date.parse(input);
+  console.log(input, { parsed }, isValid(parsed), format(parsed, 'yyyy-mm-dd'));
+
+  return isValid(parsed) ? format(parsed, 'yyyy-MM-dd') : input;
 }
 
 /**
@@ -120,7 +127,6 @@ export function formatTopKMetrics({ topk }: ColumnSchema) {
  * @param input any value that will be checked as number
  * @param fn any function to format the valid number
  * @param emptyLabel
- * @returns
  */
 export function formatColumnValueWith(
   input: any,
