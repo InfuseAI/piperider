@@ -203,8 +203,13 @@ class Profiler:
             generic_type = "boolean"
             profiler = BooleanColumnProfiler(self.engine, table, column)
         else:
-            generic_type = "other"
-            profiler = BaseColumnProfiler(self.engine, table, column)
+            if self.engine.url.get_backend_name() == 'snowflake' and str(column.type).startswith('TIMESTAMP'):
+                # TIMEZONE_NTZ
+                generic_type = "datetime"
+                profiler = DatetimeColumnProfiler(self.engine, table, column)
+            else:
+                generic_type = "other"
+                profiler = BaseColumnProfiler(self.engine, table, column)
 
         result = {
             "name": column.name,
