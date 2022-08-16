@@ -42,9 +42,7 @@ class SnowflakeDataSource(DataSource):
             "password": password,
             "database": database,
             "schema": schema,
-            "warehouse": warehouse,
-            "login_timeout": self._connect_timeout,
-            "network_timeout": self._connect_timeout,
+            "warehouse": warehouse
         }
 
         if role:
