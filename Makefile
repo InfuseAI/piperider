@@ -48,3 +48,6 @@ docker-deploy-latest: docker-build
 
 generate-cli-docs:
 	@python3 -m piperider_cli.docgen
+
+serve:
+	env FLASK_DEBUG=development piperider serve --port 8001
