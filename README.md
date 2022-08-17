@@ -39,11 +39,11 @@ pip install piperider
 
 By default, PipeRider supports built-in SQLite connector, extra connectors are available:
 
-| connectors  | install  |
-|---|---|
-| snowflake | pip install 'piperider[snowflake]'  |
-| postgres  | pip install 'piperider[postgres]'  |
-| bigquery | pip install 'piperider[bigquery]'  |
+| connectors  | install  | notes |
+|---|---| |
+| snowflake | pip install 'piperider[snowflake]'  | |
+| postgres  | pip install 'piperider[postgres]'  | |
+| bigquery | pip install 'piperider[bigquery]'  | From PipeRider v0.7+ |
 
 Use comma to install multiple connectors in one line:
 
