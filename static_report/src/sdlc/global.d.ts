@@ -15,7 +15,6 @@ declare global {
     PIPERIDER_SINGLE_REPORT_DATA: SingleReportSchema;
     PIPERIDER_COMPARISON_REPORT_DATA: ComparisonReportSchema;
     PIPERIDER_METADATA: PipeRiderMetadata;
-    PIPERIDER_INDEX_REPORT_DATA: any;
   }
   namespace NodeJS {
     interface ProcessEnv {
