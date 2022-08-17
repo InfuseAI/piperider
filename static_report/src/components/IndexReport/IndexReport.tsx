@@ -44,8 +44,13 @@ export function IndexReport({ data }) {
     } else if (!checked && index >= 0) {
       checkState.splice(index, 1);
     }
-    const newState = checkState.map((s) => s);
-    setCheckState(newState);
+    setCheckState(checkState.map((s) => s));
+  };
+
+  const onReverseClick = () => {
+    setCheckState(
+      checkState.map((s, index) => checkState[(index + 1) % checkState.length]),
+    );
   };
 
   const onCompareClick = (base: string, target: string) => {
@@ -233,6 +238,7 @@ export function IndexReport({ data }) {
             onCompareClick={() => {
               onCompareClick(checkState[0], checkState[1]);
             }}
+            onReverseClick={onReverseClick}
             error={errorState}
           />
         )}
