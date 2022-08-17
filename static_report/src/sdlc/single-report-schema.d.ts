@@ -71,7 +71,7 @@ export interface ColumnSchema {
   /**
    * Generic types of schema, python-based
    */
-  type: 'string' | 'numeric' | 'integer' | 'datetime' | 'boolean' | 'other';
+  type: "string" | "numeric" | "integer" | "datetime" | "boolean" | "other";
   /**
    * The column type definition in SQL database
    */
@@ -185,7 +185,7 @@ export interface PipeRiderAssertionResult {
 }
 export interface AssertionTest {
   name: string;
-  status: 'passed' | 'failed';
+  status: "passed" | "failed";
   parameters?: {
     [k: string]: unknown;
   };
