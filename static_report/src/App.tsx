@@ -117,8 +117,6 @@ function AppIndexReport() {
       });
   }, []);
 
-  console.log(data);
-
   return (
     <Suspense fallback={<Loading />}>
       {data && <IndexReport data={data} />}

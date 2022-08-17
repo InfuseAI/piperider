@@ -34,13 +34,24 @@ def create_app(report_dir, single_dir, comparison_dir):
         a = os.path.join(single_dir, f'{base}/run.json')
         b = os.path.join(single_dir, f'{target}/run.json')
         comparison_id = CompareReport.exec(a=a, b=b, report_dir=report_dir)
-        return dict(ok=True, message=f"Comparison '{comparison_id}' generated", comparison_id=comparison_id)
+        comparison_json_file = os.path.join(comparison_dir, f'{comparison_id}/comparison_data.json')
+        with open(comparison_json_file) as f:
+            result = json.load(f)
+        return dict(ok=True, message=f"Comparison '{comparison_id}' generated", comparison=dict(
+            name=comparison_id,
+            created_at=result.get('created_at'),
+            base=dict(
+                datasource=result.get('base', {}).get('datasource', {}),
+                created_at=result.get('base', {}).get('created_at'),
+            ),
+            target=dict(
+                datasource=result.get('input', {}).get('datasource', {}),
+                created_at=result.get('input', {}).get('created_at'),
+            ),
+        ))
 
     @app.route("/")
     def index():
-        comparison_item = request.args.get('hl')
-        if comparison_item:
-            pass
         html_file = os.path.join(STATIC_DIR, 'index-report/index.html')
         if not os.path.exists(html_file):
             return '', 404

@@ -46,20 +46,27 @@ function StickyFooter({
         opacity="0.95"
         p={4}
         pos="fixed"
-        w="40%"
+        w="35%"
+        minWidth="460px"
         zIndex={3}
       >
         <Center>
           <VStack>
             <HStack spacing="20px">
-              <Box w="56px" textAlign={['left']}>
-                <Text fontWeight="semibold">Base: </Text>
-                <Text fontWeight="semibold">Target: </Text>
-              </Box>
-              <Box>
-                <Text>{checkState[0]}</Text>
-                <Text>{checkState[1]}</Text>
-              </Box>
+              <VStack>
+                <HStack spacing="10px">
+                  <Text w={55} textAlign={['left']} fontWeight="semibold">
+                    Base:
+                  </Text>
+                  <Text>{checkState[0]}</Text>
+                </HStack>
+                <HStack spacing="10px">
+                  <Text w={55} textAlign={['left']} fontWeight="semibold">
+                    Target:
+                  </Text>
+                  <Text>{checkState[1]}</Text>
+                </HStack>
+              </VStack>
               <Box m={'auto 0'}>
                 <Button colorScheme="blue" onClick={onCompareClick}>
                   Compare
@@ -81,6 +88,13 @@ function StickyFooter({
 export function IndexReport({ data }) {
   const [checkState, setCheckState] = useState<string[]>([]);
   const [errorState, setErrorState] = useState();
+  const [comparisonId, setComparisonId] = useState('');
+  const [tabIndex, setTabIndex] = useState(0);
+
+  const onTabChanged = (index: number) => {
+    setTabIndex(index);
+    setComparisonId('');
+  };
 
   const onSelectChanged = (name: string, checked: boolean) => {
     const index = checkState.indexOf(name);
@@ -115,9 +129,11 @@ export function IndexReport({ data }) {
           `Network response was not ok (status: ${res.status}). Please try again later.`,
         );
       })
-      .then(() => {
-        alert("Compare report generated. Please check 'Comparisons' tab.");
-        window.location.reload();
+      .then((ret) => {
+        setCheckState([]);
+        data.comparison.unshift(ret.comparison);
+        setComparisonId(ret.comparison.name);
+        setTabIndex(1);
       })
       .catch((error) => setErrorState(error.message));
   };
@@ -137,7 +153,7 @@ export function IndexReport({ data }) {
       >
         <Heading mb={4}>PipeRider Reports</Heading>
 
-        <Tabs isLazy>
+        <Tabs isLazy index={tabIndex} onChange={onTabChanged}>
           <TabList>
             <Tab>Single runs</Tab>
             <Tab>Comparisons</Tab>
@@ -241,6 +257,9 @@ export function IndexReport({ data }) {
                             as={Tr}
                             key={item.name}
                             _hover={{ bg: 'blackAlpha.50' }}
+                            bgColor={
+                              item.name === comparisonId ? 'yellow.100' : ''
+                            }
                           >
                             <Td>
                               <LinkOverlay
