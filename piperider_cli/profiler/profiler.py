@@ -193,9 +193,11 @@ class Profiler:
             # FLOAT
             generic_type = "numeric"
             profiler = NumericColumnProfiler(self.engine, table, column, is_integer=False)
-        elif isinstance(column.type, Date) or isinstance(column.type, DateTime):
+        elif isinstance(column.type, Date) or isinstance(column.type, DateTime) or \
+                (self.engine.url.get_backend_name() == 'snowflake' and str(column.type).startswith('TIMESTAMP')):
             # DATE
             # DATETIME
+            # TIMEZONE_NTZ
             generic_type = "datetime"
             profiler = DatetimeColumnProfiler(self.engine, table, column)
         elif isinstance(column.type, Boolean):
