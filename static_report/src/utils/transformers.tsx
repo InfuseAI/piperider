@@ -1,5 +1,4 @@
-import { ColumnSchema, Histogram } from '../sdlc/single-report-schema';
-import { CRTargetData } from '../types';
+import { ColumnSchema } from '../sdlc/single-report-schema';
 
 /**
  * "Transformers" -- these are your data re-shaping transformations, and doesn't return a formatted value and does not directly get presented in UI. Can be a precursor to "formatters"
@@ -24,46 +23,6 @@ export function transformAsNestedBaseTargetRecord<K, T>(
     }
     result[key]['target'] = value;
   });
-
-  return result;
-}
-
-export type CRHistogramDatum = {
-  label: string | null;
-  base: number;
-  target: number;
-};
-// for `type` equal to string, datetime
-export function transformCRStringDateHistograms({
-  base: baseHistogram,
-  target: targetHistogram,
-}: CRTargetData<Histogram>): CRHistogramDatum[] | null {
-  // groupby base/target of a found label
-  const mapIdxLookup = new Map<string, number>();
-  if (!baseHistogram || !targetHistogram) return null;
-
-  const initial = baseHistogram.labels.map((label, idx) => {
-    mapIdxLookup.set(label || String(idx), idx);
-    return {
-      label,
-      base: baseHistogram.counts[idx],
-      target: 0,
-    };
-  });
-  const result = targetHistogram.labels.reduce((accum, label, idx) => {
-    const key = label || String(idx);
-    const hasLabel = mapIdxLookup.has(key);
-    const count = targetHistogram.counts[idx];
-
-    if (hasLabel) {
-      const lookupIdx = mapIdxLookup.get(key) as number;
-      accum[lookupIdx].target = count;
-      return accum;
-    }
-
-    const newLabelItem = { label, base: 0, target: count };
-    return [...accum, newLabelItem];
-  }, initial);
 
   return result;
 }

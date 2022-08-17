@@ -50,12 +50,22 @@ export function ColumnCard({ columnDatum }: Props) {
 /**
  * Handles logic for rendering the right charts
  * @param columnDatum
+ * @param baseColumnRef an optional column reference for comparing `target` against `base` columns, to ensure that the chart kind is consistent across comparisons members
  * @returns *Chart Component
  */
-export function getDataChart(columnDatum: ColumnSchema) {
-  const { total, type, histogram, topk, trues, falses, nulls, invalids } =
+export function getDataChart(
+  columnDatum: ColumnSchema,
+  baseColumnRef?: ColumnSchema,
+) {
+  const { total, name, type, histogram, topk, trues, falses, nulls, invalids } =
     columnDatum;
-  const chartKind = getChartKindByColumnType(columnDatum);
+
+  const hasSameTypeName =
+    type === baseColumnRef?.type && name === baseColumnRef?.name;
+
+  const chartKind = getChartKindByColumnType(
+    hasSameTypeName ? baseColumnRef : columnDatum,
+  );
 
   //TopK dataset
   if (chartKind === 'topk' && topk) {

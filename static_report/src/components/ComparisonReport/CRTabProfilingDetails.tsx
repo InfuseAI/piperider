@@ -1,13 +1,7 @@
 import { Flex, Grid } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
 import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
 import { zReport, ZTableSchema } from '../../types';
-import {
-  transformAsNestedBaseTargetRecord,
-  transformCRStringDateHistograms,
-  CRHistogramDatum,
-  checkColumnCategorical,
-} from '../../utils/transformers';
+import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
 import { getDataChart } from '../shared/ColumnCard';
 import { ColumnCardDataVisualContainer } from '../shared/ColumnCard/ColumnCardDataVisualContainer';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
@@ -55,23 +49,6 @@ type CRProfilingColumnProps = {
   target?: ColumnSchema;
 };
 function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
-  const [combinedData, setCombinedData] = useState<CRHistogramDatum[] | null>(
-    null,
-  );
-  useEffect(() => {
-    const isCategorical = checkColumnCategorical(base);
-    const isSameGenericType = base?.type === target?.type;
-    // Determine combined data histograms
-    if (isSameGenericType && isCategorical) {
-      const transformResult = transformCRStringDateHistograms({
-        base: base?.histogram,
-        target: target?.histogram,
-      });
-
-      setCombinedData(transformResult);
-    }
-  }, [base, target]);
-
   // Show combined base|target chart or split charts
   return (
     <Flex key={name} direction="column">
@@ -80,10 +57,10 @@ function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
 
         <Flex my={4} alignItems={'center'}>
           <ColumnCardDataVisualContainer>
-            {base ? getDataChart(base) : combinedData ? null : <NoData />}
+            {base ? getDataChart(base) : <NoData />}
           </ColumnCardDataVisualContainer>
           <ColumnCardDataVisualContainer>
-            {target ? getDataChart(target) : combinedData ? null : <NoData />}
+            {target ? getDataChart(target, base) : <NoData />}
           </ColumnCardDataVisualContainer>
         </Flex>
       </Grid>
