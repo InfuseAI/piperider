@@ -18,6 +18,24 @@ def create_app(report_dir, single_dir, comparison_dir):
     def health():
         return "OK", 200
 
+    @app.route("/api/index")
+    def api_index():
+        return _scan_reports()
+
+    @app.route("/api/compare", methods=['POST'])
+    def compare():
+        content_type = request.headers.get('Content-Type')
+        if content_type != 'application/json':
+            return dict(ok=False, error='Content-Type not supported'), 400
+
+        payload = request.json
+        base = payload.get('base')
+        target = payload.get('target')
+        a = os.path.join(single_dir, f'{base}/run.json')
+        b = os.path.join(single_dir, f'{target}/run.json')
+        comparison_id = CompareReport.exec(a=a, b=b, report_dir=report_dir)
+        return dict(ok=True, message=f"Comparison '{comparison_id}' generated", comparison_id=comparison_id)
+
     @app.route("/")
     def index():
         comparison_item = request.args.get('hl')
@@ -29,15 +47,6 @@ def create_app(report_dir, single_dir, comparison_dir):
         with open(html_file) as f:
             html = f.read()
         return _insert_serve_index(html)
-
-    @app.route("/compare")
-    def compare():
-        base = request.args.get('base')
-        target = request.args.get('target')
-        a = os.path.join(single_dir, f'{base}/run.json')
-        b = os.path.join(single_dir, f'{target}/run.json')
-        CompareReport.exec(a=a, b=b, report_dir=report_dir)
-        return dict(base=base, target=target)
 
     @app.route("/single-run/<source>/")
     def serve_single(source):
@@ -74,7 +83,6 @@ def create_app(report_dir, single_dir, comparison_dir):
         return send_from_directory(os.path.join(STATIC_DIR, folder), path)
 
     def _insert_serve_index(template_html: str):
-        data = _scan_reports()
         metadata = {
             'name': 'PipeRider',
             'sentry_env': sentry_env,
@@ -84,8 +92,7 @@ def create_app(report_dir, single_dir, comparison_dir):
             'amplitude_user_id': event._collector._user_id,
         }
         variables = f'<script id="piperider-report-variables">\n' \
-                    f'window.PIPERIDER_METADATA={json.dumps(metadata)};' \
-                    f'window.PIPERIDER_INDEX_REPORT_DATA={json.dumps(data)};</script>'
+                    f'window.PIPERIDER_METADATA={json.dumps(metadata)};</script>'
         html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#', template_html).split(
             '#PLACEHOLDER#')
         html = html_parts[0] + variables + html_parts[1]
@@ -180,6 +187,14 @@ def _run_server(
         single_dir=filesystem.get_output_dir(),
         comparison_dir=filesystem.get_comparison_dir(),
     )
+
+    # run for development
+    if os.environ.get('FLASK_DEBUG') is not None:
+        from flask_cors import CORS
+        app = create_app(config['report_dir'], config['single_dir'], config['comparison_dir'])
+        CORS(app)
+        app.run(host=host, port=port)
+        return
 
     if sys.platform == "win32":
         full_command = _build_waitress_command(waitress_opts, host, port, config)

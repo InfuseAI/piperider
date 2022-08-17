@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState, useEffect } from 'react';
 import { Switch, Route, Router, BaseLocationHook, type Params } from 'wouter';
 
 import { Loading } from './components/shared/Loading';
@@ -99,9 +99,29 @@ function AppComparison() {
 }
 
 function AppIndexReport() {
+  const [data, setData] = useState();
+
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/index`)
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        throw Error('error');
+      })
+      .then((res) => {
+        return setData(res);
+      })
+      .catch((error) => {
+        return console.error(error);
+      });
+  }, []);
+
+  console.log(data);
+
   return (
     <Suspense fallback={<Loading />}>
-      <IndexReport data={window.PIPERIDER_INDEX_REPORT_DATA} />
+      {data && <IndexReport data={data} />}
     </Suspense>
   );
 }

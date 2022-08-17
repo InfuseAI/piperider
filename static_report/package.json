@@ -65,6 +65,7 @@
     "setup": "run-s typing:dts typing:zts extract:metadata embed:html lint:fix",
     "serve:single": "dotenv -e .env.single craco start",
     "serve:comparison": "dotenv -e .env.comparison craco start",
+    "serve:index": "dotenv -e .env.index-report.development craco start",
     "start:single": "run-s setup serve:single",
     "start:comparison": "run-s setup serve:comparison",
     "typing:dts": "npx json2ts ../piperider_cli/profiler/schema.json > src/sdlc/single-report-schema.d.ts",

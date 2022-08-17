@@ -280,3 +280,5 @@ class CompareReport(object):
         # Write comparison data to file
         with open(os.path.join(default_report_directory, 'comparison_data.json'), 'w') as f:
             f.write(comparison_data.to_json())
+
+        return data_id

@@ -62,6 +62,7 @@ setup(name='piperider',
               'pytest-cov',
               'twine',
               'jsonschema',
+              'flask-cors',
           ],
       },
       project_urls={

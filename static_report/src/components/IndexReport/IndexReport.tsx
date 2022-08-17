@@ -97,7 +97,16 @@ export function IndexReport({ data }) {
   };
 
   const onCompareClick = (base: string, target: string) => {
-    fetch(`/compare?base=${base}&target=${target}`)
+    const headers = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+    const body = { base: base, target: target };
+    fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/compare`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(body),
+    })
       .then((res) => {
         if (res.ok) {
           return res.json();
@@ -152,7 +161,11 @@ export function IndexReport({ data }) {
                         const created_at = formatReportTime(item.created_at);
 
                         return (
-                          <LinkBox as={Tr} _hover={{ bg: 'blackAlpha.50' }}>
+                          <LinkBox
+                            as={Tr}
+                            key={item.name}
+                            _hover={{ bg: 'blackAlpha.50' }}
+                          >
                             <Td w={0} p={1}>
                               <Checkbox
                                 py={3}
@@ -224,7 +237,11 @@ export function IndexReport({ data }) {
                           '-';
 
                         return (
-                          <LinkBox as={Tr} _hover={{ bg: 'blackAlpha.50' }}>
+                          <LinkBox
+                            as={Tr}
+                            key={item.name}
+                            _hover={{ bg: 'blackAlpha.50' }}
+                          >
                             <Td>
                               <LinkOverlay
                                 href={`/comparison/${item.name}/`}
