@@ -1,5 +1,4 @@
 import {
-  Box,
   Flex,
   Grid,
   Text,
@@ -442,7 +441,7 @@ function ColumnDetail({
   return (
     <Grid
       key={name}
-      templateColumns="218px 2.2fr 1.5fr 2rem"
+      templateColumns="205px 2.3fr 1.5fr 2rem"
       alignItems="center"
       p={3}
       _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
@@ -451,7 +450,9 @@ function ColumnDetail({
         <Flex alignItems="center">
           <Icon as={FiCornerDownRight} color="gray.300" boxSize={5} />
           <Icon as={icon} color="piperider.500" mx={2} boxSize={5} />
-          <Text noOfLines={1}>{name}</Text>
+          <Text noOfLines={1} mr={1}>
+            {name}
+          </Text>
         </Flex>
       </GridItem>
 
@@ -509,7 +510,7 @@ function CRAssertionsBaseSummary({ total, failed }: AssertionsReturn) {
   const isPassed = failed === 0;
 
   return (
-    <Flex gap={2} alignItems="center">
+    <Flex gap={1} alignItems="center">
       <Flex
         alignItems="center"
         borderRadius="md"
@@ -556,7 +557,7 @@ function CRAssertionsTargetSummary({
   }
 
   return (
-    <Flex gap={2} alignItems="center">
+    <Flex gap={1} alignItems="center">
       <Flex
         alignItems="center"
         borderRadius="md"

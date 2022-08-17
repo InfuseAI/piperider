@@ -185,7 +185,7 @@ export function CRTabSchemaDetails({
                   <Td>{column?.name ?? NO_VALUE}</Td>
                   <Td>{column?.schema_type ?? NO_VALUE}</Td>
                   {visibleDetail && (
-                    <Box position="absolute" top={3} right={0}>
+                    <Box as="td" position="absolute" top={3} right={0}>
                       <Icon
                         as={FiChevronRight}
                         color="piperider.500"
