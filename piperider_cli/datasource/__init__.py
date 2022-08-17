@@ -185,12 +185,11 @@ def _list_datasource_providers():
     from .postgres import PostgresDataSource
     from .sqlite import SqliteDataSource
     from .bigquery import BigQueryDataSource
-    from .redshift import RedshiftDataSource, RedshiftServerlessDataSource
+    from .redshift import RedshiftDataSource
     return {
         'snowflake': SnowflakeDataSource,
         'bigquery': BigQueryDataSource,
         'redshift': RedshiftDataSource,
-        'redshift-serverless': RedshiftServerlessDataSource,
         'postgres': PostgresDataSource,
         'sqlite': SqliteDataSource,
     }

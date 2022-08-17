@@ -4,11 +4,12 @@ from typing import List
 from rich.console import Console
 from rich.markup import escape
 from sqlalchemy import create_engine, inspect
-from piperider_cli.adapter import DbtAdapter
 
+from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
 from piperider_cli.configuration import Configuration, PIPERIDER_CONFIG_PATH
-from piperider_cli.error import DbtAdapterCommandNotFoundError, DbtCommandNotFoundError, PipeRiderDiagnosticError
+from piperider_cli.error import DbtAdapterCommandNotFoundError, DbtCommandNotFoundError, PipeRiderDiagnosticError, \
+    PipeRiderError
 
 CONSOLE_MSG_PASS = '[bold green]✅ PASS[/bold green]\n'
 CONSOLE_MSG_FAIL = '[bold red]😱 FAILED[/bold red]\n'
@@ -44,9 +45,12 @@ class CheckingHandler(object):
                 self.console.print(f'Check {checker["name"]}:')
                 passed, error_msg = checker['cls'].check_function(self.configurator)
                 if not passed:
+                    hint = None
                     if isinstance(error_msg, list):
                         error_msg = ', '.join(str(e) for e in error_msg)
-                    raise PipeRiderDiagnosticError(checker['cls'].__class__.__name__, error_msg)
+                    elif isinstance(error_msg, PipeRiderError):
+                        hint = error_msg.hint
+                    raise PipeRiderDiagnosticError(checker['cls'].__class__.__name__, error_msg, hint=hint)
                 self.console.print(CONSOLE_MSG_PASS)
 
             self.console.print(CONSOLE_MSG_ALL_SET)
