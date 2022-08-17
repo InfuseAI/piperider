@@ -69,10 +69,9 @@ export function ComparisonReportList({
         target.created_at,
       )}`}
     >
-      {/* TODO: need to confirm how to display, for now using `base` */}
       <ToggleList
-        sourceName={data.base.datasource.name}
-        sourceType={data.base.datasource.type}
+        sourceName={data.input.datasource.name}
+        sourceType={data.input.datasource.type}
         currentView={view}
         toggleView={(nextView) => setView(nextView)}
       />

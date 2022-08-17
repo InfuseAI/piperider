@@ -1,4 +1,5 @@
 import {
+  Box,
   Flex,
   TableContainer,
   Table,
@@ -9,8 +10,11 @@ import {
   Td,
   Divider,
   Text,
+  Icon,
 } from '@chakra-ui/react';
+import { FiChevronRight } from 'react-icons/fi';
 import { nanoid } from 'nanoid';
+
 import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
 import { ComparsionSource, zReport, ZTableSchema } from '../../types';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
@@ -45,8 +49,13 @@ const getEnrichedColumnsFor = (
 type Props = {
   base?: TableSchema | undefined;
   target?: TableSchema | undefined;
+  visibleDetail?: boolean;
 };
-export function CRTabSchemaDetails({ base, target }: Props) {
+export function CRTabSchemaDetails({
+  base,
+  target,
+  visibleDetail = false,
+}: Props) {
   zReport(ZTableSchema.safeParse(base));
   zReport(ZTableSchema.safeParse(target));
 
@@ -142,6 +151,7 @@ export function CRTabSchemaDetails({ base, target }: Props) {
                 <Tr
                   key={nanoid(10)}
                   color={column?.changed ? 'red.500' : 'inherit'}
+                  _hover={{ cursor: visibleDetail ? 'pointer' : 'inherit' }}
                 >
                   <Td>{column?.name ?? NO_VALUE}</Td>
                   <Td>{column?.schema_type ?? NO_VALUE}</Td>
@@ -169,9 +179,20 @@ export function CRTabSchemaDetails({ base, target }: Props) {
                 <Tr
                   key={nanoid(10)}
                   color={column?.changed ? 'red.500' : 'inherit'}
+                  position="relative"
+                  _hover={{ cursor: visibleDetail ? 'pointer' : 'inherit' }}
                 >
                   <Td>{column?.name ?? NO_VALUE}</Td>
                   <Td>{column?.schema_type ?? NO_VALUE}</Td>
+                  {visibleDetail && (
+                    <Box position="absolute" top={3} right={0}>
+                      <Icon
+                        as={FiChevronRight}
+                        color="piperider.500"
+                        boxSize={6}
+                      />
+                    </Box>
+                  )}
                 </Tr>
               ))}
             </Tbody>

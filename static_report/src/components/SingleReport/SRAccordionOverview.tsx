@@ -11,6 +11,13 @@ import {
   Stack,
   Icon,
   Tooltip,
+  TableContainer,
+  Table,
+  Thead,
+  Tbody,
+  Td,
+  Tr,
+  Th,
 } from '@chakra-ui/react';
 import {
   FiCornerDownRight,
@@ -33,11 +40,17 @@ import {
 import {
   type SingleReportSchema,
   type AssertionTest,
+  TableSchema,
 } from '../../sdlc/single-report-schema';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { SR_LIST_VIEW } from '../../utils/localStorageKeys';
+import { type ToggleListView } from '../shared/ToggleList';
 
 export function SRAccordionOverview({
   tables,
 }: Pick<SingleReportSchema, 'tables'>) {
+  const [view] = useLocalStorage<ToggleListView>(SR_LIST_VIEW, 'summary');
+
   return (
     <Flex direction="column" width="900px" minHeight="650px">
       <Grid templateColumns="1fr 2fr 1fr" px={4} my={6}>
@@ -69,7 +82,7 @@ export function SRAccordionOverview({
                         direction="column"
                         gap={4}
                         py="10px"
-                        height={isExpanded ? '135px' : '90px'}
+                        maxHeight={isExpanded ? '135px' : '90px'}
                       >
                         <Grid
                           templateColumns="1fr 2fr 1fr"
@@ -199,38 +212,42 @@ export function SRAccordionOverview({
                     </AccordionButton>
 
                     <AccordionPanel bgColor="white">
-                      <Stack gap={8} py={6}>
-                        {Object.keys(
-                          table.piperider_assertion_result?.columns || {},
-                        ).map((colName) => {
-                          const mergedColAssertions = [
-                            ...(table.piperider_assertion_result?.columns?.[
-                              colName
-                            ] || []),
-                            ...(table.dbt_assertion_result?.columns?.[
-                              colName
-                            ] || []),
-                          ];
+                      {view === 'summary' ? (
+                        <Stack gap={6}>
+                          {Object.keys(
+                            table.piperider_assertion_result?.columns || {},
+                          ).map((colName) => {
+                            const mergedColAssertions = [
+                              ...(table.piperider_assertion_result?.columns?.[
+                                colName
+                              ] || []),
+                              ...(table.dbt_assertion_result?.columns?.[
+                                colName
+                              ] || []),
+                            ];
 
-                          const chartData = getColumnTypeChartData(
-                            table.columns[colName],
-                          );
+                            const chartData = getColumnTypeChartData(
+                              table.columns[colName],
+                            );
 
-                          const { icon: colIcon } = getIconForColumnType(
-                            table.columns[colName],
-                          );
+                            const { icon: colIcon } = getIconForColumnType(
+                              table.columns[colName],
+                            );
 
-                          return (
-                            <ColumnDetail
-                              key={colName}
-                              name={colName}
-                              colAssertions={mergedColAssertions}
-                              chartData={chartData}
-                              icon={colIcon}
-                            />
-                          );
-                        })}
-                      </Stack>
+                            return (
+                              <ColumnDetail
+                                key={colName}
+                                name={colName}
+                                colAssertions={mergedColAssertions}
+                                chartData={chartData}
+                                icon={colIcon}
+                              />
+                            );
+                          })}
+                        </Stack>
+                      ) : (
+                        <SRSchemaDetail table={table} />
+                      )}
                     </AccordionPanel>
                   </>
                 )}
@@ -240,6 +257,36 @@ export function SRAccordionOverview({
         })}
       </Accordion>
     </Flex>
+  );
+}
+
+function SRSchemaDetail({ table }: { table: TableSchema }) {
+  return (
+    <TableContainer>
+      <Table variant="simple">
+        <Thead>
+          <Tr>
+            <Th>Column</Th>
+            <Th>Type</Th>
+            <Th width="5%" />
+          </Tr>
+        </Thead>
+        <Tbody>
+          {Object.keys(table.columns).map((colName) => (
+            <Tr
+              key={nanoid(10)}
+              _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
+            >
+              <Td>{table.columns[colName]?.name}</Td>
+              <Td>{table.columns[colName]?.schema_type}</Td>
+              <Td>
+                <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
+              </Td>
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
+    </TableContainer>
   );
 }
 
@@ -255,7 +302,13 @@ function ColumnDetail({
   colAssertions: AssertionTest[] | undefined;
 }) {
   return (
-    <Grid key={name} templateColumns="218px 2.2fr 1fr 2rem" alignItems="center">
+    <Grid
+      key={name}
+      templateColumns="218px 2.2fr 1fr 2rem"
+      alignItems="center"
+      p={3}
+      _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
+    >
       <GridItem>
         <Flex alignItems="center">
           <Icon as={FiCornerDownRight} color="gray.300" boxSize={5} />
@@ -316,13 +369,13 @@ function SRAssertionsSummaryLabel({
   assertions: AssertionTest[];
 }) {
   const total = assertions.length;
-  const fail = assertions.reduce((acc, test) => {
+  const failed = assertions.reduce((acc, test) => {
     if (test.status === 'failed') {
       acc++;
     }
     return acc;
   }, 0);
-  const isPassed = fail === 0;
+  const isPassed = failed === 0;
 
   return (
     <Flex gap={2} alignItems="center">
@@ -335,7 +388,7 @@ function SRAssertionsSummaryLabel({
         px={1.5}
       >
         <Icon as={isPassed ? FiCheck : FiX} boxSize={4} />
-        <Text as="span">{isPassed ? 'All' : fail}</Text>
+        <Text as="span">{isPassed ? 'All' : failed}</Text>
       </Flex>
       <Text as="span" color="gray.500">
         of

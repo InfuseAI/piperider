@@ -1,4 +1,5 @@
 import {
+  Box,
   Flex,
   Grid,
   Text,
@@ -26,6 +27,7 @@ import { nanoid } from 'nanoid';
 import isString from 'lodash/isString';
 import partial from 'lodash/partial';
 
+import { CRTabSchemaDetails } from './CRTabSchemaDetails';
 import { getComparisonAssertions } from '../../utils/assertion';
 import {
   getIconForColumnType,
@@ -37,6 +39,9 @@ import type {
   SingleReportSchema,
   TableSchema,
 } from '../../sdlc/single-report-schema';
+import type { ToggleListView } from '../shared/ToggleList';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { CR_LIST_VIEW } from '../../utils/localStorageKeys';
 
 export function CRAccordionOverview({
   data,
@@ -48,6 +53,8 @@ export function CRAccordionOverview({
     SingleReportSchema['tables'],
     TableSchema
   >(base.tables, target.tables);
+
+  const [view] = useLocalStorage<ToggleListView>(CR_LIST_VIEW, 'summary');
 
   return (
     <Flex direction="column" width="900px" minHeight="650px">
@@ -72,7 +79,7 @@ export function CRAccordionOverview({
                         direction="column"
                         gap={4}
                         py="10px"
-                        height={isExpanded ? '135px' : '90px'}
+                        maxH={isExpanded ? '135px' : '90px'}
                       >
                         <Grid
                           templateColumns="218px 2fr 1.5fr"
@@ -154,41 +161,50 @@ export function CRAccordionOverview({
                     </AccordionButton>
 
                     <AccordionPanel bgColor="white">
-                      <Stack gap={8} py={6}>
-                        {Object.keys(
-                          table.base.piperider_assertion_result?.columns || {},
-                        ).map((colName) => {
-                          const mergedBaseColAssertions = [
-                            ...(table.base.piperider_assertion_result
-                              ?.columns?.[colName] || []),
-                            ...(table.base.dbt_assertion_result?.columns?.[
-                              colName
-                            ] || []),
-                          ];
+                      {view === 'summary' ? (
+                        <Stack gap={6}>
+                          {Object.keys(
+                            table.base.piperider_assertion_result?.columns ||
+                              {},
+                          ).map((colName) => {
+                            const mergedBaseColAssertions = [
+                              ...(table.base.piperider_assertion_result
+                                ?.columns?.[colName] || []),
+                              ...(table.base.dbt_assertion_result?.columns?.[
+                                colName
+                              ] || []),
+                            ];
 
-                          const mergedTargetColAssertions = [
-                            ...(table.target.piperider_assertion_result
-                              ?.columns?.[colName] || []),
-                            ...(table.target.dbt_assertion_result?.columns?.[
-                              colName
-                            ] || []),
-                          ];
+                            const mergedTargetColAssertions = [
+                              ...(table.target.piperider_assertion_result
+                                ?.columns?.[colName] || []),
+                              ...(table.target.dbt_assertion_result?.columns?.[
+                                colName
+                              ] || []),
+                            ];
 
-                          const { icon: colIcon } = getIconForColumnType(
-                            table.target.columns[colName],
-                          );
+                            const { icon: colIcon } = getIconForColumnType(
+                              table.target.columns[colName],
+                            );
 
-                          return (
-                            <ColumnDetail
-                              key={colName}
-                              name={colName}
-                              icon={colIcon}
-                              baseColAssertions={mergedBaseColAssertions}
-                              targetColAssertions={mergedTargetColAssertions}
-                            />
-                          );
-                        })}
-                      </Stack>
+                            return (
+                              <ColumnDetail
+                                key={colName}
+                                name={colName}
+                                icon={colIcon}
+                                baseColAssertions={mergedBaseColAssertions}
+                                targetColAssertions={mergedTargetColAssertions}
+                              />
+                            );
+                          })}
+                        </Stack>
+                      ) : (
+                        <CRTabSchemaDetails
+                          visibleDetail
+                          base={table.base}
+                          target={table.target}
+                        />
+                      )}
                     </AccordionPanel>
                   </>
                 )}
@@ -428,6 +444,8 @@ function ColumnDetail({
       key={name}
       templateColumns="218px 2.2fr 1.5fr 2rem"
       alignItems="center"
+      p={3}
+      _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
     >
       <GridItem>
         <Flex alignItems="center">
