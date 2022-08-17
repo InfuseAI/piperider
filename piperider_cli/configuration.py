@@ -241,18 +241,19 @@ def _load_dbt_profile(path):
 def _load_credential_from_dbt_profile(dbt_profile, profile_name, target_name):
     credential = dbt_profile.get(profile_name, {}).get('outputs', {}).get(target_name, {})
 
-    if credential.get('type') != 'bigquery':
-        return credential
-
-    # BigQuery Data Source
-    from piperider_cli.datasource.bigquery import AUTH_METHOD_OAUTH_SECRETS
-    # DBT profile support 4 types of methods to authenticate with BigQuery:
-    #   [ 'oauth', 'oauth-secrets', 'service-account', 'service-account-json' ]
-    # Ref: https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#authentication-methods
-    if credential.get('method') == 'oauth-secrets':
-        credential['method'] = AUTH_METHOD_OAUTH_SECRETS
-        # TODO: Currently SqlAlchemy haven't support using access token to authenticate with BigQuery.
-        #       Ref: https://github.com/googleapis/python-bigquery-sqlalchemy/pull/459
-        raise DbtProfileBigQueryAuthWithTokenUnsupportedError
+    if credential.get('type') == 'bigquery':
+        # BigQuery Data Source
+        from piperider_cli.datasource.bigquery import AUTH_METHOD_OAUTH_SECRETS
+        # DBT profile support 4 types of methods to authenticate with BigQuery:
+        #   [ 'oauth', 'oauth-secrets', 'service-account', 'service-account-json' ]
+        # Ref: https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#authentication-methods
+        if credential.get('method') == 'oauth-secrets':
+            credential['method'] = AUTH_METHOD_OAUTH_SECRETS
+            # TODO: Currently SqlAlchemy haven't support using access token to authenticate with BigQuery.
+            #       Ref: https://github.com/googleapis/python-bigquery-sqlalchemy/pull/459
+            raise DbtProfileBigQueryAuthWithTokenUnsupportedError
+    elif credential.get('type') == 'redshift':
+        if credential.get('method') is None:
+            credential['method'] = 'password'
 
     return credential

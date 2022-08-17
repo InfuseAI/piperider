@@ -49,12 +49,14 @@ setup(name='piperider',
           'bigquery': [
               'pyarrow',
               'pybigquery',
-              'google-cloud-bigquery-storage'
+              'google-cloud-bigquery-storage',
+
           ],
           'redshift': [
               'sqlalchemy-redshift',
               'redshift-connector',
               'psycopg2-binary',
+              'boto3>=1.24.11',
           ],
           'dev': [
               'pytest>=4.6',

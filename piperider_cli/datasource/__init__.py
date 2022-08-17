@@ -2,7 +2,7 @@ import os
 import re
 import sys
 from abc import ABCMeta, abstractmethod
-from typing import List, Dict
+from typing import List, Dict, Callable
 
 import inquirer
 import readchar
@@ -42,6 +42,8 @@ class DataSource(metaclass=ABCMeta):
         reasons = []
         # check required fields
         for f in self.fields:
+            if isinstance(f.ignore, Callable) and f.ignore(self.credential):
+                continue
             if f.name not in self.credential and f.optional is False:
                 reasons.append(f"{f.name} is required")
 
@@ -183,14 +185,15 @@ def _list_datasource_providers():
     from .postgres import PostgresDataSource
     from .sqlite import SqliteDataSource
     from .bigquery import BigQueryDataSource
-    from .redshift import RedshiftDataSource
-    return dict(
-        snowflake=SnowflakeDataSource,
-        bigquery=BigQueryDataSource,
-        redshift=RedshiftDataSource,
-        postgres=PostgresDataSource,
-        sqlite=SqliteDataSource,
-    )
+    from .redshift import RedshiftDataSource, RedshiftServerlessDataSource
+    return {
+        'snowflake': SnowflakeDataSource,
+        'bigquery': BigQueryDataSource,
+        'redshift': RedshiftDataSource,
+        'redshift-serverless': RedshiftServerlessDataSource,
+        'postgres': PostgresDataSource,
+        'sqlite': SqliteDataSource,
+    }
 
 
 DATASOURCE_PROVIDERS = _list_datasource_providers()
