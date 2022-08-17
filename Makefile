@@ -50,4 +50,4 @@ generate-cli-docs:
 	@python3 -m piperider_cli.docgen
 
 serve:
-	env FLASK_DEBUG=development piperider serve --port 8001
+	env FLASK_DEBUG=development dev_proxy=true piperider serve --port 8001
