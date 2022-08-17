@@ -1,10 +1,6 @@
 import {
-  Box,
-  Button,
-  Center,
   Checkbox,
   Flex,
-  HStack,
   Heading,
   LinkBox,
   LinkOverlay,
@@ -17,73 +13,15 @@ import {
   Tabs,
   Tbody,
   Td,
-  Text,
   Th,
   Thead,
   Tr,
-  VStack,
 } from '@chakra-ui/react';
 
 import { useState } from 'react';
 import { Main } from '../shared/Main';
 import { formatReportTime } from '../../utils/formatters';
-
-function StickyFooter({
-  checkState,
-  onCompareClick,
-  error,
-}: {
-  checkState: string[];
-  onCompareClick: () => void;
-  error?: string;
-}) {
-  return (
-    <Center>
-      <Box
-        bgColor="gray.100"
-        borderRadius="15px"
-        bottom="10px"
-        opacity="0.95"
-        p={4}
-        pos="fixed"
-        w="35%"
-        minWidth="460px"
-        zIndex={3}
-      >
-        <Center>
-          <VStack>
-            <HStack spacing="20px">
-              <VStack>
-                <HStack spacing="10px">
-                  <Text w={55} textAlign={['left']} fontWeight="semibold">
-                    Base:
-                  </Text>
-                  <Text>{checkState[0]}</Text>
-                </HStack>
-                <HStack spacing="10px">
-                  <Text w={55} textAlign={['left']} fontWeight="semibold">
-                    Target:
-                  </Text>
-                  <Text>{checkState[1]}</Text>
-                </HStack>
-              </VStack>
-              <Box m={'auto 0'}>
-                <Button colorScheme="blue" onClick={onCompareClick}>
-                  Compare
-                </Button>
-              </Box>
-            </HStack>
-            {error && (
-              <Text color="red.500" fontWeight="semibold">
-                {error}
-              </Text>
-            )}
-          </VStack>
-        </Center>
-      </Box>
-    </Center>
-  );
-}
+import { StickyFooter } from './StickFooter';
 
 export function IndexReport({ data }) {
   const [checkState, setCheckState] = useState<string[]>([]);
@@ -155,7 +93,7 @@ export function IndexReport({ data }) {
 
         <Tabs isLazy index={tabIndex} onChange={onTabChanged}>
           <TabList>
-            <Tab>Single runs</Tab>
+            <Tab>Runs</Tab>
             <Tab>Comparisons</Tab>
           </TabList>
 
