@@ -71,23 +71,12 @@ export function getColumnDetails(columnData: ColumnSchema) {
   };
 }
 
-/**
- * Checks for categorical column, which is considered as:
- * 1.`distinct <= 100`
- * 2. `type` of string | integer
- * 3. else returns false
- * @param columnDatum
- * @returns boolean indicating whether a column is considered categorical
- */
 export function checkColumnCategorical(columnDatum?: ColumnSchema): boolean {
   if (columnDatum) {
     const { distinct, type } = columnDatum;
-
-    const result =
-      typeof distinct === 'number' && distinct <= 100
-        ? type === 'string' || type === 'integer'
-        : false;
-    return result;
+    return typeof distinct === 'number'
+      ? distinct <= 100 && (type === 'string' || type === 'integer')
+      : false; //this is arbitrary
   }
   return false;
 }
@@ -104,10 +93,9 @@ export function getChartKindByColumnType(
   if (!columnDatum) return;
   const { topk, histogram, trues, falses, type } = columnDatum;
   const isCategorical = checkColumnCategorical(columnDatum);
-
   const isPieKind = type === 'boolean' && trues && falses;
   const isCategoryKind =
-    (type === 'string' || type === 'integer') && topk && isCategorical;
+    type === 'string' || (type === 'integer' && topk && isCategorical);
   const isHistogramKind =
     (type === 'numeric' ||
       type === 'integer' ||

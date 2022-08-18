@@ -1,7 +1,10 @@
 import { Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema } from '../../../types';
-import { getChartKindByColumnType } from '../../../utils/transformers';
+import {
+  checkColumnCategorical,
+  getChartKindByColumnType,
+} from '../../../utils/transformers';
 import { BooleanPieChart } from '../Charts/BooleanPieChart';
 import { CategoricalBarChart } from '../Charts/CategoricalBarChart';
 import { HistogramChart } from '../Charts/HistogramChart';
@@ -107,32 +110,25 @@ export function getDataChart(
 
 /**
  * Handles the logic for rendering the right Column Details
- * Has more specific UI data metrics than chart kinds
  * @param columnDatum
  * @returns ColumnTypeDetail* Component
  */
 function _getColumnBodyContentUI(columnDatum: ColumnSchema) {
   const { type } = columnDatum;
-  const chartKind = getChartKindByColumnType(columnDatum);
+  const isCategorical = checkColumnCategorical(columnDatum);
 
-  if (chartKind === 'topk') {
+  if ((type === 'string' || type === 'integer') && isCategorical)
     return <ColumnTypeDetailCategorical columnDatum={columnDatum} />;
-  }
-  if (type === 'numeric' || type === 'integer') {
+  if (type === 'numeric' || type === 'integer')
     return <ColumnTypeDetailNumeric columnDatum={columnDatum} />;
-  }
-  if (type === 'boolean') {
+  if (type === 'boolean')
     return <ColumnTypeDetailBoolean columnDatum={columnDatum} />;
-  }
-  if (type === 'string') {
+  if (type === 'string')
     return <ColumnTypeDetailText columnDatum={columnDatum} />;
-  }
-  if (type === 'datetime') {
+  if (type === 'datetime')
     return <ColumnTypeDetailDatetime columnDatum={columnDatum} />;
-  }
-  if (type === 'other') {
+  if (type === 'other')
     return <ColumnTypeDetailOther columnDatum={columnDatum} />;
-  }
 
   return (
     <Text textAlign={'center'} w={'inherit'}>
