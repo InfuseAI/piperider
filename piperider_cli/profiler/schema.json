@@ -279,6 +279,18 @@
     "id": {
       "type": "string"
     },
+    "project_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "metadata_version": {
+      "type": "string"
+    },
     "created_at": {
       "type": "string"
     },

@@ -509,6 +509,19 @@ def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_resu
     event.log_event(event_payload.to_dict(), 'run')
 
 
+def decorate_with_metadata(profile_result: dict):
+    from piperider_cli import __version__
+    from piperider_cli.profiler.version import schema_version
+
+    configuration = Configuration.load()
+    project_id = configuration.get_telemetry_id()
+
+    profile_result['version'] = __version__
+    profile_result['project_id'] = f'{project_id}'
+    profile_result['user_id'] = f'{event._collector._user_id}'
+    profile_result['metadata_version'] = schema_version()
+
+
 class Runner():
     @staticmethod
     def exec(datasource=None, table=None, output=None, interaction=True, skip_report=False, dbt_command='',
@@ -582,6 +595,7 @@ class Runner():
         profiler = Profiler(engine, RichProfilerEventHandler(tables, ds))
         try:
             profile_result = profiler.profile(tables)
+            decorate_with_metadata(profile_result)
         except Exception as e:
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
