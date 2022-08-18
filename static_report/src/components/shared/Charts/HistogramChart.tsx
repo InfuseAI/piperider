@@ -51,10 +51,7 @@ export function HistogramChart({
   const { counts, bin_edges } = histogram as Histogram;
   const isDatetime = type === 'datetime';
 
-  // Time series (x,y) plot when type is datetime, else category series (bin_edges[i], counts)
   const newData = counts.map((v, i) => ({ x: bin_edges[i], y: v }));
-  // pre-mapping since tick.callback is slow
-
   const newLabels = bin_edges
     .map(
       (v, i) =>
@@ -63,17 +60,7 @@ export function HistogramChart({
         )}`,
     )
     .slice(0, -1);
-  const newYTicks = counts.map((v) => formatAsAbbreviatedNumber(v));
 
-  console.log({
-    newData,
-    newLabels,
-    newYTicks,
-    min,
-    max,
-    newMin: Math.min(...counts),
-    newMax: Math.max(...counts),
-  });
   //swap x-scale when histogram is datetime
   const xScaleDate: ScaleTypeConfig = {
     type: 'timeseries', // each datum is spread w/ equal distance
@@ -119,6 +106,7 @@ export function HistogramChart({
       borderDash: [2, 2],
     },
     ticks: {
+      maxTicksLimit: 8,
       callback: function (val, index) {
         //slow, but necessary since chart-data is a number and can be hard to display
         return formatAsAbbreviatedNumber(val);

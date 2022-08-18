@@ -20,6 +20,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
       <Flex direction="column">
         <MetricsInfo
           name="Average"
+          metakey="avg"
           firstSlot={formatColumnValueWith(baseColumn?.avg, formatNumber)}
           secondSlot={
             isTargetNull
@@ -30,7 +31,8 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           }
         />
         <MetricsInfo
-          name="Std. Deviation"
+          name="SD"
+          metakey="stddev"
           firstSlot={formatColumnValueWith(baseColumn?.stddev, formatNumber)}
           secondSlot={
             isTargetNull
@@ -44,6 +46,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
       <Flex direction="column">
         <MetricsInfo
           name="Min"
+          metakey="min"
           firstSlot={formatColumnValueWith(baseColumn?.min, formatNumber)}
           secondSlot={
             isTargetNull
@@ -55,6 +58,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
         />
         <MetricsInfo
           name="5%"
+          metakey="p5"
           firstSlot={formatColumnValueWith(baseColumn?.p5, formatNumber)}
           secondSlot={
             isTargetNull
@@ -66,6 +70,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
         />
         <MetricsInfo
           name="25%"
+          metakey="p25"
           firstSlot={formatColumnValueWith(baseColumn?.p25, formatNumber)}
           secondSlot={
             isTargetNull
@@ -77,6 +82,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
         />
         <MetricsInfo
           name="50%"
+          metakey="p50"
           firstSlot={formatColumnValueWith(baseColumn?.p50, formatNumber)}
           secondSlot={
             isTargetNull
@@ -88,6 +94,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
         />
         <MetricsInfo
           name="75%"
+          metakey="p75"
           firstSlot={formatColumnValueWith(baseColumn?.p75, formatNumber)}
           secondSlot={
             isTargetNull
@@ -99,6 +106,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
         />
         <MetricsInfo
           name="95%"
+          metakey="p95"
           firstSlot={formatColumnValueWith(baseColumn?.p95, formatNumber)}
           secondSlot={
             isTargetNull
@@ -110,6 +118,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
         />
         <MetricsInfo
           name="Max"
+          metakey="max"
           firstSlot={formatColumnValueWith(baseColumn?.max, formatNumber)}
           secondSlot={
             isTargetNull

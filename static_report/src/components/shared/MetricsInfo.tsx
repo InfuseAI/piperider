@@ -1,4 +1,6 @@
-import { Flex, Text } from '@chakra-ui/react';
+import { Flex, Text, Tooltip } from '@chakra-ui/react';
+import { schemaMetaDescriptions } from '../../sdlc/schema-meta';
+import { ColumnSchema } from '../../sdlc/single-report-schema';
 
 interface Props {
   name: string;
@@ -6,20 +8,28 @@ interface Props {
   secondSlot?: string | number | null;
   firstSlotWidth?: string;
   secondSlotWidth?: string;
+  metakey?: keyof ColumnSchema;
 }
-
 export function MetricsInfo({
   name,
   firstSlot,
   secondSlot,
   firstSlotWidth = '100px',
   secondSlotWidth = '100px',
+  metakey,
 }: Props) {
+  const metaDescription = schemaMetaDescriptions[metakey || ''];
   return (
     <Flex>
-      <Text width={'5em'} fontWeight={700}>
-        {name}
-      </Text>
+      <Tooltip
+        label={metaDescription}
+        isDisabled={!Boolean(metaDescription)}
+        placement={'top'}
+      >
+        <Text width={'5em'} fontWeight={700}>
+          {name}
+        </Text>
+      </Tooltip>
       <Flex gap={{ lg: 5, md: 1 }}>
         <Text textAlign="right" width={firstSlotWidth} noOfLines={1}>
           {firstSlot}

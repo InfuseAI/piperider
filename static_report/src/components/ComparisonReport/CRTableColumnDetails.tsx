@@ -2,6 +2,7 @@ import { Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import { formatDate } from '../../utils/formatters';
+import { checkColumnCategorical } from '../../utils/transformers';
 import { ColumnCardHeader } from '../shared/ColumnCard/ColumnCardHeader';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
 import { GeneralTableColumn } from '../shared/GeneralTableColumn';
@@ -18,6 +19,7 @@ export const CRTableColumnDetails = ({
   targetColumn,
 }: CRTableColumnDetailsProps) => {
   const fallback = baseColumn || targetColumn;
+  const isCategorical = checkColumnCategorical(baseColumn);
   zReport(ZColSchema.safeParse(baseColumn));
   zReport(ZColSchema.safeParse(targetColumn));
 
@@ -59,13 +61,26 @@ export const CRTableColumnDetails = ({
           <Flex direction="column">
             <MetricsInfo
               name="Min"
+              metakey="min"
               firstSlot={formatDate(String(baseColumn?.min)) ?? NO_VALUE}
               secondSlot={formatDate(String(targetColumn?.min)) ?? NO_VALUE}
             />
             <MetricsInfo
               name="Max"
+              metakey="max"
               firstSlot={formatDate(String(baseColumn?.max)) ?? NO_VALUE}
               secondSlot={formatDate(String(targetColumn?.max)) ?? NO_VALUE}
+            />
+          </Flex>
+        )}
+
+        {isCategorical && (
+          <Flex direction="column">
+            <MetricsInfo
+              name="Most Common"
+              metakey="topk"
+              firstSlot={String(baseColumn?.topk?.values[0]) ?? NO_VALUE}
+              secondSlot={String(targetColumn?.topk?.values[0]) ?? NO_VALUE}
             />
           </Flex>
         )}

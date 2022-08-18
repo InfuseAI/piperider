@@ -49,6 +49,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
     <>
       <MetricsInfo
         name="Total"
+        metakey="total"
         firstSlot={formatColumnValueWith(baseTotal, formatNumber)}
         secondSlot={
           isTargetNull
@@ -61,6 +62,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       />
       <MetricsInfo
         name="Valid"
+        metakey="valids"
         firstSlot={formatColumnValueWith(
           targetColumn ? baseValidsOfTotal : baseValids,
           targetColumn ? formatIntervalMinMax : formatNumber,
@@ -76,6 +78,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       />
       <MetricsInfo
         name="Invalid"
+        metakey="invalids"
         firstSlot={formatColumnValueWith(
           targetColumn ? baseInvalidsOfTotal : baseInvalids,
           targetColumn ? formatIntervalMinMax : formatNumber,
@@ -91,6 +94,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       />
       <MetricsInfo
         name="Missing"
+        metakey="nulls"
         firstSlot={formatColumnValueWith(
           targetColumn ? baseNullsOfTotal : baseNulls,
           targetColumn ? formatIntervalMinMax : formatNumber,
@@ -106,6 +110,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       />
       <MetricsInfo
         name="Distinct"
+        metakey="distinct"
         firstSlot={formatColumnValueWith(
           baseDistinctOfTotal,
           formatIntervalMinMax,
