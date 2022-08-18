@@ -1,3 +1,7 @@
+import re
+from ipaddress import ip_network, ip_address
+
+import requests
 from sqlalchemy import text
 from sqlalchemy.engine.url import URL
 from sqlalchemy.sql import quoted_name
@@ -34,6 +38,29 @@ def _is_password_auth(ans) -> bool:
     return AUTH_METHOD_PASSWORD == ans.get('method')
 
 
+def _is_ip_address(host) -> bool:
+    obj = re.search(r"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$", host)
+    if obj is None:
+        return False
+    else:
+        for v in obj.groups():
+            if int(v) > 255:
+                return False
+    return True
+
+
+def find_aws_region(ip):
+    ip_json = requests.get('https://ip-ranges.amazonaws.com/ip-ranges.json').json()
+    prefixes = ip_json['prefixes']
+    my_ip = ip_address(ip)
+    region = 'Unknown'
+    for prefix in prefixes:
+        if my_ip in ip_network(prefix['ip_prefix']):
+            region = prefix['region']
+            break
+    return region
+
+
 class RedshiftDataSource(DataSource):
     def __init__(self, name, **kwargs):
         super().__init__(name, 'redshift', **kwargs)
@@ -58,9 +85,12 @@ class RedshiftDataSource(DataSource):
 
     def to_database_url(self):
         credential = self.credential
-        host = credential.get('host') or credential.get('endpoint').split('/')[0].split(':')[0]
-        port = credential.get('port') or credential.get('endpoint').split('/')[0].split(':')[1]
         dbname = credential.get('dbname')
+        host = credential.get('host') or credential.get('endpoint').split('/')[0].split(':')[0]
+        try:
+            port = credential.get('port') or credential.get('endpoint').split('/')[0].split(':')[1]
+        except Exception:
+            port = 5439
 
         from sqlalchemy_redshift.dialect import RedshiftDialect
         RedshiftDialect.supports_statement_cache = True
@@ -78,7 +108,10 @@ class RedshiftDataSource(DataSource):
             except Exception:
                 aws = boto3
 
-            region = host.split('.')[2]
+            if _is_ip_address(host):
+                region = find_aws_region(host)
+            else:
+                region = host.split('.')[2]
 
             try:
                 if _is_redshift_serverless(credential):
@@ -108,6 +141,9 @@ class RedshiftDataSource(DataSource):
                                                                    DbGroups=db_groups, )
                     user = cluster_creds.get('DbUser')
                     password = cluster_creds.get('DbPassword')
+                    if _is_ip_address(host):
+                        host = client.describe_clusters(ClusterIdentifier=cluster_id)['Clusters'][0]['Endpoint'][
+                            'Address']
             except Exception as e:
                 raise AwsCredentialsError(str(e))
 
