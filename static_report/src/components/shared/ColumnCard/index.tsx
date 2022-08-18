@@ -88,7 +88,6 @@ export function getDataChart(
   }
   //histogram dataset
   if (chartKind === 'histogram' && histogram) {
-    //when hasSameName??
     return <HistogramChart data={{ histogram, min, max, type, total }} />;
   }
   //pie dataset

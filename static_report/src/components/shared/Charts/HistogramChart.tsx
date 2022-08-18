@@ -94,13 +94,12 @@ export function HistogramChart({
     },
   };
   const xScaleBase: ScaleTypeConfig = isDatetime ? xScaleDate : xScaleCategory;
+
   const yScaleBase: DeepPartial<
     ScaleOptionsByType<keyof CartesianScaleTypeRegistry>
   > = {
     type: 'linear',
-    bounds: 'data',
-    min: Math.min(...counts),
-    max: Math.max(...counts),
+    max: Math.max(...counts), //NOTE: do not add `min` since if they are equal nothing gets displayed sometimes
     grid: {
       color: 'lightgray',
       borderDash: [2, 2],
@@ -125,8 +124,6 @@ export function HistogramChart({
         intersect: false,
         callbacks: {
           title([{ dataIndex }]) {
-            console.log(dataIndex);
-
             const result = formatDisplayedBinItem(bin_edges, dataIndex);
 
             const percentOfTotal = formatIntervalMinMax(
@@ -156,6 +153,7 @@ export function HistogramChart({
     labels: newLabels,
     datasets: [
       {
+        label: 'counts',
         data: newData as any, //infer `any` to allow datestring
         backgroundColor: '#63B3ED',
         borderColor: '#4299E1',
