@@ -56,10 +56,10 @@ function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
         <CRTableColumnDetails baseColumn={base} targetColumn={target} />
 
         <Flex my={4} alignItems={'center'}>
-          <ColumnCardDataVisualContainer>
+          <ColumnCardDataVisualContainer height={350}>
             {base ? getDataChart(base) : <NoData />}
           </ColumnCardDataVisualContainer>
-          <ColumnCardDataVisualContainer>
+          <ColumnCardDataVisualContainer height={350}>
             {target ? getDataChart(target, base) : <NoData />}
           </ColumnCardDataVisualContainer>
         </Flex>

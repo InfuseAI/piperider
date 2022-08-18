@@ -16,11 +16,17 @@ import { ReactNode } from 'react';
  * Container to display one chart.
  * Children clickable for showing modal popup zoom of chart
  */
-type Props = { children: ReactNode; title?: string; allowModalPopup?: boolean };
+type Props = {
+  children: ReactNode;
+  title?: string;
+  allowModalPopup?: boolean;
+  height?: number;
+};
 export function ColumnCardDataVisualContainer({
   title,
   children,
   allowModalPopup,
+  height = 300,
 }: Props) {
   const { onOpen, isOpen, onClose } = useDisclosure();
   return (
@@ -30,8 +36,8 @@ export function ColumnCardDataVisualContainer({
         py={6}
         my={3}
         mx={3}
-        minHeight={'300px'}
-        maxHeight={'300px'}
+        minHeight={`${height}px`}
+        maxHeight={`${height}px`}
         width={'calc(100% - 24px)'}
         bg={'whiteAlpha.700'}
         rounded={'md'}
