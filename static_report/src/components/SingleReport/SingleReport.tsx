@@ -87,7 +87,8 @@ export default function SingleReport({ data, name }: Props) {
         >
           <SRTableOverview table={table} />
 
-          <Tabs isLazy>
+          {/* To avoid re-drawing charts again */}
+          <Tabs isLazy lazyBehavior="keepMounted">
             <TabList>
               <Tab
                 onClick={() => {

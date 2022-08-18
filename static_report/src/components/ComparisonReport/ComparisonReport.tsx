@@ -103,7 +103,8 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
         >
           <CRTableOverview baseTable={baseTable} targetTable={targetTable} />
 
-          <Tabs isLazy>
+          {/* To avoid re-drawing charts again */}
+          <Tabs isLazy lazyBehavior="keepMounted">
             <TabList>
               <Tab
                 onClick={() => {

@@ -10,14 +10,12 @@ interface Props {
 export function SRTabProfilingDetails({ data }: Props) {
   return (
     <Flex direction="row" flexWrap={'wrap'} gap={4}>
-      {Object.keys(data)
-        .slice(10)
-        .map((key) => {
-          const column = data[key];
-          zReport(ZColSchema.safeParse(column));
+      {Object.keys(data).map((key) => {
+        const column = data[key];
+        zReport(ZColSchema.safeParse(column));
 
-          return <ColumnCard key={nanoid()} columnDatum={column} />;
-        })}
+        return <ColumnCard key={nanoid()} columnDatum={column} />;
+      })}
     </Flex>
   );
 }
