@@ -16,7 +16,7 @@ class UserSurveyMockDataSource(DataSource):
                           'CSV file',
                           'Other',
                       ]),
-            TextField('other', description='Please tell us what data source you want to supported',
+            TextField('other', description='Please tell what data source you want us to supported',
                       ignore=lambda answers: answers['datasource_candidates'] != 'Other'),
         ]
 
