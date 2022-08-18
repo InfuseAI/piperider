@@ -26,6 +26,7 @@ export function BooleanPieChart({ data: { counts, labels, ratios } }: Props) {
   const chartOptions: ChartOptions<'pie'> = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: false,
     layout: {
       padding: 10,
     },

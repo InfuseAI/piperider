@@ -44,7 +44,6 @@ export function formatNumber(
 
 export function formatDate(input: string) {
   const parsed = Date.parse(input);
-  console.log(input, { parsed }, isValid(parsed), format(parsed, 'yyyy-mm-dd'));
 
   return isValid(parsed) ? format(parsed, 'yyyy-MM-dd') : input;
 }

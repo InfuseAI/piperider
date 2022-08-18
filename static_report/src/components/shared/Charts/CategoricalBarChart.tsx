@@ -19,6 +19,7 @@ ChartJS.register(CategoryScale, BarElement, Tooltip);
 /**
  * A horizontal progress bar chart that visualizes categorical dataset, plotted 1:1 to each category group
  */
+//needs min/max
 interface Props {
   data: Topk;
   total: number;
@@ -30,6 +31,7 @@ export function CategoricalBarChart({
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: false,
     indexAxis: 'y',
     scales: {
       x: {

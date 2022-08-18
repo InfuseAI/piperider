@@ -38,13 +38,14 @@ ChartJS.register(
  * Y: The Min/Max of the counts range is the scaled height of charting area
  * Counts: Abbreviated based on K, Mn, Bn, Tr (see formatters)
  */
-interface Props {
-  data: Histogram;
-  type: ColumnSchema['type'];
-  total: number;
-}
-export function HistogramChart({ data, type, total }: Props) {
-  const { counts, bin_edges } = data;
+//Note: min/max represents the bin edge min/max
+type Props = {
+  data: Pick<ColumnSchema, 'total' | 'type' | 'histogram' | 'min' | 'max'>;
+};
+export function HistogramChart({
+  data: { histogram, type, total, min, max },
+}: Props) {
+  const { counts, bin_edges } = histogram as Histogram;
   const isDatetime = type === 'datetime';
 
   // Time series (x,y) plot when type is datetime, else category series (bin_edges[i], counts)
@@ -52,12 +53,18 @@ export function HistogramChart({ data, type, total }: Props) {
     ? counts.map((v, i) => ({ x: bin_edges[i], y: v }))
     : counts;
 
+  // pre-mapping since tick.callback is slow
+  const newLabels = bin_edges.map((v) => formatAsAbbreviatedNumber(v));
+  const newYTicks = counts.map((v) => formatAsAbbreviatedNumber(v));
+
   //swap x-scale when histogram is datetime
   const xScaleBase: DeepPartial<
     ScaleOptionsByType<keyof CartesianScaleTypeRegistry>
   > = isDatetime
     ? {
         type: 'timeseries', // each datum is spread w/ equal distance
+        min,
+        max,
         adapters: {
           date: {},
         },
@@ -65,24 +72,40 @@ export function HistogramChart({ data, type, total }: Props) {
           minUnit: 'day',
         },
         bounds: 'data',
-        min: bin_edges[0],
         grid: { display: false },
         ticks: {
+          minRotation: 30,
           maxRotation: 30,
         },
       }
     : {
         type: 'category',
+        min,
+        max,
         offset: false, // offsets against `x2` abstract axis (not visible)
         grid: { display: false },
         ticks: {
-          maxRotation: 30,
-          callback(val, index) {
-            const interpretedVal = this.getLabelForValue(index);
-            return formatAsAbbreviatedNumber(interpretedVal);
-          },
+          minRotation: 0,
+          maxRotation: 0,
         },
       };
+  const yScaleBase: DeepPartial<
+    ScaleOptionsByType<keyof CartesianScaleTypeRegistry>
+  > = {
+    beginAtZero: true,
+    min: Math.min(...counts),
+    max: Math.max(...counts),
+    grid: {
+      color: 'lightgray',
+      borderDash: [2, 2],
+    },
+    ticks: {
+      callback: function (val, index) {
+        //slow, but necessary since chart-data is a number and can be hard to display
+        return newYTicks[index];
+      },
+    },
+  };
   // For aligning category type (non-datetime) only -- not visible
   const xScaleCategoryAxis: DeepPartial<
     ScaleOptionsByType<keyof CartesianScaleTypeRegistry>
@@ -96,6 +119,7 @@ export function HistogramChart({ data, type, total }: Props) {
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: false,
     plugins: {
       tooltip: {
         mode: 'index',
@@ -105,7 +129,7 @@ export function HistogramChart({ data, type, total }: Props) {
           title([{ dataIndex }]) {
             const result = formatDisplayedBinItem(bin_edges, dataIndex);
             const percentOfTotal = formatIntervalMinMax(
-              counts[dataIndex] / total,
+              counts[dataIndex] / (total as number), //total is always given (schema should make required)
             );
 
             const prefix = isDatetime
@@ -122,25 +146,14 @@ export function HistogramChart({ data, type, total }: Props) {
     scales: {
       x2: xScaleCategoryAxis,
       x: xScaleBase,
-      y: {
-        beginAtZero: true,
-        grid: {
-          color: 'lightgray',
-          borderDash: [2, 2],
-        },
-        ticks: {
-          callback: function (val) {
-            return formatAsAbbreviatedNumber(val);
-          },
-        },
-      },
+      y: yScaleBase,
     },
   };
 
   // Histograms are a mix between bar and scatter options (union)
   // uses cartesian x,y coordinates to plot and infer labels
   const chartData: ChartData<'bar' | 'scatter'> = {
-    labels: bin_edges,
+    labels: newLabels || bin_edges,
     datasets: [
       {
         data: newData as any, //infer `any` to allow datestring

@@ -57,8 +57,19 @@ export function getDataChart(
   columnDatum: ColumnSchema,
   baseColumnRef?: ColumnSchema,
 ) {
-  const { total, name, type, histogram, topk, trues, falses, nulls, invalids } =
-    columnDatum;
+  const {
+    total,
+    name,
+    type,
+    histogram,
+    topk,
+    trues,
+    falses,
+    nulls,
+    invalids,
+    min,
+    max,
+  } = columnDatum;
 
   const hasSameTypeName =
     type === baseColumnRef?.type && name === baseColumnRef?.name;
@@ -73,7 +84,7 @@ export function getDataChart(
   }
   //histogram dataset
   if (chartKind === 'histogram' && histogram) {
-    return <HistogramChart data={histogram} type={type} total={total ?? 0} />;
+    return <HistogramChart data={{ histogram, min, max, type, total }} />;
   }
   //pie dataset
   if (chartKind === 'pie') {
