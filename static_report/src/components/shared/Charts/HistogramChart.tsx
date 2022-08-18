@@ -51,7 +51,9 @@ export function HistogramChart({
   const { counts, bin_edges } = histogram as Histogram;
   const isDatetime = type === 'datetime';
 
-  const newData = counts.map((v, i) => ({ x: bin_edges[i], y: v }));
+  const newData = isDatetime
+    ? counts.map((v, i) => ({ x: bin_edges[i], y: v }))
+    : counts;
   const newLabels = bin_edges
     .map(
       (v, i) =>
@@ -59,7 +61,7 @@ export function HistogramChart({
           bin_edges[i + 1],
         )}`,
     )
-    .slice(0, -1);
+    .slice(0, -1); // exclude last
 
   //swap x-scale when histogram is datetime
   const xScaleDate: ScaleTypeConfig = {
@@ -79,19 +81,19 @@ export function HistogramChart({
       maxTicksLimit: 8,
     },
   };
-  const xScaleLinear: ScaleTypeConfig = {
-    type: 'linear',
-    min: min as number,
-    max: max as number,
+  /**
+   * NOTE: Category doesn't accept (min/max) -- will distort scales!
+   */
+  const xScaleCategory: ScaleTypeConfig = {
+    type: 'category', //Linear doesn't understand bins!
     grid: { display: false },
     ticks: {
-      maxTicksLimit: 8,
       callback(val, index) {
         return newLabels[index];
       },
     },
   };
-  const xScaleBase: ScaleTypeConfig = isDatetime ? xScaleDate : xScaleLinear;
+  const xScaleBase: ScaleTypeConfig = isDatetime ? xScaleDate : xScaleCategory;
   const yScaleBase: DeepPartial<
     ScaleOptionsByType<keyof CartesianScaleTypeRegistry>
   > = {
@@ -123,7 +125,10 @@ export function HistogramChart({
         intersect: false,
         callbacks: {
           title([{ dataIndex }]) {
+            console.log(dataIndex);
+
             const result = formatDisplayedBinItem(bin_edges, dataIndex);
+
             const percentOfTotal = formatIntervalMinMax(
               counts[dataIndex] / (total as number), //total is always given (schema should make required)
             );
