@@ -53,7 +53,7 @@ export function CategoricalBarChart({
               counts[dataIndex] / total,
             );
 
-            return `${result}\n(${percentOfTotal})`;
+            return `Count: ${result}\n(${percentOfTotal})`;
           },
         },
       },

@@ -112,8 +112,7 @@ export function formatTestExpectedOrActual(value) {
 export function formatTopKMetrics({ topk }: ColumnSchema) {
   if (!topk) return {};
   const { counts, values } = topk;
-  const trailingEllipsis = values.length < 2 ? '' : ', ...';
-  const topValues = `${values[0]}${trailingEllipsis}`;
+  const topValues = `${values[0]}`;
   const topCounts = `${counts[0]}`;
 
   return {
@@ -208,7 +207,7 @@ export function formatAsAbbreviatedNumber(input: number | string) {
     // format as unlabeled (1 to 999)
     else if (isOnesTensHundreds)
       return new Intl.NumberFormat('en-US', {
-        maximumFractionDigits: 1,
+        maximumFractionDigits: 0,
       }).format(input);
     // format as fractionals (< 1)
     else
