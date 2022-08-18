@@ -16,12 +16,15 @@ type CRChartHookArgs = {
   target: RefObject<SVGSVGElement>;
   data: CRHistogramDatum[];
   dimensions: DOMRect | null;
+  xTicks?: number;
+  yTicks?: number;
 };
 
 export function useComparisonChart({
   target,
   data,
   dimensions,
+  ...props
 }: CRChartHookArgs) {
   useEffect(() => {
     if (!target || !dimensions || !data) {
@@ -52,6 +55,11 @@ export function useComparisonChart({
       return isFrontMiddleEndPos ? value : '';
     });
 
+    // if setting x ticks
+    if (props?.xTicks) {
+      xAxis.ticks(props.xTicks);
+    }
+
     // plox X axis
     svg
       .select('.x-axis')
@@ -67,6 +75,12 @@ export function useComparisonChart({
       ])
       .range([dimensions.height, 0]);
     const yAxis = d3.axisLeft(yScale);
+
+    // if setting y ticks
+    if (props?.yTicks) {
+      yAxis.ticks(props.yTicks);
+    }
+
     // plox Y axis
     svg.select('.y-axis').call(yAxis as any);
 
@@ -82,7 +96,7 @@ export function useComparisonChart({
       .attr('class', 'grouped-chart')
       .attr('transform', (d: any) => `translate(${xScale(d.label)}, 0)`);
 
-    const tooltip = getChartTooltip({ target: '.chart' });
+    const tooltip = getChartTooltip({ target: '#chart-tooltip' });
 
     grouped
       .selectAll('rect')
@@ -152,5 +166,5 @@ export function useComparisonChart({
     return () => {
       svg.select('svg').remove();
     };
-  }, [data, dimensions, target]);
+  }, [data, dimensions, props.xTicks, props.yTicks, target]);
 }

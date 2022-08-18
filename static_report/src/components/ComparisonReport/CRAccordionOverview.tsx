@@ -26,18 +26,25 @@ import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
 import isString from 'lodash/isString';
 import partial from 'lodash/partial';
+import { useEffect, useState } from 'react';
 
+import { CRBarChart } from './CRBarChart';
+import { SRBarChart, type BarChartDatum } from '../SingleReport/SRBarChart';
 import { CRTabSchemaDetails } from './CRTabSchemaDetails';
 import { getComparisonAssertions } from '../../utils/assertion';
 import {
   getIconForColumnType,
+  getColumnTypeChartData,
   transformAsNestedBaseTargetRecord,
+  transformCRStringDateHistograms,
+  CRHistogramDatum,
 } from '../../utils/transformers';
 import { ComparisonReportSchema, ZComparisonTableSchema } from '../../types';
 import type {
   AssertionTest,
   SingleReportSchema,
   TableSchema,
+  ColumnSchema,
 } from '../../sdlc/single-report-schema';
 import type { ToggleListView } from '../shared/ToggleList';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
@@ -200,11 +207,18 @@ export function CRAccordionOverview({
                               table.target.columns[colName],
                             );
 
+                            const transformedData =
+                              transformAsNestedBaseTargetRecord<
+                                TableSchema['columns'],
+                                ColumnSchema
+                              >(table.base?.columns, table.target?.columns);
+
                             return (
                               <ColumnDetail
                                 key={colName}
                                 name={colName}
                                 icon={colIcon}
+                                data={transformedData[colName]}
                                 baseColAssertions={mergedBaseColAssertions}
                                 targetColAssertions={mergedTargetColAssertions}
                               />
@@ -443,11 +457,16 @@ function ColumnDetail({
   icon,
   baseColAssertions,
   targetColAssertions,
+  data,
 }: {
   name: string;
   icon: any;
   baseColAssertions: AssertionTest[];
   targetColAssertions: AssertionTest[];
+  data: {
+    base: ColumnSchema;
+    target: ColumnSchema;
+  };
 }) {
   const baseAssertions = getAssertions(baseColAssertions);
   const targetAssertions = getAssertions(targetColAssertions);
@@ -470,7 +489,9 @@ function ColumnDetail({
         </Flex>
       </GridItem>
 
-      <GridItem>TODO:</GridItem>
+      <GridItem>
+        <CRColumChart base={data.base} target={data.target} />
+      </GridItem>
 
       <GridItem>
         {baseAssertions.total > 0 && targetAssertions.total > 0 ? (
@@ -610,6 +631,76 @@ function CRAssertionsTargetSummary({
           {total}
         </Text>
       </Center>
+    </Flex>
+  );
+}
+
+function CRColumChart({
+  base,
+  target,
+}: {
+  base: ColumnSchema;
+  target: ColumnSchema;
+}) {
+  const [combinedData, setCombinedData] = useState<CRHistogramDatum[] | null>(
+    null,
+  );
+  const [splitData, setSplitData] = useState<
+    (BarChartDatum[] | null | undefined)[]
+  >([]);
+
+  useEffect(() => {
+    const isSameGenericType = base?.type === target?.type;
+    const isStringOrDatetime =
+      base?.type === 'string' || base?.type === 'datetime';
+
+    // Determine combined data histograms
+    if (isSameGenericType && isStringOrDatetime) {
+      const transformResult = transformCRStringDateHistograms({
+        base: base?.histogram,
+        target: target?.histogram,
+      });
+
+      setCombinedData(transformResult);
+    } else {
+      // Determine split data histograms
+      const transformBaseResult = getColumnTypeChartData(base);
+      const transformTargetResult = getColumnTypeChartData(target);
+
+      // Needs to show mismatched columns (null | undefined)
+      setSplitData([transformBaseResult, transformTargetResult]);
+    }
+  }, [base, target]);
+
+  return (
+    <Grid
+      my={2}
+      templateColumns={`1fr ${combinedData ? '' : '1fr'}`}
+      gap={combinedData ? 0 : 12}
+    >
+      {combinedData ? (
+        <CRBarChart data={combinedData} height="80px" xTicks={3} yTicks={3} />
+      ) : combinedData ? (
+        <NoData />
+      ) : null}
+      {splitData[0] ? (
+        <SRBarChart data={splitData[0]} xTicks={3} yTicks={3} height="80px" />
+      ) : combinedData ? null : (
+        <NoData />
+      )}
+      {splitData[1] ? (
+        <SRBarChart data={splitData[1]} xTicks={3} yTicks={3} height="80px" />
+      ) : combinedData ? null : (
+        <NoData />
+      )}
+    </Grid>
+  );
+}
+
+function NoData() {
+  return (
+    <Flex alignItems="center" justifyContent="center" color="gray.500">
+      No data available
     </Flex>
   );
 }
