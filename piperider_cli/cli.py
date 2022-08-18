@@ -123,7 +123,7 @@ def init(**kwargs):
             console.rule('Configuration')
             console.print(ds.__dict__)
     if config is None:
-        return
+        sys.exit(1)
 
     # Show the content of config.yml
     with open(os.path.join(piperider_config_dir, 'config.yml'), 'r') as f:
