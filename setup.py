@@ -55,7 +55,7 @@ setup(name='piperider',
               'google-cloud-bigquery-storage'
           ],
           'dev': [
-              'requests'
+              'requests',
               'pytest>=4.6',
               'pytest-flake8',
               'flake8==3.9.2',
