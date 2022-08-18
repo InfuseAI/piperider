@@ -1,166 +1,39 @@
-import sys
 import os
 import shlex
 import subprocess
-import re
-import json
-from flask import Flask, request, send_from_directory
-from piperider_cli import __version__, sentry_dns, sentry_env, event, data
+import sys
+
+import requests
+from flask import Flask, request
+
+from piperider_cli import data
 from piperider_cli.filesystem import FileSystem
-from piperider_cli.compare_report import CompareReport
+from piperider_cli.server.apis import app_apis
+from piperider_cli.server.common import app_common
+from piperider_cli.server.reports import app_reports
 
 
 def create_app(report_dir, single_dir, comparison_dir):
     STATIC_DIR = os.path.abspath(os.path.join(os.path.dirname(data.__file__), 'report'))
     app = Flask(__name__, static_folder=STATIC_DIR)
 
-    @app.route("/health")
-    def health():
-        return "OK", 200
+    # propagation variables to sub-modules via config
+    app.config['report_dir'] = report_dir
+    app.config['single_dir'] = single_dir
+    app.config['comparison_dir'] = comparison_dir
+    app.config['static_dir'] = STATIC_DIR
+    app.config['dev_proxy'] = os.environ.get('dev_proxy', 'false') == "true"
 
-    @app.route("/api/index")
-    def api_index():
-        return _scan_reports()
+    # register sub modules
+    app.register_blueprint(app_common)
+    app.register_blueprint(app_apis)
+    app.register_blueprint(app_reports)
 
-    @app.route("/api/compare", methods=['POST'])
-    def compare():
-        content_type = request.headers.get('Content-Type')
-        if content_type != 'application/json':
-            return dict(ok=False, error='Content-Type not supported'), 400
-
-        payload = request.json
-        base = payload.get('base')
-        target = payload.get('target')
-        a = os.path.join(single_dir, f'{base}/run.json')
-        b = os.path.join(single_dir, f'{target}/run.json')
-        comparison_id = CompareReport.exec(a=a, b=b, report_dir=report_dir)
-        comparison_json_file = os.path.join(comparison_dir, f'{comparison_id}/comparison_data.json')
-        with open(comparison_json_file) as f:
-            result = json.load(f)
-        return dict(ok=True, message=f"Comparison '{comparison_id}' generated", comparison=dict(
-            name=comparison_id,
-            created_at=result.get('created_at'),
-            base=dict(
-                datasource=result.get('base', {}).get('datasource', {}),
-                created_at=result.get('base', {}).get('created_at'),
-            ),
-            target=dict(
-                datasource=result.get('input', {}).get('datasource', {}),
-                created_at=result.get('input', {}).get('created_at'),
-            ),
-        ))
-
-    @app.route("/")
-    def index():
-        html_file = os.path.join(STATIC_DIR, 'index-report/index.html')
-        if not os.path.exists(html_file):
-            return '', 404
-        with open(html_file) as f:
-            html = f.read()
-        return _insert_serve_index(html)
-
-    @app.route("/single-run/<source>/")
-    def serve_single(source):
-        html_file = os.path.join(single_dir, f'{source}/index.html')
-        if not os.path.exists(html_file):
-            return '', 404
-        with open(html_file) as f:
-            html = f.read()
-        return html
-
-    @app.route("/comparison/<source>/")
-    def serve_comparison(source):
-        html_file = os.path.join(comparison_dir, f'{source}/index.html')
-        if not os.path.exists(html_file):
-            return '', 404
-        with open(html_file) as f:
-            html = f.read()
-        return html
-
-    @app.route("/single-run/<source>/<path:path>")
-    def serve_single_static(source, path):
-        return _serve_static(single_dir, source, path)
-
-    @app.route("/comparison/<source>/<path:path>")
-    def serve_comparison_static(source, path):
-        return _serve_static(comparison_dir, source, path)
-
-    @app.route("/<path:path>")
-    def serve_static(path):
-        return _serve_static('', 'index-report', path)
-
-    def _serve_static(parent, source, path):
-        folder = os.path.join(parent, source)
-        return send_from_directory(os.path.join(STATIC_DIR, folder), path)
-
-    def _insert_serve_index(template_html: str):
-        metadata = {
-            'name': 'PipeRider',
-            'sentry_env': sentry_env,
-            'sentry_dns': sentry_dns,
-            'version': __version__,
-            'amplitude_api_key': event._get_api_key(),
-            'amplitude_user_id': event._collector._user_id,
-        }
-        variables = f'<script id="piperider-report-variables">\n' \
-                    f'window.PIPERIDER_METADATA={json.dumps(metadata)};</script>'
-        html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#', template_html).split(
-            '#PLACEHOLDER#')
-        html = html_parts[0] + variables + html_parts[1]
-        return html
-
-    def _scan_reports():
-        data = dict(single=[], comparison=[])
-
-        if os.path.exists(single_dir):
-            for entry in os.scandir(single_dir):
-                if not _is_report_valid(single_dir, entry):
-                    continue
-                json_file = os.path.join(entry.path, 'run.json')
-                if not os.path.exists(json_file):
-                    continue
-                with open(json_file) as f:
-                    result = json.load(f)
-                    data['single'].append(dict(
-                        name=entry.name,
-                        datasource=result.get('datasource', {}),
-                        created_at=result.get('created_at'),
-                    ))
-
-        if os.path.exists(comparison_dir):
-            for entry in os.scandir(comparison_dir):
-                if not _is_report_valid(comparison_dir, entry):
-                    continue
-                json_file = os.path.join(entry.path, 'comparison_data.json')
-                if not os.path.exists(json_file):
-                    continue
-                with open(json_file) as f:
-                    result = json.load(f)
-                    data['comparison'].append(dict(
-                        name=entry.name,
-                        created_at=result.get('created_at'),
-                        base=dict(
-                            datasource=result.get('base', {}).get('datasource', {}),
-                            created_at=result.get('base', {}).get('created_at'),
-                        ),
-                        target=dict(
-                            datasource=result.get('input', {}).get('datasource', {}),
-                            created_at=result.get('input', {}).get('created_at'),
-                        ),
-                    ))
-
-        data['single'].sort(key=lambda x: x['created_at'], reverse=True)
-        data['comparison'].sort(key=lambda x: x['created_at'], reverse=True)
-        return data
-
-    def _is_report_valid(path, entry):
-        if entry.is_file():
-            return False
-        if entry.name == 'latest':
-            return False
-        if not os.path.exists(os.path.join(path, entry.name, 'index.html')):
-            return False
-        return True
+    @app.errorhandler(404)
+    def forward_404_to_node_dev_port(error):
+        if app.config['dev_proxy'] is True and "http://localhost:8001" in request.url:
+            return requests.get(request.url.replace(':8001', ':8000')).content
+        return "Not Found", 404
 
     return app
 
@@ -171,7 +44,8 @@ def _build_waitress_command(waitress_opts, host, port, config):
     comparison = config['comparison_dir']
     opts = shlex.split(waitress_opts) if waitress_opts else []
     return (
-        ["waitress-serve"] + opts + ["--host=%s" % host, "--port=%s" % port, "--ident=piperider", f"piperider_cli.server:create_app('{report}', '{single}', '{comparison}')"]
+        ["waitress-serve"] + opts + ["--host=%s" % host, "--port=%s" % port, "--ident=piperider",
+                                     f"piperider_cli.server:create_app('{report}', '{single}', '{comparison}')"]
     )
 
 
@@ -181,7 +55,8 @@ def _build_gunicorn_command(gunicorn_opts, host, port, workers, config):
     comparison = config['comparison_dir']
     bind_address = "%s:%s" % (host, port)
     opts = shlex.split(gunicorn_opts) if gunicorn_opts else []
-    return ["gunicorn"] + opts + ["-b", bind_address, "-w", "%s" % workers, f"piperider_cli.server:create_app('{report}', '{single}', '{comparison}')"]
+    return ["gunicorn"] + opts + ["-b", bind_address, "-w", "%s" % workers,
+                                  f"piperider_cli.server:create_app('{report}', '{single}', '{comparison}')"]
 
 
 def _run_server(
