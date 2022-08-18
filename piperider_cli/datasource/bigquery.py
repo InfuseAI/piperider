@@ -40,8 +40,13 @@ class BigQueryDataSource(DataSource):
             if not os.path.exists(DEFAULT_GCP_CREDENTIALS):
                 reasons.append(
                     f'Default Credential file {DEFAULT_GCP_CREDENTIALS} is not found.\n'
-                    f'Please execute "gcloud auth application-default login --scopes=https://www.googleapis.com/auth/bigquery,https://www.googleapis.com/auth/drive.readonly,https://www.googleapis.com/auth/iam.test" to generate it.')
-
+                    'Please execute the following command to generate it.\n'
+                    '[green]'
+                    '    gcloud auth application-default login \\\n'
+                    '        --scopes=https://www.googleapis.com/auth/bigquery, \\\n'
+                    '        https://www.googleapis.com/auth/drive.readonly, \\\n'
+                    '        https://www.googleapis.com/auth/iam.test'
+                    '[/green]')
         if method == AUTH_METHOD_SERVICE_ACCOUNT:
             if self.credential.get('keyfile') is None:
                 reasons.append('keyfile is required when authentication method is service-account')
