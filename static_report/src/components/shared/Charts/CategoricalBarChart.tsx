@@ -124,7 +124,7 @@ export function CategoricalBarChart({
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         ctx.fillText(
-          formatTruncateString(String(title), 50),
+          formatTruncateString(String(title), 30),
           left,
           barTopLabelYPos,
         );

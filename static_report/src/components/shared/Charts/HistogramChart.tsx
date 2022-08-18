@@ -85,8 +85,6 @@ export function HistogramChart({
     max: max as number,
     grid: { display: false },
     ticks: {
-      minRotation: 0,
-      maxRotation: 0,
       maxTicksLimit: 8,
       callback(val, index) {
         return newLabels[index];

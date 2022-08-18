@@ -107,3 +107,9 @@ export function getChartKindByColumnType(
   if (isCategoryKind) return 'topk';
   if (isHistogramKind) return 'histogram';
 }
+
+export type CRHistogramDatum = {
+  label: string | null;
+  base: number;
+  target: number;
+};
