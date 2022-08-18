@@ -62,8 +62,9 @@ class PipeRiderConnectorError(PipeRiderError):
 
 
 class PipeRiderDiagnosticError(PipeRiderError):
-    def __init__(self, check_name, error_msg):
+    def __init__(self, check_name, error_msg, hint=None):
         self.message = f'{check_name}: {error_msg}'
+        self.hint = hint
 
 
 class DbtError(PipeRiderError):
@@ -131,4 +132,13 @@ class AssertionError(PipeRiderError):
 class IllegalStateAssertionError(PipeRiderError):
     def __init__(self, error_msg):
         self.message = error_msg
+        pass
+
+
+class AwsCredentialsError(PipeRiderError):
+    type = 'redshift'
+
+    def __init__(self, error_msg):
+        self.message = error_msg
+        self.hint = 'Please configure the AWS credentials by command "aws configure".\n  Or setup the environment variables "AWS_ACCESS_KEY_ID" & "AWS_SECRET_ACCESS_KEY".'
         pass
