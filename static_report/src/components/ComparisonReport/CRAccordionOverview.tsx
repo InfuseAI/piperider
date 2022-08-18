@@ -22,6 +22,7 @@ import {
   FiArrowUpCircle,
   FiArrowDownCircle,
 } from 'react-icons/fi';
+import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
 import isString from 'lodash/isString';
 import partial from 'lodash/partial';
@@ -81,7 +82,7 @@ export function CRAccordionOverview({
                         maxH={isExpanded ? '135px' : '90px'}
                       >
                         <Grid
-                          templateColumns="218px 2fr 1.5fr"
+                          templateColumns="218px 2fr 1.5fr 2.8rem"
                           justifyItems="flex-start"
                           width="calc(900px - 30px)"
                         >
@@ -112,6 +113,19 @@ export function CRAccordionOverview({
                           </GridItem>
                           <GridItem>
                             <CRAssertions data={data} reportName={key} />
+                          </GridItem>
+                          <GridItem>
+                            {isExpanded && (
+                              <Link key={nanoid()} href={`/tables/${key}`}>
+                                <Flex as="a">
+                                  <Icon
+                                    as={FiChevronRight}
+                                    color="piperider.500"
+                                    boxSize={6}
+                                  />
+                                </Flex>
+                              </Link>
+                            )}
                           </GridItem>
                         </Grid>
                         <Grid

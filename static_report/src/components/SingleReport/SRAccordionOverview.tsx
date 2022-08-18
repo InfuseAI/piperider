@@ -28,6 +28,7 @@ import {
   FiGrid,
 } from 'react-icons/fi';
 import { nanoid } from 'nanoid';
+import { Link } from 'wouter';
 
 import { SRBarChart, type BarChartDatum } from '../SingleReport/SRBarChart';
 import { zReport, ZTableSchema } from '../../types';
@@ -137,11 +138,22 @@ export function SRAccordionOverview({
                               <Text as="span" color="gray.500">
                                 /
                               </Text>
-                              <Text as="span">
+                              <Text as="span" mr={3}>
                                 {totalAssertions === 0
                                   ? 'none'
                                   : `${totalAssertions} assertions`}
                               </Text>
+                              {isExpanded && (
+                                <Link key={table.name} href={`/tables/${key}`}>
+                                  <Flex as="a">
+                                    <Icon
+                                      as={FiChevronRight}
+                                      color="piperider.500"
+                                      boxSize={6}
+                                    />
+                                  </Flex>
+                                </Link>
+                              )}
                             </Flex>
                           </GridItem>
                         </Grid>
@@ -304,7 +316,7 @@ function ColumnDetail({
   return (
     <Grid
       key={name}
-      templateColumns="218px 2.2fr 1fr 2rem"
+      templateColumns="207px 2.5fr 1fr 2rem"
       alignItems="center"
       p={3}
       _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
@@ -323,7 +335,7 @@ function ColumnDetail({
             <SRBarChart data={chartData} height="60px" xTicks={3} yTicks={3} />
           </Flex>
         ) : (
-          <Text>No data avaliable</Text>
+          <Text color="gray.500">No data avaliable</Text>
         )}
       </GridItem>
 
