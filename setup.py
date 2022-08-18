@@ -32,7 +32,7 @@ setup(name='piperider',
           'rich>=12.0.0',
           'click>=7.1',
           'python-dateutil',
-          'inquirer',
+          'inquirer>=2.10.0',
           'jinja2',
           'portalocker',
           'requests',
@@ -47,7 +47,7 @@ setup(name='piperider',
               'psycopg2-binary'
           ],
           'bigquery': [
-              'pyarrow',
+              'pyarrow<6.1.0,>=6.0.0',
               'pybigquery',
               'google-cloud-bigquery-storage',
 

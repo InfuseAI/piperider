@@ -11,6 +11,7 @@ from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.compare_report import CompareReport
 from piperider_cli.event.track import TrackCommand
+from piperider_cli.feedback import Feedback
 from piperider_cli.generate_report import GenerateReport
 from piperider_cli.guide import Guide
 from piperider_cli.initializer import Initializer
@@ -51,7 +52,6 @@ def add_options(options):
 @click.pass_context
 def cli(ctx: click.Context):
     'An open-source toolkit for detecting data issues across pipelines that works with CI systems for continuous data quality assessment.'
-
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
         Guide().show_tips(ctx.command.name)
@@ -78,6 +78,12 @@ def version():
             console.print(f'GitCommit: {commit_sha}')
     except Exception:
         pass
+
+
+@cli.command(short_help='Send your feedback to help us improve the PipeRider.', cls=TrackCommand)
+def feedback():
+    'Send your feedback to help us improve the PipeRider.'
+    Feedback.exec()
 
 
 @cli.command(short_help='Initialize a PipeRider project.', cls=TrackCommand)
@@ -116,6 +122,8 @@ def init(**kwargs):
         for ds in config.dataSources:
             console.rule('Configuration')
             console.print(ds.__dict__)
+    if config is None:
+        return
 
     # Show the content of config.yml
     with open(os.path.join(piperider_config_dir, 'config.yml'), 'r') as f:

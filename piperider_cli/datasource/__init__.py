@@ -129,7 +129,7 @@ class DataSource(metaclass=ABCMeta):
     @staticmethod
     def ask_by_rich():
         console = Console()
-        source_choices = [(k, v) for k, v in DATASOURCE_PROVIDERS.items()]
+        source_choices = [(k.replace('_', ' '), v) for k, v in DATASOURCE_PROVIDERS.items()]
 
         while True:
             project_name = Prompt.ask("[[yellow]?[/yellow]] What is your project name? (alphanumeric only)")
@@ -159,7 +159,7 @@ class DataSource(metaclass=ABCMeta):
 
     @staticmethod
     def ask_by_inquirer():
-        source_choices = [(k, v) for k, v in DATASOURCE_PROVIDERS.items()]
+        source_choices = [(k.replace('_', ' '), v) for k, v in DATASOURCE_PROVIDERS.items()]
 
         if sys.platform == "darwin" or sys.platform == "linux":
             # change readchar key backspace
@@ -186,12 +186,14 @@ def _list_datasource_providers():
     from .sqlite import SqliteDataSource
     from .bigquery import BigQueryDataSource
     from .redshift import RedshiftDataSource
+    from .survey import UserSurveyMockDataSource
     return {
         'snowflake': SnowflakeDataSource,
         'bigquery': BigQueryDataSource,
         'redshift': RedshiftDataSource,
         'postgres': PostgresDataSource,
         'sqlite': SqliteDataSource,
+        'wish what type of datasource you want': UserSurveyMockDataSource,
     }
 
 
