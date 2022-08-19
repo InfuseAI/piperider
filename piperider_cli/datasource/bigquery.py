@@ -42,10 +42,10 @@ class BigQueryDataSource(DataSource):
                     f'Default Credential file {DEFAULT_GCP_CREDENTIALS} is not found.\n'
                     'Please execute the following command to generate it.\n'
                     '[green]'
-                    '    gcloud auth application-default login \\\n'
-                    '        --scopes=https://www.googleapis.com/auth/bigquery, \\\n'
-                    '        https://www.googleapis.com/auth/drive.readonly, \\\n'
-                    '        https://www.googleapis.com/auth/iam.test'
+                    'gcloud auth application-default login \\\n'
+                    '--scopes=https://www.googleapis.com/auth/bigquery,\\\n'
+                    'https://www.googleapis.com/auth/drive.readonly,\\\n'
+                    'https://www.googleapis.com/auth/iam.test'
                     '[/green]')
         if method == AUTH_METHOD_SERVICE_ACCOUNT:
             if self.credential.get('keyfile') is None:
