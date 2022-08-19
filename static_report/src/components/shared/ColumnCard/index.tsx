@@ -64,12 +64,14 @@ export function getDataChart(
     total,
     name,
     type,
+    schema_type,
     histogram,
     topk,
     trues,
     falses,
     nulls,
     invalids,
+    valids,
     min,
     max,
   } = columnDatum;
@@ -100,10 +102,13 @@ export function getDataChart(
     return <BooleanPieChart data={{ counts, labels, ratios }} />;
   }
 
+  const noRenderMessage = Boolean(valids)
+    ? `Chart rendering unavailable for (type: ${schema_type})`
+    : `There are insufficient valid data points in this dataset`;
   return (
     <Flex h={230} alignItems={'center'} w={'100%'}>
       <Text textAlign={'center'} w={'inherit'}>
-        No data available
+        {noRenderMessage}
       </Text>
     </Flex>
   );

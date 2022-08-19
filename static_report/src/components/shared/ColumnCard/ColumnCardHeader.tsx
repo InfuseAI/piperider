@@ -38,7 +38,7 @@ export function ColumnCardHeader({ columnDatum }: Props) {
         </Tooltip>
         <Text
           as={'span'}
-          fontSize={'3xl'}
+          fontSize={'xl'}
           fontWeight={'semibold'}
           textOverflow={'ellipsis'}
           overflow={'hidden'}
