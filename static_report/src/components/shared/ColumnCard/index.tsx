@@ -1,4 +1,5 @@
 import { Flex, Text } from '@chakra-ui/react';
+import { Link, useLocation } from 'wouter';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema } from '../../../types';
 import {
@@ -25,6 +26,7 @@ interface Props {
 export function ColumnCard({ columnDatum }: Props) {
   ZColSchema.parse(columnDatum);
   const { name: title } = columnDatum;
+  const [parentLocation] = useLocation();
 
   return (
     <Flex
@@ -46,6 +48,13 @@ export function ColumnCard({ columnDatum }: Props) {
       <ColumnCardBodyContainer>
         {_getColumnBodyContentUI(columnDatum)}
       </ColumnCardBodyContainer>
+      <Flex justifyContent={'center'} p={3}>
+        <Link href={`${parentLocation}/columns/${title}`}>
+          <Text as={'a'} color="gray.700">
+            Details
+          </Text>
+        </Link>
+      </Flex>
     </Flex>
   );
 }

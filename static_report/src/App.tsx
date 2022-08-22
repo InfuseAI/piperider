@@ -6,6 +6,7 @@ import { NotFound } from './components/shared/NotFound';
 import { useHashLocation } from './hooks/useHashLcocation';
 import { SRTablesListPage } from './components/SingleReport/SRTablesListPage';
 import { CRTablesListPage } from './components/ComparisonReport/CRTablesListPage';
+import { SRColumnDetailsPage } from './pages/SRColumnDetailsPage';
 
 import * as Sentry from '@sentry/browser';
 import { BrowserTracing } from '@sentry/tracing';
@@ -55,6 +56,10 @@ function AppSingle() {
                 data={window.PIPERIDER_SINGLE_REPORT_DATA}
               />
             )}
+          </Route>
+
+          <Route path="/tables/:reportName/columns/:columnName">
+            <SRColumnDetailsPage />
           </Route>
 
           <Route>
