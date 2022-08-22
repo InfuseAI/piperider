@@ -120,12 +120,19 @@ class Configuration(object):
             raise PipeRiderConfigError(e.filename)
 
         data_sources: List[DataSource] = []
+        ds_basic_config = ['name', 'type', 'dbt']
         for ds in config.get('dataSources', []):
             type_name = ds.get('type')
             if type_name not in DATASOURCE_PROVIDERS:
                 raise PipeRiderInvalidDataSourceError(type_name, piperider_config_path)
 
             datasource_class = DATASOURCE_PROVIDERS[type_name]
+            credential = {}
+            for config_key in ds:
+                if config_key in ds_basic_config:
+                    continue
+                credential[config_key] = ds[config_key]
+
             dbt = ds.get('dbt')
             if dbt:
                 profile_dir = dbt.get('profilesDir', os.getenv('DBT_PROFILES_DIR', DBT_PROFILES_DIR_DEFAULT))
@@ -135,7 +142,7 @@ class Configuration(object):
                 profile = _load_dbt_profile(profile_path)
                 profile_name = dbt.get('profile')
                 target_name = dbt.get('target')
-                credential = _load_credential_from_dbt_profile(profile, profile_name, target_name)
+                credential.update(_load_credential_from_dbt_profile(profile, profile_name, target_name))
                 # TODO: extract duplicate code from func 'from_dbt_project'
                 if credential.get('pass') and credential.get('password') is None:
                     credential['password'] = credential.pop('pass')
@@ -144,9 +151,7 @@ class Configuration(object):
                 try:
                     with open(PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
                         credentials = yaml.safe_load(fd)
-                    credential = credentials.get(ds.get('name'))
-                    if type_name == 'sqlite' and ds.get('dbpath'):
-                        credential['dbpath'] = ds.get('dbpath')
+                        credential.update(credentials.get(ds.get('name')))
                 except Exception:
                     credential = None
                 data_source = datasource_class(name=ds.get('name'), credential=credential)
