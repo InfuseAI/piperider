@@ -13,4 +13,5 @@ exclude = tests,
           static_report,
           *.egg-info,
           piperider,
-          piperider_cli/data/piperider-init-template/plugins/customized_assertions.py
+          piperider_cli/data/piperider-init-template/plugins/customized_assertions.py,
+          piperider_cli/datasource/piperider_extracted
