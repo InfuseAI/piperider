@@ -15,6 +15,7 @@ export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
   return (
     <Flex direction={'column'}>
       <DataCompositionMetrics columnDatum={columnDatum}>
+        <Divider orientation="vertical" />
         <MetricCell
           label={FALSES}
           value={formatColumnValueWith(falses, formatNumber)}

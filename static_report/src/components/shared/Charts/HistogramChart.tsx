@@ -48,17 +48,17 @@ type Props = {
 export function HistogramChart({
   data: { histogram, type, total, min, max },
 }: Props) {
-  const { counts, bin_edges } = histogram as Histogram;
+  const { counts, bin_edges: binEdges } = histogram as Histogram;
   const isDatetime = type === 'datetime';
 
   const newData = isDatetime
-    ? counts.map((v, i) => ({ x: bin_edges[i], y: v }))
+    ? counts.map((v, i) => ({ x: binEdges[i], y: v }))
     : counts;
-  const newLabels = bin_edges
+  const newLabels = binEdges
     .map(
       (v, i) =>
         `${formatAsAbbreviatedNumber(v)}-${formatAsAbbreviatedNumber(
-          bin_edges[i + 1],
+          binEdges[i + 1],
         )}`,
     )
     .slice(0, -1); // exclude last
@@ -124,7 +124,7 @@ export function HistogramChart({
         intersect: false,
         callbacks: {
           title([{ dataIndex }]) {
-            const result = formatDisplayedBinItem(bin_edges, dataIndex);
+            const result = formatDisplayedBinItem(binEdges, dataIndex);
 
             const percentOfTotal = formatIntervalMinMax(
               counts[dataIndex] / (total as number), //total is always given (schema should make required)

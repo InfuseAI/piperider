@@ -40,10 +40,8 @@ export function ColumnCardHeader({ columnDatum }: Props) {
           as={'span'}
           fontSize={'xl'}
           fontWeight={'semibold'}
-          textOverflow={'ellipsis'}
-          overflow={'hidden'}
-          whiteSpace={'nowrap'}
-          width={300}
+          noOfLines={1}
+          width={280}
         >
           {name}
         </Text>
