@@ -3,11 +3,12 @@ import os
 from rich.console import Console
 
 from piperider_cli import clone_directory
-from piperider_cli.datasource import DataSource
 from piperider_cli.configuration import Configuration, \
     PIPERIDER_WORKSPACE_NAME, \
     PIPERIDER_CONFIG_PATH, \
     PIPERIDER_CREDENTIALS_PATH
+from piperider_cli.datasource import DataSource
+from piperider_cli.datasource.survey import UserSurveyMockDataSource
 
 
 def _is_piperider_workspace_exist(workspace_path: str) -> bool:
@@ -46,7 +47,7 @@ def _ask_user_input_datasource(config: Configuration = None):
         cls, name = DataSource.ask()
         ds: DataSource = cls(name=name)
         config = Configuration([ds])
-        if _ask_user_update_credentials(ds):
+        if _ask_user_update_credentials(ds) and ds.validate()[0] is True:
             config.dump(PIPERIDER_CONFIG_PATH)
             config.dump_credentials(PIPERIDER_CREDENTIALS_PATH)
     else:
@@ -57,10 +58,13 @@ def _ask_user_input_datasource(config: Configuration = None):
         if not ds.credential:
             console.print(
                 f'[[bold yellow]Warning[/bold yellow]] No credential found for \'{ds.type_name}\' datasource \'{ds.name}\'')
-            if _ask_user_update_credentials(ds):
+            if _ask_user_update_credentials(ds) and ds.validate()[0] is True:
                 config.dump_credentials(PIPERIDER_CREDENTIALS_PATH)
 
     ds.show_installation_information()
+    if isinstance(ds, UserSurveyMockDataSource):
+        ds.send_survey()
+        return None
     return config
 
 

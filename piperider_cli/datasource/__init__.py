@@ -186,12 +186,14 @@ def _list_datasource_providers():
     from .sqlite import SqliteDataSource
     from .bigquery import BigQueryDataSource
     from .redshift import RedshiftDataSource
+    from .survey import UserSurveyMockDataSource
     return {
         'snowflake': SnowflakeDataSource,
         'bigquery': BigQueryDataSource,
         'redshift': RedshiftDataSource,
         'postgres': PostgresDataSource,
         'sqlite': SqliteDataSource,
+        'tell us what type of datasource you want': UserSurveyMockDataSource,
     }
 
 
