@@ -39,7 +39,12 @@ import {
   transformCRStringDateHistograms,
   CRHistogramDatum,
 } from '../../utils/transformers';
-import { ComparisonReportSchema, ZComparisonTableSchema } from '../../types';
+import {
+  ComparisonReportSchema,
+  zReport,
+  ZSingleSchema,
+  ZComparisonTableSchema,
+} from '../../types';
 import type {
   AssertionTest,
   SingleReportSchema,
@@ -50,11 +55,7 @@ import type { ToggleListView } from '../shared/ToggleList';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { CR_LIST_VIEW } from '../../utils/localStorageKeys';
 
-export function CRAccordionOverview({
-  data,
-}: {
-  data: ComparisonReportSchema;
-}) {
+export function CRListOverview({ data }: { data: ComparisonReportSchema }) {
   const { base, input: target } = data;
   const tables = transformAsNestedBaseTargetRecord<
     SingleReportSchema['tables'],
@@ -62,6 +63,9 @@ export function CRAccordionOverview({
   >(base.tables, target.tables);
 
   const [view] = useLocalStorage<ToggleListView>(CR_LIST_VIEW, 'summary');
+
+  zReport(ZSingleSchema.safeParse(base));
+  zReport(ZSingleSchema.safeParse(target));
 
   return (
     <Flex direction="column" width="900px" minHeight="650px">

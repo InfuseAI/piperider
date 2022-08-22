@@ -30,7 +30,7 @@ import {
 import { nanoid } from 'nanoid';
 import { Link } from 'wouter';
 
-import { SRBarChart, type BarChartDatum } from '../SingleReport/SRBarChart';
+import { SRBarChart, type BarChartDatum } from './SRBarChart';
 import { zReport, ZTableSchema } from '../../types';
 import { getReportAggregateAssertions } from '../../utils/assertion';
 import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
@@ -45,12 +45,18 @@ import {
 } from '../../sdlc/single-report-schema';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { SR_LIST_VIEW } from '../../utils/localStorageKeys';
+import { singleReportSchemaSchema } from '../../sdlc/single-report-schema.z';
 import { type ToggleListView } from '../shared/ToggleList';
 
-export function SRAccordionOverview({
-  tables,
-}: Pick<SingleReportSchema, 'tables'>) {
+export function SRListOverview({ data }: { data: SingleReportSchema }) {
+  const { id, created_at, datasource, tables } = data;
   const [view] = useLocalStorage<ToggleListView>(SR_LIST_VIEW, 'summary');
+
+  zReport(
+    singleReportSchemaSchema
+      .pick({ id: true, created_at: true, datasource: true })
+      .safeParse({ id, created_at, datasource }),
+  );
 
   return (
     <Flex direction="column" width="900px" minHeight="650px">
