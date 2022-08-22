@@ -14,6 +14,7 @@ from .recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.error import \
     AssertionError, \
     IllegalStateAssertionError
+from piperider_cli.configuration import PIPERIDER_CONFIG_PATH
 
 
 def safe_load_yaml(file_path):
@@ -41,6 +42,15 @@ def load_yaml_configs(path):
     passed: List[str] = []
     failed: List[str] = []
     content: Dict = {}
+
+    project_config = safe_load_yaml(PIPERIDER_CONFIG_PATH)
+    if not project_config:
+        failed.append(PIPERIDER_CONFIG_PATH)
+    else:
+        passed.append(PIPERIDER_CONFIG_PATH)
+        payload = project_config.get('tables', {})
+        always_merger.merge(content, payload)
+
     for root, dirs, files in os.walk(path):
         for file in files:
             if file.endswith('.yml') or file.endswith('.yaml'):
