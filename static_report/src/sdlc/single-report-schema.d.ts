@@ -10,6 +10,10 @@ export interface SingleReportSchema {
     [k: string]: TableSchema;
   };
   id: string;
+  project_id?: string;
+  user_id?: string;
+  version?: string;
+  metadata_version?: string;
   created_at: string;
   datasource: DataSource;
 }

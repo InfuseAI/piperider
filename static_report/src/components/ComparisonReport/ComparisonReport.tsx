@@ -113,6 +113,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
           <Tabs isLazy lazyBehavior="keepMounted">
             <TabList>
               <Tab
+                data-cy="cr-report-schema-tab"
                 onClick={() => {
                   amplitudeTrack({
                     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
@@ -126,7 +127,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
                 Schema
               </Tab>
               <Tab
-                data-cy="cr-report-tab-item-profiling"
+                data-cy="cr-report-profiling-tab"
                 onClick={() => {
                   amplitudeTrack({
                     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
@@ -140,7 +141,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
                 Profiling
               </Tab>
               <Tab
-                data-cy="cr-report-tab-item-tests"
+                data-cy="cr-report-tests-tab"
                 onClick={() => {
                   amplitudeTrack({
                     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
@@ -155,6 +156,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
               </Tab>
               {existsDbtTests && (
                 <Tab
+                  data-cy="cr-report-dbt-tests-tab"
                   onClick={() => {
                     amplitudeTrack({
                       eventName: AMPLITUDE_EVENTS.PAGE_VIEW,

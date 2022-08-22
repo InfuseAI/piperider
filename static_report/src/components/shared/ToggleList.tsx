@@ -50,14 +50,21 @@ export function ToggleList({
         </Tooltip>
       </Flex>
 
-      <ButtonGroup size="sm" isAttached variant="outline">
+      <ButtonGroup
+        size="sm"
+        isAttached
+        variant="outline"
+        data-attached={currentView}
+      >
         <Button
+          data-cy="schema-view"
           bgColor={currentView === 'schema' ? 'gray.200' : 'inherit'}
           onClick={() => toggleView('schema')}
         >
           <Icon as={FiCreditCard} mr={1} boxSize={4} /> Schema
         </Button>
         <Button
+          data-cy="summary-view"
           bgColor={currentView === 'summary' ? 'gray.200' : 'inherit'}
           onClick={() => toggleView('summary')}
         >

@@ -85,7 +85,11 @@ export function CRListOverview({ data }: { data: ComparisonReportSchema }) {
               <AccordionItem>
                 {({ isExpanded }) => (
                   <>
-                    <AccordionButton bgColor="white" borderRadius="md">
+                    <AccordionButton
+                      bgColor="white"
+                      borderRadius="md"
+                      data-cy="cr-table-overview-btn"
+                    >
                       <Flex
                         direction="column"
                         gap={4}
@@ -128,7 +132,10 @@ export function CRListOverview({ data }: { data: ComparisonReportSchema }) {
                           <GridItem>
                             {isExpanded && (
                               <Link key={nanoid()} href={`/tables/${key}`}>
-                                <Flex as="a">
+                                <Flex
+                                  as="a"
+                                  data-cy="cr-navigate-report-detail"
+                                >
                                   <Icon
                                     as={FiChevronRight}
                                     color="piperider.500"

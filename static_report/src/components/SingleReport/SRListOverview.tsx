@@ -84,7 +84,11 @@ export function SRListOverview({ data }: { data: SingleReportSchema }) {
               <AccordionItem>
                 {({ isExpanded }) => (
                   <>
-                    <AccordionButton bgColor="white" borderRadius="md">
+                    <AccordionButton
+                      bgColor="white"
+                      borderRadius="md"
+                      data-cy="sr-table-overview-btn"
+                    >
                       <Flex
                         direction="column"
                         gap={4}
@@ -151,7 +155,10 @@ export function SRListOverview({ data }: { data: SingleReportSchema }) {
                               </Text>
                               {isExpanded && (
                                 <Link key={table.name} href={`/tables/${key}`}>
-                                  <Flex as="a">
+                                  <Flex
+                                    as="a"
+                                    data-cy="sr-navigate-report-detail"
+                                  >
                                     <Icon
                                       as={FiChevronRight}
                                       color="piperider.500"

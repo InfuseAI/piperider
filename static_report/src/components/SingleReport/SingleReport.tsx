@@ -92,6 +92,7 @@ export default function SingleReport({ data, name }: Props) {
           <Tabs isLazy lazyBehavior="keepMounted">
             <TabList>
               <Tab
+                data-cy="sr-report-profiling-tab"
                 onClick={() => {
                   amplitudeTrack({
                     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
@@ -105,7 +106,7 @@ export default function SingleReport({ data, name }: Props) {
                 Profiling
               </Tab>
               <Tab
-                data-cy="sr-report-tab-item"
+                data-cy="sr-report-tests-tab"
                 onClick={() => {
                   amplitudeTrack({
                     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
@@ -120,6 +121,7 @@ export default function SingleReport({ data, name }: Props) {
               </Tab>
               {table.dbt_assertion_result && (
                 <Tab
+                  data-cy="sr-report-dbt-tests-tab"
                   onClick={() => {
                     amplitudeTrack({
                       eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
