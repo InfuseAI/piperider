@@ -7,7 +7,6 @@ import { VscSymbolOperator } from 'react-icons/vsc';
 import { TbCircleHalf, TbCircles } from 'react-icons/tb';
 import { TiSortNumerically } from 'react-icons/ti';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { formatTruncateString } from '../../../utils/formatters';
 import { checkColumnCategorical } from '../../../utils/transformers';
 import { SRTooltip } from '../../SingleReport/SRTooltip';
 
@@ -37,8 +36,14 @@ export function ColumnCardHeader({ columnDatum }: Props) {
             boxSize={7}
           />
         </Tooltip>
-        <Text fontWeight={'semibold'} fontSize={'3xl'}>
-          {formatTruncateString(name, 10)}
+        <Text
+          as={'span'}
+          fontSize={'xl'}
+          fontWeight={'semibold'}
+          noOfLines={1}
+          width={280}
+        >
+          {name}
         </Text>
       </Flex>
       <SRTooltip label={description} prefix={' - via '}>

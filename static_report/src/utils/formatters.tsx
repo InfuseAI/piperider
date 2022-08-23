@@ -1,5 +1,5 @@
-import { Text, Tooltip } from '@chakra-ui/react';
-import { format, parseISO } from 'date-fns';
+import { Text } from '@chakra-ui/react';
+import { format, isValid, parseISO } from 'date-fns';
 import { NO_VALUE } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
 
 import type { ColumnSchema } from '../sdlc/single-report-schema';
@@ -7,8 +7,8 @@ import type { ColumnSchema } from '../sdlc/single-report-schema';
 /**
  * "Formatters" -- these are your data formatting that returns a formatted value for UI presentation (e.g. number, string, falsey)
  */
+
 /**
- *
  * @param dateStr ISO date string
  * @returns a formatted date string in 'yyyy/MM/dd HH:mm:ss'
  */
@@ -40,6 +40,12 @@ export function formatNumber(
   options?: Intl.NumberFormatOptions,
 ) {
   return new Intl.NumberFormat(locales, options).format(num);
+}
+
+export function formatDate(input: string) {
+  const parsed = Date.parse(input);
+
+  return isValid(parsed) ? format(parsed, 'yyyy-MM-dd') : input;
 }
 
 /**
@@ -106,8 +112,7 @@ export function formatTestExpectedOrActual(value) {
 export function formatTopKMetrics({ topk }: ColumnSchema) {
   if (!topk) return {};
   const { counts, values } = topk;
-  const trailingEllipsis = values.length < 2 ? '' : ', ...';
-  const topValues = `${values[0]}${trailingEllipsis}`;
+  const topValues = `${values[0]}`;
   const topCounts = `${counts[0]}`;
 
   return {
@@ -120,7 +125,6 @@ export function formatTopKMetrics({ topk }: ColumnSchema) {
  * @param input any value that will be checked as number
  * @param fn any function to format the valid number
  * @param emptyLabel
- * @returns
  */
 export function formatColumnValueWith(
   input: any,
@@ -139,11 +143,7 @@ export function formatColumnValueWith(
  */
 export function formatTruncateString(input: string, end: number) {
   const shouldTruncate = input.length >= end;
-  return shouldTruncate ? (
-    <Tooltip label={input}>{input.slice(0, end) + '...'}</Tooltip>
-  ) : (
-    input
-  );
+  return shouldTruncate ? input.slice(0, end) + '...' : input;
 }
 /**
  * base < -2 => 2dp, scientific (small decimals)

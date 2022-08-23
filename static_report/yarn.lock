@@ -6339,6 +6339,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chart.js@npm:^3.9.1":
+  version: 3.9.1
+  resolution: "chart.js@npm:3.9.1"
+  checksum: 9ab0c0ac01215af0b3f020f2e313030fd6e347b48ed17d5484ee9c4e8ead45e78ae71bea16c397621c386b409ce0b14bf17f9f6c2492cd15b56c0f433efdfff6
+  languageName: node
+  linkType: hard
+
+"chartjs-adapter-date-fns@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "chartjs-adapter-date-fns@npm:2.0.0"
+  peerDependencies:
+    chart.js: ^3.0.0
+  checksum: 08ee2f99da4a15434e28da733cb0489fe94012ac1a493fbf01d660bcf17df3bb28ce767939c2881b67b3bbefe1a7ffe70dcea4cbd860ab6c2c670d90816e8176
+  languageName: node
+  linkType: hard
+
+"chartjs-plugin-datalabels@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "chartjs-plugin-datalabels@npm:2.1.0"
+  peerDependencies:
+    chart.js: ^3.0.0
+  checksum: 7232749bb5ff2313e1a0b20080b40aea099f16fe3e46e0833e122598ee425c1acdf4ef2882896cac34fed0b11c2d707abaeff8d58c0f8c290f3c269c82b9755c
+  languageName: node
+  linkType: hard
+
 "check-more-types@npm:^2.24.0":
   version: 2.24.0
   resolution: "check-more-types@npm:2.24.0"
@@ -13688,6 +13713,9 @@ __metadata:
     "@types/react": ^18.0.14
     "@types/react-dom": ^18.0.5
     chalk: ^5.0.1
+    chart.js: ^3.9.1
+    chartjs-adapter-date-fns: ^2.0.0
+    chartjs-plugin-datalabels: ^2.1.0
     craco-esbuild: ^0.5.1
     cypress: ^10.3.0
     d3: ^7.4.4
@@ -13706,6 +13734,7 @@ __metadata:
     npm-run-all: ^4.1.5
     prettier: ^2.6.2
     react: ^18.1.0
+    react-chartjs-2: ^4.3.1
     react-dom: ^18.1.0
     react-icons: ^4.4.0
     react-scripts: 5.0.1
@@ -14881,6 +14910,16 @@ __metadata:
     regenerator-runtime: ^0.13.9
     whatwg-fetch: ^3.6.2
   checksum: 1bb031080af15397d6eb9c69a0c2e93799991f7197a086e4409ba719398f1256b542a3d6c9a34673d516c684eef3e8226c99b335982593851f58f65f6e43571b
+  languageName: node
+  linkType: hard
+
+"react-chartjs-2@npm:^4.3.1":
+  version: 4.3.1
+  resolution: "react-chartjs-2@npm:4.3.1"
+  peerDependencies:
+    chart.js: ^3.5.0
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: 574d12cc43b9b4a0f1e04cc692982e16ef7083c03da2a8a9fc2180fe9bcadc793008f81d8f4eec5465925eff84c95d7c523cb74376858b363ae75a83bb3c2a5d
   languageName: node
   linkType: hard
 

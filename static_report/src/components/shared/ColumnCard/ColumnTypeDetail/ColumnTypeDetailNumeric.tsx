@@ -6,7 +6,7 @@ import {
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
-import { QuantilesChart } from '../../QuantilesChart';
+import { QuantilesChart } from '../../Charts/QuantilesChart';
 import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
 import { StatisticalMetrics } from '../ColumnMetrics/StatisticalMetrics';
 import { NEGATIVES, ZEROS } from './constants';

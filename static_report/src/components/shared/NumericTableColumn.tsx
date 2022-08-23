@@ -1,7 +1,10 @@
 import { Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
-import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
+import {
+  formatAsAbbreviatedNumber,
+  formatColumnValueWith,
+} from '../../utils/formatters';
 import { NO_VALUE } from './ColumnCard/ColumnTypeDetail/constants';
 import { MetricsInfo } from './MetricsInfo';
 
@@ -20,103 +23,166 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
       <Flex direction="column">
         <MetricsInfo
           name="Average"
-          firstSlot={formatColumnValueWith(baseColumn?.avg, formatNumber)}
+          metakey="avg"
+          firstSlot={formatColumnValueWith(
+            baseColumn?.avg,
+            formatAsAbbreviatedNumber,
+          )}
           secondSlot={
             isTargetNull
               ? NO_VALUE
               : isTargetUndefined
               ? undefined
-              : formatColumnValueWith(targetColumn?.avg, formatNumber)
+              : formatColumnValueWith(
+                  targetColumn?.avg,
+                  formatAsAbbreviatedNumber,
+                )
           }
         />
         <MetricsInfo
-          name="Std. Deviation"
-          firstSlot={formatColumnValueWith(baseColumn?.stddev, formatNumber)}
+          name="SD"
+          metakey="stddev"
+          firstSlot={formatColumnValueWith(
+            baseColumn?.stddev,
+            formatAsAbbreviatedNumber,
+          )}
           secondSlot={
             isTargetNull
               ? NO_VALUE
               : isTargetUndefined
               ? undefined
-              : formatColumnValueWith(targetColumn?.stddev, formatNumber)
+              : formatColumnValueWith(
+                  targetColumn?.stddev,
+                  formatAsAbbreviatedNumber,
+                )
           }
         />
       </Flex>
       <Flex direction="column">
         <MetricsInfo
           name="Min"
-          firstSlot={formatColumnValueWith(baseColumn?.min, formatNumber)}
+          metakey="min"
+          firstSlot={formatColumnValueWith(
+            baseColumn?.min,
+            formatAsAbbreviatedNumber,
+          )}
           secondSlot={
             isTargetNull
               ? NO_VALUE
               : isTargetUndefined
               ? undefined
-              : formatColumnValueWith(targetColumn?.min, formatNumber)
+              : formatColumnValueWith(
+                  targetColumn?.min,
+                  formatAsAbbreviatedNumber,
+                )
           }
         />
         <MetricsInfo
           name="5%"
-          firstSlot={formatColumnValueWith(baseColumn?.p5, formatNumber)}
+          metakey="p5"
+          firstSlot={formatColumnValueWith(
+            baseColumn?.p5,
+            formatAsAbbreviatedNumber,
+          )}
           secondSlot={
             isTargetNull
               ? NO_VALUE
               : isTargetUndefined
               ? undefined
-              : formatColumnValueWith(targetColumn?.p5, formatNumber)
+              : formatColumnValueWith(
+                  targetColumn?.p5,
+                  formatAsAbbreviatedNumber,
+                )
           }
         />
         <MetricsInfo
           name="25%"
-          firstSlot={formatColumnValueWith(baseColumn?.p25, formatNumber)}
+          metakey="p25"
+          firstSlot={formatColumnValueWith(
+            baseColumn?.p25,
+            formatAsAbbreviatedNumber,
+          )}
           secondSlot={
             isTargetNull
               ? NO_VALUE
               : isTargetUndefined
               ? undefined
-              : formatColumnValueWith(targetColumn?.p25, formatNumber)
+              : formatColumnValueWith(
+                  targetColumn?.p25,
+                  formatAsAbbreviatedNumber,
+                )
           }
         />
         <MetricsInfo
           name="50%"
-          firstSlot={formatColumnValueWith(baseColumn?.p50, formatNumber)}
+          metakey="p50"
+          firstSlot={formatColumnValueWith(
+            baseColumn?.p50,
+            formatAsAbbreviatedNumber,
+          )}
           secondSlot={
             isTargetNull
               ? NO_VALUE
               : isTargetUndefined
               ? undefined
-              : formatColumnValueWith(targetColumn?.p50, formatNumber)
+              : formatColumnValueWith(
+                  targetColumn?.p50,
+                  formatAsAbbreviatedNumber,
+                )
           }
         />
         <MetricsInfo
           name="75%"
-          firstSlot={formatColumnValueWith(baseColumn?.p75, formatNumber)}
+          metakey="p75"
+          firstSlot={formatColumnValueWith(
+            baseColumn?.p75,
+            formatAsAbbreviatedNumber,
+          )}
           secondSlot={
             isTargetNull
               ? NO_VALUE
               : isTargetUndefined
               ? undefined
-              : formatColumnValueWith(targetColumn?.p75, formatNumber)
+              : formatColumnValueWith(
+                  targetColumn?.p75,
+                  formatAsAbbreviatedNumber,
+                )
           }
         />
         <MetricsInfo
           name="95%"
-          firstSlot={formatColumnValueWith(baseColumn?.p95, formatNumber)}
+          metakey="p95"
+          firstSlot={formatColumnValueWith(
+            baseColumn?.p95,
+            formatAsAbbreviatedNumber,
+          )}
           secondSlot={
             isTargetNull
               ? NO_VALUE
               : isTargetUndefined
               ? undefined
-              : formatColumnValueWith(targetColumn?.p95, formatNumber)
+              : formatColumnValueWith(
+                  targetColumn?.p95,
+                  formatAsAbbreviatedNumber,
+                )
           }
         />
         <MetricsInfo
           name="Max"
-          firstSlot={formatColumnValueWith(baseColumn?.max, formatNumber)}
+          metakey="max"
+          firstSlot={formatColumnValueWith(
+            baseColumn?.max,
+            formatAsAbbreviatedNumber,
+          )}
           secondSlot={
             isTargetNull
               ? NO_VALUE
               : isTargetUndefined
               ? undefined
-              : formatColumnValueWith(targetColumn?.max, formatNumber)
+              : formatColumnValueWith(
+                  targetColumn?.max,
+                  formatAsAbbreviatedNumber,
+                )
           }
         />
       </Flex>

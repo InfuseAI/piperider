@@ -1,6 +1,4 @@
-import { BarChartDatum } from '../components/SingleReport/SRBarChart';
-import { ColumnSchema, Histogram } from '../sdlc/single-report-schema';
-import { CRTargetData } from '../types';
+import { ColumnSchema } from '../sdlc/single-report-schema';
 
 /**
  * "Transformers" -- these are your data re-shaping transformations, and doesn't return a formatted value and does not directly get presented in UI. Can be a precursor to "formatters"
@@ -25,46 +23,6 @@ export function transformAsNestedBaseTargetRecord<K, T>(
     }
     result[key]['target'] = value;
   });
-
-  return result;
-}
-
-export type CRHistogramDatum = {
-  label: string | null;
-  base: number;
-  target: number;
-};
-// for `type` equal to string, datetime
-export function transformCRStringDateHistograms({
-  base: baseHistogram,
-  target: targetHistogram,
-}: CRTargetData<Histogram>): CRHistogramDatum[] | null {
-  // groupby base/target of a found label
-  const mapIdxLookup = new Map<string, number>();
-  if (!baseHistogram || !targetHistogram) return null;
-
-  const initial = baseHistogram.labels.map((label, idx) => {
-    mapIdxLookup.set(label || String(idx), idx);
-    return {
-      label,
-      base: baseHistogram.counts[idx],
-      target: 0,
-    };
-  });
-  const result = targetHistogram.labels.reduce((accum, label, idx) => {
-    const key = label || String(idx);
-    const hasLabel = mapIdxLookup.has(key);
-    const count = targetHistogram.counts[idx];
-
-    if (hasLabel) {
-      const lookupIdx = mapIdxLookup.get(key) as number;
-      accum[lookupIdx].target = count;
-      return accum;
-    }
-
-    const newLabelItem = { label, base: 0, target: count };
-    return [...accum, newLabelItem];
-  }, initial);
 
   return result;
 }
@@ -113,38 +71,45 @@ export function getColumnDetails(columnData: ColumnSchema) {
   };
 }
 
-export function checkColumnCategorical(columnDatum: ColumnSchema): boolean {
-  const { distinct, type } = columnDatum;
-  return typeof distinct === 'number'
-    ? distinct <= 100 && (type === 'string' || type === 'integer')
-    : false; //this is arbitrary
+export function checkColumnCategorical(columnDatum?: ColumnSchema): boolean {
+  if (columnDatum) {
+    const { distinct, type } = columnDatum;
+    return typeof distinct === 'number'
+      ? distinct <= 100 && (type === 'string' || type === 'integer')
+      : false; //this is arbitrary
+  }
+  return false;
 }
 
-export function getColumnTypeChartData(
+/**
+ * Determines the chart kind suitable for column.type
+ * @param columnDatum
+ * @returns a string literal describing the chart kind
+ */
+type ChartKind = 'topk' | 'histogram' | 'pie' | undefined;
+export function getChartKindByColumnType(
   columnDatum?: ColumnSchema,
-): BarChartDatum[] | undefined {
+): ChartKind {
   if (!columnDatum) return;
-  const { topk, histogram, trues, falses, type, total } = columnDatum;
+  const { topk, histogram, trues, falses, type } = columnDatum;
   const isCategorical = checkColumnCategorical(columnDatum);
-  const isBoolean = type === 'boolean';
+  const isPieKind = type === 'boolean' && trues && falses;
+  const isCategoryKind =
+    (type === 'string' || type === 'integer') && topk && isCategorical;
+  const isHistogramKind =
+    (type === 'numeric' ||
+      type === 'integer' ||
+      type === 'string' ||
+      type === 'datetime') &&
+    histogram;
 
-  const dataValues = isCategorical
-    ? topk?.values
-    : isBoolean
-    ? ['TRUES', 'FALSES']
-    : histogram?.labels;
-  const dataCounts = isCategorical
-    ? topk?.counts
-    : isBoolean
-    ? [trues, falses]
-    : histogram?.counts;
-
-  if (dataValues && dataCounts && total)
-    return dataValues.map((label, i) => ({
-      label,
-      isCategorical,
-      value: dataCounts[i],
-      type,
-      total,
-    }));
+  if (isPieKind) return 'pie';
+  if (isCategoryKind) return 'topk';
+  if (isHistogramKind) return 'histogram';
 }
+
+export type CRHistogramDatum = {
+  label: string | null;
+  base: number;
+  target: number;
+};

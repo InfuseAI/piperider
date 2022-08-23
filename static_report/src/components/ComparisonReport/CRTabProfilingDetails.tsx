@@ -1,15 +1,9 @@
 import { Flex, Grid } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
 import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
 import { zReport, ZTableSchema } from '../../types';
-import {
-  getColumnTypeChartData,
-  transformAsNestedBaseTargetRecord,
-  transformCRStringDateHistograms,
-  CRHistogramDatum,
-} from '../../utils/transformers';
-import { BarChartDatum, SRBarChart } from '../SingleReport/SRBarChart';
-import { CRBarChart } from './CRBarChart';
+import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
+import { getDataChart } from '../shared/ColumnCard';
+import { ColumnCardDataVisualContainer } from '../shared/ColumnCard/ColumnCardDataVisualContainer';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
 
 type CRTabProfilingDetailsProps = {
@@ -55,64 +49,20 @@ type CRProfilingColumnProps = {
   target?: ColumnSchema;
 };
 function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
-  const [combinedData, setCombinedData] = useState<CRHistogramDatum[] | null>(
-    null,
-  );
-  const [splitData, setSplitData] = useState<
-    (BarChartDatum[] | null | undefined)[]
-  >([]);
-
-  useEffect(() => {
-    const isSameGenericType = base?.type === target?.type;
-    const isStringOrDatetime =
-      base?.type === 'string' || base?.type === 'datetime';
-
-    // Determine combined data histograms
-    if (isSameGenericType && isStringOrDatetime) {
-      const transformResult = transformCRStringDateHistograms({
-        base: base?.histogram,
-        target: target?.histogram,
-      });
-
-      setCombinedData(transformResult);
-    } else {
-      // Determine split data histograms
-      const transformBaseResult = getColumnTypeChartData(base);
-      const transformTargetResult = getColumnTypeChartData(target);
-
-      // Needs to show mismatched columns (null | undefined)
-      setSplitData([transformBaseResult, transformTargetResult]);
-    }
-  }, [base, target]);
-
   // Show combined base|target chart or split charts
   return (
     <Flex key={name} direction="column">
-      <Grid my={8} templateColumns="500px 1fr" gap={12}>
+      <Grid my={8} templateColumns="400px 1fr" gap={12} overflowX={'hidden'}>
         <CRTableColumnDetails baseColumn={base} targetColumn={target} />
 
-        <Grid
-          my={4}
-          templateColumns={`1fr ${combinedData ? '' : '1fr'}`}
-          gap={combinedData ? 0 : 12}
-          overflowX={'hidden'}
-        >
-          {combinedData ? (
-            <CRBarChart data={combinedData} />
-          ) : combinedData ? (
-            <NoData />
-          ) : null}
-          {splitData[0] ? (
-            <SRBarChart data={splitData[0]} />
-          ) : combinedData ? null : (
-            <NoData />
-          )}
-          {splitData[1] ? (
-            <SRBarChart data={splitData[1]} />
-          ) : combinedData ? null : (
-            <NoData />
-          )}
-        </Grid>
+        <Flex my={4} alignItems={'center'}>
+          <ColumnCardDataVisualContainer height={350}>
+            {base ? getDataChart(base) : <NoData />}
+          </ColumnCardDataVisualContainer>
+          <ColumnCardDataVisualContainer height={350}>
+            {target ? getDataChart(target, base) : <NoData />}
+          </ColumnCardDataVisualContainer>
+        </Flex>
       </Grid>
     </Flex>
   );
