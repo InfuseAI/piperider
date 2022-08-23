@@ -1,10 +1,11 @@
+import { useLocalStorage } from 'usehooks-ts';
+
 import { Main } from '../shared/Main';
 import { ToggleList, type ToggleListView } from '../shared/ToggleList';
 
 import { formatReportTime } from '../../utils/formatters';
 
 import { CRListOverview } from './CRListOverview';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { CR_LIST_VIEW } from '../../utils/localStorageKeys';
 import { type ComparisonReportSchema } from '../../types';

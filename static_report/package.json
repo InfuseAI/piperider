@@ -29,6 +29,7 @@
     "react-dom": "^18.1.0",
     "react-icons": "^4.4.0",
     "react-scripts": "5.0.1",
+    "usehooks-ts": "^2.6.0",
     "web-vitals": "^2.1.4",
     "wouter": "2.8.0-alpha.2",
     "zod": "^3.17.10"
@@ -84,7 +85,6 @@
     "bundle:case:comparison-asymmetric": "dotenv -e .env.comparison-asymmetric craco build",
     "bundle:e2e:norm": "run-p -l bundle:norm:*",
     "bundle:e2e:case": "run-p -l bundle:case:*",
-    "setup:e2e": "run-s embed:html:e2e extract:metadata bundle:*",
     "serve:e2e:norm:single": "http-server ./build/single-report -p 3000 --silent",
     "serve:e2e:norm:comparison": "http-server ./build/comparison-report -p 3001 --silent",
     "serve:e2e:case:single-edge": "http-server ./build/single-edge-report -p 4000 --silent",

@@ -29,21 +29,17 @@ import {
 } from 'react-icons/fi';
 import { nanoid } from 'nanoid';
 import { Link } from 'wouter';
+import { useLocalStorage } from 'usehooks-ts';
 
-import { SRBarChart, type BarChartDatum } from './SRBarChart';
 import { zReport, ZTableSchema } from '../../types';
 import { getReportAggregateAssertions } from '../../utils/assertion';
 import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
-import {
-  getColumnTypeChartData,
-  getIconForColumnType,
-} from '../../utils/transformers';
+import { getIconForColumnType } from '../../utils/transformers';
 import {
   type SingleReportSchema,
   type AssertionTest,
   TableSchema,
 } from '../../sdlc/single-report-schema';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { SR_LIST_VIEW } from '../../utils/localStorageKeys';
 import { singleReportSchemaSchema } from '../../sdlc/single-report-schema.z';
 import { type ToggleListView } from '../shared/ToggleList';
@@ -251,10 +247,6 @@ export function SRListOverview({ data }: { data: SingleReportSchema }) {
                               ] || []),
                             ];
 
-                            const chartData = getColumnTypeChartData(
-                              table.columns[colName],
-                            );
-
                             const { icon: colIcon } = getIconForColumnType(
                               table.columns[colName],
                             );
@@ -264,7 +256,6 @@ export function SRListOverview({ data }: { data: SingleReportSchema }) {
                                 key={colName}
                                 name={colName}
                                 colAssertions={mergedColAssertions}
-                                chartData={chartData}
                                 icon={colIcon}
                               />
                             );
@@ -318,12 +309,10 @@ function SRSchemaDetail({ table }: { table: TableSchema }) {
 function ColumnDetail({
   name,
   icon,
-  chartData,
   colAssertions,
 }: {
   name: string;
   icon: any;
-  chartData: BarChartDatum[] | undefined;
   colAssertions: AssertionTest[] | undefined;
 }) {
   return (
@@ -342,15 +331,7 @@ function ColumnDetail({
         </Flex>
       </GridItem>
 
-      <GridItem>
-        {chartData ? (
-          <Flex width="400px" mx={4}>
-            <SRBarChart data={chartData} height="60px" xTicks={3} yTicks={3} />
-          </Flex>
-        ) : (
-          <Text color="gray.500">No data avaliable</Text>
-        )}
-      </GridItem>
+      <GridItem>TODO</GridItem>
 
       <GridItem>
         {!colAssertions ? (

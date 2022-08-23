@@ -1,9 +1,10 @@
+import { useLocalStorage } from 'usehooks-ts';
+
 import { Main } from '../shared/Main';
 import { SRListOverview } from './SRListOverview';
 import { ToggleList, type ToggleListView } from '../shared/ToggleList';
 import { formatReportTime } from '../../utils/formatters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { SR_LIST_VIEW } from '../../utils/localStorageKeys';
 import { type SingleReportSchema } from '../../sdlc/single-report-schema';
 

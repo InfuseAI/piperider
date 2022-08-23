@@ -13732,6 +13732,7 @@ __metadata:
     ts-node: ^10.9.1
     ts-to-zod: ^1.11.0
     typescript: ^4.7.4
+    usehooks-ts: ^2.6.0
     web-vitals: ^2.1.4
     wouter: 2.8.0-alpha.2
     zod: ^3.17.10
@@ -17488,6 +17489,15 @@ __metadata:
   version: 3.1.1
   resolution: "use@npm:3.1.1"
   checksum: 08a130289f5238fcbf8f59a18951286a6e660d17acccc9d58d9b69dfa0ee19aa038e8f95721b00b432c36d1629a9e32a464bf2e7e0ae6a244c42ddb30bdd8b33
+  languageName: node
+  linkType: hard
+
+"usehooks-ts@npm:^2.6.0":
+  version: 2.6.0
+  resolution: "usehooks-ts@npm:2.6.0"
+  peerDependencies:
+    react: ">=16.9.0"
+  checksum: bc21886351a99389870a38cff1ce19521c5bed61c091873914f5de11ea32ed19cd1126ba1695e9bdf58045dc99343c6117465f02e91912e0762c76ac1a137756
   languageName: node
   linkType: hard
 
