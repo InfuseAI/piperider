@@ -15,7 +15,8 @@ on:
       # Only PR target is `main`
 
 jobs:
-  build:
+  if_merged_build:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     defaults:
       run:
