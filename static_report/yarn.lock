@@ -6355,15 +6355,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chartjs-plugin-datalabels@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "chartjs-plugin-datalabels@npm:2.1.0"
-  peerDependencies:
-    chart.js: ^3.0.0
-  checksum: 7232749bb5ff2313e1a0b20080b40aea099f16fe3e46e0833e122598ee425c1acdf4ef2882896cac34fed0b11c2d707abaeff8d58c0f8c290f3c269c82b9755c
-  languageName: node
-  linkType: hard
-
 "check-more-types@npm:^2.24.0":
   version: 2.24.0
   resolution: "check-more-types@npm:2.24.0"
@@ -13715,7 +13706,6 @@ __metadata:
     chalk: ^5.0.1
     chart.js: ^3.9.1
     chartjs-adapter-date-fns: ^2.0.0
-    chartjs-plugin-datalabels: ^2.1.0
     craco-esbuild: ^0.5.1
     cypress: ^10.3.0
     d3: ^7.4.4
