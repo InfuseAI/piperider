@@ -11,7 +11,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { useRoute } from 'wouter';
+import { Router, useLocation, useRoute, useRouter } from 'wouter';
 import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHeader';
 import { DataCompositionMetrics } from '../components/shared/ColumnCard/ColumnMetrics/DataCompositionMetrics';
 import { ColumnDetailListItem } from '../components/shared/ColumnDetailListItem';
@@ -38,7 +38,8 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
     ]),
   );
   const [filterString, setFilterString] = useState<string>('');
-  const [_, params] = useRoute('/tables/:reportName/columns/:columnName');
+  const [match, params] = useRoute('/tables/:reportName/columns/:columnName');
+  const [location, setLocation] = useLocation();
 
   if (!params?.columnName) {
     return (
@@ -49,6 +50,7 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
       </Main>
     );
   }
+
   const { reportName, columnName } = params;
   const dataColumns = tables[reportName].columns;
   const columnDatum = dataColumns[columnName];
@@ -56,13 +58,19 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
   const quickFilters = Array.from(filterState.keys());
   return (
     <Main>
-      <Flex width={'inherit'} minHeight="90vh" p={1} bg={'gray.200'}>
+      <Flex
+        width={'inherit'}
+        minHeight="90vh"
+        p={1}
+        bg={'gray.200'}
+        direction={['column', 'row']}
+      >
         {/* 
           Master Area 
           FIXME: Extract as own component?
         */}
         <Flex
-          width={'40vw'}
+          width={['100vw', '40vw']}
           direction={'column'}
           py={3}
           px={2}
@@ -119,7 +127,14 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
                 : true,
             )
             .map(([key, value]) => (
-              <ColumnDetailListItem key={key} datum={value} p={2} />
+              <ColumnDetailListItem
+                key={key}
+                datum={value}
+                onSelect={(name) => {
+                  setLocation(`/tables/${reportName}/columns/${name}`);
+                }}
+                p={2}
+              />
             ))}
         </Flex>
 
