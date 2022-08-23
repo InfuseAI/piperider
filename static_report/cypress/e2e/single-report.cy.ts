@@ -15,7 +15,7 @@ describe('Single Report', () => {
     second.should('have.attr', 'aria-expanded', 'false');
   });
 
-  it('should native to the table detail page', () => {
+  it('should navigate to the table detail page', () => {
     cy.visit('http://localhost:3000');
 
     cy.get('[data-cy="sr-navigate-report-detail"]').should('not.exist');
@@ -31,7 +31,7 @@ describe('Single Report', () => {
     cy.url().should('include', '/tables/ACTION');
   });
 
-  it('should native to the table detail page and back to overview page', () => {
+  it('should navigate to the table detail page and back to overview page', () => {
     cy.visit('http://localhost:3000');
 
     const first = cy.get('[data-cy="sr-table-overview-btn"]').first();
