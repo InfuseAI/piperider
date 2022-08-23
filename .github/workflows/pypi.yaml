@@ -122,3 +122,24 @@ jobs:
         env:
           VERSION: ${{ needs.build.outputs.piperider_version }}
           SENTRY_ENV: ${{ needs.build.outputs.sentry_env }}
+
+  generate-sample-report:
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Sleep for 30 seconds
+        run: |
+          sleep 30
+
+      - name: Generate Sample Report by Repository Dispatch
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: InfuseAI/piperider-internal-projects
+          event-type: generate-sample-report
+          client-payload: '{"piperider_version": "${{ needs.build.outputs.piperider_version }}"}'
