@@ -13,13 +13,13 @@ export type AmplitudeTrackEvent = {
 
 export function amplitudeTrack({
   eventName,
-  eventProperties,
-  eventOptions,
+  eventProperties = {},
+  eventOptions = {},
 }: AmplitudeTrackEvent) {
   const API_KEY = window.PIPERIDER_METADATA.amplitude_api_key;
   const PROJECT_ID = window.PIPERIDER_METADATA.amplitude_project_id;
 
-  if (!API_KEY) {
+  if (!API_KEY && process.env.NODE_ENV === 'development') {
     return console.info(
       eventName,
       { project_id: PROJECT_ID, ...eventProperties },
