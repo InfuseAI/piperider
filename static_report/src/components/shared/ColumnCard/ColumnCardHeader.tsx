@@ -16,6 +16,7 @@ export function ColumnCardHeader({ columnDatum }: Props) {
       justify={'space-between'}
       alignItems={'center'}
       width={'100%'}
+      maxHeight={'3em'}
       borderTopRadius={'inherit'}
     >
       <Flex alignItems={'center'}>

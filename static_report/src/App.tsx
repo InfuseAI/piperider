@@ -59,7 +59,7 @@ function AppSingle() {
           </Route>
 
           <Route path="/tables/:reportName/columns/:columnName">
-            <SRColumnDetailsPage />
+            <SRColumnDetailsPage data={window.PIPERIDER_SINGLE_REPORT_DATA} />
           </Route>
 
           <Route>
