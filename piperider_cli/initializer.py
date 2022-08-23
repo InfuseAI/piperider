@@ -46,6 +46,8 @@ def _ask_user_input_datasource(config: Configuration = None):
     if config is None:
         cls, name = DataSource.ask()
         ds: DataSource = cls(name=name)
+        if not ds.show_installation_information():
+            return
         config = Configuration([ds])
         if _ask_user_update_credentials(ds) and ds.validate()[0] is True:
             config.dump(PIPERIDER_CONFIG_PATH)
