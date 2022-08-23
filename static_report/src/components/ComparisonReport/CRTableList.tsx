@@ -12,24 +12,16 @@ import {
   Icon,
   Tooltip,
 } from '@chakra-ui/react';
-import {
-  FiCornerDownRight,
-  FiAlertCircle,
-  FiCheck,
-  FiX,
-  FiChevronRight,
-  FiGrid,
-  FiArrowUpCircle,
-  FiArrowDownCircle,
-} from 'react-icons/fi';
+import { FiAlertCircle, FiChevronRight, FiGrid } from 'react-icons/fi';
 import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
-import isString from 'lodash/isString';
-import partial from 'lodash/partial';
 import { useLocalStorage } from 'usehooks-ts';
 
 import { CRTabSchemaDetails } from './CRTabSchemaDetails';
-import { getComparisonAssertions } from '../../utils/assertion';
+import { CRAssertions } from './CRAssertions';
+import { CRColumnsSummary } from './CRColumnsSummary';
+import { CRRowsSummary } from './CRRowsSummary';
+import { CRColumnDetail } from './CRColumnDetail';
 import {
   getIconForColumnType,
   transformAsNestedBaseTargetRecord,
@@ -41,10 +33,9 @@ import {
   ZComparisonTableSchema,
 } from '../../types';
 import type {
-  AssertionTest,
   SingleReportSchema,
   TableSchema,
-  ColumnSchema,
+  // ColumnSchema,
 } from '../../sdlc/single-report-schema';
 import type { TableActionBarView } from '../shared/TableActionBar';
 import { CR_LIST_VIEW } from '../../utils/localStorageKeys';
@@ -212,18 +203,18 @@ export function CRTableList({ data }: { data: ComparisonReportSchema }) {
                               table.target.columns[colName],
                             );
 
-                            const transformedData =
-                              transformAsNestedBaseTargetRecord<
-                                TableSchema['columns'],
-                                ColumnSchema
-                              >(table.base?.columns, table.target?.columns);
+                            // const transformedData =
+                            //   transformAsNestedBaseTargetRecord<
+                            //     TableSchema['columns'],
+                            //     ColumnSchema
+                            //   >(table.base?.columns, table.target?.columns);
 
                             return (
-                              <ColumnDetail
+                              <CRColumnDetail
                                 key={colName}
                                 name={colName}
                                 icon={colIcon}
-                                data={transformedData[colName]}
+                                // data={transformedData[colName]}
                                 baseColAssertions={mergedBaseColAssertions}
                                 targetColAssertions={mergedTargetColAssertions}
                               />
@@ -245,395 +236,6 @@ export function CRTableList({ data }: { data: ComparisonReportSchema }) {
           );
         })}
       </Accordion>
-    </Flex>
-  );
-}
-
-const getAssertionValue = partial((value: string | number) =>
-  isString(value) ? 0 : value,
-);
-
-function CRAssertions({
-  data,
-  reportName,
-}: {
-  data: ComparisonReportSchema;
-  reportName: string;
-}) {
-  const [baseOverview, targetOverview] = getComparisonAssertions({
-    data,
-    reportName,
-    type: 'piperider',
-  });
-  const [dbtBaseOverview, dbtTargetOverview] = getComparisonAssertions({
-    data,
-    reportName,
-    type: 'dbt',
-  });
-
-  const baseOverviewAssertions =
-    baseOverview.tests.length + dbtBaseOverview.tests.length;
-  const baseOverviewFailed = getAssertionValue(baseOverview.failed);
-  const dbtBaseOverviewFailed = getAssertionValue(dbtBaseOverview.failed);
-  const baseFailed = baseOverviewFailed + dbtBaseOverviewFailed;
-
-  const targetOverviewAssertions =
-    targetOverview.tests.length + dbtTargetOverview.tests.length;
-  const targetOverviewFailed = getAssertionValue(targetOverview.failed);
-  const dbtTargetOverviewFailed = getAssertionValue(dbtTargetOverview.failed);
-  const targetFailed = targetOverviewFailed + dbtTargetOverviewFailed;
-
-  return (
-    <Flex gap={2} color="gray.500">
-      {/* base assertions */}
-      <Flex gap={1} alignItems="center">
-        <CRBaseAssertion total={baseOverviewAssertions} failed={baseFailed} />
-        <Text as="span">/</Text>
-        <Text as="span">{baseOverviewAssertions} total</Text>
-      </Flex>
-
-      <Text as="span">{' -> '}</Text>
-
-      {/* target assertions */}
-      <Flex gap={1} alignItems="center">
-        <CRTargetAssertion
-          total={targetOverviewAssertions}
-          failed={targetFailed}
-          failedDifference={targetFailed - baseFailed}
-        />
-        <Text as="span">/</Text>
-        <CRTargetAssertionsDifference
-          base={baseOverviewAssertions}
-          target={targetOverviewAssertions}
-        />
-      </Flex>
-    </Flex>
-  );
-}
-
-function CRBaseAssertion({ total, failed }: { total: number; failed: number }) {
-  if (total === 0) {
-    return (
-      <Text as="span" color="gray.500">
-        none
-      </Text>
-    );
-  }
-
-  if (total > 0 && failed === 0) {
-    return (
-      <Text as="span" color="#2CAA00">
-        All Passed
-      </Text>
-    );
-  }
-
-  return (
-    <Text as="span" color="#F60059">
-      {failed} failures
-    </Text>
-  );
-}
-
-function CRTargetAssertion({
-  total,
-  failed,
-  failedDifference,
-}: {
-  total: number;
-  failed: number;
-  failedDifference: number;
-}) {
-  if (total === 0) {
-    return (
-      <Text as="span" color="gray.500">
-        none
-      </Text>
-    );
-  }
-
-  if (failedDifference < 0) {
-    return (
-      <Center gap={1} color="#F60059">
-        <Icon as={FiArrowDownCircle} boxSize={4} />
-        <Text as="span">{Math.abs(failedDifference)}</Text>
-      </Center>
-    );
-  } else if (failedDifference > 0) {
-    return (
-      <Center gap={1} color="#F60059">
-        <Icon as={FiArrowUpCircle} boxSize={4} />
-        <Text as="span">{failedDifference}</Text>
-      </Center>
-    );
-  }
-
-  // When `failedDifference = 0`, check `failed` number if is `0` then rendering `total`
-  return <Text as="span">{failed === 0 ? total : failed}</Text>;
-}
-
-function CRTargetAssertionsDifference({
-  base,
-  target,
-}: {
-  base: number;
-  target: number;
-}) {
-  const difference = target - base;
-  const isGreaterThanZero = difference > 0;
-
-  if (target === 0) {
-    return <Text as="span">none</Text>;
-  }
-
-  return (
-    <Center gap={1}>
-      {difference !== 0 ? (
-        <Icon
-          as={isGreaterThanZero ? FiArrowUpCircle : FiArrowDownCircle}
-          color="black"
-          boxSize={4}
-        />
-      ) : null}
-      <Text as="span" color={isGreaterThanZero ? 'black' : 'inherit'}>
-        {difference === 0 && target}
-        {difference < 0 && target}
-        {difference > 0 && target}
-      </Text>
-    </Center>
-  );
-}
-
-function CRRowsSummary({ base, target }: { base: number; target: number }) {
-  if (base === target) {
-    return (
-      <Flex alignItems="center" gap={1}>
-        <Text as="span">{base}</Text>
-        <Text as="span">{'->'}</Text>
-        <Text as="span">{target}</Text>
-      </Flex>
-    );
-  }
-
-  return (
-    <Flex gap={1} color="black">
-      <Text as="span">{base}</Text>
-      <Text as="span">{'->'}</Text>
-      <Flex alignItems="center">
-        <Icon
-          as={base < target ? FiArrowUpCircle : FiArrowDownCircle}
-          mr={1}
-          boxSize={5}
-        />
-        <Text as="span">{target}</Text>
-      </Flex>
-    </Flex>
-  );
-}
-
-function CRColumnsSummary({ base, target }: { base: number; target: number }) {
-  if (base === target) {
-    return (
-      <>
-        <Text as="span">{base}</Text>
-        <Text as="span">{'->'}</Text>
-        <Text as="span">{target}</Text>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <Text as="span">{base}</Text>
-      <Text as="span">{'->'}</Text>
-      <Icon
-        as={base < target ? FiArrowUpCircle : FiArrowDownCircle}
-        ml={2}
-        mr={1}
-        boxSize={5}
-      />
-      <Text as="span">{target}</Text>
-    </>
-  );
-}
-
-function ColumnDetail({
-  name,
-  icon,
-  baseColAssertions,
-  targetColAssertions,
-  data,
-}: {
-  name: string;
-  icon: any;
-  baseColAssertions: AssertionTest[];
-  targetColAssertions: AssertionTest[];
-  data: {
-    base: ColumnSchema;
-    target: ColumnSchema;
-  };
-}) {
-  const baseAssertions = getAssertions(baseColAssertions);
-  const targetAssertions = getAssertions(targetColAssertions);
-
-  return (
-    <Grid
-      key={name}
-      templateColumns="205px 2.3fr 1.5fr 2rem"
-      alignItems="center"
-      p={3}
-      _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
-    >
-      <GridItem>
-        <Flex alignItems="center">
-          <Icon as={FiCornerDownRight} color="gray.300" boxSize={5} />
-          <Icon as={icon} color="piperider.500" mx={2} boxSize={5} />
-          <Text noOfLines={1} mr={1}>
-            {name}
-          </Text>
-        </Flex>
-      </GridItem>
-
-      <GridItem>TODO</GridItem>
-
-      <GridItem>
-        {baseAssertions.total > 0 && targetAssertions.total > 0 ? (
-          <Flex gap={2} color="gray.500" alignItems="center">
-            <CRAssertionsBaseSummary {...baseAssertions} />
-            <Text as="span">{' -> '}</Text>
-            <CRAssertionsTargetSummary
-              {...targetAssertions}
-              baseAssertionsFailed={baseAssertions.failed}
-              assertionsDiff={targetAssertions.total - baseAssertions.total}
-            />
-          </Flex>
-        ) : (
-          <Text color="gray.500">no assertions</Text>
-        )}
-      </GridItem>
-
-      <GridItem>
-        <Flex alignItems="center">
-          <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
-        </Flex>
-      </GridItem>
-    </Grid>
-  );
-}
-
-type AssertionsReturn = {
-  total: number;
-  passed: number;
-  failed: number;
-};
-
-function getAssertions(assertions: AssertionTest[]): AssertionsReturn {
-  const total = assertions.length;
-  const failed = assertions.reduce((acc, test) => {
-    if (test.status === 'failed') {
-      acc++;
-    }
-    return acc;
-  }, 0);
-  const passed = total - failed;
-
-  return {
-    total,
-    passed,
-    failed,
-  };
-}
-
-function CRAssertionsBaseSummary({ total, failed }: AssertionsReturn) {
-  const isPassed = failed === 0;
-
-  return (
-    <Flex gap={1} alignItems="center">
-      <Flex
-        alignItems="center"
-        borderRadius="md"
-        bgColor={isPassed ? '#DEFFEB' : '#FFE8F0'}
-        color={isPassed ? '#1F7600' : '#F60059'}
-        py={0.5}
-        px={1.5}
-      >
-        <Icon as={isPassed ? FiCheck : FiX} boxSize={4} />
-        <Text as="span">{isPassed ? 'All' : failed}</Text>
-      </Flex>
-      <Text as="span" color="gray.500">
-        of
-      </Text>
-      <Text as="span">{total}</Text>
-    </Flex>
-  );
-}
-
-function CRAssertionsTargetSummary({
-  total,
-  failed,
-  baseAssertionsFailed,
-  assertionsDiff,
-}: AssertionsReturn & {
-  baseAssertionsFailed: number;
-  assertionsDiff: number;
-}) {
-  const isFailedEqual = failed === baseAssertionsFailed;
-  const isMoreFailed = failed - baseAssertionsFailed > 0;
-  const isPassed = failed === 0;
-
-  if (total === 0) {
-    return (
-      <Center>
-        {assertionsDiff !== 0 && (
-          <Icon as={FiArrowDownCircle} color="black" boxSize={5} />
-        )}
-        <Text as="span" color="black">
-          none
-        </Text>
-      </Center>
-    );
-  }
-
-  return (
-    <Flex gap={1} alignItems="center">
-      <Flex
-        alignItems="center"
-        borderRadius="md"
-        bgColor={isPassed ? '#DEFFEB' : '#FFE8F0'}
-        color={isPassed ? '#1F7600' : '#F60059'}
-        py={0.5}
-        px={1.5}
-        gap={1}
-      >
-        <Icon
-          boxSize={5}
-          as={
-            isPassed
-              ? FiCheck
-              : isFailedEqual
-              ? FiX
-              : isMoreFailed
-              ? FiArrowUpCircle
-              : FiArrowDownCircle
-          }
-        />
-        <Text as="span">{isPassed ? 'All' : failed}</Text>
-      </Flex>
-      <Text as="span" color="gray.500">
-        of
-      </Text>
-      <Center gap={1}>
-        {assertionsDiff !== 0 && (
-          <Icon
-            as={assertionsDiff > 0 ? FiArrowUpCircle : FiArrowDownCircle}
-            color="black"
-            boxSize={5}
-          />
-        )}
-        <Text as="span" color={assertionsDiff > 0 ? 'black' : 'inherit'}>
-          {total}
-        </Text>
-      </Center>
     </Flex>
   );
 }

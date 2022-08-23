@@ -11,35 +11,20 @@ import {
   Stack,
   Icon,
   Tooltip,
-  TableContainer,
-  Table,
-  Thead,
-  Tbody,
-  Td,
-  Tr,
-  Th,
 } from '@chakra-ui/react';
-import {
-  FiCornerDownRight,
-  FiAlertCircle,
-  FiCheck,
-  FiX,
-  FiChevronRight,
-  FiGrid,
-} from 'react-icons/fi';
+import { FiAlertCircle, FiCheck, FiChevronRight, FiGrid } from 'react-icons/fi';
 import { nanoid } from 'nanoid';
 import { Link } from 'wouter';
 import { useLocalStorage } from 'usehooks-ts';
 
+import { SRSchemaDetail } from './SRSchemaDetail';
+import { SRColumnLabel } from './SRColumnLabel';
+import { SRColumnDetail } from './SRColumnDetail';
 import { zReport, ZTableSchema } from '../../types';
 import { getReportAggregateAssertions } from '../../utils/assertion';
 import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
 import { getIconForColumnType } from '../../utils/transformers';
-import {
-  type SingleReportSchema,
-  type AssertionTest,
-  TableSchema,
-} from '../../sdlc/single-report-schema';
+import { type SingleReportSchema } from '../../sdlc/single-report-schema';
 import { SR_LIST_VIEW } from '../../utils/localStorageKeys';
 import { singleReportSchemaSchema } from '../../sdlc/single-report-schema.z';
 import { type TableActionBarView } from '../shared/TableActionBar';
@@ -65,7 +50,9 @@ export function SRTableList({ data }: { data: SingleReportSchema }) {
       <Accordion allowToggle>
         {Object.keys(tables).map((key) => {
           const table = tables[key];
+
           zReport(ZTableSchema.safeParse(table));
+
           const assertions = getReportAggregateAssertions(
             table.piperider_assertion_result,
             table.dbt_assertion_result,
@@ -214,7 +201,7 @@ export function SRTableList({ data }: { data: SingleReportSchema }) {
                                   }}
                                 >
                                   {columns.map((name) => (
-                                    <ColumnLabel
+                                    <SRColumnLabel
                                       key={name}
                                       name={name}
                                       icon={
@@ -252,7 +239,7 @@ export function SRTableList({ data }: { data: SingleReportSchema }) {
                             );
 
                             return (
-                              <ColumnDetail
+                              <SRColumnDetail
                                 key={colName}
                                 name={colName}
                                 colAssertions={mergedColAssertions}
@@ -272,134 +259,6 @@ export function SRTableList({ data }: { data: SingleReportSchema }) {
           );
         })}
       </Accordion>
-    </Flex>
-  );
-}
-
-function SRSchemaDetail({ table }: { table: TableSchema }) {
-  return (
-    <TableContainer>
-      <Table variant="simple">
-        <Thead>
-          <Tr>
-            <Th>Column</Th>
-            <Th>Type</Th>
-            <Th width="5%" />
-          </Tr>
-        </Thead>
-        <Tbody>
-          {Object.keys(table.columns).map((colName) => (
-            <Tr
-              key={nanoid(10)}
-              _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
-            >
-              <Td>{table.columns[colName]?.name}</Td>
-              <Td>{table.columns[colName]?.schema_type}</Td>
-              <Td>
-                <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
-              </Td>
-            </Tr>
-          ))}
-        </Tbody>
-      </Table>
-    </TableContainer>
-  );
-}
-
-function ColumnDetail({
-  name,
-  icon,
-  colAssertions,
-}: {
-  name: string;
-  icon: any;
-  colAssertions: AssertionTest[] | undefined;
-}) {
-  return (
-    <Grid
-      key={name}
-      templateColumns="207px 2.5fr 1fr 2rem"
-      alignItems="center"
-      p={3}
-      _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
-    >
-      <GridItem>
-        <Flex alignItems="center">
-          <Icon as={FiCornerDownRight} color="gray.300" boxSize={5} />
-          <Icon as={icon} color="piperider.500" mx={2} boxSize={5} />
-          <Text noOfLines={1}>{name}</Text>
-        </Flex>
-      </GridItem>
-
-      <GridItem>TODO</GridItem>
-
-      <GridItem>
-        {!colAssertions ? (
-          <Text color="gray.500">no assertions</Text>
-        ) : (
-          <SRAssertionsSummaryLabel assertions={colAssertions} />
-        )}
-      </GridItem>
-
-      <GridItem>
-        <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
-      </GridItem>
-    </Grid>
-  );
-}
-
-function ColumnLabel({
-  name,
-  visibleIcon = true,
-  icon = FiGrid,
-}: {
-  visibleIcon?: boolean;
-  name: string;
-  icon?: any;
-}) {
-  return (
-    <Flex borderRadius="md" bgColor="gray.100" py={0.5} px={1}>
-      <Center>
-        {visibleIcon && <Icon as={icon} color="piperider.500" mr={1} />}
-        <Text as="span" fontSize="sm" color="gray.600">
-          {name}
-        </Text>
-      </Center>
-    </Flex>
-  );
-}
-
-function SRAssertionsSummaryLabel({
-  assertions,
-}: {
-  assertions: AssertionTest[];
-}) {
-  const total = assertions.length;
-  const failed = assertions.reduce((acc, test) => {
-    if (test.status === 'failed') {
-      acc++;
-    }
-    return acc;
-  }, 0);
-  const isPassed = failed === 0;
-
-  return (
-    <Flex gap={2} alignItems="center">
-      <Flex
-        alignItems="center"
-        borderRadius="md"
-        bgColor={isPassed ? '#DEFFEB' : '#FFE8F0'}
-        color={isPassed ? '#1F7600' : '#F60059'}
-        py={0.5}
-        px={1.5}
-      >
-        <Icon as={isPassed ? FiCheck : FiX} boxSize={4} />
-        <Text as="span">{isPassed ? 'All' : failed}</Text>
-      </Flex>
-      <Text as="span" color="gray.500">
-        of
-      </Text>
-      <Text as="span">{total}</Text>
     </Flex>
   );
 }
