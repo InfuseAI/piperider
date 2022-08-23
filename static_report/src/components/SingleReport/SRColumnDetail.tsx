@@ -1,16 +1,22 @@
-import { Grid, GridItem, Text, Icon } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, Text, Icon } from '@chakra-ui/react';
+import { FiChevronRight } from 'react-icons/fi';
 
 import { ColumnName } from '../shared/TableList/ColumnName';
 import { SRAssertionsSummaryLabel } from './SRAssertionsSummaryLabel';
-import { FiChevronsRight } from 'react-icons/fi';
-import type { AssertionTest } from '../../sdlc/single-report-schema';
+import { HistogramChart } from '../shared/Charts/HistogramChart';
+import type {
+  AssertionTest,
+  ColumnSchema,
+} from '../../sdlc/single-report-schema';
 
 export function SRColumnDetail({
   name,
+  data,
   icon,
   colAssertions,
 }: {
   name: string;
+  data: ColumnSchema;
   icon: any;
   colAssertions: AssertionTest[] | undefined;
 }) {
@@ -26,7 +32,11 @@ export function SRColumnDetail({
         <ColumnName name={name} icon={icon} />
       </GridItem>
 
-      <GridItem>TODO</GridItem>
+      <GridItem>
+        <Flex height="100px">
+          <HistogramChart data={data} />
+        </Flex>
+      </GridItem>
 
       <GridItem>
         {!colAssertions ? (
@@ -37,7 +47,7 @@ export function SRColumnDetail({
       </GridItem>
 
       <GridItem>
-        <Icon as={FiChevronsRight} color="piperider.500" boxSize={6} />
+        <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
       </GridItem>
     </Grid>
   );

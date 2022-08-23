@@ -242,6 +242,7 @@ export function SRTableList({ data }: { data: SingleReportSchema }) {
                               <SRColumnDetail
                                 key={colName}
                                 name={colName}
+                                data={table.columns[colName]}
                                 colAssertions={mergedColAssertions}
                                 icon={colIcon}
                               />
