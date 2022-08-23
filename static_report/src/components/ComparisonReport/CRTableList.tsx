@@ -46,17 +46,17 @@ import type {
   TableSchema,
   ColumnSchema,
 } from '../../sdlc/single-report-schema';
-import type { ToggleListView } from '../shared/ToggleList';
+import type { TableActionBarView } from '../shared/TableActionBar';
 import { CR_LIST_VIEW } from '../../utils/localStorageKeys';
 
-export function CRListOverview({ data }: { data: ComparisonReportSchema }) {
+export function CRTableList({ data }: { data: ComparisonReportSchema }) {
   const { base, input: target } = data;
   const tables = transformAsNestedBaseTargetRecord<
     SingleReportSchema['tables'],
     TableSchema
   >(base.tables, target.tables);
 
-  const [view] = useLocalStorage<ToggleListView>(CR_LIST_VIEW, 'summary');
+  const [view] = useLocalStorage<TableActionBarView>(CR_LIST_VIEW, 'summary');
 
   zReport(ZSingleSchema.safeParse(base));
   zReport(ZSingleSchema.safeParse(target));

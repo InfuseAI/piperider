@@ -1,8 +1,11 @@
 import { useLocalStorage } from 'usehooks-ts';
 
 import { Main } from '../shared/Main';
-import { SRListOverview } from './SRListOverview';
-import { ToggleList, type ToggleListView } from '../shared/ToggleList';
+import { SRTableList } from './SRTableList';
+import {
+  TableActionBar,
+  type TableActionBarView,
+} from '../shared/TableActionBar';
 import { formatReportTime } from '../../utils/formatters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { SR_LIST_VIEW } from '../../utils/localStorageKeys';
@@ -12,7 +15,7 @@ type Props = { data: SingleReportSchema };
 
 export function SingleReportList({ data }: Props) {
   const { created_at, datasource } = data;
-  const [view, setView] = useLocalStorage<ToggleListView>(
+  const [view, setView] = useLocalStorage<TableActionBarView>(
     SR_LIST_VIEW,
     'summary',
   );
@@ -21,14 +24,14 @@ export function SingleReportList({ data }: Props) {
 
   return (
     <Main isSingleReport time={formatReportTime(created_at)}>
-      <ToggleList
+      <TableActionBar
         sourceName={datasource.name}
         sourceType={datasource.type}
         currentView={view}
         toggleView={(nextView) => setView(nextView)}
       />
 
-      <SRListOverview data={data} />
+      <SRTableList data={data} />
     </Main>
   );
 }

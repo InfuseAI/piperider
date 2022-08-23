@@ -42,11 +42,11 @@ import {
 } from '../../sdlc/single-report-schema';
 import { SR_LIST_VIEW } from '../../utils/localStorageKeys';
 import { singleReportSchemaSchema } from '../../sdlc/single-report-schema.z';
-import { type ToggleListView } from '../shared/ToggleList';
+import { type TableActionBarView } from '../shared/TableActionBar';
 
-export function SRListOverview({ data }: { data: SingleReportSchema }) {
+export function SRTableList({ data }: { data: SingleReportSchema }) {
   const { id, created_at, datasource, tables } = data;
-  const [view] = useLocalStorage<ToggleListView>(SR_LIST_VIEW, 'summary');
+  const [view] = useLocalStorage<TableActionBarView>(SR_LIST_VIEW, 'summary');
 
   zReport(
     singleReportSchemaSchema

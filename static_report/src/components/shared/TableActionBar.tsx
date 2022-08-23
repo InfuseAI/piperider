@@ -13,16 +13,16 @@ import {
   FiAlertCircle,
 } from 'react-icons/fi';
 
-export type ToggleListView = 'schema' | 'summary';
+export type TableActionBarView = 'schema' | 'summary';
 
 type Props = {
   currentView: 'schema' | 'summary';
-  toggleView: (view: ToggleListView) => void;
+  toggleView: (view: TableActionBarView) => void;
   sourceName: string;
   sourceType: string;
 };
 
-export function ToggleList({
+export function TableActionBar({
   currentView,
   toggleView,
   sourceName,

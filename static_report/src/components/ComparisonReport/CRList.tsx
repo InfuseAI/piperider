@@ -1,11 +1,14 @@
 import { useLocalStorage } from 'usehooks-ts';
 
 import { Main } from '../shared/Main';
-import { ToggleList, type ToggleListView } from '../shared/ToggleList';
+import {
+  TableActionBar,
+  type TableActionBarView,
+} from '../shared/TableActionBar';
 
 import { formatReportTime } from '../../utils/formatters';
 
-import { CRListOverview } from './CRListOverview';
+import { CRTableList } from './CRTableList';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { CR_LIST_VIEW } from '../../utils/localStorageKeys';
 import { type ComparisonReportSchema } from '../../types';
@@ -14,7 +17,7 @@ type Props = { data: ComparisonReportSchema };
 
 export function ComparisonReportList({ data }: Props) {
   const { base, input: target } = data;
-  const [view, setView] = useLocalStorage<ToggleListView>(
+  const [view, setView] = useLocalStorage<TableActionBarView>(
     CR_LIST_VIEW,
     'summary',
   );
@@ -28,14 +31,14 @@ export function ComparisonReportList({ data }: Props) {
         target.created_at,
       )}`}
     >
-      <ToggleList
+      <TableActionBar
         sourceName={data.input.datasource.name}
         sourceType={data.input.datasource.type}
         currentView={view}
         toggleView={(nextView) => setView(nextView)}
       />
 
-      <CRListOverview data={data} />
+      <CRTableList data={data} />
     </Main>
   );
 }
