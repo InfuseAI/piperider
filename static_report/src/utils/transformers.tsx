@@ -57,7 +57,9 @@ export function getColumnDetails(columnData: ColumnSchema) {
     non_duplicates,
     duplicates,
     zero_length,
+    non_zero_length,
     negatives,
+    positives,
     zeros,
   } = columnData;
 
@@ -70,15 +72,20 @@ export function getColumnDetails(columnData: ColumnSchema) {
   const duplicatesOfTotal = duplicates && total ? duplicates / total : null;
   const nonDuplicatesOfTotal =
     non_duplicates && total ? non_duplicates / total : null;
+  const nonZeroLengthOfTotal =
+    non_zero_length && total ? non_zero_length / total : null;
   const zeroLengthOfTotal = zero_length && total ? zero_length / total : null;
   const negativesOfTotal = negatives && total ? negatives / total : null;
   const zerosOfTotal = zeros && total ? zeros / total : null;
+  const positivesOfTotal = positives && total ? positives / total : null;
   const totalOfTotal = total ? total / total : null;
 
   return {
+    positivesOfTotal,
     negativesOfTotal,
     zerosOfTotal,
     hasNoNull,
+    nonZeroLengthOfTotal,
     zeroLengthOfTotal,
     distinctOfTotal,
     validsOfTotal,

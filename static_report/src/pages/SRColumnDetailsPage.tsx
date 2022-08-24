@@ -1,22 +1,35 @@
 import { SearchIcon } from '@chakra-ui/icons';
 import {
   Box,
+  Divider,
   Flex,
   Grid,
   GridItem,
   Input,
   InputGroup,
   InputLeftElement,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
   Tag,
   TagLabel,
   Text,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useLocation, useRoute } from 'wouter';
+import { CategoricalBarChart } from '../components/shared/Charts/CategoricalBarChart';
 import { FlatStackedBarChart } from '../components/shared/Charts/FlatStackedBarChart';
+import { HistogramChart } from '../components/shared/Charts/HistogramChart';
+import { getDataChart } from '../components/shared/ColumnCard';
+import { ColumnCardDataVisualContainer } from '../components/shared/ColumnCard/ColumnCardDataVisualContainer';
 import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHeader';
 import { ColumnDetailListItem } from '../components/shared/ColumnDetailListItem';
+import { GeneralTableColumn } from '../components/shared/GeneralTableColumn';
 import { Main } from '../components/shared/Main';
+import { NumericTableColumn } from '../components/shared/NumericTableColumn';
+import { TextNumberTableColumn } from '../components/shared/TextNumberTableColumn';
 import { ColumnSchema, SingleReportSchema } from '../sdlc/single-report-schema';
 import { formatTitleCase } from '../utils/formatters';
 import { transformCompositionAsFlatStackInput } from '../utils/transformers';
@@ -57,7 +70,7 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
   const quickFilters = Array.from(filterState.keys());
 
   const columnDatum = dataColumns[columnName];
-  const { type } = columnDatum;
+  const { type, topk, histogram, trues, falses, total, min, max } = columnDatum;
   const showGenericTypeComp =
     type === 'integer' || type === 'numeric' || type === 'string';
   const dataCompInput = transformCompositionAsFlatStackInput(
@@ -84,7 +97,7 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
           direction={'column'}
           py={8}
           px={8}
-          mr={3}
+          mr={2}
           bg={'white'}
         >
           <Text as={'h3'} fontWeight={'bold'} mb={3}>
@@ -149,47 +162,126 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
         </Flex>
 
         {/* Detail Area */}
-        <Flex width={'inherit'} direction={'column'} bg={'white'}>
+        <Grid
+          templateColumns={'500px 1fr'}
+          templateRows={'3em 1fr 1fr'}
+          gap={2}
+          bg={'gray.200'}
+          width={'100%'}
+        >
           {/* Label Block */}
-          <ColumnCardHeader columnDatum={columnDatum} />
-          <Grid templateColumns={'1fr 1fr'} mt={5} gap={5}>
-            {/* Data Composition Block */}
-            <GridItem p={3}>
-              {dataCompInput && (
-                <Box m={6}>
-                  <Text fontWeight={'bold'} fontSize={'xl'}>
-                    Data Composition
-                  </Text>
-                  <Box height={'55px'}>
-                    <FlatStackedBarChart data={dataCompInput} />
-                  </Box>
+          <GridItem colSpan={2} rowSpan={1}>
+            <ColumnCardHeader columnDatum={columnDatum} />
+          </GridItem>
+          {/* Data Composition Block */}
+          <GridItem p={9} bg={'white'}>
+            {dataCompInput && (
+              <Box mb={6}>
+                <Text fontWeight={'bold'} fontSize={'xl'}>
+                  Data Composition
+                </Text>
+                <Box height={'55px'}>
+                  <FlatStackedBarChart data={dataCompInput} />
                 </Box>
-              )}
-              {showGenericTypeComp && dynamicCompInput && (
-                <Box m={6}>
-                  <Text fontWeight={'bold'} fontSize={'xl'}>
-                    {formatTitleCase(type)} Composition
-                  </Text>
-                  <Box height={'55px'}>
-                    <FlatStackedBarChart data={dynamicCompInput} />
-                  </Box>
+                <Box mt={6}>
+                  <GeneralTableColumn baseColumn={columnDatum} width={'100%'} />
                 </Box>
-              )}
-            </GridItem>
-            {/* Histogram/Distinct Block */}
-            <Box gridRow={'span 1'} bg={'red.300'}>
-              Hist/Topk Block
+              </Box>
+            )}
+            {showGenericTypeComp && dynamicCompInput && (
+              <Box>
+                <Text fontWeight={'bold'} fontSize={'xl'}>
+                  {formatTitleCase(type)} Composition
+                </Text>
+                <Box height={'55px'}>
+                  <FlatStackedBarChart data={dynamicCompInput} />
+                </Box>
+                <Box mt={6}>
+                  <TextNumberTableColumn
+                    baseColumn={columnDatum}
+                    width={'100%'}
+                  />
+                </Box>
+              </Box>
+            )}
+          </GridItem>
+          {/* Chart Block - toggleable tabs */}
+          <GridItem gridRow={'span 1'} minWidth={0} p={9} bg={'white'}>
+            <Box ml={3}>
+              <Text fontWeight={'bold'} fontSize={'xl'}>
+                Visualizations
+              </Text>
+              {/* FIXME: Weird bug when switching from 1+n tab */}
+              <Tabs>
+                <TabList>
+                  {topk && <Tab>Categorical</Tab>}
+                  {histogram && <Tab>Histogram</Tab>}
+                  {trues && falses && <Tab>Boolean</Tab>}
+                  {type === 'other' && <Tab>Other</Tab>}
+                </TabList>
+
+                <TabPanels>
+                  {topk && (
+                    <TabPanel>
+                      <ColumnCardDataVisualContainer
+                        p={0}
+                        title={columnName}
+                        allowModalPopup
+                      >
+                        <CategoricalBarChart data={topk} total={total || 0} />
+                      </ColumnCardDataVisualContainer>
+                    </TabPanel>
+                  )}
+                  {histogram && (
+                    <TabPanel>
+                      <ColumnCardDataVisualContainer
+                        p={0}
+                        title={columnName}
+                        allowModalPopup
+                      >
+                        <HistogramChart
+                          data={{ histogram, min, max, type, total }}
+                        />
+                      </ColumnCardDataVisualContainer>
+                    </TabPanel>
+                  )}
+                  {trues && falses && (
+                    <TabPanel>
+                      <ColumnCardDataVisualContainer
+                        p={0}
+                        title={columnName}
+                        allowModalPopup
+                      >
+                        {getDataChart(columnDatum)}
+                      </ColumnCardDataVisualContainer>
+                    </TabPanel>
+                  )}
+                  {type === 'other' && (
+                    <TabPanel>
+                      <ColumnCardDataVisualContainer p={0} title={columnName}>
+                        {getDataChart(columnDatum)}
+                      </ColumnCardDataVisualContainer>
+                    </TabPanel>
+                  )}
+                </TabPanels>
+              </Tabs>
             </Box>
-            {/* Summary Block */}
-            <Box gridRow={'span 2'} bg={'red.300'}>
-              Summary Block
+          </GridItem>
+          {/* Summary Block FIXME: TBD UI layout */}
+          <GridItem gridRow={'span 1'} p={9} bg={'white'}>
+            <Box>
+              <Text fontWeight={'bold'} fontSize={'xl'}>
+                {formatTitleCase(type)} Statistics
+              </Text>
+              <Divider my={3} />
+              <NumericTableColumn baseColumn={columnDatum} width={'100%'} />
             </Box>
-            {/* Quantiles Block */}
-            <Box gridRow={'span 1'} bg={'red.300'}>
-              Quantiles Block
-            </Box>
-          </Grid>
-        </Flex>
+          </GridItem>
+          {/* Quantiles Block */}
+          <GridItem gridRow={'span 1'} p={9} bg={'red.300'}>
+            Quantiles Block
+          </GridItem>
+        </Grid>
       </Flex>
     </Main>
   );

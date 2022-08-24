@@ -1,4 +1,4 @@
-import { Flex } from '@chakra-ui/react';
+import { ChakraProps, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import {
@@ -13,7 +13,11 @@ type Props = {
   targetColumn?: ColumnSchema | null;
 };
 
-export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
+export function NumericTableColumn({
+  baseColumn,
+  targetColumn,
+  ...props
+}: Props & ChakraProps) {
   const isTargetNull = targetColumn === null;
   const isTargetUndefined = targetColumn === undefined;
   zReport(ZColSchema.safeParse(baseColumn));
@@ -22,6 +26,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
     <>
       <Flex direction="column">
         <MetricsInfo
+          {...props}
           name="Average"
           metakey="avg"
           firstSlot={formatColumnValueWith(
@@ -40,6 +45,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           }
         />
         <MetricsInfo
+          {...props}
           name="SD"
           metakey="stddev"
           firstSlot={formatColumnValueWith(
@@ -60,6 +66,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
       </Flex>
       <Flex direction="column">
         <MetricsInfo
+          {...props}
           name="Min"
           metakey="min"
           firstSlot={formatColumnValueWith(
@@ -78,6 +85,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           }
         />
         <MetricsInfo
+          {...props}
           name="5%"
           metakey="p5"
           firstSlot={formatColumnValueWith(
@@ -96,6 +104,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           }
         />
         <MetricsInfo
+          {...props}
           name="25%"
           metakey="p25"
           firstSlot={formatColumnValueWith(
@@ -114,6 +123,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           }
         />
         <MetricsInfo
+          {...props}
           name="50%"
           metakey="p50"
           firstSlot={formatColumnValueWith(
@@ -132,6 +142,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           }
         />
         <MetricsInfo
+          {...props}
           name="75%"
           metakey="p75"
           firstSlot={formatColumnValueWith(
@@ -150,6 +161,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           }
         />
         <MetricsInfo
+          {...props}
           name="95%"
           metakey="p95"
           firstSlot={formatColumnValueWith(
@@ -168,6 +180,7 @@ export function NumericTableColumn({ baseColumn, targetColumn }: Props) {
           }
         />
         <MetricsInfo
+          {...props}
           name="Max"
           metakey="max"
           firstSlot={formatColumnValueWith(

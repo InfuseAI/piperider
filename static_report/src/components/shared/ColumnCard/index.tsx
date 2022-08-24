@@ -94,7 +94,6 @@ export function getDataChart(
 
   //TopK dataset
   if (chartKind === 'topk' && topk) {
-    //when hasSameName??
     return <CategoricalBarChart data={topk} total={total || 0} />;
   }
   //histogram dataset

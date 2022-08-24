@@ -1,3 +1,4 @@
+import { ChakraProps } from '@chakra-ui/system';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import {
@@ -10,7 +11,11 @@ import { NO_VALUE } from './ColumnCard/ColumnTypeDetail/constants';
 import { MetricsInfo } from './MetricsInfo';
 
 type Props = { baseColumn?: ColumnSchema; targetColumn?: ColumnSchema | null };
-export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
+export function GeneralTableColumn({
+  baseColumn,
+  targetColumn,
+  ...props
+}: Props & ChakraProps) {
   if (baseColumn) {
     zReport(ZColSchema.safeParse(baseColumn));
     var {
@@ -18,6 +23,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
       total: baseTotal,
       valids: baseValids,
       invalids: baseInvalids,
+      distinct: baseDistinct,
     } = baseColumn;
     var {
       totalOfTotal: baseTotalOfTotal,
@@ -48,6 +54,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
   return (
     <>
       <MetricsInfo
+        {...props}
         name="Total"
         metakey="total"
         firstSlot={formatColumnValueWith(baseTotal, formatNumber)}
@@ -61,6 +68,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         }
       />
       <MetricsInfo
+        {...props}
         name="Valid"
         metakey="valids"
         firstSlot={formatColumnValueWith(
@@ -77,6 +85,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         }
       />
       <MetricsInfo
+        {...props}
         name="Invalid"
         metakey="invalids"
         firstSlot={formatColumnValueWith(
@@ -93,6 +102,7 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         }
       />
       <MetricsInfo
+        {...props}
         name="Missing"
         metakey="nulls"
         firstSlot={formatColumnValueWith(
@@ -109,12 +119,10 @@ export function GeneralTableColumn({ baseColumn, targetColumn }: Props) {
         }
       />
       <MetricsInfo
+        {...props}
         name="Distinct"
         metakey="distinct"
-        firstSlot={formatColumnValueWith(
-          baseDistinctOfTotal,
-          formatIntervalMinMax,
-        )}
+        firstSlot={formatColumnValueWith(baseDistinct, formatNumber)}
         secondSlot={
           isTargetNull
             ? NO_VALUE

@@ -1,4 +1,4 @@
-import { Flex, Text, Tooltip } from '@chakra-ui/react';
+import { ChakraProps, Flex, Text, Tooltip } from '@chakra-ui/react';
 import { schemaMetaDescriptions } from '../../sdlc/schema-meta';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 
@@ -17,8 +17,10 @@ export function MetricsInfo({
   firstSlotWidth = '100px',
   secondSlotWidth = '100px',
   metakey,
-}: Props) {
+  ...props
+}: Props & ChakraProps) {
   const metaDescription = schemaMetaDescriptions[metakey || ''];
+  const { width } = props;
   return (
     <Flex>
       <Tooltip
@@ -26,7 +28,7 @@ export function MetricsInfo({
         isDisabled={!Boolean(metaDescription)}
         placement={'top'}
       >
-        <Text width={'5em'} fontWeight={700}>
+        <Text width={width || '5em'} fontWeight={700}>
           {name}
         </Text>
       </Tooltip>
