@@ -38,18 +38,19 @@ def round_trip_load_yaml(file_path):
     return payload
 
 
-def load_yaml_configs(path):
+def load_yaml_configs(path, config_path):
     passed: List[str] = []
     failed: List[str] = []
     content: Dict = {}
 
-    project_config = safe_load_yaml(PIPERIDER_CONFIG_PATH)
-    if not project_config:
-        failed.append(PIPERIDER_CONFIG_PATH)
-    else:
-        passed.append(PIPERIDER_CONFIG_PATH)
-        payload = project_config.get('tables', {})
-        always_merger.merge(content, payload)
+    if config_path is not None:
+        project_config = safe_load_yaml(config_path)
+        if not project_config:
+            failed.append(config_path)
+        else:
+            passed.append(config_path)
+            payload = project_config.get('tables', {})
+            always_merger.merge(content, payload)
 
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -329,7 +330,7 @@ class AssertionEngine:
         """
         return load_yaml_configs(assertion_search_path)
 
-    def load_assertions(self, profiling_result=None):
+    def load_assertions(self, profiling_result=None, config_path=PIPERIDER_CONFIG_PATH):
         """
         This method is used to load assertions from the specific path.
         :param assertion_search_path:
@@ -340,7 +341,7 @@ class AssertionEngine:
         {'nodes': {'tests': [], 'columns': {'uid': {'tests': []}, 'type': {'tests': []}, 'name': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'metadata': {'tests': []}}}, 'edges': {'tests': [], 'columns': {'n1_uid': {'tests': []}, 'n2_uid': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'type': {'tests': []}, 'metadata': {'tests': []}}}}
         """
         self.assertions = []
-        self.load_assertion_content()
+        self.load_assertion_content(config_path)
 
         # Load assertio
         if profiling_result:
@@ -390,9 +391,9 @@ class AssertionEngine:
 
         return passed_assertion_files, failed_assertion_files
 
-    def load_assertion_content(self):
+    def load_assertion_content(self, config_path=PIPERIDER_CONFIG_PATH):
         passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
-            self.assertion_search_path)
+            self.assertion_search_path, config_path)
 
         return passed_assertion_files, failed_assertion_files
 
