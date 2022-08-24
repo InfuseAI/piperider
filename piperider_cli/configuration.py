@@ -152,8 +152,10 @@ class Configuration(object):
                     with open(PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
                         credentials = yaml.safe_load(fd)
                         credential.update(credentials.get(ds.get('name')))
+                except FileNotFoundError:
+                    pass
                 except Exception:
-                    credential = None
+                    raise
                 data_source = datasource_class(name=ds.get('name'), credential=credential)
             data_sources.append(data_source)
 
@@ -195,16 +197,12 @@ class Configuration(object):
         """
         creds = dict()
         for d in self.dataSources:
-            if d.type_name == 'sqlite':
-                creds[d.name] = dict(type=d.type_name)
-                for f in d.fields:
-                    if f.name != 'dbpath':
-                        creds[d.name][f.name] = d.credential[f.name]
-            else:
+            if d.type_name != 'sqlite':
                 creds[d.name] = dict(type=d.type_name, **d.credential)
 
-        with open(path, 'w') as fd:
-            yaml.round_trip_dump(creds, fd)
+        if creds:
+            with open(path, 'w') as fd:
+                yaml.round_trip_dump(creds, fd)
 
     def to_sqlalchemy_config(self, datasource_name):
         # TODO we will convert a data source to a sqlalchemy parameters
