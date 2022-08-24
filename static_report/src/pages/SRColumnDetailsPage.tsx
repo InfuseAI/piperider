@@ -13,28 +13,17 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useLocation, useRoute } from 'wouter';
-import {
-  FlatStackedBarChart,
-  FlatStackedBarChartProps,
-} from '../components/shared/Charts/FlatStackedBarChart';
+import { FlatStackedBarChart } from '../components/shared/Charts/FlatStackedBarChart';
 import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHeader';
-import { DataCompositionMetrics } from '../components/shared/ColumnCard/ColumnMetrics/DataCompositionMetrics';
-import {
-  INVALIDS,
-  NULLS,
-  VALIDS,
-} from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
 import { ColumnDetailListItem } from '../components/shared/ColumnDetailListItem';
 import { Main } from '../components/shared/Main';
 import { ColumnSchema, SingleReportSchema } from '../sdlc/single-report-schema';
-import { getColumnDetails } from '../utils/transformers';
+import { formatTitleCase } from '../utils/formatters';
+import { transformCompositionAsFlatStackInput } from '../utils/transformers';
 type ProfilerGenericTypes = ColumnSchema['type'];
 interface Props {
   data: SingleReportSchema;
 }
-// {
-//   [key in ProfilerGenericTypes]: boolean;
-// }
 export function SRColumnDetailsPage({ data: { tables } }: Props) {
   const [filterState, setFilterState] = useState<
     Map<ProfilerGenericTypes, boolean>
@@ -68,17 +57,17 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
   const quickFilters = Array.from(filterState.keys());
 
   const columnDatum = dataColumns[columnName];
-  const { nulls, invalids, valids } = columnDatum;
-  const { nullsOfTotal, invalidsOfTotal, validsOfTotal } =
-    getColumnDetails(columnDatum);
-  const dataCompInput: FlatStackedBarChartProps['data'] = {
-    labels: [VALIDS, INVALIDS, NULLS],
-    counts: [valids, invalids, nulls].map((v) => (v ? v : 0)),
-    ratios: [validsOfTotal, nullsOfTotal, invalidsOfTotal].map((v) =>
-      v ? v : 0,
-    ),
-    colors: ['#63B3ED', '#D9D9D9', '#FF0861'],
-  };
+  const { type } = columnDatum;
+  const showGenericTypeComp =
+    type === 'integer' || type === 'numeric' || type === 'string';
+  const dataCompInput = transformCompositionAsFlatStackInput(
+    columnDatum,
+    'static',
+  );
+  const dynamicCompInput = transformCompositionAsFlatStackInput(
+    columnDatum,
+    'dynamic',
+  );
 
   return (
     <Main>
@@ -93,15 +82,15 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
         <Flex
           width={['100vw', '40vw']}
           direction={'column'}
-          py={3}
-          px={2}
+          py={8}
+          px={8}
           mr={3}
           bg={'white'}
         >
-          <Text as={'h3'} fontWeight={'bold'}>
+          <Text as={'h3'} fontWeight={'bold'} mb={3}>
             Columns ({columnEntries.length})
           </Text>
-          {/* Search Filter */}
+          {/* Search Filter FIXME: Extract to `TextFilterInput` */}
           <InputGroup my={2}>
             <InputLeftElement
               pointerEvents={'none'}
@@ -114,8 +103,8 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
               onChange={({ target }) => setFilterString(target.value)}
             />
           </InputGroup>
-          {/* Tag Filters */}
-          <Box mb={2}>
+          {/* Tag Filters FIXME: Extract to `TagFilterBar` */}
+          <Box mb={6}>
             <Text as={'small'}>Applied Filters:</Text>
             <Flex alignItems={'center'}>
               {quickFilters.map((v) => {
@@ -166,20 +155,39 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
           <Grid templateColumns={'1fr 1fr'} mt={5} gap={5}>
             {/* Data Composition Block */}
             <GridItem p={3}>
-              <Text fontWeight={'bold'} fontSize={'2xl'}>
-                Data Composition
-              </Text>
-              <Box height={'70px'}>
-                <FlatStackedBarChart data={dataCompInput} />
-                {/* <DataCompositionMetrics columnDatum={columnDatum} /> */}
-              </Box>
+              {dataCompInput && (
+                <Box m={6}>
+                  <Text fontWeight={'bold'} fontSize={'xl'}>
+                    Data Composition
+                  </Text>
+                  <Box height={'55px'}>
+                    <FlatStackedBarChart data={dataCompInput} />
+                  </Box>
+                </Box>
+              )}
+              {showGenericTypeComp && dynamicCompInput && (
+                <Box m={6}>
+                  <Text fontWeight={'bold'} fontSize={'xl'}>
+                    {formatTitleCase(type)} Composition
+                  </Text>
+                  <Box height={'55px'}>
+                    <FlatStackedBarChart data={dynamicCompInput} />
+                  </Box>
+                </Box>
+              )}
             </GridItem>
             {/* Histogram/Distinct Block */}
-            <Box gridRow={'span 1'} bg={'red.300'}></Box>
+            <Box gridRow={'span 1'} bg={'red.300'}>
+              Hist/Topk Block
+            </Box>
             {/* Summary Block */}
-            <Box gridRow={'span 2'} bg={'red.300'}></Box>
+            <Box gridRow={'span 2'} bg={'red.300'}>
+              Summary Block
+            </Box>
             {/* Quantiles Block */}
-            <Box gridRow={'span 1'} bg={'red.300'}></Box>
+            <Box gridRow={'span 1'} bg={'red.300'}>
+              Quantiles Block
+            </Box>
           </Grid>
         </Flex>
       </Flex>

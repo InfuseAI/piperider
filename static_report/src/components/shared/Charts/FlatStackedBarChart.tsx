@@ -35,11 +35,7 @@ export function FlatStackedBarChart({
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: false,
-    layout: {
-      padding: 10,
-    },
-    indexAxis: 'y',
+    indexAxis: 'y', //makes chart horizontal
     scales: {
       x: { stacked: true, display: false, grid: { display: false } },
       y: { stacked: true, display: false, grid: { display: false } },
@@ -61,7 +57,9 @@ export function FlatStackedBarChart({
       },
       legend: {
         position: 'bottom',
+        align: 'end',
         labels: {
+          padding: 15,
           textAlign: 'left',
           boxHeight: 10,
           boxWidth: 10,
@@ -85,9 +83,8 @@ export function FlatStackedBarChart({
   const datasets: ChartDataset<'bar'>[] = labels.map((label, idx) => {
     return {
       label,
-      data: [counts[idx]],
+      data: [counts[idx]], //one-slot only per dataset (flat)
       borderWidth: 0,
-      borderRadius: 15,
       backgroundColor: colors[idx],
     };
   });

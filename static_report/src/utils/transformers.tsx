@@ -6,6 +6,17 @@ import { TbCircleHalf, TbCircles } from 'react-icons/tb';
 import { TiSortNumerically } from 'react-icons/ti';
 import { ColorProps } from '@chakra-ui/react';
 
+import { FlatStackedBarChartProps } from '../components/shared/Charts/FlatStackedBarChart';
+import {
+  ZEROLENGTH,
+  NONZEROLENGTH,
+  NEGATIVES,
+  ZEROS,
+  POSITIVES,
+  INVALIDS,
+  NULLS,
+  VALIDS,
+} from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
 import { ColumnSchema } from '../sdlc/single-report-schema';
 
 /**
@@ -122,14 +133,10 @@ export type CRHistogramDatum = {
   target: number;
 };
 
-export function getIconForColumnType(columnDatum: ColumnSchema | undefined): {
+export function getIconForColumnType(columnDatum: ColumnSchema): {
   backgroundColor: ColorProps['color'];
   icon: any; //IconType not provided
 } {
-  if (!columnDatum) {
-    return { icon: null, backgroundColor: 'inherit' };
-  }
-
   const { type } = columnDatum;
   const isCategorical = checkColumnCategorical(columnDatum);
 
