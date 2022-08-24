@@ -20,6 +20,11 @@ class UserSurveyMockDataSource(DataSource):
                       ignore=lambda answers: answers['datasource_candidates'] != 'Other'),
         ]
 
+    # Always return None to prevent it generate the configue files
+    def ask_credential(self):
+        super().ask_credential()
+        return None
+
     def validate(self):
         return False, []
 
