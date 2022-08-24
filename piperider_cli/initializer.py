@@ -47,7 +47,7 @@ def _ask_user_input_datasource(config: Configuration = None):
         cls, name = DataSource.ask()
         ds: DataSource = cls(name=name)
         config = Configuration([ds])
-        if _ask_user_update_credentials(ds) and ds.validate()[0] is True:
+        if _ask_user_update_credentials(ds):
             config.dump(PIPERIDER_CONFIG_PATH)
             config.dump_credentials(PIPERIDER_CREDENTIALS_PATH)
     else:
@@ -58,7 +58,7 @@ def _ask_user_input_datasource(config: Configuration = None):
         if not ds.credential:
             console.print(
                 f'[[bold yellow]Warning[/bold yellow]] No credential found for \'{ds.type_name}\' datasource \'{ds.name}\'')
-            if _ask_user_update_credentials(ds) and ds.validate()[0] is True:
+            if _ask_user_update_credentials(ds):
                 config.dump_credentials(PIPERIDER_CREDENTIALS_PATH)
 
     ds.show_installation_information()
