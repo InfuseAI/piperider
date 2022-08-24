@@ -48,6 +48,7 @@ setup(name='piperider',
           ],
           'bigquery': [
               'pyarrow<6.1.0,>=6.0.0',
+              'pytz',
               'pybigquery',
               'google-cloud-bigquery-storage',
 
