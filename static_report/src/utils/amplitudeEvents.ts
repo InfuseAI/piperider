@@ -19,7 +19,11 @@ export function amplitudeTrack({
   const API_KEY = window.PIPERIDER_METADATA.amplitude_api_key;
   const PROJECT_ID = window.PIPERIDER_METADATA.amplitude_project_id;
 
-  if (!API_KEY && process.env.NODE_ENV === 'development') {
+  if (
+    !API_KEY ||
+    process.env.NODE_ENV === 'development' ||
+    process.env.REACT_APP_E2E === 'true'
+  ) {
     return console.info(
       eventName,
       { project_id: PROJECT_ID, ...eventProperties },

@@ -1,5 +1,5 @@
 
-name: Node.js - E2E, Unit Tests, Lint (for PR) 
+name: Node.js - E2E, Unit Tests, Lint (for PR)
 
 on:
   pull_request:
@@ -22,7 +22,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -48,12 +48,12 @@ jobs:
 
         which piperider
         piperider version
-        
+
         bash static_report/src/sdlc/generate-e2e-data.sh first
 
         cd static_report
         npm run embed:html -- e2e
-        npm run bundle:e2e:norm
+        npm run bundle:e2e
         cd ..
 
         bash static_report/src/sdlc/generate-e2e-data.sh second
