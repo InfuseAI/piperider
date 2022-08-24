@@ -21,7 +21,6 @@ class BigQueryDataSource(DataSource):
             ListField('method', description='Authentication Methods',
                       default=[AUTH_METHOD_OAUTH, AUTH_METHOD_SERVICE_ACCOUNT]),
             PathField('keyfile', description='The path of GCP Service Account Key File',
-                      default=DEFAULT_GCP_CREDENTIALS if os.path.exists(DEFAULT_GCP_CREDENTIALS) else None,
                       ignore=lambda answers: AUTH_METHOD_SERVICE_ACCOUNT != answers['method']),
             TextField('dataset', description='The name of BigQuery DataSet'),
         ]

@@ -3,7 +3,6 @@ from typing import List
 
 from rich.console import Console
 from rich.markup import escape
-from sqlalchemy import create_engine, inspect
 
 from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
@@ -119,18 +118,14 @@ class CheckConnections(AbstractChecker):
             else:
                 self.console.print('  connector: [[bold green]OK[/bold green]]')
 
-            engine = None
             try:
-                engine = create_engine(ds.to_database_url(), **ds.engine_args())
-                self.console.print(f'  Available Tables: {inspect(engine).get_table_names()}')
+                available_tables = ds.verify_connection()
+                self.console.print(f'  Available Tables: {available_tables}')
                 self.console.print('  Connection: [[bold green]OK[/bold green]]')
             except Exception as e:
                 self.console.print(f'  Connection: [[bold red]FAILED[/bold red]] reason: {e}')
                 all_passed = False
                 reason = e
-            finally:
-                if engine:
-                    engine.dispose()
 
         return all_passed, reason
 

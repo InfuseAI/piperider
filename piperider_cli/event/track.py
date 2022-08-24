@@ -52,9 +52,9 @@ class TrackCommand(Command):
         try:
 
             ret = super(TrackCommand, self).invoke(ctx)
-            guide.show_tips(ctx.command.name)
-
-            status = True
+            if ret is None or ret == 0:
+                guide.show_tips(ctx.command.name)
+                status = True
             return ret
         except Exception as e:
             if _enable_trackback:

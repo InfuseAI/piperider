@@ -178,6 +178,7 @@ def run(**kwargs):
                       report_dir=kwargs.get('report_dir'))
     if not skip_report and ret == 0:
         GenerateReport.exec(None, kwargs.get('report_dir'), output)
+    return ret
 
 
 @cli.command(short_help='Generate recommended assertions.', cls=TrackCommand)

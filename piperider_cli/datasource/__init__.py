@@ -8,7 +8,9 @@ import inquirer
 import readchar
 from rich.console import Console
 from rich.prompt import Prompt
+from sqlalchemy import create_engine, inspect
 
+from piperider_cli.error import PipeRiderConnectionError
 from .field import DataSourceField
 
 
@@ -75,6 +77,18 @@ class DataSource(metaclass=ABCMeta):
     @abstractmethod
     def verify_connector(self):
         raise NotImplementedError
+
+    def verify_connection(self):
+        engine = None
+        try:
+            engine = create_engine(self.to_database_url(), **self.engine_args())
+            available_tables = inspect(engine).get_table_names()
+            if len(available_tables) == 0:
+                raise PipeRiderConnectionError(self.name, self.type_name)
+        finally:
+            if engine:
+                engine.dispose()
+        return available_tables
 
     def engine_args(self):
         return dict()

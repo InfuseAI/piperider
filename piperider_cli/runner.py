@@ -560,7 +560,7 @@ class Runner():
                 f"[bold yellow]Warning: multiple datasources found ({', '.join(datasource_names)}), using '{ds_name}'[/bold yellow]\n")
 
         console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
-
+        console.rule('Validating')
         err = ds.verify_connector()
         if err:
             console.print(
@@ -568,7 +568,13 @@ class Runner():
             console.print(f'\n{escape(err.hint)}\n')
             return 1
 
-        console.rule('Validating')
+        try:
+            ds.verify_connection()
+        except Exception as err:
+            console.print(
+                f'[[bold red]FAILED[/bold red]] Failed to connect the \'{ds.name}\' data source. Reason: {err}')
+            console.print(f'\n{escape(err.hint)}\n')
+            return 1
         stop_runner = _validate_assertions(console)
         if stop_runner:
             console.print('\n\n[bold red]ERROR:[/bold red] Stop profiling, please fix the syntax errors above.')
