@@ -1,5 +1,4 @@
-import { Flex, Grid, Text, GridItem, Icon, Box } from '@chakra-ui/react';
-import { FiChevronRight } from 'react-icons/fi';
+import { Flex, Grid, Text, GridItem, Box } from '@chakra-ui/react';
 
 import {
   CRAssertionsBaseSummary,
@@ -95,10 +94,11 @@ export function CRColumnDetail({
         )}
       </GridItem>
 
+      {/* TODO: when columns detail page remove comment */}
       <GridItem>
-        <Flex alignItems="center">
+        {/* <Flex alignItems="center">
           <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
-        </Flex>
+        </Flex> */}
       </GridItem>
     </Grid>
   );

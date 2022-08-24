@@ -223,7 +223,7 @@ export function CRTableList({ data }: { data: ComparisonReportSchema }) {
                         </Stack>
                       ) : (
                         <CRTabSchemaDetails
-                          visibleDetail
+                          visibleDetail={false}
                           base={table.base}
                           target={table.target}
                         />

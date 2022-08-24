@@ -1,5 +1,4 @@
 import {
-  Icon,
   TableContainer,
   Table,
   Thead,
@@ -8,7 +7,6 @@ import {
   Tr,
   Th,
 } from '@chakra-ui/react';
-import { FiChevronRight } from 'react-icons/fi';
 import { nanoid } from 'nanoid';
 
 import { type TableSchema } from '../../sdlc/single-report-schema';
@@ -21,7 +19,7 @@ export function SRSchemaDetail({ table }: { table: TableSchema }) {
           <Tr>
             <Th>Column</Th>
             <Th>Type</Th>
-            <Th width="5%" />
+            {/* <Th width="5%" /> */}
           </Tr>
         </Thead>
         <Tbody>
@@ -32,9 +30,9 @@ export function SRSchemaDetail({ table }: { table: TableSchema }) {
             >
               <Td>{table.columns[colName]?.name}</Td>
               <Td>{table.columns[colName]?.schema_type}</Td>
-              <Td>
+              {/* <Td>
                 <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
-              </Td>
+              </Td> */}
             </Tr>
           ))}
         </Tbody>

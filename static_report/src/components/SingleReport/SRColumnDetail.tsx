@@ -1,5 +1,5 @@
-import { Flex, Grid, GridItem, Text, Icon } from '@chakra-ui/react';
-import { FiChevronRight } from 'react-icons/fi';
+import { Flex, Grid, GridItem, Text /*, Icon */ } from '@chakra-ui/react';
+// import { FiChevronRight } from 'react-icons/fi';
 
 import { ColumnName } from '../shared/TableList/ColumnName';
 import { SRAssertionsSummaryLabel } from './SRAssertionsSummaryLabel';
@@ -46,8 +46,9 @@ export function SRColumnDetail({
         )}
       </GridItem>
 
+      {/* TODO: when columns detail page remove comment */}
       <GridItem>
-        <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
+        {/* <Icon as={FiChevronRight} color="piperider.500" boxSize={6} /> */}
       </GridItem>
     </Grid>
   );
