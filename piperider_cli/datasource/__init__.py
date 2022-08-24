@@ -6,6 +6,7 @@ from typing import List, Dict, Callable
 
 import inquirer
 import readchar
+import piperider_cli.hack.datasource_inquirer_prompt as datasource_prompt
 from rich.console import Console
 from rich.prompt import Prompt
 from sqlalchemy import create_engine, inspect
@@ -116,11 +117,11 @@ class DataSource(metaclass=ABCMeta):
             # change readchar key backspace
             readchar.key.BACKSPACE = '\x7F'
 
-        questions = []
-        for f in self.fields:
-            questions.append(f.question())
+        def next_question(fields):
+            for f in self.fields:
+                yield f.question()
 
-        answers = inquirer.prompt(questions, raise_keyboard_interrupt=True)
+        answers = datasource_prompt.prompt(next_question(self.fields), raise_keyboard_interrupt=True)
         if answers:
             for f in self.fields:
                 self.credential[f.name] = answers[f.name].strip() if answers[f.name] else None
@@ -129,7 +130,10 @@ class DataSource(metaclass=ABCMeta):
     def ask_credential_by_rich(self):
 
         for f in self.fields:
-            answer = f.question_by_rich(self.credential)
+            if hasattr(f, 'callback') and getattr(f, 'callback') is not None:
+                answer = f.callback(self.credential)
+            else:
+                answer = f.question_by_rich(self.credential)
             self.credential[f.name] = answer.strip() if answer else None
         return self.credential
 

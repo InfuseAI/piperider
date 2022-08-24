@@ -26,6 +26,7 @@ class DataSourceField(metaclass=ABCMeta):
         self.value = value
         self.optional = optional
         self.ignore = ignore
+        self.callback: Callable = None
         if not isinstance(ignore, bool) and not isinstance(ignore, Callable):
             raise ValueError('ignore must be a callable function or a boolean type')
         if optional is True:
@@ -86,6 +87,8 @@ class DataSourceField(metaclass=ABCMeta):
         console = Console()
         while True:
             answer = Prompt.ask(f'[[yellow]?[/yellow]] {self.description}', password=password, default=default)
+            if is_path and answer:
+                answer = os.path.expanduser(answer)
             if self.validate is None \
                 or (isinstance(self.validate, bool) and self.validate is True) \
                 or self.validate(None,
@@ -119,7 +122,8 @@ class PathField(DataSourceField):
         super().__init__(name, "path", value, default, description, validate, optional, ignore)
 
     def question(self):
-        return inquirer.Path(self.name, message=self.description, default=self.default, exists=True, ignore=self.ignore)
+        return inquirer.Path(self.name, message=self.description, default=self.default, normalize_to_absolute_path=True,
+                             exists=True, ignore=self.ignore)
 
 
 class NumberField(DataSourceField):
