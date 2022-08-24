@@ -1,4 +1,4 @@
-import { Flex, Grid, Text, GridItem, Icon } from '@chakra-ui/react';
+import { Flex, Grid, Text, GridItem, Icon, Box } from '@chakra-ui/react';
 import { FiChevronRight } from 'react-icons/fi';
 
 import {
@@ -6,7 +6,11 @@ import {
   CRAssertionsTargetSummary,
 } from './CRAssertions';
 import { ColumnName } from '../shared/TableList/ColumnName';
-import type { AssertionTest } from '../../sdlc/single-report-schema';
+import type {
+  AssertionTest,
+  ColumnSchema,
+} from '../../sdlc/single-report-schema';
+import { HistogramChart } from '../shared/Charts/HistogramChart';
 
 function getAssertions(assertions: AssertionTest[]) {
   const total = assertions.length;
@@ -30,16 +34,16 @@ export function CRColumnDetail({
   icon,
   baseColAssertions,
   targetColAssertions,
-}: // data,
-{
+  data,
+}: {
   name: string;
   icon: any;
   baseColAssertions: AssertionTest[];
   targetColAssertions: AssertionTest[];
-  // data: {
-  //   base: ColumnSchema;
-  //   target: ColumnSchema;
-  // };
+  data: {
+    base: ColumnSchema;
+    target: ColumnSchema;
+  };
 }) {
   const baseAssertions = getAssertions(baseColAssertions);
   const targetAssertions = getAssertions(targetColAssertions);
@@ -56,7 +60,24 @@ export function CRColumnDetail({
         <ColumnName name={name} icon={icon} />
       </GridItem>
 
-      <GridItem>TODO</GridItem>
+      <GridItem>
+        <Flex gap={4} width="calc(100% - 50px)" height="80px">
+          <Box width="50%">
+            {data.base ? (
+              <HistogramChart hideAxis data={data.base} />
+            ) : (
+              <NoData />
+            )}
+          </Box>
+          <Box width="50%">
+            {data.target ? (
+              <HistogramChart hideAxis data={data.target} />
+            ) : (
+              <NoData />
+            )}
+          </Box>
+        </Flex>
+      </GridItem>
 
       <GridItem>
         {baseAssertions.total > 0 && targetAssertions.total > 0 ? (
@@ -80,5 +101,13 @@ export function CRColumnDetail({
         </Flex>
       </GridItem>
     </Grid>
+  );
+}
+
+function NoData() {
+  return (
+    <Text mt={7} color="gray.500">
+      No data available
+    </Text>
   );
 }

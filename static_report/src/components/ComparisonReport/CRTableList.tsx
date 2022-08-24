@@ -35,7 +35,7 @@ import {
 import type {
   SingleReportSchema,
   TableSchema,
-  // ColumnSchema,
+  ColumnSchema,
 } from '../../sdlc/single-report-schema';
 import type { TableActionBarView } from '../shared/TableActionBar';
 import { CR_LIST_VIEW } from '../../utils/localStorageKeys';
@@ -203,18 +203,18 @@ export function CRTableList({ data }: { data: ComparisonReportSchema }) {
                               table.target.columns[colName],
                             );
 
-                            // const transformedData =
-                            //   transformAsNestedBaseTargetRecord<
-                            //     TableSchema['columns'],
-                            //     ColumnSchema
-                            //   >(table.base?.columns, table.target?.columns);
+                            const transformedData =
+                              transformAsNestedBaseTargetRecord<
+                                TableSchema['columns'],
+                                ColumnSchema
+                              >(table.base.columns, table.target.columns);
 
                             return (
                               <CRColumnDetail
                                 key={colName}
                                 name={colName}
+                                data={transformedData[colName]}
                                 icon={colIcon}
-                                // data={transformedData[colName]}
                                 baseColAssertions={mergedBaseColAssertions}
                                 targetColAssertions={mergedTargetColAssertions}
                               />

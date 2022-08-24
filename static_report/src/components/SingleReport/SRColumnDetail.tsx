@@ -33,8 +33,8 @@ export function SRColumnDetail({
       </GridItem>
 
       <GridItem>
-        <Flex height="100px">
-          <HistogramChart data={data} />
+        <Flex width="calc(100% - 50px)" height="80px">
+          <HistogramChart hideAxis data={data} />
         </Flex>
       </GridItem>
 
