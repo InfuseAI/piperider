@@ -3,6 +3,7 @@ import {
   Box,
   Flex,
   Grid,
+  GridItem,
   Input,
   InputGroup,
   InputLeftElement,
@@ -11,12 +12,22 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { Router, useLocation, useRoute, useRouter } from 'wouter';
+import { useLocation, useRoute } from 'wouter';
+import {
+  FlatStackedBarChart,
+  FlatStackedBarChartProps,
+} from '../components/shared/Charts/FlatStackedBarChart';
 import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHeader';
 import { DataCompositionMetrics } from '../components/shared/ColumnCard/ColumnMetrics/DataCompositionMetrics';
+import {
+  INVALIDS,
+  NULLS,
+  VALIDS,
+} from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
 import { ColumnDetailListItem } from '../components/shared/ColumnDetailListItem';
 import { Main } from '../components/shared/Main';
 import { ColumnSchema, SingleReportSchema } from '../sdlc/single-report-schema';
+import { getColumnDetails } from '../utils/transformers';
 type ProfilerGenericTypes = ColumnSchema['type'];
 interface Props {
   data: SingleReportSchema;
@@ -53,9 +64,22 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
 
   const { reportName, columnName } = params;
   const dataColumns = tables[reportName].columns;
-  const columnDatum = dataColumns[columnName];
   const columnEntries = Object.entries(dataColumns);
   const quickFilters = Array.from(filterState.keys());
+
+  const columnDatum = dataColumns[columnName];
+  const { nulls, invalids, valids } = columnDatum;
+  const { nullsOfTotal, invalidsOfTotal, validsOfTotal } =
+    getColumnDetails(columnDatum);
+  const dataCompInput: FlatStackedBarChartProps['data'] = {
+    labels: [VALIDS, INVALIDS, NULLS],
+    counts: [valids, invalids, nulls].map((v) => (v ? v : 0)),
+    ratios: [validsOfTotal, nullsOfTotal, invalidsOfTotal].map((v) =>
+      v ? v : 0,
+    ),
+    colors: ['#63B3ED', '#D9D9D9', '#FF0861'],
+  };
+
   return (
     <Main>
       <Flex
@@ -65,10 +89,7 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
         bg={'gray.200'}
         direction={['column', 'row']}
       >
-        {/* 
-          Master Area 
-          FIXME: Extract as own component?
-        */}
+        {/* Master Area */}
         <Flex
           width={['100vw', '40vw']}
           direction={'column'}
@@ -144,7 +165,15 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
           <ColumnCardHeader columnDatum={columnDatum} />
           <Grid templateColumns={'1fr 1fr'} mt={5} gap={5}>
             {/* Data Composition Block */}
-            <DataCompositionMetrics columnDatum={columnDatum} />
+            <GridItem p={3}>
+              <Text fontWeight={'bold'} fontSize={'2xl'}>
+                Data Composition
+              </Text>
+              <Box height={'70px'}>
+                <FlatStackedBarChart data={dataCompInput} />
+                {/* <DataCompositionMetrics columnDatum={columnDatum} /> */}
+              </Box>
+            </GridItem>
             {/* Histogram/Distinct Block */}
             <Box gridRow={'span 1'} bg={'red.300'}></Box>
             {/* Summary Block */}

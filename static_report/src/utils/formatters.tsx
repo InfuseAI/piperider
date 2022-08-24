@@ -213,3 +213,12 @@ export function formatAsAbbreviatedNumber(input: number | string) {
       }).format(input);
   }
 }
+
+/**
+ * formats as 'Category' instead of 'category' or 'CATEGORY'
+ */
+export function formatTitleCase(input: string) {
+  const start = input.slice(0, 1).toUpperCase();
+  const rest = input.slice(1).toLowerCase();
+  return `${start}${rest}`;
+}
