@@ -61,6 +61,12 @@ class PipeRiderConnectorError(PipeRiderError):
         self.hint = f'Please run \'pip install piperider[{datasource_name}]\' to get the {datasource_name} connector'
 
 
+class PipeRiderConnectionError(PipeRiderError):
+    def __init__(self, name, type_name):
+        self.message = f'No available table found or no access permission found from \'{name}\' data source'
+        self.hint = f'Please verify your {type_name} data source with correct access permission.'
+
+
 class PipeRiderDiagnosticError(PipeRiderError):
     def __init__(self, check_name, error_msg, hint=None):
         self.message = f'{check_name}: {error_msg}'
