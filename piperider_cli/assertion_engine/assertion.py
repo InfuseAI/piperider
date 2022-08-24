@@ -14,7 +14,6 @@ from .recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.error import \
     AssertionError, \
     IllegalStateAssertionError
-from piperider_cli.configuration import PIPERIDER_CONFIG_PATH
 
 
 def safe_load_yaml(file_path):
@@ -306,6 +305,7 @@ class AssertionEngine:
     This class is used to evaluate the assertion.
     """
     PIPERIDER_WORKSPACE_NAME = '.piperider'
+    PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
     PIPERIDER_ASSERTION_SEARCH_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'assertions')
     PIPERIDER_ASSERTION_PLUGIN_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'plugins')
     PIPERIDER_ASSERTION_SUPPORT_METRICS = ['distribution', 'range', 'missing_value']
