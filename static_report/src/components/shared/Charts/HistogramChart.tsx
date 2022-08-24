@@ -143,7 +143,9 @@ export function HistogramChart({
               ? TEXTLENGTH
               : VALUE_RANGE;
 
-            return `${prefix}: ${result}\n(${percentOfTotal})`;
+            return hideAxis
+              ? `${prefix}\n${result}\n(${percentOfTotal})`
+              : `${prefix} ${result}\n(${percentOfTotal})`;
           },
         },
       },
