@@ -38,15 +38,19 @@ ChartJS.register(
  * Y: The Min/Max of the counts range is the scaled height of charting area
  * Counts: Abbreviated based on K, Mn, Bn, Tr (see formatters)
  */
-//Note: min/max represents the bin edge min/max
+// Note: min/max represents the bin edge min/max
 type ScaleTypeConfig = DeepPartial<
   ScaleOptionsByType<keyof CartesianScaleTypeRegistry>
 >;
+
 type Props = {
   data: Pick<ColumnSchema, 'total' | 'type' | 'histogram' | 'min' | 'max'>;
+  hideAxis?: boolean;
 };
+
 export function HistogramChart({
   data: { histogram, type, total, min, max },
+  hideAxis = false,
 }: Props) {
   const { counts, bin_edges: binEdges } = histogram as Histogram;
   const isDatetime = type === 'datetime';
@@ -79,6 +83,9 @@ export function HistogramChart({
       minRotation: 30,
       maxRotation: 30,
       maxTicksLimit: 8,
+      callback(val) {
+        return hideAxis ? null : val;
+      },
     },
   };
   /**
@@ -89,7 +96,7 @@ export function HistogramChart({
     grid: { display: false },
     ticks: {
       callback(val, index) {
-        return newLabels[index];
+        return hideAxis ? null : newLabels[index];
       },
     },
   };
@@ -108,7 +115,7 @@ export function HistogramChart({
       maxTicksLimit: 8,
       callback: function (val, index) {
         //slow, but necessary since chart-data is a number and can be hard to display
-        return formatAsAbbreviatedNumber(val);
+        return hideAxis ? null : formatAsAbbreviatedNumber(val);
       },
     },
   };
