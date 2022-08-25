@@ -9,14 +9,14 @@ import {
 import isString from 'lodash/isString';
 import partial from 'lodash/partial';
 
-import { getComparisonAssertions } from '../../utils/assertion';
-import type { ComparisonReportSchema } from '../../types';
+import { getComparisonAssertions } from '../../../utils/assertion';
+import type { ComparisonReportSchema } from '../../../types';
 
 const getAssertionValue = partial((value: string | number) =>
   isString(value) ? 0 : value,
 );
 
-export function CRTableAssertions({
+export function CRTableListAssertions({
   data,
   reportName,
 }: {

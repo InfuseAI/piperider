@@ -1,14 +1,14 @@
 import { Flex, Grid, GridItem, Text } from '@chakra-ui/react';
 
-import { ColumnName } from '../shared/TableList/ColumnName';
-import { SRTableAssertionsSummary } from './SRTableAssertionsSummary';
-import { HistogramChart } from '../shared/Charts/HistogramChart';
+import { ColumnName } from '../../shared/TableList/ColumnName';
+import { SRTableListAssertionsSummary } from './SRTableListAssertionsSummary';
+import { HistogramChart } from '../../shared/Charts/HistogramChart';
 import type {
   AssertionTest,
   ColumnSchema,
-} from '../../sdlc/single-report-schema';
+} from '../../../sdlc/single-report-schema';
 
-export function SRColumnDetail({
+export function SRTableListColumnDetail({
   name,
   data,
   icon,
@@ -41,7 +41,7 @@ export function SRColumnDetail({
         {!colAssertions ? (
           <Text color="gray.500">no assertions</Text>
         ) : (
-          <SRTableAssertionsSummary assertions={colAssertions} />
+          <SRTableListAssertionsSummary assertions={colAssertions} />
         )}
       </GridItem>
 

@@ -1,3 +1,4 @@
+import { useTransition } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 
 import { Main } from '../shared/Main';
@@ -15,6 +16,8 @@ type Props = { data: SingleReportSchema };
 
 export function SingleReportList({ data }: Props) {
   const { created_at, datasource } = data;
+
+  const [isPending, startTransition] = useTransition();
   const [view, setView] = useLocalStorage<TableActionBarView>(
     SR_LIST_VIEW,
     'summary',
@@ -27,11 +30,16 @@ export function SingleReportList({ data }: Props) {
       <TableActionBar
         sourceName={datasource.name}
         sourceType={datasource.type}
+        inTransition={isPending}
         currentView={view}
-        toggleView={(nextView) => setView(nextView)}
+        toggleView={(nextView) => {
+          startTransition(() => {
+            setView(nextView);
+          });
+        }}
       />
 
-      <SRTableList data={data} />
+      <SRTableList data={data} view={view} />
     </Main>
   );
 }

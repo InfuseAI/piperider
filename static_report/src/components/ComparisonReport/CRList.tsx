@@ -1,3 +1,4 @@
+import { useTransition } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 
 import { Main } from '../shared/Main';
@@ -17,6 +18,8 @@ type Props = { data: ComparisonReportSchema };
 
 export function ComparisonReportList({ data }: Props) {
   const { base, input: target } = data;
+
+  const [isPending, startTransition] = useTransition();
   const [view, setView] = useLocalStorage<TableActionBarView>(
     CR_LIST_VIEW,
     'summary',
@@ -34,11 +37,16 @@ export function ComparisonReportList({ data }: Props) {
       <TableActionBar
         sourceName={data.input.datasource.name}
         sourceType={data.input.datasource.type}
+        inTransition={isPending}
         currentView={view}
-        toggleView={(nextView) => setView(nextView)}
+        toggleView={(nextView) => {
+          startTransition(() => {
+            setView(nextView);
+          });
+        }}
       />
 
-      <CRTableList data={data} />
+      <CRTableList data={data} view={view} />
     </Main>
   );
 }

@@ -1,7 +1,7 @@
 import { Flex, Center, Text, Icon } from '@chakra-ui/react';
 import { FiGrid } from 'react-icons/fi';
 
-export function SRColumnLabel({
+export function SRTableListColumnLabel({
   name,
   visibleIcon = true,
   icon = FiGrid,

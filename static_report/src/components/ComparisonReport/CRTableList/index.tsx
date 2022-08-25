@@ -15,39 +15,37 @@ import {
 import { FiAlertCircle, FiChevronRight, FiGrid } from 'react-icons/fi';
 import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
-import { useLocalStorage } from 'usehooks-ts';
 
-import { CRTabSchemaDetails } from './CRTabSchemaDetails';
-import { CRTableAssertions } from './CRTableAssertions';
-import { CRColumnsSummary } from './CRColumnsSummary';
-import { CRRowsSummary } from './CRRowsSummary';
-import { CRColumnDetail } from './CRColumnDetail';
-import {
-  getIconForColumnType,
-  transformAsNestedBaseTargetRecord,
-} from '../../utils/transformers';
+import { CRTabSchemaDetails } from '../CRTabSchemaDetails';
+import { CRTableListAssertions } from './CRTableListAssertions';
+import { CRTableListColumnsSummary } from './CRTableListColumnsSummary';
+import { CRTableListRowsSummary } from './CRTableListRowsSummary';
+import { CRTableListColumnDetails } from './CRTableListColumnDetails';
+import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
 import {
   ComparisonReportSchema,
   zReport,
   ZSingleSchema,
   ZComparisonTableSchema,
-} from '../../types';
+} from '../../../types';
 import type {
   SingleReportSchema,
   TableSchema,
-  ColumnSchema,
-} from '../../sdlc/single-report-schema';
-import type { TableActionBarView } from '../shared/TableActionBar';
-import { CR_LIST_VIEW } from '../../utils/localStorageKeys';
+} from '../../../sdlc/single-report-schema';
+import type { TableActionBarView } from '../../shared/TableActionBar';
 
-export function CRTableList({ data }: { data: ComparisonReportSchema }) {
+export function CRTableList({
+  data,
+  view,
+}: {
+  data: ComparisonReportSchema;
+  view: TableActionBarView;
+}) {
   const { base, input: target } = data;
   const tables = transformAsNestedBaseTargetRecord<
     SingleReportSchema['tables'],
     TableSchema
   >(base.tables, target.tables);
-
-  const [view] = useLocalStorage<TableActionBarView>(CR_LIST_VIEW, 'summary');
 
   zReport(ZSingleSchema.safeParse(base));
   zReport(ZSingleSchema.safeParse(target));
@@ -105,14 +103,17 @@ export function CRTableList({ data }: { data: ComparisonReportSchema }) {
                           <GridItem>
                             <Flex gap={10} color="gray.500">
                               <Text>Rows</Text>
-                              <CRRowsSummary
+                              <CRTableListRowsSummary
                                 base={table.base.row_count || 0}
                                 target={table.target.row_count || 0}
                               />
                             </Flex>
                           </GridItem>
                           <GridItem>
-                            <CRTableAssertions data={data} reportName={key} />
+                            <CRTableListAssertions
+                              data={data}
+                              reportName={key}
+                            />
                           </GridItem>
                           <GridItem>
                             {isExpanded && (
@@ -165,7 +166,7 @@ export function CRTableList({ data }: { data: ComparisonReportSchema }) {
                                 <Text as="span" mr={4}>
                                   Columns
                                 </Text>
-                                <CRColumnsSummary
+                                <CRTableListColumnsSummary
                                   base={table.base.col_count || 0}
                                   target={table.target.col_count || 0}
                                 />
@@ -179,47 +180,10 @@ export function CRTableList({ data }: { data: ComparisonReportSchema }) {
                     <AccordionPanel bgColor="white">
                       {view === 'summary' ? (
                         <Stack gap={6}>
-                          {Object.keys(
-                            table.base.piperider_assertion_result?.columns ||
-                              {},
-                          ).map((colName) => {
-                            const mergedBaseColAssertions = [
-                              ...(table.base.piperider_assertion_result
-                                ?.columns?.[colName] || []),
-                              ...(table.base.dbt_assertion_result?.columns?.[
-                                colName
-                              ] || []),
-                            ];
-
-                            const mergedTargetColAssertions = [
-                              ...(table.target.piperider_assertion_result
-                                ?.columns?.[colName] || []),
-                              ...(table.target.dbt_assertion_result?.columns?.[
-                                colName
-                              ] || []),
-                            ];
-
-                            const { icon: colIcon } = getIconForColumnType(
-                              table.target.columns[colName],
-                            );
-
-                            const transformedData =
-                              transformAsNestedBaseTargetRecord<
-                                TableSchema['columns'],
-                                ColumnSchema
-                              >(table.base.columns, table.target.columns);
-
-                            return (
-                              <CRColumnDetail
-                                key={colName}
-                                name={colName}
-                                data={transformedData[colName]}
-                                icon={colIcon}
-                                baseColAssertions={mergedBaseColAssertions}
-                                targetColAssertions={mergedTargetColAssertions}
-                              />
-                            );
-                          })}
+                          <CRTableListColumnDetails
+                            base={table.base}
+                            target={table.target}
+                          />
                         </Stack>
                       ) : (
                         <CRTabSchemaDetails

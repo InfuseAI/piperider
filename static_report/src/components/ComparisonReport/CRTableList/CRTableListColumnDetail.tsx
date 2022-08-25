@@ -4,13 +4,13 @@ import { FiArrowRight } from 'react-icons/fi';
 import {
   CRBaseTableAssertionsSummary,
   CRTargetTableAssertionsSummary,
-} from './CRTableAssertions';
-import { ColumnName } from '../shared/TableList/ColumnName';
+} from './CRTableListAssertions';
+import { ColumnName } from '../../shared/TableList/ColumnName';
 import type {
   AssertionTest,
   ColumnSchema,
-} from '../../sdlc/single-report-schema';
-import { HistogramChart } from '../shared/Charts/HistogramChart';
+} from '../../../sdlc/single-report-schema';
+import { HistogramChart } from '../../shared/Charts/HistogramChart';
 
 function getAssertions(assertions: AssertionTest[]) {
   const total = assertions.length;
@@ -29,7 +29,7 @@ function getAssertions(assertions: AssertionTest[]) {
   };
 }
 
-export function CRColumnDetail({
+export function CRTableListColumnDetail({
   name,
   icon,
   baseColAssertions,

@@ -9,9 +9,9 @@ import {
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 
-import { type TableSchema } from '../../sdlc/single-report-schema';
+import { type TableSchema } from '../../../sdlc/single-report-schema';
 
-export function SRSchemaDetail({ table }: { table: TableSchema }) {
+export function SRTableListSchemaDetail({ table }: { table: TableSchema }) {
   return (
     <TableContainer>
       <Table variant="simple">

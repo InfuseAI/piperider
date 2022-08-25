@@ -1,9 +1,9 @@
 import { Flex, Text, Icon } from '@chakra-ui/react';
 import { FiCheck, FiX } from 'react-icons/fi';
 
-import { type AssertionTest } from '../../sdlc/single-report-schema';
+import { type AssertionTest } from '../../../sdlc/single-report-schema';
 
-export function SRTableAssertionsSummary({
+export function SRTableListAssertionsSummary({
   assertions,
 }: {
   assertions: AssertionTest[];

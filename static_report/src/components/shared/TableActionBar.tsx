@@ -20,6 +20,7 @@ type Props = {
   toggleView: (view: TableActionBarView) => void;
   sourceName: string;
   sourceType: string;
+  inTransition?: boolean;
 };
 
 export function TableActionBar({
@@ -27,6 +28,7 @@ export function TableActionBar({
   toggleView,
   sourceName,
   sourceType,
+  inTransition = false,
 }: Props) {
   return (
     <Flex
@@ -55,11 +57,13 @@ export function TableActionBar({
         isAttached
         variant="outline"
         data-attached={currentView}
+        isDisabled={inTransition}
       >
         <Button
           data-cy="schema-view"
           bgColor={currentView === 'schema' ? 'gray.200' : 'inherit'}
           onClick={() => toggleView('schema')}
+          _active={{ bgColor: 'gray.50' }}
         >
           <Icon as={FiCreditCard} mr={1} boxSize={4} /> Schema
         </Button>
@@ -67,6 +71,7 @@ export function TableActionBar({
           data-cy="summary-view"
           bgColor={currentView === 'summary' ? 'gray.200' : 'inherit'}
           onClick={() => toggleView('summary')}
+          _active={{ bgColor: 'gray.50' }}
         >
           <Icon as={FiBookOpen} mr={1} boxSize={4} /> Summary
         </Button>

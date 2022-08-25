@@ -15,23 +15,26 @@ import {
 import { FiAlertCircle, FiCheck, FiChevronRight, FiGrid } from 'react-icons/fi';
 import { nanoid } from 'nanoid';
 import { Link } from 'wouter';
-import { useLocalStorage } from 'usehooks-ts';
 
-import { SRSchemaDetail } from './SRSchemaDetail';
-import { SRColumnLabel } from './SRColumnLabel';
-import { SRColumnDetail } from './SRColumnDetail';
-import { zReport, ZTableSchema } from '../../types';
-import { getReportAggregateAssertions } from '../../utils/assertion';
-import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
-import { getIconForColumnType } from '../../utils/transformers';
-import { type SingleReportSchema } from '../../sdlc/single-report-schema';
-import { SR_LIST_VIEW } from '../../utils/localStorageKeys';
-import { singleReportSchemaSchema } from '../../sdlc/single-report-schema.z';
-import { type TableActionBarView } from '../shared/TableActionBar';
+import { SRTableListSchemaDetail } from './SRTableListSchemaDetail';
+import { SRTableListColumnLabel } from './SRTableListColumnLabel';
+import { SRTableColumnDetails } from './SRTableListColumnDetails';
+import { zReport, ZTableSchema } from '../../../types';
+import { getReportAggregateAssertions } from '../../../utils/assertion';
+import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
+import { getIconForColumnType } from '../../../utils/transformers';
+import { type SingleReportSchema } from '../../../sdlc/single-report-schema';
+import { singleReportSchemaSchema } from '../../../sdlc/single-report-schema.z';
+import { type TableActionBarView } from '../../shared/TableActionBar';
 
-export function SRTableList({ data }: { data: SingleReportSchema }) {
+export function SRTableList({
+  data,
+  view,
+}: {
+  data: SingleReportSchema;
+  view: TableActionBarView;
+}) {
   const { id, created_at, datasource, tables } = data;
-  const [view] = useLocalStorage<TableActionBarView>(SR_LIST_VIEW, 'summary');
 
   zReport(
     singleReportSchemaSchema
@@ -201,7 +204,7 @@ export function SRTableList({ data }: { data: SingleReportSchema }) {
                                   }}
                                 >
                                   {columns.map((name) => (
-                                    <SRColumnLabel
+                                    <SRTableListColumnLabel
                                       key={name}
                                       name={name}
                                       icon={
@@ -222,35 +225,10 @@ export function SRTableList({ data }: { data: SingleReportSchema }) {
                     <AccordionPanel bgColor="white">
                       {view === 'summary' ? (
                         <Stack gap={6}>
-                          {Object.keys(
-                            table.piperider_assertion_result?.columns || {},
-                          ).map((colName) => {
-                            const mergedColAssertions = [
-                              ...(table.piperider_assertion_result?.columns?.[
-                                colName
-                              ] || []),
-                              ...(table.dbt_assertion_result?.columns?.[
-                                colName
-                              ] || []),
-                            ];
-
-                            const { icon: colIcon } = getIconForColumnType(
-                              table.columns[colName],
-                            );
-
-                            return (
-                              <SRColumnDetail
-                                key={colName}
-                                name={colName}
-                                data={table.columns[colName]}
-                                colAssertions={mergedColAssertions}
-                                icon={colIcon}
-                              />
-                            );
-                          })}
+                          <SRTableColumnDetails table={table} />
                         </Stack>
                       ) : (
-                        <SRSchemaDetail table={table} />
+                        <SRTableListSchemaDetail table={table} />
                       )}
                     </AccordionPanel>
                   </>
