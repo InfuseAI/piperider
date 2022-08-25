@@ -41,7 +41,7 @@ def build_assertion_engine(project_dir, table, assertions):
     profiler.profile([table])
 
     engine = AssertionEngine(profiler, project_dir)
-    engine.load_assertions()
+    engine.load_assertions(config_path=None)
     return engine
 
 

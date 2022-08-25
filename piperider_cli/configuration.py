@@ -33,6 +33,7 @@ class Configuration(object):
 
     def __init__(self, dataSources: List[DataSource], **kwargs):
         self.dataSources: List[DataSource] = dataSources
+        self.tables = kwargs.get('tables', {})
         self.telemetry_id = kwargs.get('telemetry_id', None)
         if self.telemetry_id is None:
             self.telemetry_id = uuid.uuid4().hex
@@ -120,12 +121,19 @@ class Configuration(object):
             raise PipeRiderConfigError(e.filename)
 
         data_sources: List[DataSource] = []
+        ds_basic_config = ['name', 'type', 'dbt']
         for ds in config.get('dataSources', []):
             type_name = ds.get('type')
             if type_name not in DATASOURCE_PROVIDERS:
                 raise PipeRiderInvalidDataSourceError(type_name, piperider_config_path)
 
             datasource_class = DATASOURCE_PROVIDERS[type_name]
+            credential = {}
+            for config_key in ds:
+                if config_key in ds_basic_config:
+                    continue
+                credential[config_key] = ds[config_key]
+
             dbt = ds.get('dbt')
             if dbt:
                 profile_dir = dbt.get('profilesDir', os.getenv('DBT_PROFILES_DIR', DBT_PROFILES_DIR_DEFAULT))
@@ -135,7 +143,7 @@ class Configuration(object):
                 profile = _load_dbt_profile(profile_path)
                 profile_name = dbt.get('profile')
                 target_name = dbt.get('target')
-                credential = _load_credential_from_dbt_profile(profile, profile_name, target_name)
+                credential.update(_load_credential_from_dbt_profile(profile, profile_name, target_name))
                 # TODO: extract duplicate code from func 'from_dbt_project'
                 if credential.get('pass') and credential.get('password') is None:
                     credential['password'] = credential.pop('pass')
@@ -144,14 +152,17 @@ class Configuration(object):
                 try:
                     with open(PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
                         credentials = yaml.safe_load(fd)
-                    credential = credentials.get(ds.get('name'))
+                        credential.update(credentials.get(ds.get('name')))
+                except FileNotFoundError:
+                    pass
                 except Exception:
-                    credential = None
+                    raise
                 data_source = datasource_class(name=ds.get('name'), credential=credential)
             data_sources.append(data_source)
 
         return cls(
             dataSources=data_sources,
+            tables=config.get('tables', {}),
             telemetry_id=config.get('telemetry', {}).get('id'),
             report_dir=config.get('report_dir', '.')
         )
@@ -164,11 +175,15 @@ class Configuration(object):
         """
         config = dict(
             dataSources=[],
+            tables={},
             telemetry=dict(id=self.telemetry_id)
         )
 
         for d in self.dataSources:
-            datasource = dict(name=d.name, type=d.type_name)
+            if d.type_name == 'sqlite':
+                datasource = dict(name=d.name, type=d.type_name, dbpath=d.credential['dbpath'])
+            else:
+                datasource = dict(name=d.name, type=d.type_name)
             if d.args.get('dbt'):
                 datasource['dbt'] = d.args.get('dbt')
             config['dataSources'].append(datasource)
@@ -176,18 +191,22 @@ class Configuration(object):
         with open(path, 'w') as fd:
             yaml.round_trip_dump(config, fd)
 
-    def dump_credentials(self, path):
+    def dump_credentials(self, path, after_init_config=False):
         """
         dump the credentials to the given path
         :param path:
+        :param after_init_config: config file has been written
         :return:
         """
         creds = dict()
         for d in self.dataSources:
+            if after_init_config and d.type_name == 'sqlite':
+                continue
             creds[d.name] = dict(type=d.type_name, **d.credential)
 
-        with open(path, 'w') as fd:
-            yaml.round_trip_dump(creds, fd)
+        if creds:
+            with open(path, 'w') as fd:
+                yaml.round_trip_dump(creds, fd)
 
     def to_sqlalchemy_config(self, datasource_name):
         # TODO we will convert a data source to a sqlalchemy parameters

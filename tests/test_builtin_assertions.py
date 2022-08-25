@@ -23,7 +23,7 @@ def build_assertion_engine(table, assertions):
     profiler.profile([table])
 
     engine = AssertionEngine(profiler, build_test_assertions(assertions))
-    engine.load_assertions()
+    engine.load_assertions(config_path=None)
     return engine
 
 
@@ -47,8 +47,15 @@ class BuiltinAssertionsTests(TestCase):
             - OPTIONAL
         """
         engine = build_assertion_engine('orders_1k', assertions)
-        engine.load_all_assertions_for_validation()
-        engine.validate_assertions()
+        results = engine.validate_assertions()
+
+        self.assertEqual(1, len(results))
+
+        self.assertEqual('Found assertion syntax problem => name: assert_row_count_in_range for table '
+                         'orders_1k\n'
+                         "ERROR: count parameter should be one of the types {<class 'int'>}, input: "
+                         '[1000, 200000.5]',
+                         results[0].as_internal_report())
 
 
     def test_assert_row_count_in_range(self):
