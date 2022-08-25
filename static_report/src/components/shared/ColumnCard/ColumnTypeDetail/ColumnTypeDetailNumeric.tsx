@@ -6,7 +6,7 @@ import {
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../MetricCell';
-import { QuantilesChart } from '../../Charts/QuantilesChart';
+import { QuantilesMatrix } from '../../QuantilesMatrix';
 import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
 import { StatisticalMetrics } from '../ColumnMetrics/StatisticalMetrics';
 import { NEGATIVES, ZEROS } from './constants';
@@ -39,7 +39,7 @@ export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
       <StatisticalMetrics columnDatum={columnDatum} />
       <Divider />
       <Flex mt={2}>
-        <QuantilesChart columnDatum={columnDatum} />
+        <QuantilesMatrix columnDatum={columnDatum} />
       </Flex>
     </Flex>
   );

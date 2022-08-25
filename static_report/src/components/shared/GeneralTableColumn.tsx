@@ -23,11 +23,9 @@ export function GeneralTableColumn({
       total: baseTotal,
       valids: baseValids,
       invalids: baseInvalids,
-      distinct: baseDistinct,
     } = baseColumn;
     var {
       totalOfTotal: baseTotalOfTotal,
-      distinctOfTotal: baseDistinctOfTotal,
       invalidsOfTotal: baseInvalidsOfTotal,
       validsOfTotal: baseValidsOfTotal,
       nullsOfTotal: baseNullsOfTotal,
@@ -39,7 +37,6 @@ export function GeneralTableColumn({
     ZColSchema.parse(targetColumn);
     var {
       invalidsOfTotal: targetInvalidsOfTotal,
-      distinctOfTotal: targetDistinctOfTotal,
       validsOfTotal: targetValidsOfTotal,
       nullsOfTotal: targetNullsOfTotal,
     } = getColumnDetails(targetColumn);
@@ -114,20 +111,6 @@ export function GeneralTableColumn({
             ? NO_VALUE
             : formatColumnValueWith(
                 targetColumn ? targetNullsOfTotal : baseNullsOfTotal,
-                formatIntervalMinMax,
-              )
-        }
-      />
-      <MetricsInfo
-        {...props}
-        name="Distinct"
-        metakey="distinct"
-        firstSlot={formatColumnValueWith(baseDistinct, formatNumber)}
-        secondSlot={
-          isTargetNull
-            ? NO_VALUE
-            : formatColumnValueWith(
-                targetColumn ? targetDistinctOfTotal : baseDistinctOfTotal,
                 formatIntervalMinMax,
               )
         }

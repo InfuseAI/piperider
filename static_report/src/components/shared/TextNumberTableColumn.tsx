@@ -51,8 +51,6 @@ export function TextNumberTableColumn({
   //`undefined` represents unprovided prop
   const isTargetNull = targetColumn === null;
 
-  console.log(baseColumn?.type);
-
   //Return based on string or Integer
   return (
     <>
