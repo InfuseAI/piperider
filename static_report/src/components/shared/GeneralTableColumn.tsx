@@ -2,9 +2,10 @@ import { ChakraProps } from '@chakra-ui/system';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import {
-  formatNumber,
   formatIntervalMinMax,
   formatColumnValueWith,
+  formatAsAbbreviatedNumber,
+  formatNumber,
 } from '../../utils/formatters';
 import { getColumnDetails } from '../../utils/transformers';
 import { MetricsInfo } from './MetricsInfo';
@@ -44,53 +45,61 @@ export function GeneralTableColumn({
   return (
     <>
       <MetricsInfo
-        {...props}
+        reverse
         name="Total"
         metakey="total"
-        firstSlot={formatColumnValueWith(baseTotal, formatNumber)}
+        firstSlot={formatColumnValueWith(baseTotal, formatAsAbbreviatedNumber)}
         secondSlot={formatColumnValueWith(
           targetColumn ? targetTotal : baseTotalOfTotal,
-          targetColumn ? formatNumber : formatIntervalMinMax,
+          targetColumn ? formatAsAbbreviatedNumber : formatIntervalMinMax,
         )}
+        tooltipValues={{ firstSlot: formatNumber(baseTotal) }}
+        {...props}
       />
       <MetricsInfo
-        {...props}
+        reverse
         name="Valid"
         metakey="valids"
         firstSlot={formatColumnValueWith(
           targetColumn ? baseValidsOfTotal : baseValids,
-          targetColumn ? formatIntervalMinMax : formatNumber,
+          targetColumn ? formatIntervalMinMax : formatAsAbbreviatedNumber,
         )}
         secondSlot={formatColumnValueWith(
           targetColumn ? targetValidsOfTotal : baseValidsOfTotal,
           formatIntervalMinMax,
         )}
+        tooltipValues={{ firstSlot: formatNumber(baseValids) }}
+        {...props}
       />
       <MetricsInfo
-        {...props}
+        reverse
         name="Invalid"
         metakey="invalids"
         firstSlot={formatColumnValueWith(
           targetColumn ? baseInvalidsOfTotal : baseInvalids,
-          targetColumn ? formatIntervalMinMax : formatNumber,
+          targetColumn ? formatIntervalMinMax : formatAsAbbreviatedNumber,
         )}
         secondSlot={formatColumnValueWith(
           targetColumn ? targetInvalidsOfTotal : baseInvalidsOfTotal,
           formatIntervalMinMax,
         )}
+        tooltipValues={{ firstSlot: formatNumber(baseInvalids) }}
+        {...props}
       />
       <MetricsInfo
-        {...props}
+        reverse
         name="Missing"
         metakey="nulls"
         firstSlot={formatColumnValueWith(
           targetColumn ? baseNullsOfTotal : baseNulls,
-          targetColumn ? formatIntervalMinMax : formatNumber,
+          targetColumn ? formatIntervalMinMax : formatAsAbbreviatedNumber,
         )}
         secondSlot={formatColumnValueWith(
           targetColumn ? targetNullsOfTotal : baseNullsOfTotal,
           formatIntervalMinMax,
         )}
+        tooltipValues={{ firstSlot: formatNumber(baseNulls) }}
+        {...props}
       />
     </>
   );

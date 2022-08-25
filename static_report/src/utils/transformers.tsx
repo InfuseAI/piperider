@@ -6,6 +6,7 @@ import { TbCircleHalf, TbCircles } from 'react-icons/tb';
 import { TiSortNumerically } from 'react-icons/ti';
 import { ColorProps } from '@chakra-ui/react';
 
+import isNumber from 'lodash/isNumber';
 import { FlatStackedBarChartProps } from '../components/shared/Charts/FlatStackedBarChart';
 import {
   ZEROLENGTH,
@@ -64,20 +65,23 @@ export function getColumnDetails(columnData: ColumnSchema) {
   } = columnData;
 
   const hasNoNull = non_nulls === total;
-
-  const validsOfTotal = valids && total ? valids / total : null;
-  const invalidsOfTotal = invalids && total ? invalids / total : null;
-  const nullsOfTotal = nulls && total ? nulls / total : null;
-  const distinctOfTotal = distinct && total ? distinct / total : null;
-  const duplicatesOfTotal = duplicates && total ? duplicates / total : null;
+  const validsOfTotal = isNumber(valids) && total ? valids / total : null;
+  const invalidsOfTotal = isNumber(invalids) && total ? invalids / total : null;
+  const nullsOfTotal = isNumber(nulls) && total ? nulls / total : null;
+  const distinctOfTotal = isNumber(distinct) && total ? distinct / total : null;
+  const duplicatesOfTotal =
+    isNumber(duplicates) && total ? duplicates / total : null;
   const nonDuplicatesOfTotal =
-    non_duplicates && total ? non_duplicates / total : null;
+    isNumber(non_duplicates) && total ? non_duplicates / total : null;
   const nonZeroLengthOfTotal =
-    non_zero_length && total ? non_zero_length / total : null;
-  const zeroLengthOfTotal = zero_length && total ? zero_length / total : null;
-  const negativesOfTotal = negatives && total ? negatives / total : null;
-  const zerosOfTotal = zeros && total ? zeros / total : null;
-  const positivesOfTotal = positives && total ? positives / total : null;
+    isNumber(non_zero_length) && total ? non_zero_length / total : null;
+  const zeroLengthOfTotal =
+    isNumber(zero_length) && total ? zero_length / total : null;
+  const negativesOfTotal =
+    isNumber(negatives) && total ? negatives / total : null;
+  const zerosOfTotal = isNumber(zeros) && total ? zeros / total : null;
+  const positivesOfTotal =
+    isNumber(positives) && total ? positives / total : null;
   const totalOfTotal = total ? total / total : null;
 
   return {

@@ -1,4 +1,4 @@
-import { Box, ChakraProps, Divider, Flex } from '@chakra-ui/react';
+import { Box, ChakraProps, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import {
@@ -44,7 +44,6 @@ export function NumericTableColumn({
         {baseColumn?.type !== 'datetime' && baseColumn?.type !== 'other' && (
           <>
             <MetricsInfo
-              {...props}
               name="Average"
               metakey="avg"
               firstSlot={formatColumnValueWith(
@@ -56,9 +55,10 @@ export function NumericTableColumn({
                   ? formatAsAbbreviatedNumber(targetColumn?.avg)
                   : undefined
               }
+              tooltipValues={{ firstSlot: formatNumber(baseColumn?.avg) }}
+              {...props}
             />
             <MetricsInfo
-              {...props}
               name="SD"
               metakey="stddev"
               firstSlot={formatColumnValueWith(
@@ -73,6 +73,8 @@ export function NumericTableColumn({
                     )
                   : undefined
               }
+              tooltipValues={{ firstSlot: formatNumber(baseColumn?.stddev) }}
+              {...props}
             />
           </>
         )}
@@ -81,7 +83,6 @@ export function NumericTableColumn({
         {(baseColumn?.type === 'numeric' || baseColumn?.type === 'integer') && (
           <Box>
             <MetricsInfo
-              {...props}
               name="Min"
               metakey="min"
               firstSlot={formatColumnValueWith(
@@ -96,9 +97,10 @@ export function NumericTableColumn({
                     )
                   : undefined
               }
+              tooltipValues={{ firstSlot: formatNumber(baseColumn?.min) }}
+              {...props}
             />
             <MetricsInfo
-              {...props}
               name="Max"
               metakey="max"
               firstSlot={formatColumnValueWith(
@@ -113,28 +115,40 @@ export function NumericTableColumn({
                     )
                   : undefined
               }
+              tooltipValues={{ firstSlot: formatNumber(baseColumn?.max) }}
+              {...props}
             />
           </Box>
         )}
         <MetricsInfo
-          {...props}
+          reverse
           name="Distinct"
           metakey="distinct"
-          firstSlot={formatColumnValueWith(baseDistinct, formatNumber)}
+          firstSlot={formatColumnValueWith(
+            baseDistinct,
+            formatAsAbbreviatedNumber,
+          )}
           secondSlot={formatColumnValueWith(
             targetColumn ? targetDistinctOfTotal : baseDistinctOfTotal,
             formatIntervalMinMax,
           )}
+          tooltipValues={{ firstSlot: formatNumber(baseDistinct) }}
+          {...props}
         />
         <MetricsInfo
-          {...props}
+          reverse
           name="Duplicates"
           metakey="duplicates"
-          firstSlot={formatColumnValueWith(baseDuplicates, formatNumber)}
+          firstSlot={formatColumnValueWith(
+            baseDuplicates,
+            formatAsAbbreviatedNumber,
+          )}
           secondSlot={formatColumnValueWith(
             targetColumn ? targetDuplicatesOfTotal : baseDuplicatesOfTotal,
             formatIntervalMinMax,
           )}
+          tooltipValues={{ firstSlot: formatNumber(baseDuplicates) }}
+          {...props}
         />
       </Flex>
     </>

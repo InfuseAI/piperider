@@ -79,7 +79,7 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
             <GridItem gridRow={'span 1'} p={9} bg={'white'} minWidth={'0px'}>
               <Text fontSize={'xl'}>Quantile Data</Text>
               <Divider my={3} />
-              <Box>
+              <Box my={5}>
                 <FlatBoxPlotChart histogram={histogram} />
               </Box>
               <QuantilesMatrix columnDatum={columnDatum} />

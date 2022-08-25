@@ -5,6 +5,8 @@ import {
   ChartData,
   LinearScale,
   CategoryScale,
+  Legend,
+  LegendItem,
 } from 'chart.js';
 import {
   BoxPlotController,
@@ -29,6 +31,17 @@ type Props = {
  * @param data the counts labels & values
  */
 export function FlatBoxPlotChart({ histogram: { counts } }: Props) {
+  const medianColor = '#63B3ED';
+  const meanBackgroundColor = '#4780A8';
+  const itemBackgroundColor = '#51DBCB';
+  const backgroundColor = '#D9D9D9';
+  const outlierBackgroundColor = '#FFCF36';
+  const legendItems: LegendItem[] = [
+    { text: 'box region', fillStyle: backgroundColor },
+    { text: 'data plots', fillStyle: itemBackgroundColor },
+    { text: 'mean', fillStyle: meanBackgroundColor },
+    { text: 'outliers', fillStyle: outlierBackgroundColor },
+  ];
   const chartOptions: ChartOptions<'boxplot'> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -42,8 +55,21 @@ export function FlatBoxPlotChart({ histogram: { counts } }: Props) {
       y: { display: false },
     },
     plugins: {
-      tooltip: {
-        callbacks: {},
+      legend: {
+        position: 'bottom',
+        labels: {
+          boxHeight: 10,
+          boxWidth: 10,
+          usePointStyle: true,
+          padding: 15,
+          generateLabels() {
+            return legendItems.map(({ text, fillStyle }) => ({
+              lineWidth: 0,
+              text,
+              fillStyle,
+            }));
+          },
+        },
       },
     },
   };
@@ -53,13 +79,13 @@ export function FlatBoxPlotChart({ histogram: { counts } }: Props) {
       {
         data: [counts],
         borderWidth: 1,
-        itemRadius: 2,
+        itemRadius: 1,
+        medianColor,
+        meanBackgroundColor,
+        itemBackgroundColor,
+        backgroundColor,
+        outlierBackgroundColor,
         borderColor: '#FF0861',
-        medianColor: '#63B3ED',
-        meanBackgroundColor: '#4780A8',
-        itemBackgroundColor: '#51DBCB',
-        backgroundColor: '#D9D9D9',
-        outlierBackgroundColor: '#FFCF36',
         outlierBorderColor: '#DBB32E',
         hitPadding: 10,
       },
@@ -70,7 +96,7 @@ export function FlatBoxPlotChart({ histogram: { counts } }: Props) {
       type={'boxplot'}
       data={chartData}
       options={chartOptions}
-      plugins={[]}
+      plugins={[Legend]}
     />
   );
 }

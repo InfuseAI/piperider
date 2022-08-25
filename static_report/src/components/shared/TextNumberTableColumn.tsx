@@ -2,9 +2,10 @@ import { ChakraProps } from '@chakra-ui/system';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import {
-  formatNumber,
   formatIntervalMinMax,
   formatColumnValueWith,
+  formatAsAbbreviatedNumber,
+  formatNumber,
 } from '../../utils/formatters';
 import { getColumnDetails } from '../../utils/transformers';
 import { MetricsInfo } from './MetricsInfo';
@@ -49,40 +50,49 @@ export function TextNumberTableColumn({
       {(baseColumn?.type === 'integer' || baseColumn?.type === 'numeric') && (
         <>
           <MetricsInfo
-            {...props}
+            reverse
             name="Positives"
             metakey="positives"
-            firstSlot={formatColumnValueWith(basePositives, formatNumber)}
+            firstSlot={formatColumnValueWith(
+              basePositives,
+              formatAsAbbreviatedNumber,
+            )}
             secondSlot={formatColumnValueWith(
               targetColumn ? targetPositives : basePositivesOfTotal,
-              targetColumn ? formatNumber : formatIntervalMinMax,
+              targetColumn ? formatAsAbbreviatedNumber : formatIntervalMinMax,
             )}
+            tooltipValues={{ firstSlot: formatNumber(basePositives) }}
+            {...props}
           />
           <MetricsInfo
-            {...props}
+            reverse
             name="Zeros"
             metakey="zeros"
             firstSlot={formatColumnValueWith(
               targetColumn ? baseZerosOfTotal : baseZeros,
-              targetColumn ? formatIntervalMinMax : formatNumber,
+              targetColumn ? formatIntervalMinMax : formatAsAbbreviatedNumber,
             )}
             secondSlot={formatColumnValueWith(
               targetColumn ? targetZerosOfTotal : baseZerosOfTotal,
               formatIntervalMinMax,
             )}
+            tooltipValues={{ firstSlot: formatNumber(baseZeros) }}
+            {...props}
           />
           <MetricsInfo
-            {...props}
+            reverse
             name="Negatives"
             metakey="negatives"
             firstSlot={formatColumnValueWith(
               targetColumn ? baseNegativesOfTotal : baseNegatives,
-              targetColumn ? formatIntervalMinMax : formatNumber,
+              targetColumn ? formatIntervalMinMax : formatAsAbbreviatedNumber,
             )}
             secondSlot={formatColumnValueWith(
               targetColumn ? targetNegativesOfTotal : baseNegativesOfTotal,
               formatIntervalMinMax,
             )}
+            tooltipValues={{ firstSlot: formatNumber(baseNegatives) }}
+            {...props}
           />
         </>
       )}
@@ -90,11 +100,12 @@ export function TextNumberTableColumn({
         <>
           <MetricsInfo
             {...props}
+            reverse
             name="Non-zero Length"
             metakey="non_zero_length"
             firstSlot={formatColumnValueWith(
               targetColumn ? baseNonZeroLengthOfTotal : baseNonZeroLength,
-              targetColumn ? formatIntervalMinMax : formatNumber,
+              targetColumn ? formatIntervalMinMax : formatAsAbbreviatedNumber,
             )}
             secondSlot={formatColumnValueWith(
               targetColumn
@@ -105,11 +116,12 @@ export function TextNumberTableColumn({
           />
           <MetricsInfo
             {...props}
+            reverse
             name="Zero Length"
             metakey="zero_length"
             firstSlot={formatColumnValueWith(
               targetColumn ? baseZeroLengthOfTotal : baseZeroLength,
-              targetColumn ? formatIntervalMinMax : formatNumber,
+              targetColumn ? formatIntervalMinMax : formatAsAbbreviatedNumber,
             )}
             secondSlot={formatColumnValueWith(
               targetColumn ? targetZeroLengthOfTotal : baseZeroLengthOfTotal,

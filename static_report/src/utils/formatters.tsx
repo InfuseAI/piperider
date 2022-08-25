@@ -28,10 +28,11 @@ export function formatReportTime(dateStr: string) {
  * @returns a formatted string number, based on locale & options
  */
 export function formatNumber(
-  num: number,
+  num: number | string | undefined,
   locales = 'en-US',
   options?: Intl.NumberFormatOptions,
 ) {
+  if (typeof num !== 'number') return num;
   return new Intl.NumberFormat(locales, options).format(num);
 }
 
