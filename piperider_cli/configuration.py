@@ -33,6 +33,7 @@ class Configuration(object):
 
     def __init__(self, dataSources: List[DataSource], **kwargs):
         self.dataSources: List[DataSource] = dataSources
+        self.tables = kwargs.get('tables', {})
         self.telemetry_id = kwargs.get('telemetry_id', None)
         if self.telemetry_id is None:
             self.telemetry_id = uuid.uuid4().hex
@@ -161,6 +162,7 @@ class Configuration(object):
 
         return cls(
             dataSources=data_sources,
+            tables=config.get('tables', {}),
             telemetry_id=config.get('telemetry', {}).get('id'),
             report_dir=config.get('report_dir', '.')
         )
@@ -189,16 +191,18 @@ class Configuration(object):
         with open(path, 'w') as fd:
             yaml.round_trip_dump(config, fd)
 
-    def dump_credentials(self, path):
+    def dump_credentials(self, path, after_init_config=False):
         """
         dump the credentials to the given path
         :param path:
+        :param after_init_config: config file has been written
         :return:
         """
         creds = dict()
         for d in self.dataSources:
-            if d.type_name != 'sqlite':
-                creds[d.name] = dict(type=d.type_name, **d.credential)
+            if after_init_config and d.type_name == 'sqlite':
+                continue
+            creds[d.name] = dict(type=d.type_name, **d.credential)
 
         if creds:
             with open(path, 'w') as fd:

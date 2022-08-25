@@ -48,7 +48,7 @@ def _ask_user_input_datasource(config: Configuration = None):
         config = Configuration([ds])
         if _ask_user_update_credentials(ds):
             config.dump(PIPERIDER_CONFIG_PATH)
-            config.dump_credentials(PIPERIDER_CREDENTIALS_PATH)
+            config.dump_credentials(PIPERIDER_CREDENTIALS_PATH, after_init_config=True)
     else:
         if len(config.dataSources) == 1:
             ds = config.dataSources[0]
@@ -58,7 +58,6 @@ def _ask_user_input_datasource(config: Configuration = None):
             console.print(
                 f'[[bold yellow]Warning[/bold yellow]] No credential found for \'{ds.type_name}\' datasource \'{ds.name}\'')
             if _ask_user_update_credentials(ds):
-                config.dump(PIPERIDER_CONFIG_PATH)
                 config.dump_credentials(PIPERIDER_CREDENTIALS_PATH)
 
     ds.show_installation_information()
@@ -80,8 +79,12 @@ def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None):
     """
     try:
         config = Configuration.load()
+    except FileNotFoundError:
+        config = None
     except Exception:
         config = None
+        console = Console()
+        console.print('[[bold yellow]Warning[/bold yellow]] Invalid config.yml')
     if dbt_project_path is None:
         return _ask_user_input_datasource(config=config)
 

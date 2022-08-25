@@ -42,14 +42,14 @@ def load_yaml_configs(path, config_path):
     failed: List[str] = []
     content: Dict = {}
 
-    if config_path is not None:
+    if config_path:
         project_config = safe_load_yaml(config_path)
-        if not project_config:
-            failed.append(config_path)
-        else:
+        if project_config:
             passed.append(config_path)
             payload = project_config.get('tables', {})
             always_merger.merge(content, payload)
+        else:
+            failed.append(config_path)
 
     for root, dirs, files in os.walk(path):
         for file in files:
