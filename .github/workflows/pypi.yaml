@@ -139,7 +139,7 @@ jobs:
       - name: Generate Sample Report by Repository Dispatch
         uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PIPERIDER_INTERNAL_PROJECTS_GITHUB_TOKEN }}
           repository: InfuseAI/piperider-internal-projects
           event-type: generate-sample-report
           client-payload: '{"piperider_version": "${{ needs.build.outputs.piperider_version }}"}'
