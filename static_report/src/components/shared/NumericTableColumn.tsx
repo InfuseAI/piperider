@@ -1,4 +1,4 @@
-import { ChakraProps, Flex } from '@chakra-ui/react';
+import { Box, ChakraProps, Divider, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import {
@@ -8,7 +8,6 @@ import {
   formatNumber,
 } from '../../utils/formatters';
 import { getColumnDetails } from '../../utils/transformers';
-import { NO_VALUE } from './ColumnCard/ColumnTypeDetail/constants';
 import { MetricsInfo } from './MetricsInfo';
 
 type Props = {
@@ -21,8 +20,6 @@ export function NumericTableColumn({
   targetColumn,
   ...props
 }: Props & ChakraProps) {
-  const isTargetNull = targetColumn === null;
-  const isTargetUndefined = targetColumn === undefined;
   zReport(ZColSchema.safeParse(baseColumn));
   zReport(ZColSchema.safeParse(baseColumn));
   if (baseColumn) {
@@ -55,14 +52,9 @@ export function NumericTableColumn({
                 formatAsAbbreviatedNumber,
               )}
               secondSlot={
-                isTargetNull
-                  ? NO_VALUE
-                  : isTargetUndefined
-                  ? undefined
-                  : formatColumnValueWith(
-                      targetColumn?.avg,
-                      formatAsAbbreviatedNumber,
-                    )
+                targetColumn?.avg
+                  ? formatAsAbbreviatedNumber(targetColumn?.avg)
+                  : undefined
               }
             />
             <MetricsInfo
@@ -74,14 +66,12 @@ export function NumericTableColumn({
                 formatAsAbbreviatedNumber,
               )}
               secondSlot={
-                isTargetNull
-                  ? NO_VALUE
-                  : isTargetUndefined
-                  ? undefined
-                  : formatColumnValueWith(
+                targetColumn?.stddev
+                  ? formatColumnValueWith(
                       targetColumn?.stddev,
                       formatAsAbbreviatedNumber,
                     )
+                  : undefined
               }
             />
           </>
@@ -89,7 +79,7 @@ export function NumericTableColumn({
       </Flex>
       <Flex direction="column">
         {(baseColumn?.type === 'numeric' || baseColumn?.type === 'integer') && (
-          <>
+          <Box>
             <MetricsInfo
               {...props}
               name="Min"
@@ -99,14 +89,12 @@ export function NumericTableColumn({
                 formatAsAbbreviatedNumber,
               )}
               secondSlot={
-                isTargetNull
-                  ? NO_VALUE
-                  : isTargetUndefined
-                  ? undefined
-                  : formatColumnValueWith(
+                targetColumn?.min
+                  ? formatColumnValueWith(
                       targetColumn?.min,
                       formatAsAbbreviatedNumber,
                     )
+                  : undefined
               }
             />
             <MetricsInfo
@@ -118,47 +106,35 @@ export function NumericTableColumn({
                 formatAsAbbreviatedNumber,
               )}
               secondSlot={
-                isTargetNull
-                  ? NO_VALUE
-                  : isTargetUndefined
-                  ? undefined
-                  : formatColumnValueWith(
+                targetColumn?.max
+                  ? formatColumnValueWith(
                       targetColumn?.max,
                       formatAsAbbreviatedNumber,
                     )
+                  : undefined
               }
             />
-          </>
+          </Box>
         )}
         <MetricsInfo
           {...props}
           name="Distinct"
           metakey="distinct"
           firstSlot={formatColumnValueWith(baseDistinct, formatNumber)}
-          secondSlot={
-            isTargetNull
-              ? NO_VALUE
-              : formatColumnValueWith(
-                  targetColumn ? targetDistinctOfTotal : baseDistinctOfTotal,
-                  formatIntervalMinMax,
-                )
-          }
+          secondSlot={formatColumnValueWith(
+            targetColumn ? targetDistinctOfTotal : baseDistinctOfTotal,
+            formatIntervalMinMax,
+          )}
         />
         <MetricsInfo
           {...props}
           name="Duplicates"
           metakey="duplicates"
           firstSlot={formatColumnValueWith(baseDuplicates, formatNumber)}
-          secondSlot={
-            isTargetNull
-              ? NO_VALUE
-              : formatColumnValueWith(
-                  targetColumn
-                    ? targetDuplicatesOfTotal
-                    : baseDuplicatesOfTotal,
-                  formatIntervalMinMax,
-                )
-          }
+          secondSlot={formatColumnValueWith(
+            targetColumn ? targetDuplicatesOfTotal : baseDuplicatesOfTotal,
+            formatIntervalMinMax,
+          )}
         />
       </Flex>
     </>

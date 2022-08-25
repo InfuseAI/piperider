@@ -12,7 +12,7 @@ import {
 } from '@sgratzl/chartjs-chart-boxplot';
 
 import { Chart } from 'react-chartjs-2';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { Histogram } from '../../../sdlc/single-report-schema';
 
 ChartJS.register(
   BoxPlotController,
@@ -22,15 +22,13 @@ ChartJS.register(
   Tooltip,
 );
 type Props = {
-  columnDatum: ColumnSchema;
+  histogram: Histogram;
 };
 /**
  * A flat boxplot chart that visualizes a single dataset (e.g. quantiles)
  * @param data the counts labels & values
  */
-export function FlatBoxPlotChart({
-  columnDatum: { min, p5, p25, p50, p75, p95, max, histogram, avg },
-}: Props) {
+export function FlatBoxPlotChart({ histogram: { counts } }: Props) {
   const chartOptions: ChartOptions<'boxplot'> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -40,31 +38,29 @@ export function FlatBoxPlotChart({
     },
     indexAxis: 'y',
     scales: {
-      x: {},
+      x: { offset: true },
       y: { display: false },
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {},
+      },
     },
   };
   const chartData: ChartData<'boxplot'> = {
-    labels: ['placeholder'],
+    labels: [''],
     datasets: [
       {
-        data: [
-          {
-            items: histogram?.counts ?? [],
-            min: min as number,
-            max: max as number,
-            mean: avg as number,
-            q1: p25 as number,
-            q3: p75 as number,
-            median: (avg as number) + 1,
-            outliers: [0],
-          },
-        ],
+        data: [counts],
         borderWidth: 1,
+        itemRadius: 2,
         borderColor: '#FF0861',
         medianColor: '#63B3ED',
+        meanBackgroundColor: '#4780A8',
+        itemBackgroundColor: '#51DBCB',
         backgroundColor: '#D9D9D9',
         outlierBackgroundColor: '#FFCF36',
+        outlierBorderColor: '#DBB32E',
         hitPadding: 10,
       },
     ],

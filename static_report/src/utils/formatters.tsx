@@ -117,7 +117,7 @@ export function formatTopKMetrics({ topk }: ColumnSchema) {
  * A method to handle falsey non-numbers (relevant for comparison reports with column shifts, where base/target values can be undefined)
  * @param input any value that will be checked as number
  * @param fn any function to format the valid number
- * @param emptyLabel
+ * @param emptyLabel the return value if falsey value
  */
 export function formatColumnValueWith(
   input: any,

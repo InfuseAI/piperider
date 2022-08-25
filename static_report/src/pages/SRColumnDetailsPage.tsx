@@ -28,9 +28,8 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
 
   const { reportName, columnName } = params;
   const dataColumns = tables[reportName].columns;
-
   const columnDatum = dataColumns[columnName];
-  const { type } = columnDatum;
+  const { type, histogram } = columnDatum;
 
   return (
     <Main>
@@ -76,10 +75,12 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
             </Box>
           </GridItem>
           {/* Quantiles Block */}
-          {(type === 'integer' || type === 'numeric') && (
+          {(type === 'integer' || type === 'numeric') && histogram && (
             <GridItem gridRow={'span 1'} p={9} bg={'white'} minWidth={'0px'}>
+              <Text fontSize={'xl'}>Quantile Data</Text>
+              <Divider my={3} />
               <Box>
-                <FlatBoxPlotChart columnDatum={columnDatum} />
+                <FlatBoxPlotChart histogram={histogram} />
               </Box>
               <QuantilesMatrix columnDatum={columnDatum} />
             </GridItem>

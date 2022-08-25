@@ -7,7 +7,6 @@ import {
   formatColumnValueWith,
 } from '../../utils/formatters';
 import { getColumnDetails } from '../../utils/transformers';
-import { NO_VALUE } from './ColumnCard/ColumnTypeDetail/constants';
 import { MetricsInfo } from './MetricsInfo';
 
 type Props = { baseColumn?: ColumnSchema; targetColumn?: ColumnSchema | null };
@@ -42,12 +41,6 @@ export function GeneralTableColumn({
     } = getColumnDetails(targetColumn);
   }
 
-  //NOTE: `base` will show amount (non-%) in single-reports
-  //NOTE: `target` will show ratio (%) in single-reports
-  //`null` identifies provided prop of null value
-  //`undefined` represents unprovided prop
-  const isTargetNull = targetColumn === null;
-
   return (
     <>
       <MetricsInfo
@@ -55,14 +48,10 @@ export function GeneralTableColumn({
         name="Total"
         metakey="total"
         firstSlot={formatColumnValueWith(baseTotal, formatNumber)}
-        secondSlot={
-          isTargetNull
-            ? NO_VALUE
-            : formatColumnValueWith(
-                targetColumn ? targetTotal : baseTotalOfTotal,
-                targetColumn ? formatNumber : formatIntervalMinMax,
-              )
-        }
+        secondSlot={formatColumnValueWith(
+          targetColumn ? targetTotal : baseTotalOfTotal,
+          targetColumn ? formatNumber : formatIntervalMinMax,
+        )}
       />
       <MetricsInfo
         {...props}
@@ -72,14 +61,10 @@ export function GeneralTableColumn({
           targetColumn ? baseValidsOfTotal : baseValids,
           targetColumn ? formatIntervalMinMax : formatNumber,
         )}
-        secondSlot={
-          isTargetNull
-            ? NO_VALUE
-            : formatColumnValueWith(
-                targetColumn ? targetValidsOfTotal : baseValidsOfTotal,
-                formatIntervalMinMax,
-              )
-        }
+        secondSlot={formatColumnValueWith(
+          targetColumn ? targetValidsOfTotal : baseValidsOfTotal,
+          formatIntervalMinMax,
+        )}
       />
       <MetricsInfo
         {...props}
@@ -89,14 +74,10 @@ export function GeneralTableColumn({
           targetColumn ? baseInvalidsOfTotal : baseInvalids,
           targetColumn ? formatIntervalMinMax : formatNumber,
         )}
-        secondSlot={
-          isTargetNull
-            ? NO_VALUE
-            : formatColumnValueWith(
-                targetColumn ? targetInvalidsOfTotal : baseInvalidsOfTotal,
-                formatIntervalMinMax,
-              )
-        }
+        secondSlot={formatColumnValueWith(
+          targetColumn ? targetInvalidsOfTotal : baseInvalidsOfTotal,
+          formatIntervalMinMax,
+        )}
       />
       <MetricsInfo
         {...props}
@@ -106,14 +87,10 @@ export function GeneralTableColumn({
           targetColumn ? baseNullsOfTotal : baseNulls,
           targetColumn ? formatIntervalMinMax : formatNumber,
         )}
-        secondSlot={
-          isTargetNull
-            ? NO_VALUE
-            : formatColumnValueWith(
-                targetColumn ? targetNullsOfTotal : baseNullsOfTotal,
-                formatIntervalMinMax,
-              )
-        }
+        secondSlot={formatColumnValueWith(
+          targetColumn ? targetNullsOfTotal : baseNullsOfTotal,
+          formatIntervalMinMax,
+        )}
       />
     </>
   );

@@ -7,7 +7,6 @@ import {
   formatColumnValueWith,
 } from '../../utils/formatters';
 import { getColumnDetails } from '../../utils/transformers';
-import { NO_VALUE } from './ColumnCard/ColumnTypeDetail/constants';
 import { MetricsInfo } from './MetricsInfo';
 
 type Props = { baseColumn?: ColumnSchema; targetColumn?: ColumnSchema | null };
@@ -45,13 +44,6 @@ export function TextNumberTableColumn({
     } = getColumnDetails(targetColumn);
   }
 
-  //NOTE: `base` will show amount (non-%) in single-reports
-  //NOTE: `target` will show ratio (%) in single-reports
-  //`null` identifies provided prop of null value
-  //`undefined` represents unprovided prop
-  const isTargetNull = targetColumn === null;
-
-  //Return based on string or Integer
   return (
     <>
       {(baseColumn?.type === 'integer' || baseColumn?.type === 'numeric') && (
@@ -61,14 +53,10 @@ export function TextNumberTableColumn({
             name="Positives"
             metakey="positives"
             firstSlot={formatColumnValueWith(basePositives, formatNumber)}
-            secondSlot={
-              isTargetNull
-                ? NO_VALUE
-                : formatColumnValueWith(
-                    targetColumn ? targetPositives : basePositivesOfTotal,
-                    targetColumn ? formatNumber : formatIntervalMinMax,
-                  )
-            }
+            secondSlot={formatColumnValueWith(
+              targetColumn ? targetPositives : basePositivesOfTotal,
+              targetColumn ? formatNumber : formatIntervalMinMax,
+            )}
           />
           <MetricsInfo
             {...props}
@@ -78,14 +66,10 @@ export function TextNumberTableColumn({
               targetColumn ? baseZerosOfTotal : baseZeros,
               targetColumn ? formatIntervalMinMax : formatNumber,
             )}
-            secondSlot={
-              isTargetNull
-                ? NO_VALUE
-                : formatColumnValueWith(
-                    targetColumn ? targetZerosOfTotal : baseZerosOfTotal,
-                    formatIntervalMinMax,
-                  )
-            }
+            secondSlot={formatColumnValueWith(
+              targetColumn ? targetZerosOfTotal : baseZerosOfTotal,
+              formatIntervalMinMax,
+            )}
           />
           <MetricsInfo
             {...props}
@@ -95,16 +79,10 @@ export function TextNumberTableColumn({
               targetColumn ? baseNegativesOfTotal : baseNegatives,
               targetColumn ? formatIntervalMinMax : formatNumber,
             )}
-            secondSlot={
-              isTargetNull
-                ? NO_VALUE
-                : formatColumnValueWith(
-                    targetColumn
-                      ? targetNegativesOfTotal
-                      : baseNegativesOfTotal,
-                    formatIntervalMinMax,
-                  )
-            }
+            secondSlot={formatColumnValueWith(
+              targetColumn ? targetNegativesOfTotal : baseNegativesOfTotal,
+              formatIntervalMinMax,
+            )}
           />
         </>
       )}
@@ -118,16 +96,12 @@ export function TextNumberTableColumn({
               targetColumn ? baseNonZeroLengthOfTotal : baseNonZeroLength,
               targetColumn ? formatIntervalMinMax : formatNumber,
             )}
-            secondSlot={
-              isTargetNull
-                ? NO_VALUE
-                : formatColumnValueWith(
-                    targetColumn
-                      ? targetNonZeroLengthOfTotal
-                      : baseNonZeroLengthOfTotal,
-                    formatIntervalMinMax,
-                  )
-            }
+            secondSlot={formatColumnValueWith(
+              targetColumn
+                ? targetNonZeroLengthOfTotal
+                : baseNonZeroLengthOfTotal,
+              formatIntervalMinMax,
+            )}
           />
           <MetricsInfo
             {...props}
@@ -137,16 +111,10 @@ export function TextNumberTableColumn({
               targetColumn ? baseZeroLengthOfTotal : baseZeroLength,
               targetColumn ? formatIntervalMinMax : formatNumber,
             )}
-            secondSlot={
-              isTargetNull
-                ? NO_VALUE
-                : formatColumnValueWith(
-                    targetColumn
-                      ? targetZeroLengthOfTotal
-                      : baseZeroLengthOfTotal,
-                    formatIntervalMinMax,
-                  )
-            }
+            secondSlot={formatColumnValueWith(
+              targetColumn ? targetZeroLengthOfTotal : baseZeroLengthOfTotal,
+              formatIntervalMinMax,
+            )}
           />
         </>
       )}
