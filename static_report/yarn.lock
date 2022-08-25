@@ -3769,6 +3769,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sgratzl/boxplots@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "@sgratzl/boxplots@npm:1.3.0"
+  checksum: 38d204c4a0ba9e6fdbdec5db5851950dda3dc379e4ca026cc6cbcd983f89f7a462c6691cd2d04635da5a1b007de6431d1e8ea1b34f2c921fb2ba81e4278913f4
+  languageName: node
+  linkType: hard
+
+"@sgratzl/chartjs-chart-boxplot@npm:^3.9.0":
+  version: 3.9.0
+  resolution: "@sgratzl/chartjs-chart-boxplot@npm:3.9.0"
+  dependencies:
+    "@sgratzl/boxplots": ^1.3.0
+  peerDependencies:
+    chart.js: ^3.9.1
+  dependenciesMeta:
+    chart.js@3.9.1:
+      unplugged: true
+  checksum: f393160710a063f990ebe26d12c45ae2a70d91a5a2cefb4185476dd785854eb6928277b79ab4b14dd2ee987c5f236d9d8ee93568b93d2a783b6150023af6cb34
+  languageName: node
+  linkType: hard
+
 "@sinclair/typebox@npm:^0.24.1":
   version: 0.24.19
   resolution: "@sinclair/typebox@npm:0.24.19"
@@ -13093,6 +13114,8 @@ __metadata:
     "@emotion/styled": ^11.8.1
     "@sentry/browser": ^7.8.0
     "@sentry/tracing": ^7.8.0
+    "@sgratzl/chartjs-chart-boxplot": ^3.9.0
+    "@types/d3": ^7.4.0
     "@types/jest": ^28.1.2
     "@types/lodash": ^4.14.182
     "@types/node": ^18.0.0
