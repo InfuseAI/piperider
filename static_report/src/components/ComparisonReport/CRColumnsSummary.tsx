@@ -1,5 +1,9 @@
 import { Text, Icon } from '@chakra-ui/react';
-import { FiArrowUpCircle, FiArrowDownCircle } from 'react-icons/fi';
+import {
+  FiArrowUpCircle,
+  FiArrowDownCircle,
+  FiArrowRight,
+} from 'react-icons/fi';
 
 export function CRColumnsSummary({
   base,
@@ -12,7 +16,7 @@ export function CRColumnsSummary({
     return (
       <>
         <Text as="span">{base}</Text>
-        <Text as="span">{'->'}</Text>
+        <Icon as={FiArrowRight} />
         <Text as="span">{target}</Text>
       </>
     );
@@ -21,7 +25,7 @@ export function CRColumnsSummary({
   return (
     <>
       <Text as="span">{base}</Text>
-      <Text as="span">{'->'}</Text>
+      <Icon as={FiArrowRight} />
       <Icon
         as={base < target ? FiArrowUpCircle : FiArrowDownCircle}
         ml={2}

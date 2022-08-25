@@ -69,6 +69,7 @@ export function HistogramChart({
 
   //swap x-scale when histogram is datetime
   const xScaleDate: ScaleTypeConfig = {
+    display: hideAxis ? false : true,
     type: 'timeseries', // each datum is spread w/ equal distance
     min,
     max,
@@ -84,7 +85,7 @@ export function HistogramChart({
       maxRotation: 30,
       maxTicksLimit: 8,
       callback(val) {
-        return hideAxis ? null : val;
+        return val;
       },
     },
   };
@@ -92,11 +93,12 @@ export function HistogramChart({
    * NOTE: Category doesn't accept (min/max) -- will distort scales!
    */
   const xScaleCategory: ScaleTypeConfig = {
+    display: hideAxis ? false : true,
     type: 'category', //Linear doesn't understand bins!
     grid: { display: false },
     ticks: {
       callback(val, index) {
-        return hideAxis ? null : newLabels[index];
+        return newLabels[index];
       },
     },
   };
@@ -105,6 +107,7 @@ export function HistogramChart({
   const yScaleBase: DeepPartial<
     ScaleOptionsByType<keyof CartesianScaleTypeRegistry>
   > = {
+    display: hideAxis ? false : true,
     type: 'linear',
     max: Math.max(...counts), //NOTE: do not add `min` since if they are equal nothing gets displayed sometimes
     grid: {
@@ -115,7 +118,7 @@ export function HistogramChart({
       maxTicksLimit: 8,
       callback: function (val, index) {
         //slow, but necessary since chart-data is a number and can be hard to display
-        return hideAxis ? null : formatAsAbbreviatedNumber(val);
+        return formatAsAbbreviatedNumber(val);
       },
     },
   };
@@ -143,9 +146,7 @@ export function HistogramChart({
               ? TEXTLENGTH
               : VALUE_RANGE;
 
-            return hideAxis
-              ? `${prefix}\n${result}\n(${percentOfTotal})`
-              : `${prefix} ${result}\n(${percentOfTotal})`;
+            return `${prefix}\n${result}\n(${percentOfTotal})`;
           },
         },
       },

@@ -1,8 +1,7 @@
-import { Flex, Grid, GridItem, Text /*, Icon */ } from '@chakra-ui/react';
-// import { FiChevronRight } from 'react-icons/fi';
+import { Flex, Grid, GridItem, Text } from '@chakra-ui/react';
 
 import { ColumnName } from '../shared/TableList/ColumnName';
-import { SRAssertionsSummaryLabel } from './SRAssertionsSummaryLabel';
+import { SRTableAssertionsSummary } from './SRTableAssertionsSummary';
 import { HistogramChart } from '../shared/Charts/HistogramChart';
 import type {
   AssertionTest,
@@ -42,7 +41,7 @@ export function SRColumnDetail({
         {!colAssertions ? (
           <Text color="gray.500">no assertions</Text>
         ) : (
-          <SRAssertionsSummaryLabel assertions={colAssertions} />
+          <SRTableAssertionsSummary assertions={colAssertions} />
         )}
       </GridItem>
 

@@ -18,7 +18,7 @@ import { nanoid } from 'nanoid';
 import { useLocalStorage } from 'usehooks-ts';
 
 import { CRTabSchemaDetails } from './CRTabSchemaDetails';
-import { CRAssertions } from './CRAssertions';
+import { CRTableAssertions } from './CRTableAssertions';
 import { CRColumnsSummary } from './CRColumnsSummary';
 import { CRRowsSummary } from './CRRowsSummary';
 import { CRColumnDetail } from './CRColumnDetail';
@@ -112,7 +112,7 @@ export function CRTableList({ data }: { data: ComparisonReportSchema }) {
                             </Flex>
                           </GridItem>
                           <GridItem>
-                            <CRAssertions data={data} reportName={key} />
+                            <CRTableAssertions data={data} reportName={key} />
                           </GridItem>
                           <GridItem>
                             {isExpanded && (

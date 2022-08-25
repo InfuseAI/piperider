@@ -1,9 +1,10 @@
-import { Flex, Grid, Text, GridItem, Box } from '@chakra-ui/react';
+import { Flex, Grid, Text, GridItem, Box, Icon } from '@chakra-ui/react';
+import { FiArrowRight } from 'react-icons/fi';
 
 import {
-  CRAssertionsBaseSummary,
-  CRAssertionsTargetSummary,
-} from './CRAssertions';
+  CRBaseTableAssertionsSummary,
+  CRTargetTableAssertionsSummary,
+} from './CRTableAssertions';
 import { ColumnName } from '../shared/TableList/ColumnName';
 import type {
   AssertionTest,
@@ -81,9 +82,9 @@ export function CRColumnDetail({
       <GridItem>
         {baseAssertions.total > 0 && targetAssertions.total > 0 ? (
           <Flex gap={2} color="gray.500" alignItems="center">
-            <CRAssertionsBaseSummary {...baseAssertions} />
-            <Text as="span">{' -> '}</Text>
-            <CRAssertionsTargetSummary
+            <CRBaseTableAssertionsSummary {...baseAssertions} />
+            <Icon as={FiArrowRight} />
+            <CRTargetTableAssertionsSummary
               {...targetAssertions}
               baseAssertionsFailed={baseAssertions.failed}
               assertionsDiff={targetAssertions.total - baseAssertions.total}

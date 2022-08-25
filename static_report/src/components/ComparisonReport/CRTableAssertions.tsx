@@ -4,6 +4,7 @@ import {
   FiX,
   FiArrowUpCircle,
   FiArrowDownCircle,
+  FiArrowRight,
 } from 'react-icons/fi';
 import isString from 'lodash/isString';
 import partial from 'lodash/partial';
@@ -15,7 +16,7 @@ const getAssertionValue = partial((value: string | number) =>
   isString(value) ? 0 : value,
 );
 
-export function CRAssertions({
+export function CRTableAssertions({
   data,
   reportName,
 }: {
@@ -46,25 +47,28 @@ export function CRAssertions({
   const targetFailed = targetOverviewFailed + dbtTargetOverviewFailed;
 
   return (
-    <Flex gap={2} color="gray.500">
+    <Flex gap={2} color="gray.500" alignItems="center">
       {/* base assertions */}
       <Flex gap={1} alignItems="center">
-        <CRBaseAssertion total={baseOverviewAssertions} failed={baseFailed} />
+        <CRBaseTableAssertion
+          total={baseOverviewAssertions}
+          failed={baseFailed}
+        />
         <Text as="span">/</Text>
         <Text as="span">{baseOverviewAssertions} total</Text>
       </Flex>
 
-      <Text as="span">{' -> '}</Text>
+      <Icon as={FiArrowRight} />
 
       {/* target assertions */}
       <Flex gap={1} alignItems="center">
-        <CRTargetAssertion
+        <CRTargetTableAssertion
           total={targetOverviewAssertions}
           failed={targetFailed}
           failedDifference={targetFailed - baseFailed}
         />
         <Text as="span">/</Text>
-        <CRTargetAssertionsDifference
+        <CRTargetTableAssertionsDifference
           base={baseOverviewAssertions}
           target={targetOverviewAssertions}
         />
@@ -73,7 +77,7 @@ export function CRAssertions({
   );
 }
 
-export function CRBaseAssertion({
+export function CRBaseTableAssertion({
   total,
   failed,
 }: {
@@ -103,7 +107,7 @@ export function CRBaseAssertion({
   );
 }
 
-export function CRTargetAssertion({
+export function CRTargetTableAssertion({
   total,
   failed,
   failedDifference,
@@ -140,7 +144,7 @@ export function CRTargetAssertion({
   return <Text as="span">{failed === 0 ? total : failed}</Text>;
 }
 
-export function CRTargetAssertionsDifference({
+export function CRTargetTableAssertionsDifference({
   base,
   target,
 }: {
@@ -172,7 +176,7 @@ export function CRTargetAssertionsDifference({
   );
 }
 
-export function CRAssertionsBaseSummary({
+export function CRBaseTableAssertionsSummary({
   total,
   failed,
 }: {
@@ -202,7 +206,7 @@ export function CRAssertionsBaseSummary({
   );
 }
 
-export function CRAssertionsTargetSummary({
+export function CRTargetTableAssertionsSummary({
   total,
   failed,
   baseAssertionsFailed,

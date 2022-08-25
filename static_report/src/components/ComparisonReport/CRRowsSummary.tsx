@@ -1,5 +1,9 @@
 import { Flex, Text, Icon } from '@chakra-ui/react';
-import { FiArrowUpCircle, FiArrowDownCircle } from 'react-icons/fi';
+import {
+  FiArrowUpCircle,
+  FiArrowDownCircle,
+  FiArrowRight,
+} from 'react-icons/fi';
 
 export function CRRowsSummary({
   base,
@@ -12,7 +16,7 @@ export function CRRowsSummary({
     return (
       <Flex alignItems="center" gap={1}>
         <Text as="span">{base}</Text>
-        <Text as="span">{'->'}</Text>
+        <Icon as={FiArrowRight} />
         <Text as="span">{target}</Text>
       </Flex>
     );
@@ -21,7 +25,7 @@ export function CRRowsSummary({
   return (
     <Flex gap={1} color="black">
       <Text as="span">{base}</Text>
-      <Text as="span">{'->'}</Text>
+      <Icon as={FiArrowRight} />
       <Flex alignItems="center">
         <Icon
           as={base < target ? FiArrowUpCircle : FiArrowDownCircle}

@@ -3,7 +3,7 @@ import { FiCheck, FiX } from 'react-icons/fi';
 
 import { type AssertionTest } from '../../sdlc/single-report-schema';
 
-export function SRAssertionsSummaryLabel({
+export function SRTableAssertionsSummary({
   assertions,
 }: {
   assertions: AssertionTest[];
