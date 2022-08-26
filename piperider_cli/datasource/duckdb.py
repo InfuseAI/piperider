@@ -52,7 +52,7 @@ class CsvDataSource(DuckDBDataSource):
         credential = self.credential
         csv_path = os.path.abspath(credential.get('path'))
         if not os.path.exists(csv_path):
-            raise ValueError(f'Cannot find the CSV file')
+            raise ValueError('Cannot find the CSV file')
 
         return 'duckdb:///:memory:'
 
