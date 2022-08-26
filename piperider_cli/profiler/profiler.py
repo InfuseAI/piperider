@@ -7,8 +7,9 @@ from typing import Union, List, Tuple
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, ARRAY, select, func, \
-    distinct, case, text, literal_column
+    distinct, case, text, literal_column, inspect
 from sqlalchemy.engine import Engine, Connection
+from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy.sql import FromClause
 from sqlalchemy.sql.elements import ColumnClause
@@ -68,10 +69,12 @@ class Profiler:
     """
     engine: Engine = None
     metadata: MetaData = None
+    inspector: Inspector = None
     event_handler: ProfilerEventHandler
 
     def __init__(self, engine: Engine, event_handler: ProfilerEventHandler = DefaultProfilerEventHandler()):
         self.engine = engine
+        self.inspector = inspect(self.engine) if self.engine else None
         self.event_handler = event_handler
 
     def profile(self, tables: List[str] = None) -> dict:
@@ -138,6 +141,42 @@ class Profiler:
             candidate_columns.append(column)
         return candidate_columns
 
+    def _profile_table_metadata(self, result, table):
+        with self.engine.connect() as conn:
+            if self.engine.url.get_backend_name() == 'snowflake':
+                default_schema = self.inspector.default_schema_name
+                stmt = '''
+                    select row_count, CONVERT_TIMEZONE('UTC', CREATED), CONVERT_TIMEZONE('UTC', LAST_ALTERED)
+                    from INFORMATION_SCHEMA.tables
+                    where table_schema = '{}' and table_name = '{}'
+                '''.format(str.upper(default_schema), str.upper(table.name))
+                row_count, creation_time, last_modified = conn.execute(stmt).fetchone()
+                # datetime object transformation
+                creation_time = creation_time.isoformat()
+                last_modified = last_modified.isoformat()
+            elif self.engine.url.get_backend_name() == 'bigquery':
+                dataset = self.engine.url.database
+                stmt = '''
+                    select row_count, creation_time, last_modified_time
+                    from {}.__TABLES__
+                    where table_id = '{}'
+                '''.format(dataset, table.name)
+                row_count, creation_time, last_modified = conn.execute(stmt).fetchone()
+                # timestamp transformation
+                creation_time = datetime.fromtimestamp(creation_time / 1000.0).isoformat()
+                last_modified = datetime.fromtimestamp(last_modified / 1000.0).isoformat()
+            else:
+                stmt = select([
+                    func.count(),
+                ]).select_from(table)
+                row_count, = conn.execute(stmt).fetchone()
+                creation_time = ''
+                last_modified = ''
+
+            result["row_count"] = row_count
+            result["creation_time"] = creation_time
+            result["last_modified"] = last_modified
+
     def _profile_table(self, table: Table) -> dict:
         candidate_columns = self._drop_unsupported_columns(table)
         col_index = 0
@@ -157,12 +196,7 @@ class Profiler:
         self.event_handler.handle_table_start(result)
 
         # Profile table metrics
-        with self.engine.connect() as conn:
-            stmt = select([
-                func.count(),
-            ]).select_from(table)
-            row_count, = conn.execute(stmt).fetchone()
-            result["row_count"] = row_count
+        self._profile_table_metadata(result, table)
         self.event_handler.handle_table_progress(result, col_count, col_index)
 
         # Profile columns
