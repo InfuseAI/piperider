@@ -14,7 +14,8 @@ import {
 } from '@sgratzl/chartjs-chart-boxplot';
 
 import { Chart } from 'react-chartjs-2';
-import { Histogram } from '../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { formatAsAbbreviatedNumber } from '../../../utils/formatters';
 
 ChartJS.register(
   BoxPlotController,
@@ -24,20 +25,27 @@ ChartJS.register(
   Tooltip,
 );
 type Props = {
-  histogram: Histogram;
+  quantileData: Pick<ColumnSchema, 'avg' | 'min' | 'max' | 'p25' | 'p75'>;
 };
 /**
- * A flat boxplot chart that visualizes a single dataset (e.g. quantiles)
+ * A flat boxplot chart that visualizes a single chartDataset (e.g. quantiles)
  * @param data the counts labels & values
  */
-export function FlatBoxPlotChart({ histogram: { counts } }: Props) {
-  const medianColor = '#63B3ED';
+export function FlatBoxPlotChart({
+  quantileData: { avg, min, max, p25, p75 },
+}: Props) {
   const meanBackgroundColor = '#4780A8';
   const backgroundColor = '#D9D9D9';
   const legendItems: LegendItem[] = [
     { text: 'box region', fillStyle: backgroundColor },
     { text: 'mean', fillStyle: meanBackgroundColor },
   ];
+  const newMin = Number(min);
+  const newQ1 = Number(p25);
+  const newMean = Number(avg);
+  const newQ3 = Number(p75);
+  const newMax = Number(max);
+
   const chartOptions: ChartOptions<'boxplot'> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -67,16 +75,41 @@ export function FlatBoxPlotChart({ histogram: { counts } }: Props) {
           },
         },
       },
+      tooltip: {
+        callbacks: {
+          label() {
+            const formattedMin = formatAsAbbreviatedNumber(newMin);
+            const formattedMax = formatAsAbbreviatedNumber(newMax);
+            const formattedMean = formatAsAbbreviatedNumber(newMean);
+            const formattedQ1 = formatAsAbbreviatedNumber(newQ1);
+            const formattedQ3 = formatAsAbbreviatedNumber(newQ3);
+            const result = `MIN: ${formattedMin} / P25: ${formattedQ1} / AVG: ${formattedMean} / P75: ${formattedQ3} / MAX: ${formattedMax}`;
+            return result;
+          },
+        },
+      },
     },
   };
   const chartData: ChartData<'boxplot'> = {
     labels: [''],
     datasets: [
       {
-        data: [counts], //FIXME:
+        data: [
+          {
+            min: Number(min),
+            q1: Number(p25),
+            mean: Number(avg),
+            q3: Number(p75),
+            max: Number(max),
+            //ignored but required interface
+            median: Number(avg),
+            items: [],
+            outliers: [],
+          },
+        ],
         borderWidth: 1,
         itemRadius: 1,
-        medianColor,
+        medianColor: meanBackgroundColor,
         meanBackgroundColor,
         backgroundColor,
         borderColor: '#FF0861',

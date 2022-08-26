@@ -32,6 +32,8 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
   const columnDatum = dataColumns[columnName];
   const { type, histogram } = columnDatum;
 
+  const { avg, min, max, p25, p75 } = columnDatum;
+
   return (
     <Main isSingleReport time={time}>
       <Flex
@@ -81,7 +83,15 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
               <Text fontSize={'xl'}>Quantile Data</Text>
               <Divider my={3} />
               <Box my={5}>
-                <FlatBoxPlotChart histogram={histogram} />
+                <FlatBoxPlotChart
+                  quantileData={{
+                    avg,
+                    max,
+                    min,
+                    p25,
+                    p75,
+                  }}
+                />
               </Box>
               <QuantilesMatrix columnDatum={columnDatum} />
             </GridItem>

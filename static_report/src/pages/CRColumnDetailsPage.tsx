@@ -45,8 +45,22 @@ export function CRColumnDetailsPage({
     ? baseColumnDatum
     : targetColumnDatum;
 
-  const { type: baseType, histogram: baseHistogram } = baseColumnDatum;
-  const { type: targetType, histogram: targetHistogram } = targetColumnDatum;
+  const {
+    type: baseType,
+    avg: baseAvg,
+    min: baseMin,
+    max: baseMax,
+    p25: baseP25,
+    p75: baseP75,
+  } = baseColumnDatum;
+  const {
+    type: targetType,
+    avg: targetAvg,
+    min: targetMin,
+    max: targetMax,
+    p25: targetP25,
+    p75: targetP75,
+  } = targetColumnDatum;
 
   // FIXME: IMPLEMENT TARGET SIDE
   return (
@@ -107,28 +121,62 @@ export function CRColumnDetailsPage({
               targetColumnDatum={targetColumnDatum}
             />
           </GridItem>
-          <GridItem gridRow={'span 1'} p={9} bg={'white'}>
-            <Box>
-              <Text fontSize={'xl'}>
-                {formatTitleCase(baseType)} Statistics
-              </Text>
-              <Divider my={3} />
-              <NumericColumnMetrics
-                baseColumn={baseColumnDatum}
-                width={'100%'}
-              />
-            </Box>
+          <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'white'}>
+            <Grid templateColumns={'1fr 1fr'} gap={8}>
+              <GridItem>
+                <Text fontSize={'xl'}>
+                  {formatTitleCase(baseType)} Statistics
+                </Text>
+                <Divider my={3} />
+                <NumericColumnMetrics
+                  baseColumn={baseColumnDatum}
+                  width={'100%'}
+                />
+              </GridItem>
+              <GridItem>
+                <Divider mt={42} mb={3} />
+                <NumericColumnMetrics
+                  baseColumn={baseColumnDatum}
+                  width={'100%'}
+                />
+              </GridItem>
+            </Grid>
           </GridItem>
           {/* Quantiles Block */}
           {/* FIXME: Box plot using wrong data */}
-          {(baseType === 'integer' || baseType === 'numeric') && baseHistogram && (
+          {(baseType === 'integer' || baseType === 'numeric') && (
             <GridItem gridRow={'span 1'} p={9} bg={'white'} minWidth={'0px'}>
               <Text fontSize={'xl'}>Quantile Data</Text>
               <Divider my={3} />
               <Box my={5}>
-                <FlatBoxPlotChart histogram={baseHistogram} />
+                <FlatBoxPlotChart
+                  quantileData={{
+                    avg: baseAvg,
+                    max: baseMax,
+                    min: baseMin,
+                    p25: baseP25,
+                    p75: baseP75,
+                  }}
+                />
               </Box>
               <QuantilesMatrix columnDatum={baseColumnDatum} />
+            </GridItem>
+          )}
+          {(targetType === 'integer' || targetType === 'numeric') && (
+            <GridItem gridRow={'span 1'} p={9} bg={'white'} minWidth={'0px'}>
+              <Divider mt={42} mb={3} />
+              <Box my={5}>
+                <FlatBoxPlotChart
+                  quantileData={{
+                    avg: targetAvg,
+                    max: targetMax,
+                    min: targetMin,
+                    p25: targetP25,
+                    p75: targetP75,
+                  }}
+                />
+              </Box>
+              <QuantilesMatrix columnDatum={targetColumnDatum} />
             </GridItem>
           )}
         </Grid>
