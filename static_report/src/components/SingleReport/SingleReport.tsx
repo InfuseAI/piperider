@@ -18,7 +18,7 @@ import { useAmplitudeOnMount } from '../../hooks/useAmplitudeOnMount';
 import { AMPLITUDE_EVENTS, amplitudeTrack } from '../../utils/amplitudeEvents';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import { SRTabProfilingDetails } from './SRTabProfilingDetails';
-import { SRTabTestDetails } from './SRTabTestDetails';
+import { SRAssertionDetails } from './SRAssertionDetails';
 import { SRTableOverview } from './SRTableOverview';
 import { dataSourceSchema } from '../../sdlc/single-report-schema.z';
 import { ZTableSchema, zReport } from '../../types';
@@ -119,22 +119,6 @@ export default function SingleReport({ data, name }: Props) {
               >
                 Tests
               </Tab>
-              {table.dbt_assertion_result && (
-                <Tab
-                  data-cy="sr-report-dbt-tests-tab"
-                  onClick={() => {
-                    amplitudeTrack({
-                      eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-                      eventProperties: {
-                        type: 'single-report',
-                        tab: 'dbt Tests',
-                      },
-                    });
-                  }}
-                >
-                  dbt Tests
-                </Tab>
-              )}
             </TabList>
 
             <TabPanels>
@@ -143,19 +127,13 @@ export default function SingleReport({ data, name }: Props) {
               </TabPanel>
 
               <TabPanel>
-                <SRTabTestDetails
-                  assertionData={table.piperider_assertion_result}
+                <SRAssertionDetails
+                  assertions={{
+                    piperider: table.piperider_assertion_result,
+                    dbt: table?.dbt_assertion_result,
+                  }}
                 />
               </TabPanel>
-
-              {table?.dbt_assertion_result && (
-                <TabPanel>
-                  <SRTabTestDetails
-                    type="dbt"
-                    assertionData={table.dbt_assertion_result}
-                  />
-                </TabPanel>
-              )}
             </TabPanels>
           </Tabs>
         </Flex>
