@@ -41,6 +41,9 @@ export function CRColumnDetailsPage({
 
   const baseColumnDatum = baseDataColumns[columnName];
   const targetColumnDatum = targetDataColumns[columnName];
+  const columnHeaderDatum = baseColumnDatum.type
+    ? baseColumnDatum
+    : targetColumnDatum;
 
   const { type: baseType, histogram: baseHistogram } = baseColumnDatum;
   const { type: targetType, histogram: targetHistogram } = targetColumnDatum;
@@ -48,40 +51,61 @@ export function CRColumnDetailsPage({
   // FIXME: IMPLEMENT TARGET SIDE
   return (
     <Main isSingleReport={false} time={time}>
-      <Flex
-        width={'inherit'}
-        minHeight="90vh"
-        maxHeight="100vh"
-        p={1}
-        bg={'gray.200'}
-        direction={['column', 'row']}
-      >
-        {/* Master Area */}
-        <ColumnDetailsMasterList
-          baseDataColumns={baseDataColumns}
-          targetDataColumns={targetDataColumns}
-          currentReport={reportName}
-        />
-
+      <Grid width={'inherit'} p={1} bg={'gray.200'} templateColumns={'1fr 2fr'}>
+        <Box h={'120vh'}>
+          {/* Master Area */}
+          <ColumnDetailsMasterList
+            baseDataColumns={baseDataColumns}
+            targetDataColumns={targetDataColumns}
+            currentReport={reportName}
+          />
+        </Box>
         {/* Detail Area */}
         <Grid
-          templateColumns={'500px 1fr'}
-          templateRows={'3em 1fr 1fr'}
-          gap={2}
+          templateColumns={'1fr 1fr'}
+          templateRows={'3em 3em 550px 500px'}
           bg={'gray.200'}
           width={'100%'}
+          gap={1}
         >
           {/* Label Block */}
           <GridItem colSpan={2} rowSpan={1}>
-            <ColumnCardHeader columnDatum={baseColumnDatum} />
+            <ColumnCardHeader columnDatum={columnHeaderDatum} />
+          </GridItem>
+          <GridItem colSpan={2} rowSpan={1}>
+            <Grid templateColumns={'1fr 1fr'} h={'100%'} gap={1}>
+              <Flex alignItems={'center'} pl={9} bg={'white'}>
+                <Text fontWeight={'light'} fontSize={'2xl'}>
+                  Base
+                </Text>
+              </Flex>
+              <Flex alignItems={'center'} pl={9} bg={'white'}>
+                <Text fontWeight={'light'} fontSize={'2xl'}>
+                  Target
+                </Text>
+              </Flex>
+            </Grid>
           </GridItem>
           {/* Data Composition Block */}
-          <GridItem p={9} bg={'white'}>
+          <GridItem colSpan={1} p={9} bg={'white'} minWidth={0}>
             <DataCompositionWidget columnDatum={baseColumnDatum} />
           </GridItem>
+          <GridItem colSpan={1} p={9} bg={'white'} minWidth={0}>
+            <DataCompositionWidget columnDatum={targetColumnDatum} />
+          </GridItem>
           {/* Chart Block - toggleable tabs */}
-          <GridItem gridRow={'span 1'} minWidth={0} p={9} bg={'white'}>
-            <ChartTabsWidget columnDatum={baseColumnDatum} />
+          <GridItem
+            colSpan={2}
+            gridRow={'span 1'}
+            minWidth={0}
+            p={9}
+            bg={'white'}
+          >
+            {/* FIXME: Should handle both data - NEW UI HERE */}
+            <ChartTabsWidget
+              baseColumnDatum={baseColumnDatum}
+              targetColumnDatum={targetColumnDatum}
+            />
           </GridItem>
           <GridItem gridRow={'span 1'} p={9} bg={'white'}>
             <Box>
@@ -101,13 +125,14 @@ export function CRColumnDetailsPage({
               <Text fontSize={'xl'}>Quantile Data</Text>
               <Divider my={3} />
               <Box my={5}>
+                {/* FIXME: Box plot using wrong data */}
                 <FlatBoxPlotChart histogram={baseHistogram} />
               </Box>
               <QuantilesMatrix columnDatum={baseColumnDatum} />
             </GridItem>
           )}
         </Grid>
-      </Flex>
+      </Grid>
     </Main>
   );
 }

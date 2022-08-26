@@ -90,7 +90,7 @@ export function FlatStackedBarChart({
   });
 
   const chartData: ChartData<'bar'> = {
-    labels: ['placeholder'], //one-slot only
+    labels: [''], //one-slot only
     datasets,
   };
   return <Bar data={chartData} options={chartOptions} plugins={[Legend]} />;

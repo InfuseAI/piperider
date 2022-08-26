@@ -88,6 +88,7 @@ export function getDataChart(
   const hasSameTypeName =
     type === baseColumnRef?.type && name === baseColumnRef?.name;
 
+  //FIXME: Override flag?
   const chartKind = getChartKindByColumnType(
     hasSameTypeName ? baseColumnRef : columnDatum,
   );

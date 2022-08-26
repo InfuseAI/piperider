@@ -66,7 +66,7 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
           </GridItem>
           {/* Chart Block - toggleable tabs */}
           <GridItem gridRow={'span 1'} minWidth={0} p={9} bg={'white'}>
-            <ChartTabsWidget columnDatum={columnDatum} />
+            <ChartTabsWidget baseColumnDatum={columnDatum} />
           </GridItem>
           <GridItem gridRow={'span 1'} p={9} bg={'white'}>
             <Box>

@@ -30,7 +30,7 @@ export function Main({ children, isSingleReport, time, ...props }: Props) {
     <Flex direction="column">
       <Navbar isSingleReport={isSingleReport} time={time} />
 
-      <Flex mt={2}>
+      <Flex>
         <Sidebar />
 
         <Flex

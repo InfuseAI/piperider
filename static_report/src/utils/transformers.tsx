@@ -184,10 +184,10 @@ export function transformCompositionAsFlatStackInput(
     return {
       labels: [VALIDS, INVALIDS, NULLS].map(zeroAsFallbackHandler),
       counts: [valids, invalids, nulls].map(zeroAsFallbackHandler),
-      ratios: [validsOfTotal, nullsOfTotal, invalidsOfTotal].map(
+      ratios: [validsOfTotal, invalidsOfTotal, nullsOfTotal].map(
         zeroAsFallbackHandler,
       ),
-      colors: ['#63B3ED', '#D9D9D9', '#FF0861'],
+      colors: ['#63B3ED', '#FF0861', '#D9D9D9'],
     };
   }
   if (type === 'string') {

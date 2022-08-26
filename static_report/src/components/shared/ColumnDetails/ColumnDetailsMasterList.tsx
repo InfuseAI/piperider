@@ -54,78 +54,77 @@ export function ColumnDetailsMasterList({
   const quickFilters = Array.from(filterState.keys());
 
   return (
-    <Flex
-      width={['100vw', '40vw']}
-      overflowY={'auto'}
-      direction={'column'}
-      p={8}
-      mr={2}
-      bg={'white'}
-    >
-      <Text as={'h3'} fontWeight={'bold'} mb={3}>
-        Columns ({combinedColumnEntries.length})
-      </Text>
+    <Flex direction={'column'} mr={2} bg={'white'} borderRadius={'lg'}>
+      <Box p={4} borderBottom={'1px solid lightgray'}>
+        <Text as={'h3'} fontWeight={'bold'} mb={3}>
+          Columns ({combinedColumnEntries.length})
+        </Text>
 
-      {/* Search Bar */}
-      <InputGroup my={2}>
-        <InputLeftElement
-          pointerEvents={'none'}
-          children={<SearchIcon color={'gray.300'} />}
-        />
-        <Input
-          type={'text'}
-          placeholder="Find By Column Name"
-          value={filterString}
-          onChange={({ target }) => setFilterString(target.value)}
-        />
-      </InputGroup>
+        {/* Search Bar */}
+        <InputGroup my={2}>
+          <InputLeftElement
+            pointerEvents={'none'}
+            children={<SearchIcon color={'gray.300'} />}
+          />
+          <Input
+            type={'text'}
+            placeholder="Find By Column Name"
+            value={filterString}
+            onChange={({ target }) => setFilterString(target.value)}
+          />
+        </InputGroup>
 
-      {/* Tag Toggle Filters */}
-      <Box mb={6}>
-        <Text as={'small'}>Applied Filters:</Text>
-        <Flex alignItems={'center'}>
-          {quickFilters.map((v) => {
-            const itemValue = filterState.get(v);
-            return (
-              <Tag
-                key={v}
-                m={1}
-                backgroundColor={itemValue ? 'piperider.300' : ''}
-                onClick={() => {
-                  const newState = new Map(filterState).set(v, !itemValue);
-                  setFilterState(newState);
-                }}
-                cursor={'pointer'}
-              >
-                <TagLabel color={itemValue ? 'white' : ''} fontSize={'sm'}>
-                  {v}
-                </TagLabel>
-              </Tag>
-            );
-          })}
-        </Flex>
+        {/* Tag Toggle Filters */}
+        <Box>
+          <Text as={'small'}>Applied Filters:</Text>
+          <Flex alignItems={'center'}>
+            {quickFilters.map((v) => {
+              const itemValue = filterState.get(v);
+              return (
+                <Tag
+                  key={v}
+                  m={1}
+                  backgroundColor={itemValue ? 'piperider.300' : ''}
+                  onClick={() => {
+                    const newState = new Map(filterState).set(v, !itemValue);
+                    setFilterState(newState);
+                  }}
+                  cursor={'pointer'}
+                >
+                  <TagLabel color={itemValue ? 'white' : ''} fontSize={'sm'}>
+                    {v}
+                  </TagLabel>
+                </Tag>
+              );
+            })}
+          </Flex>
+        </Box>
       </Box>
 
-      {/* QueryList */}
-      {combinedColumnEntries
-        .filter(([key, { base, target }]) => {
-          // Logic: base-first lookup (tag filter UI)
-          return filterState.get(base?.type) || filterState.get(target?.type);
-        })
-        .filter(([key]) =>
-          filterString ? key.search(new RegExp(filterString, 'gi')) > -1 : true,
-        )
-        .map(([key, { base, target }]) => (
-          <ColumnDetailListItem
-            key={key}
-            baseColumnDatum={base}
-            targetColumnDatum={target}
-            onSelect={(name) => {
-              setLocation(`/tables/${currentReport}/columns/${name}`);
-            }}
-            p={2}
-          />
-        ))}
+      <Box overflowY={'auto'} maxHeight={'80vh'}>
+        {/* QueryList */}
+        {combinedColumnEntries
+          .filter(([key, { base, target }]) => {
+            // Logic: base-first lookup (tag filter UI)
+            return filterState.get(base?.type) || filterState.get(target?.type);
+          })
+          .filter(([key]) =>
+            filterString
+              ? key.search(new RegExp(filterString, 'gi')) > -1
+              : true,
+          )
+          .map(([key, { base, target }]) => (
+            <ColumnDetailListItem
+              key={key}
+              baseColumnDatum={base}
+              targetColumnDatum={target}
+              onSelect={(name) => {
+                setLocation(`/tables/${currentReport}/columns/${name}`);
+              }}
+              p={3}
+            />
+          ))}
+      </Box>
     </Flex>
   );
 }
