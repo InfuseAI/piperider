@@ -5,8 +5,8 @@ import {
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
-import { MetricCell } from '../../MetricCell';
-import { QuantilesMatrix } from '../../QuantilesMatrix';
+import { MetricCell } from '../../ColumnMetrics/MetricCell';
+import { QuantilesMatrix } from '../../ColumnMetrics/QuantilesMatrix';
 import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
 import { StatisticalMetrics } from '../ColumnMetrics/StatisticalMetrics';
 import { NEGATIVES, ZEROS } from './constants';

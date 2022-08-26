@@ -4,16 +4,21 @@ import { QuantilesMatrix } from '../components/shared/ColumnMetrics/QuantilesMat
 import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHeader';
 import { Main } from '../components/shared/Main';
 import { NumericColumnMetrics } from '../components/shared/ColumnMetrics/NumericColumnMetrics';
-import { SingleReportSchema } from '../sdlc/single-report-schema';
 import { formatTitleCase } from '../utils/formatters';
 import { FlatBoxPlotChart } from '../components/shared/Charts/FlatBoxPlotChart';
-import { ColumnDetailsMasterList } from '../components/shared/ColumnDetails/ColumnDetailsMasterList';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
+import { ComparisonReportSchema } from '../types';
+import { ColumnDetailsMasterList } from '../components/shared/ColumnDetails/ColumnDetailsMasterList';
 interface Props {
-  data: SingleReportSchema;
+  data: ComparisonReportSchema;
 }
-export function SRColumnDetailsPage({ data: { tables } }: Props) {
+export function CRColumnDetailsPage({
+  data: {
+    base: { tables: baseTables },
+    input: { tables: targetTables },
+  },
+}: Props) {
   const [match, params] = useRoute('/tables/:reportName/columns/:columnName');
 
   if (!params?.columnName) {
@@ -27,10 +32,17 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
   }
 
   const { reportName, columnName } = params;
-  const dataColumns = tables[reportName].columns;
-  const columnDatum = dataColumns[columnName];
-  const { type, histogram } = columnDatum;
 
+  const baseDataColumns = baseTables[reportName].columns;
+  const targetDataColumns = targetTables[reportName].columns;
+
+  const baseColumnDatum = baseDataColumns[columnName];
+  const targetColumnDatum = targetDataColumns[columnName];
+
+  const { type: baseType, histogram: baseHistogram } = baseColumnDatum;
+  const { type: targetType, histogram: targetHistogram } = targetColumnDatum;
+
+  // FIXME: IMPLEMENT TARGET SIDE
   return (
     <Main>
       <Flex
@@ -43,7 +55,8 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
       >
         {/* Master Area */}
         <ColumnDetailsMasterList
-          baseDataColumns={dataColumns}
+          baseDataColumns={baseDataColumns}
+          targetDataColumns={targetDataColumns}
           currentReport={reportName}
         />
 
@@ -57,32 +70,37 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
         >
           {/* Label Block */}
           <GridItem colSpan={2} rowSpan={1}>
-            <ColumnCardHeader columnDatum={columnDatum} />
+            <ColumnCardHeader columnDatum={baseColumnDatum} />
           </GridItem>
           {/* Data Composition Block */}
           <GridItem p={9} bg={'white'}>
-            <DataCompositionWidget columnDatum={columnDatum} />
+            <DataCompositionWidget columnDatum={baseColumnDatum} />
           </GridItem>
           {/* Chart Block - toggleable tabs */}
           <GridItem gridRow={'span 1'} minWidth={0} p={9} bg={'white'}>
-            <ChartTabsWidget columnDatum={columnDatum} />
+            <ChartTabsWidget columnDatum={baseColumnDatum} />
           </GridItem>
           <GridItem gridRow={'span 1'} p={9} bg={'white'}>
             <Box>
-              <Text fontSize={'xl'}>{formatTitleCase(type)} Statistics</Text>
+              <Text fontSize={'xl'}>
+                {formatTitleCase(baseType)} Statistics
+              </Text>
               <Divider my={3} />
-              <NumericColumnMetrics baseColumn={columnDatum} width={'100%'} />
+              <NumericColumnMetrics
+                baseColumn={baseColumnDatum}
+                width={'100%'}
+              />
             </Box>
           </GridItem>
           {/* Quantiles Block */}
-          {(type === 'integer' || type === 'numeric') && histogram && (
+          {(baseType === 'integer' || baseType === 'numeric') && baseHistogram && (
             <GridItem gridRow={'span 1'} p={9} bg={'white'} minWidth={'0px'}>
               <Text fontSize={'xl'}>Quantile Data</Text>
               <Divider my={3} />
               <Box my={5}>
-                <FlatBoxPlotChart histogram={histogram} />
+                <FlatBoxPlotChart histogram={baseHistogram} />
               </Box>
-              <QuantilesMatrix columnDatum={columnDatum} />
+              <QuantilesMatrix columnDatum={baseColumnDatum} />
             </GridItem>
           )}
         </Grid>

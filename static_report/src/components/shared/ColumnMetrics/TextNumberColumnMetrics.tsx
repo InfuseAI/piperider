@@ -1,17 +1,17 @@
 import { ChakraProps } from '@chakra-ui/system';
-import { ColumnSchema } from '../../sdlc/single-report-schema';
-import { ZColSchema, zReport } from '../../types';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { ZColSchema, zReport } from '../../../types';
 import {
   formatIntervalMinMax,
   formatColumnValueWith,
   formatAsAbbreviatedNumber,
   formatNumber,
-} from '../../utils/formatters';
-import { getColumnDetails } from '../../utils/transformers';
-import { MetricsInfo } from './MetricsInfo';
+} from '../../../utils/formatters';
+import { getColumnDetails } from '../../../utils/transformers';
+import { MetricsInfo } from '../ColumnMetrics/MetricsInfo';
 
 type Props = { baseColumn?: ColumnSchema; targetColumn?: ColumnSchema | null };
-export function TextNumberTableColumn({
+export function TextNumberColumnMetrics({
   baseColumn,
   targetColumn,
   ...props

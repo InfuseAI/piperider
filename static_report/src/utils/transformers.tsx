@@ -24,6 +24,12 @@ import { ColumnSchema } from '../sdlc/single-report-schema';
  * "Transformers" -- these are your data re-shaping transformations, and doesn't return a formatted value and does not directly get presented in UI. Can be a precursor to "formatters"
  */
 
+/**
+ *
+ * @param base comparison's base schema-item
+ * @param target comparison's target schema-item
+ * @returns a record of base/target object
+ */
 export function transformAsNestedBaseTargetRecord<K, T>(
   base?: K,
   target?: K,

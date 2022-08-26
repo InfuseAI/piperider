@@ -12,16 +12,28 @@ import {
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 
-import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
-import { ColumnDetailListItem } from '../shared/ColumnDetailListItem';
+import { ColumnSchema, TableSchema } from '../../../sdlc/single-report-schema';
+import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
+import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
 interface Props {
-  dataColumns: TableSchema['columns'];
+  baseDataColumns?: TableSchema['columns'];
+  targetDataColumns?: TableSchema['columns'];
   currentReport: string;
 }
-export function SRColumnDetailsMasterList({
-  dataColumns,
+/**
+ * A master list UI for showing a top-level, navigable, filterable, list of columns. Belongs in the profiling column details page to view in-depth metrics and visualizations
+ *
+ * Component should handle various cases of column data: validsOfTotal_bar
+ * 1. Both Avail
+ * 2. No Base
+ * 3. No Target
+ * 4. Diff column.type
+ */
+export function ColumnDetailsMasterList({
+  baseDataColumns,
+  targetDataColumns,
   currentReport,
 }: Props) {
   const [filterString, setFilterString] = useState<string>('');
@@ -38,7 +50,13 @@ export function SRColumnDetailsMasterList({
       ['string', true],
     ]),
   );
-  const columnEntries = Object.entries(dataColumns);
+
+  const combinedColumnRecord = transformAsNestedBaseTargetRecord<
+    TableSchema['columns'],
+    ColumnSchema
+  >(baseDataColumns, targetDataColumns);
+  const combinedColumnEntries = Object.entries(combinedColumnRecord);
+
   const quickFilters = Array.from(filterState.keys());
 
   return (
@@ -51,7 +69,7 @@ export function SRColumnDetailsMasterList({
       bg={'white'}
     >
       <Text as={'h3'} fontWeight={'bold'} mb={3}>
-        Columns ({columnEntries.length})
+        Columns ({combinedColumnEntries.length})
       </Text>
       <InputGroup my={2}>
         <InputLeftElement
@@ -90,15 +108,28 @@ export function SRColumnDetailsMasterList({
         </Flex>
       </Box>
       {/* QueryList */}
-      {columnEntries
-        .filter(([key, { type }]) => filterState.get(type))
+
+      {combinedColumnEntries
+        .filter(
+          ([
+            key,
+            {
+              base: { type: baseType },
+              target: { type: targetType },
+            },
+          ]) => {
+            // Logic: base-first basis lookup
+            const typeToLookup = baseType ?? targetType;
+            return filterState.get(typeToLookup);
+          },
+        )
         .filter(([key]) =>
           filterString ? key.search(new RegExp(filterString, 'gi')) > -1 : true,
         )
-        .map(([key, value]) => (
+        .map(([key, { base, target }]) => (
           <ColumnDetailListItem
             key={key}
-            datum={value}
+            baseColumnDatum={base}
             onSelect={(name) => {
               setLocation(`/tables/${currentReport}/columns/${name}`);
             }}

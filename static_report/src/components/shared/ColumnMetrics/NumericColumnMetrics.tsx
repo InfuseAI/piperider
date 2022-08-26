@@ -1,21 +1,21 @@
 import { Box, ChakraProps, Flex } from '@chakra-ui/react';
-import { ColumnSchema } from '../../sdlc/single-report-schema';
-import { ZColSchema, zReport } from '../../types';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { ZColSchema, zReport } from '../../../types';
 import {
   formatAsAbbreviatedNumber,
   formatColumnValueWith,
   formatIntervalMinMax,
   formatNumber,
-} from '../../utils/formatters';
-import { getColumnDetails } from '../../utils/transformers';
-import { MetricsInfo } from './MetricsInfo';
+} from '../../../utils/formatters';
+import { getColumnDetails } from '../../../utils/transformers';
+import { MetricsInfo } from '../ColumnMetrics/MetricsInfo';
 
 type Props = {
   baseColumn: ColumnSchema;
   targetColumn?: ColumnSchema | null;
 };
 
-export function NumericTableColumn({
+export function NumericColumnMetrics({
   baseColumn,
   targetColumn,
   ...props

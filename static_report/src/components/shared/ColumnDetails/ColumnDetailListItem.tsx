@@ -7,25 +7,33 @@ import {
   Progress,
   Text,
 } from '@chakra-ui/react';
-import { ColumnSchema } from '../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
-} from '../../utils/formatters';
-import { getColumnDetails } from '../../utils/transformers';
-import { getIconForColumnType } from './ColumnCard/ColumnCardHeader';
+} from '../../../utils/formatters';
+import { getColumnDetails } from '../../../utils/transformers';
+import { getIconForColumnType } from '../ColumnCard/ColumnCardHeader';
 
+/**
+ * Cases Affected: validsOfTotal_bar
+ * 1. Both Avail
+ * 2. No Base
+ * 3. No Target
+ * 4. Diff types
+ */
 interface Props {
-  datum: ColumnSchema;
+  baseColumnDatum: ColumnSchema;
+  targetColumnDatum?: ColumnSchema;
   onSelect: (arg: string) => void;
 }
 export function ColumnDetailListItem({
-  datum,
+  baseColumnDatum,
   onSelect,
   ...props
 }: Props & ChakraProps) {
-  const { icon, backgroundColor } = getIconForColumnType(datum);
-  const { validsOfTotal } = getColumnDetails(datum);
+  const { icon, backgroundColor } = getIconForColumnType(baseColumnDatum);
+  const { validsOfTotal } = getColumnDetails(baseColumnDatum);
   const validsPercentValue = Number(validsOfTotal) * 100;
 
   return (
@@ -33,10 +41,10 @@ export function ColumnDetailListItem({
       <Flex
         justifyContent={'space-between'}
         alignItems={'center'}
-        {...props}
-        _hover={{ bgColor: 'blackAlpha.50' }}
         cursor={'pointer'}
-        onClick={() => onSelect(datum.name)}
+        onClick={() => onSelect(baseColumnDatum.name)}
+        _hover={{ bgColor: 'blackAlpha.50' }}
+        {...props}
       >
         <Flex alignItems={'center'}>
           <Icon
@@ -49,7 +57,7 @@ export function ColumnDetailListItem({
             boxSize={5}
           />
           <Text noOfLines={1} width={'14em'} fontSize={'sm'}>
-            {datum.name}
+            {baseColumnDatum.name}
           </Text>
         </Flex>
         <Box width={'100%'}>

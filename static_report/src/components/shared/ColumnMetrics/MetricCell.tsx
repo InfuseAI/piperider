@@ -1,7 +1,7 @@
 import { Flex, Text, Tooltip } from '@chakra-ui/react';
 import { InfoIcon } from '@chakra-ui/icons';
-import { schemaMetaDescriptions } from '../../sdlc/schema-meta';
-import { ColumnSchema } from '../../sdlc/single-report-schema';
+import { schemaMetaDescriptions } from '../../../sdlc/schema-meta';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
 
 type Props = {
   label: string;

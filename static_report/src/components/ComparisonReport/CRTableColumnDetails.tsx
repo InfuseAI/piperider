@@ -1,13 +1,14 @@
 import { Flex, Text } from '@chakra-ui/react';
+import { Link, useLocation } from 'wouter';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import { formatDate } from '../../utils/formatters';
 import { checkColumnCategorical } from '../../utils/transformers';
 import { ColumnCardHeader } from '../shared/ColumnCard/ColumnCardHeader';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
-import { GeneralTableColumn } from '../shared/GeneralTableColumn';
-import { MetricsInfo } from '../shared/MetricsInfo';
-import { NumericTableColumn } from '../shared/NumericTableColumn';
+import { GeneralColumnMetrics } from '../shared/ColumnMetrics/GeneralColumnMetrics';
+import { MetricsInfo } from '../shared/ColumnMetrics/MetricsInfo';
+import { NumericColumnMetrics } from '../shared/ColumnMetrics/NumericColumnMetrics';
 
 // props made optional as they can be undefined
 type CRTableColumnDetailsProps = {
@@ -20,6 +21,8 @@ export const CRTableColumnDetails = ({
 }: CRTableColumnDetailsProps) => {
   const fallback = baseColumn || targetColumn;
   const isCategorical = checkColumnCategorical(baseColumn);
+  const [parentLocation] = useLocation();
+
   zReport(ZColSchema.safeParse(baseColumn));
   zReport(ZColSchema.safeParse(targetColumn));
 
@@ -44,14 +47,14 @@ export const CRTableColumnDetails = ({
 
         <Flex direction="column" mt={3}>
           {/* Case: Cast provided undefined to null */}
-          <GeneralTableColumn
+          <GeneralColumnMetrics
             baseColumn={baseColumn}
             targetColumn={targetColumn || null}
           />
         </Flex>
 
         {baseColumn?.type === 'numeric' && (
-          <NumericTableColumn
+          <NumericColumnMetrics
             baseColumn={baseColumn}
             targetColumn={targetColumn || null}
           />
@@ -85,6 +88,15 @@ export const CRTableColumnDetails = ({
           </Flex>
         )}
       </Flex>
+      {fallback && (
+        <Flex justifyContent={'center'} p={3}>
+          <Link href={`${parentLocation}/columns/${fallback.name}`}>
+            <Text as={'a'} color="gray.700">
+              Details
+            </Text>
+          </Link>
+        </Flex>
+      )}
     </Flex>
   );
 };

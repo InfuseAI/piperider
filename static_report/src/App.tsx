@@ -10,6 +10,7 @@ import { SRColumnDetailsPage } from './pages/SRColumnDetailsPage';
 
 import * as Sentry from '@sentry/browser';
 import { BrowserTracing } from '@sentry/tracing';
+import { CRColumnDetailsPage } from './pages/CRColumnDetailsPage';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns) {
@@ -92,6 +93,11 @@ function AppComparison() {
                 data={window.PIPERIDER_COMPARISON_REPORT_DATA}
               />
             )}
+          </Route>
+          <Route path="/tables/:reportName/columns/:columnName">
+            <CRColumnDetailsPage
+              data={window.PIPERIDER_COMPARISON_REPORT_DATA}
+            />
           </Route>
           <Route>
             <NotFound />

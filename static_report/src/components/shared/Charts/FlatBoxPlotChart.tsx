@@ -33,14 +33,10 @@ type Props = {
 export function FlatBoxPlotChart({ histogram: { counts } }: Props) {
   const medianColor = '#63B3ED';
   const meanBackgroundColor = '#4780A8';
-  const itemBackgroundColor = '#51DBCB';
   const backgroundColor = '#D9D9D9';
-  const outlierBackgroundColor = '#FFCF36';
   const legendItems: LegendItem[] = [
     { text: 'box region', fillStyle: backgroundColor },
-    { text: 'data plots', fillStyle: itemBackgroundColor },
     { text: 'mean', fillStyle: meanBackgroundColor },
-    { text: 'outliers', fillStyle: outlierBackgroundColor },
   ];
   const chartOptions: ChartOptions<'boxplot'> = {
     responsive: true,
@@ -77,16 +73,13 @@ export function FlatBoxPlotChart({ histogram: { counts } }: Props) {
     labels: [''],
     datasets: [
       {
-        data: [counts],
+        data: [counts], //FIXME:
         borderWidth: 1,
         itemRadius: 1,
         medianColor,
         meanBackgroundColor,
-        itemBackgroundColor,
         backgroundColor,
-        outlierBackgroundColor,
         borderColor: '#FF0861',
-        outlierBorderColor: '#DBB32E',
         hitPadding: 10,
       },
     ],

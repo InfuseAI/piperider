@@ -1,7 +1,7 @@
 import { ChakraProps, Flex, Text, Tooltip } from '@chakra-ui/react';
-import { schemaMetaDescriptions } from '../../sdlc/schema-meta';
-import { ColumnSchema } from '../../sdlc/single-report-schema';
-import { NO_VALUE } from './ColumnCard/ColumnTypeDetail/constants';
+import { schemaMetaDescriptions } from '../../../sdlc/schema-meta';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { NO_VALUE } from '../ColumnCard/ColumnTypeDetail/constants';
 
 interface Props {
   name: string;

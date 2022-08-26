@@ -6,7 +6,7 @@ import {
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
-import { MetricCell } from '../../MetricCell';
+import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { NULLS, INVALIDS } from '../ColumnTypeDetail/constants';
 
 type Props = { columnDatum: ColumnSchema; children?: ReactNode };

@@ -4,7 +4,7 @@ import {
   formatColumnValueWith,
   formatNumber,
 } from '../../../../utils/formatters';
-import { MetricCell } from '../../MetricCell';
+import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
 import { FALSES, TRUES } from './constants';
 
