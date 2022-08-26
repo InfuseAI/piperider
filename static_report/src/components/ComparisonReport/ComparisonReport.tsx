@@ -31,6 +31,7 @@ import { CRTabProfilingDetails } from './CRTabProfilingDetails';
 import { CRTabSchemaDetails } from './CRTabSchemaDetails';
 import { CRTabTestDetails } from './CRTabTestDetails';
 import { CRTableOverview } from './CRTableOverview';
+import { formatReportTime } from '../../utils/formatters';
 
 type Props = {
   data: ComparisonReportSchema;
@@ -73,7 +74,12 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
   });
 
   return (
-    <Main>
+    <Main
+      isSingleReport={false}
+      time={`${formatReportTime(base.created_at)} -> ${formatReportTime(
+        target.created_at,
+      )}`}
+    >
       <Flex direction="column" minH="calc(100vh + 1px)" width="inherit">
         <Flex mx="5%" mt={4}>
           <Breadcrumb fontSize="lg">
@@ -107,6 +113,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
           <Tabs isLazy lazyBehavior="keepMounted">
             <TabList>
               <Tab
+                data-cy="cr-report-schema-tab"
                 onClick={() => {
                   amplitudeTrack({
                     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
@@ -120,7 +127,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
                 Schema
               </Tab>
               <Tab
-                data-cy="cr-report-tab-item-profiling"
+                data-cy="cr-report-profiling-tab"
                 onClick={() => {
                   amplitudeTrack({
                     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
@@ -134,7 +141,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
                 Profiling
               </Tab>
               <Tab
-                data-cy="cr-report-tab-item-tests"
+                data-cy="cr-report-tests-tab"
                 onClick={() => {
                   amplitudeTrack({
                     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
@@ -149,6 +156,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
               </Tab>
               {existsDbtTests && (
                 <Tab
+                  data-cy="cr-report-dbt-tests-tab"
                   onClick={() => {
                     amplitudeTrack({
                       eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
@@ -166,7 +174,10 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
 
             <TabPanels>
               <TabPanel>
-                <CRTabSchemaDetails base={baseTable} target={targetTable} />
+                <CRTabSchemaDetails
+                  baseTableDatum={baseTable}
+                  targetTableDatum={targetTable}
+                />
               </TabPanel>
 
               <TabPanel>

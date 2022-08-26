@@ -38,15 +38,19 @@ ChartJS.register(
  * Y: The Min/Max of the counts range is the scaled height of charting area
  * Counts: Abbreviated based on K, Mn, Bn, Tr (see formatters)
  */
-//Note: min/max represents the bin edge min/max
+// Note: min/max represents the bin edge min/max
 type ScaleTypeConfig = DeepPartial<
   ScaleOptionsByType<keyof CartesianScaleTypeRegistry>
 >;
+
 type Props = {
   data: Pick<ColumnSchema, 'total' | 'type' | 'histogram' | 'min' | 'max'>;
+  hideAxis?: boolean;
 };
+
 export function HistogramChart({
   data: { histogram, type, total, min, max },
+  hideAxis = false,
 }: Props) {
   const { counts, bin_edges: binEdges } = histogram as Histogram;
   const isDatetime = type === 'datetime';
@@ -65,6 +69,7 @@ export function HistogramChart({
 
   //swap x-scale when histogram is datetime
   const xScaleDate: ScaleTypeConfig = {
+    display: hideAxis ? false : true,
     type: 'timeseries', // each datum is spread w/ equal distance
     min,
     max,
@@ -79,12 +84,16 @@ export function HistogramChart({
       minRotation: 30,
       maxRotation: 30,
       maxTicksLimit: 8,
+      callback(val) {
+        return val;
+      },
     },
   };
   /**
    * NOTE: Category doesn't accept (min/max) -- will distort scales!
    */
   const xScaleCategory: ScaleTypeConfig = {
+    display: hideAxis ? false : true,
     type: 'category', //Linear doesn't understand bins!
     grid: { display: false },
     ticks: {
@@ -98,6 +107,7 @@ export function HistogramChart({
   const yScaleBase: DeepPartial<
     ScaleOptionsByType<keyof CartesianScaleTypeRegistry>
   > = {
+    display: hideAxis ? false : true,
     type: 'linear',
     max: Math.max(...counts), //NOTE: do not add `min` since if they are equal nothing gets displayed sometimes
     grid: {
@@ -136,7 +146,7 @@ export function HistogramChart({
               ? TEXTLENGTH
               : VALUE_RANGE;
 
-            return `${prefix}: ${result}\n(${percentOfTotal})`;
+            return `${prefix}\n${result}\n(${percentOfTotal})`;
           },
         },
       },

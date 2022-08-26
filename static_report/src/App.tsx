@@ -4,8 +4,8 @@ import { Switch, Route, Router, BaseLocationHook, type Params } from 'wouter';
 import { Loading } from './components/shared/Loading';
 import { NotFound } from './components/shared/NotFound';
 import { useHashLocation } from './hooks/useHashLcocation';
-import { SingleReportList } from './components/SingleReport/SRList';
-import { ComparisonReportList } from './components/ComparisonReport/CRList';
+import { SRTablesListPage } from './components/SingleReport/SRTablesListPage';
+import { CRTablesListPage } from './components/ComparisonReport/CRTablesListPage';
 
 import * as Sentry from '@sentry/browser';
 import { BrowserTracing } from '@sentry/tracing';
@@ -44,7 +44,7 @@ function AppSingle() {
           <Route
             path="/"
             component={() => (
-              <SingleReportList data={window.PIPERIDER_SINGLE_REPORT_DATA} />
+              <SRTablesListPage data={window.PIPERIDER_SINGLE_REPORT_DATA} />
             )}
           />
 
@@ -74,7 +74,7 @@ function AppComparison() {
           <Route
             path="/"
             component={() => (
-              <ComparisonReportList
+              <CRTablesListPage
                 data={window.PIPERIDER_COMPARISON_REPORT_DATA}
               />
             )}

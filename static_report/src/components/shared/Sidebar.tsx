@@ -68,7 +68,9 @@ export function Sidebar() {
       position="sticky"
       top={0}
       direction="column"
-      bgColor="gray.100"
+      bgColor="gray.50"
+      borderRight="1px solid"
+      borderRightColor="gray.200"
       alignItems="center"
       justifyContent="space-between"
       p={4}
@@ -88,7 +90,7 @@ export function Sidebar() {
       </Flex>
 
       <Box>
-        <Divider borderColor="black" my={4} />
+        <Divider borderColor="gray.500" my={4} />
         <Flex
           data-cy="open-feedback-modal"
           alignItems="center"
@@ -102,7 +104,7 @@ export function Sidebar() {
         </Flex>
       </Box>
 
-      <Modal {...modal} size="2xl">
+      <Modal {...modal} size="2xl" autoFocus={false}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Send feedback to PipeRider</ModalHeader>

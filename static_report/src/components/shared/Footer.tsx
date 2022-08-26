@@ -1,8 +1,16 @@
-import { Box, Flex, Text, Link, Image, Divider } from '@chakra-ui/react';
+import {
+  Box,
+  Flex,
+  Text,
+  Link,
+  Image,
+  Divider,
+  FlexProps,
+} from '@chakra-ui/react';
 
-export function Footer() {
+export function Footer(props: FlexProps) {
   return (
-    <Flex gap={8} my={8}>
+    <Flex gap={8} my={8} {...props}>
       <Flex gap={3}>
         <Flex alignItems="center" gap={3}>
           <Image

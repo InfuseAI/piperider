@@ -100,6 +100,10 @@ export const tableSchemaSchema = z.object({
 export const singleReportSchemaSchema = z.object({
   tables: z.record(tableSchemaSchema),
   id: z.string(),
+  project_id: z.string().optional(),
+  user_id: z.string().optional(),
+  version: z.string().optional(),
+  metadata_version: z.string().optional(),
   created_at: z.string(),
   datasource: dataSourceSchema,
 });
