@@ -82,7 +82,7 @@ class DataSource(metaclass=ABCMeta):
     def verify_connection(self):
         engine = None
         try:
-            engine = create_engine(self.to_database_url(), **self.engine_args())
+            engine = self.create_engine()
             available_tables = inspect(engine).get_table_names()
             if len(available_tables) == 0:
                 raise PipeRiderConnectionError(self.name, self.type_name)
@@ -90,6 +90,9 @@ class DataSource(metaclass=ABCMeta):
             if engine:
                 engine.dispose()
         return available_tables
+
+    def create_engine(self):
+        return create_engine(self.to_database_url(), **self.engine_args())
 
     def engine_args(self):
         return dict()
@@ -205,12 +208,14 @@ def _list_datasource_providers():
     from .bigquery import BigQueryDataSource
     from .redshift import RedshiftDataSource
     from .survey import UserSurveyMockDataSource
+    from .duckdb import CsvDataSource
     return {
         'snowflake': SnowflakeDataSource,
         'bigquery': BigQueryDataSource,
         'redshift': RedshiftDataSource,
         'postgres': PostgresDataSource,
         'sqlite': SqliteDataSource,
+        'csv': CsvDataSource,
         'tell us what type of datasource you want': UserSurveyMockDataSource,
     }
 

@@ -59,6 +59,10 @@ setup(name='piperider',
               'psycopg2-binary',
               'boto3>=1.24.11',
           ],
+          'duckdb': [
+              'duckdb>=0.4.0',
+              'duckdb-engine>=0.6.1'
+          ],
           'dev': [
               'pytest>=4.6',
               'pytest-flake8',

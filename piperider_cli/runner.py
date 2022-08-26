@@ -11,7 +11,6 @@ from rich.markup import escape
 from rich.pretty import Pretty
 from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedColumn, MofNCompleteColumn
 from rich.table import Table
-from sqlalchemy import create_engine, inspect
 
 from piperider_cli import convert_to_tzlocal, datetime_to_str, clone_directory, \
     raise_exception_when_directory_not_writable
@@ -48,8 +47,8 @@ class RunEventPayload:
 
 class RichProfilerEventHandler(ProfilerEventHandler):
 
-    def __init__(self, tables, ds):
-        table_width, total_width = self._get_width(tables, ds)
+    def __init__(self, tables):
+        table_width, total_width = self._get_width(tables)
         total_column = TextColumn("{task.fields[coft]}", table_column=Column(width=total_width))
         text_column = TextColumn("{task.description}", table_column=Column(width=table_width))
         bar_column = BarColumn(bar_width=80)
@@ -62,23 +61,8 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         self.table_total = 0
         self.table_completed = 0
 
-    def _get_width(self, tables, ds):
-        length_arr = []
-        if tables:
-            return max([len(x) for x in tables]), len(str(len(tables))) * 2 + 2
-
-        engine = None
-        try:
-            engine = create_engine(ds.to_database_url(), **ds.engine_args())
-            length_arr = [len(x) for x in inspect(engine).get_table_names()]
-        except Exception:
-            pass
-        finally:
-            if engine:
-                engine.dispose()
-        if length_arr:
-            return max(length_arr), len(str(len(length_arr))) * 2 + 2
-        return None, None
+    def _get_width(self, tables):
+        return max([len(x) for x in tables]), len(str(len(tables))) * 2 + 2
 
     def handle_run_start(self, run_result):
         pass
@@ -569,7 +553,7 @@ class Runner():
             return 1
 
         try:
-            ds.verify_connection()
+            available_tables = ds.verify_connection()
         except Exception as err:
             console.print(
                 f'[[bold red]FAILED[/bold red]] Failed to connect the \'{ds.name}\' data source. Reason: {err}')
@@ -597,8 +581,8 @@ class Runner():
         console.rule('Profiling')
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
-        engine = create_engine(ds.to_database_url(), **ds.engine_args())
-        profiler = Profiler(engine, RichProfilerEventHandler(tables, ds))
+        engine = ds.create_engine()
+        profiler = Profiler(engine, RichProfilerEventHandler(tables if tables else available_tables))
         try:
             profile_result = profiler.profile(tables)
             decorate_with_metadata(profile_result)
