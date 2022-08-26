@@ -120,12 +120,12 @@ export function CRColumnDetailsPage({
             </Box>
           </GridItem>
           {/* Quantiles Block */}
+          {/* FIXME: Box plot using wrong data */}
           {(baseType === 'integer' || baseType === 'numeric') && baseHistogram && (
             <GridItem gridRow={'span 1'} p={9} bg={'white'} minWidth={'0px'}>
               <Text fontSize={'xl'}>Quantile Data</Text>
               <Divider my={3} />
               <Box my={5}>
-                {/* FIXME: Box plot using wrong data */}
                 <FlatBoxPlotChart histogram={baseHistogram} />
               </Box>
               <QuantilesMatrix columnDatum={baseColumnDatum} />

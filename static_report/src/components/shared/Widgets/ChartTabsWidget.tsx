@@ -6,11 +6,12 @@ import {
   TabPanel,
   Box,
   Text,
+  Grid,
+  GridItem,
 } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { CategoricalBarChart } from '../Charts/CategoricalBarChart';
-import { HistogramChart } from '../Charts/HistogramChart';
-import { getDataChart } from '../ColumnCard';
+import { getDataChart } from '../../../utils/charts';
+import { ChartKind } from '../../../utils/transformers';
 import { ColumnCardDataVisualContainer } from '../ColumnCard/ColumnCardDataVisualContainer';
 
 interface Props {
@@ -24,10 +25,6 @@ export function ChartTabsWidget({ baseColumnDatum, targetColumnDatum }: Props) {
     histogram: baseHistogram,
     trues: baseTrues,
     falses: baseFalses,
-    total: baseTotal,
-    min: baseMin,
-    max: baseMax,
-    name: baseName,
   } = baseColumnDatum || {};
   var {
     type: targetType,
@@ -35,10 +32,6 @@ export function ChartTabsWidget({ baseColumnDatum, targetColumnDatum }: Props) {
     histogram: targetHistogram,
     trues: targetTrues,
     falses: targetFalses,
-    total: targetTotal,
-    min: targetMin,
-    max: targetMax,
-    name: targetName,
   } = targetColumnDatum || {};
 
   // show tabs based when either column has at least one occurance of metric existence
@@ -47,19 +40,15 @@ export function ChartTabsWidget({ baseColumnDatum, targetColumnDatum }: Props) {
   const histogram = baseHistogram || targetHistogram;
   const trues = baseTrues || targetTrues;
   const falses = baseFalses || targetFalses;
-  const total = baseTotal || targetTotal;
-  const min = baseMin || targetMin;
-  const max = baseMax || targetMax;
-  const name = baseName || targetName;
 
-  //render conditions
+  //render conditions - column pairs can have multiple chart kinds shown
   const hasBoolean = trues && falses;
   const hasHistogram = histogram && type;
   const hasTopk = topk;
   const hasOther = type === 'other';
 
   return (
-    <Box ml={3}>
+    <Box>
       <Text fontSize={'xl'}>Visualizations</Text>
       <Tabs>
         <TabList>
@@ -72,42 +61,64 @@ export function ChartTabsWidget({ baseColumnDatum, targetColumnDatum }: Props) {
         <TabPanels>
           {hasTopk && (
             <TabPanel>
-              <ColumnCardDataVisualContainer p={0} title={name} allowModalPopup>
-                <CategoricalBarChart data={topk} total={total || 0} />
-              </ColumnCardDataVisualContainer>
+              {_renderGridSplitView(baseColumnDatum, targetColumnDatum, 'topk')}
             </TabPanel>
           )}
           {hasHistogram && (
             <TabPanel>
-              <ColumnCardDataVisualContainer p={0} title={name} allowModalPopup>
-                <HistogramChart data={{ histogram, min, max, type, total }} />
-              </ColumnCardDataVisualContainer>
+              {_renderGridSplitView(
+                baseColumnDatum,
+                targetColumnDatum,
+                'histogram',
+              )}
             </TabPanel>
           )}
           {hasBoolean && (
             <TabPanel>
-              {baseColumnDatum && (
-                <ColumnCardDataVisualContainer
-                  p={0}
-                  title={name}
-                  allowModalPopup
-                >
-                  {getDataChart(baseColumnDatum)}
-                </ColumnCardDataVisualContainer>
-              )}
+              {_renderGridSplitView(baseColumnDatum, targetColumnDatum, 'pie')}
             </TabPanel>
           )}
           {hasOther && (
             <TabPanel>
-              {baseColumnDatum && (
-                <ColumnCardDataVisualContainer p={0} title={name}>
-                  {getDataChart(baseColumnDatum)}
-                </ColumnCardDataVisualContainer>
-              )}
+              {_renderGridSplitView(baseColumnDatum, targetColumnDatum)}
             </TabPanel>
           )}
         </TabPanels>
       </Tabs>
     </Box>
+  );
+}
+
+/**
+ * A helper method to render two-col grid view or single-grid col, depending on target
+ * @param baseColumnDatum
+ * @param targetColumnDatum
+ * @param chartKind
+ * @returns
+ */
+function _renderGridSplitView(
+  baseColumnDatum?: ColumnSchema,
+  targetColumnDatum?: ColumnSchema,
+  chartKind?: ChartKind,
+) {
+  return (
+    <Grid templateColumns={targetColumnDatum ? '1fr 1fr' : '1fr'}>
+      <GridItem minWidth={0}>
+        {baseColumnDatum && (
+          <ColumnCardDataVisualContainer p={0} title={baseColumnDatum.name}>
+            {getDataChart(baseColumnDatum, targetColumnDatum, chartKind)}
+          </ColumnCardDataVisualContainer>
+        )}
+      </GridItem>
+      {targetColumnDatum && (
+        <GridItem minWidth={0}>
+          {targetColumnDatum && (
+            <ColumnCardDataVisualContainer p={0} title={targetColumnDatum.name}>
+              {getDataChart(targetColumnDatum, baseColumnDatum, chartKind)}
+            </ColumnCardDataVisualContainer>
+          )}
+        </GridItem>
+      )}
+    </Grid>
   );
 }

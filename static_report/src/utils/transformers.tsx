@@ -125,7 +125,7 @@ export function checkColumnCategorical(columnDatum?: ColumnSchema): boolean {
  * @param columnDatum
  * @returns a string literal describing the chart kind
  */
-type ChartKind = 'topk' | 'histogram' | 'pie' | undefined;
+export type ChartKind = 'topk' | 'histogram' | 'pie' | undefined;
 export function getChartKindByColumnType(
   columnDatum?: ColumnSchema,
 ): ChartKind {

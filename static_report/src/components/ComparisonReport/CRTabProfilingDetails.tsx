@@ -1,8 +1,8 @@
 import { Flex, Grid } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { SaferTableSchema, zReport, ZTableSchema } from '../../types';
+import { getDataChart } from '../../utils/charts';
 import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
-import { getDataChart } from '../shared/ColumnCard';
 import { ColumnCardDataVisualContainer } from '../shared/ColumnCard/ColumnCardDataVisualContainer';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
 
