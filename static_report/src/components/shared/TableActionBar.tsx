@@ -20,7 +20,6 @@ type Props = {
   toggleView: (view: TableActionBarView) => void;
   sourceName: string;
   sourceType: string;
-  inTransition?: boolean;
 };
 
 export function TableActionBar({
@@ -28,7 +27,6 @@ export function TableActionBar({
   toggleView,
   sourceName,
   sourceType,
-  inTransition = false,
 }: Props) {
   return (
     <Flex
@@ -57,7 +55,6 @@ export function TableActionBar({
         isAttached
         variant="outline"
         data-attached={currentView}
-        isDisabled={inTransition}
       >
         <Button
           data-cy="schema-view"
