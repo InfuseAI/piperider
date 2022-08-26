@@ -64,7 +64,7 @@ class CsvDataSource(DuckDBDataSource):
             name = 'TABLE_' + name
 
         if len(name) > 120:
-            name = name[:115] + '...'
+            name = name[:115] + '__'
 
         return name
 
