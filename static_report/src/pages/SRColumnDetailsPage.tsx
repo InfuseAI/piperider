@@ -5,7 +5,7 @@ import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHead
 import { Main } from '../components/shared/Main';
 import { NumericColumnMetrics } from '../components/shared/ColumnMetrics/NumericColumnMetrics';
 import { SingleReportSchema } from '../sdlc/single-report-schema';
-import { formatTitleCase } from '../utils/formatters';
+import { formatReportTime, formatTitleCase } from '../utils/formatters';
 import { FlatBoxPlotChart } from '../components/shared/Charts/FlatBoxPlotChart';
 import { ColumnDetailsMasterList } from '../components/shared/ColumnDetails/ColumnDetailsMasterList';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
@@ -13,12 +13,13 @@ import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 interface Props {
   data: SingleReportSchema;
 }
-export function SRColumnDetailsPage({ data: { tables } }: Props) {
+export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
   const [match, params] = useRoute('/tables/:reportName/columns/:columnName');
+  const time = formatReportTime(created_at);
 
   if (!params?.columnName) {
     return (
-      <Main>
+      <Main isSingleReport time={time}>
         <Flex justifyContent="center" alignItems="center" minHeight="100vh">
           No profile column data found.
         </Flex>
@@ -32,7 +33,7 @@ export function SRColumnDetailsPage({ data: { tables } }: Props) {
   const { type, histogram } = columnDatum;
 
   return (
-    <Main>
+    <Main isSingleReport time={time}>
       <Flex
         width={'inherit'}
         minHeight="90vh"

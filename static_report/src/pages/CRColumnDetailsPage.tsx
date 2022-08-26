@@ -4,7 +4,7 @@ import { QuantilesMatrix } from '../components/shared/ColumnMetrics/QuantilesMat
 import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHeader';
 import { Main } from '../components/shared/Main';
 import { NumericColumnMetrics } from '../components/shared/ColumnMetrics/NumericColumnMetrics';
-import { formatTitleCase } from '../utils/formatters';
+import { formatReportTime, formatTitleCase } from '../utils/formatters';
 import { FlatBoxPlotChart } from '../components/shared/Charts/FlatBoxPlotChart';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
@@ -15,15 +15,18 @@ interface Props {
 }
 export function CRColumnDetailsPage({
   data: {
-    base: { tables: baseTables },
-    input: { tables: targetTables },
+    base: { tables: baseTables, created_at: baseTime },
+    input: { tables: targetTables, created_at: targetTime },
   },
 }: Props) {
   const [match, params] = useRoute('/tables/:reportName/columns/:columnName');
 
+  const time = `${formatReportTime(baseTime)} -> ${formatReportTime(
+    targetTime,
+  )}`;
   if (!params?.columnName) {
     return (
-      <Main>
+      <Main isSingleReport={false} time={time}>
         <Flex justifyContent="center" alignItems="center" minHeight="100vh">
           No profile column data found.
         </Flex>
@@ -44,7 +47,7 @@ export function CRColumnDetailsPage({
 
   // FIXME: IMPLEMENT TARGET SIDE
   return (
-    <Main>
+    <Main isSingleReport={false} time={time}>
       <Flex
         width={'inherit'}
         minHeight="90vh"
