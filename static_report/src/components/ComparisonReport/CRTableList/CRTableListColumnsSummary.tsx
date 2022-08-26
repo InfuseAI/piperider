@@ -6,33 +6,33 @@ import {
 } from 'react-icons/fi';
 
 export function CRTableListColumnsSummary({
-  base,
-  target,
+  baseCount,
+  targetCount,
 }: {
-  base: number;
-  target: number;
+  baseCount: number;
+  targetCount: number;
 }) {
-  if (base === target) {
+  if (baseCount === targetCount) {
     return (
       <Flex alignItems="center" gap={1}>
-        <Text as="span">{base}</Text>
+        <Text as="span">{baseCount}</Text>
         <Icon as={FiArrowRight} />
-        <Text as="span">{target}</Text>
+        <Text as="span">{targetCount}</Text>
       </Flex>
     );
   }
 
   return (
     <Flex alignItems="center">
-      <Text as="span">{base}</Text>
+      <Text as="span">{baseCount}</Text>
       <Icon as={FiArrowRight} />
       <Icon
-        as={base < target ? FiArrowUpCircle : FiArrowDownCircle}
+        as={baseCount < targetCount ? FiArrowUpCircle : FiArrowDownCircle}
         ml={2}
         mr={1}
         boxSize={5}
       />
-      <Text as="span">{target}</Text>
+      <Text as="span">{targetCount}</Text>
     </Flex>
   );
 }

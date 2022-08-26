@@ -13,7 +13,7 @@ import { type SingleReportSchema } from '../../sdlc/single-report-schema';
 
 type Props = { data: SingleReportSchema };
 
-export function SingleReportList({ data }: Props) {
+export function SRTablesListPage({ data }: Props) {
   const { created_at, datasource } = data;
 
   const [view, setView] = useLocalStorage<TableActionBarView>(

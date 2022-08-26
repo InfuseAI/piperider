@@ -8,14 +8,14 @@ import type {
   ColumnSchema,
 } from '../../../sdlc/single-report-schema';
 
-export function SRTableListColumnDetail({
+export function SRTableListColumnItem({
   name,
-  data,
+  columnDatum,
   icon,
   colAssertions,
 }: {
   name: string;
-  data: ColumnSchema;
+  columnDatum: ColumnSchema;
   icon: any;
   colAssertions: AssertionTest[] | undefined;
 }) {
@@ -33,7 +33,7 @@ export function SRTableListColumnDetail({
 
       <GridItem>
         <Flex width="calc(100% - 50px)" height="80px">
-          <HistogramChart hideAxis data={data} />
+          <HistogramChart hideAxis data={columnDatum} />
         </Flex>
       </GridItem>
 

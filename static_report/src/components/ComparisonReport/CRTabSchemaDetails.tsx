@@ -47,20 +47,23 @@ const getEnrichedColumnsFor = (
     : [];
 
 type Props = {
-  base?: TableSchema | undefined;
-  target?: TableSchema | undefined;
+  baseTableDatum?: TableSchema | undefined;
+  targetTableDatum?: TableSchema | undefined;
   visibleDetail?: boolean;
 };
 export function CRTabSchemaDetails({
-  base,
-  target,
+  baseTableDatum,
+  targetTableDatum,
   visibleDetail = false,
 }: Props) {
-  zReport(ZTableSchema.safeParse(base));
-  zReport(ZTableSchema.safeParse(target));
+  zReport(ZTableSchema.safeParse(baseTableDatum));
+  zReport(ZTableSchema.safeParse(targetTableDatum));
 
-  const baseColEntries = getEnrichedColumnsFor(base?.columns, 'base');
-  const targetColEntries = getEnrichedColumnsFor(target?.columns, 'target');
+  const baseColEntries = getEnrichedColumnsFor(baseTableDatum?.columns, 'base');
+  const targetColEntries = getEnrichedColumnsFor(
+    targetTableDatum?.columns,
+    'target',
+  );
   const combinedColEntries = [...baseColEntries, ...targetColEntries];
 
   //Should tally based on the change

@@ -18,7 +18,7 @@ import { Link } from 'wouter';
 
 import { SRTableListSchemaDetail } from './SRTableListSchemaDetail';
 import { SRTableListColumnLabel } from './SRTableListColumnLabel';
-import { SRTableColumnDetails } from './SRTableListColumnDetails';
+import { SRTableListColumnList } from './SRTableListColumnList';
 import { zReport, ZTableSchema } from '../../../types';
 import { getReportAggregateAssertions } from '../../../utils/assertion';
 import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
@@ -225,7 +225,7 @@ export function SRTableList({
                     <AccordionPanel bgColor="white">
                       {view === 'summary' ? (
                         <Stack gap={6}>
-                          <SRTableColumnDetails table={table} />
+                          <SRTableListColumnList table={table} />
                         </Stack>
                       ) : (
                         <SRTableListSchemaDetail table={table} />

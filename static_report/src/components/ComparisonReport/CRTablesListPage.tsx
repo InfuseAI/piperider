@@ -15,7 +15,7 @@ import { type ComparisonReportSchema } from '../../types';
 
 type Props = { data: ComparisonReportSchema };
 
-export function ComparisonReportList({ data }: Props) {
+export function CRTablesListPage({ data }: Props) {
   const { base, input: target } = data;
 
   const [view, setView] = useLocalStorage<TableActionBarView>(

@@ -20,7 +20,7 @@ import { CRTabSchemaDetails } from '../CRTabSchemaDetails';
 import { CRTableListAssertions } from './CRTableListAssertions';
 import { CRTableListColumnsSummary } from './CRTableListColumnsSummary';
 import { CRTableListRowsSummary } from './CRTableListRowsSummary';
-import { CRTableListColumnDetails } from './CRTableListColumnDetails';
+import { CRTableListColumnList } from './CRTableListColumnList';
 import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
 import {
   ComparisonReportSchema,
@@ -104,8 +104,8 @@ export function CRTableList({
                             <Flex gap={10} color="gray.500">
                               <Text>Rows</Text>
                               <CRTableListRowsSummary
-                                base={table.base.row_count || 0}
-                                target={table.target.row_count || 0}
+                                baseCount={table.base.row_count || 0}
+                                targetCount={table.target.row_count || 0}
                               />
                             </Flex>
                           </GridItem>
@@ -167,8 +167,8 @@ export function CRTableList({
                                   Columns
                                 </Text>
                                 <CRTableListColumnsSummary
-                                  base={table.base.col_count || 0}
-                                  target={table.target.col_count || 0}
+                                  baseCount={table.base.col_count || 0}
+                                  targetCount={table.target.col_count || 0}
                                 />
                               </Flex>
                             )}
@@ -180,16 +180,16 @@ export function CRTableList({
                     <AccordionPanel bgColor="white">
                       {view === 'summary' ? (
                         <Stack gap={6}>
-                          <CRTableListColumnDetails
-                            base={table.base}
-                            target={table.target}
+                          <CRTableListColumnList
+                            baseTableDatum={table.base}
+                            targetTableDatum={table.target}
                           />
                         </Stack>
                       ) : (
                         <CRTabSchemaDetails
                           visibleDetail={false}
-                          base={table.base}
-                          target={table.target}
+                          baseTableDatum={table.base}
+                          targetTableDatum={table.target}
                         />
                       )}
                     </AccordionPanel>

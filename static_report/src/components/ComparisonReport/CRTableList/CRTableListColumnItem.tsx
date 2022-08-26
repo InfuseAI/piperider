@@ -29,18 +29,18 @@ function getAssertions(assertions: AssertionTest[]) {
   };
 }
 
-export function CRTableListColumnDetail({
+export function CRTableListColumnItem({
   name,
   icon,
   baseColAssertions,
   targetColAssertions,
-  data,
+  columnDatum,
 }: {
   name: string;
   icon: any;
   baseColAssertions: AssertionTest[];
   targetColAssertions: AssertionTest[];
-  data: {
+  columnDatum: {
     base: ColumnSchema;
     target: ColumnSchema;
   };
@@ -63,15 +63,15 @@ export function CRTableListColumnDetail({
       <GridItem>
         <Flex gap={4} width="calc(100% - 50px)" height="80px">
           <Box width="50%">
-            {data.base ? (
-              <HistogramChart hideAxis data={data.base} />
+            {columnDatum.base ? (
+              <HistogramChart hideAxis data={columnDatum.base} />
             ) : (
               <NoData />
             )}
           </Box>
           <Box width="50%">
-            {data.target ? (
-              <HistogramChart hideAxis data={data.target} />
+            {columnDatum.target ? (
+              <HistogramChart hideAxis data={columnDatum.target} />
             ) : (
               <NoData />
             )}

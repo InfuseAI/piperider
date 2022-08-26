@@ -1,8 +1,8 @@
 import { TableSchema } from '../../../sdlc/single-report-schema';
 import { getIconForColumnType } from '../../../utils/transformers';
-import { SRTableListColumnDetail } from './SRTableListColumnDetail';
+import { SRTableListColumnItem } from './SRTableListColumnItem';
 
-export function SRTableColumnDetails({ table }: { table: TableSchema }) {
+export function SRTableListColumnList({ table }: { table: TableSchema }) {
   const mergedAssertionColumns = Object.keys(
     table.piperider_assertion_result?.columns || {},
   ).map((colName) => {
@@ -24,10 +24,10 @@ export function SRTableColumnDetails({ table }: { table: TableSchema }) {
     <>
       {mergedAssertionColumns.map(
         ({ colName, colIcon, mergedColAssertions }) => (
-          <SRTableListColumnDetail
+          <SRTableListColumnItem
             key={colName}
             name={colName}
-            data={table.columns[colName]}
+            columnDatum={table.columns[colName]}
             colAssertions={mergedColAssertions}
             icon={colIcon}
           />

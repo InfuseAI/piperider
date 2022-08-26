@@ -174,7 +174,10 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
 
             <TabPanels>
               <TabPanel>
-                <CRTabSchemaDetails base={baseTable} target={targetTable} />
+                <CRTabSchemaDetails
+                  baseTableDatum={baseTable}
+                  targetTableDatum={targetTable}
+                />
               </TabPanel>
 
               <TabPanel>

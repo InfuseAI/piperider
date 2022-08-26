@@ -69,8 +69,8 @@ export function CRTableListAssertions({
         />
         <Text as="span">/</Text>
         <CRTargetTableAssertionsDifference
-          base={baseOverviewAssertions}
-          target={targetOverviewAssertions}
+          baseAssertions={baseOverviewAssertions}
+          targetAssertions={targetOverviewAssertions}
         />
       </Flex>
     </Flex>
@@ -145,16 +145,16 @@ export function CRTargetTableAssertion({
 }
 
 export function CRTargetTableAssertionsDifference({
-  base,
-  target,
+  baseAssertions,
+  targetAssertions,
 }: {
-  base: number;
-  target: number;
+  baseAssertions: number;
+  targetAssertions: number;
 }) {
-  const difference = target - base;
+  const difference = targetAssertions - baseAssertions;
   const isGreaterThanZero = difference > 0;
 
-  if (target === 0) {
+  if (targetAssertions === 0) {
     return <Text as="span">none</Text>;
   }
 
@@ -168,9 +168,9 @@ export function CRTargetTableAssertionsDifference({
         />
       ) : null}
       <Text as="span" color={isGreaterThanZero ? 'black' : 'inherit'}>
-        {difference === 0 && target}
-        {difference < 0 && target}
-        {difference > 0 && target}
+        {difference === 0 && targetAssertions}
+        {difference < 0 && targetAssertions}
+        {difference > 0 && targetAssertions}
       </Text>
     </Center>
   );
