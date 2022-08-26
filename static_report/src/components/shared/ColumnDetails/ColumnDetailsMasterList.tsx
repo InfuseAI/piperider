@@ -24,12 +24,6 @@ interface Props {
 }
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of columns. Belongs in the profiling column details page to view in-depth metrics and visualizations
- *
- * Component should handle various cases of column data: validsOfTotal_bar
- * 1. Both Avail
- * 2. No Base
- * 3. No Target
- * 4. Diff column.type
  */
 export function ColumnDetailsMasterList({
   baseDataColumns,
@@ -71,6 +65,8 @@ export function ColumnDetailsMasterList({
       <Text as={'h3'} fontWeight={'bold'} mb={3}>
         Columns ({combinedColumnEntries.length})
       </Text>
+
+      {/* Search Bar */}
       <InputGroup my={2}>
         <InputLeftElement
           pointerEvents={'none'}
@@ -83,6 +79,8 @@ export function ColumnDetailsMasterList({
           onChange={({ target }) => setFilterString(target.value)}
         />
       </InputGroup>
+
+      {/* Tag Toggle Filters */}
       <Box mb={6}>
         <Text as={'small'}>Applied Filters:</Text>
         <Flex alignItems={'center'}>
@@ -107,22 +105,13 @@ export function ColumnDetailsMasterList({
           })}
         </Flex>
       </Box>
-      {/* QueryList */}
 
+      {/* QueryList */}
       {combinedColumnEntries
-        .filter(
-          ([
-            key,
-            {
-              base: { type: baseType },
-              target: { type: targetType },
-            },
-          ]) => {
-            // Logic: base-first basis lookup
-            const typeToLookup = baseType ?? targetType;
-            return filterState.get(typeToLookup);
-          },
-        )
+        .filter(([key, { base, target }]) => {
+          // Logic: base-first lookup (tag filter UI)
+          return filterState.get(base?.type) || filterState.get(target?.type);
+        })
         .filter(([key]) =>
           filterString ? key.search(new RegExp(filterString, 'gi')) > -1 : true,
         )
@@ -130,6 +119,7 @@ export function ColumnDetailsMasterList({
           <ColumnDetailListItem
             key={key}
             baseColumnDatum={base}
+            targetColumnDatum={target}
             onSelect={(name) => {
               setLocation(`/tables/${currentReport}/columns/${name}`);
             }}

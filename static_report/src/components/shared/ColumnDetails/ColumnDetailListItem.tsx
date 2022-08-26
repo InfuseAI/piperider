@@ -12,29 +12,37 @@ import {
   formatColumnValueWith,
   formatIntervalMinMax,
 } from '../../../utils/formatters';
-import { getColumnDetails } from '../../../utils/transformers';
-import { getIconForColumnType } from '../ColumnCard/ColumnCardHeader';
+import {
+  getColumnDetails,
+  getIconForColumnType,
+} from '../../../utils/transformers';
 
 /**
- * Cases Affected: validsOfTotal_bar
+ * Cases Affected: baseValidsOfTotal_bar
  * 1. Both Avail
  * 2. No Base
  * 3. No Target
  * 4. Diff types
  */
 interface Props {
-  baseColumnDatum: ColumnSchema;
+  baseColumnDatum?: ColumnSchema;
   targetColumnDatum?: ColumnSchema;
   onSelect: (arg: string) => void;
 }
 export function ColumnDetailListItem({
   baseColumnDatum,
+  targetColumnDatum,
   onSelect,
   ...props
 }: Props & ChakraProps) {
   const { icon, backgroundColor } = getIconForColumnType(baseColumnDatum);
-  const { validsOfTotal } = getColumnDetails(baseColumnDatum);
-  const validsPercentValue = Number(validsOfTotal) * 100;
+
+  const { validsOfTotal: baseValidsOfTotal } =
+    getColumnDetails(baseColumnDatum);
+  const { validsOfTotal: targetValidsOfTotal } =
+    getColumnDetails(targetColumnDatum);
+  const baseValidsPercentValue = Number(baseValidsOfTotal) * 100;
+  const targetValidsPercentValue = Number(targetValidsOfTotal) * 100;
 
   return (
     <>
@@ -42,7 +50,7 @@ export function ColumnDetailListItem({
         justifyContent={'space-between'}
         alignItems={'center'}
         cursor={'pointer'}
-        onClick={() => onSelect(baseColumnDatum.name)}
+        onClick={() => onSelect(baseColumnDatum?.name || '')}
         _hover={{ bgColor: 'blackAlpha.50' }}
         {...props}
       >
@@ -57,19 +65,43 @@ export function ColumnDetailListItem({
             boxSize={5}
           />
           <Text noOfLines={1} width={'14em'} fontSize={'sm'}>
-            {baseColumnDatum.name}
+            {baseColumnDatum?.name || ''}
           </Text>
         </Flex>
-        <Box width={'100%'}>
-          <Progress value={validsPercentValue} />
+        <Box width={'100%'} my={3}>
+          {targetColumnDatum && (
+            <Text fontSize={'sm'} color={'gray.600'} fontWeight={'semibold'}>
+              Base
+            </Text>
+          )}
+          <Progress value={baseValidsPercentValue} />
           <Flex justifyContent={'space-between'}>
             <Text fontSize={'xs'} mr={2}>
-              {formatColumnValueWith(validsOfTotal, formatIntervalMinMax)}
+              {formatColumnValueWith(baseValidsOfTotal, formatIntervalMinMax)}
             </Text>
             <Text fontSize={'xs'} color={'gray.600'}>
               Valid
             </Text>
           </Flex>
+          {targetColumnDatum && (
+            <Box mt={3}>
+              <Text fontSize={'sm'} color={'gray.600'} fontWeight={'semibold'}>
+                Target
+              </Text>
+              <Progress value={targetValidsPercentValue} />
+              <Flex justifyContent={'space-between'}>
+                <Text fontSize={'xs'} mr={2}>
+                  {formatColumnValueWith(
+                    targetValidsOfTotal,
+                    formatIntervalMinMax,
+                  )}
+                </Text>
+                <Text fontSize={'xs'} color={'gray.600'}>
+                  Valid
+                </Text>
+              </Flex>
+            </Box>
+          )}
         </Box>
       </Flex>
       <Divider />

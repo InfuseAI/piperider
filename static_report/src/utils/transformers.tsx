@@ -1,12 +1,11 @@
+import { ColorProps } from '@chakra-ui/styled-system';
+import isNumber from 'lodash/isNumber';
 import { AiOutlineFileText } from 'react-icons/ai';
 import { BiText, BiQuestionMark } from 'react-icons/bi';
 import { BsCalendarDate } from 'react-icons/bs';
-import { VscSymbolOperator } from 'react-icons/vsc';
-import { TbCircleHalf, TbCircles } from 'react-icons/tb';
+import { TbCircles, TbCircleHalf } from 'react-icons/tb';
 import { TiSortNumerically } from 'react-icons/ti';
-import { ColorProps } from '@chakra-ui/react';
-
-import isNumber from 'lodash/isNumber';
+import { VscSymbolOperator } from 'react-icons/vsc';
 import { FlatStackedBarChartProps } from '../components/shared/Charts/FlatStackedBarChart';
 import {
   ZEROLENGTH,
@@ -25,7 +24,7 @@ import { ColumnSchema } from '../sdlc/single-report-schema';
  */
 
 /**
- *
+ * Serializes data for UI components that are shared across both SR and CR (e.g. tables, columns, assertions etc)
  * @param base comparison's base schema-item
  * @param target comparison's target schema-item
  * @returns a record of base/target object
@@ -53,7 +52,11 @@ export function transformAsNestedBaseTargetRecord<K, T>(
   return result;
 }
 
-export function getColumnDetails(columnData: ColumnSchema) {
+/**
+ * @param columnData
+ * @returns the metrics of the column data. will return null when properties have missing operands
+ */
+export function getColumnDetails(columnData?: ColumnSchema) {
   const {
     nulls,
     non_nulls,
@@ -68,7 +71,7 @@ export function getColumnDetails(columnData: ColumnSchema) {
     negatives,
     positives,
     zeros,
-  } = columnData;
+  } = columnData || {};
 
   const hasNoNull = non_nulls === total;
   const validsOfTotal = isNumber(valids) && total ? valids / total : null;
@@ -150,11 +153,73 @@ export type CRHistogramDatum = {
   target: number;
 };
 
-export function getIconForColumnType(columnDatum: ColumnSchema): {
+export const zeroAsFallbackHandler = (v) => (v ? v : 0);
+/**
+ *
+ * @param columnDatum
+ * @param compType defines if it's generic-type based composition metric (dynamic) or a general composition (static)
+ * @returns
+ */
+export function transformCompositionAsFlatStackInput(
+  columnDatum: ColumnSchema,
+  compType: 'static' | 'dynamic',
+): FlatStackedBarChartProps['data'] | undefined {
+  const {
+    nulls,
+    invalids,
+    valids,
+    negatives,
+    zeros,
+    positives,
+    non_zero_length,
+    zero_length,
+    total,
+    type,
+  } = columnDatum;
+
+  if (compType === 'static') {
+    const { nullsOfTotal, invalidsOfTotal, validsOfTotal } =
+      getColumnDetails(columnDatum);
+
+    return {
+      labels: [VALIDS, INVALIDS, NULLS].map(zeroAsFallbackHandler),
+      counts: [valids, invalids, nulls].map(zeroAsFallbackHandler),
+      ratios: [validsOfTotal, nullsOfTotal, invalidsOfTotal].map(
+        zeroAsFallbackHandler,
+      ),
+      colors: ['#63B3ED', '#D9D9D9', '#FF0861'],
+    };
+  }
+  if (type === 'string') {
+    const newCounts = [zero_length, non_zero_length].map(zeroAsFallbackHandler);
+    return {
+      labels: [ZEROLENGTH, NONZEROLENGTH],
+      counts: newCounts,
+      ratios: newCounts.map((v) => v / (total || 0)),
+      colors: ['#FFCF36', '#002A53'],
+    };
+  }
+  if (type === 'numeric' || type === 'integer') {
+    const newCounts = [negatives, zeros, positives].map(zeroAsFallbackHandler);
+    return {
+      labels: [NEGATIVES, ZEROS, POSITIVES],
+      counts: newCounts,
+      ratios: newCounts.map((v) => v / (total || 0)),
+      colors: ['#FFCF36', '#D9D9D9', '#002A53'],
+    };
+  }
+}
+
+/**
+ * Retrieves the color and icon component for the column's generic type. Will default to question mark icon when type doesn't match
+ * @param columnDatum
+ * @returns
+ */
+export function getIconForColumnType(columnDatum?: ColumnSchema): {
   backgroundColor: ColorProps['color'];
   icon: any; //IconType not provided
 } {
-  const { type } = columnDatum;
+  const { type } = columnDatum || {};
   const isCategorical = checkColumnCategorical(columnDatum);
 
   if (isCategorical && type === 'string') {
