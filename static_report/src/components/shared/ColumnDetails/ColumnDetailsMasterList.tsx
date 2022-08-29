@@ -63,7 +63,8 @@ export function ColumnDetailsMasterList({
         w={'100%'}
         p={4}
         zIndex={150}
-        bg={'white'}
+        bg={'blue.700'}
+        color={'white'}
         borderBottom={'1px solid lightgray'}
       >
         <Text as={'h3'} fontWeight={'bold'} mb={3}>
@@ -77,6 +78,7 @@ export function ColumnDetailsMasterList({
             children={<SearchIcon color={'gray.300'} />}
           />
           <Input
+            bg={'white'}
             type={'text'}
             placeholder="Find By Column Name"
             value={filterString}

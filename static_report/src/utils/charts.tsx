@@ -63,12 +63,18 @@ export function getDataChart(
     const ratios = counts.map((v) => v / Number(total));
     return <BooleanPieChart data={{ counts, labels, ratios }} />;
   }
+  return renderChartUnavailableMsg(valids, schema_type);
+}
 
+export function renderChartUnavailableMsg(
+  valids?: ColumnSchema['valids'],
+  schema_type?: ColumnSchema['schema_type'],
+) {
   const noRenderMessage = Boolean(valids)
     ? `Chart rendering unavailable for (type: ${schema_type})`
     : `There are insufficient valid data points in this dataset`;
   return (
-    <Flex h={230} alignItems={'center'} w={'100%'}>
+    <Flex h={230} alignItems={'center'} w={'100%'} bg={'blackAlpha.300'}>
       <Text textAlign={'center'} w={'inherit'}>
         {noRenderMessage}
       </Text>

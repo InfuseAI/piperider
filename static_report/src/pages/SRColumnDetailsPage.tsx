@@ -61,8 +61,8 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
               columnDatum={columnDatum}
               maxHeight={'5em'}
               height={'100%'}
-              borderBottom={'1px solid lightgray'}
-              bg={'gray.50'}
+              bg={'blue.700'}
+              color={'white'}
             />
           </GridItem>
           {/* Data Composition Block */}

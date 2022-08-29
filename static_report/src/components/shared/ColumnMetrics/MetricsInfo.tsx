@@ -27,7 +27,6 @@ export function MetricsInfo({
   const metaDescription = schemaMetaDescriptions[metakey || ''];
   const { width } = props;
   const isTargetNull = secondSlot === null;
-  // console.log(tooltipValues);
 
   return (
     <Flex>

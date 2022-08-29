@@ -78,7 +78,7 @@ export function CRColumnDetailsPage({
         {/* Detail Area */}
         <Grid
           templateColumns={'1fr 1fr'}
-          templateRows={'5em 5em 1fr 1fr'}
+          templateRows={'5em 3em 1fr 1fr'}
           width={'100%'}
           maxHeight={mainContentAreaHeight}
           overflowY={'auto'}
@@ -89,16 +89,21 @@ export function CRColumnDetailsPage({
               columnDatum={columnHeaderDatum}
               maxHeight={'5em'}
               height={'100%'}
-              borderBottom={'1px solid lightgray'}
+              bg={'blue.700'}
+              color={'white'}
             />
           </GridItem>
-          <GridItem colSpan={2} rowSpan={1}>
-            {/* // FIXME: sticky scroll comparison headers */}
+          <GridItem colSpan={2} rowSpan={1} position={'sticky'} top={0}>
             <Grid templateColumns={'1fr 1fr'} h={'100%'}>
               {['Base', 'Target'].map((v, i) => (
-                <Flex key={i} alignItems={'center'} pl={9} bg={'white'}>
+                <Flex
+                  key={i}
+                  alignItems={'center'}
+                  pl={9}
+                  bg={'blackAlpha.300'}
+                >
                   <Text
-                    color={'gray.400'}
+                    color={'white'}
                     fontWeight={'semibold'}
                     fontSize={'2xl'}
                   >
@@ -109,10 +114,10 @@ export function CRColumnDetailsPage({
             </Grid>
           </GridItem>
           {/* Data Composition Block */}
-          <GridItem colSpan={1} p={9} bg={'white'} minWidth={0}>
+          <GridItem colSpan={1} p={9} bg={'gray.50'} minWidth={0}>
             <DataCompositionWidget columnDatum={baseColumnDatum} />
           </GridItem>
-          <GridItem colSpan={1} p={9} bg={'white'} minWidth={0}>
+          <GridItem colSpan={1} p={9} bg={'gray.50'} minWidth={0}>
             <DataCompositionWidget columnDatum={targetColumnDatum} />
           </GridItem>
           {/* Chart Block - toggleable tabs */}
@@ -121,14 +126,14 @@ export function CRColumnDetailsPage({
             gridRow={'span 1'}
             minWidth={0}
             p={9}
-            bg={'white'}
+            bg={'gray.50'}
           >
             <ChartTabsWidget
               baseColumnDatum={baseColumnDatum}
               targetColumnDatum={targetColumnDatum}
             />
           </GridItem>
-          <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'white'}>
+          <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
             <Grid templateColumns={'1fr 1fr'} gap={8}>
               <GridItem>
                 <Text fontSize={'xl'}>
@@ -151,7 +156,7 @@ export function CRColumnDetailsPage({
           </GridItem>
           {/* Quantiles Block */}
           {(baseType === 'integer' || baseType === 'numeric') && (
-            <GridItem gridRow={'span 1'} p={9} bg={'white'} minWidth={'0px'}>
+            <GridItem gridRow={'span 1'} p={9} bg={'gray.50'} minWidth={'0px'}>
               <Text fontSize={'xl'}>Quantile Data</Text>
               <Divider my={3} />
               <Box my={5}>
@@ -169,7 +174,7 @@ export function CRColumnDetailsPage({
             </GridItem>
           )}
           {(targetType === 'integer' || targetType === 'numeric') && (
-            <GridItem gridRow={'span 1'} p={9} bg={'white'} minWidth={'0px'}>
+            <GridItem gridRow={'span 1'} p={9} bg={'gray.50'} minWidth={'0px'}>
               <Divider mt={42} mb={3} />
               <Box my={5}>
                 <FlatBoxPlotChart

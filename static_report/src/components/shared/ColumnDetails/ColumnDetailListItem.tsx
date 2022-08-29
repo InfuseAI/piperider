@@ -53,7 +53,7 @@ export function ColumnDetailListItem({
         alignItems={'center'}
         cursor={'pointer'}
         onClick={() => onSelect(baseColumnDatum?.name || '')}
-        bg={isActive ? 'blue.50' : 'inherit'}
+        bg={isActive ? 'blue.100' : 'inherit'}
         _hover={{ bgColor: 'blackAlpha.50' }}
         {...props}
       >

@@ -132,7 +132,7 @@ export function getChartKindByColumnType(
   if (!columnDatum) return;
   const { topk, histogram, trues, falses, type } = columnDatum;
   const isCategorical = checkColumnCategorical(columnDatum);
-  const isPieKind = type === 'boolean' && trues && falses;
+  const isPieKind = type === 'boolean' && isNumber(trues) && isNumber(falses);
   const isCategoryKind =
     (type === 'string' || type === 'integer') && topk && isCategorical;
   const isHistogramKind =
