@@ -39,7 +39,7 @@ def get_s3_bucket_region(s3_bucket):
             return response.headers.get('x-amz-bucket-region')
         else:
             return ''
-    except:
+    except Exception:
         return ''
 
 
