@@ -1,4 +1,5 @@
 import decimal
+import html
 import math
 import time
 from datetime import datetime, date
@@ -1024,7 +1025,8 @@ def profile_topk(conn, expr, k=20) -> dict:
     for row in result:
         k, v = row
         if k is not None:
-            k = str(k)
+            # Should escape HTML to prevent Script-Injection
+            k = html.escape(str(k))
         topk["values"].append(k)
         topk["counts"].append(v)
     return topk

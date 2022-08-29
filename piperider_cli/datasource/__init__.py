@@ -6,11 +6,11 @@ from typing import List, Dict, Callable
 
 import inquirer
 import readchar
-import piperider_cli.hack.datasource_inquirer_prompt as datasource_prompt
 from rich.console import Console
 from rich.prompt import Prompt
 from sqlalchemy import create_engine, inspect
 
+import piperider_cli.hack.datasource_inquirer_prompt as datasource_prompt
 from piperider_cli.error import PipeRiderConnectionError
 from .field import DataSourceField
 
@@ -208,7 +208,7 @@ def _list_datasource_providers():
     from .bigquery import BigQueryDataSource
     from .redshift import RedshiftDataSource
     from .survey import UserSurveyMockDataSource
-    from .duckdb import CsvDataSource
+    from .duckdb import CsvDataSource, ParquetDataSource
     return {
         'snowflake': SnowflakeDataSource,
         'bigquery': BigQueryDataSource,
@@ -216,6 +216,7 @@ def _list_datasource_providers():
         'postgres': PostgresDataSource,
         'sqlite': SqliteDataSource,
         'csv': CsvDataSource,
+        'parquet': ParquetDataSource,
         'tell us what type of datasource you want': UserSurveyMockDataSource,
     }
 
