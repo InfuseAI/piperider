@@ -26,6 +26,7 @@ import {
 } from '@chakra-ui/react';
 import { FiDatabase, FiMessageSquare } from 'react-icons/fi';
 import { useState } from 'react';
+import { mainContentAreaHeight } from '../../utils/layout';
 
 type Feedback = {
   user_id: string;
@@ -66,7 +67,7 @@ export function Sidebar() {
 
   return (
     <Flex
-      height="calc(100vh - 64px)"
+      height={mainContentAreaHeight}
       position="sticky"
       top={0}
       direction="column"

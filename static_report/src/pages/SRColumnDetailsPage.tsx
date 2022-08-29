@@ -43,6 +43,7 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
           <ColumnDetailsMasterList
             baseDataColumns={dataColumns}
             currentReport={reportName}
+            currentColumn={columnName}
           />
         </GridItem>
 
@@ -61,6 +62,7 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
               maxHeight={'5em'}
               height={'100%'}
               borderBottom={'1px solid lightgray'}
+              bg={'gray.50'}
             />
           </GridItem>
           {/* Data Composition Block */}

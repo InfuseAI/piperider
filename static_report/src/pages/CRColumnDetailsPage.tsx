@@ -72,6 +72,7 @@ export function CRColumnDetailsPage({
             baseDataColumns={baseDataColumns}
             targetDataColumns={targetDataColumns}
             currentReport={reportName}
+            currentColumn={columnName}
           />
         </GridItem>
         {/* Detail Area */}

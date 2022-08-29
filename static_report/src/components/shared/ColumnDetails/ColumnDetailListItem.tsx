@@ -28,11 +28,13 @@ interface Props {
   baseColumnDatum?: ColumnSchema;
   targetColumnDatum?: ColumnSchema;
   onSelect: (arg: string) => void;
+  isActive: boolean;
 }
 export function ColumnDetailListItem({
   baseColumnDatum,
   targetColumnDatum,
   onSelect,
+  isActive,
   ...props
 }: Props & ChakraProps) {
   const { icon, backgroundColor } = getIconForColumnType(baseColumnDatum);
@@ -51,6 +53,7 @@ export function ColumnDetailListItem({
         alignItems={'center'}
         cursor={'pointer'}
         onClick={() => onSelect(baseColumnDatum?.name || '')}
+        bg={isActive ? 'blue.50' : 'inherit'}
         _hover={{ bgColor: 'blackAlpha.50' }}
         {...props}
       >

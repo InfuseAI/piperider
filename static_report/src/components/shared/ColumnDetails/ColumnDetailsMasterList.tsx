@@ -21,6 +21,7 @@ interface Props {
   baseDataColumns?: TableSchema['columns'];
   targetDataColumns?: TableSchema['columns'];
   currentReport: string;
+  currentColumn: string;
 }
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of columns. Belongs in the profiling column details page to view in-depth metrics and visualizations
@@ -29,6 +30,7 @@ export function ColumnDetailsMasterList({
   baseDataColumns,
   targetDataColumns,
   currentReport,
+  currentColumn,
 }: Props) {
   const [filterString, setFilterString] = useState<string>('');
   const [location, setLocation] = useLocation();
@@ -127,6 +129,7 @@ export function ColumnDetailsMasterList({
           .map(([key, { base, target }]) => (
             <ColumnDetailListItem
               key={key}
+              isActive={base.name === currentColumn}
               baseColumnDatum={base}
               targetColumnDatum={target}
               onSelect={(name) => {
