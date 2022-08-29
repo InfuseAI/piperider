@@ -15,52 +15,47 @@ export function CRTableListColumnList({
   baseTableDatum: TableSchema;
   targetTableDatum: TableSchema;
 }) {
-  const mergedAssertionColumns = Object.keys(
-    baseTableDatum.piperider_assertion_result?.columns || {},
-  ).map((colName) => {
-    const mergedBaseColAssertions = [
-      ...(baseTableDatum.piperider_assertion_result?.columns?.[colName] || []),
-      ...(baseTableDatum.dbt_assertion_result?.columns?.[colName] || []),
-    ];
+  const transformedData = transformAsNestedBaseTargetRecord<
+    TableSchema['columns'],
+    ColumnSchema
+  >(baseTableDatum.columns, targetTableDatum.columns);
 
-    const mergedTargetColAssertions = [
-      ...(targetTableDatum.piperider_assertion_result?.columns?.[colName] ||
-        []),
-      ...(targetTableDatum.dbt_assertion_result?.columns?.[colName] || []),
-    ];
-
+  const columns = Object.keys(targetTableDatum.columns).map((colName) => {
     const { icon: colIcon } = getIconForColumnType(
       targetTableDatum.columns[colName],
     );
 
-    const transformedData = transformAsNestedBaseTargetRecord<
-      TableSchema['columns'],
-      ColumnSchema
-    >(baseTableDatum.columns, targetTableDatum.columns);
+    const mergedBaseColAssertions = [
+      ...(baseTableDatum.piperider_assertion_result?.columns[colName] || []),
+      ...(baseTableDatum.dbt_assertion_result?.columns[colName] || []),
+    ];
+
+    const mergedTargetColAssertions = [
+      ...(targetTableDatum.piperider_assertion_result?.columns[colName] || []),
+      ...(targetTableDatum.dbt_assertion_result?.columns[colName] || []),
+    ];
 
     return {
       colName,
+      colIcon,
       mergedBaseColAssertions,
       mergedTargetColAssertions,
-      colIcon,
-      data: transformedData[colName],
     };
   });
 
   return (
     <>
-      {mergedAssertionColumns.map(
+      {columns.map(
         ({
           colName,
           colIcon,
-          data,
           mergedBaseColAssertions,
           mergedTargetColAssertions,
         }) => (
           <CRTableListColumnItem
             key={colName}
             name={colName}
-            columnDatum={data}
+            columnDatum={transformedData[colName]}
             icon={colIcon}
             baseColAssertions={mergedBaseColAssertions}
             targetColAssertions={mergedTargetColAssertions}

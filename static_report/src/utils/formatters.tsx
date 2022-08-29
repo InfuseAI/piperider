@@ -1,5 +1,6 @@
 import { Text } from '@chakra-ui/react';
-import { format, isValid, parseISO } from 'date-fns';
+import { format, isValid } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import { NO_VALUE } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
 
 import type { ColumnSchema } from '../sdlc/single-report-schema';
@@ -13,18 +14,10 @@ import type { ColumnSchema } from '../sdlc/single-report-schema';
  * @returns a formatted date string in 'yyyy/MM/dd HH:mm:ss'
  */
 export function formatReportTime(dateStr: string) {
-  const adjustForUTCOffset = (date) => {
-    return new Date(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-      date.getUTCHours(),
-      date.getUTCMinutes(),
-      date.getUTCSeconds(),
-    );
-  };
+  const date = new Date(dateStr);
+  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  return format(adjustForUTCOffset(parseISO(dateStr)), 'yyyy-MM-dd HH:mm:ss');
+  return formatInTimeZone(date, userTimezone, 'yyyy-MM-dd HH:mm:ss zzz');
 }
 
 /**
