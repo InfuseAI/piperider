@@ -1,54 +1,24 @@
-import { Flex, Heading, Text } from '@chakra-ui/react';
+import { Flex, Heading, Text, Icon } from '@chakra-ui/react';
+import { FiGrid } from 'react-icons/fi';
+
 import { TableSchema } from '../../sdlc/single-report-schema';
 import { zReport, ZTableSchema } from '../../types';
-import { getReportAggregateAssertions } from '../../utils/assertion';
-import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
 
 type Props = { table: TableSchema };
 
 export function SRTableOverview({ table }: Props) {
   zReport(ZTableSchema.safeParse(table));
-  const overview = getReportAggregateAssertions(
-    table.piperider_assertion_result,
-    table.dbt_assertion_result,
-  );
 
   return (
-    <Flex direction="column" gap={4} mb={8}>
-      <Heading size="lg">Overview</Heading>
-      <Text>
-        Table:{' '}
-        <Text as="span" fontWeight={700}>
+    <Flex direction="column" gap={1} mb={8}>
+      <Text color="gray.500">Table</Text>
+      <Heading fontSize={24}>
+        <Flex alignItems="center">
+          <Icon as={FiGrid} mr={1} />
           {table.name}
-        </Text>
-      </Text>
-      <Text>
-        Rows:{' '}
-        <Text as="span" fontWeight={700}>
-          {formatColumnValueWith(table.row_count, formatNumber)}
-        </Text>
-      </Text>
-      <Text>
-        Columns:{' '}
-        <Text as="span" fontWeight={700}>
-          {formatColumnValueWith(table.col_count, formatNumber)}
-        </Text>
-      </Text>
-      <Text>
-        Test Status:{' '}
-        <Text as={'span'} fontWeight={700}>
-          {overview.passed}
-        </Text>{' '}
-        Passed,{' '}
-        <Text
-          as="span"
-          fontWeight={700}
-          color={overview.failed > 0 ? 'red.500' : 'inherit'}
-        >
-          {overview.failed}
-        </Text>{' '}
-        Failed
-      </Text>
+        </Flex>
+      </Heading>
+      <Text fontSize="sm">{table.description}</Text>
     </Flex>
   );
 }

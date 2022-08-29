@@ -22,18 +22,14 @@ type Props = {
 };
 
 export function SRAssertionDetails({ assertions }: Props) {
-  const piperiderTableAssertions = assertions.piperider?.tests;
+  const piperiderTableAssertions = assertions.piperider?.tests || [];
   const piperiderColumnAssertions = assertions.piperider?.columns || {};
-  const dbtTableAssertions = assertions.dbt?.tests;
+  const dbtTableAssertions = assertions.dbt?.tests || [];
   const dbtColumnAssertions = assertions.dbt?.columns || {};
 
   if (
-    !piperiderTableAssertions ||
-    !dbtTableAssertions ||
-    (piperiderTableAssertions.length === 0 &&
-      Object.keys(piperiderColumnAssertions).length === 0) ||
-    (dbtTableAssertions.length === 0 &&
-      Object.keys(dbtColumnAssertions).length === 0)
+    piperiderTableAssertions.length === 0 &&
+    Object.keys(piperiderColumnAssertions).length === 0
   ) {
     return (
       <Flex direction="column">
@@ -60,6 +56,7 @@ export function SRAssertionDetails({ assertions }: Props) {
             {piperiderTableAssertions.map((tableAssertion) => {
               zReport(assertionTestSchema.safeParse(tableAssertion));
               const isFailed = tableAssertion.status === 'failed';
+
               return (
                 <Tr key={tableAssertion.name}>
                   <Td>{tableAssertion.name}</Td>
@@ -86,6 +83,7 @@ export function SRAssertionDetails({ assertions }: Props) {
             {dbtTableAssertions.map((tableAssertion) => {
               zReport(assertionTestSchema.safeParse(tableAssertion));
               const isFailed = tableAssertion.status === 'failed';
+
               return (
                 <Tr key={tableAssertion.name}>
                   <Td>{tableAssertion.name}</Td>
@@ -142,8 +140,35 @@ export function SRAssertionDetails({ assertions }: Props) {
               });
             })}
 
+            {dbtTableAssertions.map((tableAssertion) => {
+              zReport(assertionTestSchema.safeParse(tableAssertion));
+              const isFailed = tableAssertion.status === 'failed';
+
+              return (
+                <Tr key={tableAssertion.name}>
+                  <Td>{tableAssertion.name}</Td>
+                  <Td>
+                    {isFailed ? (
+                      <Text as="span" role="img">
+                        ❌
+                      </Text>
+                    ) : (
+                      <Text as="span" role="img">
+                        ✅
+                      </Text>
+                    )}
+                  </Td>
+                  <Td>{formatTestExpectedOrActual(tableAssertion.expected)}</Td>
+                  <Td color={isFailed ? 'red.500' : 'inherit'}>
+                    {formatTestExpectedOrActual(tableAssertion.actual)}
+                  </Td>
+                  <Td>PipeRider</Td>
+                </Tr>
+              );
+            })}
+
             {Object.keys(dbtColumnAssertions).map((key) => {
-              const columnAssertions = piperiderColumnAssertions[key];
+              const columnAssertions = dbtColumnAssertions[key];
               zReport(z.array(assertionTestSchema).safeParse(columnAssertions));
 
               return columnAssertions.map((columnAssertion) => {

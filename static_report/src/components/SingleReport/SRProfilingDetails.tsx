@@ -7,7 +7,7 @@ import { nanoid } from 'nanoid';
 interface Props {
   data: TableSchema['columns'];
 }
-export function SRTabProfilingDetails({ data }: Props) {
+export function SRProfilingDetails({ data }: Props) {
   return (
     <Flex direction="row" flexWrap={'wrap'} gap={4}>
       {Object.keys(data).map((key) => {

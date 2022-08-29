@@ -3,21 +3,19 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   Flex,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
+  Box,
+  Heading,
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
+import { FiDatabase, FiGrid } from 'react-icons/fi';
 
 import { Main } from '../shared/Main';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAmplitudeOnMount } from '../../hooks/useAmplitudeOnMount';
-import { AMPLITUDE_EVENTS, amplitudeTrack } from '../../utils/amplitudeEvents';
+import { AMPLITUDE_EVENTS } from '../../utils/amplitudeEvents';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
-import { SRTabProfilingDetails } from './SRTabProfilingDetails';
+import { SRProfilingDetails } from './SRProfilingDetails';
 import { SRAssertionDetails } from './SRAssertionDetails';
 import { SRTableOverview } from './SRTableOverview';
 import { dataSourceSchema } from '../../sdlc/single-report-schema.z';
@@ -65,13 +63,19 @@ export default function SingleReport({ data, name }: Props) {
             <BreadcrumbItem>
               <Link href="/">
                 <BreadcrumbLink href="/" data-cy="sr-report-breadcrumb-back">
-                  {datasource.name}
+                  <Flex alignItems="center" gap={1}>
+                    <FiDatabase /> {datasource.name}
+                  </Flex>
                 </BreadcrumbLink>
               </Link>
             </BreadcrumbItem>
 
             <BreadcrumbItem isCurrentPage>
-              <BreadcrumbLink href="#">{table.name}</BreadcrumbLink>
+              <BreadcrumbLink href="#">
+                <Flex alignItems="center" gap={1}>
+                  <FiGrid /> {table.name}
+                </Flex>
+              </BreadcrumbLink>
             </BreadcrumbItem>
           </Breadcrumb>
         </Flex>
@@ -85,57 +89,24 @@ export default function SingleReport({ data, name }: Props) {
           mt={3}
           mx="5%"
           direction="column"
+          gap={4}
         >
           <SRTableOverview table={table} />
 
-          {/* To avoid re-drawing charts again */}
-          <Tabs isLazy lazyBehavior="keepMounted">
-            <TabList>
-              <Tab
-                data-cy="sr-report-profiling-tab"
-                onClick={() => {
-                  amplitudeTrack({
-                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-                    eventProperties: {
-                      type: 'single-report',
-                      tab: 'Profiling',
-                    },
-                  });
-                }}
-              >
-                Profiling
-              </Tab>
-              <Tab
-                data-cy="sr-report-tests-tab"
-                onClick={() => {
-                  amplitudeTrack({
-                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-                    eventProperties: {
-                      type: 'single-report',
-                      tab: 'Tests',
-                    },
-                  });
-                }}
-              >
-                Tests
-              </Tab>
-            </TabList>
+          <Box>
+            <Heading size="md">Assertions</Heading>
+            <SRAssertionDetails
+              assertions={{
+                piperider: table.piperider_assertion_result,
+                dbt: table?.dbt_assertion_result,
+              }}
+            />
+          </Box>
 
-            <TabPanels>
-              <TabPanel>
-                <SRTabProfilingDetails data={table.columns} />
-              </TabPanel>
-
-              <TabPanel>
-                <SRAssertionDetails
-                  assertions={{
-                    piperider: table.piperider_assertion_result,
-                    dbt: table?.dbt_assertion_result,
-                  }}
-                />
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
+          <Box mt={4}>
+            <Heading size="md">Columns</Heading>
+            <SRProfilingDetails data={table.columns} />
+          </Box>
         </Flex>
       </Flex>
     </Main>
