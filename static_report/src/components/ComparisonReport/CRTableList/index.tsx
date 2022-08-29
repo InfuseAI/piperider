@@ -204,7 +204,7 @@ export function CRTableList({
                         </Stack>
                       ) : (
                         <CRTabSchemaDetails
-                          visibleDetail={false}
+                          visibleDetail
                           baseTableDatum={table?.base}
                           targetTableDatum={table?.target}
                         />

@@ -23,6 +23,7 @@ import {
   ZTableSchema,
 } from '../../types';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
+import { Link } from 'wouter';
 
 type EnrichedColumnData = {
   added: number;
@@ -194,11 +195,15 @@ export function CRTabSchemaDetails({
                   <Td>{column?.schema_type ?? NO_VALUE}</Td>
                   {visibleDetail && (
                     <Box as="td" position="absolute" top={3} right={0}>
-                      <Icon
-                        as={FiChevronRight}
-                        color="piperider.500"
-                        boxSize={6}
-                      />
+                      <Link
+                        href={`/tables/${baseTableDatum?.name}/columns/${column.name}`}
+                      >
+                        <Icon
+                          as={FiChevronRight}
+                          color="piperider.500"
+                          boxSize={6}
+                        />
+                      </Link>
                     </Box>
                   )}
                 </Tr>
