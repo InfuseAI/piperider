@@ -62,18 +62,19 @@ export function CRColumnDetailsPage({
     p75: targetP75,
   } = targetColumnDatum;
 
-  // FIXME: IMPLEMENT TARGET SIDE
+  // FIXME: Overflowing Sidebar - both sides independent scrolls
+  // FIXME: sticky scroll comparison headers
   return (
     <Main isSingleReport={false} time={time}>
       <Grid width={'inherit'} p={1} bg={'gray.200'} templateColumns={'1fr 2fr'}>
-        <Box h={'120vh'}>
+        <GridItem maxHeight={'100vh'} overflowY={'auto'}>
           {/* Master Area */}
           <ColumnDetailsMasterList
             baseDataColumns={baseDataColumns}
             targetDataColumns={targetDataColumns}
             currentReport={reportName}
           />
-        </Box>
+        </GridItem>
         {/* Detail Area */}
         <Grid
           templateColumns={'1fr 1fr'}
@@ -81,6 +82,8 @@ export function CRColumnDetailsPage({
           bg={'gray.200'}
           width={'100%'}
           gap={1}
+          maxHeight={'90vh'}
+          overflowY={'auto'}
         >
           {/* Label Block */}
           <GridItem colSpan={2} rowSpan={1}>
@@ -115,7 +118,6 @@ export function CRColumnDetailsPage({
             p={9}
             bg={'white'}
           >
-            {/* FIXME: Should handle both data - NEW UI HERE */}
             <ChartTabsWidget
               baseColumnDatum={baseColumnDatum}
               targetColumnDatum={targetColumnDatum}
@@ -143,7 +145,6 @@ export function CRColumnDetailsPage({
             </Grid>
           </GridItem>
           {/* Quantiles Block */}
-          {/* FIXME: Box plot using wrong data */}
           {(baseType === 'integer' || baseType === 'numeric') && (
             <GridItem gridRow={'span 1'} p={9} bg={'white'} minWidth={'0px'}>
               <Text fontSize={'xl'}>Quantile Data</Text>

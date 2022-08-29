@@ -27,6 +27,7 @@ export function SRTableListColumnList({ table }: { table: TableSchema }) {
           name={colName}
           columnDatum={table.columns[colName]}
           colAssertions={mergedColAssertions}
+          tableName={table.name}
           icon={colIcon}
         />
       ))}

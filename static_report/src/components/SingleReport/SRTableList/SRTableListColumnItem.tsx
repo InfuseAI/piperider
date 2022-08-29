@@ -1,4 +1,4 @@
-import { Flex, Grid, GridItem, Text } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, Icon, Text } from '@chakra-ui/react';
 
 import { ColumnName } from '../../shared/TableList/ColumnName';
 import { SRTableListAssertionsSummary } from './SRTableListAssertionsSummary';
@@ -7,15 +7,19 @@ import type {
   AssertionTest,
   ColumnSchema,
 } from '../../../sdlc/single-report-schema';
+import { Link } from 'wouter';
+import { FiChevronRight } from 'react-icons/fi';
 
 export function SRTableListColumnItem({
   name,
-  columnDatum,
   icon,
+  columnDatum,
   colAssertions,
+  tableName,
 }: {
   name: string;
   columnDatum: ColumnSchema;
+  tableName: string;
   icon: any;
   colAssertions: AssertionTest[] | undefined;
 }) {
@@ -45,9 +49,10 @@ export function SRTableListColumnItem({
         )}
       </GridItem>
 
-      {/* TODO: when columns detail page remove comment */}
       <GridItem>
-        {/* <Icon as={FiChevronRight} color="piperider.500" boxSize={6} /> */}
+        <Link href={`/tables/${tableName}/columns/${name}`}>
+          <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
+        </Link>
       </GridItem>
     </Grid>
   );
