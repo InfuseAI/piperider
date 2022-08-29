@@ -1,5 +1,3 @@
-import get from 'lodash/get';
-
 import { CRTableListColumnItem } from './CRTableListColumnItem';
 import {
   getIconForColumnType,
@@ -28,21 +26,13 @@ export function CRTableListColumnList({
     );
 
     const mergedBaseColAssertions = [
-      ...get(
-        baseTableDatum,
-        `piperider_assertion_result.columns[${colName}]`,
-        [],
-      ),
-      ...get(baseTableDatum, `dbt_assertion_result.columns[${colName}]`, []),
+      ...(baseTableDatum.piperider_assertion_result?.columns[colName] || []),
+      ...(baseTableDatum.dbt_assertion_result?.columns[colName] || []),
     ];
 
     const mergedTargetColAssertions = [
-      ...get(
-        targetTableDatum,
-        `piperider_assertion_result.columns[${colName}]`,
-        [],
-      ),
-      ...get(targetTableDatum, `dbt_assertion_result.columns[${colName}]`, []),
+      ...(targetTableDatum.piperider_assertion_result?.columns[colName] || []),
+      ...(targetTableDatum.dbt_assertion_result?.columns[colName] || []),
     ];
 
     return {
