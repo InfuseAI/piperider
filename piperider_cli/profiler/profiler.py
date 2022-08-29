@@ -142,40 +142,53 @@ class Profiler:
         return candidate_columns
 
     def _profile_table_metadata(self, result, table):
+        row_count = 0
+        creation_time = ''
+        last_modified = ''
+        size_bytes = None
         with self.engine.connect() as conn:
             if self.engine.url.get_backend_name() == 'snowflake':
                 default_schema = self.inspector.default_schema_name
                 stmt = '''
-                    select row_count, CONVERT_TIMEZONE('UTC', CREATED), CONVERT_TIMEZONE('UTC', LAST_ALTERED)
-                    from INFORMATION_SCHEMA.tables
+                    select row_count, convert_timezone('UTC', created), convert_timezone('UTC', last_altered), bytes
+                    from INFORMATION_SCHEMA.TABLES
                     where table_schema = '{}' and table_name = '{}'
                 '''.format(str.upper(default_schema), str.upper(table.name))
-                row_count, creation_time, last_modified = conn.execute(stmt).fetchone()
+                row_count, creation_time, last_modified, size_bytes = conn.execute(stmt).fetchone()
                 # datetime object transformation
                 creation_time = creation_time.isoformat()
                 last_modified = last_modified.isoformat()
             elif self.engine.url.get_backend_name() == 'bigquery':
                 dataset = self.engine.url.database
                 stmt = '''
-                    select row_count, creation_time, last_modified_time
+                    select row_count, creation_time, last_modified_time, size_bytes
                     from {}.__TABLES__
                     where table_id = '{}'
                 '''.format(dataset, table.name)
-                row_count, creation_time, last_modified = conn.execute(stmt).fetchone()
+                row_count, creation_time, last_modified, size_bytes = conn.execute(stmt).fetchone()
                 # timestamp transformation
                 creation_time = datetime.fromtimestamp(creation_time / 1000.0).isoformat()
                 last_modified = datetime.fromtimestamp(last_modified / 1000.0).isoformat()
+            elif self.engine.url.get_backend_name() == 'redshift':
+                dataset = self.engine.url.database
+                stmt = '''
+                    select tbl_rows, size
+                    from SVV_TABLE_INFO
+                    where "table" = '{}'
+                '''.format(table.name)
+                row_count, size_mbytes = conn.execute(stmt).fetchone()
+                row_count = int(row_count)
+                size_bytes = size_mbytes * 1024
             else:
                 stmt = select([
                     func.count(),
                 ]).select_from(table)
                 row_count, = conn.execute(stmt).fetchone()
-                creation_time = ''
-                last_modified = ''
 
-            result["row_count"] = row_count
-            result["creation_time"] = creation_time
-            result["last_modified"] = last_modified
+        result['row_count'] = row_count
+        result['creation_time'] = creation_time
+        result['last_modified'] = last_modified
+        result['bytes'] = size_bytes
 
     def _profile_table(self, table: Table) -> dict:
         candidate_columns = self._drop_unsupported_columns(table)
