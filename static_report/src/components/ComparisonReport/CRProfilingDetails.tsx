@@ -6,14 +6,15 @@ import { getDataChart } from '../shared/ColumnCard';
 import { ColumnCardDataVisualContainer } from '../shared/ColumnCard/ColumnCardDataVisualContainer';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
 
-type CRTabProfilingDetailsProps = {
+type CRProfilingDetailsProps = {
   baseTable?: SaferTableSchema;
   targetTable?: SaferTableSchema;
 };
-export function CRTabProfilingDetails({
+
+export function CRProfilingDetails({
   baseTable,
   targetTable,
-}: CRTabProfilingDetailsProps) {
+}: CRProfilingDetailsProps) {
   zReport(ZTableSchema.safeParse(baseTable));
   zReport(ZTableSchema.safeParse(targetTable));
 

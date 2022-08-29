@@ -3,23 +3,18 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   Flex,
-  Text,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
   useDisclosure,
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
 import { useState } from 'react';
+import { FiDatabase, FiGrid } from 'react-icons/fi';
 
 import { Main } from '../shared/Main';
 import { getComparisonAssertions } from '../../utils/assertion';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAmplitudeOnMount } from '../../hooks/useAmplitudeOnMount';
-import { AMPLITUDE_EVENTS, amplitudeTrack } from '../../utils/amplitudeEvents';
+import { AMPLITUDE_EVENTS } from '../../utils/amplitudeEvents';
 import { CRModal, TestDetail } from './CRModal/CRModal';
 import {
   ComparisonReportSchema,
@@ -27,9 +22,9 @@ import {
   zReport,
   ZTableSchema,
 } from '../../types';
-import { CRTabProfilingDetails } from './CRTabProfilingDetails';
-import { CRTabSchemaDetails } from './CRTabSchemaDetails';
-import { CRTabTestDetails } from './CRTabTestDetails';
+import { CRProfilingDetails } from './CRProfilingDetails';
+// import { CRTabSchemaDetails } from './CRTabSchemaDetails';
+import { CRAssertionDetails } from './CRAssertionDetails';
 import { CRTableOverview } from './CRTableOverview';
 import { formatReportTime } from '../../utils/formatters';
 
@@ -46,7 +41,6 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
 
   const baseTable = base.tables[reportName];
   const targetTable = target.tables[reportName];
-  const existsDbtTests = base.tables[reportName]?.dbt_assertion_result;
 
   zReport(ZTableSchema.safeParse(baseTable));
   zReport(ZTableSchema.safeParse(targetTable));
@@ -86,13 +80,20 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
             <BreadcrumbItem>
               <Link href="/">
                 <BreadcrumbLink href="/" data-cy="cr-report-breadcrumb-back">
-                  Tables
+                  <Flex alignItems="center" gap={1}>
+                    <FiDatabase /> Tables
+                  </Flex>
                 </BreadcrumbLink>
               </Link>
             </BreadcrumbItem>
 
             <BreadcrumbItem isCurrentPage>
-              <BreadcrumbLink href="#">{reportName}</BreadcrumbLink>
+              <BreadcrumbLink href="#">
+                <Flex alignItems="center" gap={1}>
+                  <FiGrid />
+                  {reportName}
+                </Flex>
+              </BreadcrumbLink>
             </BreadcrumbItem>
           </Breadcrumb>
         </Flex>
@@ -109,124 +110,27 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
         >
           <CRTableOverview baseTable={baseTable} targetTable={targetTable} />
 
-          {/* To avoid re-drawing charts again */}
-          <Tabs isLazy lazyBehavior="keepMounted">
-            <TabList>
-              <Tab
-                data-cy="cr-report-schema-tab"
-                onClick={() => {
-                  amplitudeTrack({
-                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-                    eventProperties: {
-                      type: 'comparison-report',
-                      tab: 'Schema',
-                    },
-                  });
-                }}
-              >
-                Schema
-              </Tab>
-              <Tab
-                data-cy="cr-report-profiling-tab"
-                onClick={() => {
-                  amplitudeTrack({
-                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-                    eventProperties: {
-                      type: 'comparison-report',
-                      tab: 'Profiling',
-                    },
-                  });
-                }}
-              >
-                Profiling
-              </Tab>
-              <Tab
-                data-cy="cr-report-tests-tab"
-                onClick={() => {
-                  amplitudeTrack({
-                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-                    eventProperties: {
-                      type: 'comparison-report',
-                      tab: 'Tests',
-                    },
-                  });
-                }}
-              >
-                Tests
-              </Tab>
-              {existsDbtTests && (
-                <Tab
-                  data-cy="cr-report-dbt-tests-tab"
-                  onClick={() => {
-                    amplitudeTrack({
-                      eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-                      eventProperties: {
-                        type: 'comparison-report',
-                        tab: 'dbt Tests',
-                      },
-                    });
-                  }}
-                >
-                  dbt Tests
-                </Tab>
-              )}
-            </TabList>
+          <CRAssertionDetails
+            assertions={{
+              piperider: [
+                ...(baseOverview?.tests || []),
+                ...(targetOverview?.tests || []),
+              ],
+              dbt: [
+                ...(dbtBaseOverview?.tests || []),
+                ...(dbtTargetOverview?.tests || []),
+              ],
+            }}
+            onDetailVisible={({ data, type }) => {
+              setTestDetail({
+                type,
+                data,
+              });
+              modal.onOpen();
+            }}
+          />
 
-            <TabPanels>
-              <TabPanel>
-                <CRTabSchemaDetails
-                  baseTableDatum={baseTable}
-                  targetTableDatum={targetTable}
-                />
-              </TabPanel>
-
-              <TabPanel>
-                <CRTabProfilingDetails
-                  baseTable={baseTable}
-                  targetTable={targetTable}
-                />
-              </TabPanel>
-
-              <TabPanel>
-                <CRTabTestDetails
-                  base={baseOverview?.tests}
-                  target={targetOverview?.tests}
-                  onDetailVisible={(data) => {
-                    setTestDetail({
-                      type: 'piperider',
-                      data,
-                    });
-                    modal.onOpen();
-                  }}
-                />
-              </TabPanel>
-
-              <TabPanel>
-                {dbtBaseOverview?.tests.length === 0 &&
-                dbtTargetOverview?.tests.length === 0 ? (
-                  <Flex
-                    justifyContent="center"
-                    alignItems="center"
-                    height="100px"
-                  >
-                    <Text color="gray.500">No dbt tests available.</Text>
-                  </Flex>
-                ) : (
-                  <CRTabTestDetails
-                    base={dbtBaseOverview?.tests}
-                    target={dbtTargetOverview?.tests}
-                    onDetailVisible={(data) => {
-                      setTestDetail({
-                        type: 'dbt',
-                        data,
-                      });
-                      modal.onOpen();
-                    }}
-                  />
-                )}
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
+          <CRProfilingDetails baseTable={baseTable} targetTable={targetTable} />
         </Flex>
       </Flex>
 
