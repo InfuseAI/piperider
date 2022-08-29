@@ -54,8 +54,16 @@ export function ColumnDetailsMasterList({
   const quickFilters = Array.from(filterState.keys());
 
   return (
-    <Flex direction={'column'} mr={2} bg={'white'}>
-      <Box p={4} borderBottom={'1px solid lightgray'}>
+    <Flex direction={'column'} position={'relative'}>
+      <Box
+        position={'sticky'}
+        top={0}
+        w={'100%'}
+        p={4}
+        zIndex={150}
+        bg={'white'}
+        borderBottom={'1px solid lightgray'}
+      >
         <Text as={'h3'} fontWeight={'bold'} mb={3}>
           Columns ({combinedColumnEntries.length})
         </Text>
@@ -91,7 +99,10 @@ export function ColumnDetailsMasterList({
                   }}
                   cursor={'pointer'}
                 >
-                  <TagLabel color={itemValue ? 'white' : ''} fontSize={'sm'}>
+                  <TagLabel
+                    color={itemValue ? 'white' : 'lightgray'}
+                    fontSize={'sm'}
+                  >
                     {v}
                   </TagLabel>
                 </Tag>
@@ -101,7 +112,7 @@ export function ColumnDetailsMasterList({
         </Box>
       </Box>
 
-      <Box overflowY={'auto'} minHeight={'70vh'}>
+      <Box minHeight={'70vh'} bg={'white'}>
         {/* QueryList */}
         {combinedColumnEntries
           .filter(([key, { base, target }]) => {

@@ -10,6 +10,7 @@ import { FlatBoxPlotChart } from '../components/shared/Charts/FlatBoxPlotChart';
 import { ColumnDetailsMasterList } from '../components/shared/ColumnDetails/ColumnDetailsMasterList';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
+import { mainContentAreaHeight } from '../utils/layout';
 interface Props {
   data: SingleReportSchema;
 }
@@ -35,51 +36,49 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
   const { avg, min, max, p25, p75 } = columnDatum;
 
   return (
-    <Main isSingleReport time={time}>
-      <Flex
-        width={'inherit'}
-        minHeight="90vh"
-        maxHeight="100vh"
-        p={1}
-        bg={'gray.200'}
-        direction={['column', 'row']}
-      >
+    <Main isSingleReport time={time} maxHeight={mainContentAreaHeight}>
+      <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
         {/* Master Area */}
-        <ColumnDetailsMasterList
-          baseDataColumns={dataColumns}
-          currentReport={reportName}
-        />
+        <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
+          <ColumnDetailsMasterList
+            baseDataColumns={dataColumns}
+            currentReport={reportName}
+          />
+        </GridItem>
 
         {/* Detail Area */}
         <Grid
           templateColumns={'500px 1fr'}
-          templateRows={'3em 1fr 1fr'}
-          gap={2}
-          bg={'gray.200'}
+          templateRows={'5em 1fr 1fr'}
           width={'100%'}
+          maxHeight={mainContentAreaHeight}
+          overflowY={'auto'}
         >
           {/* Label Block */}
           <GridItem colSpan={2} rowSpan={1}>
-            <ColumnCardHeader columnDatum={columnDatum} />
+            <ColumnCardHeader
+              columnDatum={columnDatum}
+              maxHeight={'5em'}
+              height={'100%'}
+              borderBottom={'1px solid lightgray'}
+            />
           </GridItem>
           {/* Data Composition Block */}
-          <GridItem p={9} bg={'white'}>
+          <GridItem p={10} bg={'gray.50'}>
             <DataCompositionWidget columnDatum={columnDatum} />
           </GridItem>
           {/* Chart Block - toggleable tabs */}
-          <GridItem gridRow={'span 1'} minWidth={0} p={9} bg={'white'}>
+          <GridItem gridRow={'span 1'} minWidth={0} p={9} bg={'gray.50'}>
             <ChartTabsWidget baseColumnDatum={columnDatum} />
           </GridItem>
-          <GridItem gridRow={'span 1'} p={9} bg={'white'}>
-            <Box>
-              <Text fontSize={'xl'}>{formatTitleCase(type)} Statistics</Text>
-              <Divider my={3} />
-              <NumericColumnMetrics baseColumn={columnDatum} width={'100%'} />
-            </Box>
+          <GridItem gridRow={'span 1'} p={9} bg={'gray.50'}>
+            <Text fontSize={'xl'}>{formatTitleCase(type)} Statistics</Text>
+            <Divider my={3} />
+            <NumericColumnMetrics baseColumn={columnDatum} width={'100%'} />
           </GridItem>
           {/* Quantiles Block */}
           {(type === 'integer' || type === 'numeric') && histogram && (
-            <GridItem gridRow={'span 1'} p={9} bg={'white'} minWidth={'0px'}>
+            <GridItem gridRow={'span 1'} p={9} bg={'gray.50'} minWidth={'1px'}>
               <Text fontSize={'xl'}>Quantile Data</Text>
               <Divider my={3} />
               <Box my={5}>
@@ -97,7 +96,7 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
             </GridItem>
           )}
         </Grid>
-      </Flex>
+      </Grid>
     </Main>
   );
 }

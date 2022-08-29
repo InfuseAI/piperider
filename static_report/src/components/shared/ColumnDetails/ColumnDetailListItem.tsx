@@ -68,7 +68,7 @@ export function ColumnDetailListItem({
             {baseColumnDatum?.name || ''}
           </Text>
         </Flex>
-        <Box width={'100%'} my={3}>
+        <Box width={'100%'}>
           {targetColumnDatum && (
             <Text fontSize={'sm'} color={'gray.600'} fontWeight={'semibold'}>
               Base

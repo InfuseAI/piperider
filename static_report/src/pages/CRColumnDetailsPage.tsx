@@ -10,6 +10,7 @@ import { DataCompositionWidget } from '../components/shared/Widgets/DataComposit
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { ComparisonReportSchema } from '../types';
 import { ColumnDetailsMasterList } from '../components/shared/ColumnDetails/ColumnDetailsMasterList';
+import { mainContentAreaHeight } from '../utils/layout';
 interface Props {
   data: ComparisonReportSchema;
 }
@@ -62,13 +63,11 @@ export function CRColumnDetailsPage({
     p75: targetP75,
   } = targetColumnDatum;
 
-  // FIXME: Overflowing Sidebar - both sides independent scrolls
-  // FIXME: sticky scroll comparison headers
   return (
-    <Main isSingleReport={false} time={time}>
-      <Grid width={'inherit'} p={1} bg={'gray.200'} templateColumns={'1fr 2fr'}>
-        <GridItem maxHeight={'100vh'} overflowY={'auto'}>
-          {/* Master Area */}
+    <Main isSingleReport={false} time={time} maxHeight={mainContentAreaHeight}>
+      <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
+        {/* Master Area */}
+        <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailsMasterList
             baseDataColumns={baseDataColumns}
             targetDataColumns={targetDataColumns}
@@ -78,29 +77,34 @@ export function CRColumnDetailsPage({
         {/* Detail Area */}
         <Grid
           templateColumns={'1fr 1fr'}
-          templateRows={'3em 3em 550px 500px'}
-          bg={'gray.200'}
+          templateRows={'5em 5em 1fr 1fr'}
           width={'100%'}
-          gap={1}
-          maxHeight={'90vh'}
+          maxHeight={mainContentAreaHeight}
           overflowY={'auto'}
         >
           {/* Label Block */}
           <GridItem colSpan={2} rowSpan={1}>
-            <ColumnCardHeader columnDatum={columnHeaderDatum} />
+            <ColumnCardHeader
+              columnDatum={columnHeaderDatum}
+              maxHeight={'5em'}
+              height={'100%'}
+              borderBottom={'1px solid lightgray'}
+            />
           </GridItem>
           <GridItem colSpan={2} rowSpan={1}>
-            <Grid templateColumns={'1fr 1fr'} h={'100%'} gap={1}>
-              <Flex alignItems={'center'} pl={9} bg={'white'}>
-                <Text fontWeight={'light'} fontSize={'2xl'}>
-                  Base
-                </Text>
-              </Flex>
-              <Flex alignItems={'center'} pl={9} bg={'white'}>
-                <Text fontWeight={'light'} fontSize={'2xl'}>
-                  Target
-                </Text>
-              </Flex>
+            {/* // FIXME: sticky scroll comparison headers */}
+            <Grid templateColumns={'1fr 1fr'} h={'100%'}>
+              {['Base', 'Target'].map((v, i) => (
+                <Flex key={i} alignItems={'center'} pl={9} bg={'white'}>
+                  <Text
+                    color={'gray.400'}
+                    fontWeight={'semibold'}
+                    fontSize={'2xl'}
+                  >
+                    {v}
+                  </Text>
+                </Flex>
+              ))}
             </Grid>
           </GridItem>
           {/* Data Composition Block */}

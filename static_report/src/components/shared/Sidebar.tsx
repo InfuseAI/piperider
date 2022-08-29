@@ -21,6 +21,8 @@ import {
   FormLabel,
   useDisclosure,
   useToast,
+  Link,
+  Image,
 } from '@chakra-ui/react';
 import { FiDatabase, FiMessageSquare } from 'react-icons/fi';
 import { useState } from 'react';
@@ -64,7 +66,7 @@ export function Sidebar() {
 
   return (
     <Flex
-      height="100vh"
+      height="calc(100vh - 64px)"
       position="sticky"
       top={0}
       direction="column"
@@ -90,6 +92,36 @@ export function Sidebar() {
       </Flex>
 
       <Box>
+        <Flex justify={'center'}>
+          <Link
+            p={3}
+            href="https://github.com/InfuseAI/piperider"
+            isExternal
+            _hover={{ textDecoration: 'none' }}
+          >
+            <Image
+              src="GitHub/GitHub-Logo.svg"
+              width={6}
+              height={6}
+              alt="GitHub Logo"
+            />
+          </Link>
+        </Flex>
+        <Flex justify={'center'}>
+          <Link
+            p={3}
+            href="https://discord.com/invite/CrAxQznedH"
+            isExternal
+            _hover={{ textDecoration: 'none' }}
+          >
+            <Image
+              src="Discord/Discord-Logo.svg"
+              width={6}
+              height={6}
+              alt="Discord Logo"
+            />
+          </Link>
+        </Flex>
         <Divider borderColor="gray.500" my={4} />
         <Flex
           data-cy="open-feedback-modal"
