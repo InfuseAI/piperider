@@ -4,11 +4,24 @@ import {
   singleReportSchemaSchema,
   tableSchemaSchema,
 } from './../sdlc/single-report-schema.z';
-import { SingleReportSchema, TableSchema } from '../sdlc/single-report-schema';
+import {
+  ColumnSchema,
+  SingleReportSchema,
+  TableSchema,
+} from '../sdlc/single-report-schema';
+
+export interface SaferSRSchema extends Omit<SingleReportSchema, 'tables'> {
+  tables: { [k: string]: SaferTableSchema | undefined };
+}
+export interface SaferTableSchema extends Omit<TableSchema, 'columns'> {
+  columns: { [k: string]: ColumnSchema | undefined };
+}
 
 export interface ComparisonReportSchema {
-  base: SingleReportSchema;
-  input: SingleReportSchema; //old code: future key will be `target`
+  base: SaferSRSchema;
+  input: SaferSRSchema;
+  // base: SingleReportSchema;
+  // input: SingleReportSchema; //old code: future key will be `target`
 }
 
 export type ComparsionSource = 'base' | 'target';

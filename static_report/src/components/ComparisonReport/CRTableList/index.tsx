@@ -27,11 +27,9 @@ import {
   zReport,
   ZSingleSchema,
   ZComparisonTableSchema,
+  SaferSRSchema,
 } from '../../../types';
-import type {
-  SingleReportSchema,
-  TableSchema,
-} from '../../../sdlc/single-report-schema';
+import type { TableSchema } from '../../../sdlc/single-report-schema';
 import type { TableActionBarView } from '../../shared/TableActionBar';
 
 export function CRTableList({
@@ -43,7 +41,7 @@ export function CRTableList({
 }) {
   const { base, input: target } = data;
   const tables = transformAsNestedBaseTargetRecord<
-    SingleReportSchema['tables'],
+    SaferSRSchema['tables'],
     TableSchema
   >(base.tables, target.tables);
 
