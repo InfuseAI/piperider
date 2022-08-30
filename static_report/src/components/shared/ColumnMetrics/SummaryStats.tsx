@@ -8,14 +8,15 @@ import {
   formatNumber,
 } from '../../../utils/formatters';
 import { getColumnDetails } from '../../../utils/transformers';
-import { MetricsInfo } from '../ColumnMetrics/MetricsInfo';
+import { TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
+import { MetricsInfo } from './MetricsInfo';
 
 type Props = {
   baseColumn: ColumnSchema;
   targetColumn?: ColumnSchema | null;
 };
 
-export function NumericColumnMetrics({
+export function SummaryStats({
   baseColumn,
   targetColumn,
   ...props
@@ -38,13 +39,17 @@ export function NumericColumnMetrics({
       duplicatesOfTotal: targetDuplicatesOfTotal,
     } = getColumnDetails(targetColumn);
   }
+
+  const subtitle = baseColumn.type === 'string' ? ` (${TEXTLENGTH})` : '';
+
   return (
     <>
       <Flex direction="column">
         {baseColumn?.type !== 'datetime' && baseColumn?.type !== 'other' && (
           <>
             <MetricsInfo
-              name="Average"
+              name={`Average`}
+              subtitle={subtitle}
               metakey="avg"
               firstSlot={formatColumnValueWith(
                 baseColumn?.avg,
@@ -59,8 +64,9 @@ export function NumericColumnMetrics({
               {...props}
             />
             <MetricsInfo
-              name="SD"
+              name={`SD`}
               metakey="stddev"
+              subtitle={subtitle}
               firstSlot={formatColumnValueWith(
                 baseColumn?.stddev,
                 formatAsAbbreviatedNumber,
@@ -85,6 +91,7 @@ export function NumericColumnMetrics({
             <MetricsInfo
               name="Min"
               metakey="min"
+              subtitle={subtitle}
               firstSlot={formatColumnValueWith(
                 baseColumn?.min,
                 formatAsAbbreviatedNumber,
@@ -103,6 +110,7 @@ export function NumericColumnMetrics({
             <MetricsInfo
               name="Max"
               metakey="max"
+              subtitle={subtitle}
               firstSlot={formatColumnValueWith(
                 baseColumn?.max,
                 formatAsAbbreviatedNumber,
@@ -122,8 +130,9 @@ export function NumericColumnMetrics({
         )}
         <MetricsInfo
           reverse
-          name="Distinct"
+          name={`Distinct`}
           metakey="distinct"
+          subtitle={subtitle}
           firstSlot={formatColumnValueWith(
             baseDistinct,
             formatAsAbbreviatedNumber,
@@ -137,8 +146,9 @@ export function NumericColumnMetrics({
         />
         <MetricsInfo
           reverse
-          name="Duplicates"
+          name={`Duplicates`}
           metakey="duplicates"
+          subtitle={subtitle}
           firstSlot={formatColumnValueWith(
             baseDuplicates,
             formatAsAbbreviatedNumber,

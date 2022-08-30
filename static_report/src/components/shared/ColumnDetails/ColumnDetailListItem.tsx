@@ -16,14 +16,8 @@ import {
   getColumnDetails,
   getIconForColumnType,
 } from '../../../utils/transformers';
+import { NO_VALUE } from '../ColumnCard/ColumnTypeDetail/constants';
 
-/**
- * Cases Affected: baseValidsOfTotal_bar
- * 1. Both Avail
- * 2. No Base
- * 3. No Target
- * 4. Diff types
- */
 interface Props {
   baseColumnDatum?: ColumnSchema;
   targetColumnDatum?: ColumnSchema;
@@ -38,7 +32,7 @@ export function ColumnDetailListItem({
   ...props
 }: Props & ChakraProps) {
   const { icon, backgroundColor } = getIconForColumnType(baseColumnDatum);
-
+  const fallbackColumnDatum = baseColumnDatum || targetColumnDatum;
   const { validsOfTotal: baseValidsOfTotal } =
     getColumnDetails(baseColumnDatum);
   const { validsOfTotal: targetValidsOfTotal } =
@@ -52,7 +46,7 @@ export function ColumnDetailListItem({
         justifyContent={'space-between'}
         alignItems={'center'}
         cursor={'pointer'}
-        onClick={() => onSelect(baseColumnDatum?.name || '')}
+        onClick={() => onSelect(fallbackColumnDatum?.name || '')}
         bg={isActive ? 'blue.100' : 'inherit'}
         _hover={{ bgColor: 'blackAlpha.50' }}
         {...props}
@@ -67,8 +61,8 @@ export function ColumnDetailListItem({
             as={icon}
             boxSize={5}
           />
-          <Text noOfLines={1} width={'14em'} fontSize={'sm'}>
-            {baseColumnDatum?.name || ''}
+          <Text noOfLines={1} width={'14em'} fontSize={'lg'}>
+            {fallbackColumnDatum?.name || NO_VALUE}
           </Text>
         </Flex>
         <Box width={'100%'}>

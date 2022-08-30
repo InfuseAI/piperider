@@ -1,4 +1,4 @@
-import { SearchIcon } from '@chakra-ui/icons';
+import { ChevronLeftIcon, SearchIcon } from '@chakra-ui/icons';
 import {
   Flex,
   InputGroup,
@@ -10,7 +10,7 @@ import {
   Box,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { useLocation } from 'wouter';
+import { Link, useLocation } from 'wouter';
 
 import { ColumnSchema, TableSchema } from '../../../sdlc/single-report-schema';
 import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
@@ -23,6 +23,7 @@ interface Props {
   currentReport: string;
   currentColumn: string;
 }
+// FIXME: show Table list as well ??
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of columns. Belongs in the profiling column details page to view in-depth metrics and visualizations
  */
@@ -54,6 +55,7 @@ export function ColumnDetailsMasterList({
   const combinedColumnEntries = Object.entries(combinedColumnRecord);
 
   const quickFilters = Array.from(filterState.keys());
+  const parentRoute = location.slice(0, location.indexOf('/columns'));
 
   return (
     <Flex direction={'column'} position={'relative'}>
@@ -67,9 +69,19 @@ export function ColumnDetailsMasterList({
         color={'white'}
         borderBottom={'1px solid lightgray'}
       >
-        <Text as={'h3'} fontWeight={'bold'} mb={3}>
-          Columns ({combinedColumnEntries.length})
-        </Text>
+        <Flex justify={'space-between'} alignItems={'center'} mb={3}>
+          <Box cursor={'pointer'}>
+            <Link href={parentRoute}>
+              <Flex alignItems={'center'}>
+                <ChevronLeftIcon boxSize={6} mr={1} />
+                <Text>Back</Text>
+              </Flex>
+            </Link>
+          </Box>
+          <Text as={'h3'} fontWeight={'bold'} textAlign={'right'}>
+            Columns ({combinedColumnEntries.length})
+          </Text>
+        </Flex>
 
         {/* Search Bar */}
         <InputGroup my={2}>

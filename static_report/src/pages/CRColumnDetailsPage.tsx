@@ -3,7 +3,7 @@ import { useRoute } from 'wouter';
 import { QuantilesMatrix } from '../components/shared/ColumnMetrics/QuantilesMatrix';
 import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHeader';
 import { Main } from '../components/shared/Main';
-import { NumericColumnMetrics } from '../components/shared/ColumnMetrics/NumericColumnMetrics';
+import { SummaryStats } from '../components/shared/ColumnMetrics/SummaryStats';
 import { formatReportTime, formatTitleCase } from '../utils/formatters';
 import { FlatBoxPlotChart } from '../components/shared/Charts/FlatBoxPlotChart';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
@@ -135,23 +135,21 @@ export function CRColumnDetailsPage({
           </GridItem>
           <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
             <Grid templateColumns={'1fr 1fr'} gap={8}>
-              <GridItem>
-                <Text fontSize={'xl'}>
-                  {formatTitleCase(baseType)} Statistics
-                </Text>
-                <Divider my={3} />
-                <NumericColumnMetrics
-                  baseColumn={baseColumnDatum}
-                  width={'100%'}
-                />
-              </GridItem>
-              <GridItem>
-                <Divider mt={42} mb={3} />
-                <NumericColumnMetrics
-                  baseColumn={baseColumnDatum}
-                  width={'100%'}
-                />
-              </GridItem>
+              {baseType !== 'other' && baseType !== 'boolean' && (
+                <GridItem>
+                  <Text fontSize={'xl'}>
+                    {formatTitleCase(baseType)} Statistics
+                  </Text>
+                  <Divider my={3} />
+                  <SummaryStats baseColumn={baseColumnDatum} width={'100%'} />
+                </GridItem>
+              )}
+              {targetType !== 'other' && targetType !== 'boolean' && (
+                <GridItem>
+                  <Divider mt={42} mb={3} />
+                  <SummaryStats baseColumn={targetColumnDatum} width={'100%'} />
+                </GridItem>
+              )}
             </Grid>
           </GridItem>
           {/* Quantiles Block */}

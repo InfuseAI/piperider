@@ -5,6 +5,7 @@ import { NO_VALUE } from '../ColumnCard/ColumnTypeDetail/constants';
 
 interface Props {
   name: string;
+  subtitle?: string;
   firstSlot?: string | number;
   secondSlot?: string | number | null;
   firstSlotWidth?: string;
@@ -15,6 +16,7 @@ interface Props {
 }
 export function MetricsInfo({
   name,
+  subtitle,
   firstSlot,
   secondSlot,
   firstSlotWidth = '100px',
@@ -37,6 +39,15 @@ export function MetricsInfo({
       >
         <Text width={width || '5em'} fontWeight={700}>
           {name}
+          <Text
+            ml={2}
+            as={'small'}
+            color={'gray.400'}
+            fontSize={'sm'}
+            fontWeight={'medium'}
+          >
+            {subtitle}
+          </Text>
         </Text>
       </Tooltip>
       <Flex
