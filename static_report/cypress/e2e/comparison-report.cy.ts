@@ -49,15 +49,6 @@ describe('Comparison Report', () => {
     cy.url().should('equal', 'http://localhost:3001/#/');
   });
 
-  it('should navigate to table detail page and toggle to profiling tab', () => {
-    cy.visit('http://localhost:3001/#/tables/ACTION');
-
-    const profilingTab = cy.get('[data-cy="cr-report-profiling-tab"]');
-    profilingTab.should('have.attr', 'aria-selected', 'false');
-    profilingTab.click();
-    profilingTab.should('have.attr', 'aria-selected', 'true');
-  });
-
   it('should get the default list view and toggle to schema view', () => {
     cy.visit('http://localhost:3001');
 
