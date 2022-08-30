@@ -60,11 +60,14 @@ def get_aws_credentials():
 
 
 class DuckDBDataSource(DataSource):
+
     def __init__(self, name, **kwargs):
         super().__init__(name, 'duckdb', **kwargs)
 
+        self.credential_source = 'config'
         self.fields = [
-            PathField('dbpath', description='Path of database file'),
+            PathField('path', description='Path of database file'),
+            TextField('schema', description='Name of the schema', optional=True, default='main'),
         ]
 
     def validate(self):
@@ -79,7 +82,7 @@ class DuckDBDataSource(DataSource):
 
     def to_database_url(self):
         credential = self.credential
-        dbpath = credential.get('dbpath')
+        dbpath = credential.get('path')
         duckdb_path = os.path.abspath(dbpath)
         if not os.path.exists(duckdb_path):
             raise PipeRiderDataBaseConnectionError(self.name, self.type_name, db_path=duckdb_path)
@@ -102,6 +105,7 @@ class CsvDataSource(DuckDBDataSource):
     def __init__(self, name, **kwargs):
         super(DuckDBDataSource, self).__init__(name, 'csv', **kwargs)
 
+        self.credential_source = 'config'
         self.fields = [
             PathField('path', description='Path of csv file'),
         ]
@@ -127,10 +131,11 @@ class ParquetDataSource(DuckDBDataSource):
     def __init__(self, name, **kwargs):
         super(DuckDBDataSource, self).__init__(name, 'parquet', **kwargs)
 
+        self.credential_source = 'config'
         self.fields = [
             TextField('path',
                       description='Path of the Parquet file. (Support: file path, http and s3)',
-                      validate=_parquet_path_validate_func)
+                      validate=_parquet_path_validate_func),
         ]
 
     def to_database_url(self):
@@ -165,12 +170,14 @@ class ParquetDataSource(DuckDBDataSource):
         engine = super().create_engine()
 
         if type == 'http':
+            # HTTP
             engine.execute('INSTALL httpfs')
             engine.execute('LOAD httpfs')
             url = urlparse(parquet_path)
             table_name = self._formalize_table_name(splitext(os.path.basename(url.path))[0])
             pass
         elif type == 's3':
+            # S3
             s3_uri = urlparse(parquet_path)
             engine.execute('INSTALL httpfs')
             engine.execute('LOAD httpfs')
@@ -179,9 +186,8 @@ class ParquetDataSource(DuckDBDataSource):
             engine.execute(f'set s3_secret_access_key="{aws_secret_access_key}"')
             engine.execute(f'set s3_region="{get_s3_bucket_region(s3_uri.netloc)}"')
             table_name = self._formalize_table_name(splitext(os.path.basename(s3_uri.path))[0])
-
-            pass
         else:
+            # File
             table_name = self._formalize_table_name(splitext(basename(parquet_path))[0])
 
         sql_query = f"CREATE TABLE '{table_name}' AS SELECT * FROM read_parquet('{parquet_path}')"

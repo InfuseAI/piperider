@@ -40,6 +40,7 @@ class DataSource(metaclass=ABCMeta):
         self.args = kwargs
         self.fields: List[DataSourceField] = []
         self.credential: Dict = credential or {}
+        self.credential_source = 'credentials'
 
     def _validate_required_fields(self):
         reasons = []
@@ -208,13 +209,14 @@ def _list_datasource_providers():
     from .bigquery import BigQueryDataSource
     from .redshift import RedshiftDataSource
     from .survey import UserSurveyMockDataSource
-    from .duckdb import CsvDataSource, ParquetDataSource
+    from .duckdb import DuckDBDataSource, CsvDataSource, ParquetDataSource
     return {
         'snowflake': SnowflakeDataSource,
         'bigquery': BigQueryDataSource,
         'redshift': RedshiftDataSource,
         'postgres': PostgresDataSource,
         'sqlite': SqliteDataSource,
+        'duckdb': DuckDBDataSource,
         'csv': CsvDataSource,
         'parquet': ParquetDataSource,
         'tell us what type of datasource you want': UserSurveyMockDataSource,
