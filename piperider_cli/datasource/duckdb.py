@@ -95,7 +95,7 @@ class DuckDBDataSource(DataSource):
         if len(name) > 120:
             name = name[:115] + '__'
 
-        return name.replace('.', '_').replace('-', '_')
+        return name.replace('.', '_')
 
 
 class CsvDataSource(DuckDBDataSource):
@@ -117,7 +117,7 @@ class CsvDataSource(DuckDBDataSource):
         table_name = self._formalize_table_name(splitext(basename(csv_path))[0])
         engine = super().create_engine()
         # Load csv file as table
-        sql_query = f"CREATE TABLE {table_name} AS SELECT * FROM read_csv_auto('{csv_path}')"
+        sql_query = f"CREATE TABLE '{table_name}' AS SELECT * FROM read_csv_auto('{csv_path}')"
         engine.execute(sql_query)
         return engine
 
@@ -184,6 +184,6 @@ class ParquetDataSource(DuckDBDataSource):
         else:
             table_name = self._formalize_table_name(splitext(basename(parquet_path))[0])
 
-        sql_query = f"CREATE TABLE {table_name} AS SELECT * FROM read_parquet('{parquet_path}')"
+        sql_query = f"CREATE TABLE '{table_name}' AS SELECT * FROM read_parquet('{parquet_path}')"
         engine.execute(sql_query)
         return engine
