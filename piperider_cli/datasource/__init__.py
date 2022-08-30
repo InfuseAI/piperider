@@ -11,7 +11,7 @@ from rich.prompt import Prompt
 from sqlalchemy import create_engine, inspect
 
 import piperider_cli.hack.datasource_inquirer_prompt as datasource_prompt
-from piperider_cli.error import PipeRiderConnectionError
+from piperider_cli.error import PipeRiderTableConnectionError
 from .field import DataSourceField
 
 
@@ -85,7 +85,7 @@ class DataSource(metaclass=ABCMeta):
             engine = self.create_engine()
             available_tables = inspect(engine).get_table_names()
             if len(available_tables) == 0:
-                raise PipeRiderConnectionError(self.name, self.type_name)
+                raise PipeRiderTableConnectionError(self.name, self.type_name)
         finally:
             if engine:
                 engine.dispose()

@@ -1,3 +1,4 @@
+import configparser
 import os
 from os.path import basename, splitext
 from urllib.parse import urlparse
@@ -5,9 +6,12 @@ from urllib.parse import urlparse
 import requests
 from rich.console import Console
 
-from piperider_cli.error import PipeRiderConnectorError, AwsCredentialsError
+from piperider_cli.error import PipeRiderConnectorError, AwsCredentialsError, AwsUnExistedS3Bucket, \
+    PipeRiderDataBaseConnectionError
 from . import DataSource
 from .field import PathField, TextField
+
+AWS_CREDENTIAL_PATH = os.path.expanduser('~/.aws/credentials')
 
 
 def _parquet_path_validate_func(answer, current) -> bool:
@@ -43,6 +47,18 @@ def get_s3_bucket_region(s3_bucket):
         return ''
 
 
+def get_aws_credentials():
+    if os.path.exists(AWS_CREDENTIAL_PATH):
+        config = configparser.RawConfigParser()
+        config.read(AWS_CREDENTIAL_PATH)
+        profiles = config.sections()
+        if len(profiles) == 0:
+            return None, None
+        return config.get(profiles[0], 'aws_access_key_id'), config.get(profiles[0], 'aws_secret_access_key')
+
+    return os.getenv('AWS_ACCESS_KEY_ID'), os.getenv('AWS_SECRET_ACCESS_KEY')
+
+
 class DuckDBDataSource(DataSource):
     def __init__(self, name, **kwargs):
         super().__init__(name, 'duckdb', **kwargs)
@@ -66,7 +82,7 @@ class DuckDBDataSource(DataSource):
         dbpath = credential.get('dbpath')
         duckdb_path = os.path.abspath(dbpath)
         if not os.path.exists(duckdb_path):
-            raise ValueError(f'Cannot find the duckDB file at {duckdb_path}')
+            raise PipeRiderDataBaseConnectionError(self.name, self.type_name, db_path=duckdb_path)
         return f"duckdb:///{duckdb_path}"
 
     def _formalize_table_name(self, name):
@@ -79,7 +95,7 @@ class DuckDBDataSource(DataSource):
         if len(name) > 120:
             name = name[:115] + '__'
 
-        return name.replace('.', '_')
+        return name.replace('.', '_').replace('-', '_')
 
 
 class CsvDataSource(DuckDBDataSource):
@@ -95,13 +111,13 @@ class CsvDataSource(DuckDBDataSource):
 
     def create_engine(self):
         credential = self.credential
-        csv_file = os.path.abspath(credential.get('path'))
-        if not os.path.exists(csv_file):
-            raise ValueError('Cannot find the CSV file')
-        table_name = self._formalize_table_name(splitext(basename(csv_file))[0])
+        csv_path = os.path.abspath(credential.get('path'))
+        if not os.path.exists(csv_path):
+            raise PipeRiderDataBaseConnectionError(self.name, self.type_name, db_path=csv_path)
+        table_name = self._formalize_table_name(splitext(basename(csv_path))[0])
         engine = super().create_engine()
         # Load csv file as table
-        sql_query = f"CREATE TABLE {table_name} AS SELECT * FROM read_csv_auto('{csv_file}')"
+        sql_query = f"CREATE TABLE {table_name} AS SELECT * FROM read_csv_auto('{csv_path}')"
         engine.execute(sql_query)
         return engine
 
@@ -113,58 +129,61 @@ class ParquetDataSource(DuckDBDataSource):
 
         self.fields = [
             TextField('path',
-                      description='Path of Parquet file. (Support: file path, http and s3)',
+                      description='Path of the Parquet file. (Support: file path, http and s3)',
                       validate=_parquet_path_validate_func)
         ]
 
     def to_database_url(self):
         return 'duckdb:///:memory:'
 
-    def _extract_parquet_file(self):
+    def _extract_parquet_path(self):
         credential = self.credential
-        parquet_file = credential.get('path')
+        parquet_path = credential.get('path')
 
         if _parquet_path_validate_func is False:
-            raise ValueError(f'Cannot access the Parquet file: {parquet_file}')
+            raise PipeRiderDataBaseConnectionError(self.name, self.type_name, db_path=parquet_path)
 
-        if parquet_file.startswith('https://') \
-            or parquet_file.startswith('http://'):
-            return 'http', parquet_file
+        if parquet_path.startswith('https://') \
+            or parquet_path.startswith('http://'):
+            return 'http', parquet_path
 
-        if parquet_file.startswith('s3://'):
-            if os.getenv('AWS_ACCESS_KEY_ID') is None or os.getenv('AWS_SECRET_ACCESS_KEY') is None:
+        if parquet_path.startswith('s3://'):
+            aws_access_key_id, aws_secret_access_key = get_aws_credentials()
+            if aws_access_key_id is None or aws_secret_access_key is None:
                 raise AwsCredentialsError('No AWS credentials found')
-            s3_uri = urlparse(parquet_file)
-            s3_region = get_s3_bucket_region(s3_uri.netloc)
+            s3_uri = urlparse(parquet_path)
+            s3_bucket = s3_uri.netloc
+            s3_region = get_s3_bucket_region(s3_bucket)
             if not s3_region:
-                raise ValueError(f'S3 bucket "{s3_uri.netloc}" does not exist')
-            return 's3', parquet_file
+                raise AwsUnExistedS3Bucket(s3_bucket)
+            return 's3', parquet_path
 
-        return 'file', os.path.abspath(parquet_file)
+        return 'file', os.path.abspath(parquet_path)
 
     def create_engine(self):
-        type, parquet_file = self._extract_parquet_file()
+        type, parquet_path = self._extract_parquet_path()
         engine = super().create_engine()
 
         if type == 'http':
             engine.execute('INSTALL httpfs')
             engine.execute('LOAD httpfs')
-            url = urlparse(parquet_file)
+            url = urlparse(parquet_path)
             table_name = self._formalize_table_name(splitext(os.path.basename(url.path))[0])
             pass
         elif type == 's3':
-            s3_uri = urlparse(parquet_file)
+            s3_uri = urlparse(parquet_path)
             engine.execute('INSTALL httpfs')
             engine.execute('LOAD httpfs')
-            engine.execute(f'set s3_access_key_id="{os.getenv("AWS_ACCESS_KEY_ID")}"')
-            engine.execute(f'set s3_secret_access_key="{os.getenv("AWS_SECRET_ACCESS_KEY")}"')
+            aws_access_key_id, aws_secret_access_key = get_aws_credentials()
+            engine.execute(f'set s3_access_key_id="{aws_access_key_id}"')
+            engine.execute(f'set s3_secret_access_key="{aws_secret_access_key}"')
             engine.execute(f'set s3_region="{get_s3_bucket_region(s3_uri.netloc)}"')
             table_name = self._formalize_table_name(splitext(os.path.basename(s3_uri.path))[0])
 
             pass
         else:
-            table_name = self._formalize_table_name(splitext(basename(parquet_file))[0])
+            table_name = self._formalize_table_name(splitext(basename(parquet_path))[0])
 
-        sql_query = f"CREATE TABLE {table_name} AS SELECT * FROM read_parquet('{parquet_file}')"
+        sql_query = f"CREATE TABLE {table_name} AS SELECT * FROM read_parquet('{parquet_path}')"
         engine.execute(sql_query)
         return engine
