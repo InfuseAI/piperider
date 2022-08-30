@@ -16,7 +16,7 @@ export function CRTableListColumnList({
 }) {
   const transformedData = transformAsNestedBaseTargetRecord<
     SaferTableSchema['columns'],
-    ColumnSchema | undefined
+    ColumnSchema
   >(baseTableDatum?.columns, targetTableDatum?.columns);
 
   const columns = Object.keys(targetTableDatum?.columns || {}).map(

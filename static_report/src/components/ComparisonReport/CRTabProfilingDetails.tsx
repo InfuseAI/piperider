@@ -19,7 +19,7 @@ export function CRTabProfilingDetails({
 
   const transformedData = transformAsNestedBaseTargetRecord<
     SaferTableSchema['columns'],
-    ColumnSchema | undefined
+    ColumnSchema
   >(baseTable?.columns, targetTable?.columns);
 
   return (

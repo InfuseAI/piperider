@@ -28,8 +28,8 @@ import {
   ZSingleSchema,
   ZComparisonTableSchema,
   SaferSRSchema,
+  SaferTableSchema,
 } from '../../../types';
-import type { TableSchema } from '../../../sdlc/single-report-schema';
 import type { TableActionBarView } from '../../shared/TableActionBar';
 
 function getDisplayNameByBaseOrTargetField({
@@ -56,7 +56,7 @@ export function CRTableList({
   const { base, input: target } = data;
   const tables = transformAsNestedBaseTargetRecord<
     SaferSRSchema['tables'],
-    TableSchema
+    SaferTableSchema
   >(base.tables, target.tables);
 
   zReport(ZSingleSchema.safeParse(base));

@@ -20,8 +20,6 @@ export interface SaferTableSchema extends Omit<TableSchema, 'columns'> {
 export interface ComparisonReportSchema {
   base: SaferSRSchema;
   input: SaferSRSchema;
-  // base: SingleReportSchema;
-  // input: SingleReportSchema; //old code: future key will be `target`
 }
 
 export type ComparsionSource = 'base' | 'target';

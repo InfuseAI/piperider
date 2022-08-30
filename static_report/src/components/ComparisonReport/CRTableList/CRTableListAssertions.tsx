@@ -181,12 +181,7 @@ export function CRTargetTableAssertionsDifference({
         />
       ) : null}
       <Text as="span" color={isGreaterThanZero ? 'black' : 'inherit'}>
-        {difference === 0 &&
-          formatColumnValueWith(targetAssertions, formatNumber)}
-        {difference < 0 &&
-          formatColumnValueWith(targetAssertions, formatNumber)}
-        {difference > 0 &&
-          formatColumnValueWith(targetAssertions, formatNumber)}
+        {formatColumnValueWith(targetAssertions, formatNumber)}
       </Text>
     </Center>
   );
