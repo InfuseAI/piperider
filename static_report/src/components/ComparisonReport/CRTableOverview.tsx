@@ -10,14 +10,13 @@ import {
   Heading,
   Flex,
 } from '@chakra-ui/react';
-import { TableSchema } from '../../sdlc/single-report-schema';
-import { zReport, ZTableSchema } from '../../types';
+import { SaferTableSchema, zReport, ZTableSchema } from '../../types';
 import { getReportAggregateAssertions } from '../../utils/assertion';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
 
 type Props = {
-  baseTable: TableSchema;
-  targetTable: TableSchema;
+  baseTable?: SaferTableSchema;
+  targetTable?: SaferTableSchema;
 };
 
 export function CRTableOverview({ baseTable, targetTable }: Props) {

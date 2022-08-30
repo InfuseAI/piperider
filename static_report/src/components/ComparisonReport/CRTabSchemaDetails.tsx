@@ -15,8 +15,13 @@ import {
 import { FiChevronRight } from 'react-icons/fi';
 import { nanoid } from 'nanoid';
 
-import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
-import { ComparsionSource, zReport, ZTableSchema } from '../../types';
+import { ColumnSchema } from '../../sdlc/single-report-schema';
+import {
+  ComparsionSource,
+  SaferTableSchema,
+  zReport,
+  ZTableSchema,
+} from '../../types';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
 
 type EnrichedColumnData = {
@@ -34,7 +39,7 @@ type EnrichedColumnData = {
       )[];
 };
 const getEnrichedColumnsFor = (
-  columns: TableSchema['columns'] | undefined,
+  columns: SaferTableSchema['columns'] | undefined,
   type: ComparsionSource,
 ) =>
   columns
@@ -47,8 +52,8 @@ const getEnrichedColumnsFor = (
     : [];
 
 type Props = {
-  baseTableDatum?: TableSchema | undefined;
-  targetTableDatum?: TableSchema | undefined;
+  baseTableDatum?: SaferTableSchema;
+  targetTableDatum?: SaferTableSchema;
   visibleDetail?: boolean;
 };
 export function CRTabSchemaDetails({

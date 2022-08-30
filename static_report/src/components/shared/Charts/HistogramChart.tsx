@@ -52,8 +52,9 @@ export function HistogramChart({
   data: { histogram, type, total, min, max },
   hideAxis = false,
 }: Props) {
-  const { counts, bin_edges: binEdges } = histogram as Histogram;
   const isDatetime = type === 'datetime';
+  const { counts = [], bin_edges: binEdges = [] } =
+    (histogram as Histogram) || ({} as Histogram);
 
   const newData = isDatetime
     ? counts.map((v, i) => ({ x: binEdges[i], y: v }))

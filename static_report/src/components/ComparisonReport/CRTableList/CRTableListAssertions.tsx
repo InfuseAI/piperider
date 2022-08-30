@@ -10,6 +10,7 @@ import isString from 'lodash/isString';
 import partial from 'lodash/partial';
 
 import { getComparisonAssertions } from '../../../utils/assertion';
+import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
 import type { ComparisonReportSchema } from '../../../types';
 
 const getAssertionValue = partial((value: string | number) =>
@@ -55,7 +56,9 @@ export function CRTableListAssertions({
           failed={baseFailed}
         />
         <Text as="span">/</Text>
-        <Text as="span">{baseOverviewAssertions} total</Text>
+        <Text as="span" width="60px">
+          {formatColumnValueWith(baseOverviewAssertions, formatNumber)} total
+        </Text>
       </Flex>
 
       <Icon as={FiArrowRight} />
@@ -94,15 +97,15 @@ export function CRBaseTableAssertion({
 
   if (total > 0 && failed === 0) {
     return (
-      <Text as="span" color="#2CAA00">
+      <Text as="span" color="#2CAA00" width="80px">
         All Passed
       </Text>
     );
   }
 
   return (
-    <Text as="span" color="#F60059">
-      {failed} failures
+    <Text as="span" color="#F60059" width="80px">
+      {formatColumnValueWith(failed, formatNumber)} failures
     </Text>
   );
 }
@@ -128,20 +131,30 @@ export function CRTargetTableAssertion({
     return (
       <Center gap={1} color="#F60059">
         <Icon as={FiArrowDownCircle} boxSize={4} />
-        <Text as="span">{Math.abs(failedDifference)}</Text>
+        <Text as="span">
+          {formatColumnValueWith(Math.abs(failedDifference), formatNumber)}
+        </Text>
       </Center>
     );
   } else if (failedDifference > 0) {
     return (
       <Center gap={1} color="#F60059">
         <Icon as={FiArrowUpCircle} boxSize={4} />
-        <Text as="span">{failedDifference}</Text>
+        <Text as="span">
+          {formatColumnValueWith(failedDifference, formatNumber)}
+        </Text>
       </Center>
     );
   }
 
   // When `failedDifference = 0`, check `failed` number if is `0` then rendering `total`
-  return <Text as="span">{failed === 0 ? total : failed}</Text>;
+  return (
+    <Text as="span">
+      {failed === 0
+        ? formatColumnValueWith(total, formatNumber)
+        : formatColumnValueWith(failed, formatNumber)}
+    </Text>
+  );
 }
 
 export function CRTargetTableAssertionsDifference({
@@ -168,9 +181,7 @@ export function CRTargetTableAssertionsDifference({
         />
       ) : null}
       <Text as="span" color={isGreaterThanZero ? 'black' : 'inherit'}>
-        {difference === 0 && targetAssertions}
-        {difference < 0 && targetAssertions}
-        {difference > 0 && targetAssertions}
+        {formatColumnValueWith(targetAssertions, formatNumber)}
       </Text>
     </Center>
   );
@@ -201,7 +212,7 @@ export function CRBaseTableAssertionsSummary({
       <Text as="span" color="gray.500">
         of
       </Text>
-      <Text as="span">{total}</Text>
+      <Text as="span">{formatColumnValueWith(total, formatNumber)}</Text>
     </Flex>
   );
 }
@@ -271,7 +282,7 @@ export function CRTargetTableAssertionsSummary({
           />
         )}
         <Text as="span" color={assertionsDiff > 0 ? 'black' : 'inherit'}>
-          {total}
+          {formatColumnValueWith(total, formatNumber)}
         </Text>
       </Center>
     </Flex>

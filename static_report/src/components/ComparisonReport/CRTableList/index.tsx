@@ -27,12 +27,24 @@ import {
   zReport,
   ZSingleSchema,
   ZComparisonTableSchema,
+  SaferSRSchema,
+  SaferTableSchema,
 } from '../../../types';
-import type {
-  SingleReportSchema,
-  TableSchema,
-} from '../../../sdlc/single-report-schema';
 import type { TableActionBarView } from '../../shared/TableActionBar';
+
+function getDisplayNameByBaseOrTargetField({
+  baseField,
+  targetField,
+}: {
+  baseField?: string;
+  targetField?: string;
+}) {
+  if (!targetField) {
+    return baseField;
+  }
+
+  return targetField;
+}
 
 export function CRTableList({
   data,
@@ -43,8 +55,8 @@ export function CRTableList({
 }) {
   const { base, input: target } = data;
   const tables = transformAsNestedBaseTargetRecord<
-    SingleReportSchema['tables'],
-    TableSchema
+    SaferSRSchema['tables'],
+    SaferTableSchema
   >(base.tables, target.tables);
 
   zReport(ZSingleSchema.safeParse(base));
@@ -62,6 +74,15 @@ export function CRTableList({
         {Object.keys(tables).map((key) => {
           const table = tables[key];
           ZComparisonTableSchema(false).safeParse(table);
+
+          const columnName = getDisplayNameByBaseOrTargetField({
+            baseField: table?.base?.name,
+            targetField: table?.target?.name,
+          });
+          const description = getDisplayNameByBaseOrTargetField({
+            baseField: table?.base?.description,
+            targetField: table?.target?.description,
+          });
 
           return (
             <Flex key={nanoid()}>
@@ -87,13 +108,13 @@ export function CRTableList({
                           <GridItem>
                             <Center>
                               <Icon as={FiGrid} color="piperider.500" />
-                              <Text mx={1}>{table.target.name}</Text>
+                              <Text mx={1}>{columnName}</Text>
 
                               {!isExpanded && (
                                 <Tooltip
-                                  label={table.target.description}
-                                  placement="right-end"
                                   shouldWrapChildren
+                                  placement="right-end"
+                                  label={description}
                                 >
                                   <Icon as={FiAlertCircle} ml={1} />
                                 </Tooltip>
@@ -104,8 +125,8 @@ export function CRTableList({
                             <Flex gap={10} color="gray.500">
                               <Text>Rows</Text>
                               <CRTableListRowsSummary
-                                baseCount={table.base.row_count || 0}
-                                targetCount={table.target.row_count || 0}
+                                baseCount={table?.base?.row_count}
+                                targetCount={table?.target?.row_count}
                               />
                             </Flex>
                           </GridItem>
@@ -148,12 +169,8 @@ export function CRTableList({
                                 textAlign="left"
                               >
                                 <Text as="span">Description</Text>{' '}
-                                <Text
-                                  as="span"
-                                  ml={4}
-                                  title={table.target.description}
-                                >
-                                  {table.target.description}
+                                <Text as="span" ml={4} title={description}>
+                                  {description}
                                 </Text>
                               </Text>
                             ) : (
@@ -167,8 +184,8 @@ export function CRTableList({
                                   Columns
                                 </Text>
                                 <CRTableListColumnsSummary
-                                  baseCount={table.base.col_count || 0}
-                                  targetCount={table.target.col_count || 0}
+                                  baseCount={table?.base?.col_count}
+                                  targetCount={table?.target?.col_count}
                                 />
                               </Flex>
                             )}
@@ -181,15 +198,15 @@ export function CRTableList({
                       {view === 'summary' ? (
                         <Stack gap={6}>
                           <CRTableListColumnList
-                            baseTableDatum={table.base}
-                            targetTableDatum={table.target}
+                            baseTableDatum={table?.base}
+                            targetTableDatum={table?.target}
                           />
                         </Stack>
                       ) : (
                         <CRTabSchemaDetails
                           visibleDetail={false}
-                          baseTableDatum={table.base}
-                          targetTableDatum={table.target}
+                          baseTableDatum={table?.base}
+                          targetTableDatum={table?.target}
                         />
                       )}
                     </AccordionPanel>

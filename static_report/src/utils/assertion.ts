@@ -1,5 +1,4 @@
 import { NO_VALUE } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
-import { TableSchema } from '../sdlc/single-report-schema';
 import {
   ZTableSchema,
   AssertionValue,
@@ -7,14 +6,15 @@ import {
   ComparisonReportSchema,
   ComparsionSource,
   zReport,
+  SaferTableSchema,
 } from '../types';
 
 /**
  * Get the report assertions by giving piperider and dbt assertions.
  */
 export function getReportAggregateAssertions(
-  piperiderAssertions: TableSchema['piperider_assertion_result'],
-  dbtAssertion?: TableSchema['dbt_assertion_result'],
+  piperiderAssertions?: SaferTableSchema['piperider_assertion_result'],
+  dbtAssertion?: SaferTableSchema['dbt_assertion_result'],
 ) {
   let passed = 0;
   let failed = 0;
