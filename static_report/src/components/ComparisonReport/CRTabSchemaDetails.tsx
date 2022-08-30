@@ -196,7 +196,7 @@ export function CRTabSchemaDetails({
                   {visibleDetail && (
                     <Box as="td" position="absolute" top={3} right={0}>
                       <Link
-                        href={`/tables/${baseTableDatum?.name}/columns/${column.name}`}
+                        href={`/tables/${baseTableDatum?.name}/columns/${column?.name}`}
                       >
                         <Icon
                           as={FiChevronRight}
@@ -216,7 +216,11 @@ export function CRTabSchemaDetails({
   );
 }
 
-function equalizeColumns(source, target, delta: number) {
+function equalizeColumns(
+  source: EnrichedColumnData['columns'],
+  target: EnrichedColumnData['columns'],
+  delta: number,
+): EnrichedColumnData['columns'] {
   if (source.length < target.length) {
     return [...source, ...Array(delta).fill(null)];
   }

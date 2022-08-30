@@ -161,9 +161,10 @@ export const zeroAsFallbackHandler = (v) => (v ? v : 0);
  * @returns
  */
 export function transformCompositionAsFlatStackInput(
-  columnDatum: ColumnSchema,
-  compType: 'static' | 'dynamic',
+  columnDatum?: ColumnSchema,
+  compType: 'static' | 'dynamic' = 'static',
 ): FlatStackedBarChartProps['data'] | undefined {
+  if (!columnDatum) return;
   const {
     nulls,
     invalids,

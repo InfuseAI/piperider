@@ -4,12 +4,12 @@ import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { getIconForColumnType } from '../../../utils/transformers';
 import { SRTooltip } from '../../SingleReport/SRTooltip';
 
-type Props = { columnDatum: ColumnSchema };
+type Props = { columnDatum?: ColumnSchema };
 export function ColumnCardHeader({
   columnDatum,
   ...props
 }: Props & ChakraProps) {
-  const { description, name, schema_type } = columnDatum;
+  const { description, name, schema_type } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
   return (
     <Flex

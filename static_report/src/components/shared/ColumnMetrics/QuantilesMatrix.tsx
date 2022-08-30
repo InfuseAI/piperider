@@ -18,11 +18,11 @@ import {
 } from '../../../utils/formatters';
 
 type Props = {
-  columnDatum: ColumnSchema;
+  columnDatum?: ColumnSchema;
 };
 export function QuantilesMatrix({ columnDatum }: Props) {
-  ZColSchema.parse(columnDatum);
-  const { min, p5, p25, p50, p75, p95, max } = columnDatum;
+  ZColSchema.safeParse(columnDatum);
+  const { min, p5, p25, p50, p75, p95, max } = columnDatum || {};
   const quantileData: {
     label: string;
     value?: number | string;

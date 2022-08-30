@@ -12,7 +12,7 @@ import { TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
 import { MetricsInfo } from './MetricsInfo';
 
 type Props = {
-  baseColumn: ColumnSchema;
+  baseColumn?: ColumnSchema;
   targetColumn?: ColumnSchema | null;
 };
 
@@ -40,7 +40,7 @@ export function SummaryStats({
     } = getColumnDetails(targetColumn);
   }
 
-  const subtitle = baseColumn.type === 'string' ? ` (${TEXTLENGTH})` : '';
+  const subtitle = baseColumn?.type === 'string' ? ` (${TEXTLENGTH})` : '';
 
   return (
     <>

@@ -11,6 +11,7 @@ import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { ComparisonReportSchema } from '../types';
 import { ColumnDetailsMasterList } from '../components/shared/ColumnDetails/ColumnDetailsMasterList';
 import { mainContentAreaHeight } from '../utils/layout';
+import { NO_VALUE } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
 interface Props {
   data: ComparisonReportSchema;
 }
@@ -37,12 +38,12 @@ export function CRColumnDetailsPage({
 
   const { reportName, columnName } = params;
 
-  const baseDataColumns = baseTables[reportName].columns;
-  const targetDataColumns = targetTables[reportName].columns;
+  const baseDataColumns = baseTables[reportName]?.columns || {};
+  const targetDataColumns = targetTables[reportName]?.columns || {};
 
   const baseColumnDatum = baseDataColumns[columnName];
   const targetColumnDatum = targetDataColumns[columnName];
-  const columnHeaderDatum = baseColumnDatum.type
+  const columnHeaderDatum = baseColumnDatum?.type
     ? baseColumnDatum
     : targetColumnDatum;
 
@@ -53,7 +54,7 @@ export function CRColumnDetailsPage({
     max: baseMax,
     p25: baseP25,
     p75: baseP75,
-  } = baseColumnDatum;
+  } = baseColumnDatum || {};
   const {
     type: targetType,
     avg: targetAvg,
@@ -61,7 +62,7 @@ export function CRColumnDetailsPage({
     max: targetMax,
     p25: targetP25,
     p75: targetP75,
-  } = targetColumnDatum;
+  } = targetColumnDatum || {};
 
   return (
     <Main isSingleReport={false} time={time} maxHeight={mainContentAreaHeight}>
@@ -138,7 +139,7 @@ export function CRColumnDetailsPage({
               {baseType !== 'other' && baseType !== 'boolean' && (
                 <GridItem>
                   <Text fontSize={'xl'}>
-                    {formatTitleCase(baseType)} Statistics
+                    {formatTitleCase(baseType || NO_VALUE)} Statistics
                   </Text>
                   <Divider my={3} />
                   <SummaryStats baseColumn={baseColumnDatum} width={'100%'} />

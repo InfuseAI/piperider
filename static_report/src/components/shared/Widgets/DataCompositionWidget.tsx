@@ -7,10 +7,10 @@ import { GeneralColumnMetrics } from '../ColumnMetrics/GeneralColumnMetrics';
 import { TextNumberColumnMetrics } from '../ColumnMetrics/TextNumberColumnMetrics';
 
 interface Props {
-  columnDatum: ColumnSchema;
+  columnDatum?: ColumnSchema;
 }
 export function DataCompositionWidget({ columnDatum }: Props) {
-  const { type } = columnDatum;
+  const { type } = columnDatum || {};
   const showGenericTypeComp =
     type === 'integer' || type === 'numeric' || type === 'string';
   const dataCompInput = transformCompositionAsFlatStackInput(

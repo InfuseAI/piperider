@@ -13,13 +13,14 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 
 import { ColumnSchema, TableSchema } from '../../../sdlc/single-report-schema';
+import { SaferTableSchema } from '../../../types';
 import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
 interface Props {
-  baseDataColumns?: TableSchema['columns'];
-  targetDataColumns?: TableSchema['columns'];
+  baseDataColumns?: SaferTableSchema['columns'];
+  targetDataColumns?: SaferTableSchema['columns'];
   currentReport: string;
   currentColumn: string;
 }
@@ -36,7 +37,7 @@ export function ColumnDetailsMasterList({
   const [filterString, setFilterString] = useState<string>('');
   const [location, setLocation] = useLocation();
   const [filterState, setFilterState] = useState<
-    Map<ProfilerGenericTypes, boolean>
+    Map<ProfilerGenericTypes | undefined, boolean>
   >(
     new Map([
       ['boolean', true],
@@ -49,7 +50,7 @@ export function ColumnDetailsMasterList({
   );
 
   const combinedColumnRecord = transformAsNestedBaseTargetRecord<
-    TableSchema['columns'],
+    SaferTableSchema['columns'],
     ColumnSchema
   >(baseDataColumns, targetDataColumns);
   const combinedColumnEntries = Object.entries(combinedColumnRecord);
@@ -143,7 +144,7 @@ export function ColumnDetailsMasterList({
           .map(([key, { base, target }]) => (
             <ColumnDetailListItem
               key={key}
-              isActive={base.name === currentColumn}
+              isActive={base?.name === currentColumn}
               baseColumnDatum={base}
               targetColumnDatum={target}
               onSelect={(name) => {
