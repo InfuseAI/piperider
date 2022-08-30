@@ -1,14 +1,14 @@
 import { Flex, Grid } from '@chakra-ui/react';
-import { ColumnSchema, TableSchema } from '../../sdlc/single-report-schema';
-import { zReport, ZTableSchema } from '../../types';
+import { ColumnSchema } from '../../sdlc/single-report-schema';
+import { SaferTableSchema, zReport, ZTableSchema } from '../../types';
 import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
 import { getDataChart } from '../shared/ColumnCard';
 import { ColumnCardDataVisualContainer } from '../shared/ColumnCard/ColumnCardDataVisualContainer';
 import { CRTableColumnDetails } from './CRTableColumnDetails';
 
 type CRTabProfilingDetailsProps = {
-  baseTable?: TableSchema;
-  targetTable?: TableSchema;
+  baseTable?: SaferTableSchema;
+  targetTable?: SaferTableSchema;
 };
 export function CRTabProfilingDetails({
   baseTable,
@@ -18,8 +18,8 @@ export function CRTabProfilingDetails({
   zReport(ZTableSchema.safeParse(targetTable));
 
   const transformedData = transformAsNestedBaseTargetRecord<
-    TableSchema['columns'],
-    ColumnSchema
+    SaferTableSchema['columns'],
+    ColumnSchema | undefined
   >(baseTable?.columns, targetTable?.columns);
 
   return (

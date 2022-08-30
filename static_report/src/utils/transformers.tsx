@@ -15,7 +15,7 @@ import { ColumnSchema } from '../sdlc/single-report-schema';
 export function transformAsNestedBaseTargetRecord<K, T>(
   base?: K,
   target?: K,
-): Record<string, { base: T; target: T }> {
+): Record<string, { base: T | undefined; target: T | undefined }> {
   const result = {};
 
   Object.entries(base || {}).forEach(([key, value]) => {
@@ -122,10 +122,14 @@ export type CRHistogramDatum = {
   target: number;
 };
 
-export function getIconForColumnType(columnDatum: ColumnSchema): {
+export function getIconForColumnType(columnDatum: ColumnSchema | undefined): {
   backgroundColor: ColorProps['color'];
   icon: any; //IconType not provided
 } {
+  if (!columnDatum) {
+    return { icon: null, backgroundColor: 'inherit' };
+  }
+
   const { type } = columnDatum;
   const isCategorical = checkColumnCategorical(columnDatum);
 

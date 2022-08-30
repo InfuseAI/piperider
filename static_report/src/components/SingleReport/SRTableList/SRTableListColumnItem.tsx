@@ -39,7 +39,7 @@ export function SRTableListColumnItem({
 
       <GridItem>
         {!colAssertions ? (
-          <Text color="gray.500">no assertions</Text>
+          <Text color="gray.500">No assertions</Text>
         ) : (
           <SRTableListAssertionsSummary assertions={colAssertions} />
         )}
