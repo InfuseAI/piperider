@@ -1,3 +1,4 @@
+import concurrent.futures
 import decimal
 import math
 import time
@@ -8,6 +9,7 @@ from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, ARRAY, select, func, \
     distinct, case, text, literal_column
 from sqlalchemy.engine import Engine, Connection
+from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy.sql import FromClause
 from sqlalchemy.sql.elements import ColumnClause
 from sqlalchemy.sql.expression import CTE, false, true
@@ -164,12 +166,30 @@ class Profiler:
         self.event_handler.handle_table_progress(result, col_count, col_index)
 
         # Profile columns
-        for column in candidate_columns:
-            columns[column.name] = self._profile_column(table, column)
-            col_index = col_index + 1
-            self.event_handler.handle_table_progress(result, col_count, col_index)
+        if isinstance(self.engine.pool, SingletonThreadPool):
+            for column in candidate_columns:
+                columns[column.name] = self._profile_column(table, column)
+                col_index = col_index + 1
+                self.event_handler.handle_table_progress(result, col_count, col_index)
 
-        self.event_handler.handle_table_end(result)
+            self.event_handler.handle_table_end(result)
+        else:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                future_to_profile = {executor.submit(self._profile_column, table, column): column for column in
+                                     candidate_columns}
+                try:
+                    for future in concurrent.futures.as_completed(future_to_profile):
+                        column = future_to_profile[future]
+                        try:
+                            data = future.result()
+                        except Exception as exc:
+                            raise exc
+                        else:
+                            columns[column.name] = data
+                            col_index = col_index + 1
+                            self.event_handler.handle_table_progress(result, col_count, col_index)
+                finally:
+                    self.event_handler.handle_table_end(result)
 
         return result
 
@@ -322,7 +342,7 @@ class StringColumnProfiler(BaseColumnProfiler):
                     else_=c
                 ).label("c"),
                 c.label("orig"),
-            ]).cte()
+            ]).select_from(t).cte()
         cte = select([
             cte.c.c,
             func.length(cte.c.c).label("len"),
@@ -431,7 +451,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
                     else_=c
                 ).label("c"),
                 c.label("orig")
-            ]).cte(name="T")
+            ]).select_from(t).cte(name="T")
         cte = select([
             cte.c.c,
             case([(cte.c.c == 0, 1)], else_=None).label("zero"),
@@ -773,7 +793,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                     else_=None
                 ).label("c"),
                 c.label("orig"),
-            ]).cte()
+            ]).select_from(t).cte()
         return cte
 
     def profile(self):
