@@ -74,8 +74,14 @@ export function renderChartUnavailableMsg(
     ? `Chart rendering unavailable for (type: ${schema_type})`
     : `There are insufficient valid data points in this dataset`;
   return (
-    <Flex h={'inherit'} alignItems={'center'} w={'100%'} bg={'blackAlpha.300'}>
-      <Text textAlign={'center'} w={'inherit'}>
+    <Flex
+      h={'inherit'}
+      minH={'100%'}
+      alignItems={'center'}
+      w={'100%'}
+      bg={'blackAlpha.300'}
+    >
+      <Text alignSelf={'center'} textAlign={'center'} w={'inherit'}>
         {noRenderMessage}
       </Text>
     </Flex>

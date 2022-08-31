@@ -12,7 +12,7 @@ import {
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 
-import { ColumnSchema, TableSchema } from '../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { SaferTableSchema } from '../../../types';
 import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
@@ -23,8 +23,9 @@ interface Props {
   targetDataColumns?: SaferTableSchema['columns'];
   currentReport: string;
   currentColumn: string;
+  hasSplitView?: boolean;
 }
-// FIXME: show Table list as well ??
+// FIXME: show Table list as well ?? (Accordion)
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of columns. Belongs in the profiling column details page to view in-depth metrics and visualizations
  */
@@ -33,6 +34,7 @@ export function ColumnDetailsMasterList({
   targetDataColumns,
   currentReport,
   currentColumn,
+  hasSplitView,
 }: Props) {
   const [filterString, setFilterString] = useState<string>('');
   const [location, setLocation] = useLocation();
@@ -101,7 +103,7 @@ export function ColumnDetailsMasterList({
 
         {/* Tag Toggle Filters */}
         <Box>
-          <Text as={'small'}>Applied Filters:</Text>
+          <Text as={'small'}>View Types:</Text>
           <Flex alignItems={'center'}>
             {quickFilters.map((v) => {
               const itemValue = filterState.get(v);
@@ -150,6 +152,7 @@ export function ColumnDetailsMasterList({
               onSelect={(name) => {
                 setLocation(`/tables/${currentReport}/columns/${name}`);
               }}
+              hasSplitView={hasSplitView}
               p={3}
             />
           ))}

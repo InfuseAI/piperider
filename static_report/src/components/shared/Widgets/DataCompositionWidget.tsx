@@ -1,5 +1,6 @@
 import { Divider, Text, Box } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { renderChartUnavailableMsg } from '../../../utils/charts';
 import { formatTitleCase } from '../../../utils/formatters';
 import { transformCompositionAsFlatStackInput } from '../../../utils/transformers';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
@@ -21,11 +22,10 @@ export function DataCompositionWidget({ columnDatum }: Props) {
     columnDatum,
     'dynamic',
   );
-  //FIXME: Empty-state is blank! (Check other widgets as well!)
-  return (
-    <>
-      {dataCompInput && (
-        <Box mb={6}>
+  if (dataCompInput) {
+    return (
+      <Box mb={6}>
+        <Box>
           <Text fontSize={'xl'}>Data Composition</Text>
           <Divider my={3} />
           <Box height={'55px'}>
@@ -35,19 +35,21 @@ export function DataCompositionWidget({ columnDatum }: Props) {
             <SRGeneralColumnMetrics columnDatum={columnDatum} width={'100%'} />
           </Box>
         </Box>
-      )}
-      {showGenericTypeComp && dynamicCompInput && (
-        <Box>
-          <Text fontSize={'xl'}>{formatTitleCase(type)} Composition</Text>
-          <Divider my={3} />
-          <Box height={'55px'}>
-            <FlatStackedBarChart data={dynamicCompInput} />
+
+        {showGenericTypeComp && dynamicCompInput && (
+          <Box>
+            <Text fontSize={'xl'}>{formatTitleCase(type)} Composition</Text>
+            <Divider my={3} />
+            <Box height={'55px'}>
+              <FlatStackedBarChart data={dynamicCompInput} />
+            </Box>
+            <Box mt={6}>
+              <SRTextNumberStats columnDatum={columnDatum} width={'100%'} />
+            </Box>
           </Box>
-          <Box mt={6}>
-            <SRTextNumberStats columnDatum={columnDatum} width={'100%'} />
-          </Box>
-        </Box>
-      )}
-    </>
-  );
+        )}
+      </Box>
+    );
+  }
+  return <>{renderChartUnavailableMsg()}</>;
 }

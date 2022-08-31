@@ -1,17 +1,15 @@
-import { Box, Divider, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, Text } from '@chakra-ui/react';
 import { useRoute } from 'wouter';
-import { QuantilesMatrix } from '../components/shared/ColumnMetrics/QuantilesMatrix';
 import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHeader';
 import { Main } from '../components/shared/Main';
-import { SRSummaryStats } from '../components/shared/ColumnMetrics/SRSummaryStats';
-import { formatReportTime, formatTitleCase } from '../utils/formatters';
-import { FlatBoxPlotChart } from '../components/shared/Charts/FlatBoxPlotChart';
+import { formatReportTime } from '../utils/formatters';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { ComparisonReportSchema } from '../types';
 import { ColumnDetailsMasterList } from '../components/shared/ColumnDetails/ColumnDetailsMasterList';
 import { mainContentAreaHeight } from '../utils/layout';
-import { NO_VALUE } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
+import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
+import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 interface Props {
   data: ComparisonReportSchema;
 }
@@ -47,22 +45,8 @@ export function CRColumnDetailsPage({
     ? baseColumnDatum
     : targetColumnDatum;
 
-  const {
-    type: baseType,
-    avg: baseAvg,
-    min: baseMin,
-    max: baseMax,
-    p25: baseP25,
-    p75: baseP75,
-  } = baseColumnDatum || {};
-  const {
-    type: targetType,
-    avg: targetAvg,
-    min: targetMin,
-    max: targetMax,
-    p25: targetP25,
-    p75: targetP75,
-  } = targetColumnDatum || {};
+  const { type: baseType } = baseColumnDatum || {};
+  const { type: targetType } = targetColumnDatum || {};
 
   return (
     <Main isSingleReport={false} time={time} maxHeight={mainContentAreaHeight}>
@@ -74,6 +58,7 @@ export function CRColumnDetailsPage({
             targetDataColumns={targetDataColumns}
             currentReport={reportName}
             currentColumn={columnName}
+            hasSplitView
           />
         </GridItem>
         {/* Detail Area */}
@@ -115,11 +100,11 @@ export function CRColumnDetailsPage({
             </Grid>
           </GridItem>
           {/* Data Composition Block */}
-          <GridItem colSpan={1} p={9} bg={'gray.50'} minWidth={0}>
-            <DataCompositionWidget columnDatum={baseColumnDatum} />
-          </GridItem>
-          <GridItem colSpan={1} p={9} bg={'gray.50'} minWidth={0}>
-            <DataCompositionWidget columnDatum={targetColumnDatum} />
+          <GridItem colSpan={2} p={9} bg={'gray.50'}>
+            <Grid templateColumns={'1fr 1fr'} gap={8} minWidth={0}>
+              <DataCompositionWidget columnDatum={baseColumnDatum} />
+              <DataCompositionWidget columnDatum={targetColumnDatum} />
+            </Grid>
           </GridItem>
           {/* Chart Block - toggleable tabs */}
           <GridItem
@@ -132,69 +117,32 @@ export function CRColumnDetailsPage({
             <ChartTabsWidget
               baseColumnDatum={baseColumnDatum}
               targetColumnDatum={targetColumnDatum}
+              hasSplitView
             />
           </GridItem>
           <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
             <Grid templateColumns={'1fr 1fr'} gap={8}>
               {baseType !== 'other' && baseType !== 'boolean' && (
-                <GridItem>
-                  <Text fontSize={'xl'}>
-                    {formatTitleCase(baseType || NO_VALUE)} Statistics
-                  </Text>
-                  <Divider my={3} />
-                  <SRSummaryStats
-                    columnDatum={baseColumnDatum}
-                    width={'100%'}
-                  />
-                </GridItem>
+                <DataSummaryWidget columnDatum={baseColumnDatum} />
               )}
               {targetType !== 'other' && targetType !== 'boolean' && (
-                <GridItem>
-                  <Divider mt={42} mb={3} />
-                  <SRSummaryStats
-                    columnDatum={targetColumnDatum}
-                    width={'100%'}
-                  />
-                </GridItem>
+                <DataSummaryWidget columnDatum={targetColumnDatum} />
               )}
             </Grid>
           </GridItem>
           {/* Quantiles Block */}
-          {(baseType === 'integer' || baseType === 'numeric') && (
-            <GridItem gridRow={'span 1'} p={9} bg={'gray.50'} minWidth={'0px'}>
-              <Text fontSize={'xl'}>Quantile Data</Text>
-              <Divider my={3} />
-              <Box my={5}>
-                <FlatBoxPlotChart
-                  quantileData={{
-                    avg: baseAvg,
-                    max: baseMax,
-                    min: baseMin,
-                    p25: baseP25,
-                    p75: baseP75,
-                  }}
-                />
-              </Box>
-              <QuantilesMatrix columnDatum={baseColumnDatum} />
-            </GridItem>
-          )}
-          {(targetType === 'integer' || targetType === 'numeric') && (
-            <GridItem gridRow={'span 1'} p={9} bg={'gray.50'} minWidth={'0px'}>
-              <Divider mt={42} mb={3} />
-              <Box my={5}>
-                <FlatBoxPlotChart
-                  quantileData={{
-                    avg: targetAvg,
-                    max: targetMax,
-                    min: targetMin,
-                    p25: targetP25,
-                    p75: targetP75,
-                  }}
-                />
-              </Box>
-              <QuantilesMatrix columnDatum={targetColumnDatum} />
-            </GridItem>
-          )}
+          <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
+            <Grid templateColumns={'1fr 1fr'} gap={8}>
+              {(baseType === 'integer' ||
+                baseType === 'numeric' ||
+                !baseType) && <QuantilesWidget columnDatum={baseColumnDatum} />}
+              {(targetType === 'integer' ||
+                targetType === 'numeric' ||
+                !targetType) && (
+                <QuantilesWidget columnDatum={targetColumnDatum} />
+              )}
+            </Grid>
+          </GridItem>
         </Grid>
       </Grid>
     </Main>

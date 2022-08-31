@@ -16,10 +16,15 @@ import { ChartKind } from '../../../utils/transformers';
 import { ColumnCardDataVisualContainer } from '../ColumnCard/ColumnCardDataVisualContainer';
 
 interface Props {
+  hasSplitView?: boolean;
   baseColumnDatum?: ColumnSchema;
   targetColumnDatum?: ColumnSchema;
 }
-export function ChartTabsWidget({ baseColumnDatum, targetColumnDatum }: Props) {
+export function ChartTabsWidget({
+  hasSplitView,
+  baseColumnDatum,
+  targetColumnDatum,
+}: Props) {
   var {
     type: baseType,
     topk: baseTopK,
@@ -63,35 +68,42 @@ export function ChartTabsWidget({ baseColumnDatum, targetColumnDatum }: Props) {
 
           <TabPanels>
             {hasTopk && (
-              <TabPanel>
+              <TabPanel px={0}>
                 {_renderGridSplitView(
                   baseColumnDatum,
                   targetColumnDatum,
+                  hasSplitView,
                   'topk',
                 )}
               </TabPanel>
             )}
             {hasHistogram && (
-              <TabPanel>
+              <TabPanel px={0}>
                 {_renderGridSplitView(
                   baseColumnDatum,
                   targetColumnDatum,
+                  hasSplitView,
                   'histogram',
                 )}
               </TabPanel>
             )}
             {hasBoolean && (
-              <TabPanel>
+              <TabPanel px={0}>
                 {_renderGridSplitView(
                   baseColumnDatum,
                   targetColumnDatum,
+                  hasSplitView,
                   'pie',
                 )}
               </TabPanel>
             )}
             {hasOther && (
-              <TabPanel>
-                {_renderGridSplitView(baseColumnDatum, targetColumnDatum)}
+              <TabPanel px={0}>
+                {_renderGridSplitView(
+                  baseColumnDatum,
+                  targetColumnDatum,
+                  hasSplitView,
+                )}
               </TabPanel>
             )}
           </TabPanels>
@@ -116,21 +128,25 @@ export function ChartTabsWidget({ baseColumnDatum, targetColumnDatum }: Props) {
 function _renderGridSplitView(
   baseColumnDatum?: ColumnSchema,
   targetColumnDatum?: ColumnSchema,
+  hasSplitView?: boolean,
   chartKind?: ChartKind,
 ) {
   return (
-    <Grid templateColumns={targetColumnDatum ? '1fr 1fr' : '1fr'}>
+    <Grid templateColumns={hasSplitView ? '1fr 1fr' : '1fr'}>
       <GridItem minWidth={0}>
-        {baseColumnDatum && (
-          <ColumnCardDataVisualContainer p={0} title={baseColumnDatum.name}>
+        {
+          <ColumnCardDataVisualContainer p={0} title={baseColumnDatum?.name}>
             {getDataChart(baseColumnDatum, targetColumnDatum, chartKind)}
           </ColumnCardDataVisualContainer>
-        )}
+        }
       </GridItem>
-      {targetColumnDatum && (
+      {hasSplitView && (
         <GridItem minWidth={0}>
-          {targetColumnDatum && (
-            <ColumnCardDataVisualContainer p={0} title={targetColumnDatum.name}>
+          {targetColumnDatum !== null && (
+            <ColumnCardDataVisualContainer
+              p={0}
+              title={targetColumnDatum?.name}
+            >
               {getDataChart(targetColumnDatum, baseColumnDatum, chartKind)}
             </ColumnCardDataVisualContainer>
           )}

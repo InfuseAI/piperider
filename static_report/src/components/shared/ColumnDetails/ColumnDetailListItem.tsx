@@ -23,12 +23,14 @@ interface Props {
   targetColumnDatum?: ColumnSchema;
   onSelect: (arg: string) => void;
   isActive: boolean;
+  hasSplitView?: boolean;
 }
 export function ColumnDetailListItem({
   baseColumnDatum,
   targetColumnDatum,
   onSelect,
   isActive,
+  hasSplitView,
   ...props
 }: Props & ChakraProps) {
   const { icon, backgroundColor } = getIconForColumnType(baseColumnDatum);
@@ -66,7 +68,7 @@ export function ColumnDetailListItem({
           </Text>
         </Flex>
         <Box width={'100%'}>
-          {targetColumnDatum && (
+          {hasSplitView && (
             <Text fontSize={'sm'} color={'gray.600'} fontWeight={'semibold'}>
               Base
             </Text>
@@ -80,7 +82,7 @@ export function ColumnDetailListItem({
               Valid
             </Text>
           </Flex>
-          {targetColumnDatum && (
+          {hasSplitView && (
             <Box mt={3}>
               <Text fontSize={'sm'} color={'gray.600'} fontWeight={'semibold'}>
                 Target
