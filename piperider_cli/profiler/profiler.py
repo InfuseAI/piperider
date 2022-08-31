@@ -6,7 +6,7 @@ from typing import Union, List, Tuple
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, ARRAY, select, func, \
-    distinct, case, text
+    distinct, case, text, literal_column
 from sqlalchemy.engine import Engine, Connection
 from sqlalchemy.sql import FromClause
 from sqlalchemy.sql.elements import ColumnClause
@@ -194,7 +194,7 @@ class Profiler:
             generic_type = "numeric"
             profiler = NumericColumnProfiler(self.engine, table, column, is_integer=False)
         elif isinstance(column.type, Date) or isinstance(column.type, DateTime) or \
-                (self.engine.url.get_backend_name() == 'snowflake' and str(column.type).startswith('TIMESTAMP')):
+            (self.engine.url.get_backend_name() == 'snowflake' and str(column.type).startswith('TIMESTAMP')):
             # DATE
             # DATETIME
             # TIMEZONE_NTZ
@@ -528,6 +528,72 @@ class NumericColumnProfiler(BaseColumnProfiler):
 
             return result
 
+    def _profile_quantile_via_window_function(
+        self,
+        conn: Connection,
+        table: FromClause,
+        column: ColumnClause,
+        total: int
+    ):
+        # with t as (
+        #   select
+        #     column as c,
+        #     ntile(20) over (order by column) as n
+        #   from table
+        # )
+        # select n, min(c) from t group by n order by n
+        n_bucket = total if total < 100 else 100
+        t = select([
+            column.label("c"),
+            func.ntile(n_bucket).over(order_by=column).label("n")
+        ]).where(column.isnot(None)).select_from(table).cte()
+        stmt = select([t.c.n, func.min(t.c.c)]).group_by(t.c.n).order_by(t.c.n)
+        result = conn.execute(stmt)
+        quantile = []
+        for row in result:
+            n, v = row
+            quantile.append(v)
+        return {
+            'p5': dtof(quantile[5 * n_bucket // 100]),
+            'p25': dtof(quantile[25 * n_bucket // 100]),
+            'p50': dtof(quantile[50 * n_bucket // 100]),
+            'p75': dtof(quantile[75 * n_bucket // 100]),
+            'p95': dtof(quantile[95 * n_bucket // 100]),
+        }
+
+    def _profile_quantile_via_query_one_by_one(
+        self,
+        conn: Connection,
+        table: FromClause,
+        column: ColumnClause,
+        total: int
+    ):
+        # Query for each quantile
+        def ntile(n):
+            offset = n * total // 100
+
+            stmt = select([
+                column
+            ]).select_from(
+                table
+            ).where(
+                column.isnot(None)
+            ).order_by(
+                column
+            ).offset(
+                offset
+            ).limit(1)
+            result, = conn.execute(stmt).fetchone()
+            return dtof(result)
+
+        return {
+            'p5': ntile(5),
+            'p25': ntile(25),
+            'p50': ntile(50),
+            'p75': ntile(75),
+            'p95': ntile(95),
+        }
+
     def _profile_quantile(
         self,
         conn: Connection,
@@ -555,57 +621,14 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 # use window function if sqlite version >= 3.25.0
                 # see https://www.sqlite.org/windowfunctions.html
 
-                # with t as (
-                #   select
-                #     column as c,
-                #     ntile(20) over (order by column) as n
-                #   from table
-                # )
-                # select n, min(c) from t group by n order by n
-                n_bucket = total if total < 100 else 100
-                t = select([
-                    column.label("c"),
-                    func.ntile(n_bucket).over(order_by=column).label("n")
-                ]).where(column.isnot(None)).select_from(table).cte()
-                stmt = select([t.c.n, func.min(t.c.c)]).group_by(t.c.n).order_by(t.c.n)
-                result = conn.execute(stmt)
-                quantile = []
-                for row in result:
-                    n, v = row
-                    quantile.append(v)
-                return {
-                    'p5': dtof(quantile[5 * n_bucket // 100]),
-                    'p25': dtof(quantile[25 * n_bucket // 100]),
-                    'p50': dtof(quantile[50 * n_bucket // 100]),
-                    'p75': dtof(quantile[75 * n_bucket // 100]),
-                    'p95': dtof(quantile[95 * n_bucket // 100]),
-                }
+                return self._profile_quantile_via_window_function(conn, table, column, total)
             else:
-                # Query for each quantile
-                def ntile(n):
-                    offset = n * total // 100
-
-                    stmt = select([
-                        column
-                    ]).select_from(
-                        table
-                    ).where(
-                        column.isnot(None)
-                    ).order_by(
-                        column
-                    ).offset(
-                        offset
-                    ).limit(1)
-                    result, = conn.execute(stmt).fetchone()
-                    return dtof(result)
-
-                return {
-                    'p5': ntile(5),
-                    'p25': ntile(25),
-                    'p50': ntile(50),
-                    'p75': ntile(75),
-                    'p95': ntile(95),
-                }
+                return self._profile_quantile_via_query_one_by_one(conn, table, column, total)
+        elif self._get_database_backend() == 'duckdb':
+            selects = [
+                func.approx_quantile(column, literal_column(f"{percentile}")) for percentile in
+                [0.05, 0.25, 0.5, 0.75, 0.95]
+            ]
         elif self._get_database_backend() == 'bigquery':
             # BigQuery does not support WITHIN, change to use over
             #   Ref: https://github.com/great-expectations/great_expectations/blob/develop/great_expectations/dataset/sqlalchemy_dataset.py#L1019:9

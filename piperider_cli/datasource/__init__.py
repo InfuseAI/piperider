@@ -6,12 +6,12 @@ from typing import List, Dict, Callable
 
 import inquirer
 import readchar
-import piperider_cli.hack.datasource_inquirer_prompt as datasource_prompt
 from rich.console import Console
 from rich.prompt import Prompt
 from sqlalchemy import create_engine, inspect
 
-from piperider_cli.error import PipeRiderConnectionError
+import piperider_cli.hack.datasource_inquirer_prompt as datasource_prompt
+from piperider_cli.error import PipeRiderTableConnectionError
 from .field import DataSourceField
 
 
@@ -40,6 +40,7 @@ class DataSource(metaclass=ABCMeta):
         self.args = kwargs
         self.fields: List[DataSourceField] = []
         self.credential: Dict = credential or {}
+        self.credential_source = 'credentials'
 
     def _validate_required_fields(self):
         reasons = []
@@ -82,14 +83,17 @@ class DataSource(metaclass=ABCMeta):
     def verify_connection(self):
         engine = None
         try:
-            engine = create_engine(self.to_database_url(), **self.engine_args())
+            engine = self.create_engine()
             available_tables = inspect(engine).get_table_names()
             if len(available_tables) == 0:
-                raise PipeRiderConnectionError(self.name, self.type_name)
+                raise PipeRiderTableConnectionError(self.name, self.type_name)
         finally:
             if engine:
                 engine.dispose()
         return available_tables
+
+    def create_engine(self):
+        return create_engine(self.to_database_url(), **self.engine_args())
 
     def engine_args(self):
         return dict()
@@ -205,12 +209,16 @@ def _list_datasource_providers():
     from .bigquery import BigQueryDataSource
     from .redshift import RedshiftDataSource
     from .survey import UserSurveyMockDataSource
+    from .duckdb import DuckDBDataSource, CsvDataSource, ParquetDataSource
     return {
         'snowflake': SnowflakeDataSource,
         'bigquery': BigQueryDataSource,
         'redshift': RedshiftDataSource,
         'postgres': PostgresDataSource,
         'sqlite': SqliteDataSource,
+        'duckdb': DuckDBDataSource,
+        'csv': CsvDataSource,
+        'parquet': ParquetDataSource,
         'tell us what type of datasource you want': UserSurveyMockDataSource,
     }
 
