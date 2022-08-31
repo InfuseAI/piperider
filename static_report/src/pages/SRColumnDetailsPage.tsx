@@ -11,6 +11,7 @@ import { ColumnDetailsMasterList } from '../components/shared/ColumnDetails/Colu
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { mainContentAreaHeight } from '../utils/layout';
+import { containsDataSummary } from '../utils/transformers';
 interface Props {
   data: SingleReportSchema;
 }
@@ -80,9 +81,13 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
             bg={'gray.50'}
             borderRight={borderVal}
           >
-            <Text fontSize={'xl'}>{formatTitleCase(type)} Statistics</Text>
-            <Divider my={3} />
-            <SRSummaryStats columnDatum={columnDatum} width={'100%'} />
+            {containsDataSummary(type) && (
+              <>
+                <Text fontSize={'xl'}>{formatTitleCase(type)} Statistics</Text>
+                <Divider my={3} />
+                <SRSummaryStats columnDatum={columnDatum} width={'100%'} />
+              </>
+            )}
           </GridItem>
           {/* Quantiles Block */}
           {(type === 'integer' || type === 'numeric') && histogram && (

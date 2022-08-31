@@ -328,6 +328,9 @@ export function transformCRMetricsInfoList(
   return result;
 }
 
+/**
+ * contains* methods for determining whether to render certain column metric groups
+ */
 export function containsColumnQuantile(columnType?: ColumnSchema['type']) {
   return (
     columnType === 'numeric' ||
@@ -342,5 +345,29 @@ export function containsDataSummary(columnType?: ColumnSchema['type']) {
     columnType === 'string' ||
     columnType === 'datetime' ||
     columnType === 'numeric'
+  );
+}
+export function containsAvgSDSummary(columnType?: ColumnSchema['type']) {
+  return (
+    columnType === 'numeric' ||
+    columnType === 'integer' ||
+    columnType === 'boolean' ||
+    columnType === 'string'
+  );
+}
+export function containsMinMaxSummary(columnType?: ColumnSchema['type']) {
+  return (
+    columnType === 'numeric' ||
+    columnType === 'integer' ||
+    columnType === 'string'
+  );
+}
+export function containsDistinctDuplicateSummary(
+  columnType?: ColumnSchema['type'],
+) {
+  return (
+    columnType === 'integer' ||
+    columnType === 'string' ||
+    columnType === 'datetime'
   );
 }

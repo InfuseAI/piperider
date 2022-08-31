@@ -4,7 +4,7 @@ import { SaferTableSchema, zReport, ZTableSchema } from '../../types';
 import { getDataChart } from '../../utils/charts';
 import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
 import { ColumnCardDataVisualContainer } from '../shared/ColumnCard/ColumnCardDataVisualContainer';
-import { CRTableColumnDetails } from './CRTableColumnDetails';
+import { CRTableColumnDetailsRow } from './CRTableColumnDetailsRow';
 
 type CRTabProfilingDetailsProps = {
   baseTable?: SaferTableSchema;
@@ -52,7 +52,7 @@ function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
   return (
     <Flex key={name} direction="column">
       <Grid my={8} templateColumns="1fr 2fr" gap={12} overflowX={'hidden'}>
-        <CRTableColumnDetails baseColumn={base} targetColumn={target} />
+        <CRTableColumnDetailsRow baseColumn={base} targetColumn={target} />
 
         <Flex my={4} alignItems={'center'}>
           <ColumnCardDataVisualContainer height={350}>

@@ -9,14 +9,14 @@ import { MetricsInfo } from '../shared/ColumnMetrics/MetricsInfo';
 import { CRGeneralColumnMetrics } from '../shared/ColumnMetrics/CRGeneralColumnMetrics';
 import { CRSummaryStats } from '../shared/ColumnMetrics/CRSummaryStats';
 
-type CRTableColumnDetailsProps = {
+type Props = {
   baseColumn?: ColumnSchema;
   targetColumn?: ColumnSchema;
 };
-export const CRTableColumnDetails = ({
+export const CRTableColumnDetailsRow = ({
   baseColumn,
   targetColumn,
-}: CRTableColumnDetailsProps) => {
+}: Props) => {
   const fallback = baseColumn || targetColumn;
   const isCategorical = checkColumnCategorical(baseColumn);
   const [currentLocation] = useLocation();

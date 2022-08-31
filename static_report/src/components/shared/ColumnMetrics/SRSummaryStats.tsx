@@ -1,7 +1,12 @@
 import { ChakraProps, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../../types';
-import { transformSRMetricsInfoList } from '../../../utils/transformers';
+import {
+  containsAvgSDSummary,
+  containsDistinctDuplicateSummary,
+  containsMinMaxSummary,
+  transformSRMetricsInfoList,
+} from '../../../utils/transformers';
 import { NO_VALUE, TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
 import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
 
@@ -37,69 +42,68 @@ export function SRSummaryStats({ columnDatum, ...props }: Props & ChakraProps) {
     distinctDuplicateMetakeyList,
     columnDatum,
   );
+  const { type } = columnDatum || {};
   return (
     <>
-      <Flex direction="column">
-        {columnDatum?.type !== 'datetime' && columnDatum?.type !== 'other' && (
-          <>
-            {avgSDMetricsList &&
-              avgSDMetricsList.map(
-                ({ name, metakey, secondSlot, tooltipValues }, index) => (
-                  <MetricsInfo
-                    key={index}
-                    name={name}
-                    subtitle={subtitle}
-                    metakey={metakey}
-                    firstSlot={NO_VALUE}
-                    secondSlot={secondSlot}
-                    tooltipValues={tooltipValues}
-                    {...props}
-                  />
-                ),
-              )}
-          </>
-        )}
-      </Flex>
-      <Flex direction="column">
-        {(columnDatum?.type === 'numeric' ||
-          columnDatum?.type === 'integer' ||
-          columnDatum?.type === 'string') && (
-          <>
-            {minMaxMetricsList &&
-              minMaxMetricsList.map(
-                ({ name, metakey, secondSlot, tooltipValues }, index) => (
-                  <MetricsInfo
-                    key={index}
-                    name={name}
-                    subtitle={subtitle}
-                    metakey={metakey}
-                    firstSlot={NO_VALUE}
-                    secondSlot={secondSlot}
-                    tooltipValues={tooltipValues}
-                    {...props}
-                  />
-                ),
-              )}
-          </>
-        )}
-        {distinctDuplicateMetricsList &&
-          distinctDuplicateMetricsList.map(
-            (
-              { name, metakey, firstSlot, secondSlot, tooltipValues },
-              index,
-            ) => (
-              <MetricsInfo
-                key={index}
-                name={name}
-                metakey={metakey}
-                firstSlot={firstSlot}
-                secondSlot={secondSlot}
-                tooltipValues={tooltipValues}
-                {...props}
-              />
-            ),
-          )}
-      </Flex>
+      {containsAvgSDSummary(type) && (
+        <Flex direction="column">
+          {avgSDMetricsList &&
+            avgSDMetricsList.map(
+              ({ name, metakey, secondSlot, tooltipValues }, index) => (
+                <MetricsInfo
+                  key={index}
+                  name={name}
+                  subtitle={subtitle}
+                  metakey={metakey}
+                  firstSlot={NO_VALUE}
+                  secondSlot={secondSlot}
+                  tooltipValues={tooltipValues}
+                  {...props}
+                />
+              ),
+            )}
+        </Flex>
+      )}
+      {containsMinMaxSummary(type) && (
+        <Flex direction="column">
+          {minMaxMetricsList &&
+            minMaxMetricsList.map(
+              ({ name, metakey, secondSlot, tooltipValues }, index) => (
+                <MetricsInfo
+                  key={index}
+                  name={name}
+                  subtitle={subtitle}
+                  metakey={metakey}
+                  firstSlot={NO_VALUE}
+                  secondSlot={secondSlot}
+                  tooltipValues={tooltipValues}
+                  {...props}
+                />
+              ),
+            )}
+        </Flex>
+      )}
+      {containsDistinctDuplicateSummary(type) && (
+        <Flex direction="column">
+          {distinctDuplicateMetricsList &&
+            distinctDuplicateMetricsList.map(
+              (
+                { name, metakey, firstSlot, secondSlot, tooltipValues },
+                index,
+              ) => (
+                <MetricsInfo
+                  key={index}
+                  name={name}
+                  metakey={metakey}
+                  firstSlot={firstSlot}
+                  secondSlot={secondSlot}
+                  tooltipValues={tooltipValues}
+                  {...props}
+                />
+              ),
+            )}
+        </Flex>
+      )}
     </>
   );
 }
