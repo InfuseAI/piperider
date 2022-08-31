@@ -34,7 +34,13 @@ export const CRTableColumnDetails = ({
       border={'1px solid darkgray'}
       rounded={'2xl'}
     >
-      {fallback && <ColumnCardHeader columnDatum={fallback} />}
+      {fallback && (
+        <ColumnCardHeader
+          columnDatum={fallback}
+          bg={'blue.800'}
+          color={'white'}
+        />
+      )}
       <Flex direction="column" gap={3} m={4}>
         <Flex gap={8}>
           <Text ml={'16'} fontWeight={700} textAlign="right" width="100px">
@@ -83,9 +89,9 @@ export const CRTableColumnDetails = ({
         )}
       </Flex>
       {fallback && (
-        <Flex justifyContent={'center'} p={3}>
+        <Flex justifyContent={'center'} p={3} h={'100%'} alignItems={'end'}>
           <Link href={`${currentLocation}/columns/${fallback.name}`}>
-            <Text as={'a'} color="gray.700">
+            <Text as={'a'} color="blue.400">
               Details
             </Text>
           </Link>

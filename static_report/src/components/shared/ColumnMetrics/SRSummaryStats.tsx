@@ -2,7 +2,7 @@ import { ChakraProps, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../../types';
 import { formatSRMetricsInfoList } from '../../../utils/transformers';
-import { TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
+import { NO_VALUE, TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
 import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
 
 type Props = {
@@ -14,24 +14,24 @@ export function SRSummaryStats({ columnDatum, ...props }: Props & ChakraProps) {
   const subtitle = columnDatum?.type === 'string' ? ` (${TEXTLENGTH})` : '';
 
   const avgSDMetakeyList: [MetricMetaKeys, string][] = [
-    ['avg', `Average${subtitle}`],
-    ['stddev', `SD${subtitle}`],
+    ['avg', `Average`],
+    ['stddev', `SD`],
   ];
   const avgSDMetricsList = formatSRMetricsInfoList(
     avgSDMetakeyList,
     columnDatum,
   );
   const minMaxMetakeyList: [MetricMetaKeys, string][] = [
-    ['min', `Min${subtitle}`],
-    ['max', `Max${subtitle}`],
+    ['min', `Min`],
+    ['max', `Max`],
   ];
   const minMaxMetricsList = formatSRMetricsInfoList(
     minMaxMetakeyList,
     columnDatum,
   );
   const distinctDuplicateMetakeyList: [MetricMetaKeys, string][] = [
-    ['distinct', `Distincts${subtitle}`],
-    ['duplicates', `Duplicates${subtitle}`],
+    ['distinct', `Distincts`],
+    ['duplicates', `Duplicates`],
   ];
   const distinctDuplicateMetricsList = formatSRMetricsInfoList(
     distinctDuplicateMetakeyList,
@@ -44,15 +44,13 @@ export function SRSummaryStats({ columnDatum, ...props }: Props & ChakraProps) {
           <>
             {avgSDMetricsList &&
               avgSDMetricsList.map(
-                (
-                  { name, metakey, firstSlot, secondSlot, tooltipValues },
-                  index,
-                ) => (
+                ({ name, metakey, secondSlot, tooltipValues }, index) => (
                   <MetricsInfo
                     key={index}
                     name={name}
+                    subtitle={subtitle}
                     metakey={metakey}
-                    firstSlot={firstSlot}
+                    firstSlot={NO_VALUE}
                     secondSlot={secondSlot}
                     tooltipValues={tooltipValues}
                     {...props}
@@ -64,19 +62,18 @@ export function SRSummaryStats({ columnDatum, ...props }: Props & ChakraProps) {
       </Flex>
       <Flex direction="column">
         {(columnDatum?.type === 'numeric' ||
-          columnDatum?.type === 'integer') && (
+          columnDatum?.type === 'integer' ||
+          columnDatum?.type === 'string') && (
           <>
             {minMaxMetricsList &&
               minMaxMetricsList.map(
-                (
-                  { name, metakey, firstSlot, secondSlot, tooltipValues },
-                  index,
-                ) => (
+                ({ name, metakey, secondSlot, tooltipValues }, index) => (
                   <MetricsInfo
                     key={index}
                     name={name}
+                    subtitle={subtitle}
                     metakey={metakey}
-                    firstSlot={firstSlot}
+                    firstSlot={NO_VALUE}
                     secondSlot={secondSlot}
                     tooltipValues={tooltipValues}
                     {...props}

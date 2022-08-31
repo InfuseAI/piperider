@@ -24,8 +24,8 @@ export function DataCompositionWidget({ columnDatum }: Props) {
   );
   if (dataCompInput) {
     return (
-      <Box mb={6}>
-        <Box>
+      <Box>
+        <Box mb={6}>
           <Text fontSize={'xl'}>Data Composition</Text>
           <Divider my={3} />
           <Box height={'55px'}>

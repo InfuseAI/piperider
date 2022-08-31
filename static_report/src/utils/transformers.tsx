@@ -17,10 +17,7 @@ import {
   NULLS,
   VALIDS,
 } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
-import {
-  MetricMetaKeys,
-  MetricsInfoProps,
-} from '../components/shared/ColumnMetrics/MetricsInfo';
+import { MetricMetaKeys } from '../components/shared/ColumnMetrics/MetricsInfo';
 import { ColumnSchema } from '../sdlc/single-report-schema';
 import {
   formatAsAbbreviatedNumber,
@@ -286,4 +283,10 @@ export function formatSRMetricsInfoList(
       tooltipValues: { firstSlot: formatNumber(count) },
     };
   });
+}
+
+export function containsColumnQuantile(columnDatum?: ColumnSchema) {
+  return columnDatum?.type === 'numeric' || columnDatum?.type === 'integer'
+    ? true
+    : false;
 }

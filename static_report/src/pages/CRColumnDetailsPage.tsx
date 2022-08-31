@@ -10,6 +10,7 @@ import { ColumnDetailsMasterList } from '../components/shared/ColumnDetails/Colu
 import { mainContentAreaHeight } from '../utils/layout';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
+import { containsColumnQuantile } from '../utils/transformers';
 interface Props {
   data: ComparisonReportSchema;
 }
@@ -120,6 +121,7 @@ export function CRColumnDetailsPage({
               hasSplitView
             />
           </GridItem>
+          {/* Data Summary Block (avg, stddev, ...) */}
           <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
             <Grid templateColumns={'1fr 1fr'} gap={8}>
               {baseType !== 'other' && baseType !== 'boolean' && (
@@ -131,18 +133,23 @@ export function CRColumnDetailsPage({
             </Grid>
           </GridItem>
           {/* Quantiles Block */}
-          <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
-            <Grid templateColumns={'1fr 1fr'} gap={8}>
-              {(baseType === 'integer' ||
-                baseType === 'numeric' ||
-                !baseType) && <QuantilesWidget columnDatum={baseColumnDatum} />}
-              {(targetType === 'integer' ||
-                targetType === 'numeric' ||
-                !targetType) && (
-                <QuantilesWidget columnDatum={targetColumnDatum} />
-              )}
-            </Grid>
-          </GridItem>
+          {(containsColumnQuantile(baseColumnDatum) ||
+            containsColumnQuantile(targetColumnDatum)) && (
+            <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
+              <Grid templateColumns={'1fr 1fr'} gap={8}>
+                {(baseType === 'integer' ||
+                  baseType === 'numeric' ||
+                  !baseType) && (
+                  <QuantilesWidget columnDatum={baseColumnDatum} />
+                )}
+                {(targetType === 'integer' ||
+                  targetType === 'numeric' ||
+                  !targetType) && (
+                  <QuantilesWidget columnDatum={targetColumnDatum} />
+                )}
+              </Grid>
+            </GridItem>
+          )}
         </Grid>
       </Grid>
     </Main>

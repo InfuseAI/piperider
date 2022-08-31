@@ -47,15 +47,17 @@ export function ColumnCard({ columnDatum }: Props) {
         {getDataChart(columnDatum)}
       </ColumnCardDataVisualContainer>
       <ColumnCardBodyContainer>
-        {_getColumnBodyContentUI(columnDatum)}
+        <>
+          {_getColumnBodyContentUI(columnDatum)}
+          <Flex justifyContent={'center'} py={2} h={'100%'} alignItems={'end'}>
+            <Link href={`${parentLocation}/columns/${title}`}>
+              <Text as={'a'} color="blue.400">
+                Details
+              </Text>
+            </Link>
+          </Flex>
+        </>
       </ColumnCardBodyContainer>
-      <Flex justifyContent={'center'} p={3}>
-        <Link href={`${parentLocation}/columns/${title}`}>
-          <Text as={'a'} color="gray.700">
-            Details
-          </Text>
-        </Link>
-      </Flex>
     </Flex>
   );
 }

@@ -93,7 +93,7 @@ export function ColumnDetailListItem({
                   {formatColumnValueWith(
                     targetValidsOfTotal,
                     formatIntervalMinMax,
-                  )}
+                  ) || 'N/A'}
                 </Text>
                 <Text fontSize={'xs'} color={'gray.600'}>
                   Valid

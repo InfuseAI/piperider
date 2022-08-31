@@ -34,12 +34,15 @@ export const ColumnTypeDetailCategorical: React.FC<Props> = ({
       <UniquenessMetrics columnDatum={columnDatum} />
       <Divider />
       {topValues && topCounts && (
-        <MetricCell
-          metaKey="topk"
-          label={MODE}
-          value={topValues}
-          subvalue={topCounts}
-        />
+        <>
+          <MetricCell
+            metaKey="topk"
+            label={MODE}
+            value={topValues}
+            subvalue={topCounts}
+          />
+          <Divider />
+        </>
       )}
     </Flex>
   );
