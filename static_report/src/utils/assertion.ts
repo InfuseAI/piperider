@@ -23,7 +23,10 @@ export function getReportAggregateAssertions(
   let failed = 0;
 
   zReport(
-    pipeRiderAssertionResultSchema.nullable().safeParse(piperiderAssertions),
+    pipeRiderAssertionResultSchema
+      .optional()
+      .nullable()
+      .safeParse(piperiderAssertions),
   );
 
   const { passed: piperiderPassed, failed: piperiderFailed } =

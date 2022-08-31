@@ -3,8 +3,8 @@ import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { formatTitleCase } from '../../../utils/formatters';
 import { transformCompositionAsFlatStackInput } from '../../../utils/transformers';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
-import { GeneralColumnMetrics } from '../ColumnMetrics/GeneralColumnMetrics';
-import { TextNumberColumnMetrics } from '../ColumnMetrics/TextNumberColumnMetrics';
+import { SRGeneralColumnMetrics } from '../ColumnMetrics/SRGeneralColumnMetrics';
+import { SRTextNumberStats } from '../ColumnMetrics/SRTextNumberStats';
 
 interface Props {
   columnDatum?: ColumnSchema;
@@ -21,6 +21,7 @@ export function DataCompositionWidget({ columnDatum }: Props) {
     columnDatum,
     'dynamic',
   );
+  //FIXME: Empty-state is blank!
   return (
     <>
       {dataCompInput && (
@@ -31,7 +32,7 @@ export function DataCompositionWidget({ columnDatum }: Props) {
             <FlatStackedBarChart data={dataCompInput} />
           </Box>
           <Box mt={6}>
-            <GeneralColumnMetrics baseColumn={columnDatum} width={'100%'} />
+            <SRGeneralColumnMetrics columnDatum={columnDatum} width={'100%'} />
           </Box>
         </Box>
       )}
@@ -43,7 +44,7 @@ export function DataCompositionWidget({ columnDatum }: Props) {
             <FlatStackedBarChart data={dynamicCompInput} />
           </Box>
           <Box mt={6}>
-            <TextNumberColumnMetrics baseColumn={columnDatum} width={'100%'} />
+            <SRTextNumberStats columnDatum={columnDatum} width={'100%'} />
           </Box>
         </Box>
       )}

@@ -19,7 +19,7 @@ import { ChartKind, getChartKindByColumnType } from './transformers';
  * @returns *Chart Component
  */
 export function getDataChart(
-  columnDatum: ColumnSchema,
+  columnDatum?: ColumnSchema,
   baseColumnRef?: ColumnSchema,
   chartKindOverride?: ChartKind,
 ) {
@@ -37,7 +37,7 @@ export function getDataChart(
     valids,
     min,
     max,
-  } = columnDatum;
+  } = columnDatum || {};
 
   const hasSameTypeName =
     type === baseColumnRef?.type && name === baseColumnRef?.name;
@@ -51,7 +51,7 @@ export function getDataChart(
     return <CategoricalBarChart data={topk} total={total || 0} />;
   }
   //histogram dataset
-  if (chartKind === 'histogram' && histogram) {
+  if (chartKind === 'histogram' && histogram && type) {
     return <HistogramChart data={{ histogram, min, max, type, total }} />;
   }
   //pie dataset
@@ -74,7 +74,7 @@ export function renderChartUnavailableMsg(
     ? `Chart rendering unavailable for (type: ${schema_type})`
     : `There are insufficient valid data points in this dataset`;
   return (
-    <Flex h={230} alignItems={'center'} w={'100%'} bg={'blackAlpha.300'}>
+    <Flex h={'inherit'} alignItems={'center'} w={'100%'} bg={'blackAlpha.300'}>
       <Text textAlign={'center'} w={'inherit'}>
         {noRenderMessage}
       </Text>

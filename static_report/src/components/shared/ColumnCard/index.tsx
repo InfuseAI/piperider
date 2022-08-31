@@ -35,7 +35,11 @@ export function ColumnCard({ columnDatum }: Props) {
       my={3}
       rounded={'lg'}
     >
-      <ColumnCardHeader columnDatum={columnDatum} />
+      <ColumnCardHeader
+        columnDatum={columnDatum}
+        bg={'blue.800'}
+        color={'white'}
+      />
       <ColumnCardDataVisualContainer
         title={title}
         allowModalPopup={Boolean(getChartKindByColumnType(columnDatum))}

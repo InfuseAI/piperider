@@ -6,7 +6,7 @@ import { formatDate } from '../../utils/formatters';
 import { checkColumnCategorical } from '../../utils/transformers';
 import { ColumnCardHeader } from '../shared/ColumnCard/ColumnCardHeader';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
-import { GeneralColumnMetrics } from '../shared/ColumnMetrics/GeneralColumnMetrics';
+import { SRGeneralColumnMetrics } from '../shared/ColumnMetrics/SRGeneralColumnMetrics';
 import { MetricsInfo } from '../shared/ColumnMetrics/MetricsInfo';
 import { SummaryStats } from '../shared/ColumnMetrics/SummaryStats';
 
@@ -21,7 +21,7 @@ export const CRTableColumnDetails = ({
 }: CRTableColumnDetailsProps) => {
   const fallback = baseColumn || targetColumn;
   const isCategorical = checkColumnCategorical(baseColumn);
-  const [parentLocation] = useLocation();
+  const [currentLocation] = useLocation();
 
   zReport(ZColSchema.safeParse(baseColumn));
   zReport(ZColSchema.safeParse(targetColumn));
@@ -47,10 +47,7 @@ export const CRTableColumnDetails = ({
 
         <Flex direction="column" mt={3}>
           {/* Case: Cast provided undefined to null */}
-          <GeneralColumnMetrics
-            baseColumn={baseColumn}
-            targetColumn={targetColumn || null}
-          />
+          <SRGeneralColumnMetrics columnDatum={baseColumn} />
         </Flex>
 
         {baseColumn?.type === 'numeric' && (
@@ -65,14 +62,14 @@ export const CRTableColumnDetails = ({
             <MetricsInfo
               name="Min"
               metakey="min"
-              firstSlot={formatDate(String(baseColumn?.min)) ?? NO_VALUE}
-              secondSlot={formatDate(String(targetColumn?.min)) ?? NO_VALUE}
+              firstSlot={formatDate(String(baseColumn?.min))}
+              secondSlot={formatDate(String(targetColumn?.min))}
             />
             <MetricsInfo
               name="Max"
               metakey="max"
-              firstSlot={formatDate(String(baseColumn?.max)) ?? NO_VALUE}
-              secondSlot={formatDate(String(targetColumn?.max)) ?? NO_VALUE}
+              firstSlot={formatDate(String(baseColumn?.max))}
+              secondSlot={formatDate(String(targetColumn?.max))}
             />
           </Flex>
         )}
@@ -90,7 +87,7 @@ export const CRTableColumnDetails = ({
       </Flex>
       {fallback && (
         <Flex justifyContent={'center'} p={3}>
-          <Link href={`${parentLocation}/columns/${fallback.name}`}>
+          <Link href={`${currentLocation}/columns/${fallback.name}`}>
             <Text as={'a'} color="gray.700">
               Details
             </Text>

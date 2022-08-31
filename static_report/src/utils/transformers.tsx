@@ -17,7 +17,16 @@ import {
   NULLS,
   VALIDS,
 } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
+import {
+  MetricMetaKeys,
+  MetricsInfoProps,
+} from '../components/shared/ColumnMetrics/MetricsInfo';
 import { ColumnSchema } from '../sdlc/single-report-schema';
+import {
+  formatAsAbbreviatedNumber,
+  formatIntervalMinMax,
+  formatNumber,
+} from './formatters';
 
 /**
  * "Transformers" -- these are your data re-shaping transformations, and doesn't return a formatted value and does not directly get presented in UI. Can be a precursor to "formatters"
@@ -55,6 +64,7 @@ export function transformAsNestedBaseTargetRecord<K, T>(
 /**
  * @param columnData
  * @returns the metrics of the column data. will return null when properties have missing operands
+ * FIXME: refactor as simple formatOfTotal()
  */
 export function getColumnDetails(columnData?: ColumnSchema) {
   const {
@@ -248,4 +258,32 @@ export function getIconForColumnType(columnDatum?: ColumnSchema): {
     return { backgroundColor: 'limegreen', icon: AiOutlineFileText };
   }
   return { backgroundColor: 'gray.500', icon: BiQuestionMark };
+}
+
+/**
+  Conditional value scenarios
+  
+  1. base-only (% + count) <<<
+  2. base+target (count + count)
+  3. base||target (count || count)
+  
+ * gets the list of metrics to display, based on metakey
+ */
+export function formatSRMetricsInfoList(
+  metricsList: [MetricMetaKeys, string][],
+  columnDatum?: ColumnSchema,
+) {
+  if (!columnDatum) return [];
+  return metricsList.map(([metakey, name]) => {
+    const count = Number(columnDatum[metakey as string]);
+    const percent = count / Number(columnDatum.total);
+
+    return {
+      name,
+      metakey,
+      firstSlot: formatIntervalMinMax(percent),
+      secondSlot: formatAsAbbreviatedNumber(count),
+      tooltipValues: { firstSlot: formatNumber(count) },
+    };
+  });
 }

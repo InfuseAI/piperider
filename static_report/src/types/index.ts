@@ -70,7 +70,7 @@ export const zReport = (result) => {
 const zWrapForComparison = (base, target, flag?: boolean) =>
   z.object({ base, [flag ? 'input' : 'target']: target });
 
-export const ZColSchema = columnSchemaSchema;
+export const ZColSchema = columnSchemaSchema.optional();
 
 export const ZTableSchema = tableSchemaSchema
   .merge(z.object({ columns: z.record(ZColSchema.optional()) }))

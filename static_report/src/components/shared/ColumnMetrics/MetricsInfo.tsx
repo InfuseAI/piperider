@@ -3,7 +3,19 @@ import { schemaMetaDescriptions } from '../../../sdlc/schema-meta';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { NO_VALUE } from '../ColumnCard/ColumnTypeDetail/constants';
 
-interface Props {
+export type MetricMetaKeys = keyof Pick<
+  ColumnSchema,
+  | 'nulls'
+  | 'total'
+  | 'valids'
+  | 'invalids'
+  | 'positives'
+  | 'zeros'
+  | 'negatives'
+  | 'non_zero_length'
+  | 'zero_length'
+>;
+export interface MetricsInfoProps {
   name: string;
   subtitle?: string;
   firstSlot?: string | number;
@@ -25,7 +37,7 @@ export function MetricsInfo({
   reverse,
   tooltipValues,
   ...props
-}: Props & ChakraProps) {
+}: MetricsInfoProps & ChakraProps) {
   const metaDescription = schemaMetaDescriptions[metakey || ''];
   const { width } = props;
   const isTargetNull = secondSlot === null;

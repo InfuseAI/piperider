@@ -49,7 +49,6 @@ type CRProfilingColumnProps = {
   target?: ColumnSchema;
 };
 function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
-  // Show combined base|target chart or split charts
   return (
     <Flex key={name} direction="column">
       <Grid my={8} templateColumns="400px 1fr" gap={12} overflowX={'hidden'}>
@@ -57,21 +56,13 @@ function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
 
         <Flex my={4} alignItems={'center'}>
           <ColumnCardDataVisualContainer height={350}>
-            {base ? getDataChart(base) : <NoData />}
+            {getDataChart(base)}
           </ColumnCardDataVisualContainer>
           <ColumnCardDataVisualContainer height={350}>
-            {target ? getDataChart(target, base) : <NoData />}
+            {getDataChart(target, base)}
           </ColumnCardDataVisualContainer>
         </Flex>
       </Grid>
-    </Flex>
-  );
-}
-
-function NoData() {
-  return (
-    <Flex alignItems="center" justifyContent="center" color="gray.500">
-      No data available
     </Flex>
   );
 }
