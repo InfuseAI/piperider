@@ -94,6 +94,7 @@ export function ColumnDetailsMasterList({
           />
           <Input
             bg={'white'}
+            color={'black'}
             type={'text'}
             placeholder="Find By Column Name"
             value={filterString}

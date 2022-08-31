@@ -18,7 +18,7 @@ export function CRTableListColumnList({
     SaferTableSchema['columns'],
     ColumnSchema
   >(baseTableDatum?.columns, targetTableDatum?.columns);
-
+  const currentTableName = baseTableDatum?.name || targetTableDatum?.name;
   const columns = Object.keys(targetTableDatum?.columns || {}).map(
     (colName) => {
       const { icon: colIcon } = getIconForColumnType(
@@ -67,6 +67,7 @@ export function CRTableListColumnList({
           <CRTableListColumnItem
             key={colName}
             name={colName}
+            tableName={currentTableName ?? ''}
             columnDatum={transformedData[colName]}
             icon={colIcon}
             baseColAssertions={mergedBaseColAssertions}

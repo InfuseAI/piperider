@@ -59,7 +59,7 @@ export default function SingleReport({ data, name }: Props) {
 
   return (
     <Main isSingleReport time={formatReportTime(data.created_at)}>
-      <Flex direction="column" minH="calc(100vh + 1px)" width="100%">
+      <Flex direction="column" width="100%">
         <Flex mx="5%" mt={4}>
           <Breadcrumb fontSize="lg">
             <BreadcrumbItem>

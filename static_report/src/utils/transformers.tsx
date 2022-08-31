@@ -332,15 +332,10 @@ export function transformCRMetricsInfoList(
  * contains* methods for determining whether to render certain column metric groups
  */
 export function containsColumnQuantile(columnType?: ColumnSchema['type']) {
-  return (
-    columnType === 'numeric' ||
-    columnType === 'integer' ||
-    columnType === undefined
-  );
+  return columnType === 'numeric' || columnType === 'integer';
 }
 export function containsDataSummary(columnType?: ColumnSchema['type']) {
   return (
-    columnType === undefined ||
     columnType === 'integer' ||
     columnType === 'string' ||
     columnType === 'datetime' ||
@@ -351,7 +346,6 @@ export function containsAvgSDSummary(columnType?: ColumnSchema['type']) {
   return (
     columnType === 'numeric' ||
     columnType === 'integer' ||
-    columnType === 'boolean' ||
     columnType === 'string'
   );
 }
@@ -359,6 +353,7 @@ export function containsMinMaxSummary(columnType?: ColumnSchema['type']) {
   return (
     columnType === 'numeric' ||
     columnType === 'integer' ||
+    columnType === 'datetime' ||
     columnType === 'string'
   );
 }

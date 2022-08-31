@@ -160,7 +160,6 @@ export function CRTabSchemaDetails({
                 <Tr
                   key={nanoid(10)}
                   color={column?.changed ? 'red.500' : 'inherit'}
-                  _hover={{ cursor: visibleDetail ? 'pointer' : 'inherit' }}
                 >
                   <Td>{column?.name ?? NO_VALUE}</Td>
                   <Td>{column?.schema_type ?? NO_VALUE}</Td>
@@ -174,6 +173,7 @@ export function CRTabSchemaDetails({
           <Divider orientation={'vertical'} />
         </Flex>
 
+        {/* FIXME: combine tables markup */}
         {/* Target Columns */}
         <TableContainer width="50%">
           <Table variant="simple">
@@ -189,22 +189,29 @@ export function CRTabSchemaDetails({
                   key={nanoid(10)}
                   color={column?.changed ? 'red.500' : 'inherit'}
                   position="relative"
-                  _hover={{ cursor: visibleDetail ? 'pointer' : 'inherit' }}
                 >
                   <Td>{column?.name ?? NO_VALUE}</Td>
                   <Td>{column?.schema_type ?? NO_VALUE}</Td>
                   {visibleDetail && (
-                    <Box as="td" position="absolute" top={3} right={0}>
-                      <Link
-                        href={`/tables/${baseTableDatum?.name}/columns/${column?.name}`}
+                    <Link
+                      href={`/tables/${baseTableDatum?.name}/columns/${column?.name}`}
+                    >
+                      <Box
+                        as="td"
+                        position="absolute"
+                        top={3}
+                        right={0}
+                        _hover={{
+                          cursor: visibleDetail ? 'pointer' : 'inherit',
+                        }}
                       >
                         <Icon
                           as={FiChevronRight}
                           color="piperider.500"
                           boxSize={6}
                         />
-                      </Link>
-                    </Box>
+                      </Box>
+                    </Link>
                   )}
                 </Tr>
               ))}

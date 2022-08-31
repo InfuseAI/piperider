@@ -67,7 +67,7 @@ export function Sidebar() {
 
   return (
     <Flex
-      height={mainContentAreaHeight}
+      minHeight={mainContentAreaHeight}
       position="sticky"
       top={0}
       direction="column"

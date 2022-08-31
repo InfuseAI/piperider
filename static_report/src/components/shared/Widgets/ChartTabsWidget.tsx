@@ -25,14 +25,14 @@ export function ChartTabsWidget({
   baseColumnDatum,
   targetColumnDatum,
 }: Props) {
-  var {
+  const {
     type: baseType,
     topk: baseTopK,
     histogram: baseHistogram,
     trues: baseTrues,
     falses: baseFalses,
   } = baseColumnDatum || {};
-  var {
+  const {
     type: targetType,
     topk: targetTopK,
     histogram: targetHistogram,
@@ -41,11 +41,11 @@ export function ChartTabsWidget({
   } = targetColumnDatum || {};
 
   // show tabs based when either column has at least one occurance of metric existence
-  const topk = baseTopK || targetTopK;
-  const type = baseType || targetType;
-  const histogram = baseHistogram || targetHistogram;
-  const trues = baseTrues || targetTrues;
-  const falses = baseFalses || targetFalses;
+  const topk = baseTopK ?? targetTopK;
+  const type = baseType ?? targetType;
+  const histogram = baseHistogram ?? targetHistogram;
+  const trues = baseTrues ?? targetTrues;
+  const falses = baseFalses ?? targetFalses;
 
   //render conditions - column pairs can have multiple chart kinds shown
   const hasBoolean = isNumber(trues) && isNumber(falses);
@@ -136,7 +136,7 @@ function _renderGridSplitView(
       <GridItem minWidth={0}>
         {
           <ColumnCardDataVisualContainer p={0} title={baseColumnDatum?.name}>
-            {getDataChart(baseColumnDatum, targetColumnDatum)}
+            {getDataChart(baseColumnDatum, targetColumnDatum, chartKind)}
           </ColumnCardDataVisualContainer>
         }
       </GridItem>
@@ -147,7 +147,7 @@ function _renderGridSplitView(
               p={0}
               title={targetColumnDatum?.name}
             >
-              {getDataChart(targetColumnDatum, baseColumnDatum)}
+              {getDataChart(targetColumnDatum, baseColumnDatum, chartKind)}
             </ColumnCardDataVisualContainer>
           )}
         </GridItem>
