@@ -3,6 +3,7 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   Flex,
+  Heading,
   useDisclosure,
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
@@ -27,6 +28,7 @@ import { CRProfilingDetails } from './CRProfilingDetails';
 import { CRAssertionDetails } from './CRAssertionDetails';
 import { CRTableOverview } from './CRTableOverview';
 import { formatReportTime } from '../../utils/formatters';
+import { CollapseContent } from '../shared/CollapseContent';
 
 type Props = {
   data: ComparisonReportSchema;
@@ -35,6 +37,8 @@ type Props = {
 export default function ComparisonReport({ data, name: reportName }: Props) {
   const [testDetail, setTestDetail] = useState<TestDetail | null>(null);
   const modal = useDisclosure();
+  const [assertionsVisible, setAssertionsVisible] = useState(false);
+  const [columnsVisible, setColumnsVisible] = useState(false);
 
   const { base, input: target } = data;
   zReport(ZComparisonSchema(true).safeParse(data));
@@ -110,27 +114,45 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
         >
           <CRTableOverview baseTable={baseTable} targetTable={targetTable} />
 
-          <CRAssertionDetails
-            assertions={{
-              piperider: [
-                ...(baseOverview?.tests || []),
-                ...(targetOverview?.tests || []),
-              ],
-              dbt: [
-                ...(dbtBaseOverview?.tests || []),
-                ...(dbtTargetOverview?.tests || []),
-              ],
-            }}
-            onDetailVisible={({ data, type }) => {
-              setTestDetail({
-                type,
-                data,
-              });
-              modal.onOpen();
-            }}
-          />
+          <Heading size="md">Assertions</Heading>
+          <CollapseContent
+            in={assertionsVisible}
+            onVisible={() => setAssertionsVisible((visible) => !visible)}
+          >
+            <CRAssertionDetails
+              assertions={{
+                piperider: [
+                  ...(baseOverview?.tests || []),
+                  ...(targetOverview?.tests || []),
+                ],
+                dbt: [
+                  ...(dbtBaseOverview?.tests || []),
+                  ...(dbtTargetOverview?.tests || []),
+                ],
+              }}
+              onDetailVisible={({ data, type }) => {
+                setTestDetail({
+                  type,
+                  data,
+                });
+                modal.onOpen();
+              }}
+            />
+          </CollapseContent>
 
-          <CRProfilingDetails baseTable={baseTable} targetTable={targetTable} />
+          <Heading size="md" mt={4}>
+            Columns
+          </Heading>
+          <CollapseContent
+            in={columnsVisible}
+            startingHeight={350}
+            onVisible={() => setColumnsVisible((visible) => !visible)}
+          >
+            <CRProfilingDetails
+              baseTable={baseTable}
+              targetTable={targetTable}
+            />
+          </CollapseContent>
         </Flex>
       </Flex>
 

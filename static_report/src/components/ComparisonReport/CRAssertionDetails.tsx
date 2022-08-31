@@ -88,6 +88,7 @@ export function CRAssertionDetails({ assertions, ...props }: Props) {
             <Th>Assertion</Th>
             <Th>Base Status</Th>
             <Th>Target Status</Th>
+            <Th>Source</Th>
             <Th />
           </Tr>
         </Thead>
@@ -102,6 +103,7 @@ export function CRAssertionDetails({ assertions, ...props }: Props) {
               <Td>
                 <AssertionStatus status={row.target?.status} />
               </Td>
+              <Td>PipeRider</Td>
               <Td
                 onClick={() => {
                   props.onDetailVisible({
@@ -127,6 +129,7 @@ export function CRAssertionDetails({ assertions, ...props }: Props) {
               <Td>
                 <AssertionStatus status={row.target?.status} />
               </Td>
+              <Td>dbt</Td>
               <Td
                 onClick={() => {
                   props.onDetailVisible({

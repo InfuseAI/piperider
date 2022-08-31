@@ -3,13 +3,14 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   Flex,
-  Box,
   Heading,
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
 import { FiDatabase, FiGrid } from 'react-icons/fi';
+import { useState } from 'react';
 
 import { Main } from '../shared/Main';
+import { CollapseContent } from '../shared/CollapseContent';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAmplitudeOnMount } from '../../hooks/useAmplitudeOnMount';
@@ -21,7 +22,6 @@ import { SRTableOverview } from './SRTableOverview';
 import { dataSourceSchema } from '../../sdlc/single-report-schema.z';
 import { ZTableSchema, zReport } from '../../types';
 import { formatReportTime } from '../../utils/formatters';
-
 interface Props {
   data: SingleReportSchema;
   name: string;
@@ -30,6 +30,8 @@ interface Props {
 export default function SingleReport({ data, name }: Props) {
   const { datasource, tables } = data;
   const table = tables[name];
+  const [assertionsVisible, setAssertionsVisible] = useState(false);
+  const [columnsVisible, setColumnsVisible] = useState(false);
 
   zReport(ZTableSchema.safeParse(table));
   zReport(dataSourceSchema.safeParse(datasource));
@@ -93,20 +95,29 @@ export default function SingleReport({ data, name }: Props) {
         >
           <SRTableOverview table={table} />
 
-          <Box>
-            <Heading size="md">Assertions</Heading>
+          <Heading size="md">Assertions</Heading>
+          <CollapseContent
+            in={assertionsVisible}
+            onVisible={() => setAssertionsVisible((visible) => !visible)}
+          >
             <SRAssertionDetails
               assertions={{
                 piperider: table.piperider_assertion_result,
                 dbt: table?.dbt_assertion_result,
               }}
             />
-          </Box>
+          </CollapseContent>
 
-          <Box mt={4}>
-            <Heading size="md">Columns</Heading>
+          <Heading size="md" mt={4}>
+            Columns
+          </Heading>
+          <CollapseContent
+            in={columnsVisible}
+            startingHeight={350}
+            onVisible={() => setColumnsVisible((visible) => !visible)}
+          >
             <SRProfilingDetails data={table.columns} />
-          </Box>
+          </CollapseContent>
         </Flex>
       </Flex>
     </Main>
