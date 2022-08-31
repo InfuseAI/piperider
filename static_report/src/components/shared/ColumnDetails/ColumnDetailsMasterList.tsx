@@ -68,7 +68,7 @@ export function ColumnDetailsMasterList({
         w={'100%'}
         p={4}
         zIndex={150}
-        bg={'blue.700'}
+        bg={'blue.800'}
         color={'white'}
         borderBottom={'1px solid lightgray'}
       >

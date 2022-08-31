@@ -308,7 +308,6 @@ export function transformCRMetricsInfoList(
 
   const base = transformSRMetricsInfoList(metricsList, baseColumnDatum);
   const target = transformSRMetricsInfoList(metricsList, targetColumnDatum);
-  console.log(base);
 
   const result = base.map((baseMetricItem, index) => {
     const { firstSlot: targetPercent, secondSlot: targetCount } =
@@ -329,8 +328,19 @@ export function transformCRMetricsInfoList(
   return result;
 }
 
-export function containsColumnQuantile(columnDatum?: ColumnSchema) {
-  return columnDatum?.type === 'numeric' || columnDatum?.type === 'integer'
-    ? true
-    : false;
+export function containsColumnQuantile(columnType?: ColumnSchema['type']) {
+  return (
+    columnType === 'numeric' ||
+    columnType === 'integer' ||
+    columnType === undefined
+  );
+}
+export function containsDataSummary(columnType?: ColumnSchema['type']) {
+  return (
+    columnType === undefined ||
+    columnType === 'integer' ||
+    columnType === 'string' ||
+    columnType === 'datetime' ||
+    columnType === 'numeric'
+  );
 }

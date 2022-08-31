@@ -34,6 +34,7 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
   const { type, histogram } = columnDatum;
 
   const { avg, min, max, p25, p75 } = columnDatum;
+  const borderVal = '1px solid lightgray';
 
   return (
     <Main isSingleReport time={time} maxHeight={mainContentAreaHeight}>
@@ -61,19 +62,24 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
               columnDatum={columnDatum}
               maxHeight={'5em'}
               height={'100%'}
-              bg={'blue.700'}
+              bg={'blue.800'}
               color={'white'}
             />
           </GridItem>
           {/* Data Composition Block */}
-          <GridItem p={10} bg={'gray.50'}>
+          <GridItem p={10} bg={'gray.50'} borderRight={borderVal}>
             <DataCompositionWidget columnDatum={columnDatum} />
           </GridItem>
           {/* Chart Block - toggleable tabs */}
           <GridItem gridRow={'span 1'} minWidth={0} p={9} bg={'gray.50'}>
             <ChartTabsWidget baseColumnDatum={columnDatum} />
           </GridItem>
-          <GridItem gridRow={'span 1'} p={9} bg={'gray.50'}>
+          <GridItem
+            gridRow={'span 1'}
+            p={9}
+            bg={'gray.50'}
+            borderRight={borderVal}
+          >
             <Text fontSize={'xl'}>{formatTitleCase(type)} Statistics</Text>
             <Divider my={3} />
             <SRSummaryStats columnDatum={columnDatum} width={'100%'} />

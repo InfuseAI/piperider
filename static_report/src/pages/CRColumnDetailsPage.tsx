@@ -10,7 +10,10 @@ import { ColumnDetailsMasterList } from '../components/shared/ColumnDetails/Colu
 import { mainContentAreaHeight } from '../utils/layout';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
-import { containsColumnQuantile } from '../utils/transformers';
+import {
+  containsColumnQuantile,
+  containsDataSummary,
+} from '../utils/transformers';
 interface Props {
   data: ComparisonReportSchema;
 }
@@ -76,10 +79,11 @@ export function CRColumnDetailsPage({
               columnDatum={columnHeaderDatum}
               maxHeight={'5em'}
               height={'100%'}
-              bg={'blue.700'}
+              bg={'blue.800'}
               color={'white'}
             />
           </GridItem>
+          {/* Sticky Sublabel */}
           <GridItem colSpan={2} rowSpan={1} position={'sticky'} top={0}>
             <Grid templateColumns={'1fr 1fr'} h={'100%'}>
               {['Base', 'Target'].map((v, i) => (
@@ -122,31 +126,22 @@ export function CRColumnDetailsPage({
             />
           </GridItem>
           {/* Data Summary Block (avg, stddev, ...) */}
-          <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
-            <Grid templateColumns={'1fr 1fr'} gap={8}>
-              {baseType !== 'other' && baseType !== 'boolean' && (
-                <DataSummaryWidget columnDatum={baseColumnDatum} />
-              )}
-              {targetType !== 'other' && targetType !== 'boolean' && (
-                <DataSummaryWidget columnDatum={targetColumnDatum} />
-              )}
-            </Grid>
-          </GridItem>
-          {/* Quantiles Block */}
-          {(containsColumnQuantile(baseColumnDatum) ||
-            containsColumnQuantile(targetColumnDatum)) && (
+          {(containsDataSummary(baseType) ||
+            containsDataSummary(targetType)) && (
             <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
               <Grid templateColumns={'1fr 1fr'} gap={8}>
-                {(baseType === 'integer' ||
-                  baseType === 'numeric' ||
-                  !baseType) && (
-                  <QuantilesWidget columnDatum={baseColumnDatum} />
-                )}
-                {(targetType === 'integer' ||
-                  targetType === 'numeric' ||
-                  !targetType) && (
-                  <QuantilesWidget columnDatum={targetColumnDatum} />
-                )}
+                {<DataSummaryWidget columnDatum={baseColumnDatum} />}
+                {<DataSummaryWidget columnDatum={targetColumnDatum} />}
+              </Grid>
+            </GridItem>
+          )}
+          {/* Quantiles Block */}
+          {(containsColumnQuantile(baseType) ||
+            containsColumnQuantile(targetType)) && (
+            <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
+              <Grid templateColumns={'1fr 1fr'} gap={8}>
+                <QuantilesWidget columnDatum={baseColumnDatum} />
+                <QuantilesWidget columnDatum={targetColumnDatum} />
               </Grid>
             </GridItem>
           )}
