@@ -14,6 +14,12 @@ export type MetricMetaKeys = keyof Pick<
   | 'negatives'
   | 'non_zero_length'
   | 'zero_length'
+  | 'avg'
+  | 'stddev'
+  | 'min'
+  | 'max'
+  | 'distinct'
+  | 'duplicates'
 >;
 export interface MetricsInfoProps {
   name: string;

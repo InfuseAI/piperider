@@ -21,7 +21,7 @@ export function DataCompositionWidget({ columnDatum }: Props) {
     columnDatum,
     'dynamic',
   );
-  //FIXME: Empty-state is blank!
+  //FIXME: Empty-state is blank! (Check other widgets as well!)
   return (
     <>
       {dataCompInput && (

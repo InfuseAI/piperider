@@ -3,7 +3,7 @@ import { useRoute } from 'wouter';
 import { QuantilesMatrix } from '../components/shared/ColumnMetrics/QuantilesMatrix';
 import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHeader';
 import { Main } from '../components/shared/Main';
-import { SummaryStats } from '../components/shared/ColumnMetrics/SummaryStats';
+import { SRSummaryStats } from '../components/shared/ColumnMetrics/SRSummaryStats';
 import { SingleReportSchema } from '../sdlc/single-report-schema';
 import { formatReportTime, formatTitleCase } from '../utils/formatters';
 import { FlatBoxPlotChart } from '../components/shared/Charts/FlatBoxPlotChart';
@@ -76,7 +76,7 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
           <GridItem gridRow={'span 1'} p={9} bg={'gray.50'}>
             <Text fontSize={'xl'}>{formatTitleCase(type)} Statistics</Text>
             <Divider my={3} />
-            <SummaryStats baseColumn={columnDatum} width={'100%'} />
+            <SRSummaryStats columnDatum={columnDatum} width={'100%'} />
           </GridItem>
           {/* Quantiles Block */}
           {(type === 'integer' || type === 'numeric') && histogram && (

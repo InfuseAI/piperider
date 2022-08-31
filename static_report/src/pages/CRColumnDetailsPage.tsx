@@ -3,7 +3,7 @@ import { useRoute } from 'wouter';
 import { QuantilesMatrix } from '../components/shared/ColumnMetrics/QuantilesMatrix';
 import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHeader';
 import { Main } from '../components/shared/Main';
-import { SummaryStats } from '../components/shared/ColumnMetrics/SummaryStats';
+import { SRSummaryStats } from '../components/shared/ColumnMetrics/SRSummaryStats';
 import { formatReportTime, formatTitleCase } from '../utils/formatters';
 import { FlatBoxPlotChart } from '../components/shared/Charts/FlatBoxPlotChart';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
@@ -142,13 +142,19 @@ export function CRColumnDetailsPage({
                     {formatTitleCase(baseType || NO_VALUE)} Statistics
                   </Text>
                   <Divider my={3} />
-                  <SummaryStats baseColumn={baseColumnDatum} width={'100%'} />
+                  <SRSummaryStats
+                    columnDatum={baseColumnDatum}
+                    width={'100%'}
+                  />
                 </GridItem>
               )}
               {targetType !== 'other' && targetType !== 'boolean' && (
                 <GridItem>
                   <Divider mt={42} mb={3} />
-                  <SummaryStats baseColumn={targetColumnDatum} width={'100%'} />
+                  <SRSummaryStats
+                    columnDatum={targetColumnDatum}
+                    width={'100%'}
+                  />
                 </GridItem>
               )}
             </Grid>

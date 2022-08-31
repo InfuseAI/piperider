@@ -8,7 +8,7 @@ import { ColumnCardHeader } from '../shared/ColumnCard/ColumnCardHeader';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
 import { SRGeneralColumnMetrics } from '../shared/ColumnMetrics/SRGeneralColumnMetrics';
 import { MetricsInfo } from '../shared/ColumnMetrics/MetricsInfo';
-import { SummaryStats } from '../shared/ColumnMetrics/SummaryStats';
+import { SRSummaryStats } from '../shared/ColumnMetrics/SRSummaryStats';
 
 // props made optional as they can be undefined
 type CRTableColumnDetailsProps = {
@@ -51,10 +51,7 @@ export const CRTableColumnDetails = ({
         </Flex>
 
         {baseColumn?.type === 'numeric' && (
-          <SummaryStats
-            baseColumn={baseColumn}
-            targetColumn={targetColumn || null}
-          />
+          <SRSummaryStats columnDatum={baseColumn} />
         )}
 
         {baseColumn?.type === 'datetime' && (
