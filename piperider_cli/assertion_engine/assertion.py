@@ -42,14 +42,17 @@ def load_yaml_configs(path, config_path):
     failed: List[str] = []
     content: Dict = {}
 
-    if config_path:
-        project_config = safe_load_yaml(config_path)
-        if project_config:
-            passed.append(config_path)
-            payload = project_config.get('tables', {})
-            always_merger.merge(content, payload)
-        else:
-            failed.append(config_path)
+    def _get_content_by_key(source: Dict, key: str, default_value):
+        result = {}
+        for t in source:
+            result[t] = {}
+            result[t][key] = source[t].get(key, default_value)
+            result[t]['columns'] = {}
+            for c in source[t].get('columns', []):
+                result[t]['columns'][c] = {}
+                result[t]['columns'][c][key] = source[t]['columns'][c].get(key, default_value)
+
+        return result
 
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -60,7 +63,17 @@ def load_yaml_configs(path, config_path):
                     failed.append(file_path)
                 else:
                     passed.append(file_path)
-                    always_merger.merge(content, payload)
+                    assertions = _get_content_by_key(payload, 'tests', [])
+                    always_merger.merge(content, assertions)
+
+    if not config_path:
+        return passed, failed, content
+
+    project_config = safe_load_yaml(config_path)
+    if project_config:
+        payload = project_config.get('tables', {})
+        descriptions = _get_content_by_key(payload, 'description', '')
+        always_merger.merge(content, descriptions)
 
     return passed, failed, content
 
