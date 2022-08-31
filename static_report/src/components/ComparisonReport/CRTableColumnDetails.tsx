@@ -1,16 +1,14 @@
-import { Flex, Text } from '@chakra-ui/react';
+import { Box, Flex, Text } from '@chakra-ui/react';
 import { Link, useLocation } from 'wouter';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
-import { formatDate } from '../../utils/formatters';
 import { checkColumnCategorical } from '../../utils/transformers';
 import { ColumnCardHeader } from '../shared/ColumnCard/ColumnCardHeader';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
-import { SRGeneralColumnMetrics } from '../shared/ColumnMetrics/SRGeneralColumnMetrics';
 import { MetricsInfo } from '../shared/ColumnMetrics/MetricsInfo';
-import { SRSummaryStats } from '../shared/ColumnMetrics/SRSummaryStats';
+import { CRGeneralColumnMetrics } from '../shared/ColumnMetrics/CRGeneralColumnMetrics';
+import { CRSummaryStats } from '../shared/ColumnMetrics/CRSummaryStats';
 
-// props made optional as they can be undefined
 type CRTableColumnDetailsProps = {
   baseColumn?: ColumnSchema;
   targetColumn?: ColumnSchema;
@@ -29,7 +27,6 @@ export const CRTableColumnDetails = ({
   return (
     <Flex
       direction="column"
-      gap={2}
       minH="250px"
       border={'1px solid darkgray'}
       rounded={'2xl'}
@@ -41,53 +38,42 @@ export const CRTableColumnDetails = ({
           color={'white'}
         />
       )}
-      <Flex direction="column" gap={3} m={4}>
-        <Flex gap={8}>
-          <Text ml={'16'} fontWeight={700} textAlign="right" width="100px">
-            Base
-          </Text>
-          <Text fontWeight={700} textAlign="right" width="100px">
-            Target
-          </Text>
-        </Flex>
+      <Box m={4}>
+        <MetricsInfo
+          name=""
+          firstSlot={'Base'}
+          secondSlot={'Target'}
+          width={'100%'}
+          fontWeight={'bold'}
+          mb={3}
+        />
 
-        <Flex direction="column" mt={3}>
-          {/* Case: Cast provided undefined to null */}
-          <SRGeneralColumnMetrics columnDatum={baseColumn} />
-        </Flex>
+        <Box mb={3}>
+          <CRGeneralColumnMetrics
+            baseColumnDatum={baseColumn}
+            targetColumnDatum={targetColumn}
+          />
+        </Box>
 
-        {baseColumn?.type === 'numeric' && (
-          <SRSummaryStats columnDatum={baseColumn} />
-        )}
-
-        {baseColumn?.type === 'datetime' && (
-          <Flex direction="column">
-            <MetricsInfo
-              name="Min"
-              metakey="min"
-              firstSlot={formatDate(String(baseColumn?.min))}
-              secondSlot={formatDate(String(targetColumn?.min))}
-            />
-            <MetricsInfo
-              name="Max"
-              metakey="max"
-              firstSlot={formatDate(String(baseColumn?.max))}
-              secondSlot={formatDate(String(targetColumn?.max))}
-            />
-          </Flex>
-        )}
+        <Box mb={3}>
+          <CRSummaryStats
+            baseColumnDatum={baseColumn}
+            targetColumnDatum={targetColumn}
+          />
+        </Box>
 
         {isCategorical && (
-          <Flex direction="column">
+          <Box>
             <MetricsInfo
               name="Most Common"
               metakey="topk"
-              firstSlot={String(baseColumn?.topk?.values[0]) ?? NO_VALUE}
-              secondSlot={String(targetColumn?.topk?.values[0]) ?? NO_VALUE}
+              width={'100%'}
+              firstSlot={baseColumn?.topk?.values[0] ?? NO_VALUE}
+              secondSlot={targetColumn?.topk?.values[0] ?? NO_VALUE}
             />
-          </Flex>
+          </Box>
         )}
-      </Flex>
+      </Box>
       {fallback && (
         <Flex justifyContent={'center'} p={3} h={'100%'} alignItems={'end'}>
           <Link href={`${currentLocation}/columns/${fallback.name}`}>

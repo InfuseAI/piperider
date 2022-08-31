@@ -1,7 +1,7 @@
 import { ChakraProps, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../../types';
-import { formatSRMetricsInfoList } from '../../../utils/transformers';
+import { transformSRMetricsInfoList } from '../../../utils/transformers';
 import { NO_VALUE, TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
 import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
 
@@ -17,7 +17,7 @@ export function SRSummaryStats({ columnDatum, ...props }: Props & ChakraProps) {
     ['avg', `Average`],
     ['stddev', `SD`],
   ];
-  const avgSDMetricsList = formatSRMetricsInfoList(
+  const avgSDMetricsList = transformSRMetricsInfoList(
     avgSDMetakeyList,
     columnDatum,
   );
@@ -25,7 +25,7 @@ export function SRSummaryStats({ columnDatum, ...props }: Props & ChakraProps) {
     ['min', `Min`],
     ['max', `Max`],
   ];
-  const minMaxMetricsList = formatSRMetricsInfoList(
+  const minMaxMetricsList = transformSRMetricsInfoList(
     minMaxMetakeyList,
     columnDatum,
   );
@@ -33,7 +33,7 @@ export function SRSummaryStats({ columnDatum, ...props }: Props & ChakraProps) {
     ['distinct', `Distincts`],
     ['duplicates', `Duplicates`],
   ];
-  const distinctDuplicateMetricsList = formatSRMetricsInfoList(
+  const distinctDuplicateMetricsList = transformSRMetricsInfoList(
     distinctDuplicateMetakeyList,
     columnDatum,
   );

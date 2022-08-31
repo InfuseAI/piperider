@@ -45,11 +45,11 @@ export function MetricsInfo({
   ...props
 }: MetricsInfoProps & ChakraProps) {
   const metaDescription = schemaMetaDescriptions[metakey || ''];
-  const { width } = props;
+  const { width, ...restProps } = props;
   const isTargetNull = secondSlot === null;
 
   return (
-    <Flex>
+    <Flex {...restProps}>
       <Tooltip
         label={metaDescription}
         isDisabled={!Boolean(metaDescription)}

@@ -1,24 +1,32 @@
 import { ChakraProps } from '@chakra-ui/system';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../../types';
-import { transformSRMetricsInfoList } from '../../../utils/transformers';
+import { transformCRMetricsInfoList } from '../../../utils/transformers';
 import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
 
 type Props = {
-  columnDatum?: ColumnSchema;
+  baseColumnDatum?: ColumnSchema;
+  targetColumnDatum?: ColumnSchema;
 };
-export function SRGeneralColumnMetrics({
-  columnDatum,
+export function CRGeneralColumnMetrics({
+  baseColumnDatum,
+  targetColumnDatum,
   ...props
 }: Props & ChakraProps) {
-  zReport(ZColSchema.safeParse(columnDatum));
+  zReport(ZColSchema.safeParse(baseColumnDatum));
+  zReport(ZColSchema.safeParse(targetColumnDatum));
   const metakeyEntries: [MetricMetaKeys, string][] = [
     ['total', 'Total'],
     ['valids', 'Valid'],
     ['invalids', 'Invalid'],
     ['nulls', 'Missing'],
   ];
-  const metricsList = transformSRMetricsInfoList(metakeyEntries, columnDatum);
+  const metricsList = transformCRMetricsInfoList(
+    metakeyEntries,
+    baseColumnDatum,
+    targetColumnDatum,
+  );
+
   return (
     <>
       {metricsList.map(
@@ -30,6 +38,7 @@ export function SRGeneralColumnMetrics({
             firstSlot={firstSlot}
             secondSlot={secondSlot}
             tooltipValues={tooltipValues}
+            width="100%"
             {...props}
           />
         ),

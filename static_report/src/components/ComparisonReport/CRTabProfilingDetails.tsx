@@ -51,7 +51,7 @@ type CRProfilingColumnProps = {
 function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
   return (
     <Flex key={name} direction="column">
-      <Grid my={8} templateColumns="400px 1fr" gap={12} overflowX={'hidden'}>
+      <Grid my={8} templateColumns="1fr 2fr" gap={12} overflowX={'hidden'}>
         <CRTableColumnDetails baseColumn={base} targetColumn={target} />
 
         <Flex my={4} alignItems={'center'}>

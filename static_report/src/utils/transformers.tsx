@@ -16,8 +16,12 @@ import {
   INVALIDS,
   NULLS,
   VALIDS,
+  NO_VALUE,
 } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
-import { MetricMetaKeys } from '../components/shared/ColumnMetrics/MetricsInfo';
+import {
+  MetricMetaKeys,
+  MetricsInfoProps,
+} from '../components/shared/ColumnMetrics/MetricsInfo';
 import { ColumnSchema } from '../sdlc/single-report-schema';
 import {
   formatAsAbbreviatedNumber,
@@ -258,7 +262,7 @@ export function getIconForColumnType(columnDatum?: ColumnSchema): {
 }
 
 /**
-  Conditional value scenarios
+  Conditional scenarios:
   
   1. base-only (% + count) <<<
   2. base+target (count + count)
@@ -266,10 +270,11 @@ export function getIconForColumnType(columnDatum?: ColumnSchema): {
   
  * gets the list of metrics to display, based on metakey
  */
-export function formatSRMetricsInfoList(
-  metricsList: [MetricMetaKeys, string][],
+export type MetricNameMetakeyList = [MetricMetaKeys, string][];
+export function transformSRMetricsInfoList(
+  metricsList: MetricNameMetakeyList,
   columnDatum?: ColumnSchema,
-) {
+): MetricsInfoProps[] {
   if (!columnDatum) return [];
   return metricsList.map(([metakey, name]) => {
     const count = Number(columnDatum[metakey as string]);
@@ -283,6 +288,44 @@ export function formatSRMetricsInfoList(
       tooltipValues: { firstSlot: formatNumber(count) },
     };
   });
+}
+/**
+  Conditional scenarios:
+  
+  1. base-only (% + count)
+  2. base+target (count + count) <<<
+  3. base||target (count || count) <<<
+  
+ * gets the list of metrics to display, based on metakey
+ */
+export function transformCRMetricsInfoList(
+  metricsList: MetricNameMetakeyList,
+  baseColumnDatum?: ColumnSchema,
+  targetColumnDatum?: ColumnSchema,
+  valueFormat: 'count' | 'percent' = 'percent',
+) {
+  if (!baseColumnDatum && !targetColumnDatum) return [];
+
+  const base = transformSRMetricsInfoList(metricsList, baseColumnDatum);
+  const target = transformSRMetricsInfoList(metricsList, targetColumnDatum);
+
+  const result = base.map((baseMetricItem, index) => {
+    const { firstSlot: targetPercent, secondSlot: targetCount } =
+      target[index] || {};
+    const targetValue = valueFormat === 'percent' ? targetPercent : targetCount;
+
+    const { firstSlot: basePercent, secondSlot: baseCount } =
+      baseMetricItem || {};
+    const baseValue = valueFormat === 'percent' ? basePercent : baseCount;
+
+    return {
+      ...baseMetricItem,
+      firstSlot: baseValue || NO_VALUE,
+      secondSlot: targetValue || NO_VALUE,
+      tooltipValues: {},
+    };
+  });
+  return result;
 }
 
 export function containsColumnQuantile(columnDatum?: ColumnSchema) {

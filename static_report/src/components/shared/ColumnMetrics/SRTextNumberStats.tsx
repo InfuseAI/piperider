@@ -1,7 +1,7 @@
 import { ChakraProps } from '@chakra-ui/system';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../../types';
-import { formatSRMetricsInfoList } from '../../../utils/transformers';
+import { transformSRMetricsInfoList } from '../../../utils/transformers';
 import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
 
 type Props = { columnDatum?: ColumnSchema };
@@ -16,7 +16,7 @@ export function SRTextNumberStats({
     ['zeros', 'Zeros'],
     ['negatives', 'Negatives'],
   ];
-  const numeralMetricsList = formatSRMetricsInfoList(
+  const numeralMetricsList = transformSRMetricsInfoList(
     numeralMetakeyList,
     columnDatum,
   );
@@ -24,7 +24,10 @@ export function SRTextNumberStats({
     ['non_zero_length', 'Non-zero Length'],
     ['zero_length', 'Zero Length'],
   ];
-  const textMetricsList = formatSRMetricsInfoList(textMetakeyList, columnDatum);
+  const textMetricsList = transformSRMetricsInfoList(
+    textMetakeyList,
+    columnDatum,
+  );
 
   return (
     <>
