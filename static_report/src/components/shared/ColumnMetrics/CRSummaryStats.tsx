@@ -1,9 +1,12 @@
 import { ChakraProps, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../../types';
-import { transformCRMetricsInfoList } from '../../../utils/transformers';
-import { NO_VALUE, TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
-import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
+import {
+  MetricNameMetakeyList,
+  transformCRMetricsInfoList,
+} from '../../../utils/transformers';
+import { TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
+import { MetricsInfo } from './MetricsInfo';
 
 type Props = {
   baseColumnDatum?: ColumnSchema;
@@ -18,7 +21,7 @@ export function CRSummaryStats({
   zReport(ZColSchema.safeParse(baseColumnDatum));
   const subtitle = baseColumnDatum?.type === 'string' ? ` (${TEXTLENGTH})` : '';
 
-  const avgSDMetakeyList: [MetricMetaKeys, string][] = [
+  const avgSDMetakeyList: MetricNameMetakeyList = [
     ['avg', `Average`],
     ['stddev', `SD`],
   ];
@@ -28,7 +31,7 @@ export function CRSummaryStats({
     targetColumnDatum,
     'count',
   );
-  const minMaxMetakeyList: [MetricMetaKeys, string][] = [
+  const minMaxMetakeyList: MetricNameMetakeyList = [
     ['min', `Min`],
     ['max', `Max`],
   ];
@@ -38,7 +41,7 @@ export function CRSummaryStats({
     targetColumnDatum,
     'count',
   );
-  const distinctDuplicateMetakeyList: [MetricMetaKeys, string][] = [
+  const distinctDuplicateMetakeyList: MetricNameMetakeyList = [
     ['distinct', `Distincts`],
     ['duplicates', `Duplicates`],
   ];

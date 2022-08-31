@@ -78,7 +78,7 @@ export function MetricsInfo({
           placement={'top'}
         >
           <Text textAlign="right" width={firstSlotWidth} noOfLines={1}>
-            {firstSlot}
+            {firstSlot || NO_VALUE}
           </Text>
         </Tooltip>
 

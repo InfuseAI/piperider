@@ -283,8 +283,8 @@ export function transformSRMetricsInfoList(
     return {
       name,
       metakey,
-      firstSlot: formatIntervalMinMax(percent),
-      secondSlot: formatAsAbbreviatedNumber(count),
+      firstSlot: isNaN(count) ? NO_VALUE : formatIntervalMinMax(percent),
+      secondSlot: isNaN(count) ? NO_VALUE : formatAsAbbreviatedNumber(count),
       tooltipValues: { firstSlot: formatNumber(count) },
     };
   });
@@ -308,6 +308,7 @@ export function transformCRMetricsInfoList(
 
   const base = transformSRMetricsInfoList(metricsList, baseColumnDatum);
   const target = transformSRMetricsInfoList(metricsList, targetColumnDatum);
+  console.log(base);
 
   const result = base.map((baseMetricItem, index) => {
     const { firstSlot: targetPercent, secondSlot: targetCount } =

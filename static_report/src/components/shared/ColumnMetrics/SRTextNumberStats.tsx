@@ -55,15 +55,18 @@ export function SRTextNumberStats({
       {columnDatum?.type === 'string' && (
         <>
           {textMetricsList &&
-            textMetricsList.map(({ name, metakey, firstSlot, secondSlot }) => (
-              <MetricsInfo
-                {...props}
-                name={name}
-                metakey={metakey}
-                firstSlot={firstSlot}
-                secondSlot={secondSlot}
-              />
-            ))}
+            textMetricsList.map(
+              ({ name, metakey, firstSlot, secondSlot }, index) => (
+                <MetricsInfo
+                  key={index}
+                  name={name}
+                  metakey={metakey}
+                  firstSlot={firstSlot}
+                  secondSlot={secondSlot}
+                  {...props}
+                />
+              ),
+            )}
         </>
       )}
     </>
