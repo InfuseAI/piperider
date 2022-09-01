@@ -4,7 +4,7 @@ import { renderChartUnavailableMsg } from '../../../utils/charts';
 import { formatTitleCase } from '../../../utils/formatters';
 import { transformCompositionAsFlatStackInput } from '../../../utils/transformers';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
-import { SRGeneralColumnMetrics } from '../ColumnMetrics/SRGeneralColumnMetrics';
+import { SRGeneralColumnMetrics } from '../ColumnMetrics/SRGeneralStats';
 import { SRTextNumberStats } from '../ColumnMetrics/SRTextNumberStats';
 
 interface Props {

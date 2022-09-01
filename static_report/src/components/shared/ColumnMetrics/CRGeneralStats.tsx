@@ -11,7 +11,7 @@ type Props = {
   baseColumnDatum?: ColumnSchema;
   targetColumnDatum?: ColumnSchema;
 };
-export function CRGeneralColumnMetrics({
+export function CRGeneralStats({
   baseColumnDatum,
   targetColumnDatum,
   ...props

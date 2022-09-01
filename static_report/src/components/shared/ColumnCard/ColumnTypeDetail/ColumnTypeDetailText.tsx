@@ -6,9 +6,9 @@ import {
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
-import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
-import { StatisticalMetrics } from '../ColumnMetrics/StatisticalMetrics';
-import { UniquenessMetrics } from '../ColumnMetrics/UniquenessMetrics';
+import { DataCompositionMatrix } from '../ColumnMatrices/DataCompositionMatrix';
+import { StatisticalMatrix } from '../ColumnMatrices/StatisticalMatrix';
+import { UniquenessMetrics } from '../ColumnMatrices/UniquenessMatrix';
 import { ZEROLENGTH } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
@@ -18,7 +18,7 @@ export const ColumnTypeDetailText: React.FC<Props> = ({ columnDatum }) => {
 
   return (
     <Flex direction={'column'}>
-      <DataCompositionMetrics columnDatum={columnDatum}>
+      <DataCompositionMatrix columnDatum={columnDatum}>
         <Divider orientation="vertical" />
         <MetricCell
           metaKey={'zero_length'}
@@ -26,11 +26,11 @@ export const ColumnTypeDetailText: React.FC<Props> = ({ columnDatum }) => {
           value={formatColumnValueWith(zeroLengthOfTotal, formatIntervalMinMax)}
           subvalue={zero_length}
         />
-      </DataCompositionMetrics>
+      </DataCompositionMatrix>
       <Divider />
       <UniquenessMetrics columnDatum={columnDatum} />
       <Divider />
-      <StatisticalMetrics columnDatum={columnDatum} />
+      <StatisticalMatrix columnDatum={columnDatum} />
       <Divider />
       <Flex justify={'space-evenly'}></Flex>
     </Flex>

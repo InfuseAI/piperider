@@ -7,8 +7,8 @@ import {
 } from '../../../../utils/formatters';
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
-import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
-import { UniquenessMetrics } from '../ColumnMetrics/UniquenessMetrics';
+import { DataCompositionMatrix } from '../ColumnMatrices/DataCompositionMatrix';
+import { UniquenessMetrics } from '../ColumnMatrices/UniquenessMatrix';
 import { MODE, VALIDS } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
@@ -21,7 +21,7 @@ export const ColumnTypeDetailCategorical: React.FC<Props> = ({
 
   return (
     <Flex direction={'column'}>
-      <DataCompositionMetrics columnDatum={columnDatum}>
+      <DataCompositionMatrix columnDatum={columnDatum}>
         <Divider orientation="vertical" />
         <MetricCell
           metaKey="valids"
@@ -29,7 +29,7 @@ export const ColumnTypeDetailCategorical: React.FC<Props> = ({
           value={formatColumnValueWith(validsOfTotal, formatIntervalMinMax)}
           subvalue={valids}
         />
-      </DataCompositionMetrics>
+      </DataCompositionMatrix>
       <Divider />
       <UniquenessMetrics columnDatum={columnDatum} />
       <Divider />

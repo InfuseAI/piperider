@@ -7,8 +7,8 @@ import {
 import { getColumnDetails } from '../../../../utils/transformers';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { QuantilesMatrix } from '../../ColumnMetrics/QuantilesMatrix';
-import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
-import { StatisticalMetrics } from '../ColumnMetrics/StatisticalMetrics';
+import { DataCompositionMatrix } from '../ColumnMatrices/DataCompositionMatrix';
+import { StatisticalMatrix } from '../ColumnMatrices/StatisticalMatrix';
 import { NEGATIVES, ZEROS } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
@@ -18,7 +18,7 @@ export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
 
   return (
     <Flex direction={'column'}>
-      <DataCompositionMetrics columnDatum={columnDatum}>
+      <DataCompositionMatrix columnDatum={columnDatum}>
         <Divider orientation="vertical" />
         <MetricCell
           metaKey="negatives"
@@ -33,10 +33,10 @@ export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
           value={formatColumnValueWith(zerosOfTotal, formatIntervalMinMax)}
           subvalue={zeros}
         />
-      </DataCompositionMetrics>
+      </DataCompositionMatrix>
       <Divider />
       <Divider />
-      <StatisticalMetrics columnDatum={columnDatum} />
+      <StatisticalMatrix columnDatum={columnDatum} />
       <Divider />
       <Flex mt={2}>
         <QuantilesMatrix columnDatum={columnDatum} />

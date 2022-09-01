@@ -5,7 +5,7 @@ import {
   formatNumber,
 } from '../../../../utils/formatters';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
-import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
+import { DataCompositionMatrix } from '../ColumnMatrices/DataCompositionMatrix';
 import { FALSES, TRUES } from './constants';
 
 type Props = { columnDatum: ColumnSchema };
@@ -14,7 +14,7 @@ export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
 
   return (
     <Flex direction={'column'}>
-      <DataCompositionMetrics columnDatum={columnDatum}>
+      <DataCompositionMatrix columnDatum={columnDatum}>
         <Divider orientation="vertical" />
         <MetricCell
           label={FALSES}
@@ -27,7 +27,7 @@ export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
           value={formatColumnValueWith(trues, formatNumber)}
           metaKey={'trues'}
         />
-      </DataCompositionMetrics>
+      </DataCompositionMatrix>
       <Divider />
     </Flex>
   );

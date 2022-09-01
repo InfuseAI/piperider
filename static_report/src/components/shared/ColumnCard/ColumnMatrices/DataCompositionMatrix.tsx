@@ -10,7 +10,7 @@ import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { NULLS, INVALIDS } from '../ColumnTypeDetail/constants';
 
 type Props = { columnDatum: ColumnSchema; children?: ReactNode };
-export function DataCompositionMetrics({ columnDatum, children }: Props) {
+export function DataCompositionMatrix({ columnDatum, children }: Props) {
   const { nulls, invalids } = columnDatum;
   const { invalidsOfTotal, nullsOfTotal } = getColumnDetails(columnDatum);
 

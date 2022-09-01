@@ -15,7 +15,7 @@ import {
 } from '../ColumnTypeDetail/constants';
 
 type Props = { columnDatum: ColumnSchema };
-export function StatisticalMetrics({ columnDatum }: Props) {
+export function StatisticalMatrix({ columnDatum }: Props) {
   const { avg, stddev, min, max, type } = columnDatum;
 
   const isTextType = type === 'string';

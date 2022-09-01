@@ -6,7 +6,7 @@ import { checkColumnCategorical } from '../../utils/transformers';
 import { ColumnCardHeader } from '../shared/ColumnCard/ColumnCardHeader';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
 import { MetricsInfo } from '../shared/ColumnMetrics/MetricsInfo';
-import { CRGeneralColumnMetrics } from '../shared/ColumnMetrics/CRGeneralColumnMetrics';
+import { CRGeneralStats } from '../shared/ColumnMetrics/CRGeneralStats';
 import { CRSummaryStats } from '../shared/ColumnMetrics/CRSummaryStats';
 
 type Props = {
@@ -49,7 +49,7 @@ export const CRTableColumnDetailsRow = ({
         />
 
         <Box mb={3}>
-          <CRGeneralColumnMetrics
+          <CRGeneralStats
             baseColumnDatum={baseColumn}
             targetColumnDatum={targetColumn}
           />

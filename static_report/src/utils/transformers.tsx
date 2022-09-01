@@ -261,6 +261,7 @@ export function getIconForColumnType(columnDatum?: ColumnSchema): {
   return { backgroundColor: 'gray.500', icon: BiQuestionMark };
 }
 
+export type MetricNameMetakeyList = [MetricMetaKeys, string][];
 /**
   Conditional scenarios:
   
@@ -270,7 +271,6 @@ export function getIconForColumnType(columnDatum?: ColumnSchema): {
   
  * gets the list of metrics to display, based on metakey
  */
-export type MetricNameMetakeyList = [MetricMetaKeys, string][];
 export function transformSRMetricsInfoList(
   metricsList: MetricNameMetakeyList,
   columnDatum?: ColumnSchema,
