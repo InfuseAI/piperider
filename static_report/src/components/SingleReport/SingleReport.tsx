@@ -13,8 +13,6 @@ import { Main } from '../shared/Main';
 import { CollapseContent } from '../shared/CollapseContent';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useAmplitudeOnMount } from '../../hooks/useAmplitudeOnMount';
-import { AMPLITUDE_EVENTS } from '../../utils/amplitudeEvents';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
 import { SRProfilingDetails } from './SRProfilingDetails';
 import { SRAssertionDetails } from './SRAssertionDetails';
@@ -37,15 +35,6 @@ export default function SingleReport({ data, name }: Props) {
   zReport(dataSourceSchema.safeParse(datasource));
 
   useDocumentTitle(name);
-
-  // For calculating user stay purposes
-  useAmplitudeOnMount({
-    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-    eventProperties: {
-      type: 'single-report',
-      tab: 'Profiling',
-    },
-  });
 
   if (!data) {
     return (

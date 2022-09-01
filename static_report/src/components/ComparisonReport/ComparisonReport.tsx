@@ -14,8 +14,6 @@ import { Main } from '../shared/Main';
 import { getComparisonAssertions } from '../../utils/assertion';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useAmplitudeOnMount } from '../../hooks/useAmplitudeOnMount';
-import { AMPLITUDE_EVENTS } from '../../utils/amplitudeEvents';
 import { CRModal, TestDetail } from './CRModal/CRModal';
 import {
   ComparisonReportSchema,
@@ -24,7 +22,6 @@ import {
   ZTableSchema,
 } from '../../types';
 import { CRProfilingDetails } from './CRProfilingDetails';
-// import { CRTabSchemaDetails } from './CRTabSchemaDetails';
 import { CRAssertionDetails } from './CRAssertionDetails';
 import { CRTableOverview } from './CRTableOverview';
 import { formatReportTime } from '../../utils/formatters';
@@ -61,15 +58,6 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
   });
 
   useDocumentTitle(reportName);
-
-  // For calculating user stay purposes
-  useAmplitudeOnMount({
-    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-    eventProperties: {
-      type: 'comparison-report',
-      tab: 'Schema',
-    },
-  });
 
   return (
     <Main
