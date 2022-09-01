@@ -1,4 +1,4 @@
-import { ChakraProps, Flex } from '@chakra-ui/react';
+import { FlexProps, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../../types';
 import {
@@ -14,7 +14,7 @@ type Props = {
   columnDatum?: ColumnSchema;
 };
 
-export function SRSummaryStats({ columnDatum, ...props }: Props & ChakraProps) {
+export function SRSummaryStats({ columnDatum, ...props }: Props & FlexProps) {
   zReport(ZColSchema.safeParse(columnDatum));
   const subtitle = columnDatum?.type === 'string' ? ` (${TEXTLENGTH})` : '';
 

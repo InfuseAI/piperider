@@ -6,7 +6,7 @@ import { formatReportTime } from '../utils/formatters';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { ComparisonReportSchema } from '../types';
-import { ColumnDetailsMasterList } from '../components/shared/ColumnDetailList/ColumnDetailsMasterList';
+import { ColumnDetailsMasterList } from '../components/shared/ColumnDetailMasterList';
 import { mainContentAreaHeight } from '../utils/layout';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';

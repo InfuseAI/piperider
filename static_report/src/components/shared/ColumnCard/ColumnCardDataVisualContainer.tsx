@@ -1,7 +1,7 @@
 import {
   Button,
-  ChakraProps,
   Flex,
+  FlexProps,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -29,7 +29,7 @@ export function ColumnCardDataVisualContainer({
   allowModalPopup,
   height = 300,
   ...props
-}: Props & ChakraProps) {
+}: Props & FlexProps) {
   const { onOpen, isOpen, onClose } = useDisclosure();
   return (
     <>

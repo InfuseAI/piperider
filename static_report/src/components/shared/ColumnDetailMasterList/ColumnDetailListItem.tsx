@@ -1,8 +1,8 @@
 import {
   Box,
-  ChakraProps,
   Divider,
   Flex,
+  FlexProps,
   Icon,
   Progress,
   Text,
@@ -32,7 +32,7 @@ export function ColumnDetailListItem({
   isActive,
   hasSplitView,
   ...props
-}: Props & ChakraProps) {
+}: Props & FlexProps) {
   const { icon, backgroundColor } = getIconForColumnType(baseColumnDatum);
   const fallbackColumnDatum = baseColumnDatum || targetColumnDatum;
   const { validsOfTotal: baseValidsOfTotal } =

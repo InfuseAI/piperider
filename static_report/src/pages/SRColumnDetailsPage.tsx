@@ -5,7 +5,7 @@ import { Main } from '../components/shared/Main';
 import { SRSummaryStats } from '../components/shared/ColumnMetrics/SRSummaryStats';
 import { SingleReportSchema } from '../sdlc/single-report-schema';
 import { formatReportTime, formatTitleCase } from '../utils/formatters';
-import { ColumnDetailsMasterList } from '../components/shared/ColumnDetailList/ColumnDetailsMasterList';
+import { ColumnDetailsMasterList } from '../components/shared/ColumnDetailMasterList';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { mainContentAreaHeight } from '../utils/layout';

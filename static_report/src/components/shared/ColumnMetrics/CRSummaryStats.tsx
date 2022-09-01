@@ -1,4 +1,4 @@
-import { ChakraProps, Flex } from '@chakra-ui/react';
+import { FlexProps, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../../types';
 import {
@@ -20,7 +20,7 @@ export function CRSummaryStats({
   baseColumnDatum,
   targetColumnDatum,
   ...props
-}: Props & ChakraProps) {
+}: Props & FlexProps) {
   zReport(ZColSchema.safeParse(baseColumnDatum));
   const subtitle = baseColumnDatum?.type === 'string' ? ` (${TEXTLENGTH})` : '';
 

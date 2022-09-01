@@ -13,10 +13,7 @@ type Props = {
   baseColumn?: ColumnSchema;
   targetColumn?: ColumnSchema;
 };
-export const CRTableColumnDetailsRow = ({
-  baseColumn,
-  targetColumn,
-}: Props) => {
+export const CRColumnDetailsRow = ({ baseColumn, targetColumn }: Props) => {
   const fallback = baseColumn || targetColumn;
   const isCategorical = checkColumnCategorical(baseColumn);
   const [currentLocation] = useLocation();

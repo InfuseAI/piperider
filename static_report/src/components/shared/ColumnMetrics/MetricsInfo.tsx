@@ -1,4 +1,4 @@
-import { ChakraProps, Flex, Text, Tooltip } from '@chakra-ui/react';
+import { FlexProps, Flex, Text, Tooltip } from '@chakra-ui/react';
 import { schemaMetaDescriptions } from '../../../sdlc/schema-meta';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { NO_VALUE } from '../ColumnCard/ColumnTypeDetail/constants';
@@ -43,7 +43,7 @@ export function MetricsInfo({
   reverse,
   tooltipValues,
   ...props
-}: MetricsInfoProps & ChakraProps) {
+}: MetricsInfoProps & FlexProps) {
   const metaDescription = schemaMetaDescriptions[metakey || ''];
   const { width, ...restProps } = props;
   const isTargetNull = secondSlot === null;

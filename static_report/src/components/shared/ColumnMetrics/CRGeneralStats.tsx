@@ -1,4 +1,4 @@
-import { ChakraProps } from '@chakra-ui/system';
+import { FlexProps } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../../types';
 import {
@@ -15,7 +15,7 @@ export function CRGeneralStats({
   baseColumnDatum,
   targetColumnDatum,
   ...props
-}: Props & ChakraProps) {
+}: Props & FlexProps) {
   zReport(ZColSchema.safeParse(baseColumnDatum));
   zReport(ZColSchema.safeParse(targetColumnDatum));
   const metakeyEntries: MetricNameMetakeyList = [

@@ -18,7 +18,6 @@ export const ColumnTypeDetailOther: React.FC<Props> = ({ columnDatum }) => {
     <Flex direction={'column'}>
       <DataCompositionMatrix columnDatum={columnDatum}>
         <Divider orientation="vertical" />
-        <Divider orientation="vertical" />
         <MetricCell
           metaKey="valids"
           label={VALIDS}

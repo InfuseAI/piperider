@@ -1,14 +1,11 @@
 import { InfoIcon } from '@chakra-ui/icons';
-import { ChakraProps, Flex, Icon, Text, Tooltip } from '@chakra-ui/react';
+import { Flex, FlexProps, Icon, Text, Tooltip } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { getIconForColumnType } from '../../../utils/transformers';
 import { SRTooltip } from '../../SingleReport/SRTooltip';
 
 type Props = { columnDatum?: ColumnSchema };
-export function ColumnCardHeader({
-  columnDatum,
-  ...props
-}: Props & ChakraProps) {
+export function ColumnCardHeader({ columnDatum, ...props }: Props & FlexProps) {
   const { description, name, schema_type } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
   return (

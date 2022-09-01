@@ -1,4 +1,4 @@
-import { ChakraProps } from '@chakra-ui/system';
+import { FlexProps } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../../types';
 import { transformSRMetricsInfoList } from '../../../utils/transformers';
@@ -8,7 +8,7 @@ type Props = { columnDatum?: ColumnSchema };
 export function SRTextNumberStats({
   columnDatum,
   ...props
-}: Props & ChakraProps) {
+}: Props & FlexProps) {
   zReport(ZColSchema.safeParse(columnDatum));
 
   const numeralMetakeyList: [MetricMetaKeys, string][] = [
