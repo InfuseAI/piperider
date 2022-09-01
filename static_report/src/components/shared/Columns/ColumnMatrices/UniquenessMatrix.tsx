@@ -5,8 +5,11 @@ import {
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
 import { getColumnMetricRatio } from '../../../../utils/transformers';
-import { MetricCell } from '../../ColumnMetrics/MetricCell';
-import { DISTINCTS, DUPLICATES } from '../ColumnTypeDetail/constants';
+import { MetricCell } from '../ColumnMetrics/MetricCell';
+import {
+  DISTINCTS,
+  DUPLICATES,
+} from '../ColumnCard/ColumnTypeDetail/constants';
 
 type Props = { columnDatum: ColumnSchema };
 export function UniquenessMetrics({ columnDatum }: Props) {

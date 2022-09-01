@@ -1,12 +1,12 @@
 import { Flex, Grid, GridItem, Text } from '@chakra-ui/react';
 import { useRoute } from 'wouter';
-import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHeader';
+import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
 import { Main } from '../components/shared/Main';
 import { formatReportTime } from '../utils/formatters';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { ComparisonReportSchema } from '../types';
-import { ColumnDetailsMasterList } from '../components/shared/ColumnDetailMasterList';
+import { ColumnDetailsMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
 import { mainContentAreaHeight } from '../utils/layout';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
@@ -76,7 +76,7 @@ export function CRColumnDetailsPage({
         >
           {/* Label Block */}
           <GridItem colSpan={2} rowSpan={1}>
-            <ColumnCardHeader
+            <ColumnTypeHeader
               columnDatum={columnHeaderDatum}
               maxHeight={'5em'}
               height={'100%'}

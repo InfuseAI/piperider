@@ -1,11 +1,11 @@
 import { Divider, Flex } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatNumber,
-} from '../../../../utils/formatters';
+} from '../../../../../utils/formatters';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
-import { DataCompositionMatrix } from '../ColumnMatrices/DataCompositionMatrix';
+import { DataCompositionMatrix } from '../../ColumnMatrices/DataCompositionMatrix';
 import { FALSES, TRUES } from './constants';
 
 type Props = { columnDatum: ColumnSchema };

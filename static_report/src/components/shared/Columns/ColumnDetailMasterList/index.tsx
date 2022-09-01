@@ -12,9 +12,9 @@ import {
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { SaferTableSchema } from '../../../types';
-import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
+import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { SaferTableSchema } from '../../../../types';
+import { transformAsNestedBaseTargetRecord } from '../../../../utils/transformers';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];

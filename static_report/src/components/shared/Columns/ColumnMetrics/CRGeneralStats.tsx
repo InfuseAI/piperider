@@ -1,10 +1,10 @@
 import { FlexProps } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { ZColSchema, zReport } from '../../../types';
+import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { ZColSchema, zReport } from '../../../../types';
 import {
   MetricNameMetakeyList,
   transformCRMetricsInfoList,
-} from '../../../utils/transformers';
+} from '../../../../utils/transformers';
 import { MetricsInfo } from './MetricsInfo';
 
 type Props = {

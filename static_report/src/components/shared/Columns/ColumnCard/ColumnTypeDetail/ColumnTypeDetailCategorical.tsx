@@ -1,14 +1,14 @@
 import { Divider, Flex } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
   formatTopKMetrics,
-} from '../../../../utils/formatters';
-import { getColumnMetricRatio } from '../../../../utils/transformers';
+} from '../../../../../utils/formatters';
+import { getColumnMetricRatio } from '../../../../../utils/transformers';
+import { DataCompositionMatrix } from '../../ColumnMatrices/DataCompositionMatrix';
+import { UniquenessMetrics } from '../../ColumnMatrices/UniquenessMatrix';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
-import { DataCompositionMatrix } from '../ColumnMatrices/DataCompositionMatrix';
-import { UniquenessMetrics } from '../ColumnMatrices/UniquenessMatrix';
 import { MODE, VALIDS } from './constants';
 
 type Props = { columnDatum: ColumnSchema };

@@ -5,7 +5,7 @@ import { getIconForColumnType } from '../../../utils/transformers';
 import { SRTooltip } from '../../SingleReport/SRTooltip';
 
 type Props = { columnDatum?: ColumnSchema };
-export function ColumnCardHeader({ columnDatum, ...props }: Props & FlexProps) {
+export function ColumnTypeHeader({ columnDatum, ...props }: Props & FlexProps) {
   const { description, name, schema_type } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
   return (

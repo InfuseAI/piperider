@@ -21,7 +21,7 @@ import {
   zReport,
   ZTableSchema,
 } from '../../types';
-import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
+import { NO_VALUE } from '../shared/Columns/ColumnCard/ColumnTypeDetail/constants';
 import { useLocation } from 'wouter';
 
 type EnrichedColumnData = {

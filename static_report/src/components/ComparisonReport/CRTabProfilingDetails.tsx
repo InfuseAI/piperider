@@ -3,7 +3,7 @@ import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { SaferTableSchema, zReport, ZTableSchema } from '../../types';
 import { getDataChart } from '../../utils/charts';
 import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
-import { ColumnCardDataVisualContainer } from '../shared/ColumnCard/ColumnCardDataVisualContainer';
+import { ColumnCardDataVisualContainer } from '../shared/Columns/ColumnCard/ColumnCardDataVisualContainer';
 import { CRColumnDetailsRow } from './CRColumnDetailsRow';
 
 type CRTabProfilingDetailsProps = {

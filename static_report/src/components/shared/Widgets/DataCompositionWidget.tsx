@@ -7,8 +7,8 @@ import {
   transformCompositionAsFlatStackInput,
 } from '../../../utils/transformers';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
-import { SRGeneralColumnMetrics } from '../ColumnMetrics/SRGeneralStats';
-import { SRTextNumberStats } from '../ColumnMetrics/SRTextNumberStats';
+import { SRGeneralStats } from '../Columns/ColumnMetrics/SRGeneralStats';
+import { SRTextNumberStats } from '../Columns/ColumnMetrics/SRTextNumberStats';
 
 interface Props {
   columnDatum?: ColumnSchema;
@@ -34,7 +34,7 @@ export function DataCompositionWidget({ columnDatum }: Props) {
             <FlatStackedBarChart data={dataCompInput} />
           </Box>
           <Box mt={6}>
-            <SRGeneralColumnMetrics columnDatum={columnDatum} width={'100%'} />
+            <SRGeneralStats columnDatum={columnDatum} width={'100%'} />
           </Box>
         </Box>
 

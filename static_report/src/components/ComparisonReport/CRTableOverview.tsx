@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { SaferTableSchema, zReport, ZTableSchema } from '../../types';
 import { getReportAggregateAssertions } from '../../utils/assertion';
-import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
+import { NO_VALUE } from '../shared/Columns/ColumnCard/ColumnTypeDetail/constants';
 
 type Props = {
   baseTable?: SaferTableSchema;

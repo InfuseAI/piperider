@@ -17,11 +17,11 @@ import {
   NULLS,
   VALIDS,
   NO_VALUE,
-} from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
+} from '../components/shared/Columns/ColumnCard/ColumnTypeDetail/constants';
 import {
   MetricMetaKeys,
   MetricsInfoProps,
-} from '../components/shared/ColumnMetrics/MetricsInfo';
+} from '../components/shared/Columns/ColumnMetrics/MetricsInfo';
 import { ColumnSchema } from '../sdlc/single-report-schema';
 import {
   formatAsAbbreviatedNumber,

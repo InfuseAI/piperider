@@ -13,8 +13,8 @@ import { isNumber } from 'lodash';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { getDataChart, renderChartUnavailableMsg } from '../../../utils/charts';
 import { ChartKind } from '../../../utils/transformers';
-import { ColumnCardDataVisualContainer } from '../ColumnCard/ColumnCardDataVisualContainer';
-import { TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
+import { ColumnCardDataVisualContainer } from '../Columns/ColumnCard/ColumnCardDataVisualContainer';
+import { TEXTLENGTH } from '../Columns/ColumnCard/ColumnTypeDetail/constants';
 
 interface Props {
   hasSplitView?: boolean;

@@ -1,12 +1,12 @@
 import { FlexProps, Flex } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { ZColSchema, zReport } from '../../../types';
+import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { ZColSchema, zReport } from '../../../../types';
 import {
   containsAvgSDSummary,
   containsDistinctDuplicateSummary,
   containsMinMaxSummary,
   transformSRMetricsInfoList,
-} from '../../../utils/transformers';
+} from '../../../../utils/transformers';
 import { NO_VALUE, TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
 import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
 

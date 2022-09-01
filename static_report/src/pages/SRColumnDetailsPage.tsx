@@ -1,11 +1,9 @@
 import { Divider, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
 import { useRoute } from 'wouter';
-import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHeader';
+import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
 import { Main } from '../components/shared/Main';
-import { SRSummaryStats } from '../components/shared/ColumnMetrics/SRSummaryStats';
 import { SingleReportSchema } from '../sdlc/single-report-schema';
 import { formatReportTime, formatTitleCase } from '../utils/formatters';
-import { ColumnDetailsMasterList } from '../components/shared/ColumnDetailMasterList';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { mainContentAreaHeight } from '../utils/layout';
@@ -14,6 +12,8 @@ import {
   containsDataSummary,
 } from '../utils/transformers';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
+import { ColumnDetailsMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
+import { SRSummaryStats } from '../components/shared/Columns/ColumnMetrics/SRSummaryStats';
 interface Props {
   data: SingleReportSchema;
 }
@@ -61,7 +61,7 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
         >
           {/* Label Block */}
           <GridItem colSpan={2} rowSpan={1}>
-            <ColumnCardHeader
+            <ColumnTypeHeader
               columnDatum={columnDatum}
               maxHeight={'5em'}
               height={'100%'}

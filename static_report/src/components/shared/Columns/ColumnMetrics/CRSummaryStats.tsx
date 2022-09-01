@@ -1,13 +1,13 @@
 import { FlexProps, Flex } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { ZColSchema, zReport } from '../../../types';
+import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { ZColSchema, zReport } from '../../../../types';
 import {
   containsAvgSDSummary,
   containsDistinctDuplicateSummary,
   containsMinMaxSummary,
   MetricNameMetakeyList,
   transformCRMetricsInfoList,
-} from '../../../utils/transformers';
+} from '../../../../utils/transformers';
 import { TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
 import { MetricsInfo } from './MetricsInfo';
 

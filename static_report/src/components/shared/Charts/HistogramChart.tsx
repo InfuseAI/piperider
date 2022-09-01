@@ -20,7 +20,7 @@ import {
   DATE_RANGE,
   TEXTLENGTH,
   VALUE_RANGE,
-} from '../ColumnCard/ColumnTypeDetail/constants';
+} from '../Columns/ColumnCard/ColumnTypeDetail/constants';
 
 import 'chartjs-adapter-date-fns';
 import { DeepPartial } from 'chart.js/types/utils';

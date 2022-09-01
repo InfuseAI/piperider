@@ -7,15 +7,15 @@ import {
   Progress,
   Text,
 } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
-} from '../../../utils/formatters';
+} from '../../../../utils/formatters';
 import {
   getColumnMetricRatio,
   getIconForColumnType,
-} from '../../../utils/transformers';
+} from '../../../../utils/transformers';
 import { NO_VALUE } from '../ColumnCard/ColumnTypeDetail/constants';
 
 interface Props {

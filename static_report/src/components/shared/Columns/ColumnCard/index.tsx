@@ -1,15 +1,15 @@
 import { Flex, Text } from '@chakra-ui/react';
 import { Link, useLocation } from 'wouter';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { ZColSchema } from '../../../types';
-import { getDataChart } from '../../../utils/charts';
+import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { ZColSchema } from '../../../../types';
+import { getDataChart } from '../../../../utils/charts';
 import {
   checkColumnCategorical,
   getChartKindByColumnType,
-} from '../../../utils/transformers';
+} from '../../../../utils/transformers';
 import { ColumnCardBodyContainer } from './ColumnCardBodyContainer';
 import { ColumnCardDataVisualContainer } from './ColumnCardDataVisualContainer';
-import { ColumnCardHeader } from './ColumnCardHeader';
+import { ColumnTypeHeader } from '../ColumnTypeHeader';
 import { ColumnTypeDetailBoolean } from './ColumnTypeDetail/ColumnTypeDetailBoolean';
 import { ColumnTypeDetailCategorical } from './ColumnTypeDetail/ColumnTypeDetailCategorical';
 import { ColumnTypeDetailDatetime } from './ColumnTypeDetail/ColumnTypeDetailDatetime';
@@ -35,7 +35,7 @@ export function ColumnCard({ columnDatum }: Props) {
       my={3}
       rounded={'lg'}
     >
-      <ColumnCardHeader
+      <ColumnTypeHeader
         columnDatum={columnDatum}
         bg={'blue.800'}
         color={'white'}
