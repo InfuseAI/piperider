@@ -2,7 +2,7 @@ import concurrent.futures
 import decimal
 import math
 import time
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from typing import Union, List, Tuple
 
 from dateutil.relativedelta import relativedelta
@@ -10,6 +10,7 @@ from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, 
     distinct, case, text, literal_column, inspect
 from sqlalchemy.engine import Engine, Connection
 from sqlalchemy.engine.reflection import Inspector
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy.sql import FromClause
 from sqlalchemy.sql.elements import ColumnClause
@@ -143,9 +144,7 @@ class Profiler:
 
     def _profile_table_metadata(self, result, table):
         row_count = 0
-        creation_time = ''
-        last_modified = ''
-        size_bytes = None
+        creation_time = last_modified = size_bytes = None
         with self.engine.connect() as conn:
             if self.engine.url.get_backend_name() == 'snowflake':
                 default_schema = self.inspector.default_schema_name
@@ -167,8 +166,8 @@ class Profiler:
                 '''.format(dataset, table.name)
                 row_count, creation_time, last_modified, size_bytes = conn.execute(stmt).fetchone()
                 # timestamp transformation
-                creation_time = datetime.fromtimestamp(creation_time / 1000.0).isoformat()
-                last_modified = datetime.fromtimestamp(last_modified / 1000.0).isoformat()
+                creation_time = datetime.fromtimestamp(creation_time / 1000.0, timezone.utc).isoformat()
+                last_modified = datetime.fromtimestamp(last_modified / 1000.0, timezone.utc).isoformat()
             elif self.engine.url.get_backend_name() == 'redshift':
                 dataset = self.engine.url.database
                 stmt = '''
@@ -176,9 +175,20 @@ class Profiler:
                     from SVV_TABLE_INFO
                     where "table" = '{}'
                 '''.format(table.name)
-                row_count, size_mbytes = conn.execute(stmt).fetchone()
-                row_count = int(row_count)
-                size_bytes = size_mbytes * 1024
+                try:
+                    row_count, size_mbytes = conn.execute(stmt).fetchone()
+                except ProgrammingError as exc:
+                    from psycopg2.errors import lookup
+                    if isinstance(exc.orig, lookup(exc.orig.pgcode)):
+                        stmt = select([
+                            func.count(),
+                        ]).select_from(table)
+                        row_count, = conn.execute(stmt).fetchone()
+                    else:
+                        raise
+                else:
+                    row_count = int(row_count)
+                    size_bytes = size_mbytes * 1024
             else:
                 stmt = select([
                     func.count(),
@@ -186,9 +196,14 @@ class Profiler:
                 row_count, = conn.execute(stmt).fetchone()
 
         result['row_count'] = row_count
-        result['creation_time'] = creation_time
-        result['last_modified'] = last_modified
-        result['bytes'] = size_bytes
+        if creation_time:
+            result['creation_time'] = creation_time
+        if last_modified:
+            result['last_modified'] = last_modified
+            freshness = datetime.now(timezone.utc) - datetime.fromisoformat(last_modified)
+            result['freshness'] = int(freshness.total_seconds())
+        if size_bytes:
+            result['bytes'] = size_bytes
 
     def _profile_table(self, table: Table) -> dict:
         candidate_columns = self._drop_unsupported_columns(table)

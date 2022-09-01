@@ -36,6 +36,12 @@
             "last_modified": {
               "type": "string"
             },
+            "bytes": {
+              "type": "integer"
+            },
+            "freshness": {
+              "type": "integer"
+            },
             "col_count": {
               "type": "integer"
             },
