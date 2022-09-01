@@ -114,12 +114,6 @@ export function getChartKindByColumnType(
   if (isHistogramKind) return 'histogram';
 }
 
-export type CRHistogramDatum = {
-  label: string | null;
-  base: number;
-  target: number;
-};
-
 export const zeroAsFallbackHandler = (v) => (v ? v : 0);
 /**
  *
@@ -168,7 +162,7 @@ export function transformCompositionAsFlatStackInput(
       colors: ['#FFCF36', '#002A53'],
     };
   }
-  if (type === 'numeric' || type === 'integer') {
+  if (containsColumnQuantile(type)) {
     const newCounts = [negatives, zeros, positives].map(zeroAsFallbackHandler);
     return {
       labels: [NEGATIVES, ZEROS, POSITIVES],
@@ -203,7 +197,7 @@ export function getIconForColumnType(columnDatum?: ColumnSchema): {
   if (type === 'string') {
     return { backgroundColor: 'blue.500', icon: BiText };
   }
-  if (type === 'numeric' || type === 'integer') {
+  if (containsColumnQuantile(type)) {
     return { backgroundColor: 'red.500', icon: VscSymbolOperator };
   }
   if (type === 'datetime') {
@@ -260,7 +254,7 @@ export function transformCRMetricsInfoList(
   baseColumnDatum?: ColumnSchema,
   targetColumnDatum?: ColumnSchema,
   valueFormat: 'count' | 'percent' = 'percent',
-) {
+): MetricsInfoProps[] {
   if (!baseColumnDatum && !targetColumnDatum) return [];
 
   const base = transformSRMetricsInfoList(metricsList, baseColumnDatum);

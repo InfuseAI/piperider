@@ -35,12 +35,6 @@ export function formatNumber(
   return new Intl.NumberFormat(locales, options).format(num);
 }
 
-export function formatDate(input: string) {
-  const parsed = Date.parse(input);
-
-  return isValid(parsed) ? format(parsed, 'yyyy-MM-dd') : NO_VALUE;
-}
-
 /**
  * @param num fractional number type input
  * @returns a formatted percentage string, based on its percentage proximity to either ends (<0.1% and >99.9%)
@@ -67,7 +61,6 @@ export function formatIntervalMinMax(num: number) {
   return formatter();
 }
 
-//FIXME: is this doing anything since expected|actual are booleans?
 // SR side: No need for object record handling
 // CR side: needs record handling
 export function formatTestExpectedOrActual(value) {

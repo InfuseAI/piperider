@@ -1,7 +1,10 @@
 import { FlexProps } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../../types';
-import { transformSRMetricsInfoList } from '../../../utils/transformers';
+import {
+  containsColumnQuantile,
+  transformSRMetricsInfoList,
+} from '../../../utils/transformers';
 import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
 
 type Props = { columnDatum?: ColumnSchema };
@@ -31,7 +34,7 @@ export function SRTextNumberStats({
 
   return (
     <>
-      {(columnDatum?.type === 'integer' || columnDatum?.type === 'numeric') && (
+      {containsColumnQuantile(columnDatum?.type) && (
         <>
           {numeralMetricsList &&
             numeralMetricsList.map(

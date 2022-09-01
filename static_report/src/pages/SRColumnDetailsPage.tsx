@@ -9,7 +9,10 @@ import { ColumnDetailsMasterList } from '../components/shared/ColumnDetailMaster
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { mainContentAreaHeight } from '../utils/layout';
-import { containsDataSummary } from '../utils/transformers';
+import {
+  containsColumnQuantile,
+  containsDataSummary,
+} from '../utils/transformers';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 interface Props {
   data: SingleReportSchema;
@@ -89,7 +92,7 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
             )}
           </GridItem>
           {/* Quantiles Block */}
-          {(type === 'integer' || type === 'numeric') && histogram && (
+          {containsColumnQuantile(type) && histogram && (
             <GridItem gridRow={'span 1'} p={9} bg={'gray.50'} minWidth={'1px'}>
               <QuantilesWidget columnDatum={columnDatum} />
             </GridItem>
