@@ -1,4 +1,5 @@
 import { Flex, Text } from '@chakra-ui/react';
+import isNumber from 'lodash/isNumber';
 import { BooleanPieChart } from '../components/shared/Charts/BooleanPieChart';
 import { CategoricalBarChart } from '../components/shared/Charts/CategoricalBarChart';
 import { HistogramChart } from '../components/shared/Charts/HistogramChart';
@@ -55,8 +56,14 @@ export function getDataChart(
     return <HistogramChart data={{ histogram, min, max, type, total }} />;
   }
   //pie dataset
-  if (chartKind === 'pie') {
-    const counts = [trues, falses, nulls, invalids].map((v) => (v ? v : 0));
+  if (
+    chartKind === 'pie' &&
+    isNumber(trues) &&
+    isNumber(falses) &&
+    isNumber(nulls) &&
+    isNumber(invalids)
+  ) {
+    const counts = [trues, falses, nulls, invalids];
     const labels = [TRUES, FALSES, NULLS, INVALIDS].map(
       (v) => v.charAt(0) + v.slice(1).toLowerCase(),
     );

@@ -8,7 +8,6 @@ import {
   Th,
   Tbody,
   Td,
-  Divider,
   Text,
   Icon,
 } from '@chakra-ui/react';
@@ -23,7 +22,7 @@ import {
   ZTableSchema,
 } from '../../types';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 
 type EnrichedColumnData = {
   added: number;
@@ -65,6 +64,8 @@ export function CRTabSchemaDetails({
   zReport(ZTableSchema.safeParse(baseTableDatum));
   zReport(ZTableSchema.safeParse(targetTableDatum));
 
+  const [location, setLocation] = useLocation();
+  const fallbackTable = baseTableDatum || targetTableDatum;
   const baseColEntries = getEnrichedColumnsFor(baseTableDatum?.columns, 'base');
   const targetColEntries = getEnrichedColumnsFor(
     targetTableDatum?.columns,
@@ -127,6 +128,13 @@ export function CRTabSchemaDetails({
     baseColumns,
     deltaDeleted,
   );
+  // Combine columns on a per-row basis, now that the columns lengths are equalized/matched
+  const combinedSchemaRowItem = equalizedBaseColumns.map((base, index) => {
+    return {
+      base,
+      target: equalizedTargetColumns[index],
+    };
+  });
 
   return (
     <Flex direction="column">
@@ -146,75 +154,63 @@ export function CRTabSchemaDetails({
       </Text>
 
       <Flex justifyContent={'space-evenly'}>
-        {/* Base Columns */}
-        <TableContainer width="50%">
+        <TableContainer w={'100%'}>
           <Table variant="simple">
             <Thead>
               <Tr>
-                <Th>Column</Th>
-                <Th>Type</Th>
+                <Th>Base Column</Th>
+                <Th borderRight={'1px solid lightgray'}>Base Type</Th>
+                <Th>Target Column</Th>
+                <Th>Target Type</Th>
               </Tr>
             </Thead>
             <Tbody>
-              {equalizedBaseColumns.map((column) => (
-                <Tr
-                  key={nanoid(10)}
-                  color={column?.changed ? 'red.500' : 'inherit'}
-                >
-                  <Td>{column?.name ?? NO_VALUE}</Td>
-                  <Td>{column?.schema_type ?? NO_VALUE}</Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
-
-        <Flex justifyContent={'center'}>
-          <Divider orientation={'vertical'} />
-        </Flex>
-
-        {/* FIXME: combine tables markup */}
-        {/* Target Columns */}
-        <TableContainer width="50%">
-          <Table variant="simple">
-            <Thead>
-              <Tr>
-                <Th>Column</Th>
-                <Th>Type</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {equalizedTargetColumns.map((column) => (
-                <Tr
-                  key={nanoid(10)}
-                  color={column?.changed ? 'red.500' : 'inherit'}
-                  position="relative"
-                >
-                  <Td>{column?.name ?? NO_VALUE}</Td>
-                  <Td>{column?.schema_type ?? NO_VALUE}</Td>
-                  {visibleDetail && (
-                    <Link
-                      href={`/tables/${baseTableDatum?.name}/columns/${column?.name}`}
+              {combinedSchemaRowItem.map(
+                ({ base: baseColumn, target: targetColumn }) => {
+                  const fallbackColumn = baseColumn || targetColumn;
+                  return (
+                    <Tr
+                      key={nanoid(10)}
+                      onClick={() =>
+                        visibleDetail &&
+                        setLocation(
+                          `/tables/${fallbackTable?.name}/columns/${fallbackColumn?.name}`,
+                        )
+                      }
+                      position={'relative'}
+                      _hover={{
+                        bg: 'blackAlpha.50',
+                        cursor: visibleDetail ? 'pointer' : 'inherit',
+                      }}
                     >
-                      <Box
-                        as="td"
-                        position="absolute"
-                        top={3}
-                        right={0}
-                        _hover={{
-                          cursor: visibleDetail ? 'pointer' : 'inherit',
-                        }}
+                      <Td color={baseColumn?.changed ? 'red.500' : 'inherit'}>
+                        {baseColumn?.name ?? NO_VALUE}
+                      </Td>
+                      <Td
+                        color={baseColumn?.changed ? 'red.500' : 'inherit'}
+                        borderRight={'1px solid lightgray'}
                       >
-                        <Icon
-                          as={FiChevronRight}
-                          color="piperider.500"
-                          boxSize={6}
-                        />
-                      </Box>
-                    </Link>
-                  )}
-                </Tr>
-              ))}
+                        {baseColumn?.schema_type ?? NO_VALUE}
+                      </Td>
+                      <Td color={targetColumn?.changed ? 'red.500' : 'inherit'}>
+                        {targetColumn?.name ?? NO_VALUE}
+                      </Td>
+                      <Td color={targetColumn?.changed ? 'red.500' : 'inherit'}>
+                        {targetColumn?.schema_type ?? NO_VALUE}
+                      </Td>
+                      {visibleDetail && (
+                        <Box as="td" position="absolute" top={3} right={0}>
+                          <Icon
+                            as={FiChevronRight}
+                            color="piperider.500"
+                            boxSize={6}
+                          />
+                        </Box>
+                      )}
+                    </Tr>
+                  );
+                },
+              )}
             </Tbody>
           </Table>
         </TableContainer>

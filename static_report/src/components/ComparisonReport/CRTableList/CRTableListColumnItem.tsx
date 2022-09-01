@@ -11,7 +11,7 @@ import type {
   ColumnSchema,
 } from '../../../sdlc/single-report-schema';
 import { HistogramChart } from '../../shared/Charts/HistogramChart';
-import { Link, useLocation } from 'wouter';
+import { Link } from 'wouter';
 
 function getAssertions(assertions: AssertionTest[]) {
   const total = assertions.length;
