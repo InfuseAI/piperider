@@ -6,7 +6,7 @@ import {
 } from '../../../../../utils/formatters';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { DataCompositionMatrix } from '../../ColumnMatrices/DataCompositionMatrix';
-import { FALSES, TRUES } from './constants';
+import { FALSES, TRUES } from '../../constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {

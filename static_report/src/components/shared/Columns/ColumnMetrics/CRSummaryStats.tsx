@@ -8,7 +8,7 @@ import {
   MetricNameMetakeyList,
   transformCRMetricsInfoList,
 } from '../../../../utils/transformers';
-import { TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
+import { TEXTLENGTH } from '../constants';
 import { MetricsInfo } from './MetricsInfo';
 
 type Props = {

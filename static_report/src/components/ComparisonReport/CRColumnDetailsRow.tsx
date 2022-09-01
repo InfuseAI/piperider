@@ -4,7 +4,7 @@ import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
 import { checkColumnCategorical } from '../../utils/transformers';
 import { ColumnTypeHeader } from '../shared/Columns/ColumnTypeHeader';
-import { NO_VALUE } from '../shared/Columns/ColumnCard/ColumnTypeDetail/constants';
+import { NO_VALUE } from '../shared/Columns/constants';
 import { MetricsInfo } from '../shared/Columns/ColumnMetrics/MetricsInfo';
 import { CRGeneralStats } from '../shared/Columns/ColumnMetrics/CRGeneralStats';
 import { CRSummaryStats } from '../shared/Columns/ColumnMetrics/CRSummaryStats';

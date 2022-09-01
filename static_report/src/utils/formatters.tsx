@@ -1,6 +1,6 @@
 import { Text } from '@chakra-ui/react';
 import { formatInTimeZone } from 'date-fns-tz';
-import { NO_VALUE } from '../components/shared/Columns/ColumnCard/ColumnTypeDetail/constants';
+import { NO_VALUE } from '../components/shared/Columns/constants';
 import type { ColumnSchema } from '../sdlc/single-report-schema';
 
 /**

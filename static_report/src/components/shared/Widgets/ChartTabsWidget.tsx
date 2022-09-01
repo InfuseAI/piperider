@@ -14,7 +14,7 @@ import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { getDataChart, renderChartUnavailableMsg } from '../../../utils/charts';
 import { ChartKind } from '../../../utils/transformers';
 import { ColumnCardDataVisualContainer } from '../Columns/ColumnCard/ColumnCardDataVisualContainer';
-import { TEXTLENGTH } from '../Columns/ColumnCard/ColumnTypeDetail/constants';
+import { TEXTLENGTH } from '../Columns/constants';
 
 interface Props {
   hasSplitView?: boolean;

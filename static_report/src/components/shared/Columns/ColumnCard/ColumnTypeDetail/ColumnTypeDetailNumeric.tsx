@@ -9,7 +9,7 @@ import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { QuantilesMatrix } from '../../ColumnMatrices/QuantilesMatrix';
 import { DataCompositionMatrix } from '../../ColumnMatrices/DataCompositionMatrix';
 import { StatisticalMatrix } from '../../ColumnMatrices/StatisticalMatrix';
-import { NEGATIVES, ZEROS } from './constants';
+import { NEGATIVES, ZEROS } from '../../constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {

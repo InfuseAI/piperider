@@ -7,7 +7,7 @@ import {
 import { getColumnMetricRatio } from '../../../../../utils/transformers';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { DataCompositionMatrix } from '../../ColumnMatrices/DataCompositionMatrix';
-import { VALIDS } from './constants';
+import { VALIDS } from '../../constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailOther: React.FC<Props> = ({ columnDatum }) => {

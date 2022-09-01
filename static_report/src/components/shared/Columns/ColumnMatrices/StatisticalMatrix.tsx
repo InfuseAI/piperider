@@ -6,13 +6,7 @@ import {
 } from '../../../../utils/formatters';
 import { checkColumnCategorical } from '../../../../utils/transformers';
 import { MetricCell } from '../ColumnMetrics/MetricCell';
-import {
-  AVG,
-  MAX,
-  MIN,
-  STDDEV,
-  PLUSMINUS,
-} from '../ColumnCard/ColumnTypeDetail/constants';
+import { AVG, MAX, MIN, STDDEV, PLUSMINUS } from '../constants';
 
 type Props = { columnDatum: ColumnSchema };
 export function StatisticalMatrix({ columnDatum }: Props) {

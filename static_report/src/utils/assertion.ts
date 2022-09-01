@@ -1,4 +1,4 @@
-import { NO_VALUE } from '../components/shared/Columns/ColumnCard/ColumnTypeDetail/constants';
+import { NO_VALUE } from '../components/shared/Columns/constants';
 import {
   dbtAssertionResultSchema,
   pipeRiderAssertionResultSchema,

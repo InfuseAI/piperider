@@ -9,7 +9,7 @@ import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { DataCompositionMatrix } from '../../ColumnMatrices/DataCompositionMatrix';
 import { StatisticalMatrix } from '../../ColumnMatrices/StatisticalMatrix';
 import { UniquenessMetrics } from '../../ColumnMatrices/UniquenessMatrix';
-import { ZEROLENGTH } from './constants';
+import { ZEROLENGTH } from '../../constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailText: React.FC<Props> = ({ columnDatum }) => {

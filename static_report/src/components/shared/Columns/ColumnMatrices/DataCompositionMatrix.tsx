@@ -7,7 +7,7 @@ import {
 } from '../../../../utils/formatters';
 import { getColumnMetricRatio } from '../../../../utils/transformers';
 import { MetricCell } from '../ColumnMetrics/MetricCell';
-import { NULLS, INVALIDS } from '../ColumnCard/ColumnTypeDetail/constants';
+import { NULLS, INVALIDS } from '../constants';
 
 type Props = { columnDatum: ColumnSchema; children?: ReactNode };
 export function DataCompositionMatrix({ columnDatum, children }: Props) {

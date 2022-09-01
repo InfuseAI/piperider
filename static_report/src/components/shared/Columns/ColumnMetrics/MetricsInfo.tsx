@@ -1,7 +1,7 @@
 import { FlexProps, Flex, Text, Tooltip } from '@chakra-ui/react';
 import { schemaMetaDescriptions } from '../../../../sdlc/schema-meta';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { NO_VALUE } from '../ColumnCard/ColumnTypeDetail/constants';
+import { NO_VALUE } from '../constants';
 
 export type MetricMetaKeys = keyof Pick<
   ColumnSchema,

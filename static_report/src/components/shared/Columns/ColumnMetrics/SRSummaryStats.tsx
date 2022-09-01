@@ -7,7 +7,7 @@ import {
   containsMinMaxSummary,
   transformSRMetricsInfoList,
 } from '../../../../utils/transformers';
-import { NO_VALUE, TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
+import { NO_VALUE, TEXTLENGTH } from '../constants';
 import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
 
 type Props = {

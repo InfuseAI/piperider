@@ -2,7 +2,7 @@ import { Box, Divider, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { renderChartUnavailableMsg } from '../../../utils/charts';
 import { formatTitleCase } from '../../../utils/formatters';
-import { NO_VALUE } from '../Columns/ColumnCard/ColumnTypeDetail/constants';
+import { NO_VALUE } from '../Columns/constants';
 import { SRSummaryStats } from '../Columns/ColumnMetrics/SRSummaryStats';
 
 interface Props {

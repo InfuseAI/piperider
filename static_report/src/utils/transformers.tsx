@@ -17,7 +17,7 @@ import {
   NULLS,
   VALIDS,
   NO_VALUE,
-} from '../components/shared/Columns/ColumnCard/ColumnTypeDetail/constants';
+} from '../components/shared/Columns/constants';
 import {
   MetricMetaKeys,
   MetricsInfoProps,

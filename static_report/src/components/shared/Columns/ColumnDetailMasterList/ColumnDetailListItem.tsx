@@ -16,7 +16,7 @@ import {
   getColumnMetricRatio,
   getIconForColumnType,
 } from '../../../../utils/transformers';
-import { NO_VALUE } from '../ColumnCard/ColumnTypeDetail/constants';
+import { NO_VALUE } from '../constants';
 
 interface Props {
   baseColumnDatum?: ColumnSchema;

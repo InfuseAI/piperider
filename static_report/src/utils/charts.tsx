@@ -8,7 +8,7 @@ import {
   FALSES,
   NULLS,
   INVALIDS,
-} from '../components/shared/Columns/ColumnCard/ColumnTypeDetail/constants';
+} from '../components/shared/Columns/constants';
 import { ColumnSchema } from '../sdlc/single-report-schema';
 import { ChartKind, getChartKindByColumnType } from './transformers';
 

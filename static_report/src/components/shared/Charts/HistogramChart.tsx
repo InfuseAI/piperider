@@ -16,11 +16,7 @@ import {
   formatAsAbbreviatedNumber,
   formatIntervalMinMax,
 } from '../../../utils/formatters';
-import {
-  DATE_RANGE,
-  TEXTLENGTH,
-  VALUE_RANGE,
-} from '../Columns/ColumnCard/ColumnTypeDetail/constants';
+import { DATE_RANGE, TEXTLENGTH, VALUE_RANGE } from '../Columns/constants';
 
 import 'chartjs-adapter-date-fns';
 import { DeepPartial } from 'chart.js/types/utils';
