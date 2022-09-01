@@ -2,7 +2,10 @@ import { Divider, Text, Box } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { renderChartUnavailableMsg } from '../../../utils/charts';
 import { formatTitleCase } from '../../../utils/formatters';
-import { transformCompositionAsFlatStackInput } from '../../../utils/transformers';
+import {
+  containsAvgSDSummary,
+  transformCompositionAsFlatStackInput,
+} from '../../../utils/transformers';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
 import { SRGeneralColumnMetrics } from '../ColumnMetrics/SRGeneralStats';
 import { SRTextNumberStats } from '../ColumnMetrics/SRTextNumberStats';
@@ -12,8 +15,7 @@ interface Props {
 }
 export function DataCompositionWidget({ columnDatum }: Props) {
   const { type } = columnDatum || {};
-  const showGenericTypeComp =
-    type === 'integer' || type === 'numeric' || type === 'string';
+  const showGenericTypeComp = containsAvgSDSummary(type);
   const dataCompInput = transformCompositionAsFlatStackInput(
     columnDatum,
     'static',

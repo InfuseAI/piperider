@@ -1,5 +1,4 @@
 import { Text } from '@chakra-ui/react';
-import { format, isValid } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { NO_VALUE } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
 import type { ColumnSchema } from '../sdlc/single-report-schema';
@@ -210,7 +209,8 @@ export function formatAsAbbreviatedNumber(input: number | string) {
 /**
  * formats as 'Category' instead of 'category' or 'CATEGORY'
  */
-export function formatTitleCase(input: string) {
+export function formatTitleCase(input?: string) {
+  if (!input) return NO_VALUE;
   const start = input.slice(0, 1).toUpperCase();
   const rest = input.slice(1).toLowerCase();
   return `${start}${rest}`;

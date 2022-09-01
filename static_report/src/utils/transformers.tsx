@@ -100,14 +100,8 @@ export function getChartKindByColumnType(
   const { topk, histogram, trues, falses, type } = columnDatum;
   const isCategorical = checkColumnCategorical(columnDatum);
   const isPieKind = type === 'boolean' && isNumber(trues) && isNumber(falses);
-  const isCategoryKind =
-    (type === 'string' || type === 'integer') && topk && isCategorical;
-  const isHistogramKind =
-    (type === 'numeric' ||
-      type === 'integer' ||
-      type === 'string' ||
-      type === 'datetime') &&
-    histogram;
+  const isCategoryKind = topk && isCategorical;
+  const isHistogramKind = containsDataSummary(type) && histogram;
 
   if (isPieKind) return 'pie';
   if (isCategoryKind) return 'topk';
@@ -282,9 +276,16 @@ export function transformCRMetricsInfoList(
 /**
  * contains* methods for determining whether to render certain column metric groups
  */
+
+/**
+ * checks if a column type supports quantile/numeral data
+ */
 export function containsColumnQuantile(columnType?: ColumnSchema['type']) {
   return columnType === 'numeric' || columnType === 'integer';
 }
+/**
+ * checks if a column type supports ALL summary data e.g. avg, stddev, etc
+ */
 export function containsDataSummary(columnType?: ColumnSchema['type']) {
   return (
     columnType === 'integer' ||
