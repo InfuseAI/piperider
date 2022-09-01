@@ -9,6 +9,7 @@ from piperider_cli.configuration import Configuration, \
     PIPERIDER_CREDENTIALS_PATH
 from piperider_cli.datasource import DataSource
 from piperider_cli.datasource.survey import UserSurveyMockDataSource
+from piperider_cli.error import PipeRiderConfigError
 
 
 def _is_piperider_workspace_exist(workspace_path: str) -> bool:
@@ -83,7 +84,7 @@ def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None):
     """
     try:
         config = Configuration.load()
-    except FileNotFoundError:
+    except PipeRiderConfigError:
         config = None
     except Exception:
         config = None
