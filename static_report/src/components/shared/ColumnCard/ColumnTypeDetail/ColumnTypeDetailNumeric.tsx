@@ -4,7 +4,7 @@ import {
   formatColumnValueWith,
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
-import { getColumnDetails } from '../../../../utils/transformers';
+import { getColumnMetricRatio } from '../../../../utils/transformers';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { QuantilesMatrix } from '../../ColumnMetrics/QuantilesMatrix';
 import { DataCompositionMatrix } from '../ColumnMatrices/DataCompositionMatrix';
@@ -14,7 +14,8 @@ import { NEGATIVES, ZEROS } from './constants';
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
   const { negatives, zeros } = columnDatum;
-  const { negativesOfTotal, zerosOfTotal } = getColumnDetails(columnDatum);
+  const negativesOfTotal = getColumnMetricRatio('negatives', columnDatum);
+  const zerosOfTotal = getColumnMetricRatio('zeros', columnDatum);
 
   return (
     <Flex direction={'column'}>

@@ -27,13 +27,6 @@ const theme = extendTheme({
     },
     black: '#16161D',
   },
-  // styles: {
-  //   global: {
-  //     'html, body': {
-  //       overflowY: 'hidden',
-  //     },
-  //   },
-  // },
 });
 
 export default theme;

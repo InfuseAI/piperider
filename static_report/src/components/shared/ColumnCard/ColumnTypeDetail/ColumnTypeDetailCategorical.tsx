@@ -5,7 +5,7 @@ import {
   formatIntervalMinMax,
   formatTopKMetrics,
 } from '../../../../utils/formatters';
-import { getColumnDetails } from '../../../../utils/transformers';
+import { getColumnMetricRatio } from '../../../../utils/transformers';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { DataCompositionMatrix } from '../ColumnMatrices/DataCompositionMatrix';
 import { UniquenessMetrics } from '../ColumnMatrices/UniquenessMatrix';
@@ -15,9 +15,9 @@ type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailCategorical: React.FC<Props> = ({
   columnDatum,
 }) => {
-  const { validsOfTotal } = getColumnDetails(columnDatum);
   const { valids } = columnDatum;
   const { topValues, topCounts } = formatTopKMetrics(columnDatum);
+  const validsOfTotal = getColumnMetricRatio('valids', columnDatum);
 
   return (
     <Flex direction={'column'}>

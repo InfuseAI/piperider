@@ -4,14 +4,15 @@ import {
   formatColumnValueWith,
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
-import { getColumnDetails } from '../../../../utils/transformers';
+import { getColumnMetricRatio } from '../../../../utils/transformers';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { DISTINCTS, DUPLICATES } from '../ColumnTypeDetail/constants';
 
 type Props = { columnDatum: ColumnSchema };
 export function UniquenessMetrics({ columnDatum }: Props) {
   const { distinct, duplicates } = columnDatum;
-  const { distinctOfTotal, duplicatesOfTotal } = getColumnDetails(columnDatum);
+  const distinctOfTotal = getColumnMetricRatio('distinct', columnDatum);
+  const duplicatesOfTotal = getColumnMetricRatio('duplicates', columnDatum);
 
   return (
     <Flex direction={'column'}>

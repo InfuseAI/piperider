@@ -4,7 +4,7 @@ import {
   formatColumnValueWith,
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
-import { getColumnDetails } from '../../../../utils/transformers';
+import { getColumnMetricRatio } from '../../../../utils/transformers';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { DataCompositionMatrix } from '../ColumnMatrices/DataCompositionMatrix';
 import { VALIDS } from './constants';
@@ -12,7 +12,7 @@ import { VALIDS } from './constants';
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailOther: React.FC<Props> = ({ columnDatum }) => {
   const { valids } = columnDatum;
-  const { validsOfTotal } = getColumnDetails(columnDatum);
+  const validsOfTotal = getColumnMetricRatio('valids', columnDatum);
 
   return (
     <Flex direction={'column'}>

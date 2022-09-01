@@ -65,60 +65,16 @@ export function transformAsNestedBaseTargetRecord<K, T>(
 /**
  * @param columnData
  * @returns the metrics of the column data. will return null when properties have missing operands
- * FIXME: refactor as simple formatOfTotal()
  */
-export function getColumnDetails(columnData?: ColumnSchema) {
-  const {
-    nulls,
-    non_nulls,
-    total,
-    invalids,
-    distinct,
-    valids,
-    non_duplicates,
-    duplicates,
-    zero_length,
-    non_zero_length,
-    negatives,
-    positives,
-    zeros,
-  } = columnData || {};
+export function getColumnMetricRatio(
+  metakey: MetricMetaKeys,
+  columnData?: ColumnSchema,
+) {
+  const { [metakey]: metavalue, total } = columnData || {};
 
-  const hasNoNull = non_nulls === total;
-  const validsOfTotal = isNumber(valids) && total ? valids / total : null;
-  const invalidsOfTotal = isNumber(invalids) && total ? invalids / total : null;
-  const nullsOfTotal = isNumber(nulls) && total ? nulls / total : null;
-  const distinctOfTotal = isNumber(distinct) && total ? distinct / total : null;
-  const duplicatesOfTotal =
-    isNumber(duplicates) && total ? duplicates / total : null;
-  const nonDuplicatesOfTotal =
-    isNumber(non_duplicates) && total ? non_duplicates / total : null;
-  const nonZeroLengthOfTotal =
-    isNumber(non_zero_length) && total ? non_zero_length / total : null;
-  const zeroLengthOfTotal =
-    isNumber(zero_length) && total ? zero_length / total : null;
-  const negativesOfTotal =
-    isNumber(negatives) && total ? negatives / total : null;
-  const zerosOfTotal = isNumber(zeros) && total ? zeros / total : null;
-  const positivesOfTotal =
-    isNumber(positives) && total ? positives / total : null;
-  const totalOfTotal = total ? total / total : null;
+  const result = isNumber(metavalue) && total ? metavalue / total : null;
 
-  return {
-    positivesOfTotal,
-    negativesOfTotal,
-    zerosOfTotal,
-    hasNoNull,
-    nonZeroLengthOfTotal,
-    zeroLengthOfTotal,
-    distinctOfTotal,
-    validsOfTotal,
-    invalidsOfTotal,
-    nullsOfTotal,
-    duplicatesOfTotal,
-    nonDuplicatesOfTotal,
-    totalOfTotal,
-  };
+  return result;
 }
 
 export function checkColumnCategorical(columnDatum?: ColumnSchema): boolean {
@@ -190,8 +146,9 @@ export function transformCompositionAsFlatStackInput(
   } = columnDatum;
 
   if (compType === 'static') {
-    const { nullsOfTotal, invalidsOfTotal, validsOfTotal } =
-      getColumnDetails(columnDatum);
+    const nullsOfTotal = getColumnMetricRatio('nulls', columnDatum);
+    const invalidsOfTotal = getColumnMetricRatio('invalids', columnDatum);
+    const validsOfTotal = getColumnMetricRatio('valids', columnDatum);
 
     return {
       labels: [VALIDS, INVALIDS, NULLS].map(zeroAsFallbackHandler),

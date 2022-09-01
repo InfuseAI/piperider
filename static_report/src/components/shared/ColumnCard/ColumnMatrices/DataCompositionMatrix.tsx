@@ -5,14 +5,15 @@ import {
   formatColumnValueWith,
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
-import { getColumnDetails } from '../../../../utils/transformers';
+import { getColumnMetricRatio } from '../../../../utils/transformers';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { NULLS, INVALIDS } from '../ColumnTypeDetail/constants';
 
 type Props = { columnDatum: ColumnSchema; children?: ReactNode };
 export function DataCompositionMatrix({ columnDatum, children }: Props) {
   const { nulls, invalids } = columnDatum;
-  const { invalidsOfTotal, nullsOfTotal } = getColumnDetails(columnDatum);
+  const invalidsOfTotal = getColumnMetricRatio('invalids', columnDatum);
+  const nullsOfTotal = getColumnMetricRatio('nulls', columnDatum);
 
   return (
     <Flex direction={'column'}>

@@ -13,7 +13,7 @@ import {
   formatIntervalMinMax,
 } from '../../../utils/formatters';
 import {
-  getColumnDetails,
+  getColumnMetricRatio,
   getIconForColumnType,
 } from '../../../utils/transformers';
 import { NO_VALUE } from '../ColumnCard/ColumnTypeDetail/constants';
@@ -35,10 +35,8 @@ export function ColumnDetailListItem({
 }: Props & FlexProps) {
   const { icon, backgroundColor } = getIconForColumnType(baseColumnDatum);
   const fallbackColumnDatum = baseColumnDatum || targetColumnDatum;
-  const { validsOfTotal: baseValidsOfTotal } =
-    getColumnDetails(baseColumnDatum);
-  const { validsOfTotal: targetValidsOfTotal } =
-    getColumnDetails(targetColumnDatum);
+  const baseValidsOfTotal = getColumnMetricRatio('valids', baseColumnDatum);
+  const targetValidsOfTotal = getColumnMetricRatio('valids', targetColumnDatum);
   const baseValidsPercentValue = Number(baseValidsOfTotal) * 100;
   const targetValidsPercentValue = Number(targetValidsOfTotal) * 100;
   const baseValidsPercentLabel = formatColumnValueWith(
