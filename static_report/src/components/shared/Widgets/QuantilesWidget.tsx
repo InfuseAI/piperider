@@ -8,7 +8,7 @@ interface Props {
   columnDatum?: ColumnSchema;
 }
 export function QuantilesWidget({ columnDatum }: Props) {
-  const { avg, max, min, p25, p75 } = columnDatum || {};
+  const { p50, max, min, p25, p75 } = columnDatum || {};
   if (columnDatum) {
     return (
       <Box p={9} bg={'gray.50'} minWidth={'0px'}>
@@ -17,7 +17,7 @@ export function QuantilesWidget({ columnDatum }: Props) {
         <Box my={5}>
           <FlatBoxPlotChart
             quantileData={{
-              avg,
+              p50,
               max,
               min,
               p25,

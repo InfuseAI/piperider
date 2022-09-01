@@ -25,24 +25,24 @@ ChartJS.register(
   Tooltip,
 );
 type Props = {
-  quantileData: Pick<ColumnSchema, 'avg' | 'min' | 'max' | 'p25' | 'p75'>;
+  quantileData: Pick<ColumnSchema, 'p50' | 'min' | 'max' | 'p25' | 'p75'>;
 };
 /**
  * A flat boxplot chart that visualizes a single chartDataset (e.g. quantiles)
  * @param data the counts labels & values
  */
 export function FlatBoxPlotChart({
-  quantileData: { avg, min, max, p25, p75 },
+  quantileData: { min, max, p25, p50, p75 },
 }: Props) {
   const meanBackgroundColor = '#4780A8';
   const backgroundColor = '#D9D9D9';
   const legendItems: LegendItem[] = [
     { text: 'box region', fillStyle: backgroundColor },
-    { text: 'mean', fillStyle: meanBackgroundColor },
+    { text: 'p50', fillStyle: meanBackgroundColor },
   ];
   const newMin = Number(min);
   const newQ1 = Number(p25);
-  const newMean = Number(avg);
+  const newMedian = Number(p50);
   const newQ3 = Number(p75);
   const newMax = Number(max);
 
@@ -80,10 +80,10 @@ export function FlatBoxPlotChart({
           label() {
             const formattedMin = formatAsAbbreviatedNumber(newMin);
             const formattedMax = formatAsAbbreviatedNumber(newMax);
-            const formattedMean = formatAsAbbreviatedNumber(newMean);
+            const formattedMean = formatAsAbbreviatedNumber(newMedian);
             const formattedQ1 = formatAsAbbreviatedNumber(newQ1);
             const formattedQ3 = formatAsAbbreviatedNumber(newQ3);
-            const result = `MIN: ${formattedMin} / P25: ${formattedQ1} / AVG: ${formattedMean} / P75: ${formattedQ3} / MAX: ${formattedMax}`;
+            const result = `MIN: ${formattedMin} / P25: ${formattedQ1} / P50 (median): ${formattedMean} / P75: ${formattedQ3} / MAX: ${formattedMax}`;
             return result;
           },
         },
@@ -98,11 +98,11 @@ export function FlatBoxPlotChart({
           {
             min: Number(min),
             q1: Number(p25),
-            mean: Number(avg),
+            mean: Number(p50),
             q3: Number(p75),
             max: Number(max),
             //ignored but required interface
-            median: Number(avg),
+            median: Number(p50),
             items: [],
             outliers: [],
           },

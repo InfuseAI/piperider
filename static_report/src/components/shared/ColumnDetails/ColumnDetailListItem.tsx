@@ -41,6 +41,14 @@ export function ColumnDetailListItem({
     getColumnDetails(targetColumnDatum);
   const baseValidsPercentValue = Number(baseValidsOfTotal) * 100;
   const targetValidsPercentValue = Number(targetValidsOfTotal) * 100;
+  const baseValidsPercentLabel = formatColumnValueWith(
+    baseValidsOfTotal,
+    formatIntervalMinMax,
+  );
+  const targetValidsPercentLabel = formatColumnValueWith(
+    targetValidsOfTotal,
+    formatIntervalMinMax,
+  );
 
   return (
     <>
@@ -73,10 +81,12 @@ export function ColumnDetailListItem({
               Base
             </Text>
           )}
-          <Progress value={baseValidsPercentValue} />
+          {baseValidsPercentLabel && (
+            <Progress value={baseValidsPercentValue} />
+          )}
           <Flex justifyContent={'space-between'}>
             <Text fontSize={'xs'} mr={2}>
-              {formatColumnValueWith(baseValidsOfTotal, formatIntervalMinMax)}
+              {baseValidsPercentLabel || 'N/A'}
             </Text>
             <Text fontSize={'xs'} color={'gray.600'}>
               Valid
@@ -87,13 +97,12 @@ export function ColumnDetailListItem({
               <Text fontSize={'sm'} color={'gray.600'} fontWeight={'semibold'}>
                 Target
               </Text>
-              <Progress value={targetValidsPercentValue} />
+              {targetValidsPercentLabel && (
+                <Progress value={targetValidsPercentValue} />
+              )}
               <Flex justifyContent={'space-between'}>
                 <Text fontSize={'xs'} mr={2}>
-                  {formatColumnValueWith(
-                    targetValidsOfTotal,
-                    formatIntervalMinMax,
-                  ) || 'N/A'}
+                  {targetValidsPercentLabel || 'N/A'}
                 </Text>
                 <Text fontSize={'xs'} color={'gray.600'}>
                   Valid

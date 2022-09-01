@@ -353,7 +353,6 @@ export function containsMinMaxSummary(columnType?: ColumnSchema['type']) {
   return (
     columnType === 'numeric' ||
     columnType === 'integer' ||
-    columnType === 'datetime' ||
     columnType === 'string'
   );
 }

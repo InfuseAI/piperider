@@ -1,17 +1,16 @@
-import { Box, Divider, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
+import { Divider, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
 import { useRoute } from 'wouter';
-import { QuantilesMatrix } from '../components/shared/ColumnMetrics/QuantilesMatrix';
 import { ColumnCardHeader } from '../components/shared/ColumnCard/ColumnCardHeader';
 import { Main } from '../components/shared/Main';
 import { SRSummaryStats } from '../components/shared/ColumnMetrics/SRSummaryStats';
 import { SingleReportSchema } from '../sdlc/single-report-schema';
 import { formatReportTime, formatTitleCase } from '../utils/formatters';
-import { FlatBoxPlotChart } from '../components/shared/Charts/FlatBoxPlotChart';
 import { ColumnDetailsMasterList } from '../components/shared/ColumnDetails/ColumnDetailsMasterList';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { mainContentAreaHeight } from '../utils/layout';
 import { containsDataSummary } from '../utils/transformers';
+import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 interface Props {
   data: SingleReportSchema;
 }
@@ -34,7 +33,6 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
   const columnDatum = dataColumns[columnName];
   const { type, histogram } = columnDatum;
 
-  const { avg, min, max, p25, p75 } = columnDatum;
   const borderVal = '1px solid lightgray';
 
   return (
@@ -92,20 +90,7 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
           {/* Quantiles Block */}
           {(type === 'integer' || type === 'numeric') && histogram && (
             <GridItem gridRow={'span 1'} p={9} bg={'gray.50'} minWidth={'1px'}>
-              <Text fontSize={'xl'}>Quantile Data</Text>
-              <Divider my={3} />
-              <Box my={5}>
-                <FlatBoxPlotChart
-                  quantileData={{
-                    avg,
-                    max,
-                    min,
-                    p25,
-                    p75,
-                  }}
-                />
-              </Box>
-              <QuantilesMatrix columnDatum={columnDatum} />
+              <QuantilesWidget columnDatum={columnDatum} />
             </GridItem>
           )}
         </Grid>

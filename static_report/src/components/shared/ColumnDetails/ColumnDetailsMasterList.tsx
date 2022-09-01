@@ -25,7 +25,7 @@ interface Props {
   currentColumn: string;
   hasSplitView?: boolean;
 }
-// FIXME: show Table list as well ?? (Accordion)
+// FUTURE FIXME: show Table list as well ?? (Accordion)
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of columns. Belongs in the profiling column details page to view in-depth metrics and visualizations
  */
@@ -42,12 +42,12 @@ export function ColumnDetailsMasterList({
     Map<ProfilerGenericTypes | undefined, boolean>
   >(
     new Map([
-      ['boolean', true],
-      ['datetime', true],
-      ['integer', true],
-      ['numeric', true],
-      ['other', true],
       ['string', true],
+      ['numeric', true],
+      ['integer', true],
+      ['datetime', true],
+      ['boolean', true],
+      ['other', true],
     ]),
   );
 

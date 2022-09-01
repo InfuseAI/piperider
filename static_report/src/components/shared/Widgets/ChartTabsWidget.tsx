@@ -14,6 +14,7 @@ import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { getDataChart, renderChartUnavailableMsg } from '../../../utils/charts';
 import { ChartKind } from '../../../utils/transformers';
 import { ColumnCardDataVisualContainer } from '../ColumnCard/ColumnCardDataVisualContainer';
+import { TEXTLENGTH } from '../ColumnCard/ColumnTypeDetail/constants';
 
 interface Props {
   hasSplitView?: boolean;
@@ -41,29 +42,31 @@ export function ChartTabsWidget({
   } = targetColumnDatum || {};
 
   // show tabs based when either column has at least one occurance of metric existence
-  const topk = baseTopK ?? targetTopK;
+  const hasTopk = baseTopK ?? targetTopK;
   const type = baseType ?? targetType;
   const histogram = baseHistogram ?? targetHistogram;
   const trues = baseTrues ?? targetTrues;
   const falses = baseFalses ?? targetFalses;
 
-  //render conditions - column pairs can have multiple chart kinds shown
+  //render conditions - column pairs can have multiple chart kinds shown, especially when asymmetric columns are encountered
+  //(e.g. base: text [histogram, topk] -> target: boolean [pie])
   const hasBoolean = isNumber(trues) && isNumber(falses);
   const hasHistogram = histogram && type;
-  const hasTopk = topk;
-  const hasOther = type === 'other';
-  const hasAny = hasBoolean || hasHistogram || hasTopk || hasOther;
+  const isOther = type === 'other';
+  const isText = type === 'string';
+  const hasAny = hasBoolean || hasHistogram || hasTopk || isOther;
+  const histogramLabel = isText ? TEXTLENGTH : 'Histogram';
 
   return (
-    <Box>
+    <Box height={'100%'}>
       <Text fontSize={'xl'}>Visualizations</Text>
       {hasAny ? (
         <Tabs>
           <TabList>
-            {hasTopk && <Tab>Categorical</Tab>}
-            {hasHistogram && <Tab>Histogram</Tab>}
+            {hasTopk && <Tab>Top Categories</Tab>}
+            {hasHistogram && <Tab>{histogramLabel}</Tab>}
             {hasBoolean && <Tab>Boolean</Tab>}
-            {hasOther && <Tab>Other</Tab>}
+            {isOther && <Tab>Other</Tab>}
           </TabList>
 
           <TabPanels>
@@ -97,7 +100,7 @@ export function ChartTabsWidget({
                 )}
               </TabPanel>
             )}
-            {hasOther && (
+            {isOther && (
               <TabPanel px={0}>
                 {_renderGridSplitView(
                   baseColumnDatum,
