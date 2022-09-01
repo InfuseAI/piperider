@@ -22,7 +22,7 @@ import {
   ZTableSchema,
 } from '../../types';
 import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
-import { Link, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 
 type EnrichedColumnData = {
   added: number;
@@ -63,8 +63,8 @@ export function CRTabSchemaDetails({
 }: Props) {
   zReport(ZTableSchema.safeParse(baseTableDatum));
   zReport(ZTableSchema.safeParse(targetTableDatum));
-
-  const [location, setLocation] = useLocation();
+  // eslint-disable-next-line
+  const [_, setLocation] = useLocation();
   const fallbackTable = baseTableDatum || targetTableDatum;
   const baseColEntries = getEnrichedColumnsFor(baseTableDatum?.columns, 'base');
   const targetColEntries = getEnrichedColumnsFor(

@@ -23,7 +23,8 @@ export function CRColumnDetailsPage({
     input: { tables: targetTables, created_at: targetTime },
   },
 }: Props) {
-  const [match, params] = useRoute('/tables/:reportName/columns/:columnName');
+  // eslint-disable-next-line
+  const [_, params] = useRoute('/tables/:reportName/columns/:columnName');
 
   const time = `${formatReportTime(baseTime)} -> ${formatReportTime(
     targetTime,

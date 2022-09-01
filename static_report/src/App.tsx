@@ -7,10 +7,10 @@ import { useHashLocation } from './hooks/useHashLcocation';
 import { SRTablesListPage } from './components/SingleReport/SRTablesListPage';
 import { CRTablesListPage } from './components/ComparisonReport/CRTablesListPage';
 import { SRColumnDetailsPage } from './pages/SRColumnDetailsPage';
+import { CRColumnDetailsPage } from './pages/CRColumnDetailsPage';
 
 import * as Sentry from '@sentry/browser';
 import { BrowserTracing } from '@sentry/tracing';
-import { CRColumnDetailsPage } from './pages/CRColumnDetailsPage';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns) {

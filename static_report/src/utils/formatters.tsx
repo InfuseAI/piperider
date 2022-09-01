@@ -2,8 +2,6 @@ import { Text } from '@chakra-ui/react';
 import { format, isValid } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { NO_VALUE } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
-import { MetricsInfo } from '../components/shared/ColumnMetrics/MetricsInfo';
-
 import type { ColumnSchema } from '../sdlc/single-report-schema';
 
 /**

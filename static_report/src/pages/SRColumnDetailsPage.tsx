@@ -15,7 +15,8 @@ interface Props {
   data: SingleReportSchema;
 }
 export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
-  const [match, params] = useRoute('/tables/:reportName/columns/:columnName');
+  // eslint-disable-next-line
+  const [_, params] = useRoute('/tables/:reportName/columns/:columnName');
   const time = formatReportTime(created_at);
 
   if (!params?.columnName) {
