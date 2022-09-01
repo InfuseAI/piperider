@@ -13,13 +13,15 @@ This is <span style="color: red">REQUIRED</span> for serving your apps, as it de
 1. Install Python packages: `pip install -r requirements.txt` (now you are running the CLI from the python source code)
 1. Add a local data source (see [this quickstart step](https://docs.piperider.io/quick-start#prepare-sqlite-database))
 1. Run `piperider init` (creates `.piperider/` dir)
-1. Generate your Single and Comparison reports (`piperider run` for single; `piperider compare-reports` for comparison)
+1. Generate your Single and Comparison reports
+   - `piperider run` for single reports (generates `run.json`);
+   - `piperider compare-reports --debug` (generates `comparison_data.json`)
 1. Now, you are ready. Proceed to the FE side. `cd static_report`
 
 ### Installation
 
 ```sh
-$ npm install
+$ yarn  # NOTE to `npm` users: do not commit package-lock.json
 ```
 
 ## Development
@@ -28,6 +30,10 @@ $ npm install
 
 > **Note**
 > By this point, you **MUST** have first generated both comparison and single reports from `piperider` CLI (see prev section).
+> If Anything goes wrong, check that the following report metadata exist:
+>
+> - `/.piperider/comparisons/latest/comparison_data.json`
+> - `/.piperider/outputs/latest/run.json`
 
 All `start:*` scripts will run with `setup` script to setup your development environment.
 
@@ -39,6 +45,19 @@ The `setup` scripts will do the following, sourcing from the project's root `.pi
 1. Get the latest single/comparison TS typings from that generated schema (`piperider run`)
    - generated typings are exposed at `src/sdlc/global.d.ts`
 1. Embed the latest available single/comparison raw data into index.html
+1. In the event that you encounter a blank page with some errors, most likely something went wrong with this setup process and the data was not sourced by your `public/index.html`'s `<script id="piperider-report-variables">` tag.
+
+```html
+<!--inside index.html-->
+<script id="piperider-report-variables">
+  // PipeRider metadata
+  window.PIPERIDER_METADATA = '';
+  // single report
+  window.PIPERIDER_SINGLE_REPORT_DATA = ''; // <-- should not be empty!
+  // comparison report
+  window.PIPERIDER_COMPARISON_REPORT_DATA = ''; // <-- should not be empty!
+</script>
+```
 
 ### If Things Break
 
