@@ -31,6 +31,12 @@ export default function SingleReport({ data, name }: Props) {
   const [assertionsVisible, setAssertionsVisible] = useState(false);
   const [columnsVisible, setColumnsVisible] = useState(false);
 
+  const isAssertionsEmpty =
+    table.piperider_assertion_result?.tests.length === 0 &&
+    Object.keys(table.piperider_assertion_result?.columns || {}).length === 0 &&
+    table.dbt_assertion_result?.tests.length === 0 &&
+    Object.keys(table.dbt_assertion_result?.columns || {}).length === 0;
+
   zReport(ZTableSchema.safeParse(table));
   zReport(dataSourceSchema.safeParse(datasource));
 
@@ -87,6 +93,8 @@ export default function SingleReport({ data, name }: Props) {
           <Heading size="md">Assertions</Heading>
           <CollapseContent
             in={assertionsVisible}
+            startingHeight={isAssertionsEmpty ? 50 : 250}
+            collapseable={!isAssertionsEmpty}
             onVisible={() => setAssertionsVisible((visible) => !visible)}
           >
             <SRAssertionDetails
@@ -102,7 +110,8 @@ export default function SingleReport({ data, name }: Props) {
           </Heading>
           <CollapseContent
             in={columnsVisible}
-            startingHeight={350}
+            startingHeight={Object.keys(table.columns).length === 0 ? 50 : 350}
+            collapseable={Object.keys(table.columns).length > 0}
             onVisible={() => setColumnsVisible((visible) => !visible)}
           >
             <SRProfilingDetails data={table.columns} />

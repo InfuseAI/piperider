@@ -57,6 +57,17 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
     type: 'dbt',
   });
 
+  const piperiderAssertions = [
+    ...(baseOverview?.tests || []),
+    ...(targetOverview?.tests || []),
+  ];
+  const dbtAssertions = [
+    ...(dbtBaseOverview?.tests || []),
+    ...(dbtTargetOverview?.tests || []),
+  ];
+  const isAssertionsEmpty =
+    piperiderAssertions.length === 0 && dbtAssertions.length === 0;
+
   useDocumentTitle(reportName);
 
   return (
@@ -105,18 +116,14 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
           <Heading size="md">Assertions</Heading>
           <CollapseContent
             in={assertionsVisible}
+            startingHeight={isAssertionsEmpty ? 50 : 250}
+            collapseable={!isAssertionsEmpty}
             onVisible={() => setAssertionsVisible((visible) => !visible)}
           >
             <CRAssertionDetails
               assertions={{
-                piperider: [
-                  ...(baseOverview?.tests || []),
-                  ...(targetOverview?.tests || []),
-                ],
-                dbt: [
-                  ...(dbtBaseOverview?.tests || []),
-                  ...(dbtTargetOverview?.tests || []),
-                ],
+                piperider: piperiderAssertions,
+                dbt: dbtAssertions,
               }}
               onDetailVisible={({ data, type }) => {
                 setTestDetail({
@@ -133,7 +140,10 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
           </Heading>
           <CollapseContent
             in={columnsVisible}
-            startingHeight={350}
+            startingHeight={
+              baseTable === undefined && targetTable === undefined ? 50 : 350
+            }
+            collapseable={baseTable !== undefined || targetTable !== undefined}
             onVisible={() => setColumnsVisible((visible) => !visible)}
           >
             <CRProfilingDetails

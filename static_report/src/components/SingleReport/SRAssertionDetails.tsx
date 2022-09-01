@@ -13,6 +13,7 @@ import { assertionTestSchema } from '../../sdlc/single-report-schema.z';
 import { z } from 'zod';
 import { AssertionValue, zReport } from '../../types';
 import { formatTestExpectedOrActual } from '../../utils/formatters';
+import { AssertionStatus } from '../shared/AssertionStatus';
 
 type Props = {
   assertions: {
@@ -32,7 +33,7 @@ export function SRAssertionDetails({ assertions }: Props) {
     Object.keys(piperiderColumnAssertions).length === 0
   ) {
     return (
-      <Flex direction="column">
+      <Flex direction="column" alignItems="center" justifyContent="center">
         <Text textAlign="center">No tests available</Text>
       </Flex>
     );
@@ -88,15 +89,7 @@ export function SRAssertionDetails({ assertions }: Props) {
                 <Tr key={tableAssertion.name}>
                   <Td>{tableAssertion.name}</Td>
                   <Td>
-                    {isFailed ? (
-                      <Text as="span" role="img">
-                        ❌
-                      </Text>
-                    ) : (
-                      <Text as="span" role="img">
-                        ✅
-                      </Text>
-                    )}
+                    <AssertionStatus status={tableAssertion.status} />
                   </Td>
                   <Td>{formatTestExpectedOrActual(tableAssertion.expected)}</Td>
                   <Td color={isFailed ? 'red.500' : 'inherit'}>

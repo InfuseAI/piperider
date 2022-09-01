@@ -74,7 +74,7 @@ export function CRAssertionDetails({ assertions, ...props }: Props) {
 
   if (piperiderAssertionRows.length === 0 && dbtAssertionRows.length === 0) {
     return (
-      <Flex direction="column">
+      <Flex direction="column" justifyContent="center" alignItems="center">
         <Text textAlign="center">No tests available</Text>
       </Flex>
     );
