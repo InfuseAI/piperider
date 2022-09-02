@@ -26,11 +26,12 @@ export function SRTableListColumnItem({
   return (
     <Link href={`/tables/${tableName}/columns/${name}`}>
       <Grid
+        p={3}
         key={name}
         templateColumns="207px 2.5fr 1fr 2rem"
         alignItems="center"
-        p={3}
         _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
+        data-cy="sr-table-list-column-item"
       >
         <GridItem>
           <ColumnName name={name} icon={icon} />

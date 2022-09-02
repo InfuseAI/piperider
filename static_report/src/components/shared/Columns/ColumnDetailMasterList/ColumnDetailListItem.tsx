@@ -57,6 +57,7 @@ export function ColumnDetailListItem({
         onClick={() => onSelect(fallbackColumnDatum?.name || '')}
         bg={isActive ? 'blue.100' : 'inherit'}
         _hover={{ bgColor: 'blackAlpha.50' }}
+        data-cy="column-detail-list-item"
         {...props}
       >
         <Flex alignItems={'center'}>

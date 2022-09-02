@@ -51,7 +51,11 @@ export function ColumnCard({ columnDatum }: Props) {
           {_getColumnBodyContentUI(columnDatum)}
           <Flex justifyContent={'center'} py={2} h={'100%'} alignItems={'end'}>
             <Link href={`${parentLocation}/columns/${title}`}>
-              <Text as={'a'} color="blue.400">
+              <Text
+                as={'a'}
+                color="blue.400"
+                data-cy="column-card-details-link"
+              >
                 Details
               </Text>
             </Link>

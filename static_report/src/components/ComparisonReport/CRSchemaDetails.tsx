@@ -182,6 +182,7 @@ export function CRSchemaDetails({
                         bg: 'blackAlpha.50',
                         cursor: visibleDetail ? 'pointer' : 'inherit',
                       }}
+                      data-cy="cr-table-list-schema-item"
                     >
                       <Td color={baseColumn?.changed ? 'red.500' : 'inherit'}>
                         {baseColumn?.name ?? NO_VALUE}

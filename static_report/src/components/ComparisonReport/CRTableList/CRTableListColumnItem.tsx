@@ -61,6 +61,7 @@ export function CRTableListColumnItem({
         alignItems="center"
         p={3}
         _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
+        data-cy="cr-table-list-column-item"
       >
         <GridItem>
           <ColumnName name={name} icon={icon} />

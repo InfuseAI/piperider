@@ -27,10 +27,13 @@ export function SRTableListSchemaDetail({ table }: { table: TableSchema }) {
         </Thead>
         <Tbody>
           {Object.keys(table.columns).map((colName) => (
-            <Link href={`/tables/${table.name}/columns/${colName}`}>
+            <Link
+              key={nanoid(10)}
+              href={`/tables/${table.name}/columns/${colName}`}
+            >
               <Tr
-                key={nanoid(10)}
                 _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
+                data-cy="sr-table-list-schema-item"
               >
                 <Td>{table.columns[colName]?.name}</Td>
                 <Td>{table.columns[colName]?.schema_type}</Td>
