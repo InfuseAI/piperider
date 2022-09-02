@@ -10,7 +10,7 @@ type CRTabProfilingDetailsProps = {
   baseTable?: SaferTableSchema;
   targetTable?: SaferTableSchema;
 };
-export function CRTabProfilingDetails({
+export function CRProfilingDetails({
   baseTable,
   targetTable,
 }: CRTabProfilingDetailsProps) {

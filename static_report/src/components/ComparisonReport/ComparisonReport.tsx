@@ -27,8 +27,8 @@ import {
   zReport,
   ZTableSchema,
 } from '../../types';
-import { CRTabProfilingDetails } from './CRTabProfilingDetails';
-import { CRTabSchemaDetails } from './CRTabSchemaDetails';
+import { CRProfilingDetails } from './CRProfilingDetails';
+import { CRSchemaDetails } from './CRSchemaDetails';
 import { CRTabTestDetails } from './CRTabTestDetails';
 import { CRTableOverview } from './CRTableOverview';
 import { formatReportTime } from '../../utils/formatters';
@@ -174,7 +174,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
 
             <TabPanels>
               <TabPanel>
-                <CRTabSchemaDetails
+                <CRSchemaDetails
                   baseTableDatum={baseTable}
                   targetTableDatum={targetTable}
                   visibleDetail
@@ -182,7 +182,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
               </TabPanel>
 
               <TabPanel>
-                <CRTabProfilingDetails
+                <CRProfilingDetails
                   baseTable={baseTable}
                   targetTable={targetTable}
                 />

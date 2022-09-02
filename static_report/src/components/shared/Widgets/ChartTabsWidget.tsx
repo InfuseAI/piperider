@@ -145,7 +145,12 @@ function _renderGridSplitView(
       <GridItem minWidth={0}>
         {
           <ColumnCardDataVisualContainer p={0} title={baseColumnDatum?.name}>
-            {getDataChart(baseColumnDatum, targetColumnDatum, chartKind, true)}
+            {getDataChart(
+              baseColumnDatum,
+              targetColumnDatum,
+              chartKind,
+              hasAnimation,
+            )}
           </ColumnCardDataVisualContainer>
         }
       </GridItem>
@@ -160,7 +165,7 @@ function _renderGridSplitView(
                 targetColumnDatum,
                 baseColumnDatum,
                 chartKind,
-                true,
+                hasAnimation,
               )}
             </ColumnCardDataVisualContainer>
           )}

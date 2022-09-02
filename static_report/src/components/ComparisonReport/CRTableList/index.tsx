@@ -16,7 +16,7 @@ import { FiAlertCircle, FiChevronRight, FiGrid } from 'react-icons/fi';
 import { Link } from 'wouter';
 import { nanoid } from 'nanoid';
 
-import { CRTabSchemaDetails } from '../CRTabSchemaDetails';
+import { CRSchemaDetails } from '../CRSchemaDetails';
 import { CRTableListAssertions } from './CRTableListAssertions';
 import { CRTableListColumnsSummary } from './CRTableListColumnsSummary';
 import { CRTableListRowsSummary } from './CRTableListRowsSummary';
@@ -203,7 +203,7 @@ export function CRTableList({
                           />
                         </Stack>
                       ) : (
-                        <CRTabSchemaDetails
+                        <CRSchemaDetails
                           visibleDetail
                           baseTableDatum={table?.base}
                           targetTableDatum={table?.target}

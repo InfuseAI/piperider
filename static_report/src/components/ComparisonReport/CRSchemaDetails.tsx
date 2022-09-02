@@ -56,7 +56,7 @@ type Props = {
   targetTableDatum?: SaferTableSchema;
   visibleDetail?: boolean;
 };
-export function CRTabSchemaDetails({
+export function CRSchemaDetails({
   baseTableDatum,
   targetTableDatum,
   visibleDetail = false,
