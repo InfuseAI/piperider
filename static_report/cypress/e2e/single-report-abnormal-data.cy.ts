@@ -13,6 +13,7 @@ describe('Single Report (profiler-e2e.db)', () => {
 
     const tableListSchemaItem = cy
       .get('[data-cy="sr-table-list-schema-item"]')
+      .first()
       .click();
 
     tableListSchemaItem.first().click();

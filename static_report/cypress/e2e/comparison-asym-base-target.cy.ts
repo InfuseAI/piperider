@@ -13,6 +13,7 @@ describe('Comparison Report (sp500.db -> profiler-e2e.db)', () => {
 
     const tableListSchemaItem = cy
       .get('[data-cy="cr-table-list-schema-item"]')
+      .first()
       .click();
 
     tableListSchemaItem.first().click();
