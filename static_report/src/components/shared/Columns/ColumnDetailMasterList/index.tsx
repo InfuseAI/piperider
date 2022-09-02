@@ -77,7 +77,7 @@ export function ColumnDetailsMasterList({
             <Link href={parentRoute}>
               <Flex alignItems={'center'}>
                 <ChevronLeftIcon boxSize={6} mr={1} />
-                <Text>Return to Table</Text>
+                <Text>Return to Table Overview</Text>
               </Flex>
             </Link>
           </Box>
