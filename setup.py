@@ -12,6 +12,11 @@ def _get_version():
         return version
 
 
+duckdb_require_packages = [
+    'duckdb>=0.4.0',
+    'duckdb-engine>=0.6.1'
+]
+
 setup(name='piperider',
       version=_get_version(),
       description='PiperRider CLI',
@@ -59,10 +64,9 @@ setup(name='piperider',
               'psycopg2-binary',
               'boto3>=1.24.11',
           ],
-          'duckdb': [
-              'duckdb>=0.4.0',
-              'duckdb-engine>=0.6.1'
-          ],
+          'duckdb': duckdb_require_packages,
+          'csv': duckdb_require_packages,
+          'parquet': duckdb_require_packages,
           'dev': [
               'pytest>=4.6',
               'pytest-flake8',

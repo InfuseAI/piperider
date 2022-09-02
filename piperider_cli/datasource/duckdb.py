@@ -78,7 +78,7 @@ class DuckDBDataSource(DataSource):
             import duckdb
             import duckdb_engine
         except Exception as e:
-            return PipeRiderConnectorError(str(e), 'duckdb')
+            return PipeRiderConnectorError(str(e), self.type_name)
 
     def to_database_url(self):
         credential = self.credential
