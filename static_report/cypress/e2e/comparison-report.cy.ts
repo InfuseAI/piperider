@@ -122,19 +122,6 @@ describe('Comparison Report [column-detail-page]', () => {
     );
   });
 
-  it('should navigate to the column detail page from the table overview page (via column card)', () => {
-    cy.visit('http://localhost:3001/#/tables/ACTION');
-    const columnCardDetailsLink = cy
-      .get('[data-cy="column-card-details-link"]')
-      .first();
-    columnCardDetailsLink.click();
-
-    cy.url().should(
-      'equal',
-      'http://localhost:3001/#/tables/ACTION/columns/SYMBOL',
-    );
-  });
-
   it('should navigate between different column items from the column detail page (and have active selection)', () => {
     cy.visit('http://localhost:3001/#/tables/ACTION/columns/SYMBOL');
 
