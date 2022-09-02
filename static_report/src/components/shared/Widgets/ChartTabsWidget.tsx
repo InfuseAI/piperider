@@ -18,10 +18,12 @@ import { TEXTLENGTH } from '../Columns/constants';
 
 interface Props {
   hasSplitView?: boolean;
+  hasAnimation?: boolean;
   baseColumnDatum?: ColumnSchema;
   targetColumnDatum?: ColumnSchema;
 }
 export function ChartTabsWidget({
+  hasAnimation,
   hasSplitView,
   baseColumnDatum,
   targetColumnDatum,
@@ -77,6 +79,7 @@ export function ChartTabsWidget({
                   targetColumnDatum,
                   hasSplitView,
                   'topk',
+                  hasAnimation,
                 )}
               </TabPanel>
             )}
@@ -87,6 +90,7 @@ export function ChartTabsWidget({
                   targetColumnDatum,
                   hasSplitView,
                   'histogram',
+                  hasAnimation,
                 )}
               </TabPanel>
             )}
@@ -97,6 +101,7 @@ export function ChartTabsWidget({
                   targetColumnDatum,
                   hasSplitView,
                   'pie',
+                  hasAnimation,
                 )}
               </TabPanel>
             )}
@@ -133,13 +138,14 @@ function _renderGridSplitView(
   targetColumnDatum?: ColumnSchema,
   hasSplitView?: boolean,
   chartKind?: ChartKind,
+  hasAnimation?: boolean,
 ) {
   return (
     <Grid templateColumns={hasSplitView ? '1fr 1fr' : '1fr'}>
       <GridItem minWidth={0}>
         {
           <ColumnCardDataVisualContainer p={0} title={baseColumnDatum?.name}>
-            {getDataChart(baseColumnDatum, targetColumnDatum, chartKind)}
+            {getDataChart(baseColumnDatum, targetColumnDatum, chartKind, true)}
           </ColumnCardDataVisualContainer>
         }
       </GridItem>
@@ -150,7 +156,12 @@ function _renderGridSplitView(
               p={0}
               title={targetColumnDatum?.name}
             >
-              {getDataChart(targetColumnDatum, baseColumnDatum, chartKind)}
+              {getDataChart(
+                targetColumnDatum,
+                baseColumnDatum,
+                chartKind,
+                true,
+              )}
             </ColumnCardDataVisualContainer>
           )}
         </GridItem>

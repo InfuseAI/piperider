@@ -11,9 +11,10 @@ import { SRGeneralStats } from '../Columns/ColumnMetrics/SRGeneralStats';
 import { SRTextNumberStats } from '../Columns/ColumnMetrics/SRTextNumberStats';
 
 interface Props {
+  hasAnimation?: boolean;
   columnDatum?: ColumnSchema;
 }
-export function DataCompositionWidget({ columnDatum }: Props) {
+export function DataCompositionWidget({ columnDatum, hasAnimation }: Props) {
   const { type } = columnDatum || {};
   const showGenericTypeComp = containsAvgSDSummary(type);
   const dataCompInput = transformCompositionAsFlatStackInput(
@@ -24,6 +25,7 @@ export function DataCompositionWidget({ columnDatum }: Props) {
     columnDatum,
     'dynamic',
   );
+  const animationOptions = hasAnimation ? {} : false;
   if (dataCompInput) {
     return (
       <Box>
@@ -31,7 +33,10 @@ export function DataCompositionWidget({ columnDatum }: Props) {
           <Text fontSize={'xl'}>Data Composition</Text>
           <Divider my={3} />
           <Box height={'55px'}>
-            <FlatStackedBarChart data={dataCompInput} />
+            <FlatStackedBarChart
+              data={dataCompInput}
+              animationOptions={animationOptions}
+            />
           </Box>
           <Box mt={6}>
             <SRGeneralStats columnDatum={columnDatum} width={'100%'} />
@@ -43,7 +48,10 @@ export function DataCompositionWidget({ columnDatum }: Props) {
             <Text fontSize={'xl'}>{formatTitleCase(type)} Composition</Text>
             <Divider my={3} />
             <Box height={'55px'}>
-              <FlatStackedBarChart data={dynamicCompInput} />
+              <FlatStackedBarChart
+                data={dynamicCompInput}
+                animationOptions={animationOptions}
+              />
             </Box>
             <Box mt={6}>
               <SRTextNumberStats columnDatum={columnDatum} width={'100%'} />

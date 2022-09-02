@@ -124,6 +124,7 @@ export function CRColumnDetailsPage({
               baseColumnDatum={baseColumnDatum}
               targetColumnDatum={targetColumnDatum}
               hasSplitView
+              hasAnimation
             />
           </GridItem>
           {/* Data Summary Block (avg, stddev, ...) */}

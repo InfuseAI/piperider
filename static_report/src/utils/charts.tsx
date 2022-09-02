@@ -23,6 +23,7 @@ export function getDataChart(
   columnDatum?: ColumnSchema,
   baseColumnRef?: ColumnSchema,
   chartKindOverride?: ChartKind,
+  hasAnimation?: boolean,
 ) {
   const {
     total,
@@ -49,11 +50,23 @@ export function getDataChart(
 
   //TopK dataset
   if (chartKind === 'topk' && topk) {
-    return <CategoricalBarChart data={topk} total={total || 0} />;
+    return (
+      <CategoricalBarChart
+        data={topk}
+        total={total || 0}
+        animationOptions={hasAnimation ? {} : false}
+      />
+    );
   }
   //histogram dataset
   if (chartKind === 'histogram' && histogram && type) {
-    return <HistogramChart data={{ histogram, min, max, type, total }} />;
+    //BUG: race-condition when time-series is used /w animation here
+    return (
+      <HistogramChart
+        data={{ histogram, min, max, type, total }}
+        animationOptions={false}
+      />
+    );
   }
   //pie dataset
   if (
@@ -68,7 +81,12 @@ export function getDataChart(
       (v) => v.charAt(0) + v.slice(1).toLowerCase(),
     );
     const ratios = counts.map((v) => v / Number(total));
-    return <BooleanPieChart data={{ counts, labels, ratios }} />;
+    return (
+      <BooleanPieChart
+        data={{ counts, labels, ratios }}
+        animationOptions={hasAnimation ? {} : false}
+      />
+    );
   }
   return renderChartUnavailableMsg(valids, schema_type);
 }

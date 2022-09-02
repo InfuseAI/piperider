@@ -71,11 +71,11 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
           </GridItem>
           {/* Data Composition Block */}
           <GridItem p={10} bg={'gray.50'} borderRight={borderVal}>
-            <DataCompositionWidget columnDatum={columnDatum} />
+            <DataCompositionWidget columnDatum={columnDatum} hasAnimation />
           </GridItem>
           {/* Chart Block - toggleable tabs */}
           <GridItem gridRow={'span 1'} minWidth={0} p={9} bg={'gray.50'}>
-            <ChartTabsWidget baseColumnDatum={columnDatum} />
+            <ChartTabsWidget baseColumnDatum={columnDatum} hasAnimation />
           </GridItem>
           <GridItem
             gridRow={'span 1'}
