@@ -1,0 +1,21 @@
+describe('Comparison Report (sp500.db -> profiler-e2e.db)', () => {
+  it('Navigate thru Abnormal Datasets CR Pages ', () => {
+    cy.visit('http://localhost:4001');
+
+    const toggleToSchema = cy.get('[data-cy="schema-view"]');
+    toggleToSchema.click();
+
+    const tableAccordionBtn = cy
+      .get('[data-cy="cr-table-overview-btn"]')
+      .first();
+    tableAccordionBtn.should('be.visible');
+    tableAccordionBtn.click();
+
+    const tableListSchemaItem = cy
+      .get('[data-cy="cr-table-list-schema-item"]')
+      .click();
+
+    tableListSchemaItem.first().click();
+    cy.url().should('include', '/tables/T_BOOL/columns/normal');
+  });
+});
