@@ -5,6 +5,7 @@ import {
   ChartData,
   ArcElement,
   Legend,
+  AnimationOptions,
 } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 import { formatIntervalMinMax } from '../../../utils/formatters';
@@ -16,17 +17,21 @@ interface Props {
     counts: number[];
     ratios: number[];
   };
+  animationOptions?: AnimationOptions<'pie'>['animation'];
 }
 /**
  * A pie chart that visualizes boolean dataset
  * @param data the counts labels & values
  * @returns a pie chart that shows the composition: null + invalid + trues + falses = 100%
  */
-export function BooleanPieChart({ data: { counts, labels, ratios } }: Props) {
+export function BooleanPieChart({
+  data: { counts, labels, ratios },
+  animationOptions = false,
+}: Props) {
   const chartOptions: ChartOptions<'pie'> = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: false,
+    animation: animationOptions,
     layout: {
       padding: 10,
     },

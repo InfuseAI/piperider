@@ -8,6 +8,7 @@ import {
   BarElement,
   Legend,
   ChartDataset,
+  AnimationOptions,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -23,6 +24,7 @@ export interface FlatStackedBarChartProps {
     ratios: number[];
     colors: string[];
   };
+  animationOptions?: AnimationOptions<'bar'>['animation'];
 }
 /**
  * A stacked bar chart that visualizes a flat dataset, where every item in the list is shown as a bar segment of the entire stack (e.g. data composition - valids, negatives, zeroes, positives)
@@ -31,9 +33,11 @@ export interface FlatStackedBarChartProps {
  */
 export function FlatStackedBarChart({
   data: { labels, counts, ratios, colors },
+  animationOptions = false,
 }: FlatStackedBarChartProps) {
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
+    animation: animationOptions,
     maintainAspectRatio: false,
     indexAxis: 'y', //makes chart horizontal
     scales: {

@@ -7,6 +7,7 @@ import {
   CategoryScale,
   Legend,
   LegendItem,
+  AnimationOptions,
 } from 'chart.js';
 import {
   BoxPlotController,
@@ -26,6 +27,7 @@ ChartJS.register(
 );
 type Props = {
   quantileData: Pick<ColumnSchema, 'p50' | 'min' | 'max' | 'p25' | 'p75'>;
+  animationOptions?: AnimationOptions<'boxplot'>['animation'];
 };
 /**
  * A flat boxplot chart that visualizes a single chartDataset (e.g. quantiles)
@@ -33,6 +35,7 @@ type Props = {
  */
 export function FlatBoxPlotChart({
   quantileData: { min, max, p25, p50, p75 },
+  animationOptions = false,
 }: Props) {
   const meanBackgroundColor = '#4780A8';
   const backgroundColor = '#D9D9D9';
@@ -49,7 +52,7 @@ export function FlatBoxPlotChart({
   const chartOptions: ChartOptions<'boxplot'> = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: false,
+    animation: animationOptions,
     layout: {
       padding: 10,
     },
