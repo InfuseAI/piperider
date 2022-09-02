@@ -13,10 +13,9 @@ describe('Comparison Report (sp500.db -> profiler-e2e.db)', () => {
 
     const tableListSchemaItem = cy
       .get('[data-cy="cr-table-list-schema-item"]')
-      .first()
-      .click();
+      .first();
 
-    tableListSchemaItem.first().click();
+    tableListSchemaItem.click();
     cy.url().should('include', '/tables/T_BOOL/columns/normal');
   });
 });

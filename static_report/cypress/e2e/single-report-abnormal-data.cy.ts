@@ -13,10 +13,9 @@ describe('Single Report (profiler-e2e.db)', () => {
 
     const tableListSchemaItem = cy
       .get('[data-cy="sr-table-list-schema-item"]')
-      .first()
-      .click();
+      .first();
 
-    tableListSchemaItem.first().click();
+    tableListSchemaItem.click();
     cy.url().should('include', '/tables/T_BOOL/columns/normal');
   });
 });
