@@ -22,6 +22,13 @@ type AssertionRow = {
   target?: CRAssertionTests;
 };
 
+type AssertionRowWithSource = AssertionRow & { source: 'PipeRider' | 'dbt' };
+
+type AssertStatusCounts = {
+  passed: AssertionRowWithSource[];
+  failed: AssertionRowWithSource[];
+};
+
 type Props = {
   assertions: {
     piperider: CRAssertionTests[];
@@ -71,6 +78,8 @@ export function CRAssertionDetails({ assertions, ...props }: Props) {
 
   const piperiderAssertionRows = groupedAssertions(groupPiperiderAssertions);
   const dbtAssertionRows = groupedAssertions(groupDbtAssertions);
+  const { passedAssertionRows, failedAssertionRows } =
+    mergeGroupedAssertionRows(piperiderAssertionRows, dbtAssertionRows);
 
   if (piperiderAssertionRows.length === 0 && dbtAssertionRows.length === 0) {
     return (
@@ -93,8 +102,7 @@ export function CRAssertionDetails({ assertions, ...props }: Props) {
           </Tr>
         </Thead>
         <Tbody>
-          {/* piperider */}
-          {Object.values(piperiderAssertionRows).map((row) => (
+          {failedAssertionRows.map((row) => (
             <Tr key={nanoid()}>
               <Td>{row.name}</Td>
               <Td>
@@ -103,7 +111,7 @@ export function CRAssertionDetails({ assertions, ...props }: Props) {
               <Td>
                 <AssertionStatus status={row.target?.status} />
               </Td>
-              <Td>PipeRider</Td>
+              <Td>{row.source}</Td>
               <Td
                 onClick={() => {
                   props.onDetailVisible({
@@ -119,8 +127,7 @@ export function CRAssertionDetails({ assertions, ...props }: Props) {
             </Tr>
           ))}
 
-          {/* Dbt */}
-          {Object.values(dbtAssertionRows).map((row) => (
+          {passedAssertionRows.map((row) => (
             <Tr key={nanoid()}>
               <Td>{row.name}</Td>
               <Td>
@@ -129,11 +136,11 @@ export function CRAssertionDetails({ assertions, ...props }: Props) {
               <Td>
                 <AssertionStatus status={row.target?.status} />
               </Td>
-              <Td>dbt</Td>
+              <Td>{row.source}</Td>
               <Td
                 onClick={() => {
                   props.onDetailVisible({
-                    type: 'dbt',
+                    type: 'piperider',
                     data: row,
                   });
                 }}
@@ -148,4 +155,49 @@ export function CRAssertionDetails({ assertions, ...props }: Props) {
       </Table>
     </TableContainer>
   );
+}
+
+function extractPassedAndFailed(
+  source: 'PipeRider' | 'dbt',
+  assertion: AssertionRow,
+  acc: {
+    source?: 'PipeRider' | 'dbt';
+    passed: AssertionRowWithSource[];
+    failed: AssertionRowWithSource[];
+  },
+) {
+  if (assertion) {
+    if (
+      assertion.base?.status === 'failed' ||
+      assertion.target?.status === 'failed'
+    ) {
+      acc.failed.push({ ...assertion, source });
+    } else {
+      acc.passed.push({ ...assertion, source });
+    }
+  }
+
+  return acc;
+}
+
+function mergeGroupedAssertionRows(
+  piperider: AssertionRow[],
+  dbt: AssertionRow[],
+) {
+  const { passed: pprPassed, failed: pprFailed } =
+    piperider.reduce<AssertStatusCounts>(
+      (acc, assertion) => extractPassedAndFailed('PipeRider', assertion, acc),
+      { passed: [], failed: [] },
+    );
+
+  const { passed: dbtPassed, failed: dbtFailed } =
+    dbt.reduce<AssertStatusCounts>(
+      (acc, assertion) => extractPassedAndFailed('dbt', assertion, acc),
+      { passed: [], failed: [] },
+    );
+
+  return {
+    passedAssertionRows: [...pprPassed, ...dbtPassed],
+    failedAssertionRows: [...pprFailed, ...dbtFailed],
+  };
 }

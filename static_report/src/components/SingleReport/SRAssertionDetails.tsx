@@ -9,11 +9,18 @@ import {
   Td,
   Text,
 } from '@chakra-ui/react';
-import { assertionTestSchema } from '../../sdlc/single-report-schema.z';
-import { z } from 'zod';
-import { AssertionValue, zReport } from '../../types';
-import { formatTestExpectedOrActual } from '../../utils/formatters';
+
 import { AssertionStatus } from '../shared/AssertionStatus';
+import { formatTestExpectedOrActual } from '../../utils/formatters';
+import type { AssertionValue } from '../../types';
+import type { AssertionTest } from '../../sdlc/single-report-schema';
+
+type AssertionWithSource = AssertionTest & { source?: 'PipeRider' | 'dbt' };
+
+type AssertStatusCounts = {
+  passed: AssertionWithSource[];
+  failed: AssertionWithSource[];
+};
 
 type Props = {
   assertions: {
@@ -23,15 +30,12 @@ type Props = {
 };
 
 export function SRAssertionDetails({ assertions }: Props) {
-  const piperiderTableAssertions = assertions.piperider?.tests || [];
-  const piperiderColumnAssertions = assertions.piperider?.columns || {};
-  const dbtTableAssertions = assertions.dbt?.tests || [];
-  const dbtColumnAssertions = assertions.dbt?.columns || {};
+  const { passedAssertions, failedAssertions } = mergeAssertions(
+    assertions?.piperider,
+    assertions?.dbt,
+  );
 
-  if (
-    piperiderTableAssertions.length === 0 &&
-    Object.keys(piperiderColumnAssertions).length === 0
-  ) {
+  if (passedAssertions.length === 0 && failedAssertions.length === 0) {
     return (
       <Flex direction="column" alignItems="center" justifyContent="center">
         <Text textAlign="center">No tests available</Text>
@@ -54,147 +58,112 @@ export function SRAssertionDetails({ assertions }: Props) {
           </Thead>
 
           <Tbody>
-            {piperiderTableAssertions.map((tableAssertion) => {
-              zReport(assertionTestSchema.safeParse(tableAssertion));
-              const isFailed = tableAssertion.status === 'failed';
+            {failedAssertions.map((assertion) => (
+              <Tr key={assertion.name}>
+                <Td>{assertion.name}</Td>
+                <Td>
+                  <AssertionStatus status={assertion.status} />
+                </Td>
+                <Td>{formatTestExpectedOrActual(assertion.expected)}</Td>
+                <Td color="red.500">
+                  {formatTestExpectedOrActual(assertion.actual)}
+                </Td>
+                <Td>{assertion.source}</Td>
+              </Tr>
+            ))}
 
-              return (
-                <Tr key={tableAssertion.name}>
-                  <Td>{tableAssertion.name}</Td>
-                  <Td>
-                    {isFailed ? (
-                      <Text as="span" role="img">
-                        ❌
-                      </Text>
-                    ) : (
-                      <Text as="span" role="img">
-                        ✅
-                      </Text>
-                    )}
-                  </Td>
-                  <Td>{formatTestExpectedOrActual(tableAssertion.expected)}</Td>
-                  <Td color={isFailed ? 'red.500' : 'inherit'}>
-                    {formatTestExpectedOrActual(tableAssertion.actual)}
-                  </Td>
-                  <Td>PipeRider</Td>
-                </Tr>
-              );
-            })}
-
-            {dbtTableAssertions.map((tableAssertion) => {
-              zReport(assertionTestSchema.safeParse(tableAssertion));
-              const isFailed = tableAssertion.status === 'failed';
-
-              return (
-                <Tr key={tableAssertion.name}>
-                  <Td>{tableAssertion.name}</Td>
-                  <Td>
-                    <AssertionStatus status={tableAssertion.status} />
-                  </Td>
-                  <Td>{formatTestExpectedOrActual(tableAssertion.expected)}</Td>
-                  <Td color={isFailed ? 'red.500' : 'inherit'}>
-                    {formatTestExpectedOrActual(tableAssertion.actual)}
-                  </Td>
-                  <Td>dbt</Td>
-                </Tr>
-              );
-            })}
-
-            {Object.keys(piperiderColumnAssertions).map((key) => {
-              const columnAssertions = piperiderColumnAssertions[key];
-              zReport(z.array(assertionTestSchema).safeParse(columnAssertions));
-
-              return columnAssertions.map((columnAssertion) => {
-                const isFailed = columnAssertion.status === 'failed';
-
-                return (
-                  <Tr key={columnAssertion.name}>
-                    <Td>{columnAssertion.name}</Td>
-                    <Td>
-                      {isFailed ? (
-                        <Text as="span" role="img">
-                          ❌
-                        </Text>
-                      ) : (
-                        <Text as="span" role="img">
-                          ✅
-                        </Text>
-                      )}
-                    </Td>
-                    <Td>
-                      {formatTestExpectedOrActual(columnAssertion.expected)}
-                    </Td>
-                    <Td color={isFailed ? 'red.500' : 'inherit'}>
-                      {formatTestExpectedOrActual(columnAssertion.actual)}
-                    </Td>
-                    <Td>PipeRider</Td>
-                  </Tr>
-                );
-              });
-            })}
-
-            {dbtTableAssertions.map((tableAssertion) => {
-              zReport(assertionTestSchema.safeParse(tableAssertion));
-              const isFailed = tableAssertion.status === 'failed';
-
-              return (
-                <Tr key={tableAssertion.name}>
-                  <Td>{tableAssertion.name}</Td>
-                  <Td>
-                    {isFailed ? (
-                      <Text as="span" role="img">
-                        ❌
-                      </Text>
-                    ) : (
-                      <Text as="span" role="img">
-                        ✅
-                      </Text>
-                    )}
-                  </Td>
-                  <Td>{formatTestExpectedOrActual(tableAssertion.expected)}</Td>
-                  <Td color={isFailed ? 'red.500' : 'inherit'}>
-                    {formatTestExpectedOrActual(tableAssertion.actual)}
-                  </Td>
-                  <Td>PipeRider</Td>
-                </Tr>
-              );
-            })}
-
-            {Object.keys(dbtColumnAssertions).map((key) => {
-              const columnAssertions = dbtColumnAssertions[key];
-              zReport(z.array(assertionTestSchema).safeParse(columnAssertions));
-
-              return columnAssertions.map((columnAssertion) => {
-                const isFailed = columnAssertion.status === 'failed';
-
-                return (
-                  <Tr key={columnAssertion.name}>
-                    <Td>{columnAssertion.name}</Td>
-                    <Td>
-                      {isFailed ? (
-                        <Text as="span" role="img">
-                          ❌
-                        </Text>
-                      ) : (
-                        <Text as="span" role="img">
-                          ✅
-                        </Text>
-                      )}
-                    </Td>
-                    <Td>
-                      {formatTestExpectedOrActual(columnAssertion.expected)}
-                    </Td>
-                    <Td color={isFailed ? 'red.500' : 'inherit'}>
-                      {formatTestExpectedOrActual(columnAssertion.actual)}
-                    </Td>
-                    <Td>dbt</Td>
-                  </Tr>
-                );
-              });
-            })}
+            {passedAssertions.map((assertion) => (
+              <Tr key={assertion.name}>
+                <Td>{assertion.name}</Td>
+                <Td>
+                  <AssertionStatus status={assertion.status} />
+                </Td>
+                <Td>{formatTestExpectedOrActual(assertion.expected)}</Td>
+                <Td>{formatTestExpectedOrActual(assertion.actual)}</Td>
+                <Td>{assertion.source}</Td>
+              </Tr>
+            ))}
           </Tbody>
         </Table>
       </TableContainer>
     </Flex>
   );
+}
+
+function extractAssertionWithSource(
+  source: 'PipeRider' | 'dbt',
+  assertion: AssertionTest,
+  acc: {
+    source?: 'PipeRider' | 'dbt';
+    passed: AssertionWithSource[];
+    failed: AssertionWithSource[];
+  },
+) {
+  if (assertion.status === 'passed') {
+    acc.passed.push({ ...assertion, source });
+  } else {
+    acc.failed.push({ ...assertion, source });
+  }
+
+  return acc;
+}
+
+function mergeAssertions(piperider?: AssertionValue, dbt?: AssertionValue) {
+  const { passed: pprTableAssertionPassed, failed: pprTableAssertionFailed } = (
+    piperider?.tests || []
+  ).reduce<AssertStatusCounts>(
+    (acc, assertion) => extractAssertionWithSource('PipeRider', assertion, acc),
+    {
+      passed: [],
+      failed: [],
+    },
+  );
+
+  const { passed: pprColAssertionPassed, failed: pprColAssertionFailed } =
+    Object.keys(piperider?.columns || {})
+      .map((colName) =>
+        (piperider?.columns[colName] || []).map((assertion) => assertion),
+      )
+      .flat()
+      .reduce<AssertStatusCounts>(
+        (acc, assertion) =>
+          extractAssertionWithSource('PipeRider', assertion, acc),
+        { passed: [], failed: [] },
+      );
+
+  const { passed: dbtTableAssertionPassed, failed: dbtTableAssertionFailed } = (
+    dbt?.tests || []
+  ).reduce<AssertStatusCounts>(
+    (acc, assertion) => extractAssertionWithSource('dbt', assertion, acc),
+    {
+      passed: [],
+      failed: [],
+    },
+  );
+
+  const { passed: dbtColAssertionPassed, failed: dbtColAssertionFailed } =
+    Object.keys(dbt?.columns || {})
+      .map((colName) =>
+        (dbt?.columns[colName] || []).map((assertion) => assertion),
+      )
+      .flat()
+      .reduce<AssertStatusCounts>(
+        (acc, assertion) => extractAssertionWithSource('dbt', assertion, acc),
+        { passed: [], failed: [] },
+      );
+
+  return {
+    passedAssertions: [
+      ...pprTableAssertionPassed,
+      ...pprColAssertionPassed,
+      ...dbtTableAssertionPassed,
+      ...dbtColAssertionPassed,
+    ],
+    failedAssertions: [
+      ...pprTableAssertionFailed,
+      ...pprColAssertionFailed,
+      ...dbtTableAssertionFailed,
+      ...dbtColAssertionFailed,
+    ],
+  };
 }
