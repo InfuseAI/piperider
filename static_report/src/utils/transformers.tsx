@@ -230,7 +230,7 @@ export function transformSRMetricsInfoList(
       metakey,
       firstSlot: isNaN(count) ? NO_VALUE : formatIntervalMinMax(percent),
       secondSlot: isNaN(count) ? NO_VALUE : formatAsAbbreviatedNumber(count),
-      tooltipValues: { firstSlot: formatNumber(count) },
+      tooltipValues: { secondSlot: formatNumber(count) },
     };
   });
 }

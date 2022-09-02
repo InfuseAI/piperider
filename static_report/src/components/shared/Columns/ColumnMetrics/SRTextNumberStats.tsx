@@ -59,13 +59,17 @@ export function SRTextNumberStats({
         <>
           {textMetricsList &&
             textMetricsList.map(
-              ({ name, metakey, firstSlot, secondSlot }, index) => (
+              (
+                { name, metakey, firstSlot, secondSlot, tooltipValues },
+                index,
+              ) => (
                 <MetricsInfo
                   key={index}
                   name={name}
                   metakey={metakey}
                   firstSlot={firstSlot}
                   secondSlot={secondSlot}
+                  tooltipValues={tooltipValues}
                   {...props}
                 />
               ),
