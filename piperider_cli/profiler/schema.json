@@ -30,10 +30,10 @@
             "row_count": {
               "type": "integer"
             },
-            "creation_time": {
+            "created": {
               "type": "string"
             },
-            "last_modified": {
+            "last_altered": {
               "type": "string"
             },
             "bytes": {

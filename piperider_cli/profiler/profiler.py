@@ -10,11 +10,10 @@ from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, 
     distinct, case, text, literal_column, inspect
 from sqlalchemy.engine import Engine, Connection
 from sqlalchemy.engine.reflection import Inspector
-from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy.sql import FromClause
 from sqlalchemy.sql.elements import ColumnClause
-from sqlalchemy.sql.expression import CTE, false, true
+from sqlalchemy.sql.expression import CTE, false, true, table as table_clause, column as column_clause
 from sqlalchemy.types import Float
 
 from .event import ProfilerEventHandler, DefaultProfilerEventHandler
@@ -142,65 +141,71 @@ class Profiler:
             candidate_columns.append(column)
         return candidate_columns
 
-    def _profile_table_metadata(self, result, table):
-        row_count = 0
-        creation_time = last_modified = size_bytes = None
+    def _profile_table_metadata(self, result: dict, table: Table):
+        row_count = created = last_altered = size_bytes = None
         with self.engine.connect() as conn:
-            if self.engine.url.get_backend_name() == 'snowflake':
-                default_schema = self.inspector.default_schema_name
-                stmt = '''
-                    select row_count, convert_timezone('UTC', created), convert_timezone('UTC', last_altered), bytes
-                    from INFORMATION_SCHEMA.TABLES
-                    where table_schema = '{}' and table_name = '{}'
-                '''.format(str.upper(default_schema), str.upper(table.name))
-                row_count, creation_time, last_modified, size_bytes = conn.execute(stmt).fetchone()
-                # datetime object transformation
-                creation_time = creation_time.isoformat()
-                last_modified = last_modified.isoformat()
-            elif self.engine.url.get_backend_name() == 'bigquery':
-                dataset = self.engine.url.database
-                stmt = '''
-                    select row_count, creation_time, last_modified_time, size_bytes
-                    from {}.__TABLES__
-                    where table_id = '{}'
-                '''.format(dataset, table.name)
-                row_count, creation_time, last_modified, size_bytes = conn.execute(stmt).fetchone()
-                # timestamp transformation
-                creation_time = datetime.fromtimestamp(creation_time / 1000.0, timezone.utc).isoformat()
-                last_modified = datetime.fromtimestamp(last_modified / 1000.0, timezone.utc).isoformat()
-            elif self.engine.url.get_backend_name() == 'redshift':
-                dataset = self.engine.url.database
-                stmt = '''
-                    select tbl_rows, size
-                    from SVV_TABLE_INFO
-                    where "table" = '{}'
-                '''.format(table.name)
-                try:
+            try:
+                if self.engine.url.get_backend_name() == 'snowflake':
+                    default_schema = self.inspector.default_schema_name
+                    metadata_table = table_clause('TABLES', column_clause("row_count"), column_clause("created"),
+                                                  column_clause("last_altered"), column_clause("bytes"),
+                                                  column_clause('table_schema'), column_clause('table_name'),
+                                                  schema='INFORMATION_SCHEMA')
+                    metadata_columns = {column.name: column for column in metadata_table.columns}
+                    stmt = select([
+                        metadata_columns['row_count'],
+                        func.convert_timezone('UTC', metadata_columns['created']),
+                        func.convert_timezone('UTC', metadata_columns['last_altered']),
+                        metadata_columns['bytes']
+                    ]).select_from(metadata_table).where(metadata_columns['table_schema'] == str.upper(default_schema),
+                                                         metadata_columns['table_name'] == str.upper(table.name))
+                    row_count, created, last_altered, size_bytes = conn.execute(stmt).fetchone()
+                    # datetime object transformation
+                    created = created.isoformat()
+                    last_altered = last_altered.isoformat()
+                elif self.engine.url.get_backend_name() == 'bigquery':
+                    dataset = self.engine.url.database
+                    metadata_table = table_clause(f'{dataset}.__TABLES__', column_clause("row_count"),
+                                                  column_clause("creation_time"), column_clause("last_modified_time"),
+                                                  column_clause("size_bytes"), column_clause('table_id'))
+                    metadata_columns = {column.name: column for column in metadata_table.columns}
+                    stmt = select([
+                        metadata_columns['row_count'],
+                        metadata_columns['creation_time'],
+                        metadata_columns['last_modified_time'],
+                        metadata_columns['size_bytes']
+                    ]).select_from(metadata_table).where(metadata_columns['table_id'] == table.name)
+                    row_count, created, last_altered, size_bytes = conn.execute(stmt).fetchone()
+                    # timestamp transformation
+                    created = datetime.fromtimestamp(created / 1000.0, timezone.utc).isoformat()
+                    last_altered = datetime.fromtimestamp(last_altered / 1000.0, timezone.utc).isoformat()
+                elif self.engine.url.get_backend_name() == 'redshift':
+                    metadata_table = table_clause('SVV_TABLE_INFO', column_clause("tbl_rows"),
+                                                  column_clause("size"), column_clause("table"))
+                    metadata_columns = {column.name: column for column in metadata_table.columns}
+                    stmt = select([
+                        metadata_columns['tbl_rows'],
+                        metadata_columns['size'],
+                    ]).select_from(metadata_table).where(metadata_columns['table'] == table.name)
                     row_count, size_mbytes = conn.execute(stmt).fetchone()
-                except ProgrammingError as exc:
-                    from psycopg2.errors import lookup
-                    if isinstance(exc.orig, lookup(exc.orig.pgcode)):
-                        stmt = select([
-                            func.count(),
-                        ]).select_from(table)
-                        row_count, = conn.execute(stmt).fetchone()
-                    else:
-                        raise
-                else:
                     row_count = int(row_count)
                     size_bytes = size_mbytes * 1024
-            else:
-                stmt = select([
-                    func.count(),
-                ]).select_from(table)
-                row_count, = conn.execute(stmt).fetchone()
+            except Exception:
+                # table's metadata is optional except row_count
+                pass
+            finally:
+                if row_count is None:
+                    stmt = select([
+                        func.count(),
+                    ]).select_from(table)
+                    row_count, = conn.execute(stmt).fetchone()
 
         result['row_count'] = row_count
-        if creation_time:
-            result['creation_time'] = creation_time
-        if last_modified:
-            result['last_modified'] = last_modified
-            freshness = datetime.now(timezone.utc) - datetime.fromisoformat(last_modified)
+        if created:
+            result['created'] = created
+        if last_altered:
+            result['last_altered'] = last_altered
+            freshness = datetime.now(timezone.utc) - datetime.fromisoformat(last_altered)
             result['freshness'] = int(freshness.total_seconds())
         if size_bytes:
             result['bytes'] = size_bytes
