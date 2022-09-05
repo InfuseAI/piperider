@@ -15,14 +15,14 @@ import {
 import { FiChevronRight } from 'react-icons/fi';
 import { nanoid } from 'nanoid';
 
-import { ColumnSchema } from '../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import {
   ComparsionSource,
   SaferTableSchema,
   zReport,
   ZTableSchema,
-} from '../../types';
-import { NO_VALUE } from '../shared/ColumnCard/ColumnTypeDetail/constants';
+} from '../../../types';
+import { NO_VALUE } from '../../shared/ColumnCard/ColumnTypeDetail/constants';
 
 type EnrichedColumnData = {
   added: number;
@@ -56,7 +56,7 @@ type Props = {
   targetTableDatum?: SaferTableSchema;
   visibleDetail?: boolean;
 };
-export function CRTabSchemaDetails({
+export function CRTableSchemaDetails({
   baseTableDatum,
   targetTableDatum,
   visibleDetail = false,

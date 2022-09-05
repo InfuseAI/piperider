@@ -3,27 +3,23 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   Flex,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
+  Heading,
 } from '@chakra-ui/react';
 import { Link } from 'wouter';
+import { FiDatabase, FiGrid } from 'react-icons/fi';
+import { useState } from 'react';
 
 import { Main } from '../shared/Main';
+import { CollapseContent } from '../shared/CollapseContent';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useAmplitudeOnMount } from '../../hooks/useAmplitudeOnMount';
-import { AMPLITUDE_EVENTS, amplitudeTrack } from '../../utils/amplitudeEvents';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
-import { SRTabProfilingDetails } from './SRTabProfilingDetails';
-import { SRTabTestDetails } from './SRTabTestDetails';
+import { SRProfilingDetails } from './SRProfilingDetails';
+import { SRAssertionDetails } from './SRAssertionDetails';
 import { SRTableOverview } from './SRTableOverview';
 import { dataSourceSchema } from '../../sdlc/single-report-schema.z';
 import { ZTableSchema, zReport } from '../../types';
 import { formatReportTime } from '../../utils/formatters';
-
 interface Props {
   data: SingleReportSchema;
   name: string;
@@ -32,20 +28,19 @@ interface Props {
 export default function SingleReport({ data, name }: Props) {
   const { datasource, tables } = data;
   const table = tables[name];
+  const [assertionsVisible, setAssertionsVisible] = useState(false);
+  const [columnsVisible, setColumnsVisible] = useState(false);
+
+  const isAssertionsEmpty =
+    table.piperider_assertion_result?.tests.length === 0 &&
+    Object.keys(table.piperider_assertion_result?.columns || {}).length === 0 &&
+    table.dbt_assertion_result?.tests.length === 0 &&
+    Object.keys(table.dbt_assertion_result?.columns || {}).length === 0;
 
   zReport(ZTableSchema.safeParse(table));
   zReport(dataSourceSchema.safeParse(datasource));
 
   useDocumentTitle(name);
-
-  // For calculating user stay purposes
-  useAmplitudeOnMount({
-    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-    eventProperties: {
-      type: 'single-report',
-      tab: 'Profiling',
-    },
-  });
 
   if (!data) {
     return (
@@ -65,13 +60,19 @@ export default function SingleReport({ data, name }: Props) {
             <BreadcrumbItem>
               <Link href="/">
                 <BreadcrumbLink href="/" data-cy="sr-report-breadcrumb-back">
-                  {datasource.name}
+                  <Flex alignItems="center" gap={1}>
+                    <FiDatabase /> {datasource.name}
+                  </Flex>
                 </BreadcrumbLink>
               </Link>
             </BreadcrumbItem>
 
             <BreadcrumbItem isCurrentPage>
-              <BreadcrumbLink href="#">{table.name}</BreadcrumbLink>
+              <BreadcrumbLink href="#">
+                <Flex alignItems="center" gap={1}>
+                  <FiGrid /> {table.name}
+                </Flex>
+              </BreadcrumbLink>
             </BreadcrumbItem>
           </Breadcrumb>
         </Flex>
@@ -85,79 +86,36 @@ export default function SingleReport({ data, name }: Props) {
           mt={3}
           mx="5%"
           direction="column"
+          gap={4}
         >
           <SRTableOverview table={table} />
 
-          {/* To avoid re-drawing charts again */}
-          <Tabs isLazy lazyBehavior="keepMounted">
-            <TabList>
-              <Tab
-                data-cy="sr-report-profiling-tab"
-                onClick={() => {
-                  amplitudeTrack({
-                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-                    eventProperties: {
-                      type: 'single-report',
-                      tab: 'Profiling',
-                    },
-                  });
-                }}
-              >
-                Profiling
-              </Tab>
-              <Tab
-                data-cy="sr-report-tests-tab"
-                onClick={() => {
-                  amplitudeTrack({
-                    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-                    eventProperties: {
-                      type: 'single-report',
-                      tab: 'Tests',
-                    },
-                  });
-                }}
-              >
-                Tests
-              </Tab>
-              {table.dbt_assertion_result && (
-                <Tab
-                  data-cy="sr-report-dbt-tests-tab"
-                  onClick={() => {
-                    amplitudeTrack({
-                      eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-                      eventProperties: {
-                        type: 'single-report',
-                        tab: 'dbt Tests',
-                      },
-                    });
-                  }}
-                >
-                  dbt Tests
-                </Tab>
-              )}
-            </TabList>
+          <Heading size="md">Assertions</Heading>
+          <CollapseContent
+            in={assertionsVisible}
+            startingHeight={isAssertionsEmpty ? 50 : 250}
+            collapseable={!isAssertionsEmpty}
+            onVisible={() => setAssertionsVisible((visible) => !visible)}
+          >
+            <SRAssertionDetails
+              assertions={{
+                piperider: table.piperider_assertion_result,
+                dbt: table?.dbt_assertion_result,
+              }}
+            />
+          </CollapseContent>
 
-            <TabPanels>
-              <TabPanel>
-                <SRTabProfilingDetails data={table.columns} />
-              </TabPanel>
-
-              <TabPanel>
-                <SRTabTestDetails
-                  assertionData={table.piperider_assertion_result}
-                />
-              </TabPanel>
-
-              {table?.dbt_assertion_result && (
-                <TabPanel>
-                  <SRTabTestDetails
-                    type="dbt"
-                    assertionData={table.dbt_assertion_result}
-                  />
-                </TabPanel>
-              )}
-            </TabPanels>
-          </Tabs>
+          <Heading size="md" mt={4}>
+            Columns
+          </Heading>
+          <CollapseContent
+            in={columnsVisible}
+            startingHeight={Object.keys(table.columns).length === 0 ? 50 : 350}
+            collapseable={Object.keys(table.columns).length > 0}
+            onVisible={() => setColumnsVisible((visible) => !visible)}
+          >
+            <SRProfilingDetails data={table.columns} />
+          </CollapseContent>
         </Flex>
       </Flex>
     </Main>

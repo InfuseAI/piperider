@@ -17,8 +17,6 @@ import { DbtTable } from './CRModalDbtTable';
 import { PipeRiderTable } from './CRModalPiperiderTable';
 
 export type CRModalData = {
-  level: 'Column' | 'Table';
-  column: string;
   name: string;
 } & CRTargetData<AssertionTest & { message?: string }>;
 export type TestDetail = {
