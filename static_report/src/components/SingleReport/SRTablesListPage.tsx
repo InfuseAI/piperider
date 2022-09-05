@@ -29,6 +29,7 @@ type Props = { data: SingleReportSchema };
 export function SRTablesListPage({ data }: Props) {
   const { created_at, datasource, tables } = data;
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [location, setLocation] = useLocation();
   const [view, setView] = useLocalStorage<TableActionBarView>(
     SR_LIST_VIEW,
