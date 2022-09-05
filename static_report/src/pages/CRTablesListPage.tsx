@@ -85,6 +85,7 @@ export function CRTablesListPage({ data }: Props) {
                 <AccordionItem>
                   {({ isExpanded }) => (
                     <>
+                      {/* Accordion Parent */}
                       <CRTableListItem
                         isExpanded={isExpanded}
                         baseTableDatum={table.base}
@@ -93,13 +94,18 @@ export function CRTablesListPage({ data }: Props) {
                       >
                         <CRTableListAssertions data={data} reportName={key} />
                       </CRTableListItem>
-                      {/* grandChildrenList */}
+                      {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
                         {view === 'summary' ? (
                           <Stack gap={6}>
                             <CRTableListColumnList
                               baseTableDatum={table?.base}
                               targetTableDatum={table?.target}
+                              onSelect={({ tableName, columnName }) =>
+                                setLocation(
+                                  `/tables/${tableName}/columns/${columnName}`,
+                                )
+                              }
                             />
                           </Stack>
                         ) : (
@@ -107,6 +113,11 @@ export function CRTablesListPage({ data }: Props) {
                             visibleDetail
                             baseTableDatum={table?.base}
                             targetTableDatum={table?.target}
+                            onSelect={({ tableName, columnName }) =>
+                              setLocation(
+                                `/tables/${tableName}/columns/${columnName}`,
+                              )
+                            }
                           />
                         )}
                       </AccordionPanel>
