@@ -30,6 +30,18 @@
             "row_count": {
               "type": "integer"
             },
+            "created": {
+              "type": "string"
+            },
+            "last_altered": {
+              "type": "string"
+            },
+            "bytes": {
+              "type": "integer"
+            },
+            "freshness": {
+              "type": "integer"
+            },
             "col_count": {
               "type": "integer"
             },

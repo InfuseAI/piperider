@@ -2,17 +2,18 @@ import concurrent.futures
 import decimal
 import math
 import time
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from typing import Union, List, Tuple
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, ARRAY, select, func, \
-    distinct, case, text, literal_column
+    distinct, case, text, literal_column, inspect
 from sqlalchemy.engine import Engine, Connection
+from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy.sql import FromClause
 from sqlalchemy.sql.elements import ColumnClause
-from sqlalchemy.sql.expression import CTE, false, true
+from sqlalchemy.sql.expression import CTE, false, true, table as table_clause, column as column_clause
 from sqlalchemy.types import Float
 
 from .event import ProfilerEventHandler, DefaultProfilerEventHandler
@@ -68,10 +69,12 @@ class Profiler:
     """
     engine: Engine = None
     metadata: MetaData = None
+    inspector: Inspector = None
     event_handler: ProfilerEventHandler
 
     def __init__(self, engine: Engine, event_handler: ProfilerEventHandler = DefaultProfilerEventHandler()):
         self.engine = engine
+        self.inspector = inspect(self.engine) if self.engine else None
         self.event_handler = event_handler
 
     def profile(self, tables: List[str] = None) -> dict:
@@ -138,6 +141,75 @@ class Profiler:
             candidate_columns.append(column)
         return candidate_columns
 
+    def _profile_table_metadata(self, result: dict, table: Table):
+        row_count = created = last_altered = size_bytes = None
+        with self.engine.connect() as conn:
+            try:
+                if self.engine.url.get_backend_name() == 'snowflake':
+                    default_schema = self.inspector.default_schema_name
+                    metadata_table = table_clause('TABLES', column_clause("row_count"), column_clause("created"),
+                                                  column_clause("last_altered"), column_clause("bytes"),
+                                                  column_clause('table_schema'), column_clause('table_name'),
+                                                  schema='INFORMATION_SCHEMA')
+                    metadata_columns = {column.name: column for column in metadata_table.columns}
+                    stmt = select([
+                        metadata_columns['row_count'],
+                        func.convert_timezone('UTC', metadata_columns['created']),
+                        func.convert_timezone('UTC', metadata_columns['last_altered']),
+                        metadata_columns['bytes']
+                    ]).select_from(metadata_table).where(metadata_columns['table_schema'] == str.upper(default_schema),
+                                                         metadata_columns['table_name'] == str.upper(table.name))
+                    row_count, created, last_altered, size_bytes = conn.execute(stmt).fetchone()
+                    # datetime object transformation
+                    created = created.isoformat()
+                    last_altered = last_altered.isoformat()
+                elif self.engine.url.get_backend_name() == 'bigquery':
+                    dataset = self.engine.url.database
+                    metadata_table = table_clause(f'{dataset}.__TABLES__', column_clause("row_count"),
+                                                  column_clause("creation_time"), column_clause("last_modified_time"),
+                                                  column_clause("size_bytes"), column_clause('table_id'))
+                    metadata_columns = {column.name: column for column in metadata_table.columns}
+                    stmt = select([
+                        metadata_columns['row_count'],
+                        metadata_columns['creation_time'],
+                        metadata_columns['last_modified_time'],
+                        metadata_columns['size_bytes']
+                    ]).select_from(metadata_table).where(metadata_columns['table_id'] == table.name)
+                    row_count, created, last_altered, size_bytes = conn.execute(stmt).fetchone()
+                    # timestamp transformation
+                    created = datetime.fromtimestamp(created / 1000.0, timezone.utc).isoformat()
+                    last_altered = datetime.fromtimestamp(last_altered / 1000.0, timezone.utc).isoformat()
+                elif self.engine.url.get_backend_name() == 'redshift':
+                    metadata_table = table_clause('SVV_TABLE_INFO', column_clause("tbl_rows"),
+                                                  column_clause("size"), column_clause("table"))
+                    metadata_columns = {column.name: column for column in metadata_table.columns}
+                    stmt = select([
+                        metadata_columns['tbl_rows'],
+                        metadata_columns['size'],
+                    ]).select_from(metadata_table).where(metadata_columns['table'] == table.name)
+                    row_count, size_mbytes = conn.execute(stmt).fetchone()
+                    row_count = int(row_count)
+                    size_bytes = size_mbytes * 1024
+            except Exception:
+                # table's metadata is optional except row_count
+                pass
+            finally:
+                if row_count is None:
+                    stmt = select([
+                        func.count(),
+                    ]).select_from(table)
+                    row_count, = conn.execute(stmt).fetchone()
+
+        result['row_count'] = row_count
+        if created:
+            result['created'] = created
+        if last_altered:
+            result['last_altered'] = last_altered
+            freshness = datetime.now(timezone.utc) - datetime.fromisoformat(last_altered)
+            result['freshness'] = int(freshness.total_seconds())
+        if size_bytes:
+            result['bytes'] = size_bytes
+
     def _profile_table(self, table: Table) -> dict:
         candidate_columns = self._drop_unsupported_columns(table)
         col_index = 0
@@ -157,12 +229,7 @@ class Profiler:
         self.event_handler.handle_table_start(result)
 
         # Profile table metrics
-        with self.engine.connect() as conn:
-            stmt = select([
-                func.count(),
-            ]).select_from(table)
-            row_count, = conn.execute(stmt).fetchone()
-            result["row_count"] = row_count
+        self._profile_table_metadata(result, table)
         self.event_handler.handle_table_progress(result, col_count, col_index)
 
         # Profile columns
