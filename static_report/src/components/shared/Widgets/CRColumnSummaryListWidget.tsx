@@ -1,22 +1,21 @@
 import { Flex, Grid } from '@chakra-ui/react';
-import { useLocation } from 'wouter';
-import { ColumnSchema } from '../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import {
   SaferTableSchema,
   Selectable,
   zReport,
   ZTableSchema,
-} from '../../types';
-import { getDataChart } from '../../utils/charts';
-import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
-import { ColumnCardDataVisualContainer } from '../shared/Columns/ColumnCard/ColumnCardDataVisualContainer';
-import { CRColumnDetailsCard } from './CRColumnDetailsCard';
+} from '../../../types';
+import { getDataChart } from '../../../utils/charts';
+import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
+import { ColumnCardDataVisualContainer } from '../Columns/ColumnCard/ColumnCardDataVisualContainer';
+import { CRColumnDetailsCard } from '../Columns/ColumnCard/CRColumnDetailsCard';
 
 interface CRProfilingDetailsProps extends Selectable {
   baseTable?: SaferTableSchema;
   targetTable?: SaferTableSchema;
 }
-export function CRProfilingDetails({
+export function CRColumnSummaryListWidget({
   baseTable,
   targetTable,
   onSelect,
@@ -24,8 +23,6 @@ export function CRProfilingDetails({
   zReport(ZTableSchema.safeParse(baseTable));
   zReport(ZTableSchema.safeParse(targetTable));
 
-  // eslint-disable-next-line
-  const [location, setLocation] = useLocation();
   const transformedData = transformAsNestedBaseTargetRecord<
     SaferTableSchema['columns'],
     ColumnSchema

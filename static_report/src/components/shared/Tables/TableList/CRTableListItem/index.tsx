@@ -80,7 +80,6 @@ export function CRTableListItem({
               <Flex
                 as="a"
                 data-cy="cr-navigate-report-detail"
-                bg={'red'}
                 onClick={() => onSelect()}
               >
                 <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />

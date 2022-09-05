@@ -10,28 +10,31 @@ import { Link, useLocation } from 'wouter';
 import { useState } from 'react';
 import { FiDatabase, FiGrid } from 'react-icons/fi';
 
-import { Main } from '../shared/Main';
-import { getComparisonAssertions } from '../../utils/assertion';
+import { Main } from '../components/shared/Main';
+import { getComparisonAssertions } from '../utils/assertion';
 
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { CRModal, TestDetail } from '../shared/Modals/CRModal/CRModal';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import {
+  CRModal,
+  TestDetail,
+} from '../components/shared/Modals/CRModal/CRModal';
 import {
   ComparisonReportSchema,
   ZComparisonSchema,
   zReport,
   ZTableSchema,
-} from '../../types';
-import { CRProfilingDetails } from './CRProfilingDetails';
-import { CRTableOverview } from '../shared/Tables/CRTableOverview';
-import { formatReportTime } from '../../utils/formatters';
-import { CollapseContent } from '../shared/CollapseContent';
-import { CRAssertionDetails } from './CRAssertionDetails';
+} from '../types';
+import { CRColumnSummaryListWidget } from '../components/shared/Widgets/CRColumnSummaryListWidget';
+import { CRTableOverview } from '../components/shared/Tables/CRTableOverview';
+import { formatReportTime } from '../utils/formatters';
+import { CollapseContent } from '../components/shared/CollapseContent';
+import { CRAssertionDetailsWidget } from '../components/shared/Widgets/CRAssertionDetailsWidget';
 
 type Props = {
   data: ComparisonReportSchema;
   name: string;
 };
-export default function ComparisonReport({ data, name: reportName }: Props) {
+export default function CRTableDetailsPage({ data, name: reportName }: Props) {
   const [testDetail, setTestDetail] = useState<TestDetail | null>(null);
   const modal = useDisclosure();
   const [assertionsVisible, setAssertionsVisible] = useState(false);
@@ -122,7 +125,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
             collapseable={!isAssertionsEmpty}
             onVisible={() => setAssertionsVisible((visible) => !visible)}
           >
-            <CRAssertionDetails
+            <CRAssertionDetailsWidget
               assertions={{
                 piperider: piperiderAssertions,
                 dbt: dbtAssertions,
@@ -148,7 +151,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
             collapseable={baseTable !== undefined || targetTable !== undefined}
             onVisible={() => setColumnsVisible((visible) => !visible)}
           >
-            <CRProfilingDetails
+            <CRColumnSummaryListWidget
               baseTable={baseTable}
               targetTable={targetTable}
               onSelect={({ tableName, columnName }) =>
