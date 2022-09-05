@@ -5,7 +5,7 @@ import { SRTableList } from './SRTableList';
 import {
   TableActionBar,
   type TableActionBarView,
-} from '../shared/TableActionBar';
+} from '../shared/Tables/TableActionBar';
 import { formatReportTime } from '../../utils/formatters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { SR_LIST_VIEW } from '../../utils/localStorageKeys';

@@ -5,7 +5,7 @@ import { Loading } from './components/shared/Loading';
 import { NotFound } from './components/shared/NotFound';
 import { useHashLocation } from './hooks/useHashLcocation';
 import { SRTablesListPage } from './components/SingleReport/SRTablesListPage';
-import { CRTablesListPage } from './components/ComparisonReport/CRTablesListPage';
+import { CRTablesListPage } from './pages/CRTablesListPage';
 import { SRColumnDetailsPage } from './pages/SRColumnDetailsPage';
 import { CRColumnDetailsPage } from './pages/CRColumnDetailsPage';
 
