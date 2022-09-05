@@ -1,5 +1,5 @@
 import { Flex, Grid, GridItem, Text } from '@chakra-ui/react';
-import { useRoute } from 'wouter';
+import { useLocation, useRoute } from 'wouter';
 import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
 import { Main } from '../components/shared/Main';
 import { formatReportTime } from '../utils/formatters';
@@ -24,7 +24,9 @@ export function CRColumnDetailsPage({
   },
 }: Props) {
   // eslint-disable-next-line
-  const [_, params] = useRoute('/tables/:reportName/columns/:columnName');
+  const [match, params] = useRoute('/tables/:reportName/columns/:columnName');
+  // eslint-disable-next-line
+  const [location, setLocation] = useLocation();
 
   const time = `${formatReportTime(baseTime)} -> ${formatReportTime(
     targetTime,
@@ -59,6 +61,9 @@ export function CRColumnDetailsPage({
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailsMasterList
+            onSelect={({ tableName, columnName }) =>
+              setLocation(`/tables/${tableName}/columns/${columnName}`)
+            }
             baseDataColumns={baseDataColumns}
             targetDataColumns={targetDataColumns}
             currentReport={reportName}

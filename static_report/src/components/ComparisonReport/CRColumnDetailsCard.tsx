@@ -1,7 +1,6 @@
 import { Box, Flex, Text } from '@chakra-ui/react';
-import { Link, useLocation } from 'wouter';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
-import { ZColSchema, zReport } from '../../types';
+import { Selectable, ZColSchema, zReport } from '../../types';
 import { checkColumnCategorical } from '../../utils/transformers';
 import { ColumnTypeHeader } from '../shared/Columns/ColumnTypeHeader';
 import { NO_VALUE } from '../shared/Columns/constants';
@@ -9,14 +8,17 @@ import { MetricsInfo } from '../shared/Columns/ColumnMetrics/MetricsInfo';
 import { CRGeneralStats } from '../shared/Columns/ColumnMetrics/CRGeneralStats';
 import { CRSummaryStats } from '../shared/Columns/ColumnMetrics/CRSummaryStats';
 
-type Props = {
+interface Props extends Selectable {
   baseColumn?: ColumnSchema;
   targetColumn?: ColumnSchema;
-};
-export const CRColumnDetailsRow = ({ baseColumn, targetColumn }: Props) => {
+}
+export const CRColumnDetailsCard = ({
+  baseColumn,
+  targetColumn,
+  onSelect,
+}: Props) => {
   const fallback = baseColumn || targetColumn;
   const isCategorical = checkColumnCategorical(baseColumn);
-  const [currentLocation] = useLocation();
 
   zReport(ZColSchema.safeParse(baseColumn));
   zReport(ZColSchema.safeParse(targetColumn));
@@ -72,12 +74,17 @@ export const CRColumnDetailsRow = ({ baseColumn, targetColumn }: Props) => {
         )}
       </Box>
       {fallback && (
-        <Flex justifyContent={'center'} p={3} h={'100%'} alignItems={'end'}>
-          <Link href={`${currentLocation}/columns/${fallback.name}`}>
-            <Text as={'a'} color="blue.400">
-              Details
-            </Text>
-          </Link>
+        <Flex
+          justifyContent={'center'}
+          p={3}
+          h={'100%'}
+          alignItems={'end'}
+          cursor={'pointer'}
+          onClick={() => onSelect({ columnName: fallback.name })}
+        >
+          <Text as={'a'} color="blue.400">
+            Details
+          </Text>
         </Flex>
       )}
     </Flex>

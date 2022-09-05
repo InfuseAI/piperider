@@ -1,5 +1,5 @@
 import { Divider, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
-import { useRoute } from 'wouter';
+import { useLocation, useRoute } from 'wouter';
 import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
 import { Main } from '../components/shared/Main';
 import { SingleReportSchema } from '../sdlc/single-report-schema';
@@ -20,6 +20,8 @@ interface Props {
 export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
   // eslint-disable-next-line
   const [_, params] = useRoute('/tables/:reportName/columns/:columnName');
+  // eslint-disable-next-line
+  const [location, setLocation] = useLocation();
   const time = formatReportTime(created_at);
 
   if (!params?.columnName) {
@@ -45,6 +47,9 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailsMasterList
+            onSelect={({ tableName, columnName }) =>
+              setLocation(`/tables/${tableName}/columns/${columnName}`)
+            }
             baseDataColumns={dataColumns}
             currentReport={reportName}
             currentColumn={columnName}

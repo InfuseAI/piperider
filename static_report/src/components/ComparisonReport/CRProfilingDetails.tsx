@@ -1,10 +1,11 @@
 import { Flex, Grid } from '@chakra-ui/react';
+import { useLocation } from 'wouter';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { SaferTableSchema, zReport, ZTableSchema } from '../../types';
 import { getDataChart } from '../../utils/charts';
 import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
 import { ColumnCardDataVisualContainer } from '../shared/Columns/ColumnCard/ColumnCardDataVisualContainer';
-import { CRColumnDetailsRow } from './CRColumnDetailsRow';
+import { CRColumnDetailsCard } from './CRColumnDetailsCard';
 
 type CRProfilingDetailsProps = {
   baseTable?: SaferTableSchema;
@@ -17,52 +18,45 @@ export function CRProfilingDetails({
   zReport(ZTableSchema.safeParse(baseTable));
   zReport(ZTableSchema.safeParse(targetTable));
 
+  // eslint-disable-next-line
+  const [location, setLocation] = useLocation();
   const transformedData = transformAsNestedBaseTargetRecord<
     SaferTableSchema['columns'],
     ColumnSchema
   >(baseTable?.columns, targetTable?.columns);
+  const tableName = baseTable?.name || targetTable?.name;
 
   return (
     <>
-      {Object.entries(transformedData).map(([key, value]) => {
+      {Object.entries(transformedData).map(([key, { base, target }]) => {
         return (
-          <CRProfilingColumn
-            key={key}
-            name={key}
-            base={value?.base}
-            target={value?.target}
-          />
+          <Flex key={key} direction="column">
+            <Grid
+              my={8}
+              templateColumns="1fr 2fr"
+              gap={12}
+              overflowX={'hidden'}
+            >
+              <CRColumnDetailsCard
+                baseColumn={base}
+                targetColumn={target}
+                onSelect={({ columnName }) =>
+                  setLocation(`/tables/${tableName}/columns/${columnName}`)
+                }
+              />
+
+              <Flex my={4} alignItems={'center'}>
+                <ColumnCardDataVisualContainer height={350}>
+                  {getDataChart(base)}
+                </ColumnCardDataVisualContainer>
+                <ColumnCardDataVisualContainer height={350}>
+                  {getDataChart(target, base)}
+                </ColumnCardDataVisualContainer>
+              </Flex>
+            </Grid>
+          </Flex>
         );
       })}
     </>
-  );
-}
-
-/**
- * Optional values due to column-drift across runs
- * Renders combined single chart when type is string or datetime
- * Otherwise, renders two charts per histogram
- */
-type CRProfilingColumnProps = {
-  name: string;
-  base?: ColumnSchema;
-  target?: ColumnSchema;
-};
-function CRProfilingColumn({ name, base, target }: CRProfilingColumnProps) {
-  return (
-    <Flex key={name} direction="column">
-      <Grid my={8} templateColumns="1fr 2fr" gap={12} overflowX={'hidden'}>
-        <CRColumnDetailsRow baseColumn={base} targetColumn={target} />
-
-        <Flex my={4} alignItems={'center'}>
-          <ColumnCardDataVisualContainer height={350}>
-            {getDataChart(base)}
-          </ColumnCardDataVisualContainer>
-          <ColumnCardDataVisualContainer height={350}>
-            {getDataChart(target, base)}
-          </ColumnCardDataVisualContainer>
-        </Flex>
-      </Grid>
-    </Flex>
   );
 }
