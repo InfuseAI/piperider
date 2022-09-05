@@ -1,12 +1,12 @@
 import { Box, Flex, Text } from '@chakra-ui/react';
-import { ColumnSchema } from '../../sdlc/single-report-schema';
-import { Selectable, ZColSchema, zReport } from '../../types';
-import { checkColumnCategorical } from '../../utils/transformers';
-import { ColumnTypeHeader } from '../shared/Columns/ColumnTypeHeader';
-import { NO_VALUE } from '../shared/Columns/constants';
-import { MetricsInfo } from '../shared/Columns/ColumnMetrics/MetricsInfo';
-import { CRGeneralStats } from '../shared/Columns/ColumnMetrics/CRGeneralStats';
-import { CRSummaryStats } from '../shared/Columns/ColumnMetrics/CRSummaryStats';
+import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { Selectable, ZColSchema, zReport } from '../../../../types';
+import { checkColumnCategorical } from '../../../../utils/transformers';
+import { ColumnTypeHeader } from '../ColumnTypeHeader';
+import { NO_VALUE } from '../constants';
+import { MetricsInfo } from '../ColumnMetrics/MetricsInfo';
+import { CRGeneralStats } from '../ColumnMetrics/CRGeneralStats';
+import { CRSummaryStats } from '../ColumnMetrics/CRSummaryStats';
 
 interface Props extends Selectable {
   baseColumn?: ColumnSchema;
