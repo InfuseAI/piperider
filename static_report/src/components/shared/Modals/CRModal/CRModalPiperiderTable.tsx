@@ -7,8 +7,8 @@ import {
   Tbody,
   Td,
 } from '@chakra-ui/react';
-import { formatTestExpectedOrActual } from '../../../utils/formatters';
-import { AssertionStatus } from '../../shared/AssertionStatus';
+import { formatTestExpectedOrActual } from '../../../../utils/formatters';
+import { AssertionStatus } from '../../AssertionStatus';
 import { CRModalData } from './CRModal';
 
 type Props = { data?: CRModalData };

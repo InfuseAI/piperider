@@ -10,9 +10,9 @@ import {
   ModalFooter,
   type UseDisclosureReturn,
 } from '@chakra-ui/react';
-import { AssertionTest } from '../../../sdlc/single-report-schema';
+import { AssertionTest } from '../../../../sdlc/single-report-schema';
 
-import { CRTargetData } from '../../../types';
+import { CRTargetData } from '../../../../types';
 import { DbtTable } from './CRModalDbtTable';
 import { PipeRiderTable } from './CRModalPiperiderTable';
 

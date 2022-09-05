@@ -14,7 +14,7 @@ import { nanoid } from 'nanoid';
 
 import { CRAssertionTests } from '../../types';
 import { AssertionStatus } from '../shared/AssertionStatus';
-import type { CRModalData } from './CRModal/CRModal';
+import type { CRModalData } from '../shared/Modals/CRModal/CRModal';
 
 type AssertionRow = {
   name: string;
