@@ -25,7 +25,7 @@ import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
 import { getIconForColumnType } from '../../../utils/transformers';
 import { type SingleReportSchema } from '../../../sdlc/single-report-schema';
 import { singleReportSchemaSchema } from '../../../sdlc/single-report-schema.z';
-import { type TableActionBarView } from '../../shared/TableActionBar';
+import { type TableActionBarView } from '../../shared/Tables/TableActionBar';
 
 export function SRTableList({
   data,

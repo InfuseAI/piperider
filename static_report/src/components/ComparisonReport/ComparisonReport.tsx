@@ -22,7 +22,7 @@ import {
   ZTableSchema,
 } from '../../types';
 import { CRProfilingDetails } from './CRProfilingDetails';
-import { CRTableOverview } from './CRTableOverview';
+import { CRTableOverview } from '../shared/Tables/CRTableOverview';
 import { formatReportTime } from '../../utils/formatters';
 import { CollapseContent } from '../shared/CollapseContent';
 import { CRAssertionDetails } from './CRAssertionDetails';
