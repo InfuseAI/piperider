@@ -12,9 +12,9 @@ import {
 import groupBy from 'lodash/groupBy';
 import { nanoid } from 'nanoid';
 
-import { CRAssertionTests } from '../../types';
-import { AssertionStatus } from '../shared/AssertionStatus';
-import type { CRModalData } from '../shared/Modals/CRModal/CRModal';
+import { CRAssertionTests } from '../../../types';
+import { AssertionStatus } from '../AssertionStatus';
+import type { CRModalData } from '../Modals/CRModal/CRModal';
 
 type AssertionRow = {
   name: string;
@@ -63,7 +63,7 @@ function groupedAssertions(
   });
 }
 
-export function CRAssertionDetails({ assertions, ...props }: Props) {
+export function CRAssertionDetailsWidget({ assertions, ...props }: Props) {
   const { piperider, dbt } = assertions;
 
   // group by "level", "column", "name"

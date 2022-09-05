@@ -34,9 +34,7 @@ if (sentryDns) {
 const SingleReport = lazy(
   () => import('./components/SingleReport/SingleReport'),
 );
-const ComparisonReport = lazy(
-  () => import('./components/ComparisonReport/ComparisonReport'),
-);
+const CRTableDetailsPage = lazy(() => import('./pages/CRTableDetailsPage'));
 
 function AppSingle() {
   return (
@@ -88,7 +86,7 @@ function AppComparison() {
 
           <Route path="/tables/:reportName">
             {(params: Params<{ reportName: string }>) => (
-              <ComparisonReport
+              <CRTableDetailsPage
                 name={decodeURIComponent(params.reportName)}
                 data={window.PIPERIDER_COMPARISON_REPORT_DATA}
               />
