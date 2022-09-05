@@ -114,9 +114,8 @@ def init(**kwargs):
             dbt_project_path = DbtAdapter.search_dbt_project_path()
 
     if dbt_project_path:
-        console.print(f'Use dbt project file: {dbt_project_path}')
-    else:
-        console.print('[[bold yellow]Skip[/bold yellow]] No dbt project found')
+        console.print(f'[[bold green] DBT [/bold green]] Use the existing dbt project file: {dbt_project_path}')
+
     config = Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir)
     if kwargs.get('debug'):
         for ds in config.dataSources:

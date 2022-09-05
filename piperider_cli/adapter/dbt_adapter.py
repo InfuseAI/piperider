@@ -99,7 +99,6 @@ class DbtAdapter:
     def search_dbt_project_path():
         exclude_patterns = ['site-packages', 'dbt_packages']
         DbtAdapter._warning_if_search_path_too_widely(os.getcwd())
-        console.print('Start to search dbt project ...')
         paths = glob(os.path.join(os.getcwd(), '**', 'dbt_project.yml'), recursive=True)
         for exclude_pattern in exclude_patterns:
             paths = list(filter(lambda x: exclude_pattern not in x, paths))
