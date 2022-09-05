@@ -1,19 +1,25 @@
 import { Flex, Grid } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
-import { SaferTableSchema, zReport, ZTableSchema } from '../../types';
+import {
+  SaferTableSchema,
+  Selectable,
+  zReport,
+  ZTableSchema,
+} from '../../types';
 import { getDataChart } from '../../utils/charts';
 import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
 import { ColumnCardDataVisualContainer } from '../shared/Columns/ColumnCard/ColumnCardDataVisualContainer';
 import { CRColumnDetailsCard } from './CRColumnDetailsCard';
 
-type CRProfilingDetailsProps = {
+interface CRProfilingDetailsProps extends Selectable {
   baseTable?: SaferTableSchema;
   targetTable?: SaferTableSchema;
-};
+}
 export function CRProfilingDetails({
   baseTable,
   targetTable,
+  onSelect,
 }: CRProfilingDetailsProps) {
   zReport(ZTableSchema.safeParse(baseTable));
   zReport(ZTableSchema.safeParse(targetTable));
@@ -41,7 +47,7 @@ export function CRProfilingDetails({
                 baseColumn={base}
                 targetColumn={target}
                 onSelect={({ columnName }) =>
-                  setLocation(`/tables/${tableName}/columns/${columnName}`)
+                  onSelect({ columnName, tableName })
                 }
               />
 
