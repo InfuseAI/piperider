@@ -630,7 +630,7 @@ class Runner():
         _append_descriptions_from_assertion(profile_result)
 
         with open(output_file, 'w') as f:
-            f.write(json.dumps(profile_result, indent=4))
+            f.write(json.dumps(profile_result, separators=(',', ':')))
 
         if output:
             clone_directory(output_path, output)
