@@ -5,7 +5,7 @@ import {
   Flex,
   Heading,
 } from '@chakra-ui/react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { FiDatabase, FiGrid } from 'react-icons/fi';
 import { useState } from 'react';
 
@@ -14,12 +14,13 @@ import { CollapseContent } from '../shared/CollapseContent';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { SingleReportSchema } from '../../sdlc/single-report-schema';
-import { SRProfilingDetails } from './SRProfilingDetails';
 import { SRAssertionDetails } from './SRAssertionDetails';
 import { SRTableOverview } from './SRTableOverview';
 import { dataSourceSchema } from '../../sdlc/single-report-schema.z';
-import { ZTableSchema, zReport } from '../../types';
+import { ZTableSchema, zReport, ZColSchema } from '../../types';
 import { formatReportTime } from '../../utils/formatters';
+import { nanoid } from 'nanoid';
+import { ColumnCard } from '../shared/Columns/ColumnCard';
 interface Props {
   data: SingleReportSchema;
   name: string;
@@ -28,6 +29,7 @@ interface Props {
 export default function SingleReport({ data, name }: Props) {
   const { datasource, tables } = data;
   const table = tables[name];
+  const [location, setLocation] = useLocation();
   const [assertionsVisible, setAssertionsVisible] = useState(false);
   const [columnsVisible, setColumnsVisible] = useState(false);
 
@@ -114,7 +116,22 @@ export default function SingleReport({ data, name }: Props) {
             collapseable={Object.keys(table.columns).length > 0}
             onVisible={() => setColumnsVisible((visible) => !visible)}
           >
-            <SRProfilingDetails data={table.columns} />
+            <Flex direction="row" flexWrap={'wrap'} gap={4}>
+              {Object.keys(table.columns).map((key) => {
+                const column = data[key];
+                zReport(ZColSchema.safeParse(column));
+
+                return (
+                  <ColumnCard
+                    key={nanoid()}
+                    columnDatum={column}
+                    onSelect={({ columnName }) =>
+                      setLocation(`/tables/${table.name}/columns/${columnName}`)
+                    }
+                  />
+                );
+              })}
+            </Flex>
           </CollapseContent>
         </Flex>
       </Flex>
