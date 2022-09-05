@@ -220,3 +220,20 @@ def compare_reports(**kwargs):
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
                        report_dir=kwargs.get('report_dir'), output=kwargs.get('output'),
                        debug=kwargs.get('debug', False))
+
+
+@cli.command(short_help='Upload a report to the PipeRider Cloud.', cls=TrackCommand)
+@click.option('--run', type=click.Path(exists=True), help='Specify the raw result file.')
+@add_options(debug_option)
+def upload_report(**kwargs):
+    """
+    Upload a single run report to PipeRider Cloud
+    """
+    from piperider_cli.cloud import PipeRiderCloud
+    filename = kwargs.get('run')
+    if not filename or not os.path.exists(filename):
+        raise Exception(f'There is no run at path: {filename}')
+    with open(filename) as fh:
+        result = PipeRiderCloud().upload_report(fh.read())
+        # TODO refine the output when API is ready
+        print(result)
