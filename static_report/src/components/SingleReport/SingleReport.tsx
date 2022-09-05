@@ -26,9 +26,11 @@ interface Props {
   name: string;
 }
 
+//FIXME: This should be a *Page type
 export default function SingleReport({ data, name }: Props) {
   const { datasource, tables } = data;
   const table = tables[name];
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [location, setLocation] = useLocation();
   const [assertionsVisible, setAssertionsVisible] = useState(false);
   const [columnsVisible, setColumnsVisible] = useState(false);
@@ -118,7 +120,7 @@ export default function SingleReport({ data, name }: Props) {
           >
             <Flex direction="row" flexWrap={'wrap'} gap={4}>
               {Object.keys(table.columns).map((key) => {
-                const column = data[key];
+                const column = table.columns[key];
                 zReport(ZColSchema.safeParse(column));
 
                 return (
