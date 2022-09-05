@@ -1,6 +1,6 @@
 import { Flex, Grid, GridItem, Icon, Text } from '@chakra-ui/react';
 
-import { ColumnName } from '../../shared/TableList/ColumnName';
+import { ColumnName } from '../../shared/Tables/TableList/ColumnName';
 import { SRTableListAssertionsSummary } from './SRTableListAssertionsSummary';
 import { HistogramChart } from '../../shared/Charts/HistogramChart';
 import type {

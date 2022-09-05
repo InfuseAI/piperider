@@ -21,7 +21,7 @@ import { CRTableListAssertions } from './CRTableListAssertions';
 import { CRTableListColumnsSummary } from './CRTableListColumnsSummary';
 import { CRTableListRowsSummary } from './CRTableListRowsSummary';
 import { CRTableListColumnList } from './CRTableListColumnList';
-import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
+import { transformAsNestedBaseTargetRecord } from '../../../../../utils/transformers';
 import {
   ComparisonReportSchema,
   zReport,
@@ -29,8 +29,8 @@ import {
   ZComparisonTableSchema,
   SaferSRSchema,
   SaferTableSchema,
-} from '../../../types';
-import type { TableActionBarView } from '../../shared/TableActionBar';
+} from '../../../../../types';
+import type { TableActionBarView } from '../../../TableActionBar';
 
 function getDisplayNameByBaseOrTargetField({
   baseField,

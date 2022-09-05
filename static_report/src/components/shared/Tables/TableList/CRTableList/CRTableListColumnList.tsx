@@ -2,9 +2,9 @@ import { CRTableListColumnItem } from './CRTableListColumnItem';
 import {
   getIconForColumnType,
   transformAsNestedBaseTargetRecord,
-} from '../../../utils/transformers';
-import type { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { SaferTableSchema } from '../../../types';
+} from '../../../../../utils/transformers';
+import type { ColumnSchema } from '../../../../../sdlc/single-report-schema';
+import { SaferTableSchema } from '../../../../../types';
 import { Text } from '@chakra-ui/react';
 
 export function CRTableListColumnList({

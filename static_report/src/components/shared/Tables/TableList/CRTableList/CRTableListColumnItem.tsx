@@ -5,12 +5,12 @@ import {
   CRBaseTableAssertionsSummary,
   CRTargetTableAssertionsSummary,
 } from './CRTableListAssertions';
-import { ColumnName } from '../../shared/TableList/ColumnName';
+import { ColumnName } from '../ColumnName';
 import type {
   AssertionTest,
   ColumnSchema,
-} from '../../../sdlc/single-report-schema';
-import { HistogramChart } from '../../shared/Charts/HistogramChart';
+} from '../../../../../sdlc/single-report-schema';
+import { HistogramChart } from '../../../Charts/HistogramChart';
 import { Link } from 'wouter';
 
 function getAssertions(assertions: AssertionTest[]) {

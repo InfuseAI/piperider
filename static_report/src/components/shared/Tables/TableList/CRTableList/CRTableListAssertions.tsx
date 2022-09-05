@@ -9,9 +9,12 @@ import {
 import isString from 'lodash/isString';
 import partial from 'lodash/partial';
 
-import { getComparisonAssertions } from '../../../utils/assertion';
-import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
-import type { ComparisonReportSchema } from '../../../types';
+import { getComparisonAssertions } from '../../../../../utils/assertion';
+import type { ComparisonReportSchema } from '../../../../../types';
+import {
+  formatColumnValueWith,
+  formatNumber,
+} from '../../../../../utils/formatters';
 
 const getAssertionValue = partial((value: string | number) =>
   isString(value) ? 0 : value,
