@@ -77,7 +77,10 @@ class PipeRiderCloud:
 
     def __init__(self):
         self.service = CloudServiceHelper()
-        self.available = self.service.validate()
+        try:
+            self.available = self.service.validate()
+        except BaseException:
+            self.available = False
 
     def me(self):
         if not self.available:
@@ -99,6 +102,9 @@ class PipeRiderCloud:
 
     def raise_error(self):
         raise ValueError("Service not available or configuration invalid")
+
+    def has_configured(self):
+        return self.service.api_token is not None
 
 
 if __name__ == '__main__':
