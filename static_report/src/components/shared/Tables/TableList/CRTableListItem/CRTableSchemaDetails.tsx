@@ -18,6 +18,7 @@ import { ColumnSchema } from '../../../../../sdlc/single-report-schema';
 import {
   ComparsionSource,
   SaferTableSchema,
+  Selectable,
   zReport,
   ZTableSchema,
 } from '../../../../../types';
@@ -51,15 +52,16 @@ const getEnrichedColumnsFor = (
       }))
     : [];
 
-type Props = {
+interface Props extends Selectable {
   baseTableDatum?: SaferTableSchema;
   targetTableDatum?: SaferTableSchema;
   visibleDetail?: boolean;
-};
+}
 export function CRTableSchemaDetails({
   baseTableDatum,
   targetTableDatum,
   visibleDetail = false,
+  onSelect,
 }: Props) {
   zReport(ZTableSchema.safeParse(baseTableDatum));
   zReport(ZTableSchema.safeParse(targetTableDatum));
@@ -129,7 +131,7 @@ export function CRTableSchemaDetails({
     deltaDeleted,
   );
   // Combine columns on a per-row basis, now that the columns lengths are equalized/matched
-  const combinedSchemaRowItem = equalizedBaseColumns.map((base, index) => {
+  const combinedSchemaRowList = equalizedBaseColumns.map((base, index) => {
     return {
       base,
       target: equalizedTargetColumns[index],
@@ -165,7 +167,7 @@ export function CRTableSchemaDetails({
               </Tr>
             </Thead>
             <Tbody>
-              {combinedSchemaRowItem.map(
+              {combinedSchemaRowList.map(
                 ({ base: baseColumn, target: targetColumn }) => {
                   const fallbackColumn = baseColumn || targetColumn;
                   return (
@@ -173,9 +175,10 @@ export function CRTableSchemaDetails({
                       key={nanoid(10)}
                       onClick={() =>
                         visibleDetail &&
-                        setLocation(
-                          `/tables/${fallbackTable?.name}/columns/${fallbackColumn?.name}`,
-                        )
+                        onSelect({
+                          tableName: fallbackTable?.name,
+                          columnName: fallbackColumn?.name,
+                        })
                       }
                       position={'relative'}
                       _hover={{

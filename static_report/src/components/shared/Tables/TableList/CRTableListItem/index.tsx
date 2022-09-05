@@ -20,7 +20,7 @@ interface Props {
   baseTableDatum?: SaferTableSchema;
   targetTableDatum?: SaferTableSchema;
   onSelect: () => void;
-  children: ReactNode;
+  children: ReactNode; //e.g. CRTableListAssertions
 }
 export function CRTableListItem({
   isExpanded,
