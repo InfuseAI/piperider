@@ -14,14 +14,14 @@ import {
 import { FiChevronRight } from 'react-icons/fi';
 import { nanoid } from 'nanoid';
 
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../../../../sdlc/single-report-schema';
 import {
   ComparsionSource,
   SaferTableSchema,
   zReport,
   ZTableSchema,
-} from '../../../types';
-import { NO_VALUE } from '../../shared/Columns/constants';
+} from '../../../../../types';
+import { NO_VALUE } from '../../../Columns/constants';
 import { useLocation } from 'wouter';
 
 type EnrichedColumnData = {

@@ -8,7 +8,7 @@ import {
 
 import { formatReportTime } from '../../utils/formatters';
 
-import { CRTableList } from './CRTableList';
+import { CRTableList } from '../shared/Tables/TableList/CRTableList';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { CR_LIST_VIEW } from '../../utils/localStorageKeys';
 import { type ComparisonReportSchema } from '../../types';
