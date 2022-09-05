@@ -7,8 +7,8 @@ import {
   Tbody,
   Td,
 } from '@chakra-ui/react';
-import { NO_VALUE } from '../../shared/Columns/constants';
-import { AssertionStatus } from '../../shared/AssertionStatus';
+import { NO_VALUE } from '../../Columns/constants';
+import { AssertionStatus } from '../../AssertionStatus';
 import { CRModalData } from './CRModal';
 
 type Props = { data?: CRModalData };
