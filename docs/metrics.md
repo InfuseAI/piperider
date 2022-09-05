@@ -7,6 +7,17 @@
 | Row count | Number of rows in this table | `row_count` |  |
 | Column count | Number of columns in this table | `col_count` |  |
 
+### Tables's Metadata (optional)
+Cloud data warehouse (CDW) support a native SQL statement to query metadata for users possess enough privilege.
+
+| Metric | Description | Field | Supported CDW | Since |
+| --- | --- | --- | --- | --- |
+| Bytes | The size of this table in bytes | `bytes` | Snowflake, Bigquery, Redshift | v0.8.0 |
+| Created time| The time that this table created at in ISO 8601 format including time zone | `created` | Snowflake, Bigquery | v0.8.0 |
+| Last altered time | The last time that this table modified at in ISO 8601 format including time zone | `last_altered` | Snowflake, Bigquery | v0.8.0 |
+| Freshness | Time differentiation between the current time and table's last altered time | `freshness` | Snowflake, Bigquery | v0.8.0 |
+
+
 # Column Metrics
 
 ### Schema
