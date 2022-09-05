@@ -1,7 +1,7 @@
 import { Text, Heading, Flex, Icon } from '@chakra-ui/react';
 import { FiGrid } from 'react-icons/fi';
 
-import { SaferTableSchema, zReport, ZTableSchema } from '../../types';
+import { SaferTableSchema, zReport, ZTableSchema } from '../../../types';
 
 type Props = {
   baseTable?: SaferTableSchema;
