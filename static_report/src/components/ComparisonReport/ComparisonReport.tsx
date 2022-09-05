@@ -6,7 +6,7 @@ import {
   Heading,
   useDisclosure,
 } from '@chakra-ui/react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { useState } from 'react';
 import { FiDatabase, FiGrid } from 'react-icons/fi';
 
@@ -36,6 +36,8 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
   const modal = useDisclosure();
   const [assertionsVisible, setAssertionsVisible] = useState(false);
   const [columnsVisible, setColumnsVisible] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [location, setLocation] = useLocation();
 
   const { base, input: target } = data;
   zReport(ZComparisonSchema(true).safeParse(data));
@@ -149,6 +151,9 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
             <CRProfilingDetails
               baseTable={baseTable}
               targetTable={targetTable}
+              onSelect={({ tableName, columnName }) =>
+                setLocation(`/tables/${tableName}/columns/${columnName}`)
+              }
             />
           </CollapseContent>
         </Flex>
