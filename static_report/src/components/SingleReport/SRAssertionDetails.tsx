@@ -14,6 +14,7 @@ import { AssertionStatus } from '../shared/AssertionStatus';
 import { formatTestExpectedOrActual } from '../../utils/formatters';
 import type { AssertionValue } from '../../types';
 import type { AssertionTest } from '../../sdlc/single-report-schema';
+import { nanoid } from 'nanoid';
 
 type AssertionWithSource = AssertionTest & { source?: 'PipeRider' | 'dbt' };
 
@@ -73,7 +74,7 @@ export function SRAssertionDetails({ assertions }: Props) {
             ))}
 
             {passedAssertions.map((assertion) => (
-              <Tr key={assertion.name}>
+              <Tr key={nanoid()}>
                 <Td>{assertion.name}</Td>
                 <Td>
                   <AssertionStatus status={assertion.status} />
