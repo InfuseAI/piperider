@@ -55,7 +55,6 @@ export function CRTableListColumnItem({
   return (
     <Link href={`/tables/${tableName}/columns/${name}`}>
       <Grid
-        border={'1px solid red'}
         key={name}
         templateColumns="205px 2.3fr 1.5fr 2rem"
         alignItems="center"
