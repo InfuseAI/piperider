@@ -9,20 +9,20 @@ import {
   Tr,
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
-import { schemaMetaDescriptions } from '../../../sdlc/schema-meta';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { ZColSchema } from '../../../types';
+import { schemaMetaDescriptions } from '../../../../sdlc/schema-meta';
+import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { ZColSchema } from '../../../../types';
 import {
   formatAsAbbreviatedNumber,
   formatColumnValueWith,
-} from '../../../utils/formatters';
+} from '../../../../utils/formatters';
 
 type Props = {
-  columnDatum: ColumnSchema;
+  columnDatum?: ColumnSchema;
 };
-export function QuantilesChart({ columnDatum }: Props) {
-  ZColSchema.parse(columnDatum);
-  const { min, p5, p25, p50, p75, p95, max } = columnDatum;
+export function QuantilesMatrix({ columnDatum }: Props) {
+  ZColSchema.safeParse(columnDatum);
+  const { min, p5, p25, p50, p75, p95, max } = columnDatum || {};
   const quantileData: {
     label: string;
     value?: number | string;

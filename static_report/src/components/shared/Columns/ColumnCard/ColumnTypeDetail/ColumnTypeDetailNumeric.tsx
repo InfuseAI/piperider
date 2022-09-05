@@ -1,24 +1,25 @@
 import { Divider, Flex } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
-} from '../../../../utils/formatters';
-import { getColumnDetails } from '../../../../utils/transformers';
-import { MetricCell } from '../../MetricCell';
-import { QuantilesChart } from '../../Charts/QuantilesChart';
-import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
-import { StatisticalMetrics } from '../ColumnMetrics/StatisticalMetrics';
-import { NEGATIVES, ZEROS } from './constants';
+} from '../../../../../utils/formatters';
+import { getColumnMetricRatio } from '../../../../../utils/transformers';
+import { MetricCell } from '../../ColumnMetrics/MetricCell';
+import { QuantilesMatrix } from '../../ColumnMatrices/QuantilesMatrix';
+import { DataCompositionMatrix } from '../../ColumnMatrices/DataCompositionMatrix';
+import { StatisticalMatrix } from '../../ColumnMatrices/StatisticalMatrix';
+import { NEGATIVES, ZEROS } from '../../constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
   const { negatives, zeros } = columnDatum;
-  const { negativesOfTotal, zerosOfTotal } = getColumnDetails(columnDatum);
+  const negativesOfTotal = getColumnMetricRatio('negatives', columnDatum);
+  const zerosOfTotal = getColumnMetricRatio('zeros', columnDatum);
 
   return (
     <Flex direction={'column'}>
-      <DataCompositionMetrics columnDatum={columnDatum}>
+      <DataCompositionMatrix columnDatum={columnDatum}>
         <Divider orientation="vertical" />
         <MetricCell
           metaKey="negatives"
@@ -33,13 +34,13 @@ export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {
           value={formatColumnValueWith(zerosOfTotal, formatIntervalMinMax)}
           subvalue={zeros}
         />
-      </DataCompositionMetrics>
+      </DataCompositionMatrix>
       <Divider />
       <Divider />
-      <StatisticalMetrics columnDatum={columnDatum} />
+      <StatisticalMatrix columnDatum={columnDatum} />
       <Divider />
       <Flex mt={2}>
-        <QuantilesChart columnDatum={columnDatum} />
+        <QuantilesMatrix columnDatum={columnDatum} />
       </Flex>
     </Flex>
   );

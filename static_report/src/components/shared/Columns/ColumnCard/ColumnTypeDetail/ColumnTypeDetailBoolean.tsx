@@ -1,12 +1,12 @@
 import { Divider, Flex } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatNumber,
-} from '../../../../utils/formatters';
-import { MetricCell } from '../../MetricCell';
-import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
-import { FALSES, TRUES } from './constants';
+} from '../../../../../utils/formatters';
+import { MetricCell } from '../../ColumnMetrics/MetricCell';
+import { DataCompositionMatrix } from '../../ColumnMatrices/DataCompositionMatrix';
+import { FALSES, TRUES } from '../../constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
@@ -14,7 +14,7 @@ export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
 
   return (
     <Flex direction={'column'}>
-      <DataCompositionMetrics columnDatum={columnDatum}>
+      <DataCompositionMatrix columnDatum={columnDatum}>
         <Divider orientation="vertical" />
         <MetricCell
           label={FALSES}
@@ -27,7 +27,7 @@ export const ColumnTypeDetailBoolean: React.FC<Props> = ({ columnDatum }) => {
           value={formatColumnValueWith(trues, formatNumber)}
           metaKey={'trues'}
         />
-      </DataCompositionMetrics>
+      </DataCompositionMatrix>
       <Divider />
     </Flex>
   );

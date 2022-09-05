@@ -7,7 +7,7 @@ import {
   Tbody,
   Td,
 } from '@chakra-ui/react';
-import { NO_VALUE } from '../../shared/ColumnCard/ColumnTypeDetail/constants';
+import { NO_VALUE } from '../../shared/Columns/constants';
 import { AssertionStatus } from '../../shared/AssertionStatus';
 import { CRModalData } from './CRModal';
 

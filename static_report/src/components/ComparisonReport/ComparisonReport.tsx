@@ -22,10 +22,10 @@ import {
   ZTableSchema,
 } from '../../types';
 import { CRProfilingDetails } from './CRProfilingDetails';
-import { CRAssertionDetails } from './CRAssertionDetails';
 import { CRTableOverview } from './CRTableOverview';
 import { formatReportTime } from '../../utils/formatters';
 import { CollapseContent } from '../shared/CollapseContent';
+import { CRAssertionDetails } from './CRAssertionDetails';
 
 type Props = {
   data: ComparisonReportSchema;
@@ -77,7 +77,7 @@ export default function ComparisonReport({ data, name: reportName }: Props) {
         target.created_at,
       )}`}
     >
-      <Flex direction="column" minH="calc(100vh + 1px)" width="inherit">
+      <Flex direction="column" width="inherit">
         <Flex mx="5%" mt={4}>
           <Breadcrumb fontSize="lg">
             <BreadcrumbItem>

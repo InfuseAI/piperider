@@ -9,6 +9,7 @@ import {
   TimeSeriesScale,
   CategoryScale,
   LinearScale,
+  AnimationOptions,
 } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
 import { ColumnSchema, Histogram } from '../../../sdlc/single-report-schema';
@@ -16,11 +17,7 @@ import {
   formatAsAbbreviatedNumber,
   formatIntervalMinMax,
 } from '../../../utils/formatters';
-import {
-  DATE_RANGE,
-  TEXTLENGTH,
-  VALUE_RANGE,
-} from '../ColumnCard/ColumnTypeDetail/constants';
+import { DATE_RANGE, TEXTLENGTH, VALUE_RANGE } from '../Columns/constants';
 
 import 'chartjs-adapter-date-fns';
 import { DeepPartial } from 'chart.js/types/utils';
@@ -45,12 +42,14 @@ type ScaleTypeConfig = DeepPartial<
 
 type Props = {
   data: Pick<ColumnSchema, 'total' | 'type' | 'histogram' | 'min' | 'max'>;
+  animationOptions?: AnimationOptions<'bar'>['animation'];
   hideAxis?: boolean;
 };
 
 export function HistogramChart({
   data: { histogram, type, total, min, max },
   hideAxis = false,
+  animationOptions = false,
 }: Props) {
   const isDatetime = type === 'datetime';
   const { counts = [], bin_edges: binEdges = [] } =
@@ -127,7 +126,7 @@ export function HistogramChart({
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: false,
+    animation: animationOptions,
     plugins: {
       tooltip: {
         mode: 'index',

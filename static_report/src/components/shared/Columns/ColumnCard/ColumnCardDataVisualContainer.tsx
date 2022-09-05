@@ -1,6 +1,7 @@
 import {
   Button,
   Flex,
+  FlexProps,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -27,7 +28,8 @@ export function ColumnCardDataVisualContainer({
   children,
   allowModalPopup,
   height = 300,
-}: Props) {
+  ...props
+}: Props & FlexProps) {
   const { onOpen, isOpen, onClose } = useDisclosure();
   return (
     <>
@@ -42,6 +44,7 @@ export function ColumnCardDataVisualContainer({
         bg={'whiteAlpha.700'}
         rounded={'md'}
         onClick={() => allowModalPopup && onOpen()}
+        {...props}
       >
         {children}
       </Flex>

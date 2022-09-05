@@ -6,6 +6,7 @@ import {
   Tooltip,
   ChartData,
   Plugin,
+  AnimationOptions,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { Topk } from '../../../sdlc/single-report-schema';
@@ -23,15 +24,17 @@ ChartJS.register(CategoryScale, BarElement, Tooltip);
 interface Props {
   data: Topk;
   total: number;
+  animationOptions?: AnimationOptions<'bar'>['animation'];
 }
 export function CategoricalBarChart({
   data: { counts, values },
   total,
+  animationOptions = false,
 }: Props) {
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: false,
+    animation: animationOptions,
     indexAxis: 'y',
     scales: {
       x: {

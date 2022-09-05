@@ -1,23 +1,21 @@
 import { Flex, Text } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { ZColSchema } from '../../../types';
+import { Link, useLocation } from 'wouter';
+import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { ZColSchema } from '../../../../types';
+import { getDataChart } from '../../../../utils/charts';
 import {
   checkColumnCategorical,
   getChartKindByColumnType,
-} from '../../../utils/transformers';
-import { BooleanPieChart } from '../Charts/BooleanPieChart';
-import { CategoricalBarChart } from '../Charts/CategoricalBarChart';
-import { HistogramChart } from '../Charts/HistogramChart';
+} from '../../../../utils/transformers';
 import { ColumnCardBodyContainer } from './ColumnCardBodyContainer';
 import { ColumnCardDataVisualContainer } from './ColumnCardDataVisualContainer';
-import { ColumnCardHeader } from './ColumnCardHeader';
+import { ColumnTypeHeader } from '../ColumnTypeHeader';
 import { ColumnTypeDetailBoolean } from './ColumnTypeDetail/ColumnTypeDetailBoolean';
 import { ColumnTypeDetailCategorical } from './ColumnTypeDetail/ColumnTypeDetailCategorical';
 import { ColumnTypeDetailDatetime } from './ColumnTypeDetail/ColumnTypeDetailDatetime';
 import { ColumnTypeDetailNumeric } from './ColumnTypeDetail/ColumnTypeDetailNumeric';
 import { ColumnTypeDetailOther } from './ColumnTypeDetail/ColumnTypeDetailOther';
 import { ColumnTypeDetailText } from './ColumnTypeDetail/ColumnTypeDetailText';
-import { FALSES, INVALIDS, NULLS, TRUES } from './ColumnTypeDetail/constants';
 
 interface Props {
   columnDatum: ColumnSchema;
@@ -25,6 +23,7 @@ interface Props {
 export function ColumnCard({ columnDatum }: Props) {
   ZColSchema.parse(columnDatum);
   const { name: title } = columnDatum;
+  const [parentLocation] = useLocation();
 
   return (
     <Flex
@@ -36,7 +35,11 @@ export function ColumnCard({ columnDatum }: Props) {
       my={3}
       rounded={'lg'}
     >
-      <ColumnCardHeader columnDatum={columnDatum} />
+      <ColumnTypeHeader
+        columnDatum={columnDatum}
+        bg={'blue.800'}
+        color={'white'}
+      />
       <ColumnCardDataVisualContainer
         title={title}
         allowModalPopup={Boolean(getChartKindByColumnType(columnDatum))}
@@ -44,72 +47,21 @@ export function ColumnCard({ columnDatum }: Props) {
         {getDataChart(columnDatum)}
       </ColumnCardDataVisualContainer>
       <ColumnCardBodyContainer>
-        {_getColumnBodyContentUI(columnDatum)}
+        <>
+          {_getColumnBodyContentUI(columnDatum)}
+          <Flex justifyContent={'center'} py={2} h={'100%'} alignItems={'end'}>
+            <Link href={`${parentLocation}/columns/${title}`}>
+              <Text
+                as={'a'}
+                color="blue.400"
+                data-cy="column-card-details-link"
+              >
+                Details
+              </Text>
+            </Link>
+          </Flex>
+        </>
       </ColumnCardBodyContainer>
-    </Flex>
-  );
-}
-
-/**
- * Handles logic for rendering the right charts
- * @param columnDatum
- * @param baseColumnRef an optional column reference for comparing `target` against `base` columns, to ensure that the chart kind is consistent across comparisons members
- * @returns *Chart Component
- */
-export function getDataChart(
-  columnDatum: ColumnSchema,
-  baseColumnRef?: ColumnSchema,
-) {
-  const {
-    total,
-    name,
-    type,
-    schema_type,
-    histogram,
-    topk,
-    trues,
-    falses,
-    nulls,
-    invalids,
-    valids,
-    min,
-    max,
-  } = columnDatum;
-
-  const hasSameTypeName =
-    type === baseColumnRef?.type && name === baseColumnRef?.name;
-
-  const chartKind = getChartKindByColumnType(
-    hasSameTypeName ? baseColumnRef : columnDatum,
-  );
-
-  //TopK dataset
-  if (chartKind === 'topk' && topk) {
-    //when hasSameName??
-    return <CategoricalBarChart data={topk} total={total || 0} />;
-  }
-  //histogram dataset
-  if (chartKind === 'histogram' && histogram) {
-    return <HistogramChart data={{ histogram, min, max, type, total }} />;
-  }
-  //pie dataset
-  if (chartKind === 'pie') {
-    const counts = [trues, falses, nulls, invalids].map((v) => (v ? v : 0));
-    const labels = [TRUES, FALSES, NULLS, INVALIDS].map(
-      (v) => v.charAt(0) + v.slice(1).toLowerCase(),
-    );
-    const ratios = counts.map((v) => v / Number(total));
-    return <BooleanPieChart data={{ counts, labels, ratios }} />;
-  }
-
-  const noRenderMessage = Boolean(valids)
-    ? `Chart rendering unavailable for (type: ${schema_type})`
-    : `There are insufficient valid data points in this dataset`;
-  return (
-    <Flex h={230} alignItems={'center'} w={'100%'}>
-      <Text textAlign={'center'} w={'inherit'}>
-        {noRenderMessage}
-      </Text>
     </Flex>
   );
 }

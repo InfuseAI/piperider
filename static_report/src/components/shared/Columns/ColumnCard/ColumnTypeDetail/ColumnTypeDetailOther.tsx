@@ -1,23 +1,22 @@
 import { Flex, Divider } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../../../../sdlc/single-report-schema';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
-} from '../../../../utils/formatters';
-import { getColumnDetails } from '../../../../utils/transformers';
-import { MetricCell } from '../../MetricCell';
-import { DataCompositionMetrics } from '../ColumnMetrics/DataCompositionMetrics';
-import { VALIDS } from './constants';
+} from '../../../../../utils/formatters';
+import { getColumnMetricRatio } from '../../../../../utils/transformers';
+import { MetricCell } from '../../ColumnMetrics/MetricCell';
+import { DataCompositionMatrix } from '../../ColumnMatrices/DataCompositionMatrix';
+import { VALIDS } from '../../constants';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailOther: React.FC<Props> = ({ columnDatum }) => {
   const { valids } = columnDatum;
-  const { validsOfTotal } = getColumnDetails(columnDatum);
+  const validsOfTotal = getColumnMetricRatio('valids', columnDatum);
 
   return (
     <Flex direction={'column'}>
-      <DataCompositionMetrics columnDatum={columnDatum}>
-        <Divider orientation="vertical" />
+      <DataCompositionMatrix columnDatum={columnDatum}>
         <Divider orientation="vertical" />
         <MetricCell
           metaKey="valids"
@@ -25,7 +24,7 @@ export const ColumnTypeDetailOther: React.FC<Props> = ({ columnDatum }) => {
           value={formatColumnValueWith(validsOfTotal, formatIntervalMinMax)}
           subvalue={valids}
         />
-      </DataCompositionMetrics>
+      </DataCompositionMatrix>
       <Divider />
     </Flex>
   );

@@ -3,7 +3,6 @@ import { useEffect, ReactNode } from 'react';
 import * as amplitude from '@amplitude/analytics-browser';
 
 import { Navbar } from './Navbar';
-import { Footer } from './Footer';
 import { Sidebar } from './Sidebar';
 
 interface Props extends FlexProps {
@@ -30,7 +29,7 @@ export function Main({ children, isSingleReport, time, ...props }: Props) {
     <Flex direction="column">
       <Navbar isSingleReport={isSingleReport} time={time} />
 
-      <Flex mt={2}>
+      <Flex>
         <Sidebar />
 
         <Flex
@@ -40,12 +39,10 @@ export function Main({ children, isSingleReport, time, ...props }: Props) {
           bg={bgColor[colorMode]}
           color={color[colorMode]}
           width="100%"
-          minHeight="100vh"
+          minHeight="calc(100vh - 64px)"
           {...props}
         >
           {children}
-
-          <Footer />
         </Flex>
       </Flex>
     </Flex>

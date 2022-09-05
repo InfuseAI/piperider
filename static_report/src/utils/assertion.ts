@@ -1,6 +1,9 @@
-import { NO_VALUE } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
+import { NO_VALUE } from '../components/shared/Columns/constants';
 import {
-  ZTableSchema,
+  dbtAssertionResultSchema,
+  pipeRiderAssertionResultSchema,
+} from '../sdlc/single-report-schema.z';
+import {
   AssertionValue,
   ReportAssertionStatusCounts,
   ComparisonReportSchema,
@@ -20,9 +23,10 @@ export function getReportAggregateAssertions(
   let failed = 0;
 
   zReport(
-    ZTableSchema.shape.piperider_assertion_result.safeParse(
-      piperiderAssertions,
-    ),
+    pipeRiderAssertionResultSchema
+      .optional()
+      .nullable()
+      .safeParse(piperiderAssertions),
   );
 
   const { passed: piperiderPassed, failed: piperiderFailed } =
@@ -37,7 +41,9 @@ export function getReportAggregateAssertions(
   }
 
   if (dbtAssertion) {
-    zReport(ZTableSchema.shape.dbt_assertion_result.safeParse(dbtAssertion));
+    zReport(
+      dbtAssertionResultSchema.optional().nullable().safeParse(dbtAssertion),
+    );
     const { passed: dbtPassed, failed: dbtFailed } =
       getSingleAssertionStatusCounts(dbtAssertion);
 

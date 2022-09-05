@@ -1,7 +1,7 @@
 import { Flex } from '@chakra-ui/react';
 import type { TableSchema } from '../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../types';
-import { ColumnCard } from '../shared/ColumnCard';
+import { ColumnCard } from '../shared/Columns/ColumnCard';
 import { nanoid } from 'nanoid';
 
 interface Props {

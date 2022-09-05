@@ -1,4 +1,4 @@
-describe('Single Report', () => {
+describe('Single Report [table-list-page, table-detail-page]', () => {
   it('should expand the table overview by clicking items', () => {
     cy.visit('http://localhost:3000');
 
@@ -27,8 +27,6 @@ describe('Single Report', () => {
       .get('[data-cy="sr-navigate-report-detail"]')
       .should('exist');
     navigateBtn.click();
-
-    cy.url().should('include', '/tables/ACTION');
   });
 
   it('should navigate to the table detail page and back to overview page', () => {
@@ -42,11 +40,8 @@ describe('Single Report', () => {
       .should('exist');
     navigateBtn.click();
 
-    cy.url().should('include', '/tables/ACTION');
-
     const backLink = cy.get('[data-cy="sr-report-breadcrumb-back"]');
     backLink.click();
-    cy.url().should('equal', 'http://localhost:3000/#/');
   });
 
   it('should get the default list view and toggle to schema view', () => {
@@ -69,5 +64,64 @@ describe('Single Report', () => {
     const closeButton = cy.get('[data-cy="close-feedback-modal"]');
     closeButton.click();
     cy.get('[data-cy="feedback-modal"]').should('not.exist');
+  });
+});
+
+describe('Single Report [column-detail-page]', () => {
+  it('should navigate to the column detail page from the table list page (via schema)', () => {
+    cy.visit('http://localhost:3000');
+    const schemaView = cy.get('[data-cy="schema-view"]');
+    schemaView.click();
+
+    const tableAccordionBtn = cy
+      .get('[data-cy="sr-table-overview-btn"]')
+      .first();
+    tableAccordionBtn.click();
+    const columnAccordionItem = cy
+      .get('[data-cy="sr-table-list-schema-item"]')
+      .first();
+    columnAccordionItem.click();
+  });
+
+  it('should navigate to the column detail page from the table list page (via summary)', () => {
+    cy.visit('http://localhost:3000');
+    const schemaView = cy.get('[data-cy="summary-view"]');
+    schemaView.click();
+
+    const tableAccordionBtn = cy
+      .get('[data-cy="sr-table-overview-btn"]')
+      .first();
+    tableAccordionBtn.click();
+    const columnAccordionItem = cy
+      .get('[data-cy="sr-table-list-column-item"]')
+      .first();
+    columnAccordionItem.click();
+  });
+
+  it('should navigate to the column detail page from the table overview page (via column card)', () => {
+    cy.visit('http://localhost:3000/#/tables/ACTION');
+    const columnCardDetailsLink = cy
+      .get('[data-cy="column-card-details-link"]')
+      .first();
+    columnCardDetailsLink.click();
+  });
+
+  it('should navigate between different column items from the column detail page (and have active selection)', () => {
+    cy.visit('http://localhost:3000/#/tables/ACTION/columns/SYMBOL');
+
+    const firstColumnDetailListItem = cy
+      .get('[data-cy="column-detail-list-item"]')
+      .first();
+    firstColumnDetailListItem
+      .should('have.css', 'background-color')
+      .and('equal', 'rgb(190, 227, 248)');
+
+    const secondColumnDetailListItem = cy
+      .get('[data-cy="column-detail-list-item"]')
+      .last();
+    secondColumnDetailListItem.click();
+    secondColumnDetailListItem
+      .should('have.css', 'background-color')
+      .and('equal', 'rgb(190, 227, 248)');
   });
 });

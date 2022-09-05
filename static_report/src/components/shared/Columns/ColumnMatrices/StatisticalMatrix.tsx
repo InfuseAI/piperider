@@ -5,17 +5,11 @@ import {
   formatNumber,
 } from '../../../../utils/formatters';
 import { checkColumnCategorical } from '../../../../utils/transformers';
-import { MetricCell } from '../../MetricCell';
-import {
-  AVG,
-  MAX,
-  MIN,
-  STDDEV,
-  PLUSMINUS,
-} from '../ColumnTypeDetail/constants';
+import { MetricCell } from '../ColumnMetrics/MetricCell';
+import { AVG, MAX, MIN, STDDEV, PLUSMINUS } from '../constants';
 
 type Props = { columnDatum: ColumnSchema };
-export function StatisticalMetrics({ columnDatum }: Props) {
+export function StatisticalMatrix({ columnDatum }: Props) {
   const { avg, stddev, min, max, type } = columnDatum;
 
   const isTextType = type === 'string';

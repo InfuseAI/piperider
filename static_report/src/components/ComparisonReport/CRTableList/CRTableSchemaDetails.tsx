@@ -8,7 +8,6 @@ import {
   Th,
   Tbody,
   Td,
-  Divider,
   Text,
   Icon,
 } from '@chakra-ui/react';
@@ -22,7 +21,8 @@ import {
   zReport,
   ZTableSchema,
 } from '../../../types';
-import { NO_VALUE } from '../../shared/ColumnCard/ColumnTypeDetail/constants';
+import { NO_VALUE } from '../../shared/Columns/constants';
+import { useLocation } from 'wouter';
 
 type EnrichedColumnData = {
   added: number;
@@ -63,7 +63,9 @@ export function CRTableSchemaDetails({
 }: Props) {
   zReport(ZTableSchema.safeParse(baseTableDatum));
   zReport(ZTableSchema.safeParse(targetTableDatum));
-
+  // eslint-disable-next-line
+  const [_, setLocation] = useLocation();
+  const fallbackTable = baseTableDatum || targetTableDatum;
   const baseColEntries = getEnrichedColumnsFor(baseTableDatum?.columns, 'base');
   const targetColEntries = getEnrichedColumnsFor(
     targetTableDatum?.columns,
@@ -126,6 +128,13 @@ export function CRTableSchemaDetails({
     baseColumns,
     deltaDeleted,
   );
+  // Combine columns on a per-row basis, now that the columns lengths are equalized/matched
+  const combinedSchemaRowItem = equalizedBaseColumns.map((base, index) => {
+    return {
+      base,
+      target: equalizedTargetColumns[index],
+    };
+  });
 
   return (
     <Flex direction="column">
@@ -145,64 +154,64 @@ export function CRTableSchemaDetails({
       </Text>
 
       <Flex justifyContent={'space-evenly'}>
-        {/* Base Columns */}
-        <TableContainer width="50%">
+        <TableContainer w={'100%'}>
           <Table variant="simple">
             <Thead>
               <Tr>
-                <Th>Column</Th>
-                <Th>Type</Th>
+                <Th>Base Column</Th>
+                <Th borderRight={'1px solid lightgray'}>Base Type</Th>
+                <Th>Target Column</Th>
+                <Th>Target Type</Th>
               </Tr>
             </Thead>
             <Tbody>
-              {equalizedBaseColumns.map((column) => (
-                <Tr
-                  key={nanoid(10)}
-                  color={column?.changed ? 'red.500' : 'inherit'}
-                  _hover={{ cursor: visibleDetail ? 'pointer' : 'inherit' }}
-                >
-                  <Td>{column?.name ?? NO_VALUE}</Td>
-                  <Td>{column?.schema_type ?? NO_VALUE}</Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
-
-        <Flex justifyContent={'center'}>
-          <Divider orientation={'vertical'} />
-        </Flex>
-
-        {/* Target Columns */}
-        <TableContainer width="50%">
-          <Table variant="simple">
-            <Thead>
-              <Tr>
-                <Th>Column</Th>
-                <Th>Type</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {equalizedTargetColumns.map((column) => (
-                <Tr
-                  key={nanoid(10)}
-                  color={column?.changed ? 'red.500' : 'inherit'}
-                  position="relative"
-                  _hover={{ cursor: visibleDetail ? 'pointer' : 'inherit' }}
-                >
-                  <Td>{column?.name ?? NO_VALUE}</Td>
-                  <Td>{column?.schema_type ?? NO_VALUE}</Td>
-                  {visibleDetail && (
-                    <Box as="td" position="absolute" top={3} right={0}>
-                      <Icon
-                        as={FiChevronRight}
-                        color="piperider.500"
-                        boxSize={6}
-                      />
-                    </Box>
-                  )}
-                </Tr>
-              ))}
+              {combinedSchemaRowItem.map(
+                ({ base: baseColumn, target: targetColumn }) => {
+                  const fallbackColumn = baseColumn || targetColumn;
+                  return (
+                    <Tr
+                      key={nanoid(10)}
+                      onClick={() =>
+                        visibleDetail &&
+                        setLocation(
+                          `/tables/${fallbackTable?.name}/columns/${fallbackColumn?.name}`,
+                        )
+                      }
+                      position={'relative'}
+                      _hover={{
+                        bg: 'blackAlpha.50',
+                        cursor: visibleDetail ? 'pointer' : 'inherit',
+                      }}
+                      data-cy="cr-table-list-schema-item"
+                    >
+                      <Td color={baseColumn?.changed ? 'red.500' : 'inherit'}>
+                        {baseColumn?.name ?? NO_VALUE}
+                      </Td>
+                      <Td
+                        color={baseColumn?.changed ? 'red.500' : 'inherit'}
+                        borderRight={'1px solid lightgray'}
+                      >
+                        {baseColumn?.schema_type ?? NO_VALUE}
+                      </Td>
+                      <Td color={targetColumn?.changed ? 'red.500' : 'inherit'}>
+                        {targetColumn?.name ?? NO_VALUE}
+                      </Td>
+                      <Td color={targetColumn?.changed ? 'red.500' : 'inherit'}>
+                        {targetColumn?.schema_type ?? NO_VALUE}
+                      </Td>
+                      {visibleDetail && (
+                        <Box as="td" position="absolute" top={3} right={0}>
+                          <Icon
+                            as={FiChevronRight}
+                            color="piperider.500"
+                            boxSize={6}
+                          />
+                        </Box>
+                      )}
+                    </Tr>
+                  );
+                },
+              )}
             </Tbody>
           </Table>
         </TableContainer>
@@ -211,7 +220,11 @@ export function CRTableSchemaDetails({
   );
 }
 
-function equalizeColumns(source, target, delta: number) {
+function equalizeColumns(
+  source: EnrichedColumnData['columns'],
+  target: EnrichedColumnData['columns'],
+  delta: number,
+): EnrichedColumnData['columns'] {
   if (source.length < target.length) {
     return [...source, ...Array(delta).fill(null)];
   }

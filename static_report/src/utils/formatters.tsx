@@ -1,8 +1,6 @@
 import { Text } from '@chakra-ui/react';
-import { format, isValid } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
-import { NO_VALUE } from '../components/shared/ColumnCard/ColumnTypeDetail/constants';
-
+import { NO_VALUE } from '../components/shared/Columns/constants';
 import type { ColumnSchema } from '../sdlc/single-report-schema';
 
 /**
@@ -28,17 +26,12 @@ export function formatReportTime(dateStr: string) {
  * @returns a formatted string number, based on locale & options
  */
 export function formatNumber(
-  num: number,
+  num: number | string | undefined,
   locales = 'en-US',
   options?: Intl.NumberFormatOptions,
 ) {
+  if (typeof num !== 'number') return num;
   return new Intl.NumberFormat(locales, options).format(num);
-}
-
-export function formatDate(input: string) {
-  const parsed = Date.parse(input);
-
-  return isValid(parsed) ? format(parsed, 'yyyy-MM-dd') : input;
 }
 
 /**
@@ -67,7 +60,6 @@ export function formatIntervalMinMax(num: number) {
   return formatter();
 }
 
-//FIXME: is this doing anything since expected|actual are booleans?
 // SR side: No need for object record handling
 // CR side: needs record handling
 export function formatTestExpectedOrActual(value) {
@@ -117,7 +109,7 @@ export function formatTopKMetrics({ topk }: ColumnSchema) {
  * A method to handle falsey non-numbers (relevant for comparison reports with column shifts, where base/target values can be undefined)
  * @param input any value that will be checked as number
  * @param fn any function to format the valid number
- * @param emptyLabel
+ * @param emptyLabel the return value if falsey value
  */
 export function formatColumnValueWith(
   input: any,
@@ -212,4 +204,14 @@ export function formatAsAbbreviatedNumber(input: number | string) {
             : 'scientific',
       }).format(input);
   }
+}
+
+/**
+ * formats as 'Category' instead of 'category' or 'CATEGORY'
+ */
+export function formatTitleCase(input?: string) {
+  if (!input) return NO_VALUE;
+  const start = input.slice(0, 1).toUpperCase();
+  const rest = input.slice(1).toLowerCase();
+  return `${start}${rest}`;
 }

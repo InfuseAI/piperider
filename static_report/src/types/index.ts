@@ -70,18 +70,18 @@ export const zReport = (result) => {
 const zWrapForComparison = (base, target, flag?: boolean) =>
   z.object({ base, [flag ? 'input' : 'target']: target });
 
-export const ZColSchema = columnSchemaSchema;
+export const ZColSchema = columnSchemaSchema.optional();
 
-export const ZTableSchema = tableSchemaSchema.merge(
-  z.object({ columns: z.record(ZColSchema) }),
-);
+export const ZTableSchema = tableSchemaSchema
+  .merge(z.object({ columns: z.record(ZColSchema.optional()) }))
+  .optional();
 
 //TODO: temp bypass flag until `input` -> `target` on schema.json
 export const ZComparisonTableSchema = (flag?: boolean) =>
   zWrapForComparison(ZTableSchema, ZTableSchema, flag);
 
 export const ZSingleSchema = singleReportSchemaSchema.merge(
-  z.object({ tables: z.record(ZTableSchema) }),
+  z.object({ tables: z.record(ZTableSchema.optional()) }),
 );
 
 //TODO: temp bypass flag until `input` -> `target` on schema.json
