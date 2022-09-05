@@ -1,4 +1,5 @@
 import { NO_VALUE } from '../components/shared/Columns/constants';
+import { AssertionTest } from '../sdlc/single-report-schema';
 import {
   dbtAssertionResultSchema,
   pipeRiderAssertionResultSchema,
@@ -11,6 +12,23 @@ import {
   zReport,
   SaferTableSchema,
 } from '../types';
+
+export function getAssertions(assertions: AssertionTest[]) {
+  const total = assertions.length;
+  const failed = assertions.reduce((acc, test) => {
+    if (test.status === 'failed') {
+      acc++;
+    }
+    return acc;
+  }, 0);
+  const passed = total - failed;
+
+  return {
+    total,
+    passed,
+    failed,
+  };
+}
 
 /**
  * Get the report assertions by giving piperider and dbt assertions.
