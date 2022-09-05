@@ -106,11 +106,6 @@ describe('Comparison Report [column-detail-page]', () => {
       .get('[data-cy="cr-table-list-column-item"]')
       .first();
     columnAccordionItem.click();
-
-    cy.url().should(
-      'equal',
-      'http://localhost:3001/#/tables/ACTION/columns/SYMBOL',
-    );
   });
 
   it('should navigate between different column items from the column detail page (and have active selection)', () => {

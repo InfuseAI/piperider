@@ -68,6 +68,7 @@ jobs:
       uses: cypress-io/github-action@v2
       with:
         install: false
+        record: false
         working-directory: ./static_report
         config-file: cypress.config.ts
         start: |
