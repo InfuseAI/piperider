@@ -27,8 +27,6 @@ describe('Single Report [table-list-page, table-detail-page]', () => {
       .get('[data-cy="sr-navigate-report-detail"]')
       .should('exist');
     navigateBtn.click();
-
-    cy.url().should('include', '/tables/ACTION');
   });
 
   it('should navigate to the table detail page and back to overview page', () => {
@@ -42,11 +40,8 @@ describe('Single Report [table-list-page, table-detail-page]', () => {
       .should('exist');
     navigateBtn.click();
 
-    cy.url().should('include', '/tables/ACTION');
-
     const backLink = cy.get('[data-cy="sr-report-breadcrumb-back"]');
     backLink.click();
-    cy.url().should('equal', 'http://localhost:3000/#/');
   });
 
   it('should get the default list view and toggle to schema view', () => {
@@ -86,11 +81,6 @@ describe('Single Report [column-detail-page]', () => {
       .get('[data-cy="sr-table-list-schema-item"]')
       .first();
     columnAccordionItem.click();
-
-    cy.url().should(
-      'equal',
-      'http://localhost:3000/#/tables/ACTION/columns/SYMBOL',
-    );
   });
 
   it('should navigate to the column detail page from the table list page (via summary)', () => {
@@ -106,11 +96,6 @@ describe('Single Report [column-detail-page]', () => {
       .get('[data-cy="sr-table-list-column-item"]')
       .first();
     columnAccordionItem.click();
-
-    cy.url().should(
-      'equal',
-      'http://localhost:3000/#/tables/ACTION/columns/SYMBOL',
-    );
   });
 
   it('should navigate to the column detail page from the table overview page (via column card)', () => {
@@ -119,11 +104,6 @@ describe('Single Report [column-detail-page]', () => {
       .get('[data-cy="column-card-details-link"]')
       .first();
     columnCardDetailsLink.click();
-
-    cy.url().should(
-      'equal',
-      'http://localhost:3000/#/tables/ACTION/columns/SYMBOL',
-    );
   });
 
   it('should navigate between different column items from the column detail page (and have active selection)', () => {
@@ -143,10 +123,5 @@ describe('Single Report [column-detail-page]', () => {
     secondColumnDetailListItem
       .should('have.css', 'background-color')
       .and('equal', 'rgb(190, 227, 248)');
-
-    cy.url().should(
-      'equal',
-      'http://localhost:3000/#/tables/ACTION/columns/SPLITS',
-    );
   });
 });
