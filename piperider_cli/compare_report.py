@@ -86,7 +86,7 @@ class ComparisonData(object):
             # TODO: rename input -> target in schema and result json
             input=self._target,
         )
-        return json.dumps(output)
+        return json.dumps(output, separators=(',', ':'))
 
 
 def prepare_default_output_path(comparison_dir: str, created_at):
