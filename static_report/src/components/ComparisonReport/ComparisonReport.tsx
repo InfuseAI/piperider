@@ -14,7 +14,7 @@ import { Main } from '../shared/Main';
 import { getComparisonAssertions } from '../../utils/assertion';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { CRModal, TestDetail } from './CRModal/CRModal';
+import { CRModal, TestDetail } from '../shared/Modals/CRModal/CRModal';
 import {
   ComparisonReportSchema,
   ZComparisonSchema,
