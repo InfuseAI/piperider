@@ -10,11 +10,13 @@ import {
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 import { FiChevronRight } from 'react-icons/fi';
-import { Link } from 'wouter';
-
+import { Selectable } from '../../../types';
 import { type TableSchema } from '../../../sdlc/single-report-schema';
 
-export function SRTableListSchemaDetail({ table }: { table: TableSchema }) {
+interface Props extends Selectable {
+  table: TableSchema;
+}
+export function SRTableListSchemaDetail({ table, onSelect }: Props) {
   return (
     <TableContainer>
       <Table variant="simple">
@@ -27,21 +29,20 @@ export function SRTableListSchemaDetail({ table }: { table: TableSchema }) {
         </Thead>
         <Tbody>
           {Object.keys(table.columns).map((colName) => (
-            <Link
+            <Tr
               key={nanoid(10)}
-              href={`/tables/${table.name}/columns/${colName}`}
+              onClick={() =>
+                onSelect({ tableName: table.name, columnName: colName })
+              }
+              _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
+              data-cy="sr-table-list-schema-item"
             >
-              <Tr
-                _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
-                data-cy="sr-table-list-schema-item"
-              >
-                <Td>{table.columns[colName]?.name}</Td>
-                <Td>{table.columns[colName]?.schema_type}</Td>
-                <Td>
-                  <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
-                </Td>
-              </Tr>
-            </Link>
+              <Td>{table.columns[colName]?.name}</Td>
+              <Td>{table.columns[colName]?.schema_type}</Td>
+              <Td>
+                <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
+              </Td>
+            </Tr>
           ))}
         </Tbody>
       </Table>

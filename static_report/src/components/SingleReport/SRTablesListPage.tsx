@@ -88,7 +88,14 @@ export function SRTablesListPage({ data }: Props) {
                             />
                           </Stack>
                         ) : (
-                          <SRTableListSchemaDetail table={table} />
+                          <SRTableListSchemaDetail
+                            table={table}
+                            onSelect={({ tableName, columnName }) =>
+                              setLocation(
+                                `/tables/${tableName}/columns/${columnName}`,
+                              )
+                            }
+                          />
                         )}
                       </AccordionPanel>
                     </>
