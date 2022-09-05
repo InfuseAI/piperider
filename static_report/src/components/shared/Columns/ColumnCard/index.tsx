@@ -53,6 +53,7 @@ export function ColumnCard({ columnDatum, onSelect }: Props) {
             h={'100%'}
             alignItems={'end'}
             _hover={{ bgColor: 'blackAlpha.50' }}
+            cursor={'pointer'}
             onClick={() => onSelect({ columnName })}
             data-cy="column-card-details-link"
           >
