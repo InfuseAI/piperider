@@ -19,8 +19,7 @@ interface Props {
   data: SingleReportSchema;
 }
 export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
-  // eslint-disable-next-line
-  const [_, params] = useRoute('/tables/:reportName/columns/:columnName');
+  const [, params] = useRoute('/tables/:reportName/columns/:columnName');
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
   const time = formatReportTime(created_at);

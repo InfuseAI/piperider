@@ -1,7 +1,6 @@
 import { Flex, Text } from '@chakra-ui/react';
-import { Link, useLocation } from 'wouter';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { ZColSchema } from '../../../../types';
+import { Selectable, ZColSchema } from '../../../../types';
 import { getDataChart } from '../../../../utils/charts';
 import {
   checkColumnCategorical,
@@ -17,13 +16,12 @@ import { ColumnTypeDetailNumeric } from './ColumnTypeDetail/ColumnTypeDetailNume
 import { ColumnTypeDetailOther } from './ColumnTypeDetail/ColumnTypeDetailOther';
 import { ColumnTypeDetailText } from './ColumnTypeDetail/ColumnTypeDetailText';
 
-interface Props {
+interface Props extends Selectable {
   columnDatum: ColumnSchema;
 }
-export function ColumnCard({ columnDatum }: Props) {
+export function ColumnCard({ columnDatum, onSelect }: Props) {
   ZColSchema.parse(columnDatum);
-  const { name: title } = columnDatum;
-  const [parentLocation] = useLocation();
+  const { name: columnName } = columnDatum;
 
   return (
     <Flex
@@ -41,7 +39,7 @@ export function ColumnCard({ columnDatum }: Props) {
         color={'white'}
       />
       <ColumnCardDataVisualContainer
-        title={title}
+        title={columnName}
         allowModalPopup={Boolean(getChartKindByColumnType(columnDatum))}
       >
         {getDataChart(columnDatum)}
@@ -49,16 +47,18 @@ export function ColumnCard({ columnDatum }: Props) {
       <ColumnCardBodyContainer>
         <>
           {_getColumnBodyContentUI(columnDatum)}
-          <Flex justifyContent={'center'} py={2} h={'100%'} alignItems={'end'}>
-            <Link href={`${parentLocation}/columns/${title}`}>
-              <Text
-                as={'a'}
-                color="blue.400"
-                data-cy="column-card-details-link"
-              >
-                Details
-              </Text>
-            </Link>
+          <Flex
+            justifyContent={'center'}
+            py={2}
+            h={'100%'}
+            alignItems={'end'}
+            _hover={{ bgColor: 'blackAlpha.50' }}
+            onClick={() => onSelect({ columnName })}
+            data-cy="column-card-details-link"
+          >
+            <Text as={'a'} color="blue.400">
+              Details
+            </Text>
           </Flex>
         </>
       </ColumnCardBodyContainer>
