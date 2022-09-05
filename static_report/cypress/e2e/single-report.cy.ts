@@ -49,15 +49,6 @@ describe('Single Report [table-list-page, table-detail-page]', () => {
     cy.url().should('equal', 'http://localhost:3000/#/');
   });
 
-  it('should navigate to table detail page and toggle tests tab', () => {
-    cy.visit('http://localhost:3000/#/tables/ACTION');
-
-    const testsTab = cy.get('[data-cy="sr-report-tests-tab"]');
-    testsTab.should('have.attr', 'aria-selected', 'false');
-    testsTab.click();
-    testsTab.should('have.attr', 'aria-selected', 'true');
-  });
-
   it('should get the default list view and toggle to schema view', () => {
     cy.visit('http://localhost:3000');
 

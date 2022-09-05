@@ -180,8 +180,8 @@ class Configuration(object):
         )
 
         for d in self.dataSources:
-            if d.type_name == 'sqlite':
-                datasource = dict(name=d.name, type=d.type_name, dbpath=d.credential['dbpath'])
+            if d.credential_source == 'config':
+                datasource = dict(name=d.name, type=d.type_name, **d.credential)
             else:
                 datasource = dict(name=d.name, type=d.type_name)
             if d.args.get('dbt'):
@@ -200,7 +200,7 @@ class Configuration(object):
         """
         creds = dict()
         for d in self.dataSources:
-            if after_init_config and d.type_name == 'sqlite':
+            if after_init_config and d.credential_source == 'config':
                 continue
             creds[d.name] = dict(type=d.type_name, **d.credential)
 

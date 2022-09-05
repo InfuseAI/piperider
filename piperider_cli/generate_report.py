@@ -2,6 +2,7 @@ import json
 import os
 import re
 import shutil
+from base64 import b64encode
 
 from rich.console import Console
 
@@ -40,16 +41,17 @@ def setup_report_variables(template_html: str, is_single: bool, data):
     else:
         output = data
     metadata = json.dumps(prepare_piperider_metadata())
+    encoded_output = b64encode(bytes(output, "utf-8")).decode("ascii")
     if is_single:
         variables = f'<script id="piperider-report-variables">\n' \
                     f'window.PIPERIDER_METADATA={metadata};' \
-                    f'window.PIPERIDER_SINGLE_REPORT_DATA={output};' \
+                    f'window.PIPERIDER_SINGLE_REPORT_DATA=JSON.parse(atob("{encoded_output}"));' \
                     f'window.PIPERIDER_COMPARISON_REPORT_DATA="";</script>'
     else:
         variables = f'<script id="piperider-report-variables">\n' \
                     f'window.PIPERIDER_METADATA={metadata};' \
                     f'window.PIPERIDER_SINGLE_REPORT_DATA="";' \
-                    f'window.PIPERIDER_COMPARISON_REPORT_DATA={output};</script>'
+                    f'window.PIPERIDER_COMPARISON_REPORT_DATA=JSON.parse(atob("{encoded_output}"));</script>'
     html_parts = re.sub(r'<script id="piperider-report-variables">.+?</script>', '#PLACEHOLDER#', template_html).split(
         '#PLACEHOLDER#')
     html = html_parts[0] + variables + html_parts[1]

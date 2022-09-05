@@ -61,9 +61,17 @@ class PipeRiderConnectorError(PipeRiderError):
         self.hint = f'Please run \'pip install piperider\[{datasource_name}]\' to get the {datasource_name} connector'
 
 
-class PipeRiderConnectionError(PipeRiderError):
+class PipeRiderTableConnectionError(PipeRiderError):
     def __init__(self, name, type_name):
-        self.message = f'No available table found or no access permission found from \'{name}\' data source'
+        self.message = f'No available table found or no access permission found from \'{name}\' data source.'
+        self.hint = f'Please verify your {type_name} data source with correct access permission.'
+
+
+class PipeRiderDataBaseConnectionError(PipeRiderError):
+    def __init__(self, name, type_name, db_path=None):
+        self.message = f'No available database found from \'{name}\' data source.'
+        if db_path:
+            self.message += f' Cannot access the database file: \'{db_path}\''
         self.hint = f'Please verify your {type_name} data source with correct access permission.'
 
 
@@ -142,9 +150,13 @@ class IllegalStateAssertionError(PipeRiderError):
 
 
 class AwsCredentialsError(PipeRiderError):
-    type = 'redshift'
-
-    def __init__(self, error_msg):
+    def __init__(self, error_msg, type='redshift'):
+        self.type = type
         self.message = error_msg
         self.hint = 'Please configure the AWS credentials by command "aws configure".\n  Or setup the environment variables "AWS_ACCESS_KEY_ID" & "AWS_SECRET_ACCESS_KEY".'
         pass
+
+
+class AwsUnExistedS3Bucket(PipeRiderError):
+    def __init__(self, bucket):
+        self.message = f'S3 bucket "{bucket}" does not exist'

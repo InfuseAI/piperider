@@ -6,14 +6,14 @@ import { transformAsNestedBaseTargetRecord } from '../../utils/transformers';
 import { ColumnCardDataVisualContainer } from '../shared/Columns/ColumnCard/ColumnCardDataVisualContainer';
 import { CRColumnDetailsRow } from './CRColumnDetailsRow';
 
-type CRTabProfilingDetailsProps = {
+type CRProfilingDetailsProps = {
   baseTable?: SaferTableSchema;
   targetTable?: SaferTableSchema;
 };
 export function CRProfilingDetails({
   baseTable,
   targetTable,
-}: CRTabProfilingDetailsProps) {
+}: CRProfilingDetailsProps) {
   zReport(ZTableSchema.safeParse(baseTable));
   zReport(ZTableSchema.safeParse(targetTable));
 

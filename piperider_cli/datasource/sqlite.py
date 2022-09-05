@@ -16,7 +16,7 @@ class SqliteDataSource(DataSource):
         if 'dbt' in kwargs:
             dbpath = kwargs.get('credential', {}).get('schemas_and_paths', {}).get('main')
             kwargs.get('credential', {})['dbpath'] = dbpath
-
+        self.credential_source = 'config'
         self.fields = [
             PathField('dbpath', description='Path of database file'),
         ]

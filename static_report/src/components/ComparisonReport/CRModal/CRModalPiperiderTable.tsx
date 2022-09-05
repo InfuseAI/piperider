@@ -8,7 +8,7 @@ import {
   Td,
 } from '@chakra-ui/react';
 import { formatTestExpectedOrActual } from '../../../utils/formatters';
-import { TestStatus } from '../../shared/TestStatus';
+import { AssertionStatus } from '../../shared/AssertionStatus';
 import { CRModalData } from './CRModal';
 
 type Props = { data?: CRModalData };
@@ -29,7 +29,7 @@ export function PipeRiderTable({ data }: Props) {
           <Tr>
             <Td fontWeight={700}>Base</Td>
             <Td>
-              <TestStatus status={data?.base?.status} />
+              <AssertionStatus status={data?.base?.status} />
             </Td>
             <Td>{formatTestExpectedOrActual(data?.base?.expected)}</Td>
             <Td>{formatTestExpectedOrActual(data?.base?.actual)}</Td>
@@ -38,7 +38,7 @@ export function PipeRiderTable({ data }: Props) {
           <Tr>
             <Td fontWeight={700}>Target</Td>
             <Td>
-              <TestStatus status={data?.target?.status} />
+              <AssertionStatus status={data?.target?.status} />
             </Td>
             <Td>{formatTestExpectedOrActual(data?.target?.expected)}</Td>
             <Td>{formatTestExpectedOrActual(data?.target?.actual)}</Td>

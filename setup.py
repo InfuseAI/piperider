@@ -40,7 +40,7 @@ setup(name='piperider',
       ],
       extras_require={
           'snowflake': [
-              'snowflake-sqlalchemy<1.4.0'
+              'snowflake-sqlalchemy'
           ],
           'postgres': [
               # you need a postgres for m1 to install psycopg2
@@ -58,6 +58,10 @@ setup(name='piperider',
               'redshift-connector',
               'psycopg2-binary',
               'boto3>=1.24.11',
+          ],
+          'duckdb': [
+              'duckdb>=0.4.0',
+              'duckdb-engine>=0.6.1'
           ],
           'dev': [
               'pytest>=4.6',

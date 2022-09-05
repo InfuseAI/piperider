@@ -10,7 +10,7 @@ export function Navbar({ time, isSingleReport }: Props) {
   return (
     <Flex alignItems="center" px={6} bg="white" boxShadow="md">
       <Link href="/">
-        <Image src="/logo.svg" height="64px" alt="PipeRider" />
+        <Image src="logo/logo.svg" height="64px" alt="PipeRider" />
       </Link>
 
       <Flex
