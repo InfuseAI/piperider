@@ -40,12 +40,14 @@ export function CRColumnDetailsPage({
   }
 
   const { reportName, columnName } = params;
+  const decodedColName = decodeURIComponent(columnName);
+  const decodedTableName = decodeURIComponent(reportName);
 
-  const baseDataColumns = baseTables[reportName]?.columns || {};
-  const targetDataColumns = targetTables[reportName]?.columns || {};
+  const baseDataColumns = baseTables[decodedTableName]?.columns || {};
+  const targetDataColumns = targetTables[decodedTableName]?.columns || {};
 
-  const baseColumnDatum = baseDataColumns[columnName];
-  const targetColumnDatum = targetDataColumns[columnName];
+  const baseColumnDatum = baseDataColumns[decodedColName];
+  const targetColumnDatum = targetDataColumns[decodedColName];
   const columnHeaderDatum = baseColumnDatum?.type
     ? baseColumnDatum
     : targetColumnDatum;
@@ -61,8 +63,8 @@ export function CRColumnDetailsPage({
           <ColumnDetailsMasterList
             baseDataColumns={baseDataColumns}
             targetDataColumns={targetDataColumns}
-            currentReport={reportName}
-            currentColumn={columnName}
+            currentReport={decodedTableName}
+            currentColumn={decodedColName}
             hasSplitView
           />
         </GridItem>
