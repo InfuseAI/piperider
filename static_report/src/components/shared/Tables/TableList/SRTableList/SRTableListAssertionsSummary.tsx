@@ -1,20 +1,15 @@
 import { Flex, Text, Icon } from '@chakra-ui/react';
 import { FiCheck, FiX } from 'react-icons/fi';
 
-import { type AssertionTest } from '../../../sdlc/single-report-schema';
+import { getAssertions } from '../../../../../utils/assertion';
+import { type AssertionTest } from '../../../../../sdlc/single-report-schema';
 
 export function SRTableListAssertionsSummary({
   assertions,
 }: {
   assertions: AssertionTest[];
 }) {
-  const total = assertions.length;
-  const failed = assertions.reduce((acc, test) => {
-    if (test.status === 'failed') {
-      acc++;
-    }
-    return acc;
-  }, 0);
+  const { total, failed } = getAssertions(assertions);
   const isPassed = failed === 0;
 
   return (

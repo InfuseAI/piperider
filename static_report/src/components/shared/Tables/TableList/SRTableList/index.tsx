@@ -10,32 +10,38 @@ import {
 } from '@chakra-ui/react';
 import { FiAlertCircle, FiCheck, FiChevronRight, FiGrid } from 'react-icons/fi';
 
-import { SaferTableSchema, Selectable } from '../../../types';
-import { getReportAggregateAssertions } from '../../../utils/assertion';
-import { NoData } from '../../shared/NoData';
-import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
+import { NoData } from '../../../NoData';
 import { SRTableListColumnLabel } from './SRTableListColumnLabel';
-import { getIconForColumnType } from '../../../utils/transformers';
+
+import { getReportAggregateAssertions } from '../../../../../utils/assertion';
+import {
+  formatColumnValueWith,
+  formatNumber,
+} from '../../../../../utils/formatters';
+import { getIconForColumnType } from '../../../../../utils/transformers';
+import type { SaferTableSchema, Selectable } from '../../../../../types';
 
 interface Props extends Selectable {
   isExpanded: boolean;
   tableDatum?: SaferTableSchema;
 }
+
 export function SRTableListItem({
   isExpanded,
   tableDatum: table,
   onSelect,
 }: Props) {
-  const assertions = getReportAggregateAssertions(
+  const { failed, total } = getReportAggregateAssertions(
     table?.piperider_assertion_result,
     table?.dbt_assertion_result,
   );
-  const totalAssertions = assertions.passed + assertions.failed;
-  const hasFailed = assertions.failed > 0;
-
+  const hasFailed = failed > 0;
   const columns = Object.keys(table?.columns || {}).map((key) => key);
 
-  if (!table) return <NoData />;
+  if (!table) {
+    return <NoData />;
+  }
+
   return (
     <AccordionButton
       bgColor="white"
@@ -81,7 +87,7 @@ export function SRTableListItem({
             <Flex gap={1} alignItems="center">
               {hasFailed ? (
                 <Text as="span" color="#F60059">
-                  {assertions.failed} fails
+                  {failed} fails
                 </Text>
               ) : (
                 <Center
@@ -99,9 +105,7 @@ export function SRTableListItem({
                 /
               </Text>
               <Text as="span" mr={3}>
-                {totalAssertions === 0
-                  ? 'none'
-                  : `${totalAssertions} assertions`}
+                {total === 0 ? 'none' : `${total} assertions`}
               </Text>
               {isExpanded && (
                 <Flex
@@ -154,7 +158,7 @@ export function SRTableListItem({
                     },
                   }}
                 >
-                  {columns &&
+                  {columns.length > 0 &&
                     columns.map((name) => (
                       <SRTableListColumnLabel
                         key={name}

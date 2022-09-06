@@ -1,31 +1,20 @@
 import { Grid, GridItem, Flex, Icon, Text } from '@chakra-ui/react';
 import { FiChevronRight } from 'react-icons/fi';
-import { TableSchema } from '../../../sdlc/single-report-schema';
-import { Selectable } from '../../../types';
-import { getIconForColumnType } from '../../../utils/transformers';
-import { HistogramChart } from '../../shared/Charts/HistogramChart';
-import { ColumnName } from '../../shared/Tables/TableList/ColumnName';
+
+import { HistogramChart } from '../../../Charts/HistogramChart';
+import { ColumnName } from '../ColumnName';
 import { SRTableListAssertionsSummary } from './SRTableListAssertionsSummary';
+
+import { getIconForColumnType } from '../../../../../utils/transformers';
+import type { TableSchema } from '../../../../../sdlc/single-report-schema';
+import type { Selectable } from '../../../../../types';
 
 interface Props extends Selectable {
   table: TableSchema;
 }
-export function SRTableListColumnList({ table, onSelect }: Props) {
-  const columns = Object.keys(table.columns).map((colName) => {
-    const { icon: colIcon } = getIconForColumnType(table.columns[colName]);
-    const columnDatum = table.columns[colName];
-    const mergedColAssertions = [
-      ...(table.piperider_assertion_result?.columns[colName] || []),
-      ...(table.dbt_assertion_result?.columns[colName] || []),
-    ];
 
-    return {
-      colName,
-      colIcon,
-      columnDatum,
-      mergedColAssertions,
-    };
-  });
+export function SRTableListColumnList({ table, onSelect }: Props) {
+  const columns = getTableColumns(table);
 
   return (
     <>
@@ -72,4 +61,24 @@ export function SRTableListColumnList({ table, onSelect }: Props) {
       })}
     </>
   );
+}
+
+function getTableColumns(table: TableSchema) {
+  const columns = Object.keys(table.columns).map((colName) => {
+    const { icon: colIcon } = getIconForColumnType(table.columns[colName]);
+    const columnDatum = table.columns[colName];
+    const mergedColAssertions = [
+      ...(table.piperider_assertion_result?.columns[colName] || []),
+      ...(table.dbt_assertion_result?.columns[colName] || []),
+    ];
+
+    return {
+      colName,
+      colIcon,
+      columnDatum,
+      mergedColAssertions,
+    };
+  });
+
+  return columns;
 }

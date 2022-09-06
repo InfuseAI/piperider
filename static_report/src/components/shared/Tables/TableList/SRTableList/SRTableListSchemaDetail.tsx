@@ -10,12 +10,14 @@ import {
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 import { FiChevronRight } from 'react-icons/fi';
-import { Selectable } from '../../../types';
-import { type TableSchema } from '../../../sdlc/single-report-schema';
+
+import type { TableSchema } from '../../../../../sdlc/single-report-schema';
+import type { Selectable } from '../../../../../types';
 
 interface Props extends Selectable {
   table: TableSchema;
 }
+
 export function SRTableListSchemaDetail({ table, onSelect }: Props) {
   return (
     <TableContainer>

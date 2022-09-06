@@ -1,5 +1,6 @@
-import { Flex, Icon, Image, Text, Link } from '@chakra-ui/react';
+import { Flex, Icon, Image, Text, Link as CharakaLink } from '@chakra-ui/react';
 import { FiSquare, FiColumns } from 'react-icons/fi';
+import { Link } from 'wouter';
 
 type Props = {
   time: string;
@@ -9,9 +10,11 @@ type Props = {
 export function Navbar({ time, isSingleReport }: Props) {
   return (
     <Flex alignItems="center" px={6} bg="white" boxShadow="md">
-      <Link href="/">
-        <Image src="logo/logo.svg" height="64px" alt="PipeRider" />
-      </Link>
+      <CharakaLink as={Link} to="/">
+        <a href="/">
+          <Image src="logo/logo.svg" height="64px" alt="PipeRider" />
+        </a>
+      </CharakaLink>
 
       <Flex
         justifyContent="center"

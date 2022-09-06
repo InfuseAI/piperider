@@ -77,6 +77,7 @@ export function getReportAggregateAssertions(
   return {
     passed,
     failed,
+    total: passed + failed,
   };
 }
 
