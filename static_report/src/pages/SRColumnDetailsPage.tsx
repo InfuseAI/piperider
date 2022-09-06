@@ -33,8 +33,12 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
   }
 
   const { reportName, columnName } = params;
-  const dataColumns = tables[reportName].columns;
-  const columnDatum = dataColumns[columnName];
+  const decodedColName = decodeURIComponent(columnName);
+  const decodedTableName = decodeURIComponent(reportName);
+
+  const dataColumns = tables[decodedTableName].columns;
+  const columnDatum = dataColumns[decodedColName];
+
   const { type, histogram } = columnDatum;
 
   const borderVal = '1px solid lightgray';
@@ -46,8 +50,8 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailsMasterList
             baseDataColumns={dataColumns}
-            currentReport={reportName}
-            currentColumn={columnName}
+            currentReport={decodedTableName}
+            currentColumn={decodedColName}
           />
         </GridItem>
 

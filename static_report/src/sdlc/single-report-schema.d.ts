@@ -25,6 +25,10 @@ export interface TableSchema {
   name: string;
   description?: string;
   row_count?: number;
+  created?: string;
+  last_altered?: string;
+  bytes?: number;
+  freshness?: number;
   col_count?: number;
   columns: {
     [k: string]: ColumnSchema;
