@@ -1,3 +1,6 @@
+import os
+
+
 class PipeRiderError(Exception):
     """ Base class for piperider errors. """
 
@@ -73,6 +76,14 @@ class PipeRiderDataBaseConnectionError(PipeRiderError):
         if db_path:
             self.message += f' Cannot access the database file: \'{db_path}\''
         self.hint = f'Please verify your {type_name} data source with correct access permission.'
+
+
+class PipeRiderDataBaseEncodingError(PipeRiderError):
+    def __init__(self, file_path, type_name, current_encoding, support_encoding):
+        self.message = f'Unsupported file encoding format \'{current_encoding}\'. ' \
+                       f'Currently we only support \'{support_encoding}\' encoding format in {type_name} data source.'
+        self.hint = f'Please use the following command to transfer file encoding.\n' \
+                    f'    \'iconv -f {current_encoding} -t {support_encoding} "{file_path}" > "utf8-{os.path.basename(file_path)}"\''
 
 
 class PipeRiderDiagnosticError(PipeRiderError):

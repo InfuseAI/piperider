@@ -7,7 +7,6 @@ from datetime import datetime
 
 from rich import box
 from rich.console import Console
-from rich.markup import escape
 from rich.pretty import Pretty
 from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedColumn, MofNCompleteColumn
 from rich.table import Table
@@ -548,17 +547,15 @@ class Runner():
         err = ds.verify_connector()
         if err:
             console.print(
-                f'[[bold red]FAILED[/bold red]] Failed to load the \'{ds.type_name}\' connector. Reason: {err}')
-            console.print(f'\n{escape(err.hint)}\n')
-            return 1
+                f'[[bold red]FAILED[/bold red]] Failed to load the \'{ds.type_name}\' connector.')
+            raise err
 
         try:
             available_tables = ds.verify_connection()
         except Exception as err:
             console.print(
-                f'[[bold red]FAILED[/bold red]] Failed to connect the \'{ds.name}\' data source. Reason: {err}')
-            console.print(f'\n{escape(err.hint)}\n')
-            return 1
+                f'[[bold red]FAILED[/bold red]] Failed to connect the \'{ds.name}\' data source.')
+            raise err
         stop_runner = _validate_assertions(console)
         if stop_runner:
             console.print('\n\n[bold red]ERROR:[/bold red] Stop profiling, please fix the syntax errors above.')

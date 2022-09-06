@@ -14,7 +14,8 @@ def _get_version():
 
 duckdb_require_packages = [
     'duckdb>=0.4.0',
-    'duckdb-engine>=0.6.1'
+    'duckdb-engine>=0.6.1',
+    'chardet>=5.0.0',
 ]
 
 setup(name='piperider',
@@ -40,7 +41,7 @@ setup(name='piperider',
           'inquirer>=2.10.0',
           'jinja2',
           'portalocker',
-          'requests',
+          'requests>=2.28.1',
           'deepmerge',
       ],
       extras_require={
