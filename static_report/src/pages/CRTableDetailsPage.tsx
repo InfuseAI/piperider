@@ -25,7 +25,7 @@ import {
   ZTableSchema,
 } from '../types';
 import { CRColumnSummaryListWidget } from '../components/shared/Widgets/CRColumnSummaryListWidget';
-import { CRTableOverview } from '../components/shared/Tables/CRTableOverview';
+import { TableOverview } from '../components/shared/Tables/TableOverview';
 import { formatReportTime } from '../utils/formatters';
 import { CollapseContent } from '../components/shared/CollapseContent';
 import { CRAssertionDetailsWidget } from '../components/shared/Widgets/CRAssertionDetailsWidget';
@@ -116,7 +116,7 @@ export default function CRTableDetailsPage({ data, name: reportName }: Props) {
           mx="5%"
           direction="column"
         >
-          <CRTableOverview baseTable={baseTable} targetTable={targetTable} />
+          <TableOverview baseTable={baseTable} targetTable={targetTable} />
 
           <Heading size="md">Assertions</Heading>
           <CollapseContent
