@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | Row count | Number of rows in this table | `row_count` |  |
 | Column count | Number of columns in this table | `col_count` |  |
-| Bytes *\** | The volume size of this table in bytes | `bytes` | v0.8.0 |
+| Volume size *\** | The volume size of this table in bytes | `bytes` | v0.8.0 |
 | Created time *\**| The time that this table created at in ISO 8601 format including time zone | `created` | v0.8.0 |
 | Last altered time *\**| The last time that this table modified at in ISO 8601 format including time zone | `last_altered` | v0.8.0 |
 | Freshness *\** | Time differentiation between the current time and table's last altered time | `freshness` | v0.8.0 |
