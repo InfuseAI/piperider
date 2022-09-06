@@ -11,7 +11,7 @@ import {
 import { FiAlertCircle, FiChevronRight, FiGrid } from 'react-icons/fi';
 
 import { CRTableListColumnsSummary } from './CRTableListColumnsSummary';
-import { CRTableListRowsSummary } from './CRTableListRowsSummary';
+import { CRTableListDeltaSummary } from './CRTableListDeltaSummary';
 import { SaferTableSchema } from '../../../../../types';
 import { ReactNode } from 'react';
 
@@ -68,7 +68,7 @@ export function CRTableListItem({
           <GridItem>
             <Flex gap={10} color="gray.500">
               <Text>Rows</Text>
-              <CRTableListRowsSummary
+              <CRTableListDeltaSummary
                 baseCount={baseTableDatum?.row_count}
                 targetCount={targetTableDatum?.row_count}
               />
