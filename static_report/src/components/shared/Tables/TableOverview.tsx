@@ -6,11 +6,14 @@ import { SaferTableSchema, zReport, ZTableSchema } from '../../../types';
 type Props = {
   baseTable?: SaferTableSchema;
   targetTable?: SaferTableSchema;
+  singleOnly?: boolean;
 };
 
-export function CRTableOverview({ baseTable, targetTable }: Props) {
+export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
   zReport(ZTableSchema.safeParse(baseTable));
   zReport(ZTableSchema.safeParse(targetTable));
+
+  const fallback = baseTable || targetTable;
 
   return (
     <Flex gap={1} direction={'column'} mb={8}>
@@ -18,10 +21,10 @@ export function CRTableOverview({ baseTable, targetTable }: Props) {
       <Heading fontSize={24}>
         <Flex alignItems="center">
           <Icon as={FiGrid} mr={1} />
-          {targetTable?.name}
+          {fallback?.name}
         </Flex>
       </Heading>
-      <Text fontSize="sm">{targetTable?.description}</Text>
+      <Text fontSize="sm">{fallback?.description}</Text>
     </Flex>
   );
 }
