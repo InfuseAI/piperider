@@ -23,7 +23,6 @@ import {
   ZTableSchema,
 } from '../../../../../types';
 import { NO_VALUE } from '../../../Columns/constants';
-import { useLocation } from 'wouter';
 
 type EnrichedColumnData = {
   added: number;
@@ -65,8 +64,7 @@ export function CRTableSchemaDetails({
 }: Props) {
   zReport(ZTableSchema.safeParse(baseTableDatum));
   zReport(ZTableSchema.safeParse(targetTableDatum));
-  // eslint-disable-next-line
-  const [_, setLocation] = useLocation();
+
   const fallbackTable = baseTableDatum || targetTableDatum;
   const baseColEntries = getEnrichedColumnsFor(baseTableDatum?.columns, 'base');
   const targetColEntries = getEnrichedColumnsFor(
