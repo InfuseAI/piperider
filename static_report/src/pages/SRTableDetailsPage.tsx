@@ -8,38 +8,36 @@ import {
 import { Link, useLocation } from 'wouter';
 import { FiDatabase, FiGrid } from 'react-icons/fi';
 import { useState } from 'react';
-
-import { Main } from '../shared/Main';
-import { CollapseContent } from '../shared/CollapseContent';
-
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { SingleReportSchema } from '../../sdlc/single-report-schema';
-import { SRAssertionDetails } from './SRAssertionDetails';
-import { SRTableOverview } from './SRTableOverview';
-import { dataSourceSchema } from '../../sdlc/single-report-schema.z';
-import { ZTableSchema, zReport, ZColSchema } from '../../types';
-import { formatReportTime } from '../../utils/formatters';
 import { nanoid } from 'nanoid';
-import { ColumnCard } from '../shared/Columns/ColumnCard';
+
+import { Main } from '../components/shared/Main';
+import { ColumnCard } from '../components/shared/Columns/ColumnCard';
+import { CollapseContent } from '../components/shared/CollapseContent';
+import { SRAssertionDetailsWidget } from '../components/shared/Widgets/SRAssertionDetailsWidget';
+import { SRTableOverview } from '../components/shared/Tables/SRTableOverview';
+
+import { dataSourceSchema } from '../sdlc/single-report-schema.z';
+import { formatReportTime } from '../utils/formatters';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { ZTableSchema, zReport, ZColSchema } from '../types';
+import type {
+  SingleReportSchema,
+  TableSchema,
+} from '../sdlc/single-report-schema';
+
 interface Props {
   data: SingleReportSchema;
   name: string;
 }
 
-//FIXME: This should be a *Page type
-export default function SingleReport({ data, name }: Props) {
-  const { datasource, tables } = data;
-  const table = tables[name];
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [location, setLocation] = useLocation();
+export default function SRTableDetailsPage({ data, name }: Props) {
+  const [, setLocation] = useLocation();
   const [assertionsVisible, setAssertionsVisible] = useState(false);
   const [columnsVisible, setColumnsVisible] = useState(false);
 
-  const isAssertionsEmpty =
-    table.piperider_assertion_result?.tests.length === 0 &&
-    Object.keys(table.piperider_assertion_result?.columns || {}).length === 0 &&
-    table.dbt_assertion_result?.tests.length === 0 &&
-    Object.keys(table.dbt_assertion_result?.columns || {}).length === 0;
+  const { datasource, tables } = data;
+  const table = tables[name];
+  const isAssertionsEmpty = checkAssertionsIsEmpty(table);
 
   zReport(ZTableSchema.safeParse(table));
   zReport(dataSourceSchema.safeParse(datasource));
@@ -101,7 +99,7 @@ export default function SingleReport({ data, name }: Props) {
             collapseable={!isAssertionsEmpty}
             onVisible={() => setAssertionsVisible((visible) => !visible)}
           >
-            <SRAssertionDetails
+            <SRAssertionDetailsWidget
               assertions={{
                 piperider: table.piperider_assertion_result,
                 dbt: table?.dbt_assertion_result,
@@ -138,5 +136,14 @@ export default function SingleReport({ data, name }: Props) {
         </Flex>
       </Flex>
     </Main>
+  );
+}
+
+function checkAssertionsIsEmpty(table: TableSchema) {
+  return (
+    table.piperider_assertion_result?.tests.length === 0 &&
+    Object.keys(table.piperider_assertion_result?.columns || {}).length === 0 &&
+    table.dbt_assertion_result?.tests.length === 0 &&
+    Object.keys(table.dbt_assertion_result?.columns || {}).length === 0
   );
 }

@@ -1,16 +1,13 @@
+import * as Sentry from '@sentry/browser';
 import { Suspense, lazy } from 'react';
 import { Switch, Route, Router, BaseLocationHook, type Params } from 'wouter';
+import { BrowserTracing } from '@sentry/tracing';
 
 import { Loading } from './components/shared/Loading';
 import { NotFound } from './components/shared/NotFound';
-import { useHashLocation } from './hooks/useHashLcocation';
-import { SRTablesListPage } from './components/SingleReport/SRTablesListPage';
+import { SRTablesListPage } from './pages/SRTablesListPage';
 import { CRTablesListPage } from './pages/CRTablesListPage';
-import { SRColumnDetailsPage } from './pages/SRColumnDetailsPage';
-import { CRColumnDetailsPage } from './pages/CRColumnDetailsPage';
-
-import * as Sentry from '@sentry/browser';
-import { BrowserTracing } from '@sentry/tracing';
+import { useHashLocation } from './hooks/useHashLcocation';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns) {
@@ -31,10 +28,10 @@ if (sentryDns) {
   Sentry.setTag('piperider.version', appVersion);
 }
 
-const SingleReport = lazy(
-  () => import('./components/SingleReport/SingleReport'),
-);
+const SRTableDetailsPage = lazy(() => import('./pages/SRTableDetailsPage'));
 const CRTableDetailsPage = lazy(() => import('./pages/CRTableDetailsPage'));
+const SRColumnDetailsPage = lazy(() => import('./pages/SRColumnDetailsPage'));
+const CRColumnDetailsPage = lazy(() => import('./pages/CRColumnDetailsPage'));
 
 function AppSingle() {
   return (
@@ -50,7 +47,7 @@ function AppSingle() {
 
           <Route path="/tables/:reportName">
             {(params: Params<{ reportName: string }>) => (
-              <SingleReport
+              <SRTableDetailsPage
                 name={decodeURIComponent(params.reportName)}
                 data={window.PIPERIDER_SINGLE_REPORT_DATA}
               />

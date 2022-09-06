@@ -1,13 +1,17 @@
 import { InfoIcon } from '@chakra-ui/icons';
-import { Flex, FlexProps, Icon, Text, Tooltip } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { getIconForColumnType } from '../../../utils/transformers';
-import { SRTooltip } from '../../SingleReport/SRTooltip';
 
-type Props = { columnDatum?: ColumnSchema };
-export function ColumnTypeHeader({ columnDatum, ...props }: Props & FlexProps) {
+import { Flex, FlexProps, Icon, Text, Tooltip } from '@chakra-ui/react';
+import { getIconForColumnType } from '../../../utils/transformers';
+import type { ColumnSchema } from '../../../sdlc/single-report-schema';
+
+interface Props extends FlexProps {
+  columnDatum?: ColumnSchema;
+}
+
+export function ColumnTypeHeader({ columnDatum, ...props }: Props) {
   const { description, name, schema_type } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
+
   return (
     <Flex
       py={2}
@@ -43,9 +47,37 @@ export function ColumnTypeHeader({ columnDatum, ...props }: Props & FlexProps) {
           {name}
         </Text>
       </Flex>
-      <SRTooltip label={description} prefix={' - via '}>
+      <SourceTooltip label={description} prefix={' - via '}>
         <InfoIcon color="gray.400" boxSize={'20px'} mr={3} />
-      </SRTooltip>
+      </SourceTooltip>
     </Flex>
+  );
+}
+
+function SourceTooltip({
+  label = '',
+  prefix,
+  children,
+  ...props
+}: { label?: string; prefix: string } & {
+  children: React.ReactNode;
+  [k: string]: any;
+}) {
+  const match = label.match(`${prefix}(?<src>\\w+)$`);
+  const richLabel = match?.groups?.src ? (
+    <Text>
+      {label.slice(0, match.index)}
+      <Text as="i" color="gray.400">
+        {`${prefix}${match.groups.src}`}
+      </Text>
+    </Text>
+  ) : (
+    label
+  );
+
+  return (
+    <Tooltip label={richLabel} {...props} closeOnEsc={true}>
+      {children}
+    </Tooltip>
   );
 }

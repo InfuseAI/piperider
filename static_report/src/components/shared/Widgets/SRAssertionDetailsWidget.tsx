@@ -9,12 +9,13 @@ import {
   Td,
   Text,
 } from '@chakra-ui/react';
-
-import { AssertionStatus } from '../shared/AssertionStatus';
-import { formatTestExpectedOrActual } from '../../utils/formatters';
-import type { AssertionValue } from '../../types';
-import type { AssertionTest } from '../../sdlc/single-report-schema';
 import { nanoid } from 'nanoid';
+
+import { AssertionStatus } from '../AssertionStatus';
+import { formatTestExpectedOrActual } from '../../../utils/formatters';
+
+import type { AssertionValue } from '../../../types';
+import type { AssertionTest } from '../../../sdlc/single-report-schema';
 
 type AssertionWithSource = AssertionTest & { source?: 'PipeRider' | 'dbt' };
 
@@ -30,7 +31,7 @@ type Props = {
   };
 };
 
-export function SRAssertionDetails({ assertions }: Props) {
+export function SRAssertionDetailsWidget({ assertions }: Props) {
   const { passedAssertions, failedAssertions } = mergeAssertions(
     assertions?.piperider,
     assertions?.dbt,
@@ -122,10 +123,9 @@ function mergeAssertions(piperider?: AssertionValue, dbt?: AssertionValue) {
 
   const { passed: pprColAssertionPassed, failed: pprColAssertionFailed } =
     Object.keys(piperider?.columns || {})
-      .map((colName) =>
+      .flatMap((colName) =>
         (piperider?.columns[colName] || []).map((assertion) => assertion),
       )
-      .flat()
       .reduce<AssertStatusCounts>(
         (acc, assertion) =>
           extractAssertionWithSource('PipeRider', assertion, acc),
@@ -144,10 +144,9 @@ function mergeAssertions(piperider?: AssertionValue, dbt?: AssertionValue) {
 
   const { passed: dbtColAssertionPassed, failed: dbtColAssertionFailed } =
     Object.keys(dbt?.columns || {})
-      .map((colName) =>
+      .flatMap((colName) =>
         (dbt?.columns[colName] || []).map((assertion) => assertion),
       )
-      .flat()
       .reduce<AssertStatusCounts>(
         (acc, assertion) => extractAssertionWithSource('dbt', assertion, acc),
         { passed: [], failed: [] },

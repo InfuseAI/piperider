@@ -1,32 +1,34 @@
 import { Flex, Grid, GridItem, Text } from '@chakra-ui/react';
 import { useLocation, useRoute } from 'wouter';
+
 import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
 import { Main } from '../components/shared/Main';
-import { formatReportTime } from '../utils/formatters';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
-import { ComparisonReportSchema } from '../types';
 import { ColumnDetailsMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
 import { mainContentAreaHeight } from '../utils/layout';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
+
+import { formatReportTime } from '../utils/formatters';
 import {
   containsColumnQuantile,
   containsDataSummary,
 } from '../utils/transformers';
+
+import type { ComparisonReportSchema } from '../types';
 interface Props {
   data: ComparisonReportSchema;
 }
-export function CRColumnDetailsPage({
+
+export default function CRColumnDetailsPage({
   data: {
     base: { tables: baseTables, created_at: baseTime },
     input: { tables: targetTables, created_at: targetTime },
   },
 }: Props) {
-  // eslint-disable-next-line
-  const [match, params] = useRoute('/tables/:reportName/columns/:columnName');
-  // eslint-disable-next-line
-  const [location, setLocation] = useLocation();
+  const [, params] = useRoute('/tables/:reportName/columns/:columnName');
+  const [, setLocation] = useLocation();
 
   const time = `${formatReportTime(baseTime)} -> ${formatReportTime(
     targetTime,
