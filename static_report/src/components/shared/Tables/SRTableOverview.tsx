@@ -1,8 +1,8 @@
 import { Flex, Heading, Text, Icon } from '@chakra-ui/react';
 import { FiGrid } from 'react-icons/fi';
 
-import { TableSchema } from '../../sdlc/single-report-schema';
-import { zReport, ZTableSchema } from '../../types';
+import { TableSchema } from '../../../sdlc/single-report-schema';
+import { zReport, ZTableSchema } from '../../../types';
 
 type Props = { table: TableSchema };
 

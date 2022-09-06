@@ -3,18 +3,20 @@ import { useLocation, useRoute } from 'wouter';
 import { useState } from 'react';
 import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
 import { Main } from '../components/shared/Main';
-import { SingleReportSchema } from '../sdlc/single-report-schema';
-import { formatReportTime, formatTitleCase } from '../utils/formatters';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { mainContentAreaHeight } from '../utils/layout';
+import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
+import { ColumnDetailsMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
+import { SRSummaryStats } from '../components/shared/Columns/ColumnMetrics/SRSummaryStats';
+
 import {
   containsColumnQuantile,
   containsDataSummary,
 } from '../utils/transformers';
-import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
-import { ColumnDetailsMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
-import { SRSummaryStats } from '../components/shared/Columns/ColumnMetrics/SRSummaryStats';
+import { formatReportTime, formatTitleCase } from '../utils/formatters';
+
+import type { SingleReportSchema } from '../sdlc/single-report-schema';
 interface Props {
   data: SingleReportSchema;
 }

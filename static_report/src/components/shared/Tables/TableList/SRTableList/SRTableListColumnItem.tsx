@@ -1,14 +1,15 @@
 import { Flex, Grid, GridItem, Icon, Text } from '@chakra-ui/react';
+import { FiChevronRight } from 'react-icons/fi';
 
-import { ColumnName } from '../../shared/Tables/TableList/ColumnName';
+import { ColumnName } from '../ColumnName';
 import { SRTableListAssertionsSummary } from './SRTableListAssertionsSummary';
-import { HistogramChart } from '../../shared/Charts/HistogramChart';
+import { HistogramChart } from '../../../Charts/HistogramChart';
+
 import type {
   AssertionTest,
   ColumnSchema,
-} from '../../../sdlc/single-report-schema';
-import { FiChevronRight } from 'react-icons/fi';
-import { Selectable } from '../../../types';
+} from '../../../../../sdlc/single-report-schema';
+import type { Selectable } from '../../../../../types';
 
 interface Props extends Selectable {
   name: string;
@@ -17,6 +18,7 @@ interface Props extends Selectable {
   icon: any;
   colAssertions: AssertionTest[] | undefined;
 }
+
 export function SRTableListColumnItem({
   name,
   icon,

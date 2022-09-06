@@ -9,11 +9,11 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 import { FiAlertCircle, FiChevronRight, FiGrid } from 'react-icons/fi';
+import { ReactNode } from 'react';
 
 import { CRTableListColumnsSummary } from './CRTableListColumnsSummary';
 import { CRTableListDeltaSummary } from './CRTableListDeltaSummary';
 import { SaferTableSchema } from '../../../../../types';
-import { ReactNode } from 'react';
 
 interface Props {
   isExpanded: boolean;
@@ -22,6 +22,7 @@ interface Props {
   onSelect: () => void;
   children: ReactNode; //e.g. CRTableListAssertions
 }
+
 export function CRTableListItem({
   isExpanded,
   baseTableDatum,
@@ -32,6 +33,7 @@ export function CRTableListItem({
   const columnName = baseTableDatum?.name || targetTableDatum?.name;
   const description =
     baseTableDatum?.description || targetTableDatum?.description;
+
   return (
     <AccordionButton
       bgColor="white"
