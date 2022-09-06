@@ -12,6 +12,8 @@ class UserSurveyMockDataSource(DataSource):
                       description='Data Source Candidates',
                       default=[
                           'Azure Synapse Analytics',
+                          'IBM Db2 Warehouse',
+                          'SAP Data Warehouse Cloud',
                           'Other',
                       ]),
             TextField('other', description='Please tell what data source you want us to supported',
