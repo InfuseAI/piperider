@@ -223,14 +223,14 @@ class AssertionResult:
         return self
 
     def success(self, actual=None):
-        if actual:
+        if actual is not None:
             self.actual = actual
 
         self._success = True
         return self
 
     def fail(self, actual=None):
-        if actual:
+        if actual is not None:
             self.actual = actual
 
         self._success = False
