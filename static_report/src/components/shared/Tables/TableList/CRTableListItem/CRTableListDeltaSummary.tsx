@@ -5,7 +5,7 @@ import {
   FiArrowRight,
 } from 'react-icons/fi';
 
-export function CRTableListRowsSummary({
+export function CRTableListDeltaSummary({
   baseCount = 0,
   targetCount = 0,
 }: {

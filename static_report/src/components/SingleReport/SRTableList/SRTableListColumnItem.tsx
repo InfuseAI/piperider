@@ -26,7 +26,6 @@ export function SRTableListColumnItem({
   onSelect,
 }: Props) {
   return (
-    // <Link href={}>
     <Grid
       p={3}
       key={name}
