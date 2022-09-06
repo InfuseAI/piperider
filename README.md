@@ -39,12 +39,15 @@ pip install piperider
 
 By default, PipeRider supports built-in SQLite connector, extra connectors are available:
 
-| connectors  | install  | supported since  |
-|---|---|------------------|
-| snowflake | pip install 'piperider[snowflake]'  |                  |
-| postgres  | pip install 'piperider[postgres]'  |                  |
-| bigquery | pip install 'piperider[bigquery]'  | PipeRider v0.7.0 |
-| redshift | pip install 'piperider[redshift]'  | PipeRider v0.7.0 |
+| connectors | install                            | supported since  |
+|------------|------------------------------------|------------------|
+| snowflake  | pip install 'piperider[snowflake]' |                  |
+| postgres   | pip install 'piperider[postgres]'  |                  |
+| bigquery   | pip install 'piperider[bigquery]'  | PipeRider v0.7.0 |
+| redshift   | pip install 'piperider[redshift]'  | PipeRider v0.7.0 |
+| duckdb     | pip install 'piperider[duckdb]'    | PipeRider v0.8.0 |
+| csv        | pip install 'piperider[csv]'       | PipeRider v0.8.0 |
+| parquet    | pip install 'piperider[parquet]'   | PipeRider v0.8.0 |
 
 Use comma to install multiple connectors in one line:
 
@@ -80,12 +83,12 @@ You can use `piperider compare-report` to compare 2 reports.
 
 # Learn More
 
-| PipeRider Resources | Description |
-| -------------------- | ----------- |
-| [Documentation] | PipeRider Main Doc Site |
-| [Sample_Project] | Sample Project with with sqlite |
-| [dbt_Sample_Project] | Sample Project with dbt |
-| [Roadmap] | PipeRider Roadmap |
+| PipeRider Resources   | Description                     |
+|-----------------------|---------------------------------|
+| [Documentation]       | PipeRider Main Doc Site         |
+| [Sample_Project]      | Sample Project with with sqlite |
+| [dbt_Sample_Project]  | Sample Project with dbt         |
+| [Roadmap]             | PipeRider Roadmap               |
 
 [Documentation]: https://docs.piperider.io/
 

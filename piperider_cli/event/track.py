@@ -6,6 +6,7 @@ import typing as t
 import sentry_sdk
 from click.core import Command, Context
 from rich.console import Console
+from rich.markup import escape
 
 from piperider_cli import event
 from piperider_cli.error import PipeRiderError
@@ -45,7 +46,7 @@ class TrackCommand(Command):
 
     def _show_hint_message(self, hint):
         console = Console()
-        console.print(f'[bold yellow]Hint[/bold yellow]:\n  {hint}')
+        console.print(f'[bold yellow]Hint[/bold yellow]:\n  {escape(hint)}')
 
     def invoke(self, ctx: Context) -> t.Any:
         status = False
