@@ -43,6 +43,7 @@ export function CRTablesListPage({ data }: Props) {
     CR_LIST_VIEW,
     'summary',
   );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, setLocation] = useLocation();
   const { base, input: target } = data;
   const tables = transformAsNestedBaseTargetRecord<
