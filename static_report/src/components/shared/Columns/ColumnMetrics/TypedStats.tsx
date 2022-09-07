@@ -1,40 +1,57 @@
 import { FlexProps } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { ZColSchema, zReport } from '../../../../types';
+import { Comparable, ZColSchema, zReport } from '../../../../types';
 import {
   containsColumnQuantile,
+  MetricNameMetakeyList,
+  transformCRMetricsInfoList,
   transformSRMetricsInfoList,
 } from '../../../../utils/transformers';
-import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
+import { MetricsInfo } from './MetricsInfo';
 
-type Props = { columnDatum?: ColumnSchema };
-export function SRTextNumberStats({
-  columnDatum,
+interface Props extends Comparable {
+  baseColumnDatum?: ColumnSchema;
+  targetColumnDatum?: ColumnSchema;
+}
+/**
+ * Shows metric stats for column.type: positives/zero/negatives, (non)zero-lengths
+ */
+export function TypedStats({
+  baseColumnDatum,
+  targetColumnDatum,
+  singleOnly,
   ...props
 }: Props & FlexProps) {
-  zReport(ZColSchema.safeParse(columnDatum));
+  zReport(ZColSchema.safeParse(baseColumnDatum));
+  zReport(ZColSchema.safeParse(targetColumnDatum));
 
-  const numeralMetakeyList: [MetricMetaKeys, string][] = [
+  const numeralMetakeyList: MetricNameMetakeyList = [
     ['positives', 'Positives'],
     ['zeros', 'Zeros'],
     ['negatives', 'Negatives'],
   ];
-  const numeralMetricsList = transformSRMetricsInfoList(
-    numeralMetakeyList,
-    columnDatum,
-  );
-  const textMetakeyList: [MetricMetaKeys, string][] = [
+  const numeralMetricsList = singleOnly
+    ? transformSRMetricsInfoList(numeralMetakeyList, baseColumnDatum)
+    : transformCRMetricsInfoList(
+        numeralMetakeyList,
+        baseColumnDatum,
+        targetColumnDatum,
+      );
+  const textMetakeyList: MetricNameMetakeyList = [
     ['non_zero_length', 'Non-zero Length'],
     ['zero_length', 'Zero Length'],
   ];
-  const textMetricsList = transformSRMetricsInfoList(
-    textMetakeyList,
-    columnDatum,
-  );
+  const textMetricsList = singleOnly
+    ? transformSRMetricsInfoList(textMetakeyList, baseColumnDatum)
+    : transformCRMetricsInfoList(
+        textMetakeyList,
+        baseColumnDatum,
+        targetColumnDatum,
+      );
 
   return (
     <>
-      {containsColumnQuantile(columnDatum?.type) && (
+      {containsColumnQuantile(baseColumnDatum?.type) && (
         <>
           {numeralMetricsList &&
             numeralMetricsList.map(
@@ -55,7 +72,7 @@ export function SRTextNumberStats({
             )}
         </>
       )}
-      {columnDatum?.type === 'string' && (
+      {baseColumnDatum?.type === 'string' && (
         <>
           {textMetricsList &&
             textMetricsList.map(
