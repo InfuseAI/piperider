@@ -11,7 +11,7 @@ import { useState } from 'react';
 import { nanoid } from 'nanoid';
 
 import { Main } from '../components/shared/Main';
-import { ColumnCard } from '../components/shared/Columns/ColumnCard';
+import { ColumnHighlightsCard } from '../components/shared/Columns/ColumnCards/ColumnHighlightsCard';
 import { CollapseContent } from '../components/shared/CollapseContent';
 import { SRAssertionDetailsWidget } from '../components/shared/Widgets/SRAssertionDetailsWidget';
 
@@ -122,7 +122,7 @@ export default function SRTableDetailsPage({ data, name }: Props) {
                 zReport(ZColSchema.safeParse(column));
 
                 return (
-                  <ColumnCard
+                  <ColumnHighlightsCard
                     key={nanoid()}
                     columnDatum={column}
                     onSelect={({ columnName }) =>

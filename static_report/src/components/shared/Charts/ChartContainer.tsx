@@ -23,7 +23,7 @@ type Props = {
   allowModalPopup?: boolean;
   height?: number;
 };
-export function ColumnCardDataVisualContainer({
+export function ChartContainer({
   title,
   children,
   allowModalPopup,
