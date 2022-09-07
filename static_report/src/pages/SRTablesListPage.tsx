@@ -22,9 +22,9 @@ import { SR_LIST_VIEW } from '../utils/localStorageKeys';
 import { type SingleReportSchema } from '../sdlc/single-report-schema';
 
 import { zReport, ZTableSchema } from '../types';
-import { SRTableListColumnList } from '../components/shared/Tables/TableList/SRTableList/SRTableListColumnList';
-import { SRTableListSchemaDetail } from '../components/shared/Tables/TableList/SRTableList/SRTableListSchemaDetail';
-import { SRTableListItem } from '../components/shared/Tables/TableList/SRTableList';
+import { SRTableListColumnList } from '../components/shared/Tables/TableList/SRTableListItem/SRTableListColumnList';
+import { SRTableListSchemaDetail } from '../components/shared/Tables/TableList/SRTableListItem/SRTableListSchemaDetail';
+import { SRTableListItem } from '../components/shared/Tables/TableList/SRTableListItem';
 
 type Props = { data: SingleReportSchema };
 
