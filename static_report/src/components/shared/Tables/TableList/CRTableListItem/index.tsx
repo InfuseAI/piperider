@@ -39,7 +39,7 @@ export function CRTableListItem({
       >
         <GridItem>
           <TableItemName
-            name={columnName as string}
+            name={columnName || ''}
             description={description}
             descriptionIconVisible={isExpanded}
           />

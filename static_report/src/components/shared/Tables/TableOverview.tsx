@@ -6,10 +6,9 @@ import { SaferTableSchema, zReport, ZTableSchema } from '../../../types';
 type Props = {
   baseTable?: SaferTableSchema;
   targetTable?: SaferTableSchema;
-  singleOnly?: boolean;
 };
 
-export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
+export function TableOverview({ baseTable, targetTable }: Props) {
   zReport(ZTableSchema.safeParse(baseTable));
   zReport(ZTableSchema.safeParse(targetTable));
 

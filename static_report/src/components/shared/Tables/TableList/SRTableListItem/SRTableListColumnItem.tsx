@@ -1,10 +1,11 @@
 import { Flex, Grid, GridItem, Icon, Text } from '@chakra-ui/react';
 import { FiChevronRight } from 'react-icons/fi';
 
+import { ColumnAssertionLabel } from '../../../Assertions/ColumnAssertionLabel';
 import { ColumnName } from '../ColumnName';
-import { SRTableListAssertionsSummary } from './SRTableListAssertionsSummary';
 import { HistogramChart } from '../../../Charts/HistogramChart';
 
+import { getAssertions } from '../../../../../utils/assertion';
 import type {
   AssertionTest,
   ColumnSchema,
@@ -51,7 +52,10 @@ export function SRTableListColumnItem({
         {!colAssertions ? (
           <Text color="gray.500">No assertions</Text>
         ) : (
-          <SRTableListAssertionsSummary assertions={colAssertions} />
+          <ColumnAssertionLabel
+            singleOnly
+            {...getAssertions(colAssertions || [])}
+          />
         )}
       </GridItem>
 

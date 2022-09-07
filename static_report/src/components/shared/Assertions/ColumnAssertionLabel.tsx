@@ -3,22 +3,22 @@ import { ReactNode } from 'react';
 import { FiCheck, FiX } from 'react-icons/fi';
 
 import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
+import type { Comparable } from '../../../types';
 
-export type ColumnAssertionLabelWidgetProps = {
+export interface ColumnAssertionLabelProps extends Comparable {
   total: number;
   failed: number;
-  isPassed: boolean;
-  isComparison?: boolean;
   icon?: ReactNode;
   comparisonDelta?: ReactNode;
-};
+}
 
-export function ColumnAssertionLabelWidget({
-  isPassed,
+export function ColumnAssertionLabel({
   total,
   failed,
   ...props
-}: ColumnAssertionLabelWidgetProps) {
+}: ColumnAssertionLabelProps) {
+  const isPassed = failed === 0;
+
   return (
     <Flex gap={2} alignItems="center">
       <Flex
@@ -29,17 +29,19 @@ export function ColumnAssertionLabelWidget({
         py={0.5}
         px={1.5}
       >
-        {props?.icon ? (
+        {!props?.singleOnly && props?.icon ? (
           props.icon
         ) : (
           <Icon as={isPassed ? FiCheck : FiX} boxSize={4} />
         )}
         <Text as="span">{isPassed ? 'All' : failed}</Text>
       </Flex>
+
       <Text as="span" color="gray.500">
         of
       </Text>
-      {props?.comparisonDelta ? (
+
+      {!props?.singleOnly && props?.comparisonDelta ? (
         props.comparisonDelta
       ) : (
         <Text as="span">{formatColumnValueWith(total, formatNumber)}</Text>
