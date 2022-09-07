@@ -12,19 +12,18 @@ import {
 import { useState } from 'react';
 
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { SaferTableSchema, Selectable } from '../../../../types';
+import { Comparable, SaferTableSchema, Selectable } from '../../../../types';
 import { transformAsNestedBaseTargetRecord } from '../../../../utils/transformers';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
-interface Props extends Selectable {
+interface Props extends Selectable, Comparable {
   baseDataColumns?: SaferTableSchema['columns'];
   targetDataColumns?: SaferTableSchema['columns'];
   currentReport: string;
   currentColumn: string;
-  hasSplitView?: boolean;
 }
-// FUTURE FIXME: show Table list as well ?? (Accordion)
+// FUTURE TODO: show Table list as well ?? (Accordion)
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of columns. Belongs in the profiling column details page to view in-depth metrics and visualizations
  */
@@ -33,7 +32,7 @@ export function ColumnDetailsMasterList({
   targetDataColumns,
   currentReport,
   currentColumn,
-  hasSplitView,
+  singleOnly,
   onSelect,
 }: Props) {
   const [filterString, setFilterString] = useState<string>('');
@@ -143,7 +142,7 @@ export function ColumnDetailsMasterList({
               onSelect={(columnName) => {
                 onSelect({ tableName: currentReport, columnName });
               }}
-              hasSplitView={hasSplitView}
+              singleOnly={singleOnly}
               p={3}
             />
           ))}

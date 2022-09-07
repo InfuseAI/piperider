@@ -71,7 +71,6 @@ export default function CRColumnDetailsPage({
             targetDataColumns={targetDataColumns}
             currentReport={decodedTableName}
             currentColumn={decodedColName}
-            hasSplitView
             onSelect={({ tableName, columnName }) => {
               setTabIndex(0); //reset tabs
               setLocation(`/tables/${tableName}/columns/${columnName}`);
