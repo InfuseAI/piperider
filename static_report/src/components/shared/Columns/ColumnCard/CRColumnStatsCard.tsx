@@ -6,7 +6,7 @@ import { ColumnTypeHeader } from '../ColumnTypeHeader';
 import { NO_VALUE } from '../constants';
 import { MetricsInfo } from '../ColumnMetrics/MetricsInfo';
 import { GeneralStats } from '../ColumnMetrics/GeneralStats';
-import { CRSummaryStats } from '../ColumnMetrics/CRSummaryStats';
+import { SummaryStats } from '../ColumnMetrics/SummaryStats';
 
 interface Props extends Selectable, Comparable {
   baseColumn?: ColumnSchema;
@@ -56,7 +56,7 @@ export const CRColumnDetailsCard = ({
         </Box>
 
         <Box mb={3}>
-          <CRSummaryStats
+          <SummaryStats
             baseColumnDatum={baseColumn}
             targetColumnDatum={targetColumn}
           />

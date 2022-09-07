@@ -12,6 +12,9 @@ interface Props extends Comparable {
   baseColumnDatum?: ColumnSchema;
   targetColumnDatum?: ColumnSchema;
 }
+/**
+ * Shows metric stats for Totals, Valids, Invalids, Missing(nulls)
+ */
 export function GeneralStats({
   baseColumnDatum,
   targetColumnDatum,

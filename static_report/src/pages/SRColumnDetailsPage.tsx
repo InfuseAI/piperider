@@ -1,4 +1,4 @@
-import { Divider, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
+import { Flex, Grid, GridItem } from '@chakra-ui/react';
 import { useLocation, useRoute } from 'wouter';
 import { useState } from 'react';
 import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
@@ -8,15 +8,15 @@ import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { mainContentAreaHeight } from '../utils/layout';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 import { ColumnDetailsMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
-import { SRSummaryStats } from '../components/shared/Columns/ColumnMetrics/SRSummaryStats';
 
 import {
   containsColumnQuantile,
   containsDataSummary,
 } from '../utils/transformers';
-import { formatReportTime, formatTitleCase } from '../utils/formatters';
+import { formatReportTime } from '../utils/formatters';
 
 import type { SingleReportSchema } from '../sdlc/single-report-schema';
+import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 interface Props {
   data: SingleReportSchema;
 }
@@ -102,9 +102,7 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
           >
             {containsDataSummary(type) && (
               <>
-                <Text fontSize={'xl'}>{formatTitleCase(type)} Statistics</Text>
-                <Divider my={3} />
-                <SRSummaryStats columnDatum={columnDatum} width={'100%'} />
+                <DataSummaryWidget columnDatum={columnDatum} />
               </>
             )}
           </GridItem>

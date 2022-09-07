@@ -1,58 +1,71 @@
 import { FlexProps, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { ZColSchema, zReport } from '../../../../types';
+import { Comparable, ZColSchema, zReport } from '../../../../types';
 import {
   containsAvgSDSummary,
   containsDistinctDuplicateSummary,
   containsMinMaxSummary,
   MetricNameMetakeyList,
   transformCRMetricsInfoList,
+  transformSRMetricsInfoList,
 } from '../../../../utils/transformers';
-import { TEXTLENGTH } from '../constants';
+import { NO_VALUE, TEXTLENGTH } from '../constants';
 import { MetricsInfo } from './MetricsInfo';
 
-type Props = {
+interface Props extends Comparable {
   baseColumnDatum?: ColumnSchema;
   targetColumnDatum?: ColumnSchema;
-};
-
-export function CRSummaryStats({
+}
+/**
+ * Shows metric stats for Avg, Stddev, Min/Max, Distinct, Duplicates
+ */
+export function SummaryStats({
   baseColumnDatum,
   targetColumnDatum,
+  singleOnly,
   ...props
 }: Props & FlexProps) {
   zReport(ZColSchema.safeParse(baseColumnDatum));
   const subtitle = baseColumnDatum?.type === 'string' ? ` (${TEXTLENGTH})` : '';
 
+  // Each list below are separated to render differently
   const avgSDMetakeyList: MetricNameMetakeyList = [
     ['avg', `Average`],
     ['stddev', `SD`],
   ];
-  const avgSDMetricsList = transformCRMetricsInfoList(
-    avgSDMetakeyList,
-    baseColumnDatum,
-    targetColumnDatum,
-    'count',
-  );
+  const avgSDMetricsList = singleOnly
+    ? transformSRMetricsInfoList(avgSDMetakeyList, baseColumnDatum)
+    : transformCRMetricsInfoList(
+        avgSDMetakeyList,
+        baseColumnDatum,
+        targetColumnDatum,
+        'count',
+      );
+
   const minMaxMetakeyList: MetricNameMetakeyList = [
     ['min', `Min`],
     ['max', `Max`],
   ];
-  const minMaxMetricsList = transformCRMetricsInfoList(
-    minMaxMetakeyList,
-    baseColumnDatum,
-    targetColumnDatum,
-    'count',
-  );
+  const minMaxMetricsList = singleOnly
+    ? transformSRMetricsInfoList(minMaxMetakeyList, baseColumnDatum)
+    : transformCRMetricsInfoList(
+        minMaxMetakeyList,
+        baseColumnDatum,
+        targetColumnDatum,
+        'count',
+      );
+
   const distinctDuplicateMetakeyList: MetricNameMetakeyList = [
     ['distinct', `Distincts`],
     ['duplicates', `Duplicates`],
   ];
-  const distinctDuplicateMetricsList = transformCRMetricsInfoList(
-    distinctDuplicateMetakeyList,
-    baseColumnDatum,
-    targetColumnDatum,
-  );
+  const distinctDuplicateMetricsList = singleOnly
+    ? transformSRMetricsInfoList(distinctDuplicateMetakeyList, baseColumnDatum)
+    : transformCRMetricsInfoList(
+        distinctDuplicateMetakeyList,
+        baseColumnDatum,
+        targetColumnDatum,
+      );
 
   return (
     <>
@@ -70,7 +83,7 @@ export function CRSummaryStats({
                   name={name}
                   subtitle={subtitle}
                   metakey={metakey}
-                  firstSlot={firstSlot}
+                  firstSlot={singleOnly ? NO_VALUE : firstSlot}
                   secondSlot={secondSlot}
                   tooltipValues={tooltipValues}
                   width={'100%'}
@@ -94,7 +107,7 @@ export function CRSummaryStats({
                   name={name}
                   subtitle={subtitle}
                   metakey={metakey}
-                  firstSlot={firstSlot}
+                  firstSlot={singleOnly ? NO_VALUE : firstSlot}
                   secondSlot={secondSlot}
                   tooltipValues={tooltipValues}
                   width={'100%'}
