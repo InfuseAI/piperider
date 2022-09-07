@@ -5,9 +5,10 @@ from urllib.parse import urlparse
 
 import requests
 from rich.console import Console
+from sqlalchemy.exc import DBAPIError
 
 from piperider_cli.error import PipeRiderConnectorError, AwsCredentialsError, AwsUnExistedS3Bucket, \
-    PipeRiderDataBaseConnectionError
+    PipeRiderDataBaseConnectionError, PipeRiderDataBaseEncodingError
 from . import DataSource
 from .field import PathField, TextField
 
@@ -77,6 +78,7 @@ class DuckDBDataSource(DataSource):
         try:
             import duckdb
             import duckdb_engine
+            import chardet
         except Exception as e:
             return PipeRiderConnectorError(str(e), self.type_name)
 
@@ -122,8 +124,20 @@ class CsvDataSource(DuckDBDataSource):
         engine = super().create_engine()
         # Load csv file as table
         sql_query = f"CREATE TABLE '{table_name}' AS SELECT * FROM read_csv_auto('{csv_path}')"
-        engine.execute(sql_query)
+        try:
+            engine.execute(sql_query)
+        except Exception as e:
+            if isinstance(e, DBAPIError) and e.args[0].endswith('Invalid Error: String value is not valid UTF8'):
+                encoding_detection = self.detect_file_encoding(csv_path)
+                raise PipeRiderDataBaseEncodingError(csv_path, 'csv', encoding_detection['encoding'], 'UTF-8')
+            raise e
         return engine
+
+    def detect_file_encoding(self, file):
+        import chardet
+        with open(file, "rb") as fd:
+            rawdata = fd.read()
+            return chardet.detect(rawdata)
 
 
 class ParquetDataSource(DuckDBDataSource):
