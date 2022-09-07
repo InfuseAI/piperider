@@ -9,7 +9,7 @@ import {
 import { getDataChart } from '../../../utils/charts';
 import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
 import { ColumnCardDataVisualContainer } from '../Columns/ColumnCard/ColumnCardDataVisualContainer';
-import { CRColumnDetailsCard } from '../Columns/ColumnCard/CRColumnDetailsCard';
+import { CRColumnDetailsCard } from '../Columns/ColumnCard/CRColumnStatsCard';
 
 interface CRProfilingDetailsProps extends Selectable {
   baseTable?: SaferTableSchema;
