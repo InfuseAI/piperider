@@ -29,6 +29,7 @@ import { TableOverview } from '../components/shared/Tables/TableOverview';
 import { formatReportTime } from '../utils/formatters';
 import { CollapseContent } from '../components/shared/CollapseContent';
 import { CRAssertionDetailsWidget } from '../components/shared/Widgets/CRAssertionDetailsWidget';
+import { BreadcrumbNavbar } from '../components/shared/BreadcrumbNav';
 
 type Props = {
   data: ComparisonReportSchema;
@@ -83,7 +84,7 @@ export default function CRTableDetailsPage({ data, name: reportName }: Props) {
       )}`}
     >
       <Flex direction="column" width="inherit">
-        <Flex mx="5%" mt={4}>
+        {/* <Flex mx="5%" mt={4}>
           <Breadcrumb fontSize="lg">
             <BreadcrumbItem>
               <Link href="/">
@@ -104,7 +105,8 @@ export default function CRTableDetailsPage({ data, name: reportName }: Props) {
               </BreadcrumbLink>
             </BreadcrumbItem>
           </Breadcrumb>
-        </Flex>
+        </Flex> */}
+        <BreadcrumbNavbar />
 
         <Flex
           border="1px solid"

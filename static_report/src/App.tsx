@@ -55,7 +55,9 @@ function AppSingle() {
           </Route>
 
           <Route path="/tables/:reportName/columns/:columnName">
-            <SRColumnDetailsPage data={window.PIPERIDER_SINGLE_REPORT_DATA} />
+            {(params: Params<{ reportName: string }>) => (
+              <SRColumnDetailsPage data={window.PIPERIDER_SINGLE_REPORT_DATA} />
+            )}
           </Route>
 
           <Route>
@@ -89,11 +91,15 @@ function AppComparison() {
               />
             )}
           </Route>
+
           <Route path="/tables/:reportName/columns/:columnName">
-            <CRColumnDetailsPage
-              data={window.PIPERIDER_COMPARISON_REPORT_DATA}
-            />
+            {(params: Params<{ reportName: string }>) => (
+              <CRColumnDetailsPage
+                data={window.PIPERIDER_COMPARISON_REPORT_DATA}
+              />
+            )}
           </Route>
+
           <Route>
             <NotFound />
           </Route>
