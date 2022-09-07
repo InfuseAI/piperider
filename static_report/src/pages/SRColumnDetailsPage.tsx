@@ -20,7 +20,9 @@ import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidge
 interface Props {
   data: SingleReportSchema;
 }
-export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
+export default function SRColumnDetailsPage({
+  data: { tables, created_at },
+}: Props) {
   const [, params] = useRoute('/tables/:reportName/columns/:columnName');
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
