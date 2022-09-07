@@ -9,6 +9,7 @@ import {
 import isString from 'lodash/isString';
 import partial from 'lodash/partial';
 
+import { ColumnAssertionLabelWidget } from '../../../Widgets/ColumnAssertionLabelWidget';
 import { getComparisonAssertions } from '../../../../../utils/assertion';
 import type { ComparisonReportSchema } from '../../../../../types';
 import {
@@ -71,10 +72,10 @@ export function CRTableListAssertions({
         <CRTargetTableAssertion
           total={targetOverviewAssertions}
           failed={targetFailed}
-          failedDifference={targetFailed - baseFailed}
+          failedDelta={targetFailed - baseFailed}
         />
         <Text as="span">/</Text>
-        <CRTargetTableAssertionsDifference
+        <CRTargetTableAssertionsDelta
           baseAssertions={baseOverviewAssertions}
           targetAssertions={targetOverviewAssertions}
         />
@@ -116,11 +117,11 @@ export function CRBaseTableAssertion({
 export function CRTargetTableAssertion({
   total,
   failed,
-  failedDifference,
+  failedDelta,
 }: {
   total: number;
   failed: number;
-  failedDifference: number;
+  failedDelta: number;
 }) {
   if (total === 0) {
     return (
@@ -130,27 +131,27 @@ export function CRTargetTableAssertion({
     );
   }
 
-  if (failedDifference < 0) {
+  if (failedDelta < 0) {
     return (
       <Center gap={1} color="#F60059">
         <Icon as={FiArrowDownCircle} boxSize={4} />
         <Text as="span">
-          {formatColumnValueWith(Math.abs(failedDifference), formatNumber)}
+          {formatColumnValueWith(Math.abs(failedDelta), formatNumber)}
         </Text>
       </Center>
     );
-  } else if (failedDifference > 0) {
+  } else if (failedDelta > 0) {
     return (
       <Center gap={1} color="#F60059">
         <Icon as={FiArrowUpCircle} boxSize={4} />
         <Text as="span">
-          {formatColumnValueWith(failedDifference, formatNumber)}
+          {formatColumnValueWith(failedDelta, formatNumber)}
         </Text>
       </Center>
     );
   }
 
-  // When `failedDifference = 0`, check `failed` number if is `0` then rendering `total`
+  // When `failedDelta = 0`, check `failed` number if is `0` then rendering `total`
   return (
     <Text as="span">
       {failed === 0
@@ -160,15 +161,15 @@ export function CRTargetTableAssertion({
   );
 }
 
-export function CRTargetTableAssertionsDifference({
+export function CRTargetTableAssertionsDelta({
   baseAssertions,
   targetAssertions,
 }: {
   baseAssertions: number;
   targetAssertions: number;
 }) {
-  const difference = targetAssertions - baseAssertions;
-  const isGreaterThanZero = difference > 0;
+  const delta = targetAssertions - baseAssertions;
+  const isGreaterThanZero = delta > 0;
 
   if (targetAssertions === 0) {
     return <Text as="span">none</Text>;
@@ -176,7 +177,7 @@ export function CRTargetTableAssertionsDifference({
 
   return (
     <Center gap={1}>
-      {difference !== 0 ? (
+      {delta !== 0 ? (
         <Icon
           as={isGreaterThanZero ? FiArrowUpCircle : FiArrowDownCircle}
           color="black"
@@ -200,23 +201,11 @@ export function CRBaseTableAssertionsSummary({
   const isPassed = failed === 0;
 
   return (
-    <Flex gap={1} alignItems="center">
-      <Flex
-        alignItems="center"
-        borderRadius="md"
-        bgColor={isPassed ? '#DEFFEB' : '#FFE8F0'}
-        color={isPassed ? '#1F7600' : '#F60059'}
-        py={0.5}
-        px={1.5}
-      >
-        <Icon as={isPassed ? FiCheck : FiX} boxSize={4} />
-        <Text as="span">{isPassed ? 'All' : failed}</Text>
-      </Flex>
-      <Text as="span" color="gray.500">
-        of
-      </Text>
-      <Text as="span">{formatColumnValueWith(total, formatNumber)}</Text>
-    </Flex>
+    <ColumnAssertionLabelWidget
+      isPassed={isPassed}
+      total={total}
+      failed={failed}
+    />
   );
 }
 
@@ -224,12 +213,12 @@ export function CRTargetTableAssertionsSummary({
   total,
   failed,
   baseAssertionsFailed,
-  assertionsDiff,
+  delta,
 }: {
   total: number;
   failed: number;
   baseAssertionsFailed: number;
-  assertionsDiff: number;
+  delta: number;
 }) {
   const isFailedEqual = failed === baseAssertionsFailed;
   const isMoreFailed = failed - baseAssertionsFailed > 0;
@@ -238,7 +227,7 @@ export function CRTargetTableAssertionsSummary({
   if (total === 0) {
     return (
       <Center>
-        {assertionsDiff !== 0 && (
+        {delta !== 0 && (
           <Icon as={FiArrowDownCircle} color="black" boxSize={5} />
         )}
         <Text as="span" color="black">
@@ -249,45 +238,61 @@ export function CRTargetTableAssertionsSummary({
   }
 
   return (
-    <Flex gap={1} alignItems="center">
-      <Flex
-        alignItems="center"
-        borderRadius="md"
-        bgColor={isPassed ? '#DEFFEB' : '#FFE8F0'}
-        color={isPassed ? '#1F7600' : '#F60059'}
-        py={0.5}
-        px={1.5}
-        gap={1}
-      >
-        <Icon
-          boxSize={5}
-          as={
-            isPassed
-              ? FiCheck
-              : isFailedEqual
-              ? FiX
-              : isMoreFailed
-              ? FiArrowUpCircle
-              : FiArrowDownCircle
-          }
+    <ColumnAssertionLabelWidget
+      isPassed={isPassed}
+      total={total}
+      failed={failed}
+      isComparison
+      comparisonDelta={<ComparisonDelta delta={delta} total={total} />}
+      icon={
+        <ComparisonLabelIcon
+          isPassed={isPassed}
+          isFailedEqual={isFailedEqual}
+          isMoreFailed={isMoreFailed}
         />
-        <Text as="span">{isPassed ? 'All' : failed}</Text>
-      </Flex>
-      <Text as="span" color="gray.500">
-        of
+      }
+    />
+  );
+}
+
+function ComparisonLabelIcon({
+  isPassed,
+  isFailedEqual,
+  isMoreFailed,
+}: {
+  isPassed: boolean;
+  isFailedEqual: boolean;
+  isMoreFailed: boolean;
+}) {
+  return (
+    <Icon
+      boxSize={5}
+      as={
+        isPassed
+          ? FiCheck
+          : isFailedEqual
+          ? FiX
+          : isMoreFailed
+          ? FiArrowUpCircle
+          : FiArrowDownCircle
+      }
+    />
+  );
+}
+
+function ComparisonDelta({ delta, total }: { delta: number; total: number }) {
+  return (
+    <Center gap={1}>
+      {delta !== 0 && (
+        <Icon
+          as={delta > 0 ? FiArrowUpCircle : FiArrowDownCircle}
+          color="black"
+          boxSize={5}
+        />
+      )}
+      <Text as="span" color={delta > 0 ? 'black' : 'inherit'}>
+        {formatColumnValueWith(total, formatNumber)}
       </Text>
-      <Center gap={1}>
-        {assertionsDiff !== 0 && (
-          <Icon
-            as={assertionsDiff > 0 ? FiArrowUpCircle : FiArrowDownCircle}
-            color="black"
-            boxSize={5}
-          />
-        )}
-        <Text as="span" color={assertionsDiff > 0 ? 'black' : 'inherit'}>
-          {formatColumnValueWith(total, formatNumber)}
-        </Text>
-      </Center>
-    </Flex>
+    </Center>
   );
 }
