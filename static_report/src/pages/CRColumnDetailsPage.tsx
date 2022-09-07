@@ -1,5 +1,5 @@
 import { Flex, Grid, GridItem, Text } from '@chakra-ui/react';
-import { useRoute } from 'wouter';
+import { useLocation, useRoute } from 'wouter';
 import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
 import { Main } from '../components/shared/Main';
 import { formatReportTime } from '../utils/formatters';
@@ -14,6 +14,7 @@ import {
   containsColumnQuantile,
   containsDataSummary,
 } from '../utils/transformers';
+import { useState } from 'react';
 interface Props {
   data: ComparisonReportSchema;
 }
@@ -23,8 +24,9 @@ export function CRColumnDetailsPage({
     input: { tables: targetTables, created_at: targetTime },
   },
 }: Props) {
-  // eslint-disable-next-line
-  const [_, params] = useRoute('/tables/:reportName/columns/:columnName');
+  const [, params] = useRoute('/tables/:reportName/columns/:columnName');
+  const [, setLocation] = useLocation();
+  const [tabIndex, setTabIndex] = useState<number>(0);
 
   const time = `${formatReportTime(baseTime)} -> ${formatReportTime(
     targetTime,
@@ -66,6 +68,10 @@ export function CRColumnDetailsPage({
             currentReport={decodedTableName}
             currentColumn={decodedColName}
             hasSplitView
+            onSelect={({ tableName, columnName }) => {
+              setTabIndex(0); //reset tabs
+              setLocation(`/tables/${tableName}/columns/${columnName}`);
+            }}
           />
         </GridItem>
         {/* Detail Area */}
@@ -127,6 +133,8 @@ export function CRColumnDetailsPage({
               targetColumnDatum={targetColumnDatum}
               hasSplitView
               hasAnimation
+              tabIndex={tabIndex}
+              onSelectTab={(i) => setTabIndex(i)}
             />
           </GridItem>
           {/* Data Summary Block (avg, stddev, ...) */}

@@ -13,12 +13,12 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { SaferTableSchema } from '../../../../types';
+import { SaferTableSchema, Selectable } from '../../../../types';
 import { transformAsNestedBaseTargetRecord } from '../../../../utils/transformers';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
-interface Props {
+interface Props extends Selectable {
   baseDataColumns?: SaferTableSchema['columns'];
   targetDataColumns?: SaferTableSchema['columns'];
   currentReport: string;
@@ -35,9 +35,10 @@ export function ColumnDetailsMasterList({
   currentReport,
   currentColumn,
   hasSplitView,
+  onSelect,
 }: Props) {
   const [filterString, setFilterString] = useState<string>('');
-  const [location, setLocation] = useLocation();
+  const [location] = useLocation();
   const [filterState, setFilterState] = useState<
     Map<ProfilerGenericTypes | undefined, boolean>
   >(
@@ -58,6 +59,7 @@ export function ColumnDetailsMasterList({
   const combinedColumnEntries = Object.entries(combinedColumnRecord);
 
   const quickFilters = Array.from(filterState.keys());
+  //FIXME: Temporary implementation!
   const parentRoute = location.slice(0, location.indexOf('/columns'));
 
   return (
@@ -151,7 +153,7 @@ export function ColumnDetailsMasterList({
               baseColumnDatum={base}
               targetColumnDatum={target}
               onSelect={(name) => {
-                setLocation(`/tables/${currentReport}/columns/${name}`);
+                onSelect({ tableName: currentReport, columnName: name });
               }}
               hasSplitView={hasSplitView}
               p={3}

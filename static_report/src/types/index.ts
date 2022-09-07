@@ -87,3 +87,13 @@ export const ZSingleSchema = singleReportSchemaSchema.merge(
 //TODO: temp bypass flag until `input` -> `target` on schema.json
 export const ZComparisonSchema = (flag?: boolean) =>
   zWrapForComparison(ZSingleSchema, ZSingleSchema, flag);
+
+export type Selectable = {
+  onSelect: ({
+    tableName,
+    columnName,
+  }: {
+    tableName?: string;
+    columnName?: string;
+  }) => void;
+};
