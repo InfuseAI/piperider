@@ -17,6 +17,8 @@ import { ColumnCardDataVisualContainer } from '../Columns/ColumnCard/ColumnCardD
 import { TEXTLENGTH } from '../Columns/constants';
 
 interface Props {
+  tabIndex: number;
+  onSelectTab: (index: number) => void;
   hasSplitView?: boolean;
   hasAnimation?: boolean;
   baseColumnDatum?: ColumnSchema;
@@ -27,6 +29,8 @@ export function ChartTabsWidget({
   hasSplitView,
   baseColumnDatum,
   targetColumnDatum,
+  tabIndex,
+  onSelectTab,
 }: Props) {
   const {
     type: baseType,
@@ -63,7 +67,7 @@ export function ChartTabsWidget({
     <Box height={'100%'}>
       <Text fontSize={'xl'}>Visualizations</Text>
       {hasAny ? (
-        <Tabs>
+        <Tabs isLazy index={tabIndex} onChange={(i) => onSelectTab(i)}>
           <TabList>
             {hasTopk && <Tab>Top Categories</Tab>}
             {hasHistogram && <Tab>{histogramLabel}</Tab>}

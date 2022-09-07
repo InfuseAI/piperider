@@ -1,5 +1,6 @@
 import { Divider, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
-import { useRoute } from 'wouter';
+import { useLocation, useRoute } from 'wouter';
+import { useState } from 'react';
 import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
 import { Main } from '../components/shared/Main';
 import { SingleReportSchema } from '../sdlc/single-report-schema';
@@ -20,6 +21,8 @@ interface Props {
 export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
   // eslint-disable-next-line
   const [_, params] = useRoute('/tables/:reportName/columns/:columnName');
+  const [, setLocation] = useLocation();
+  const [tabIndex, setTabIndex] = useState<number>(0);
   const time = formatReportTime(created_at);
 
   if (!params?.columnName) {
@@ -52,6 +55,10 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
             baseDataColumns={dataColumns}
             currentReport={decodedTableName}
             currentColumn={decodedColName}
+            onSelect={({ tableName, columnName }) => {
+              setTabIndex(0); //resets tabs
+              setLocation(`/tables/${tableName}/columns/${columnName}`);
+            }}
           />
         </GridItem>
 
@@ -79,7 +86,12 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
           </GridItem>
           {/* Chart Block - toggleable tabs */}
           <GridItem gridRow={'span 1'} minWidth={0} p={9} bg={'gray.50'}>
-            <ChartTabsWidget baseColumnDatum={columnDatum} hasAnimation />
+            <ChartTabsWidget
+              baseColumnDatum={columnDatum}
+              hasAnimation
+              tabIndex={tabIndex}
+              onSelectTab={(i) => setTabIndex(i)}
+            />
           </GridItem>
           <GridItem
             gridRow={'span 1'}
