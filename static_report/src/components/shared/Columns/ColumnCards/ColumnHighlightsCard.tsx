@@ -6,8 +6,7 @@ import {
   checkColumnCategorical,
   getChartKindByColumnType,
 } from '../../../../utils/transformers';
-import { ColumnCardBodyContainer } from './ColumnCardBodyContainer';
-import { ColumnCardDataVisualContainer } from './ColumnCardDataVisualContainer';
+import { ChartContainer } from '../../Charts/ChartContainer';
 import { ColumnTypeHeader } from '../ColumnTypeHeader';
 import { ColumnTypeDetailBoolean } from './ColumnTypeDetail/ColumnTypeDetailBoolean';
 import { ColumnTypeDetailCategorical } from './ColumnTypeDetail/ColumnTypeDetailCategorical';
@@ -19,7 +18,7 @@ import { ColumnTypeDetailText } from './ColumnTypeDetail/ColumnTypeDetailText';
 interface Props extends Selectable {
   columnDatum: ColumnSchema;
 }
-export function ColumnCard({ columnDatum, onSelect }: Props) {
+export function ColumnHighlightsCard({ columnDatum, onSelect }: Props) {
   ZColSchema.parse(columnDatum);
   const { name: columnName } = columnDatum;
 
@@ -38,13 +37,19 @@ export function ColumnCard({ columnDatum, onSelect }: Props) {
         bg={'blue.800'}
         color={'white'}
       />
-      <ColumnCardDataVisualContainer
+      <ChartContainer
         title={columnName}
         allowModalPopup={Boolean(getChartKindByColumnType(columnDatum))}
       >
         {getDataChart(columnDatum)}
-      </ColumnCardDataVisualContainer>
-      <ColumnCardBodyContainer>
+      </ChartContainer>
+      <Flex
+        p={2}
+        bg={'white'}
+        height={'100%'}
+        direction="column"
+        borderBottomRadius={'inherit'}
+      >
         <>
           {_getColumnBodyContentUI(columnDatum)}
           <Flex
@@ -62,7 +67,7 @@ export function ColumnCard({ columnDatum, onSelect }: Props) {
             </Text>
           </Flex>
         </>
-      </ColumnCardBodyContainer>
+      </Flex>
     </Flex>
   );
 }
