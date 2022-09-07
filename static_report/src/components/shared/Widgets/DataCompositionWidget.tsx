@@ -9,7 +9,7 @@ import {
 } from '../../../utils/transformers';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
 import { GeneralStats } from '../Columns/ColumnMetrics/GeneralStats';
-import { SRTextNumberStats } from '../Columns/ColumnMetrics/SRTextNumberStats';
+import { TypedStats } from '../Columns/ColumnMetrics/TypedStats';
 
 interface Props extends Comparable {
   hasAnimation?: boolean;
@@ -63,7 +63,11 @@ export function DataCompositionWidget({
               />
             </Box>
             <Box mt={6}>
-              <SRTextNumberStats columnDatum={columnDatum} width={'100%'} />
+              <TypedStats
+                baseColumnDatum={columnDatum}
+                singleOnly
+                width={'100%'}
+              />
             </Box>
           </Box>
         )}
