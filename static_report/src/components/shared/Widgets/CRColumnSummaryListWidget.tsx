@@ -9,7 +9,7 @@ import {
 import { getDataChart } from '../../../utils/charts';
 import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
 import { ColumnCardDataVisualContainer } from '../Columns/ColumnCard/ColumnCardDataVisualContainer';
-import { CRColumnDetailsCard } from '../Columns/ColumnCard/CRColumnStatsCard';
+import { ColumnStatsCard } from '../Columns/ColumnCard/ColumnStatsCard';
 
 interface CRProfilingDetailsProps extends Selectable {
   baseTable?: SaferTableSchema;
@@ -40,7 +40,7 @@ export function CRColumnSummaryListWidget({
               gap={12}
               overflowX={'hidden'}
             >
-              <CRColumnDetailsCard
+              <ColumnStatsCard
                 baseColumn={base}
                 targetColumn={target}
                 onSelect={({ columnName }) =>

@@ -12,7 +12,7 @@ interface Props extends Selectable, Comparable {
   baseColumn?: ColumnSchema;
   targetColumn?: ColumnSchema;
 }
-export const CRColumnDetailsCard = ({
+export const ColumnStatsCard = ({
   baseColumn,
   targetColumn,
   singleOnly,
@@ -52,6 +52,7 @@ export const CRColumnDetailsCard = ({
           <GeneralStats
             baseColumnDatum={baseColumn}
             targetColumnDatum={targetColumn}
+            singleOnly={singleOnly}
           />
         </Box>
 
@@ -59,6 +60,7 @@ export const CRColumnDetailsCard = ({
           <SummaryStats
             baseColumnDatum={baseColumn}
             targetColumnDatum={targetColumn}
+            singleOnly={singleOnly}
           />
         </Box>
 
