@@ -60,6 +60,7 @@ export function SRColumnDetailsPage({ data: { tables, created_at } }: Props) {
               setTabIndex(0); //resets tabs
               setLocation(`/tables/${tableName}/columns/${columnName}`);
             }}
+            singleOnly
           />
         </GridItem>
 

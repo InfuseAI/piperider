@@ -8,6 +8,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { Comparable } from '../../../../types';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
@@ -18,19 +19,21 @@ import {
 } from '../../../../utils/transformers';
 import { NO_VALUE } from '../constants';
 
-interface Props {
+interface Props extends Comparable {
   baseColumnDatum?: ColumnSchema;
   targetColumnDatum?: ColumnSchema;
   onSelect: (arg: string) => void;
   isActive: boolean;
-  hasSplitView?: boolean;
 }
+/**
+ * A list item showing a base column detail's name, valid% progress bar(s) depending on split-view
+ */
 export function ColumnDetailListItem({
   baseColumnDatum,
   targetColumnDatum,
   onSelect,
   isActive,
-  hasSplitView,
+  singleOnly,
   ...props
 }: Props & FlexProps) {
   const { icon, backgroundColor } = getIconForColumnType(baseColumnDatum);
@@ -75,7 +78,7 @@ export function ColumnDetailListItem({
           </Text>
         </Flex>
         <Box width={'100%'}>
-          {hasSplitView && (
+          {!singleOnly && (
             <Text fontSize={'sm'} color={'gray.600'} fontWeight={'semibold'}>
               Base
             </Text>
@@ -91,7 +94,7 @@ export function ColumnDetailListItem({
               Valid
             </Text>
           </Flex>
-          {hasSplitView && (
+          {!singleOnly && (
             <Box mt={3}>
               <Text fontSize={'sm'} color={'gray.600'} fontWeight={'semibold'}>
                 Target
