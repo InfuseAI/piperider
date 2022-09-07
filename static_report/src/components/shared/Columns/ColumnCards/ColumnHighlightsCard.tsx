@@ -18,6 +18,10 @@ import { ColumnTypeDetailText } from './ColumnTypeDetail/ColumnTypeDetailText';
 interface Props extends Selectable {
   columnDatum: ColumnSchema;
 }
+/**
+ * A Column Card that shows the main highlights of the column data
+ * Includes: Main Chart (single); Highlight Metrics; Detail link
+ */
 export function ColumnHighlightsCard({ columnDatum, onSelect }: Props) {
   ZColSchema.parse(columnDatum);
   const { name: columnName } = columnDatum;

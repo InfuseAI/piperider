@@ -56,6 +56,7 @@ export default function SRColumnDetailsPage({
             baseDataColumns={dataColumns}
             currentReport={reportName}
             currentColumn={columnName}
+            singleOnly
           />
         </GridItem>
 

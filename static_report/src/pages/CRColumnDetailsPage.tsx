@@ -70,7 +70,6 @@ export default function CRColumnDetailsPage({
             targetDataColumns={targetDataColumns}
             currentReport={reportName}
             currentColumn={columnName}
-            hasSplitView
           />
         </GridItem>
         {/* Detail Area */}

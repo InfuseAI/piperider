@@ -12,6 +12,9 @@ interface Props extends Selectable, Comparable {
   baseColumn?: ColumnSchema;
   targetColumn?: ColumnSchema;
 }
+/**
+ * Column Card that displays pure metric stats
+ */
 export const ColumnStatsCard = ({
   baseColumn,
   targetColumn,
@@ -39,14 +42,16 @@ export const ColumnStatsCard = ({
         />
       )}
       <Box m={4}>
-        <MetricsInfo
-          name=""
-          firstSlot={'Base'}
-          secondSlot={'Target'}
-          width={'100%'}
-          fontWeight={'bold'}
-          mb={3}
-        />
+        {!singleOnly && (
+          <MetricsInfo
+            name=""
+            firstSlot={'Base'}
+            secondSlot={'Target'}
+            width={'100%'}
+            fontWeight={'bold'}
+            mb={3}
+          />
+        )}
 
         <Box mb={3}>
           <GeneralStats
