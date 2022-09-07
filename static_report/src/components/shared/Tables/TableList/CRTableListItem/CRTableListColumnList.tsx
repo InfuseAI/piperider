@@ -119,9 +119,7 @@ export function CRTableListColumnList({
                     <CRTargetTableAssertionsSummary
                       {...targetAssertions}
                       baseAssertionsFailed={baseAssertions.failed}
-                      assertionsDiff={
-                        targetAssertions.total - baseAssertions.total
-                      }
+                      delta={targetAssertions.total - baseAssertions.total}
                     />
                   </Flex>
                 ) : (
