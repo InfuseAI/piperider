@@ -1,20 +1,21 @@
 import { Box, Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { Selectable, ZColSchema, zReport } from '../../../../types';
+import { Comparable, Selectable, ZColSchema, zReport } from '../../../../types';
 import { checkColumnCategorical } from '../../../../utils/transformers';
 import { ColumnTypeHeader } from '../ColumnTypeHeader';
 import { NO_VALUE } from '../constants';
 import { MetricsInfo } from '../ColumnMetrics/MetricsInfo';
-import { CRGeneralStats } from '../ColumnMetrics/CRGeneralStats';
+import { GeneralStats } from '../ColumnMetrics/GeneralStats';
 import { CRSummaryStats } from '../ColumnMetrics/CRSummaryStats';
 
-interface Props extends Selectable {
+interface Props extends Selectable, Comparable {
   baseColumn?: ColumnSchema;
   targetColumn?: ColumnSchema;
 }
 export const CRColumnDetailsCard = ({
   baseColumn,
   targetColumn,
+  singleOnly,
   onSelect,
 }: Props) => {
   const fallback = baseColumn || targetColumn;
@@ -48,7 +49,7 @@ export const CRColumnDetailsCard = ({
         />
 
         <Box mb={3}>
-          <CRGeneralStats
+          <GeneralStats
             baseColumnDatum={baseColumn}
             targetColumnDatum={targetColumn}
           />

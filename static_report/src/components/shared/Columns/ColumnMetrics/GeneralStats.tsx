@@ -1,42 +1,55 @@
 import { FlexProps } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { ZColSchema, zReport } from '../../../../types';
+import { Comparable, ZColSchema, zReport } from '../../../../types';
 import {
   MetricNameMetakeyList,
   transformCRMetricsInfoList,
+  transformSRMetricsInfoList,
 } from '../../../../utils/transformers';
 import { MetricsInfo } from './MetricsInfo';
 
-type Props = {
+interface Props extends Comparable {
   baseColumnDatum?: ColumnSchema;
   targetColumnDatum?: ColumnSchema;
-};
-export function CRGeneralStats({
+}
+export function GeneralStats({
   baseColumnDatum,
   targetColumnDatum,
+  singleOnly,
   ...props
 }: Props & FlexProps) {
   zReport(ZColSchema.safeParse(baseColumnDatum));
   zReport(ZColSchema.safeParse(targetColumnDatum));
+
   const metakeyEntries: MetricNameMetakeyList = [
     ['valids', 'Valid'],
     ['invalids', 'Invalid'],
     ['nulls', 'Missing'],
   ];
-  const totalMetricsList = transformCRMetricsInfoList(
-    [['total', 'Total']],
-    baseColumnDatum,
-    targetColumnDatum,
-    'count',
-  );
-  const metricsList = transformCRMetricsInfoList(
-    metakeyEntries,
-    baseColumnDatum,
-    targetColumnDatum,
-  );
+  // metric info list defaults to display as percentage
+  const metricsList = singleOnly
+    ? transformSRMetricsInfoList(metakeyEntries, baseColumnDatum)
+    : transformCRMetricsInfoList(
+        metakeyEntries,
+        baseColumnDatum,
+        targetColumnDatum,
+      );
+
+  // Total displays differently if has base/target
+  const totalMetaKeyEntry: MetricNameMetakeyList = [['total', 'Total']];
+
+  const totalMetricsList = singleOnly
+    ? transformSRMetricsInfoList(totalMetaKeyEntry, baseColumnDatum)
+    : transformCRMetricsInfoList(
+        totalMetaKeyEntry,
+        baseColumnDatum,
+        targetColumnDatum,
+        'count',
+      );
 
   return (
     <>
+      {/* Total - (1): % + n (2): n + n */}
       {totalMetricsList.map(
         ({ firstSlot, secondSlot, metakey, name, tooltipValues }, index) => (
           <MetricsInfo
@@ -51,6 +64,7 @@ export function CRGeneralStats({
           />
         ),
       )}
+      {/* Others - (1): % + n (2): % + % */}
       {metricsList.map(
         ({ firstSlot, secondSlot, metakey, name, tooltipValues }, index) => (
           <MetricsInfo
