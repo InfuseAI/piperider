@@ -9,7 +9,8 @@ import {
 import isString from 'lodash/isString';
 import partial from 'lodash/partial';
 
-import { ColumnAssertionLabelWidget } from '../../../Widgets/ColumnAssertionLabelWidget';
+import { AssertionsLabelIcon } from '../../../Assertions/AssertionsLabelIcon';
+import { ColumnAssertionLabel } from '../../../Assertions/ColumnAssertionLabel';
 import { getComparisonAssertions } from '../../../../../utils/assertion';
 import type { ComparisonReportSchema } from '../../../../../types';
 import {
@@ -131,21 +132,12 @@ export function CRTargetTableAssertion({
     );
   }
 
-  if (failedDelta < 0) {
+  if (failedDelta !== 0) {
     return (
       <Center gap={1} color="#F60059">
-        <Icon as={FiArrowDownCircle} boxSize={4} />
+        <AssertionsLabelIcon delta={failedDelta} />
         <Text as="span">
           {formatColumnValueWith(Math.abs(failedDelta), formatNumber)}
-        </Text>
-      </Center>
-    );
-  } else if (failedDelta > 0) {
-    return (
-      <Center gap={1} color="#F60059">
-        <Icon as={FiArrowUpCircle} boxSize={4} />
-        <Text as="span">
-          {formatColumnValueWith(failedDelta, formatNumber)}
         </Text>
       </Center>
     );
@@ -177,13 +169,7 @@ export function CRTargetTableAssertionsDelta({
 
   return (
     <Center gap={1}>
-      {delta !== 0 ? (
-        <Icon
-          as={isGreaterThanZero ? FiArrowUpCircle : FiArrowDownCircle}
-          color="black"
-          boxSize={4}
-        />
-      ) : null}
+      {delta !== 0 ? <AssertionsLabelIcon delta={delta} /> : null}
       <Text as="span" color={isGreaterThanZero ? 'black' : 'inherit'}>
         {formatColumnValueWith(targetAssertions, formatNumber)}
       </Text>
@@ -198,14 +184,8 @@ export function CRBaseTableAssertionsSummary({
   total: number;
   failed: number;
 }) {
-  const isPassed = failed === 0;
-
   return (
-    <ColumnAssertionLabelWidget
-      isPassed={isPassed}
-      total={total}
-      failed={failed}
-    />
+    <ColumnAssertionLabel singleOnly={false} total={total} failed={failed} />
   );
 }
 
@@ -227,9 +207,7 @@ export function CRTargetTableAssertionsSummary({
   if (total === 0) {
     return (
       <Center>
-        {delta !== 0 && (
-          <Icon as={FiArrowDownCircle} color="black" boxSize={5} />
-        )}
+        {delta !== 0 && <AssertionsLabelIcon delta={delta} />}
         <Text as="span" color="black">
           none
         </Text>
@@ -238,11 +216,10 @@ export function CRTargetTableAssertionsSummary({
   }
 
   return (
-    <ColumnAssertionLabelWidget
-      isPassed={isPassed}
+    <ColumnAssertionLabel
+      singleOnly={false}
       total={total}
       failed={failed}
-      isComparison
       comparisonDelta={<ComparisonDelta delta={delta} total={total} />}
       icon={
         <ComparisonLabelIcon
@@ -283,13 +260,7 @@ function ComparisonLabelIcon({
 function ComparisonDelta({ delta, total }: { delta: number; total: number }) {
   return (
     <Center gap={1}>
-      {delta !== 0 && (
-        <Icon
-          as={delta > 0 ? FiArrowUpCircle : FiArrowDownCircle}
-          color="black"
-          boxSize={5}
-        />
-      )}
+      {delta !== 0 && <AssertionsLabelIcon delta={delta} />}
       <Text as="span" color={delta > 0 ? 'black' : 'inherit'}>
         {formatColumnValueWith(total, formatNumber)}
       </Text>

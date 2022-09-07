@@ -3,11 +3,12 @@ import { FiChevronRight } from 'react-icons/fi';
 
 import { HistogramChart } from '../../../Charts/HistogramChart';
 import { ColumnName } from '../ColumnName';
-import { SRTableListAssertionsSummary } from './SRTableListAssertionsSummary';
+import { ColumnAssertionLabel } from '../../../Assertions/ColumnAssertionLabel';
 
 import { getIconForColumnType } from '../../../../../utils/transformers';
 import type { TableSchema } from '../../../../../sdlc/single-report-schema';
 import type { Selectable } from '../../../../../types';
+import { getAssertions } from '../../../../../utils/assertion';
 
 interface Props extends Selectable {
   table: TableSchema;
@@ -47,9 +48,7 @@ export function SRTableListColumnList({ table, onSelect }: Props) {
               {!mergedColAssertions ? (
                 <Text color="gray.500">No assertions</Text>
               ) : (
-                <SRTableListAssertionsSummary
-                  assertions={mergedColAssertions}
-                />
+                <ColumnAssertionLabel {...getAssertions(mergedColAssertions)} />
               )}
             </GridItem>
 

@@ -90,7 +90,7 @@ export default function SRTableDetailsPage({ data, name }: Props) {
           direction="column"
           gap={4}
         >
-          <TableOverview baseTable={table} singleOnly />
+          <TableOverview baseTable={table} />
 
           <Heading size="md">Assertions</Heading>
           <CollapseContent
