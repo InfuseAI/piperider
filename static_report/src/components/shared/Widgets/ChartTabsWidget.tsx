@@ -13,7 +13,7 @@ import { isNumber } from 'lodash';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { getDataChart, renderChartUnavailableMsg } from '../../../utils/charts';
 import { ChartKind } from '../../../utils/transformers';
-import { ColumnCardDataVisualContainer } from '../Columns/ColumnCard/ColumnCardDataVisualContainer';
+import { ChartContainer } from '../Charts/ChartContainer';
 import { TEXTLENGTH } from '../Columns/constants';
 
 interface Props {
@@ -144,30 +144,27 @@ function _renderGridSplitView(
     <Grid templateColumns={hasSplitView ? '1fr 1fr' : '1fr'}>
       <GridItem minWidth={0}>
         {
-          <ColumnCardDataVisualContainer p={0} title={baseColumnDatum?.name}>
+          <ChartContainer p={0} title={baseColumnDatum?.name}>
             {getDataChart(
               baseColumnDatum,
               targetColumnDatum,
               chartKind,
               hasAnimation,
             )}
-          </ColumnCardDataVisualContainer>
+          </ChartContainer>
         }
       </GridItem>
       {hasSplitView && (
         <GridItem minWidth={0}>
           {targetColumnDatum !== null && (
-            <ColumnCardDataVisualContainer
-              p={0}
-              title={targetColumnDatum?.name}
-            >
+            <ChartContainer p={0} title={targetColumnDatum?.name}>
               {getDataChart(
                 targetColumnDatum,
                 baseColumnDatum,
                 chartKind,
                 hasAnimation,
               )}
-            </ColumnCardDataVisualContainer>
+            </ChartContainer>
           )}
         </GridItem>
       )}

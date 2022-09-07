@@ -1,20 +1,24 @@
 import { Box, Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { Selectable, ZColSchema, zReport } from '../../../../types';
+import { Comparable, Selectable, ZColSchema, zReport } from '../../../../types';
 import { checkColumnCategorical } from '../../../../utils/transformers';
 import { ColumnTypeHeader } from '../ColumnTypeHeader';
 import { NO_VALUE } from '../constants';
 import { MetricsInfo } from '../ColumnMetrics/MetricsInfo';
-import { CRGeneralStats } from '../ColumnMetrics/CRGeneralStats';
-import { CRSummaryStats } from '../ColumnMetrics/CRSummaryStats';
+import { GeneralStats } from '../ColumnMetrics/GeneralStats';
+import { SummaryStats } from '../ColumnMetrics/SummaryStats';
 
-interface Props extends Selectable {
+interface Props extends Selectable, Comparable {
   baseColumn?: ColumnSchema;
   targetColumn?: ColumnSchema;
 }
-export const CRColumnDetailsCard = ({
+/**
+ * Column Card that displays pure metric stats
+ */
+export const ColumnStatsCard = ({
   baseColumn,
   targetColumn,
+  singleOnly,
   onSelect,
 }: Props) => {
   const fallback = baseColumn || targetColumn;
@@ -38,26 +42,30 @@ export const CRColumnDetailsCard = ({
         />
       )}
       <Box m={4}>
-        <MetricsInfo
-          name=""
-          firstSlot={'Base'}
-          secondSlot={'Target'}
-          width={'100%'}
-          fontWeight={'bold'}
-          mb={3}
-        />
+        {!singleOnly && (
+          <MetricsInfo
+            name=""
+            firstSlot={'Base'}
+            secondSlot={'Target'}
+            width={'100%'}
+            fontWeight={'bold'}
+            mb={3}
+          />
+        )}
 
         <Box mb={3}>
-          <CRGeneralStats
+          <GeneralStats
             baseColumnDatum={baseColumn}
             targetColumnDatum={targetColumn}
+            singleOnly={singleOnly}
           />
         </Box>
 
         <Box mb={3}>
-          <CRSummaryStats
+          <SummaryStats
             baseColumnDatum={baseColumn}
             targetColumnDatum={targetColumn}
+            singleOnly={singleOnly}
           />
         </Box>
 

@@ -1,5 +1,6 @@
 import { Divider, Text, Box } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { Comparable } from '../../../types';
 import { renderChartUnavailableMsg } from '../../../utils/charts';
 import { formatTitleCase } from '../../../utils/formatters';
 import {
@@ -7,14 +8,18 @@ import {
   transformCompositionAsFlatStackInput,
 } from '../../../utils/transformers';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
-import { SRGeneralStats } from '../Columns/ColumnMetrics/SRGeneralStats';
-import { SRTextNumberStats } from '../Columns/ColumnMetrics/SRTextNumberStats';
+import { GeneralStats } from '../Columns/ColumnMetrics/GeneralStats';
+import { TypedStats } from '../Columns/ColumnMetrics/TypedStats';
 
-interface Props {
+interface Props extends Comparable {
   hasAnimation?: boolean;
   columnDatum?: ColumnSchema;
 }
-export function DataCompositionWidget({ columnDatum, hasAnimation }: Props) {
+export function DataCompositionWidget({
+  columnDatum,
+  hasAnimation,
+  singleOnly,
+}: Props) {
   const { type } = columnDatum || {};
   const showGenericTypeComp = containsAvgSDSummary(type);
   const dataCompInput = transformCompositionAsFlatStackInput(
@@ -39,7 +44,11 @@ export function DataCompositionWidget({ columnDatum, hasAnimation }: Props) {
             />
           </Box>
           <Box mt={6}>
-            <SRGeneralStats columnDatum={columnDatum} width={'100%'} />
+            <GeneralStats
+              baseColumnDatum={columnDatum}
+              singleOnly
+              width={'100%'}
+            />
           </Box>
         </Box>
 
@@ -54,7 +63,11 @@ export function DataCompositionWidget({ columnDatum, hasAnimation }: Props) {
               />
             </Box>
             <Box mt={6}>
-              <SRTextNumberStats columnDatum={columnDatum} width={'100%'} />
+              <TypedStats
+                baseColumnDatum={columnDatum}
+                singleOnly
+                width={'100%'}
+              />
             </Box>
           </Box>
         )}

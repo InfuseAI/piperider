@@ -3,7 +3,7 @@ import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { renderChartUnavailableMsg } from '../../../utils/charts';
 import { formatTitleCase } from '../../../utils/formatters';
 import { NO_VALUE } from '../Columns/constants';
-import { SRSummaryStats } from '../Columns/ColumnMetrics/SRSummaryStats';
+import { SummaryStats } from '../Columns/ColumnMetrics/SummaryStats';
 
 interface Props {
   columnDatum?: ColumnSchema;
@@ -20,7 +20,7 @@ export function DataSummaryWidget({ columnDatum }: Props) {
           {formatTitleCase(columnDatum?.type || NO_VALUE)} Statistics
         </Text>
         <Divider my={3} />
-        <SRSummaryStats columnDatum={columnDatum} width={'100%'} />
+        <SummaryStats baseColumnDatum={columnDatum} singleOnly width={'100%'} />
       </Box>
     );
   }

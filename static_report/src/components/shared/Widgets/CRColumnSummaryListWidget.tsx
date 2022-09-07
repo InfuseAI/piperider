@@ -8,8 +8,8 @@ import {
 } from '../../../types';
 import { getDataChart } from '../../../utils/charts';
 import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
-import { ColumnCardDataVisualContainer } from '../Columns/ColumnCard/ColumnCardDataVisualContainer';
-import { CRColumnDetailsCard } from '../Columns/ColumnCard/CRColumnDetailsCard';
+import { ChartContainer } from '../Charts/ChartContainer';
+import { ColumnStatsCard } from '../Columns/ColumnCards/ColumnStatsCard';
 
 interface CRProfilingDetailsProps extends Selectable {
   baseTable?: SaferTableSchema;
@@ -40,7 +40,7 @@ export function CRColumnSummaryListWidget({
               gap={12}
               overflowX={'hidden'}
             >
-              <CRColumnDetailsCard
+              <ColumnStatsCard
                 baseColumn={base}
                 targetColumn={target}
                 onSelect={({ columnName }) =>
@@ -49,12 +49,12 @@ export function CRColumnSummaryListWidget({
               />
 
               <Flex my={4} alignItems={'center'}>
-                <ColumnCardDataVisualContainer height={350}>
+                <ChartContainer height={350}>
                   {getDataChart(base)}
-                </ColumnCardDataVisualContainer>
-                <ColumnCardDataVisualContainer height={350}>
+                </ChartContainer>
+                <ChartContainer height={350}>
                   {getDataChart(target, base)}
-                </ColumnCardDataVisualContainer>
+                </ChartContainer>
               </Flex>
             </Grid>
           </Flex>

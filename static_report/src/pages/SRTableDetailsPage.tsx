@@ -11,10 +11,9 @@ import { useState } from 'react';
 import { nanoid } from 'nanoid';
 
 import { Main } from '../components/shared/Main';
-import { ColumnCard } from '../components/shared/Columns/ColumnCard';
+import { ColumnHighlightsCard } from '../components/shared/Columns/ColumnCards/ColumnHighlightsCard';
 import { CollapseContent } from '../components/shared/CollapseContent';
 import { SRAssertionDetailsWidget } from '../components/shared/Widgets/SRAssertionDetailsWidget';
-import { SRTableOverview } from '../components/shared/Tables/SRTableOverview';
 
 import { dataSourceSchema } from '../sdlc/single-report-schema.z';
 import { formatReportTime } from '../utils/formatters';
@@ -24,6 +23,7 @@ import type {
   SingleReportSchema,
   TableSchema,
 } from '../sdlc/single-report-schema';
+import { TableOverview } from '../components/shared/Tables/TableOverview';
 
 interface Props {
   data: SingleReportSchema;
@@ -90,7 +90,7 @@ export default function SRTableDetailsPage({ data, name }: Props) {
           direction="column"
           gap={4}
         >
-          <SRTableOverview table={table} />
+          <TableOverview baseTable={table} singleOnly />
 
           <Heading size="md">Assertions</Heading>
           <CollapseContent
@@ -122,7 +122,7 @@ export default function SRTableDetailsPage({ data, name }: Props) {
                 zReport(ZColSchema.safeParse(column));
 
                 return (
-                  <ColumnCard
+                  <ColumnHighlightsCard
                     key={nanoid()}
                     columnDatum={column}
                     onSelect={({ columnName }) =>
