@@ -55,7 +55,7 @@ export function SimpleBreadcrumbNavbar({
   );
 
   return (
-    <Flex alignItems={'center'} h={`${height}px`} bg={'gray.200'} {...props}>
+    <Flex alignItems={'center'} h={`${height}px`} {...props}>
       <Breadcrumb
         fontSize="lg"
         separator={<ChevronRightIcon color="gray.500" boxSize={6} />}
@@ -70,7 +70,7 @@ export function SimpleBreadcrumbNavbar({
                 display={'flex'}
                 alignItems={'center'}
               >
-                {label}
+                {decodeURIComponent(label)}
               </BreadcrumbLink>
             </BreadcrumbItem>
           );

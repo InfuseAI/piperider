@@ -6,6 +6,7 @@ import {
   ButtonGroup,
   Tooltip,
 } from '@chakra-ui/react';
+import { ReactNode } from 'react';
 import {
   FiDatabase,
   FiCreditCard,
@@ -20,6 +21,7 @@ type Props = {
   toggleView: (view: TableActionBarView) => void;
   sourceName: string;
   sourceType: string;
+  children?: ReactNode;
 };
 
 export function TableActionBar({
@@ -27,6 +29,7 @@ export function TableActionBar({
   toggleView,
   sourceName,
   sourceType,
+  children,
 }: Props) {
   return (
     <Flex
@@ -48,6 +51,7 @@ export function TableActionBar({
         >
           <Icon as={FiAlertCircle} />
         </Tooltip>
+        {children}
       </Flex>
 
       <ButtonGroup

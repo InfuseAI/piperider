@@ -24,6 +24,7 @@ import {
   Accordion,
   AccordionItem,
   AccordionPanel,
+  Divider,
   Flex,
   Grid,
   Stack,
@@ -34,6 +35,7 @@ import { CRTableListColumnList } from '../components/shared/Tables/TableList/CRT
 import { CRTableSchemaDetails } from '../components/shared/Tables/TableList/CRTableListItem/CRTableSchemaDetails';
 import { useLocation } from 'wouter';
 import { CRTableListAssertions } from '../components/shared/Tables/TableList/CRTableListItem/CRTableListAssertions';
+import { SimpleBreadcrumbNavbar } from '../components/shared/BreadcrumbNav';
 
 type Props = { data: ComparisonReportSchema };
 
@@ -68,7 +70,12 @@ export function CRTablesListPage({ data }: Props) {
         toggleView={(nextView) => {
           setView(nextView);
         }}
-      />
+      >
+        <>
+          <Divider orientation="vertical" mx={3} />
+          <SimpleBreadcrumbNavbar routePathToMatch="/" />
+        </>
+      </TableActionBar>
 
       <Flex direction="column" width="900px" minHeight="650px">
         <Grid templateColumns="218px 2fr 1.5fr" px={4} my={6}>
