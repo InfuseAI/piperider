@@ -88,13 +88,14 @@ export function CRTablesListPage({ data }: Props) {
                     <>
                       {/* Accordion Parent */}
                       <CRTableListItem
+                        name={key}
                         isExpanded={isExpanded}
                         baseTableDatum={table.base}
                         targetTableDatum={table.target}
-                        onSelect={() => setLocation(`/tables/${key}`)}
                       >
                         <CRTableListAssertions data={data} reportName={key} />
                       </CRTableListItem>
+
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
                         {view === 'summary' ? (

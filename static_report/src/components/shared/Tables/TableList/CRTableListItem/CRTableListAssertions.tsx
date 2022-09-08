@@ -9,8 +9,7 @@ import {
 import isString from 'lodash/isString';
 import partial from 'lodash/partial';
 
-import { AssertionsLabelIcon } from '../../../Assertions/AssertionsLabelIcon';
-import { ColumnAssertionLabel } from '../../../Assertions/ColumnAssertionLabel';
+import { AssertionLabel, AssertionsLabelIcon } from '../../../Assertions';
 import { getComparisonAssertions } from '../../../../../utils/assertion';
 import type { ComparisonReportSchema } from '../../../../../types';
 import {
@@ -184,9 +183,7 @@ export function CRBaseTableAssertionsSummary({
   total: number;
   failed: number;
 }) {
-  return (
-    <ColumnAssertionLabel singleOnly={false} total={total} failed={failed} />
-  );
+  return <AssertionLabel singleOnly={false} total={total} failed={failed} />;
 }
 
 export function CRTargetTableAssertionsSummary({
@@ -216,7 +213,7 @@ export function CRTargetTableAssertionsSummary({
   }
 
   return (
-    <ColumnAssertionLabel
+    <AssertionLabel
       singleOnly={false}
       total={total}
       failed={failed}

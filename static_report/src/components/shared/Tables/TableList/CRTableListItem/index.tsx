@@ -1,6 +1,14 @@
-import { Flex, Grid, Text, GridItem, Icon } from '@chakra-ui/react';
+import {
+  Flex,
+  Grid,
+  Text,
+  GridItem,
+  Icon,
+  Link as ChakraLink,
+} from '@chakra-ui/react';
 import { FiChevronRight } from 'react-icons/fi';
 import { ReactNode } from 'react';
+import { Link } from 'wouter';
 
 import {
   TableListItem,
@@ -12,18 +20,18 @@ import { CRTableListDeltaSummary } from './CRTableListDeltaSummary';
 import { SaferTableSchema } from '../../../../../types';
 
 interface Props {
+  name: string;
   isExpanded: boolean;
   baseTableDatum?: SaferTableSchema;
   targetTableDatum?: SaferTableSchema;
-  onSelect: () => void;
   children: ReactNode; //e.g. CRTableListAssertions
 }
 
 export function CRTableListItem({
   isExpanded,
+  name,
   baseTableDatum,
   targetTableDatum,
-  onSelect,
   children,
 }: Props) {
   const columnName = baseTableDatum?.name || targetTableDatum?.name;
@@ -33,7 +41,7 @@ export function CRTableListItem({
   return (
     <TableListItem isExpanded={isExpanded} data-cy="cr-table-overview-btn">
       <Grid
-        templateColumns="218px 2fr 1.5fr 2.8rem"
+        templateColumns="218px 2fr 1.5fr"
         justifyItems="flex-start"
         width="calc(900px - 30px)"
       >
@@ -53,17 +61,21 @@ export function CRTableListItem({
             />
           </Flex>
         </GridItem>
-        <GridItem>{children}</GridItem>
         <GridItem>
-          {isExpanded && (
-            <Flex
-              as="a"
-              data-cy="cr-navigate-report-detail"
-              onClick={() => onSelect()}
-            >
-              <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
-            </Flex>
-          )}
+          <Flex gap={2}>
+            {children}
+            {isExpanded && (
+              <ChakraLink
+                as={Link}
+                to={`/tables/${name}`}
+                data-cy="cr-navigate-report-detail"
+              >
+                <a href={`/tables/${name}`}>
+                  <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
+                </a>
+              </ChakraLink>
+            )}
+          </Flex>
         </GridItem>
       </Grid>
       <Grid
