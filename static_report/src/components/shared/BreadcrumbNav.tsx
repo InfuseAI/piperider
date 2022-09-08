@@ -56,7 +56,7 @@ export function BreadcrumbNav({
   );
 
   return (
-    <Flex alignItems={'center'} h={`${height}px`} {...props}>
+    <Flex alignItems={'center'} h={`${height}px`} px={3} {...props}>
       <Breadcrumb
         fontSize="lg"
         separator={<ChevronRightIcon color="gray.500" boxSize={6} />}
