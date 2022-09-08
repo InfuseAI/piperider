@@ -17,7 +17,7 @@ import type {
   TableSchema,
 } from '../sdlc/single-report-schema';
 import { TableOverview } from '../components/shared/Tables/TableOverview';
-import { SimpleBreadcrumbNav } from '../components/shared/BreadcrumbNav';
+import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
 import { TABLE_DETAILS_ROUTE_PATH } from '../utils/routes';
 import { NoData } from '../components/shared/NoData';
 
@@ -51,7 +51,7 @@ export default function SRTableDetailsPage({ data, tableName }: Props) {
   return (
     <Main isSingleReport time={formatReportTime(data.created_at)}>
       <Flex direction="column" width="100%">
-        <SimpleBreadcrumbNav routePathToMatch={TABLE_DETAILS_ROUTE_PATH} />
+        <BreadcrumbNav routePathToMatch={TABLE_DETAILS_ROUTE_PATH} />
 
         <Flex
           border="1px solid"

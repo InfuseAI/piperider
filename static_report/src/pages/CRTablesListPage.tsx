@@ -35,7 +35,7 @@ import { CRTableListColumnList } from '../components/shared/Tables/TableList/CRT
 import { CRTableSchemaDetails } from '../components/shared/Tables/TableList/CRTableListItem/CRTableSchemaDetails';
 import { useLocation } from 'wouter';
 import { CRTableListAssertions } from '../components/shared/Tables/TableList/CRTableListItem/CRTableListAssertions';
-import { SimpleBreadcrumbNav } from '../components/shared/BreadcrumbNav';
+import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
 
 type Props = { data: ComparisonReportSchema };
 
@@ -73,7 +73,7 @@ export function CRTablesListPage({ data }: Props) {
       >
         <>
           <Divider orientation="vertical" mx={3} />
-          <SimpleBreadcrumbNav routePathToMatch="/" />
+          <BreadcrumbNav routePathToMatch="/" />
         </>
       </TableActionBar>
 

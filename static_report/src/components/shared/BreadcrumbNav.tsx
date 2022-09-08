@@ -27,7 +27,7 @@ interface Props {
  *
  * FUTURE?: or by config provision (custom route logic)?
  */
-export function SimpleBreadcrumbNav({
+export function BreadcrumbNav({
   routePathToMatch,
   height = breadcrumbHeight,
   ...props
@@ -40,9 +40,10 @@ export function SimpleBreadcrumbNav({
   const matcherSegments = routePathToMatch.split('/');
 
   // routable paths by alternate ordering between path_name and path_param (posts/:id)
+
   const breadcrumbList = urlSegments.reduce<BreadcrumbMetaItem[]>(
     (prev, curr, index) => {
-      const matcherItem = matcherSegments[index];
+      const matcherItem = matcherSegments[index] || '';
       const isCurrentParam = matcherItem.includes(':');
       if (isCurrentParam) {
         // get breadcrumbUrl (from root to param)
