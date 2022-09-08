@@ -19,9 +19,9 @@
 Key Features:
 
 - Instant quality assessment in HTML
-  report: [sample report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.7.0/index.html)
+  report: [sample report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.8.0/index.html)
 - Report
-  comparison: [sample comparsion report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.7.0/index.html)
+  comparison: [sample comparsion report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.8.0/index.html)
 - [Extensible custom assertions](https://docs.piperider.io/data-quality-assertions/custom-assertions)
 - Works with existing [dbt](https://github.com/dbt-labs/dbt-core) projects
 - Automatic test recommendations
