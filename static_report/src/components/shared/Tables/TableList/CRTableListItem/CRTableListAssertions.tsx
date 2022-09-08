@@ -23,19 +23,19 @@ const getAssertionValue = partial((value: string | number) =>
 
 export function CRTableListAssertions({
   data,
-  reportName,
+  tableName,
 }: {
   data: ComparisonReportSchema;
-  reportName: string;
+  tableName: string;
 }) {
   const [baseOverview, targetOverview] = getComparisonAssertions({
     data,
-    reportName,
+    tableName,
     type: 'piperider',
   });
   const [dbtBaseOverview, dbtTargetOverview] = getComparisonAssertions({
     data,
-    reportName,
+    tableName,
     type: 'dbt',
   });
 

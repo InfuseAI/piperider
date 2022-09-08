@@ -1,14 +1,6 @@
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  Flex,
-  Heading,
-  useDisclosure,
-} from '@chakra-ui/react';
-import { Link, useLocation } from 'wouter';
+import { Flex, Heading, useDisclosure } from '@chakra-ui/react';
+import { useLocation } from 'wouter';
 import { useState } from 'react';
-import { FiDatabase, FiGrid } from 'react-icons/fi';
 
 import { Main } from '../components/shared/Main';
 import { getComparisonAssertions } from '../utils/assertion';
@@ -29,36 +21,47 @@ import { TableOverview } from '../components/shared/Tables/TableOverview';
 import { formatReportTime } from '../utils/formatters';
 import { CollapseContent } from '../components/shared/CollapseContent';
 import { CRAssertionDetailsWidget } from '../components/shared/Widgets/CRAssertionDetailsWidget';
+import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
+import { TABLE_DETAILS_ROUTE_PATH } from '../utils/routes';
+import { NoData } from '../components/shared/NoData';
 
 type Props = {
   data: ComparisonReportSchema;
-  name: string;
+  tableName: string;
 };
-export default function CRTableDetailsPage({ data, name: reportName }: Props) {
+export default function CRTableDetailsPage({ data, tableName }: Props) {
   const [testDetail, setTestDetail] = useState<TestDetail | null>(null);
   const modal = useDisclosure();
   const [assertionsVisible, setAssertionsVisible] = useState(false);
   const [columnsVisible, setColumnsVisible] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
+  useDocumentTitle(tableName);
+
+  if (!data || !tableName) {
+    return (
+      <Main isSingleReport time="-">
+        <NoData text="No profile data found." />
+      </Main>
+    );
+  }
 
   const { base, input: target } = data;
   zReport(ZComparisonSchema(true).safeParse(data));
 
-  const baseTable = base.tables[reportName];
-  const targetTable = target.tables[reportName];
+  const baseTable = base.tables[tableName];
+  const targetTable = target.tables[tableName];
 
   zReport(ZTableSchema.safeParse(baseTable));
   zReport(ZTableSchema.safeParse(targetTable));
 
   const [baseOverview, targetOverview] = getComparisonAssertions({
     data,
-    reportName,
+    tableName,
     type: 'piperider',
   });
   const [dbtBaseOverview, dbtTargetOverview] = getComparisonAssertions({
     data,
-    reportName,
+    tableName,
     type: 'dbt',
   });
 
@@ -73,8 +76,6 @@ export default function CRTableDetailsPage({ data, name: reportName }: Props) {
   const isAssertionsEmpty =
     piperiderAssertions.length === 0 && dbtAssertions.length === 0;
 
-  useDocumentTitle(reportName);
-
   return (
     <Main
       isSingleReport={false}
@@ -83,28 +84,7 @@ export default function CRTableDetailsPage({ data, name: reportName }: Props) {
       )}`}
     >
       <Flex direction="column" width="inherit">
-        <Flex mx="5%" mt={4}>
-          <Breadcrumb fontSize="lg">
-            <BreadcrumbItem>
-              <Link href="/">
-                <BreadcrumbLink href="/" data-cy="cr-report-breadcrumb-back">
-                  <Flex alignItems="center" gap={1}>
-                    <FiDatabase /> Tables
-                  </Flex>
-                </BreadcrumbLink>
-              </Link>
-            </BreadcrumbItem>
-
-            <BreadcrumbItem isCurrentPage>
-              <BreadcrumbLink href="#">
-                <Flex alignItems="center" gap={1}>
-                  <FiGrid />
-                  {reportName}
-                </Flex>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-          </Breadcrumb>
-        </Flex>
+        <BreadcrumbNav routePathToMatch={TABLE_DETAILS_ROUTE_PATH} />
 
         <Flex
           border="1px solid"
