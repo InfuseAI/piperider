@@ -1,13 +1,5 @@
-import {
-  Flex,
-  Grid,
-  Text,
-  GridItem,
-  Icon,
-  Link as ChakraLink,
-} from '@chakra-ui/react';
+import { Flex, Grid, Text, GridItem, Icon } from '@chakra-ui/react';
 import { FiChevronRight } from 'react-icons/fi';
-import { Link } from 'wouter';
 
 import {
   TableListItem,
@@ -23,15 +15,19 @@ import {
   formatNumber,
 } from '../../../../../utils/formatters';
 import { getIconForColumnType } from '../../../../../utils/transformers';
-import type { SaferTableSchema } from '../../../../../types';
+import type { SaferTableSchema, Selectable } from '../../../../../types';
 import { AssertionLabel } from '../../../Assertions/AssertionLabel';
 
-interface Props {
+interface Props extends Selectable {
   isExpanded: boolean;
   tableDatum?: SaferTableSchema;
 }
 
-export function SRTableListItem({ isExpanded, tableDatum: table }: Props) {
+export function SRTableListItem({
+  isExpanded,
+  tableDatum: table,
+  onSelect,
+}: Props) {
   const columns = Object.keys(table?.columns || {}).map((key) => key);
   const { failed, total } = getReportAggregateAssertions(
     table?.piperider_assertion_result,
@@ -63,15 +59,16 @@ export function SRTableListItem({ isExpanded, tableDatum: table }: Props) {
         <GridItem>
           <AssertionLabel total={total} failed={failed}>
             {isExpanded && (
-              <ChakraLink
-                as={Link}
-                to={`/tables/${table?.name}`}
+              <Flex
+                as="a"
                 data-cy="sr-navigate-report-detail"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSelect({ tableName: table?.name });
+                }}
               >
-                <a href={`/tables/${table?.name}`}>
-                  <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
-                </a>
-              </ChakraLink>
+                <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
+              </Flex>
             )}
           </AssertionLabel>
         </GridItem>

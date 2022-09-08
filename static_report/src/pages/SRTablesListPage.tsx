@@ -71,6 +71,9 @@ export function SRTablesListPage({ data }: Props) {
                       <SRTableListItem
                         isExpanded={isExpanded}
                         tableDatum={table}
+                        onSelect={({ tableName }) =>
+                          setLocation(`/tables/${tableName}`)
+                        }
                       />
 
                       {/* Accordion Children Types */}

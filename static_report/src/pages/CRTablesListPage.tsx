@@ -30,9 +30,10 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
+import { useLocation } from 'wouter';
+
 import { CRTableListColumnList } from '../components/shared/Tables/TableList/CRTableListItem/CRTableListColumnList';
 import { CRTableSchemaDetails } from '../components/shared/Tables/TableList/CRTableListItem/CRTableSchemaDetails';
-import { useLocation } from 'wouter';
 import { CRTableListAssertions } from '../components/shared/Tables/TableList/CRTableListItem/CRTableListAssertions';
 
 type Props = { data: ComparisonReportSchema };
@@ -88,10 +89,10 @@ export function CRTablesListPage({ data }: Props) {
                     <>
                       {/* Accordion Parent */}
                       <CRTableListItem
-                        name={key}
                         isExpanded={isExpanded}
                         baseTableDatum={table.base}
                         targetTableDatum={table.target}
+                        onSelect={() => setLocation(`/tables/${key}`)}
                       >
                         <CRTableListAssertions data={data} reportName={key} />
                       </CRTableListItem>

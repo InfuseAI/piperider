@@ -1,14 +1,6 @@
-import {
-  Flex,
-  Grid,
-  Text,
-  GridItem,
-  Icon,
-  Link as ChakraLink,
-} from '@chakra-ui/react';
+import { Flex, Grid, Text, GridItem, Icon } from '@chakra-ui/react';
 import { FiChevronRight } from 'react-icons/fi';
 import { ReactNode } from 'react';
-import { Link } from 'wouter';
 
 import {
   TableListItem,
@@ -17,21 +9,22 @@ import {
 } from '../TableListItem';
 import { CRTableListColumnsSummary } from './CRTableListColumnsSummary';
 import { CRTableListDeltaSummary } from './CRTableListDeltaSummary';
-import { SaferTableSchema } from '../../../../../types';
+
+import type { SaferTableSchema } from '../../../../../types';
 
 interface Props {
-  name: string;
   isExpanded: boolean;
   baseTableDatum?: SaferTableSchema;
   targetTableDatum?: SaferTableSchema;
+  onSelect: () => void;
   children: ReactNode; //e.g. CRTableListAssertions
 }
 
 export function CRTableListItem({
   isExpanded,
-  name,
   baseTableDatum,
   targetTableDatum,
+  onSelect,
   children,
 }: Props) {
   const columnName = baseTableDatum?.name || targetTableDatum?.name;
@@ -65,15 +58,16 @@ export function CRTableListItem({
           <Flex gap={2}>
             {children}
             {isExpanded && (
-              <ChakraLink
-                as={Link}
-                to={`/tables/${name}`}
+              <Flex
+                as="a"
                 data-cy="cr-navigate-report-detail"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSelect();
+                }}
               >
-                <a href={`/tables/${name}`}>
-                  <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
-                </a>
-              </ChakraLink>
+                <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
+              </Flex>
             )}
           </Flex>
         </GridItem>
