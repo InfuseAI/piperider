@@ -65,6 +65,7 @@ export function BreadcrumbNav({
           return (
             <BreadcrumbItem key={i} isCurrentPage={location === path}>
               <BreadcrumbLink
+                data-cy="breadcrumb-link"
                 to={path}
                 as={Link}
                 cursor={'pointer'}
