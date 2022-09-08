@@ -1,7 +1,6 @@
 {
-  "name": "piperider-report",
+  "name": "@infuseai/piperider-ui",
   "version": "0.1.0",
-  "private": true,
   "homepage": "./",
   "type": "module",
   "dependencies": {
