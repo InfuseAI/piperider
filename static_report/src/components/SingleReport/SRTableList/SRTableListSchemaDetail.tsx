@@ -1,4 +1,5 @@
 import {
+  Text,
   TableContainer,
   Table,
   Thead,
@@ -16,7 +17,7 @@ import { type TableSchema } from '../../../sdlc/single-report-schema';
 
 export function SRTableListSchemaDetail({ table }: { table: TableSchema }) {
   return (
-    <TableContainer>
+    <TableContainer width="100%" maxWidth="calc(900px - 30px)">
       <Table variant="simple">
         <Thead>
           <Tr>
@@ -35,7 +36,16 @@ export function SRTableListSchemaDetail({ table }: { table: TableSchema }) {
                 _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
                 data-cy="sr-table-list-schema-item"
               >
-                <Td>{table.columns[colName]?.name}</Td>
+                <Td whiteSpace="normal">
+                  <Text
+                    as="span"
+                    noOfLines={1}
+                    maxWidth="250px"
+                    title={table.columns[colName]?.name}
+                  >
+                    {table.columns[colName]?.name}
+                  </Text>
+                </Td>
                 <Td>{table.columns[colName]?.schema_type}</Td>
                 <Td>
                   <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
