@@ -9,7 +9,8 @@ import {
 } from '../TableListItem';
 import { CRTableListColumnsSummary } from './CRTableListColumnsSummary';
 import { CRTableListDeltaSummary } from './CRTableListDeltaSummary';
-import { SaferTableSchema } from '../../../../../types';
+
+import type { SaferTableSchema } from '../../../../../types';
 
 interface Props {
   isExpanded: boolean;
@@ -33,7 +34,7 @@ export function CRTableListItem({
   return (
     <TableListItem isExpanded={isExpanded} data-cy="cr-table-overview-btn">
       <Grid
-        templateColumns="218px 2fr 1.5fr 2.8rem"
+        templateColumns="218px 2fr 1.5fr"
         justifyItems="flex-start"
         width="calc(900px - 30px)"
       >
@@ -53,17 +54,22 @@ export function CRTableListItem({
             />
           </Flex>
         </GridItem>
-        <GridItem>{children}</GridItem>
         <GridItem>
-          {isExpanded && (
-            <Flex
-              as="a"
-              data-cy="cr-navigate-report-detail"
-              onClick={() => onSelect()}
-            >
-              <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
-            </Flex>
-          )}
+          <Flex gap={2}>
+            {children}
+            {isExpanded && (
+              <Flex
+                as="a"
+                data-cy="cr-navigate-report-detail"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSelect();
+                }}
+              >
+                <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
+              </Flex>
+            )}
+          </Flex>
         </GridItem>
       </Grid>
       <Grid

@@ -1,5 +1,5 @@
-import { Flex, Grid, Text, GridItem, Center, Icon } from '@chakra-ui/react';
-import { FiCheck, FiChevronRight } from 'react-icons/fi';
+import { Flex, Grid, Text, GridItem, Icon } from '@chakra-ui/react';
+import { FiChevronRight } from 'react-icons/fi';
 
 import {
   TableListItem,
@@ -16,6 +16,7 @@ import {
 } from '../../../../../utils/formatters';
 import { getIconForColumnType } from '../../../../../utils/transformers';
 import type { SaferTableSchema, Selectable } from '../../../../../types';
+import { AssertionLabel } from '../../../Assertions/AssertionLabel';
 
 interface Props extends Selectable {
   isExpanded: boolean;
@@ -27,12 +28,11 @@ export function SRTableListItem({
   tableDatum: table,
   onSelect,
 }: Props) {
+  const columns = Object.keys(table?.columns || {}).map((key) => key);
   const { failed, total } = getReportAggregateAssertions(
     table?.piperider_assertion_result,
     table?.dbt_assertion_result,
   );
-  const hasFailed = failed > 0;
-  const columns = Object.keys(table?.columns || {}).map((key) => key);
 
   if (!table) {
     return <NoData />;
@@ -40,11 +40,7 @@ export function SRTableListItem({
 
   return (
     <TableListItem isExpanded={isExpanded} data-cy="sr-table-overview-btn">
-      <Grid
-        templateColumns="1fr 2fr 1fr"
-        justifyItems="flex-start"
-        width="calc(900px - 30px)"
-      >
+      <Grid templateColumns="1fr 2fr 1fr" width="calc(900px - 30px)">
         <GridItem>
           <TableItemName
             name={table.name}
@@ -61,39 +57,20 @@ export function SRTableListItem({
         </GridItem>
 
         <GridItem>
-          <Flex gap={1} alignItems="center">
-            {hasFailed ? (
-              <Text as="span" color="#F60059">
-                {failed} fails
-              </Text>
-            ) : (
-              <Center
-                bgColor="#DEFFEB"
-                py={0.5}
-                px={1}
-                borderRadius="md"
-                color="#1F7600"
-              >
-                <Icon as={FiCheck} boxSize={4} />
-                All
-              </Center>
-            )}
-            <Text as="span" color="gray.500">
-              /
-            </Text>
-            <Text as="span" mr={3}>
-              {total === 0 ? 'none' : `${total} assertions`}
-            </Text>
+          <AssertionLabel total={total} failed={failed}>
             {isExpanded && (
               <Flex
                 as="a"
                 data-cy="sr-navigate-report-detail"
-                onClick={() => onSelect({ tableName: table?.name })}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSelect({ tableName: table?.name });
+                }}
               >
                 <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
               </Flex>
             )}
-          </Flex>
+          </AssertionLabel>
         </GridItem>
       </Grid>
 

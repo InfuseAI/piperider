@@ -30,9 +30,10 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
+import { useLocation } from 'wouter';
+
 import { CRTableListColumnList } from '../components/shared/Tables/TableList/CRTableListItem/CRTableListColumnList';
 import { CRTableSchemaDetails } from '../components/shared/Tables/TableList/CRTableListItem/CRTableSchemaDetails';
-import { useLocation } from 'wouter';
 import { CRTableListAssertions } from '../components/shared/Tables/TableList/CRTableListItem/CRTableListAssertions';
 
 type Props = { data: ComparisonReportSchema };
@@ -95,6 +96,7 @@ export function CRTablesListPage({ data }: Props) {
                       >
                         <CRTableListAssertions data={data} reportName={key} />
                       </CRTableListItem>
+
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
                         {view === 'summary' ? (

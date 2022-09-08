@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { FiAlertCircle, FiGrid } from 'react-icons/fi';
 
-interface TableListItemProps extends AccordionButtonProps {
+export interface TableListItemProps extends AccordionButtonProps {
   isExpanded: boolean;
   children: ReactNode;
 }
@@ -33,17 +33,19 @@ export function TableListItem({
   );
 }
 
+export type TableItemNameProps = {
+  name: string;
+  description?: string;
+  descriptionIconVisible: boolean;
+};
+
 export function TableItemName({
   name,
   description,
   descriptionIconVisible,
-}: {
-  name: string;
-  description?: string;
-  descriptionIconVisible: boolean;
-}) {
+}: TableItemNameProps) {
   return (
-    <Flex alignItems="center" justifyContent="center">
+    <Flex alignItems="center" justifyContent="flex-start">
       <Icon as={FiGrid} color="piperider.500" />
       <Text mx={1}>{name}</Text>
 

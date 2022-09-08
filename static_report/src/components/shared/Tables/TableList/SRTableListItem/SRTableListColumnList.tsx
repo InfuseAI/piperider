@@ -1,9 +1,8 @@
-import { Grid, GridItem, Flex, Icon, Text } from '@chakra-ui/react';
-import { FiChevronRight } from 'react-icons/fi';
+import { Grid, GridItem, Flex, Text } from '@chakra-ui/react';
 
 import { HistogramChart } from '../../../Charts/HistogramChart';
 import { ColumnName } from '../ColumnName';
-import { ColumnAssertionLabel } from '../../../Assertions/ColumnAssertionLabel';
+import { AssertionLabel } from '../../../Assertions';
 
 import { getIconForColumnType } from '../../../../../utils/transformers';
 import type { TableSchema } from '../../../../../sdlc/single-report-schema';
@@ -27,7 +26,7 @@ export function SRTableListColumnList({ table, onSelect }: Props) {
             p={3}
             key={colName}
             alignItems="center"
-            templateColumns="207px 2.5fr 1fr 2rem"
+            templateColumns="207px 2.5fr 1.2fr"
             _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
             onClick={() =>
               onSelect({ tableName: table.name, columnName: columnDatum.name })
@@ -48,12 +47,8 @@ export function SRTableListColumnList({ table, onSelect }: Props) {
               {!mergedColAssertions ? (
                 <Text color="gray.500">No assertions</Text>
               ) : (
-                <ColumnAssertionLabel {...getAssertions(mergedColAssertions)} />
+                <AssertionLabel {...getAssertions(mergedColAssertions)} />
               )}
-            </GridItem>
-
-            <GridItem>
-              <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
             </GridItem>
           </Grid>
         );
