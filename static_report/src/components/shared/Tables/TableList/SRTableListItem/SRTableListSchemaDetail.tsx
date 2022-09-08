@@ -7,6 +7,7 @@ import {
   Tr,
   Th,
   Icon,
+  Text,
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 import { FiChevronRight } from 'react-icons/fi';
@@ -20,7 +21,7 @@ interface Props extends Selectable {
 
 export function SRTableListSchemaDetail({ table, onSelect }: Props) {
   return (
-    <TableContainer>
+    <TableContainer width="100%" maxWidth="calc(900px - 30px)">
       <Table variant="simple">
         <Thead>
           <Tr>
@@ -39,7 +40,16 @@ export function SRTableListSchemaDetail({ table, onSelect }: Props) {
               _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
               data-cy="sr-table-list-schema-item"
             >
-              <Td>{table.columns[colName]?.name}</Td>
+              <Td whiteSpace="normal">
+                <Text
+                  as="span"
+                  noOfLines={1}
+                  maxWidth="250px"
+                  title={table.columns[colName]?.name}
+                >
+                  {table.columns[colName]?.name}
+                </Text>
+              </Td>
               <Td>{table.columns[colName]?.schema_type}</Td>
               <Td>
                 <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />

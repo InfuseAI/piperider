@@ -1,5 +1,4 @@
 import {
-  Box,
   Flex,
   TableContainer,
   Table,
@@ -154,7 +153,7 @@ export function CRTableSchemaDetails({
       </Text>
 
       <Flex justifyContent={'space-evenly'}>
-        <TableContainer w={'100%'}>
+        <TableContainer width="100%" maxWidth="calc(900px - 30px)">
           <Table variant="simple">
             <Thead>
               <Tr>
@@ -178,15 +177,24 @@ export function CRTableSchemaDetails({
                           columnName: fallbackColumn?.name,
                         })
                       }
-                      position={'relative'}
                       _hover={{
                         bg: 'blackAlpha.50',
                         cursor: visibleDetail ? 'pointer' : 'inherit',
                       }}
                       data-cy="cr-table-list-schema-item"
                     >
-                      <Td color={baseColumn?.changed ? 'red.500' : 'inherit'}>
-                        {baseColumn?.name ?? NO_VALUE}
+                      <Td
+                        whiteSpace="normal"
+                        color={baseColumn?.changed ? 'red.500' : 'inherit'}
+                      >
+                        <Text
+                          as="span"
+                          noOfLines={1}
+                          maxWidth="250px"
+                          title={baseColumn?.name ?? NO_VALUE}
+                        >
+                          {baseColumn?.name ?? NO_VALUE}
+                        </Text>
                       </Td>
                       <Td
                         color={baseColumn?.changed ? 'red.500' : 'inherit'}
@@ -194,20 +202,30 @@ export function CRTableSchemaDetails({
                       >
                         {baseColumn?.schema_type ?? NO_VALUE}
                       </Td>
-                      <Td color={targetColumn?.changed ? 'red.500' : 'inherit'}>
-                        {targetColumn?.name ?? NO_VALUE}
+                      <Td
+                        color={targetColumn?.changed ? 'red.500' : 'inherit'}
+                        whiteSpace="normal"
+                      >
+                        <Text
+                          as="span"
+                          noOfLines={1}
+                          maxWidth="250px"
+                          title={targetColumn?.name ?? NO_VALUE}
+                        >
+                          {targetColumn?.name ?? NO_VALUE}
+                        </Text>
                       </Td>
                       <Td color={targetColumn?.changed ? 'red.500' : 'inherit'}>
                         {targetColumn?.schema_type ?? NO_VALUE}
                       </Td>
                       {visibleDetail && (
-                        <Box as="td" position="absolute" top={3} right={0}>
+                        <Td>
                           <Icon
                             as={FiChevronRight}
                             color="piperider.500"
                             boxSize={6}
                           />
-                        </Box>
+                        </Td>
                       )}
                     </Tr>
                   );
