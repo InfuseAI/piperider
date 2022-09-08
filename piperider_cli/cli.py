@@ -9,6 +9,7 @@ from rich.syntax import Syntax
 from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_generator import AssertionGenerator
+from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.feedback import Feedback
@@ -33,6 +34,8 @@ sentry_sdk.set_tag("piperider.version", __version__)
 sentry_sdk.set_tag("platform", sys.platform)
 
 event.init()
+
+BETA_FLAG = '(Experimental)'
 
 debug_option = [
     click.option('--debug', is_flag=True, help='Enable debug mode.')
@@ -222,7 +225,7 @@ def compare_reports(**kwargs):
                        debug=kwargs.get('debug', False))
 
 
-@cli.command(short_help='Upload a report to the PipeRider Cloud.', cls=TrackCommand)
+@cli.command(short_help=f'{BETA_FLAG} Upload a report to the PipeRider Cloud.', cls=TrackCommand)
 @click.option('--run', type=click.Path(exists=True), help='Specify the raw result file.')
 @add_options(debug_option)
 def upload_report(**kwargs):
@@ -237,3 +240,17 @@ def upload_report(**kwargs):
         result = PipeRiderCloud().upload_report(fh.read())
         # TODO refine the output when API is ready
         print(result)
+
+
+@cli.command(short_help=f'{BETA_FLAG} Login to PipeRider Cloud.', cls=TrackCommand)
+@add_options(debug_option)
+def login(**kwargs):
+    ret = CloudConnector.login()
+    return ret
+
+
+@cli.command(short_help=f'{BETA_FLAG} Logout from PipeRider Cloud.', cls=TrackCommand)
+@add_options(debug_option)
+def logout(**kwargs):
+    ret = CloudConnector.logout()
+    return ret

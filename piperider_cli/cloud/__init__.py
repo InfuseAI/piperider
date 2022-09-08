@@ -1,12 +1,11 @@
 import json
 import os
-from io import BytesIO, StringIO
+from io import StringIO
 
 import requests
 from ruamel import yaml
 
-PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
-PIPERIDER_USER_PROFILE = os.path.join(PIPERIDER_USER_HOME, 'profile.yml')
+from piperider_cli.event import load_user_profile, update_user_profile
 
 PIPERIDER_CLOUD_SERIVCE = 'https://cloud.piperider.io/'
 
@@ -21,12 +20,7 @@ class CloudServiceHelper:
     def __init__(self):
         self.api_token: str = None
         self.api_service: str = None
-        try:
-            with open(PIPERIDER_USER_PROFILE, 'r') as f:
-                self.user_profile = yml.load(f)
-        except BaseException:
-            self.user_profile = None
-
+        self.user_profile = load_user_profile()
         if self.user_profile is None:
             return
 
@@ -35,21 +29,25 @@ class CloudServiceHelper:
     def load_configuration(self):
         # load from the configuration file first
         # overwrite them if found env vars
+        self.api_service = os.environ.get(SERVICE_ENV_SERVICE_KEY,
+                                          self.user_profile.get('api_service',
+                                                                PIPERIDER_CLOUD_SERIVCE))
+        self.api_token = os.environ.get(SERVICE_ENV_API_KEY,
+                                        self.user_profile.get('api_token'))
 
-        self.api_service = self.user_profile.get('api_service', PIPERIDER_CLOUD_SERIVCE)
-        if os.environ.get(SERVICE_ENV_SERVICE_KEY):
-            self.api_service = os.environ.get(SERVICE_ENV_SERVICE_KEY)
-        self.api_token = self.user_profile.get('api_token')
-        if os.environ.get(SERVICE_ENV_API_KEY):
-            self.api_token = os.environ.get(SERVICE_ENV_API_KEY)
+    def update_configuration(self):
+        if self.api_token:
+            update_user_profile({'api_token': self.api_token})
+        else:
+            update_user_profile({'api_token': None})
 
     def url(self, uri_path: str):
         if uri_path and not uri_path.startswith('/'):
             uri_path = f'/{uri_path}'
 
         if self.api_service and self.api_service.endswith('/'):
-            return f'{self.api_service}{uri_path}'
-        return f'{self.api_service}/{uri_path}'
+            return f'{self.api_service[:-1]}{uri_path}'
+        return f'{self.api_service}{uri_path}'
 
     def auth_headers(self):
         return dict(Authorization=f'Bearer {self.api_token}')
@@ -81,6 +79,35 @@ class PipeRiderCloud:
             self.available = self.service.validate()
         except BaseException:
             self.available = False
+
+    def validate(self, api_token=None):
+        if api_token:
+            self.service.api_token = api_token
+
+        try:
+            self.available = self.service.validate()
+        except BaseException:
+            self.available = False
+
+        return self.available
+
+    def logout(self):
+        self.service.api_service = None
+        self.service.validate()
+        self.service.update_configuration()
+
+    def magic_login(self, email):
+        if self.available:
+            return True
+        login_url = self.service.url('/api/session/new')
+        response = requests.post(
+            login_url,
+            headers={'Content-type': 'application/json', 'Accept': 'text/plain'},
+            data=json.dumps({'email': email})
+        )
+        if response.status_code == 200:
+            return response.json()
+        return None
 
     def me(self):
         if not self.available:
