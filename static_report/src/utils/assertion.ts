@@ -124,12 +124,12 @@ export function getSingleAssertionStatusCounts(
 
 export type ComparisonAssertions = {
   data: ComparisonReportSchema;
-  reportName: string;
+  tableName: string;
   type: 'piperider' | 'dbt';
 };
 export function getComparisonAssertions({
   data,
-  reportName,
+  tableName,
   type,
 }: ComparisonAssertions) {
   const targets = {
@@ -137,10 +137,10 @@ export function getComparisonAssertions({
     dbt: 'dbt_assertion_result',
   };
 
-  const baseTables = { type: 'base', tables: data.base.tables[reportName] };
+  const baseTables = { type: 'base', tables: data.base.tables[tableName] };
   const targetTables = {
     type: 'target',
-    tables: data.input.tables[reportName], //legacy 'input' key
+    tables: data.input.tables[tableName], //legacy 'input' key
   };
 
   //Warning: targetTables.tables can be undefined when mismatched

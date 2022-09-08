@@ -93,7 +93,7 @@ export function CRTablesListPage({ data }: Props) {
                         targetTableDatum={table.target}
                         onSelect={() => setLocation(`/tables/${key}`)}
                       >
-                        <CRTableListAssertions data={data} reportName={key} />
+                        <CRTableListAssertions data={data} tableName={key} />
                       </CRTableListItem>
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">

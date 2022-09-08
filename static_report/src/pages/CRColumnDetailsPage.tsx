@@ -1,5 +1,5 @@
 import { Flex, Grid, GridItem, Text } from '@chakra-ui/react';
-import { useLocation, useRoute } from 'wouter';
+import { useLocation } from 'wouter';
 import { useState } from 'react';
 
 import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
@@ -18,8 +18,13 @@ import {
 } from '../utils/transformers';
 
 import type { ComparisonReportSchema } from '../types';
+import { SimpleBreadcrumbNavbar } from '../components/shared/BreadcrumbNav';
+import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
+import { NoData } from '../components/shared/NoData';
 interface Props {
   data: ComparisonReportSchema;
+  columnName: string;
+  tableName: string;
 }
 
 export default function CRColumnDetailsPage({
@@ -27,27 +32,25 @@ export default function CRColumnDetailsPage({
     base: { tables: baseTables, created_at: baseTime },
     input: { tables: targetTables, created_at: targetTime },
   },
+  columnName,
+  tableName,
 }: Props) {
-  const [, params] = useRoute('/tables/:reportName/columns/:columnName');
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
 
   const time = `${formatReportTime(baseTime)} -> ${formatReportTime(
     targetTime,
   )}`;
-  if (!params?.columnName) {
+  if (!columnName || !tableName) {
     return (
       <Main isSingleReport={false} time={time}>
-        <Flex justifyContent="center" alignItems="center" minHeight="100vh">
-          No profile column data found.
-        </Flex>
+        <NoData text="No profile data found." />
       </Main>
     );
   }
 
-  const { reportName, columnName } = params;
   const decodedColName = decodeURIComponent(columnName);
-  const decodedTableName = decodeURIComponent(reportName);
+  const decodedTableName = decodeURIComponent(tableName);
 
   const baseDataColumns = baseTables[decodedTableName]?.columns || {};
   const targetDataColumns = targetTables[decodedTableName]?.columns || {};
@@ -64,6 +67,11 @@ export default function CRColumnDetailsPage({
   return (
     <Main isSingleReport={false} time={time} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
+        <GridItem colSpan={3}>
+          <SimpleBreadcrumbNavbar
+            routePathToMatch={COLUMN_DETAILS_ROUTE_PATH}
+          />
+        </GridItem>
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailsMasterList

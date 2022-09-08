@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/browser';
 import { Suspense, lazy } from 'react';
-import { Switch, Route, Router, BaseLocationHook, type Params } from 'wouter';
+import { Switch, Route, Router, BaseLocationHook } from 'wouter';
 import { BrowserTracing } from '@sentry/tracing';
 
 import { Loading } from './components/shared/Loading';
@@ -8,6 +8,10 @@ import { NotFound } from './components/shared/NotFound';
 import { SRTablesListPage } from './pages/SRTablesListPage';
 import { CRTablesListPage } from './pages/CRTablesListPage';
 import { useHashLocation } from './hooks/useHashLcocation';
+import {
+  COLUMN_DETAILS_ROUTE_PATH,
+  TABLE_DETAILS_ROUTE_PATH,
+} from './utils/routes';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns) {
@@ -45,18 +49,22 @@ function AppSingle() {
             )}
           />
 
-          <Route path="/tables/:reportName">
-            {(params: Params<{ reportName: string }>) => (
+          <Route path={TABLE_DETAILS_ROUTE_PATH}>
+            {({ tableName }) => (
               <SRTableDetailsPage
-                name={decodeURIComponent(params.reportName)}
+                tableName={decodeURIComponent(tableName)}
                 data={window.PIPERIDER_SINGLE_REPORT_DATA}
               />
             )}
           </Route>
 
-          <Route path="/tables/:reportName/columns/:columnName">
-            {(params: Params<{ reportName: string }>) => (
-              <SRColumnDetailsPage data={window.PIPERIDER_SINGLE_REPORT_DATA} />
+          <Route path={COLUMN_DETAILS_ROUTE_PATH}>
+            {({ tableName, columnName }) => (
+              <SRColumnDetailsPage
+                tableName={decodeURIComponent(tableName)}
+                columnName={decodeURIComponent(columnName)}
+                data={window.PIPERIDER_SINGLE_REPORT_DATA}
+              />
             )}
           </Route>
 
@@ -83,18 +91,20 @@ function AppComparison() {
             )}
           />
 
-          <Route path="/tables/:reportName">
-            {(params: Params<{ reportName: string }>) => (
+          <Route path={TABLE_DETAILS_ROUTE_PATH}>
+            {({ tableName }) => (
               <CRTableDetailsPage
-                name={decodeURIComponent(params.reportName)}
+                tableName={decodeURIComponent(tableName)}
                 data={window.PIPERIDER_COMPARISON_REPORT_DATA}
               />
             )}
           </Route>
 
-          <Route path="/tables/:reportName/columns/:columnName">
-            {(params: Params<{ reportName: string }>) => (
+          <Route path={COLUMN_DETAILS_ROUTE_PATH}>
+            {({ tableName, columnName }) => (
               <CRColumnDetailsPage
+                tableName={decodeURIComponent(tableName)}
+                columnName={decodeURIComponent(columnName)}
                 data={window.PIPERIDER_COMPARISON_REPORT_DATA}
               />
             )}
