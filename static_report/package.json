@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "homepage": "./",
   "type": "module",
+  "license": "MIT",
   "dependencies": {
     "@amplitude/analytics-browser": "^1.1.2",
     "@amplitude/analytics-types": "^0.6.1",

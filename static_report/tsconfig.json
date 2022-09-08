@@ -9,6 +9,8 @@
     "target": "es6",
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationDir": "types",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
@@ -17,8 +19,10 @@
     "noEmit": true,
     "noImplicitAny": false,
     "noFallthroughCasesInSwitch": true,
+    "outDir": "dist",
     "resolveJsonModule": true,
     "skipLibCheck": true,
+    "sourceMap": true,
     "strict": true
   },
   "exclude": [
