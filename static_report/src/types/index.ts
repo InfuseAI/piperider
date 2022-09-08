@@ -97,3 +97,7 @@ export type Selectable = {
     columnName?: string;
   }) => void;
 };
+
+export type Comparable = {
+  singleOnly?: boolean;
+};

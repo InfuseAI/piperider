@@ -40,7 +40,8 @@ describe('Single Report [table-list-page, table-detail-page]', () => {
       .should('exist');
     navigateBtn.click();
 
-    const backLink = cy.get('[data-cy="sr-report-breadcrumb-back"]');
+    cy.wait(500);
+    const backLink = cy.get('[data-cy="breadcrumb-link"]').first();
     backLink.click();
   });
 

@@ -1,4 +1,5 @@
 import { NO_VALUE } from '../components/shared/Columns/constants';
+import { AssertionTest } from '../sdlc/single-report-schema';
 import {
   dbtAssertionResultSchema,
   pipeRiderAssertionResultSchema,
@@ -11,6 +12,23 @@ import {
   zReport,
   SaferTableSchema,
 } from '../types';
+
+export function getAssertions(assertions: AssertionTest[]) {
+  const total = assertions.length;
+  const failed = assertions.reduce((acc, test) => {
+    if (test.status === 'failed') {
+      acc++;
+    }
+    return acc;
+  }, 0);
+  const passed = total - failed;
+
+  return {
+    total,
+    passed,
+    failed,
+  };
+}
 
 /**
  * Get the report assertions by giving piperider and dbt assertions.
@@ -59,6 +77,7 @@ export function getReportAggregateAssertions(
   return {
     passed,
     failed,
+    total: passed + failed,
   };
 }
 
@@ -105,12 +124,12 @@ export function getSingleAssertionStatusCounts(
 
 export type ComparisonAssertions = {
   data: ComparisonReportSchema;
-  reportName: string;
+  tableName: string;
   type: 'piperider' | 'dbt';
 };
 export function getComparisonAssertions({
   data,
-  reportName,
+  tableName,
   type,
 }: ComparisonAssertions) {
   const targets = {
@@ -118,10 +137,10 @@ export function getComparisonAssertions({
     dbt: 'dbt_assertion_result',
   };
 
-  const baseTables = { type: 'base', tables: data.base.tables[reportName] };
+  const baseTables = { type: 'base', tables: data.base.tables[tableName] };
   const targetTables = {
     type: 'target',
-    tables: data.input.tables[reportName], //legacy 'input' key
+    tables: data.input.tables[tableName], //legacy 'input' key
   };
 
   //Warning: targetTables.tables can be undefined when mismatched

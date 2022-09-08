@@ -1,49 +1,56 @@
 import { Flex, Grid, GridItem, Text } from '@chakra-ui/react';
-import { useLocation, useRoute } from 'wouter';
+import { useLocation } from 'wouter';
+import { useState } from 'react';
+
 import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
 import { Main } from '../components/shared/Main';
-import { formatReportTime } from '../utils/formatters';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
-import { ComparisonReportSchema } from '../types';
 import { ColumnDetailsMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
 import { mainContentAreaHeight } from '../utils/layout';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
+
+import { formatReportTime } from '../utils/formatters';
 import {
   containsColumnQuantile,
   containsDataSummary,
 } from '../utils/transformers';
-import { useState } from 'react';
+
+import type { ComparisonReportSchema } from '../types';
+import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
+import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
+import { NoData } from '../components/shared/NoData';
 interface Props {
   data: ComparisonReportSchema;
+  columnName: string;
+  tableName: string;
 }
-export function CRColumnDetailsPage({
+
+export default function CRColumnDetailsPage({
   data: {
     base: { tables: baseTables, created_at: baseTime },
     input: { tables: targetTables, created_at: targetTime },
   },
+  columnName,
+  tableName,
 }: Props) {
-  const [, params] = useRoute('/tables/:reportName/columns/:columnName');
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
 
   const time = `${formatReportTime(baseTime)} -> ${formatReportTime(
     targetTime,
   )}`;
-  if (!params?.columnName) {
+  if (!columnName || !tableName) {
     return (
       <Main isSingleReport={false} time={time}>
-        <Flex justifyContent="center" alignItems="center" minHeight="100vh">
-          No profile column data found.
-        </Flex>
+        <NoData text="No profile data found." />
       </Main>
     );
   }
 
-  const { reportName, columnName } = params;
   const decodedColName = decodeURIComponent(columnName);
-  const decodedTableName = decodeURIComponent(reportName);
+  const decodedTableName = decodeURIComponent(tableName);
 
   const baseDataColumns = baseTables[decodedTableName]?.columns || {};
   const targetDataColumns = targetTables[decodedTableName]?.columns || {};
@@ -60,6 +67,9 @@ export function CRColumnDetailsPage({
   return (
     <Main isSingleReport={false} time={time} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
+        <GridItem colSpan={3}>
+          <BreadcrumbNav routePathToMatch={COLUMN_DETAILS_ROUTE_PATH} />
+        </GridItem>
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailsMasterList
@@ -67,7 +77,6 @@ export function CRColumnDetailsPage({
             targetDataColumns={targetDataColumns}
             currentReport={decodedTableName}
             currentColumn={decodedColName}
-            hasSplitView
             onSelect={({ tableName, columnName }) => {
               setTabIndex(0); //reset tabs
               setLocation(`/tables/${tableName}/columns/${columnName}`);

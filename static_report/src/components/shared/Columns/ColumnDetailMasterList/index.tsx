@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, SearchIcon } from '@chakra-ui/icons';
+import { SearchIcon } from '@chakra-ui/icons';
 import {
   Flex,
   InputGroup,
@@ -10,22 +10,20 @@ import {
   Box,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { Link, useLocation } from 'wouter';
 
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { SaferTableSchema, Selectable } from '../../../../types';
+import { Comparable, SaferTableSchema, Selectable } from '../../../../types';
 import { transformAsNestedBaseTargetRecord } from '../../../../utils/transformers';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
-interface Props extends Selectable {
+interface Props extends Selectable, Comparable {
   baseDataColumns?: SaferTableSchema['columns'];
   targetDataColumns?: SaferTableSchema['columns'];
   currentReport: string;
   currentColumn: string;
-  hasSplitView?: boolean;
 }
-// FUTURE FIXME: show Table list as well ?? (Accordion)
+// FUTURE TODO: show Table list as well ?? (Accordion)
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of columns. Belongs in the profiling column details page to view in-depth metrics and visualizations
  */
@@ -34,11 +32,10 @@ export function ColumnDetailsMasterList({
   targetDataColumns,
   currentReport,
   currentColumn,
-  hasSplitView,
+  singleOnly,
   onSelect,
 }: Props) {
   const [filterString, setFilterString] = useState<string>('');
-  const [location] = useLocation();
   const [filterState, setFilterState] = useState<
     Map<ProfilerGenericTypes | undefined, boolean>
   >(
@@ -59,8 +56,6 @@ export function ColumnDetailsMasterList({
   const combinedColumnEntries = Object.entries(combinedColumnRecord);
 
   const quickFilters = Array.from(filterState.keys());
-  //FIXME: Temporary implementation!
-  const parentRoute = location.slice(0, location.indexOf('/columns'));
 
   return (
     <Flex direction={'column'} position={'relative'}>
@@ -75,14 +70,6 @@ export function ColumnDetailsMasterList({
         borderBottom={'1px solid lightgray'}
       >
         <Flex justify={'space-between'} alignItems={'center'} mb={3}>
-          <Box cursor={'pointer'}>
-            <Link href={parentRoute}>
-              <Flex alignItems={'center'}>
-                <ChevronLeftIcon boxSize={6} mr={1} />
-                <Text>Return to Table Overview</Text>
-              </Flex>
-            </Link>
-          </Box>
           <Text as={'h3'} fontWeight={'bold'} textAlign={'right'}>
             Columns ({combinedColumnEntries.length})
           </Text>
@@ -152,10 +139,10 @@ export function ColumnDetailsMasterList({
               isActive={base?.name === currentColumn}
               baseColumnDatum={base}
               targetColumnDatum={target}
-              onSelect={(name) => {
-                onSelect({ tableName: currentReport, columnName: name });
+              onSelect={(columnName) => {
+                onSelect({ tableName: currentReport, columnName });
               }}
-              hasSplitView={hasSplitView}
+              singleOnly={singleOnly}
               p={3}
             />
           ))}
