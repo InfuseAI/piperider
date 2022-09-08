@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 
-import { AssertionStatus } from '../AssertionStatus';
+import { AssertionStatus } from '../Assertions/AssertionStatus';
 import { formatTestExpectedOrActual } from '../../../utils/formatters';
 
 import type { AssertionValue } from '../../../types';

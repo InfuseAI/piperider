@@ -8,7 +8,7 @@ import {
   Td,
 } from '@chakra-ui/react';
 import { NO_VALUE } from '../../Columns/constants';
-import { AssertionStatus } from '../../AssertionStatus';
+import { AssertionStatus } from '../../Assertions/AssertionStatus';
 import { CRModalData } from './CRModal';
 
 type Props = { data?: CRModalData };
