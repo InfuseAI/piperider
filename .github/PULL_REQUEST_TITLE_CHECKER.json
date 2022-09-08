@@ -9,7 +9,8 @@
       "[Bug] ",
       "[Release] ",
       "[Document] ",
-      "[Chore] "
+      "[Chore] ",
+      "[Refactor] "
     ],
     "ignoreLabels": [
       "Skip PR Title Check"
