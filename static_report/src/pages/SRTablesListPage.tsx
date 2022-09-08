@@ -2,6 +2,7 @@ import {
   Accordion,
   AccordionItem,
   AccordionPanel,
+  Divider,
   Flex,
   Grid,
   Stack,
@@ -25,6 +26,7 @@ import { zReport, ZTableSchema } from '../types';
 import { SRTableListColumnList } from '../components/shared/Tables/TableList/SRTableListItem/SRTableListColumnList';
 import { SRTableListSchemaDetail } from '../components/shared/Tables/TableList/SRTableListItem/SRTableListSchemaDetail';
 import { SRTableListItem } from '../components/shared/Tables/TableList/SRTableListItem';
+import { SimpleBreadcrumbNavbar } from '../components/shared/BreadcrumbNav';
 
 type Props = { data: SingleReportSchema };
 
@@ -48,7 +50,12 @@ export function SRTablesListPage({ data }: Props) {
         toggleView={(nextView) => {
           setView(nextView);
         }}
-      />
+      >
+        <>
+          <Divider orientation="vertical" mx={3} />
+          <SimpleBreadcrumbNavbar routePathToMatch="/" />
+        </>
+      </TableActionBar>
 
       <Flex direction="column" width="900px" minHeight="650px">
         <Grid templateColumns="1fr 2fr 1fr" px={4} my={6}>
