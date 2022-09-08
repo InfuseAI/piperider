@@ -6,7 +6,7 @@ import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader'
 import { Main } from '../components/shared/Main';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
-import { ColumnDetailsMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
+import { ColumnDetailMasterList } from '../components/shared/Columns/ColumnDetailMasterList/ColumnDetailMasterList';
 import { mainContentAreaHeight } from '../utils/layout';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
@@ -18,9 +18,9 @@ import {
 } from '../utils/transformers';
 
 import type { ComparisonReportSchema } from '../types';
-import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
 import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
 import { NoData } from '../components/shared/NoData';
+import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
 interface Props {
   data: ComparisonReportSchema;
   columnName: string;
@@ -72,7 +72,7 @@ export default function CRColumnDetailsPage({
         </GridItem>
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
-          <ColumnDetailsMasterList
+          <ColumnDetailMasterList
             baseDataColumns={baseDataColumns}
             targetDataColumns={targetDataColumns}
             currentReport={decodedTableName}

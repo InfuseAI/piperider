@@ -7,7 +7,7 @@ import { DataCompositionWidget } from '../components/shared/Widgets/DataComposit
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { mainContentAreaHeight } from '../utils/layout';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
-import { ColumnDetailsMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
+import { ColumnDetailMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
 
 import {
   containsColumnQuantile,
@@ -60,7 +60,7 @@ export default function SRColumnDetailsPage({
         </GridItem>
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
-          <ColumnDetailsMasterList
+          <ColumnDetailMasterList
             baseDataColumns={dataColumns}
             currentReport={decodedTableName}
             currentColumn={decodedColName}

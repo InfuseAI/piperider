@@ -27,7 +27,7 @@ interface Props extends Selectable, Comparable {
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of columns. Belongs in the profiling column details page to view in-depth metrics and visualizations
  */
-export function ColumnDetailsMasterList({
+export function ColumnDetailMasterList({
   baseDataColumns,
   targetDataColumns,
   currentReport,
