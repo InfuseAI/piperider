@@ -18,7 +18,7 @@ import { formatReportTime } from '../utils/formatters';
 import type { SingleReportSchema } from '../sdlc/single-report-schema';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { NoData } from '../components/shared/NoData';
-import { SimpleBreadcrumbNavbar } from '../components/shared/BreadcrumbNav';
+import { SimpleBreadcrumbNav } from '../components/shared/BreadcrumbNav';
 import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
 interface Props {
   data: SingleReportSchema;
@@ -56,9 +56,7 @@ export default function SRColumnDetailsPage({
     <Main isSingleReport time={time} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
         <GridItem colSpan={3}>
-          <SimpleBreadcrumbNavbar
-            routePathToMatch={COLUMN_DETAILS_ROUTE_PATH}
-          />
+          <SimpleBreadcrumbNav routePathToMatch={COLUMN_DETAILS_ROUTE_PATH} />
         </GridItem>
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>

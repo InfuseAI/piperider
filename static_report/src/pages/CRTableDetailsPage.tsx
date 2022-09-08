@@ -21,7 +21,7 @@ import { TableOverview } from '../components/shared/Tables/TableOverview';
 import { formatReportTime } from '../utils/formatters';
 import { CollapseContent } from '../components/shared/CollapseContent';
 import { CRAssertionDetailsWidget } from '../components/shared/Widgets/CRAssertionDetailsWidget';
-import { SimpleBreadcrumbNavbar } from '../components/shared/BreadcrumbNav';
+import { SimpleBreadcrumbNav } from '../components/shared/BreadcrumbNav';
 import { TABLE_DETAILS_ROUTE_PATH } from '../utils/routes';
 import { NoData } from '../components/shared/NoData';
 
@@ -84,7 +84,7 @@ export default function CRTableDetailsPage({ data, tableName }: Props) {
       )}`}
     >
       <Flex direction="column" width="inherit">
-        <SimpleBreadcrumbNavbar routePathToMatch={TABLE_DETAILS_ROUTE_PATH} />
+        <SimpleBreadcrumbNav routePathToMatch={TABLE_DETAILS_ROUTE_PATH} />
 
         <Flex
           border="1px solid"

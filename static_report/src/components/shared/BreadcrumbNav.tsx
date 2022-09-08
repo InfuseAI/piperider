@@ -27,7 +27,7 @@ interface Props {
  *
  * FUTURE?: or by config provision (custom route logic)?
  */
-export function SimpleBreadcrumbNavbar({
+export function SimpleBreadcrumbNav({
   routePathToMatch,
   height = breadcrumbHeight,
   ...props
