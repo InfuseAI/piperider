@@ -2,7 +2,7 @@ import { Flex, Heading, useDisclosure } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
 
-import { Main } from '../components/shared/Main';
+import { Main } from '../components/shared/Layouts/Main';
 import { getComparisonAssertions } from '../utils/assertion';
 
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -19,11 +19,11 @@ import {
 import { CRColumnSummaryListWidget } from '../components/shared/Widgets/CRColumnSummaryListWidget';
 import { TableOverview } from '../components/shared/Tables/TableOverview';
 import { formatReportTime } from '../utils/formatters';
-import { CollapseContent } from '../components/shared/CollapseContent';
+import { CollapseContent } from '../components/shared/Layouts/CollapseContent';
 import { CRAssertionDetailsWidget } from '../components/shared/Widgets/CRAssertionDetailsWidget';
-import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
+import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
 import { TABLE_DETAILS_ROUTE_PATH } from '../utils/routes';
-import { NoData } from '../components/shared/NoData';
+import { NoData } from '../components/shared/Layouts/NoData';
 
 type Props = {
   data: ComparisonReportSchema;

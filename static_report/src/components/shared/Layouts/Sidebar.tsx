@@ -26,7 +26,7 @@ import {
 } from '@chakra-ui/react';
 import { FiDatabase, FiMessageSquare } from 'react-icons/fi';
 import { useState } from 'react';
-import { mainContentAreaHeight } from '../../utils/layout';
+import { mainContentAreaHeight } from '../../../utils/layout';
 
 type Feedback = {
   user_id: string;

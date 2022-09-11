@@ -13,7 +13,7 @@ import {
   CRBaseTableAssertionsSummary,
   CRTargetTableAssertionsSummary,
 } from './CRTableListAssertions';
-import { NoData } from '../../../NoData';
+import { NoData } from '../../../Layouts/NoData';
 
 interface Props extends Selectable {
   baseTableDatum?: SaferTableSchema;

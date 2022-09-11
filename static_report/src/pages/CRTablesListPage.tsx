@@ -1,6 +1,6 @@
 import { useLocalStorage } from 'usehooks-ts';
 
-import { Main } from '../components/shared/Main';
+import { Main } from '../components/shared/Layouts/Main';
 import {
   TableActionBar,
   type TableActionBarView,
@@ -36,7 +36,7 @@ import { useLocation } from 'wouter';
 import { CRTableListColumnList } from '../components/shared/Tables/TableList/CRTableListItem/CRTableListColumnList';
 import { CRTableSchemaDetails } from '../components/shared/Tables/TableList/CRTableListItem/CRTableSchemaDetails';
 import { CRTableListAssertions } from '../components/shared/Tables/TableList/CRTableListItem/CRTableListAssertions';
-import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
+import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
 
 type Props = { data: ComparisonReportSchema };
 

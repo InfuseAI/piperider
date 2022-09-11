@@ -3,9 +3,9 @@ import { useLocation } from 'wouter';
 import { useState } from 'react';
 import { nanoid } from 'nanoid';
 
-import { Main } from '../components/shared/Main';
+import { Main } from '../components/shared/Layouts/Main';
 import { ColumnHighlightsCard } from '../components/shared/Columns/ColumnCards/ColumnHighlightsCard';
-import { CollapseContent } from '../components/shared/CollapseContent';
+import { CollapseContent } from '../components/shared/Layouts/CollapseContent';
 import { SRAssertionDetailsWidget } from '../components/shared/Widgets/SRAssertionDetailsWidget';
 
 import { dataSourceSchema } from '../sdlc/single-report-schema.z';
@@ -17,9 +17,9 @@ import type {
   TableSchema,
 } from '../sdlc/single-report-schema';
 import { TableOverview } from '../components/shared/Tables/TableOverview';
-import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
+import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
 import { TABLE_DETAILS_ROUTE_PATH } from '../utils/routes';
-import { NoData } from '../components/shared/NoData';
+import { NoData } from '../components/shared/Layouts/NoData';
 
 interface Props {
   data: SingleReportSchema;

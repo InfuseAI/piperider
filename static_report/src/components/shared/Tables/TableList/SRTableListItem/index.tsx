@@ -6,7 +6,7 @@ import {
   TableItemName,
   TableItemDescription,
 } from '../TableListItem';
-import { NoData } from '../../../NoData';
+import { NoData } from '../../../Layouts/NoData';
 import { SRTableListColumnLabel } from './SRTableListColumnLabel';
 
 import { getReportAggregateAssertions } from '../../../../../utils/assertion';

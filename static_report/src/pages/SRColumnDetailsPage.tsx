@@ -2,7 +2,7 @@ import { Grid, GridItem } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
 import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
-import { Main } from '../components/shared/Main';
+import { Main } from '../components/shared/Layouts/Main';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { mainContentAreaHeight } from '../utils/layout';
@@ -17,8 +17,8 @@ import { formatReportTime } from '../utils/formatters';
 
 import type { SingleReportSchema } from '../sdlc/single-report-schema';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
-import { NoData } from '../components/shared/NoData';
-import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
+import { NoData } from '../components/shared/Layouts/NoData';
+import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
 import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
 interface Props {
   data: SingleReportSchema;

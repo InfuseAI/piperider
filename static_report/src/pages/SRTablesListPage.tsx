@@ -12,7 +12,7 @@ import { nanoid } from 'nanoid';
 import { useLocalStorage } from 'usehooks-ts';
 import { useLocation } from 'wouter';
 
-import { Main } from '../components/shared/Main';
+import { Main } from '../components/shared/Layouts/Main';
 import {
   TableActionBar,
   type TableActionBarView,
@@ -26,7 +26,7 @@ import { zReport, ZTableSchema } from '../types';
 import { SRTableListColumnList } from '../components/shared/Tables/TableList/SRTableListItem/SRTableListColumnList';
 import { SRTableListSchemaDetail } from '../components/shared/Tables/TableList/SRTableListItem/SRTableListSchemaDetail';
 import { SRTableListItem } from '../components/shared/Tables/TableList/SRTableListItem';
-import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
+import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
 
 type Props = { data: SingleReportSchema };
 

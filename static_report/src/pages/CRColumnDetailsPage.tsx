@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { useState } from 'react';
 
 import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
-import { Main } from '../components/shared/Main';
+import { Main } from '../components/shared/Layouts/Main';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { ColumnDetailMasterList } from '../components/shared/Columns/ColumnDetailMasterList/ColumnDetailMasterList';
@@ -19,8 +19,8 @@ import {
 
 import type { ComparisonReportSchema } from '../types';
 import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
-import { NoData } from '../components/shared/NoData';
-import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
+import { NoData } from '../components/shared/Layouts/NoData';
+import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
 interface Props {
   data: ComparisonReportSchema;
   columnName: string;
