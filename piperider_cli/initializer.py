@@ -26,7 +26,7 @@ def _generate_piperider_workspace() -> bool:
     init_template_dir = os.path.join(os.path.dirname(data.__file__), 'piperider-init-template')
     working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
 
-    if _is_piperider_workspace_exist(working_dir) is False:
+    if not _is_piperider_workspace_exist(working_dir):
         clone_directory(init_template_dir, working_dir)
         # prepare .gitignore file
         os.rename(os.path.join(working_dir, 'gitignore'), os.path.join(working_dir, '.gitignore'))
@@ -49,6 +49,7 @@ def _ask_user_input_datasource(config: Configuration = None):
         ds: DataSource = cls(name=name)
         config = Configuration([ds])
         if _ask_user_update_credentials(ds):
+            _generate_piperider_workspace()
             config.dump(PIPERIDER_CONFIG_PATH)
             config.dump_credentials(PIPERIDER_CREDENTIALS_PATH, after_init_config=True)
     else:
@@ -72,6 +73,7 @@ def _ask_user_input_datasource(config: Configuration = None):
 def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None,
                                          config: Configuration = None) -> bool:
     config = Configuration.from_dbt_project(dbt_project_path, dbt_profiles_dir)
+    _generate_piperider_workspace()
     config.dump(PIPERIDER_CONFIG_PATH)
 
     return config
@@ -100,7 +102,9 @@ class Initializer():
     @staticmethod
     def exec(dbt_project_path=None, dbt_profiles_dir=None):
         console = Console()
-        if _generate_piperider_workspace() is False:
+        working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
+
+        if _is_piperider_workspace_exist(working_dir):
             console.print('[bold green]Piperider workspace already exist[/bold green] ')
 
         # get Configuration object from dbt or user created configuration

@@ -28,7 +28,7 @@ def _should_use_fancy_user_input() -> bool:
         return False
 
 
-PROJECT_NAME_REGEX = r'^[a-zA-Z0-9]+$'
+DATASOURCE_NAME_REGEX = r'^[a-zA-Z0-9_]+$'
 FANCY_USER_INPUT = _should_use_fancy_user_input()
 
 
@@ -154,11 +154,12 @@ class DataSource(metaclass=ABCMeta):
         source_choices = [(k, v) for k, v in DATASOURCE_PROVIDERS.items()]
 
         while True:
-            project_name = Prompt.ask("[[yellow]?[/yellow]] What is your project name? (alphanumeric only)")
-            if re.match(PROJECT_NAME_REGEX, project_name):
+            datasource_name = Prompt.ask(
+                "[[yellow]?[/yellow]] What is your data source name? (alphanumeric and underscore are allowed)")
+            if re.match(DATASOURCE_NAME_REGEX, datasource_name):
                 break
             else:
-                console.print('    [[red]Error[/red]] Input is not a valid project name. Please try again.')
+                console.print('    [[red]Error[/red]] Input is not a valid datasource name. Please try again.')
 
         console.print('[[yellow]?[/yellow]] Which data source would you like to connect to?')
         for i, (k, v) in enumerate(source_choices):
@@ -176,7 +177,7 @@ class DataSource(metaclass=ABCMeta):
                 cls = source_choices[type_idx - 1][1]
                 break
 
-        name = project_name
+        name = datasource_name
         return cls, name
 
     @staticmethod
@@ -188,16 +189,16 @@ class DataSource(metaclass=ABCMeta):
             readchar.key.BACKSPACE = '\x7F'
 
         questions = [
-            inquirer.Text('project_name',
-                          message='What is your project name? (alphanumeric only)',
-                          validate=lambda ans, x: re.match(PROJECT_NAME_REGEX, x) is not None),
+            inquirer.Text('datasource_name',
+                          message='What is your data source name? (alphanumeric and underscore are allowed)',
+                          validate=lambda ans, x: re.match(DATASOURCE_NAME_REGEX, x) is not None),
             inquirer.List('type',
                           message='Which data source would you like to connect to?',
                           choices=source_choices,
                           ),
         ]
         answers = inquirer.prompt(questions, raise_keyboard_interrupt=True)
-        name = answers['project_name'].strip()
+        name = answers['datasource_name'].strip()
         cls = answers['type']
         return cls, name
 
