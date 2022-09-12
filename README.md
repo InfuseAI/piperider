@@ -22,15 +22,15 @@
 
 
 ## Key Features
-* [Generate an HTML Report](how-to-guides/generate-report.md) featuring your data profile and data assertion test results ([interactive sample](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.8.0/index.html))
-* [Compare two reports](how-to-guides/compare-reports.md) to understand how your data has changed over time ([interactive sample](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.8.0/index.html))
+* [Generate an HTML Report](https://docs.piperider.io/how-to-guides/generate-report.md) featuring your data profile and data assertion test results ([interactive sample](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.8.0/index.html))
+* [Compare two reports](https://docs.piperider.io/how-to-guides/compare-reports.md) to understand how your data has changed over time ([interactive sample](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.8.0/index.html))
 * Test your data with data assertions:
-  * Built-in [data assertions](data-quality-assertions/assertion-configuration.md)
-  * Extensible through [custom assertions](data-quality-assertions/custom-assertions.md)
+  * Built-in [data assertions](https://docs.piperider.io/data-quality-assertions/assertion-configuration.md)
+  * Extensible through [custom assertions](https://docs.piperider.io/data-quality-assertions/custom-assertions.md)
   * Auto-generated data assertions
-* Currently supports [Postgres](data-sources/postgres-connector.md), [Snowflake](data-sources/snowflake-connector.md), SQLite, [BigQuery](data-sources/bigquery-connector.md), [Redshift](data-sources/redshift-connector.md), [DuckDB](data-sources/duckdb-connector.md), [CSV](data-sources/csv-connector.md) and [Parquet](data-sources/parquet-connector.md).
-* Zero-config [support for dbt](dbt-integration/) projects
-* Automation through [GitHub Actions](how-to-guides/github-action.md), [save reports in S3](how-to-guides/aws-s3-+-github-ci.md)
+* Currently supports [Postgres](https://docs.piperider.io/data-sources/postgres-connector.md), [Snowflake](https://docs.piperider.io/data-sources/snowflake-connector.md), SQLite, [BigQuery](data-sources/bigquery-connector.md), [Redshift](https://docs.piperider.io/data-sources/redshift-connector.md), [DuckDB](https://docs.piperider.io/data-sources/duckdb-connector.md), [CSV](https://docs.piperider.io/data-sources/csv-connector.md) and [Parquet](https://docs.piperider.io/data-sources/parquet-connector.md).
+* Zero-config [support for dbt](https://docs.piperider.io/dbt-integration/) projects
+* Automation through [GitHub Actions](https://docs.piperider.io/how-to-guides/github-action.md), [save reports in S3](https://docs.piperider.io/how-to-guides/aws-s3-+-github-ci.md)
 
 ## Made for...
 **For data engineers**
@@ -45,30 +45,13 @@
 
 
 ## Live Demo
-[![](https://i.imgur.com/WuFC4H6.png)](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.7.0/index.html)
+[![](https://i.imgur.com/WuFC4H6.png)](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.8.0/index.html)
 
-[Click here or on image to interact](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.7.0/index.html)
-
-# Table of contents
-* [What's PipeRider?](#what's-piperider?)
-    * [Made for...](#made-for...)
-    * [Live demo](#live-demo)
-* [Table of contents](#table-of-contents)
-* [Getting started](#getting-started)
-    * [Install piperider](#install-piperider)
-    * [Attach PipeRider to a dbt project](#attach-piperider-to-a-dbt-project)
-    * [Scan data quality from models](#scan-data-quality-from-models)
-    * [Generate reports](#generate-reports)
-    * [Generate comparison view](#generate-comparison-view)
-* [Learn more](#learn-more)
-* [Get involved](#get-involved)
-    * [Support](#support)
-    * [Contributions](#contributions)
-
+[Click here or on image to interact](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.8.0/index.html)
 
 # Getting started
 
-Get started quickly below, or go to [the docs](https://dochttps://docs.piperider.io/)
+Get started quickly below, or go to [the docs](https://docs.piperider.io/)
 
 ## Install PipeRider
 
@@ -100,25 +83,19 @@ You can follow the [quick start guide](https://docs.piperider.io/quick-start) to
 
 `piperider init` creates `/.piperider` under a dbt project root and generates necessary configurations.
 
-![piperider_init](images/init_pipe.gif)
-
 ## Scan data quality from models
 
-`piperider run` scans the models from data sources and creates assessment results in `/.piperider/output`
+`piperider run` runs profiling, and tests against assertions, and will render an HTML report `/.piperider/outputs`
 
-![piperider_run](images/run_pipe.gif)
+You can do a run for a specific table using `piperider run --table $TABLENAME`
+You can specifying the output location of a report using `piperider generate-report -o $PATHNAME` or specifying it in the config file.
 
-## Generate reports
-
-`piperider generate-report` generate a static HTML report.
-
-![piperider_report](images/report_pipe.gif)
+[All details on generating reports](https://docs.piperider.io/how-to-guides/generate-report)
 
 ## Generate comparison view
 
 You can use `piperider compare-report` to compare 2 reports.
 
-![piperider_compare](images/compare_pipe.gif)
 
 # Learn More
 
