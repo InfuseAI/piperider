@@ -12,11 +12,11 @@
     "declaration": true,
     "declarationDir": "types",
     "esModuleInterop": true,
+    "emitDeclarationOnly": true, //Don't generate JS (rollup will do that) only export type declarations
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
     "moduleResolution": "node",
-    "noEmit": true,
     "noImplicitAny": false,
     "noFallthroughCasesInSwitch": true,
     "outDir": "dist",
