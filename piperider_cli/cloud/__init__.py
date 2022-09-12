@@ -92,8 +92,7 @@ class PipeRiderCloud:
         return self.available
 
     def logout(self):
-        self.service.api_service = None
-        self.service.validate()
+        self.service.api_token = None
         self.service.update_configuration()
 
     def magic_login(self, email):

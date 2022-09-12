@@ -21,7 +21,7 @@ def ask_login_info():
     if response.get('link'):
         webbrowser.open(response.get('link'))
 
-    console.print('Please paste the api token from magic link')
+    console.print('Please paste the api token from magic link. The link had be send to your email address.')
     api_token = Prompt.ask('[[yellow]?[/yellow]] API Token')
     if piperider_cloud.validate(api_token) is False:
         # Invalid API Token
@@ -51,10 +51,11 @@ class CloudConnector():
         console.rule('Logout')
 
         if piperider_cloud.available is False:
-            console.print('Already logout')
+            console.print('[[bold yellow]Skip[/bold yellow]] Already logout')
             return 0
 
         piperider_cloud.logout()
+        console.print('[[bold green]Done[/bold green]] Removed API Token from user profile')
         return 0
 
     @staticmethod
