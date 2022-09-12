@@ -225,7 +225,13 @@ def compare_reports(**kwargs):
                        debug=kwargs.get('debug', False))
 
 
-@cli.command(short_help=f'{BETA_FLAG} Upload a report to the PipeRider Cloud.', cls=TrackCommand)
+@cli.group('cloud', short_help=f'{BETA_FLAG} Manage PipeRider Cloud')
+def cloud():
+    # Manage PipeRider Cloud.
+    pass
+
+
+@cloud.command(short_help=f'{BETA_FLAG} Upload a report to the PipeRider Cloud.', cls=TrackCommand)
 @click.option('--run', type=click.Path(exists=True), help='Specify the raw result file.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
@@ -242,14 +248,14 @@ def upload_report(**kwargs):
     return ret
 
 
-@cli.command(short_help=f'{BETA_FLAG} Login to PipeRider Cloud.', cls=TrackCommand)
+@cloud.command(short_help=f'{BETA_FLAG} Login to PipeRider Cloud.', cls=TrackCommand)
 @add_options(debug_option)
 def login(**kwargs):
     ret = CloudConnector.login()
     return ret
 
 
-@cli.command(short_help=f'{BETA_FLAG} Logout from PipeRider Cloud.', cls=TrackCommand)
+@cloud.command(short_help=f'{BETA_FLAG} Logout from PipeRider Cloud.', cls=TrackCommand)
 @add_options(debug_option)
 def logout(**kwargs):
     ret = CloudConnector.logout()

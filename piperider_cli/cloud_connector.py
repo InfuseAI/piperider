@@ -1,11 +1,13 @@
 import os
 import webbrowser
 
+import inquirer
 from rich.console import Console
 from rich.prompt import Prompt
 
 from piperider_cli.cloud import PipeRiderCloud
 from piperider_cli.compare_report import CompareReport
+from piperider_cli.datasource import FANCY_USER_INPUT
 from piperider_cli.filesystem import FileSystem
 
 console = Console()
@@ -14,20 +16,30 @@ piperider_cloud = PipeRiderCloud()
 
 def ask_login_info():
     console.print('Please provide available email account to login')
-    account = Prompt.ask('[[yellow]?[/yellow]] Email address')
+    if FANCY_USER_INPUT:
+        account = inquirer.text('Email address', validate=lambda _, x: '@' in x)
+    else:
+        while True:
+            account = Prompt.ask('[[yellow]?[/yellow]] Email address')
+            if '@' in account:
+                break
 
     response = piperider_cloud.magic_login(account)
     if response is None or response.get('success') is False:
-        # Login failed
+        console.print('[[red]Error[/red]] Login failed. Please try again.')
         return False
 
     if response.get('link'):
         webbrowser.open(response.get('link'))
 
     console.print('Please paste the api token from magic link. The link had be send to your email address.')
-    api_token = Prompt.ask('[[yellow]?[/yellow]] API Token')
+    while True:
+        api_token = Prompt.ask('[[yellow]?[/yellow]] API token')
+        if len(api_token) > 0:
+            break
+
     if piperider_cloud.validate(api_token) is False:
-        # Invalid API Token
+        console.print('[[red]Error[/red]] Invalid API Token. Please try again.')
         return False
 
     # Write API Token back to user profile
@@ -67,7 +79,6 @@ class CloudConnector():
 
     @staticmethod
     def upload_report(report_path=None, report_dir=None, datasource=None, debug=False):
-        # TODO: move the code from cli.py
         console.rule('Upload Report')
 
         filesystem = FileSystem(report_dir=report_dir)
