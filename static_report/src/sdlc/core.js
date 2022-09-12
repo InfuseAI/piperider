@@ -122,16 +122,19 @@ export const getSchemaDescriptions = async () => {
       ),
     );
     const defProperties = schemaJson?.definitions;
+    const tableProperties =
+      schemaJson?.properties.tables.patternProperties['.+'].properties;
     const colProperties =
-      schemaJson?.properties.tables.patternProperties['.+'].properties.columns
-        .patternProperties['.+'].properties;
+      tableProperties.columns.patternProperties['.+'].properties;
     const descriptions = Object.entries({
+      ...tableProperties,
       ...colProperties,
       ...defProperties,
     }).reduce((prev, [key, { description }]) => {
       if (description) prev[key] = description;
       return prev;
     }, {});
+
     const filePath = 'src/sdlc/schema-meta.ts';
 
     writeFile(

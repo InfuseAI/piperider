@@ -24,11 +24,29 @@ export interface SingleReportSchema {
 export interface TableSchema {
   name: string;
   description?: string;
+  /**
+   * Number of rows in this table
+   */
   row_count?: number;
+  /**
+   * The time that this table created at in ISO 8601 format including time zone
+   */
   created?: string;
+  /**
+   * The last time that this table modified at in ISO 8601 format including time zone
+   */
   last_altered?: string;
+  /**
+   * The volume size of this table in bytes
+   */
   bytes?: number;
+  /**
+   * Time differentiation between the current time and table's last altered time
+   */
   freshness?: number;
+  /**
+   * Number of columns in this table
+   */
   col_count?: number;
   columns: {
     [k: string]: ColumnSchema;
