@@ -10,6 +10,8 @@ import {
   TableSchema,
 } from '../sdlc/single-report-schema';
 
+export * from '../sdlc';
+
 export interface SaferSRSchema extends Omit<SingleReportSchema, 'tables'> {
   tables: { [k: string]: SaferTableSchema | undefined };
 }
