@@ -155,7 +155,7 @@ class DataSource(metaclass=ABCMeta):
 
         while True:
             datasource_name = Prompt.ask(
-                "[[yellow]?[/yellow]] What is your datasource name? (alphanumeric and underscore are allowed)")
+                "[[yellow]?[/yellow]] What is your data source name? (alphanumeric and underscore are allowed)")
             if re.match(DATASOURCE_NAME_REGEX, datasource_name):
                 break
             else:
@@ -190,7 +190,7 @@ class DataSource(metaclass=ABCMeta):
 
         questions = [
             inquirer.Text('datasource_name',
-                          message='What is your datasource name? (alphanumeric and underscore are allowed)',
+                          message='What is your data source name? (alphanumeric and underscore are allowed)',
                           validate=lambda ans, x: re.match(DATASOURCE_NAME_REGEX, x) is not None),
             inquirer.List('type',
                           message='Which data source would you like to connect to?',
