@@ -125,7 +125,9 @@ class CsvDataSource(DuckDBDataSource):
         # Load csv file as table
         sql_query = f"CREATE TABLE '{table_name}' AS SELECT * FROM read_csv_auto('{csv_path}')"
         try:
+            engine.execute('SET enable_progress_bar=true;')
             engine.execute(sql_query)
+            engine.execute('SET enable_progress_bar=false;')
         except Exception as e:
             if isinstance(e, DBAPIError) and e.args[0].endswith('Invalid Error: String value is not valid UTF8'):
                 encoding_detection = self.detect_file_encoding(csv_path)
@@ -205,5 +207,7 @@ class ParquetDataSource(DuckDBDataSource):
             table_name = self._formalize_table_name(splitext(basename(parquet_path))[0])
 
         sql_query = f"CREATE TABLE '{table_name}' AS SELECT * FROM read_parquet('{parquet_path}')"
+        engine.execute('SET enable_progress_bar=true;')
         engine.execute(sql_query)
+        engine.execute('SET enable_progress_bar=false;')
         return engine
