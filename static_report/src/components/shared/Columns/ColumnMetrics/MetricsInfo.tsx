@@ -1,6 +1,9 @@
 import { FlexProps, Flex, Text, Tooltip } from '@chakra-ui/react';
 import { schemaMetaDescriptions } from '../../../../sdlc/schema-meta';
-import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import {
+  ColumnSchema,
+  TableSchema,
+} from '../../../../sdlc/single-report-schema';
 import { NO_VALUE } from '../constants';
 
 export type MetricMetaKeys = keyof Pick<
@@ -28,7 +31,7 @@ export interface MetricsInfoProps {
   secondSlot?: string | number | null;
   firstSlotWidth?: string;
   secondSlotWidth?: string;
-  metakey?: keyof ColumnSchema;
+  metakey?: keyof ColumnSchema | keyof TableSchema;
   reverse?: boolean;
   tooltipValues?: { firstSlot?: number | string; secondSlot?: number | string };
 }
@@ -77,7 +80,12 @@ export function MetricsInfo({
           isDisabled={!Boolean(tooltipValues?.firstSlot)}
           placement={'top'}
         >
-          <Text textAlign="right" width={firstSlotWidth} noOfLines={1}>
+          <Text
+            textAlign="right"
+            fontSize={'sm'}
+            width={firstSlotWidth}
+            noOfLines={1}
+          >
             {firstSlot || NO_VALUE}
           </Text>
         </Tooltip>
@@ -90,7 +98,7 @@ export function MetricsInfo({
             isDisabled={!Boolean(tooltipValues?.secondSlot)}
             placement={'top'}
           >
-            <Text textAlign="right" width={secondSlotWidth}>
+            <Text textAlign="right" fontSize={'sm'} width={secondSlotWidth}>
               {secondSlot || NO_VALUE}
             </Text>
           </Tooltip>
