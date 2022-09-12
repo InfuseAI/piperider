@@ -227,19 +227,19 @@ def compare_reports(**kwargs):
 
 @cli.command(short_help=f'{BETA_FLAG} Upload a report to the PipeRider Cloud.', cls=TrackCommand)
 @click.option('--run', type=click.Path(exists=True), help='Specify the raw result file.')
+@click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
+@click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
+              help='Specify the datasource.')
 @add_options(debug_option)
 def upload_report(**kwargs):
     """
     Upload a single run report to PipeRider Cloud
     """
-    from piperider_cli.cloud import PipeRiderCloud
-    filename = kwargs.get('run')
-    if not filename or not os.path.exists(filename):
-        raise Exception(f'There is no run at path: {filename}')
-    with open(filename) as fh:
-        result = PipeRiderCloud().upload_report(fh.read())
-        # TODO refine the output when API is ready
-        print(result)
+    report_path = kwargs.get('run')
+    datasource = kwargs.get('datasource')
+    report_dir = kwargs.get('report_dir')
+    ret = CloudConnector.upload_report(report_path=report_path, datasource=datasource, report_dir=report_dir)
+    return ret
 
 
 @cli.command(short_help=f'{BETA_FLAG} Login to PipeRider Cloud.', cls=TrackCommand)

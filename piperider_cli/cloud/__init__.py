@@ -1,8 +1,8 @@
 import json
 import os
-from io import StringIO
 
 import requests
+from rich.progress import open
 from ruamel import yaml
 
 from piperider_cli.event import load_user_profile, update_user_profile
@@ -113,18 +113,20 @@ class PipeRiderCloud:
             self.raise_error()
         return self.service.http_get('/api/users/me')
 
-    def upload_report(self, report_json_content, project: str = 'default'):
+    def upload_report(self, file_path, show_progress=False):
         # TODO validate project name
         if not self.available:
             self.raise_error()
 
-        buffer = StringIO(report_json_content)
-        url = self.service.url('/api/reports/upload')
-        response = requests.post(
-            url,
-            data={"project": project},
-            files={"file": ('run.json', buffer)}, headers=self.service.auth_headers())
-        return response.json()
+        with open(file_path, 'rb') as file:
+            url = self.service.url('/api/reports/upload')
+            response = requests.post(
+                url,
+                files={"file": ('run.json', file)}, headers=self.service.auth_headers())
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return response.json()
 
     def raise_error(self):
         raise ValueError("Service not available or configuration invalid")

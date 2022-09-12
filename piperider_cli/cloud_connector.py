@@ -1,9 +1,12 @@
+import os
 import webbrowser
 
 from rich.console import Console
 from rich.prompt import Prompt
 
 from piperider_cli.cloud import PipeRiderCloud
+from piperider_cli.compare_report import CompareReport
+from piperider_cli.filesystem import FileSystem
 
 console = Console()
 piperider_cloud = PipeRiderCloud()
@@ -33,6 +36,10 @@ def ask_login_info():
     return True
 
 
+def select_a_report():
+    pass
+
+
 class CloudConnector():
     @staticmethod
     def login():
@@ -59,6 +66,26 @@ class CloudConnector():
         return 0
 
     @staticmethod
-    def upload_report():
+    def upload_report(report_path=None, report_dir=None, datasource=None, debug=False):
         # TODO: move the code from cli.py
-        pass
+        console.rule('Upload Report')
+
+        filesystem = FileSystem(report_dir=report_dir)
+        report = CompareReport(filesystem.get_output_dir(), None, None, datasource=datasource)
+        if report_path is None:
+            report_path = report.select_one_report(action='upload').path
+
+        if not os.path.exists(report_path):
+            raise FileNotFoundError(f'File not found: {report_path}')
+
+        console.print(f'Uploading report [bold green]{report_path}[/bold green]')
+        response = piperider_cloud.upload_report(report_path)
+        # TODO refine the output when API is ready
+        if response.get('success') is True:
+            console.rule('Upload Success')
+            return 0
+
+        console.print(f'[[bold red]Abort[/bold red]] Upload failed. Reason: {response.get("message")}')
+        if debug:
+            console.print(response)
+        return 1

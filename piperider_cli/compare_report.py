@@ -168,7 +168,7 @@ class CompareReport(object):
             return True
         return False
 
-    def select_one_report(self) -> ProfilerOutput:
+    def select_one_report(self, action='compare') -> ProfilerOutput:
         def _report_validater(answers, current) -> bool:
             return len(current) == 1
 
@@ -185,7 +185,7 @@ class CompareReport(object):
 
         questions = [
             inquirer_hack.LimitedCheckboxQuestion('profiler_output',
-                                                  message=f"Please select a report to compare ({arrow_alias_msg} SPACE to select, and ENTER to confirm )",
+                                                  message=f"Please select a report to {action} ({arrow_alias_msg} SPACE to select, and ENTER to confirm )",
                                                   choices=profiler_outputs,
                                                   carousel=True,
                                                   validate=_report_validater,
@@ -199,7 +199,7 @@ class CompareReport(object):
         else:
             return None
 
-    def select_two_reports(self) -> (ProfilerOutput, ProfilerOutput):
+    def select_two_reports(self, action='compare') -> (ProfilerOutput, ProfilerOutput):
         """
         Select multiple files from a list of files.
         """
@@ -223,7 +223,7 @@ class CompareReport(object):
         questions = [
             inquirer_hack.LimitedCheckboxQuestion(
                 'profiler_outputs',
-                message=f"Please select the 2 reports to compare ({arrow_alias_msg} SPACE to select, and ENTER to confirm )",
+                message=f"Please select the 2 reports to {action} ({arrow_alias_msg} SPACE to select, and ENTER to confirm )",
                 choices=profiler_outputs,
                 carousel=True,
                 validate=_report_validater,
