@@ -1,9 +1,10 @@
 {
-  "name": "@infuseai/piperider-ui",
+  "name": "piperider-ui",
   "type": "module",
   "author": {
     "name": "infuseai"
   },
+  "description": "A UI library for building Piperider generated reports",
   "version": "0.1.0-alpha.1",
   "license": "MIT",
   "main": "dist/cjs/index.js",
@@ -69,12 +70,11 @@
     "rimraf": "^3.0.2",
     "rollup": "^2.79.0",
     "rollup-plugin-dts": "^4.2.2",
+    "rollup-plugin-node-polyfills": "^0.2.1",
+    "rollup-plugin-terser": "^7.0.2",
     "ts-node": "^10.9.1",
     "ts-to-zod": "^1.11.0",
     "typescript": "^4.7.4"
-  },
-  "resolutions": {
-    "nth-check": "2.0.1"
   },
   "scripts": {
     "analyze": "npx cra-bundle-analyzer",
@@ -104,8 +104,14 @@
     "serve:e2e:norm:comparison": "http-server ./build/comparison-report -p 3001 --silent",
     "serve:e2e:case:single-edge": "http-server ./build/single-edge-report -p 4000 --silent",
     "serve:e2e:case:comparison-asymmetric": "http-server ./build/comparison-asymmetric-report -p 4001 --silent",
+    "dev:lib": "run-s rollup:lib link:lib",
+    "rollup:lib": "rimraf dist && rollup -c",
+    "link:lib": "cp ./package.json dist && cd dist && npm link && cd ..",
     "lint": "eslint src/",
     "lint:fix": "npm run lint -- --fix"
+  },
+  "resolutions": {
+    "nth-check": "2.0.1"
   },
   "browserslist": {
     "production": [

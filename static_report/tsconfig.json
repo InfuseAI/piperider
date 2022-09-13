@@ -29,6 +29,7 @@
     "node_modules",
     "dist",
     "build",
-    "cypress"
+    "cypress",
+    "cypress.config.ts"
   ]
 }

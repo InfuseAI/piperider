@@ -2,6 +2,8 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
 import dts from 'rollup-plugin-dts';
+import { terser } from 'rollup-plugin-terser';
+import nodePolyfills from 'rollup-plugin-node-polyfills';
 
 const packageJson = require('./package.json');
 
@@ -11,7 +13,7 @@ const packageJson = require('./package.json');
  */
 const rollupConfig = [
   {
-    input: 'src/lib.ts',
+    input: 'src/index.ts',
     output: [
       {
         file: packageJson.main,
@@ -27,15 +29,18 @@ const rollupConfig = [
     plugins: [
       resolve(),
       commonjs(),
-      typescript({ tsconfig: './tsconfig.json' }),
-      dts(),
+      typescript({
+        tsconfig: './tsconfig.json',
+        exclude: ['src/appshell/*', 'src/pages/*'],
+      }),
+      terser(),
+      nodePolyfills(),
     ],
-    external: ['react', 'react-dom'],
   },
-  {
-    input: 'dist/esm/src/lib.d.ts',
-    output: [{ file: 'dist/lib.d.ts', format: 'esm' }],
-    plugins: [dts()],
-  },
+  // { FIXME: test above first before types!
+  //   input: 'dist/esm/types/index.d.ts',
+  //   output: [{ file: 'dist/index.d.ts', format: 'esm' }],
+  //   plugins: [dts()],
+  // },
 ];
 export default rollupConfig;
