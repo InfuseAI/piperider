@@ -37,10 +37,10 @@ const rollupConfig = [
       nodePolyfills(),
     ],
   },
-  // { FIXME: test above first before types!
-  //   input: 'dist/esm/types/index.d.ts',
-  //   output: [{ file: 'dist/index.d.ts', format: 'esm' }],
-  //   plugins: [dts()],
-  // },
+  {
+    input: 'dist/esm/index.d.ts',
+    output: [{ file: 'dist/index.d.ts', format: 'esm' }],
+    plugins: [dts()],
+  },
 ];
 export default rollupConfig;
