@@ -349,8 +349,8 @@ class BaseColumnProfiler:
         if limit <= 0:
             return t, c
         else:
-            cte = select([c.label("c")]).select_from(t).limit(limit).cte()
-            return cte, cte.columns[0]
+            cte = select([c.label('c')]).select_from(t).limit(limit).cte()
+            return cte, cte.c.c
 
     def _get_table_cte(self) -> CTE:
         """
