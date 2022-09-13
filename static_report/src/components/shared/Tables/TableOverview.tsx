@@ -1,5 +1,5 @@
 import { Text, Heading, Flex, Icon, Grid, GridItem } from '@chakra-ui/react';
-import { formatDuration, intervalToDuration, subMilliseconds } from 'date-fns';
+import { formatDuration, intervalToDuration, subSeconds } from 'date-fns';
 import { FiGrid } from 'react-icons/fi';
 
 import {
@@ -118,14 +118,14 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
             metakey="freshness"
             firstSlot={formatDuration(
               intervalToDuration({
-                start: subMilliseconds(new Date(), baseTable?.freshness || 0),
+                start: subSeconds(new Date(), baseTable?.freshness || 0),
                 end: new Date(),
               }),
             )}
             firstSlotWidth={'16em'}
             secondSlot={formatDuration(
               intervalToDuration({
-                start: subMilliseconds(new Date(), targetTable?.freshness || 0),
+                start: subSeconds(new Date(), targetTable?.freshness || 0),
                 end: new Date(),
               }),
             )}
