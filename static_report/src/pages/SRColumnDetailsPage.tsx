@@ -32,7 +32,7 @@ export default function SRColumnDetailsPage({
 }: Props) {
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
-  const time = formatReportTime(created_at);
+  const time = formatReportTime(created_at) || '';
 
   if (!columnName || !tableName) {
     return (

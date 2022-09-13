@@ -28,21 +28,27 @@
               "type": "string"
             },
             "row_count": {
+              "description": "Number of rows in this table",
               "type": "integer"
             },
             "created": {
+              "description": "The time that this table created at in ISO 8601 format including time zone",
               "type": "string"
             },
             "last_altered": {
+              "description": "The last time that this table modified at in ISO 8601 format including time zone",
               "type": "string"
             },
             "bytes": {
+              "description": "The volume size of this table in bytes",
               "type": "integer"
             },
             "freshness": {
+              "description": "Time differentiation between the current time and table's last altered time",
               "type": "integer"
             },
             "col_count": {
+              "description": "Number of columns in this table",
               "type": "integer"
             },
             "columns": {

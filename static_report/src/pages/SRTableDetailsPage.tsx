@@ -49,7 +49,7 @@ export default function SRTableDetailsPage({ data, tableName }: Props) {
   }
 
   return (
-    <Main isSingleReport time={formatReportTime(data.created_at)}>
+    <Main isSingleReport time={formatReportTime(data.created_at) || ''}>
       <Flex direction="column" width="100%">
         <BreadcrumbNav routePathToMatch={TABLE_DETAILS_ROUTE_PATH} />
 
@@ -64,7 +64,7 @@ export default function SRTableDetailsPage({ data, tableName }: Props) {
           direction="column"
           gap={4}
         >
-          <TableOverview baseTable={table} />
+          <TableOverview baseTable={table} singleOnly />
 
           <Heading size="md">Assertions</Heading>
           <CollapseContent

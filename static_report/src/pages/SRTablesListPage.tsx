@@ -42,7 +42,7 @@ export function SRTablesListPage({ data }: Props) {
   useDocumentTitle('Report List');
 
   return (
-    <Main isSingleReport time={formatReportTime(created_at)}>
+    <Main isSingleReport time={formatReportTime(created_at) || ''}>
       <TableActionBar
         sourceName={datasource.name}
         sourceType={datasource.type}

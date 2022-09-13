@@ -8,10 +8,29 @@ import type { ColumnSchema } from '../sdlc/single-report-schema';
  */
 
 /**
+ * Source: https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript
+ * @param bytes
+ * @param decimals
+ * @returns a string that matches nearest byte unit (e.g. kb, mb, gb, etc)
+ */
+export function formatBytes(bytes?: number, decimals = 2) {
+  if (bytes === undefined) return;
+  if (!bytes) return '0 Bytes';
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+}
+/**
  * @param dateStr ISO date string
  * @returns a formatted date string in 'yyyy/MM/dd HH:mm:ss'
  */
-export function formatReportTime(dateStr: string) {
+export function formatReportTime(dateStr?: string) {
+  if (!dateStr) return;
   const date = new Date(dateStr);
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
