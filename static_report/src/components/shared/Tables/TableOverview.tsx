@@ -83,8 +83,8 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
             secondSlot={formatBytes(targetTable?.bytes)}
             secondSlotWidth={'16em'}
             tooltipValues={{
-              firstSlot: formatNumber(baseTable?.bytes) + ' bytes',
-              secondSlot: formatNumber(targetTable?.bytes) + ' bytes',
+              firstSlot: `${formatNumber(baseTable?.bytes)} bytes`,
+              secondSlot: `${formatNumber(targetTable?.bytes)} bytes`,
             }}
           />
         )}
