@@ -578,3 +578,24 @@ class TestProfiler:
         assert result["tables"]["test"]['columns']["str"]["topk"]["counts"][0] == 1
         assert result["tables"]["test"]['columns']["num_empty"]["histogram"] == None
         assert result["tables"]["test"]['columns']["num_empty"]["topk"] == None
+
+    def test_limited_row_table(self):
+        engine = self.engine = create_engine('sqlite://')
+
+        data = [
+            ("num",),
+            (1.0,),
+            (2.0,),
+            (None,),
+            (4.0,),
+            (5.0,)
+        ]
+        self.create_table("test", data)
+
+        profiler = Profiler(engine, profiler_config={'table': {'limit': 3}})
+        result = profiler.profile()
+        assert result["tables"]["test"]['columns']["num"]["min"] == 1.0
+        assert result["tables"]["test"]['columns']["num"]["max"] == 2.0
+        assert result["tables"]["test"]['columns']["num"]["avg"] == 1.5
+        assert result["tables"]["test"]['columns']["num"]["total"] == 3
+        assert result["tables"]["test"]['columns']["num"]["nulls"] == 1
