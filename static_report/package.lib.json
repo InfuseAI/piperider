@@ -21,7 +21,7 @@
     "react-dom": "^18.1.0",
     "usehooks-ts": "^2.6.0"
   },
-  "dependencies": {
+  "devDependencies": {
     "@amplitude/analytics-browser": "^1.1.2",
     "@amplitude/analytics-types": "^0.6.1",
     "@chakra-ui/icons": "^2.0.1",
@@ -45,13 +45,10 @@
     "react-chartjs-2": "^4.3.1",
     "react-dom": "^18.1.0",
     "react-icons": "^4.4.0",
-    "react-scripts": "5.0.1",
     "usehooks-ts": "^2.6.0",
     "web-vitals": "^2.1.4",
     "wouter": "2.8.0-alpha.2",
-    "zod": "^3.17.10"
-  },
-  "devDependencies": {
+    "zod": "^3.17.10",
     "@babel/core": "^7.18.2",
     "@craco/craco": "^6.4.5",
     "@rollup/plugin-commonjs": "^22.0.2",

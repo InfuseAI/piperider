@@ -7,8 +7,9 @@ import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 import nodePolyfills from 'rollup-plugin-node-polyfills';
 import { readFileSync } from 'fs';
 
+//TODO: create another package.lib.json
 const packageJson = JSON.parse(
-  readFileSync(new URL('./package.json', import.meta.url)),
+  readFileSync(new URL('./package.lib.json', import.meta.url)),
 );
 
 /**
