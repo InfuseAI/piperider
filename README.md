@@ -22,15 +22,15 @@
 
 
 ## Key Features
-* [Generate an HTML Report](https://docs.piperider.io/how-to-guides/generate-report.md) featuring your data profile and data assertion test results ([interactive sample](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.8.0/index.html))
-* [Compare two reports](https://docs.piperider.io/how-to-guides/compare-reports.md) to understand how your data has changed over time ([interactive sample](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.8.0/index.html))
+* [Generate an HTML Report](https://docs.piperider.io/how-to-guides/generate-report) featuring your data profile and data assertion test results ([interactive sample](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.8.0/index.html))
+* [Compare two reports](https://docs.piperider.io/how-to-guides/compare-reports) to understand how your data has changed over time ([interactive sample](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.8.0/index.html))
 * Test your data with data assertions:
-  * Built-in [data assertions](https://docs.piperider.io/data-quality-assertions/assertion-configuration.md)
-  * Extensible through [custom assertions](https://docs.piperider.io/data-quality-assertions/custom-assertions.md)
+  * Built-in [data assertions](https://docs.piperider.io/data-quality-assertions/assertion-configuration)
+  * Extensible through [custom assertions](https://docs.piperider.io/data-quality-assertions/custom-assertions)
   * Auto-generated data assertions
-* Currently supports [Postgres](https://docs.piperider.io/data-sources/postgres-connector.md), [Snowflake](https://docs.piperider.io/data-sources/snowflake-connector.md), SQLite, [BigQuery](data-sources/bigquery-connector.md), [Redshift](https://docs.piperider.io/data-sources/redshift-connector.md), [DuckDB](https://docs.piperider.io/data-sources/duckdb-connector.md), [CSV](https://docs.piperider.io/data-sources/csv-connector.md) and [Parquet](https://docs.piperider.io/data-sources/parquet-connector.md).
+* Currently supports [Postgres](https://docs.piperider.io/data-sources/postgres-connector), [Snowflake](https://docs.piperider.io/data-sources/snowflake-connector), SQLite, [BigQuery](data-sources/bigquery-connector), [Redshift](https://docs.piperider.io/data-sources/redshift-connector), [DuckDB](https://docs.piperider.io/data-sources/duckdb-connector/), [CSV](https://docs.piperider.io/data-sources/csv-connector/) and [Parquet](https://docs.piperider.io/data-sources/parquet-connector/).
 * Zero-config [support for dbt](https://docs.piperider.io/dbt-integration/) projects
-* Automation through [GitHub Actions](https://docs.piperider.io/how-to-guides/github-action.md), [save reports in S3](https://docs.piperider.io/how-to-guides/aws-s3-+-github-ci.md)
+* Automation through [GitHub Actions](https://docs.piperider.io/how-to-guides/github-action/), [save reports in S3](https://docs.piperider.io/how-to-guides/aws-s3-+-github-ci/)
 
 ## Made for...
 **For data engineers**
