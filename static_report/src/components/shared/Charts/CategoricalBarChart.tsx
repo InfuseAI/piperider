@@ -16,7 +16,6 @@ import {
   formatTruncateString,
 } from '../../../utils/formatters';
 
-ChartJS.register(CategoryScale, BarElement, Tooltip);
 /**
  * A horizontal progress bar chart that visualizes categorical dataset, plotted 1:1 to each category group
  */
@@ -31,6 +30,7 @@ export function CategoricalBarChart({
   total,
   animationOptions = false,
 }: Props) {
+  ChartJS.register(CategoryScale, BarElement);
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -145,7 +145,11 @@ export function CategoricalBarChart({
     },
   };
   return (
-    <Bar data={chartData} options={chartOptions} plugins={[progressBar]} />
+    <Bar
+      data={chartData}
+      options={chartOptions}
+      plugins={[progressBar, Tooltip]}
+    />
   );
 }
 

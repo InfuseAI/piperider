@@ -84,7 +84,7 @@ export function getDataChart(
     return (
       <BooleanPieChart
         data={{ counts, labels, ratios }}
-        animationOptions={hasAnimation ? {} : false}
+        animation={hasAnimation ? {} : false}
       />
     );
   }
