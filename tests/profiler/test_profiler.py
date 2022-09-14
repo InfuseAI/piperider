@@ -599,3 +599,4 @@ class TestProfiler:
         assert result["tables"]["test"]['columns']["num"]["avg"] == 1.5
         assert result["tables"]["test"]['columns']["num"]["total"] == 3
         assert result["tables"]["test"]['columns']["num"]["nulls"] == 1
+        assert result["tables"]["test"]['row_count'] == 5
