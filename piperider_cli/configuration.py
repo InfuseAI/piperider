@@ -35,6 +35,8 @@ class Configuration(object):
     def __init__(self, dataSources: List[DataSource], **kwargs):
         self.dataSources: List[DataSource] = dataSources
         self.profiler_config = kwargs.get('profiler', {})
+        self.includes = kwargs.get('includes', None)
+        self.excludes = kwargs.get('excludes', None)
         self.tables = kwargs.get('tables', {})
         self.telemetry_id = kwargs.get('telemetry_id', None)
         if self.telemetry_id is None:
@@ -166,6 +168,8 @@ class Configuration(object):
             dataSources=data_sources,
             profiler=config.get('profiler', {}),
             tables=config.get('tables', {}),
+            includes=config.get('includes', None),
+            excludes=config.get('excludes', None),
             telemetry_id=config.get('telemetry', {}).get('id'),
             report_dir=config.get('report_dir', '.')
         )

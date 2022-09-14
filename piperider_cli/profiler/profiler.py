@@ -72,12 +72,11 @@ class Profiler:
     inspector: Inspector = None
     event_handler: ProfilerEventHandler
 
-    def __init__(self, engine: Engine, event_handler: ProfilerEventHandler = DefaultProfilerEventHandler(),
-                 profiler_config: dict = None):
+    def __init__(self, engine: Engine, event_handler: ProfilerEventHandler = DefaultProfilerEventHandler(), config=None):
         self.engine = engine
         self.inspector = inspect(self.engine) if self.engine else None
         self.event_handler = event_handler
-        self.config = profiler_config if profiler_config else {}
+        self.config = config
 
     def profile(self, tables: List[str] = None) -> dict:
         """
@@ -108,7 +107,9 @@ class Profiler:
                 self.event_handler.handle_fetch_metadata_all_start()
                 metadata.reflect(bind=self.engine)
                 tables = self.metadata.tables.keys()
+                tables = self._apply_incl_excl_tables(tables)
             else:
+                tables = self._apply_incl_excl_tables(tables)
                 for table in tables:
                     self.event_handler.handle_fetch_metadata_table_start(table)
                     if len(table.split('.')) == 2:
@@ -129,6 +130,24 @@ class Profiler:
         self.event_handler.handle_run_end(result)
 
         return result
+
+    def _apply_incl_excl_tables(self, tables: List[str]) -> List[str]:
+        if not self.config:
+            return tables
+        if self.config.includes is None and self.config.excludes is None:
+            return tables
+
+        if self.config.includes:
+            allow_list = [t for t in tables if t in self.config.includes]
+        else:
+            allow_list = tables
+
+        if self.config.excludes:
+            final_list = [t for t in allow_list if t not in self.config.excludes]
+        else:
+            final_list = allow_list
+
+        return final_list
 
     def _drop_unsupported_columns(self, table: Table):
         array_columns = []
