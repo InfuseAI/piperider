@@ -5,16 +5,18 @@ import dts from 'rollup-plugin-dts';
 import { terser } from 'rollup-plugin-terser';
 import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 import nodePolyfills from 'rollup-plugin-node-polyfills';
+import { readFileSync } from 'fs';
 
-import packageJson from './package.json' assert { type: 'json' };
+const packageJson = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url)),
+);
 
-// rollup.config.js
 /**
  * @type {import('rollup').RollupOptions}
  */
 const rollupConfig = [
   {
-    input: 'src/index.ts',
+    input: 'src/lib/index.ts',
     output: [
       {
         file: packageJson.main,
@@ -33,31 +35,15 @@ const rollupConfig = [
       commonjs(),
       typescript({
         tsconfig: './tsconfig.json',
-        exclude: ['src/appshell/*', 'src/pages/*'],
+        exclude: ['./src/*.tsx', './src/pages/*.tsx'],
       }),
       terser(),
       nodePolyfills(),
     ],
-    // external: [
-    //   'react',
-    //   'react-chartjs-2',
-    //   'react-dom',
-    //   'react-icons',
-    //   '@chakra-ui/icons',
-    //   '@chakra-ui/react',
-    //   '@chakra-ui/styled-system',
-    //   '@chakra-ui/system',
-    //   '@chakra-ui/theme-tools',
-    //   '@emotion/react',
-    //   '@emotion/styled',
-    //   '@sgratzl/chartjs-chart-boxplot',
-    //   'chart.js',
-    //   'chartjs-adapter-date-fns',
-    //   'framer-motion',
-    // ],
+    external: ['react', 'react-dom', '@emotion/react'],
   },
   {
-    input: 'dist/esm/index.d.ts',
+    input: 'dist/esm/lib/index.d.ts',
     output: [{ file: 'dist/index.d.ts', format: 'esm' }],
     plugins: [dts()],
   },
