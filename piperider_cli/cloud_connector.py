@@ -32,7 +32,7 @@ def ask_login_info():
     if response.get('link'):
         webbrowser.open(response.get('link'))
 
-    console.print('Please paste the api token from magic link. The link had be send to your email address.')
+    console.print('Please paste the api token from magic link. The link had be sent to your email address.')
     while True:
         api_token = Prompt.ask('[[yellow]?[/yellow]] API token')
         if len(api_token) > 0:

@@ -7,7 +7,7 @@ from ruamel import yaml
 
 from piperider_cli.event import load_user_profile, update_user_profile
 
-PIPERIDER_CLOUD_SERIVCE = 'https://cloud.piperider.io/'
+PIPERIDER_CLOUD_SERVICE = 'https://cloud.piperider.io/'
 
 SERVICE_ENV_API_KEY = 'PIPERIDER_API_TOKEN'
 SERVICE_ENV_SERVICE_KEY = 'PIPERIDER_API_SERVICE'
@@ -31,7 +31,7 @@ class CloudServiceHelper:
         # overwrite them if found env vars
         self.api_service = os.environ.get(SERVICE_ENV_SERVICE_KEY,
                                           self.user_profile.get('api_service',
-                                                                PIPERIDER_CLOUD_SERIVCE))
+                                                                PIPERIDER_CLOUD_SERVICE))
         self.api_token = os.environ.get(SERVICE_ENV_API_KEY,
                                         self.user_profile.get('api_token'))
 
