@@ -72,10 +72,12 @@ class Profiler:
     inspector: Inspector = None
     event_handler: ProfilerEventHandler
 
-    def __init__(self, engine: Engine, event_handler: ProfilerEventHandler = DefaultProfilerEventHandler()):
+    def __init__(self, engine: Engine, event_handler: ProfilerEventHandler = DefaultProfilerEventHandler(),
+                 profiler_config: dict = None):
         self.engine = engine
         self.inspector = inspect(self.engine) if self.engine else None
         self.event_handler = event_handler
+        self.config = profiler_config if profiler_config else {}
 
     def profile(self, tables: List[str] = None) -> dict:
         """
@@ -89,7 +91,7 @@ class Profiler:
         - boolean
         - Other
 
-        :param tables: optinoal, the tables to profile
+        :param tables: optional, the tables to profile
         :return: the profile results
         """
 
@@ -267,33 +269,33 @@ class Profiler:
             # TEXT
             # CLOB
             generic_type = "string"
-            profiler = StringColumnProfiler(self.engine, table, column)
+            profiler = StringColumnProfiler(self.engine, self.config, table, column)
         elif isinstance(column.type, Integer):
             # INTEGER
             # BIGINT
             # SMALLINT
             generic_type = "integer"
-            profiler = NumericColumnProfiler(self.engine, table, column, is_integer=True)
+            profiler = NumericColumnProfiler(self.engine, self.config, table, column, is_integer=True)
         elif isinstance(column.type, Numeric):
             # NUMERIC
             # DECIMAL
             # FLOAT
             generic_type = "numeric"
-            profiler = NumericColumnProfiler(self.engine, table, column, is_integer=False)
+            profiler = NumericColumnProfiler(self.engine, self.config, table, column, is_integer=False)
         elif isinstance(column.type, Date) or isinstance(column.type, DateTime) or \
             (self.engine.url.get_backend_name() == 'snowflake' and str(column.type).startswith('TIMESTAMP')):
             # DATE
             # DATETIME
             # TIMEZONE_NTZ
             generic_type = "datetime"
-            profiler = DatetimeColumnProfiler(self.engine, table, column)
+            profiler = DatetimeColumnProfiler(self.engine, self.config, table, column)
         elif isinstance(column.type, Boolean):
             # BOOLEAN
             generic_type = "boolean"
-            profiler = BooleanColumnProfiler(self.engine, table, column)
+            profiler = BooleanColumnProfiler(self.engine, self.config, table, column)
         else:
             generic_type = "other"
-            profiler = BaseColumnProfiler(self.engine, table, column)
+            profiler = BaseColumnProfiler(self.engine, self.config, table, column)
 
         result = {
             "name": column.name,
@@ -323,11 +325,13 @@ class BaseColumnProfiler:
     """
 
     engine: Engine = None
+    config: dict = None
     table: Table = None
     column: Column = None
 
-    def __init__(self, engine: Engine, table: Table, column: Column):
+    def __init__(self, engine: Engine, config: dict, table: Table, column: Column):
         self.engine = engine
+        self.config = config
         self.table = table
         self.column = column
 
@@ -337,6 +341,16 @@ class BaseColumnProfiler:
         :return:
         """
         return self.engine.url.get_backend_name()
+
+    def _get_limited_table_cte(self):
+        t = self.table
+        c = self.column
+        limit = self.config.get('table', {}).get('limit', 0)
+        if limit <= 0:
+            return t, c
+        else:
+            cte = select([c.label('c')]).select_from(t).limit(limit).cte()
+            return cte, cte.c.c
 
     def _get_table_cte(self) -> CTE:
         """
@@ -359,8 +373,7 @@ class BaseColumnProfiler:
 
         :return: CTE
         """
-        t = self.table
-        c = self.column
+        t, c = self._get_limited_table_cte()
 
         return select([c.label("c")]).select_from(t).cte()
 
@@ -391,12 +404,11 @@ class BaseColumnProfiler:
 
 
 class StringColumnProfiler(BaseColumnProfiler):
-    def __init__(self, engine: Engine, table: Table, column: Column):
-        super().__init__(engine, table, column)
+    def __init__(self, engine: Engine, config: dict, table: Table, column: Column):
+        super().__init__(engine, config, table, column)
 
     def _get_table_cte(self) -> CTE:
-        t = self.table
-        c = self.column
+        t, c = self._get_limited_table_cte()
         if self._get_database_backend() != 'sqlite':
             cte = select([
                 c.label("c"),
@@ -498,13 +510,12 @@ class StringColumnProfiler(BaseColumnProfiler):
 class NumericColumnProfiler(BaseColumnProfiler):
     is_integer: bool
 
-    def __init__(self, engine: Engine, table: Table, column: Column, is_integer: bool):
-        super().__init__(engine, table, column)
+    def __init__(self, engine: Engine, config: dict, table: Table, column: Column, is_integer: bool):
+        super().__init__(engine, config, table, column)
         self.is_integer = is_integer
 
     def _get_table_cte(self) -> CTE:
-        t = self.table
-        c = self.column
+        t, c = self._get_limited_table_cte()
         if self._get_database_backend() != 'sqlite':
             cte = select([
                 c.label("c"),
@@ -840,12 +851,11 @@ class NumericColumnProfiler(BaseColumnProfiler):
 
 
 class DatetimeColumnProfiler(BaseColumnProfiler):
-    def __init__(self, engine, table: Table, column: Column):
-        super().__init__(engine, table, column)
+    def __init__(self, engine: Engine, config: dict, table: Table, column: Column):
+        super().__init__(engine, config, table, column)
 
     def _get_table_cte(self) -> CTE:
-        t = self.table
-        c = self.column
+        t, c = self._get_limited_table_cte()
         if self._get_database_backend() != 'sqlite':
             cte = select([
                 c.label("c"),
@@ -1033,12 +1043,11 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
 
 
 class BooleanColumnProfiler(BaseColumnProfiler):
-    def __init__(self, engine: Engine, table: Table, column: Column):
-        super().__init__(engine, table, column)
+    def __init__(self, engine: Engine, config: dict, table: Table, column: Column):
+        super().__init__(engine, config, table, column)
 
     def _get_table_cte(self) -> CTE:
-        t = self.table
-        c = self.column
+        t, c = self._get_limited_table_cte()
         if self._get_database_backend() != 'sqlite':
             cte = select([
                 c.label("c"),
