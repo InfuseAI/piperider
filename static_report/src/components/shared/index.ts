@@ -14,5 +14,5 @@ export {
 } from './Charts/utils';
 export * from './Columns/constants';
 export * from './Columns/utils';
-// export * from './Tables/utils';
+export * from './Tables/utils';
 // export * from './Widgets';
