@@ -10,6 +10,7 @@ from ruamel.yaml import CommentedMap
 from piperider_cli.datasource import DATASOURCE_PROVIDERS, DataSource
 from piperider_cli.error import \
     PipeRiderConfigError, \
+    PipeRiderConfigTypeError, \
     PipeRiderInvalidDataSourceError, \
     DbtProjectNotFoundError, \
     DbtProfileNotFoundError, \
@@ -43,12 +44,30 @@ class Configuration(object):
             self.telemetry_id = uuid.uuid4().hex
         self.report_dir = self._to_report_dir(kwargs.get('report_dir', '.'))
 
+        self._verify_input_config()
+        self.includes = [str(t) for t in self.includes] if self.includes else self.includes
+        self.excludes = [str(t) for t in self.excludes] if self.excludes else self.excludes
+
     def _to_report_dir(self, dirname: str):
         if dirname is None or dirname.strip() == '':
             dirname = '.'
         if dirname.startswith('.'):
             return os.path.abspath(os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, dirname))
         return os.path.abspath(dirname)
+
+    def _verify_input_config(self):
+        if self.profiler_config:
+            limit = self.profiler_config.get('table', {}).get('limit', 0)
+            if not isinstance(limit, int):
+                raise PipeRiderConfigTypeError("profiler 'limit' should be an integer")
+
+        if self.includes is not None:
+            if not isinstance(self.includes, List):
+                raise PipeRiderConfigTypeError("'includes' should be a list of tables' name")
+
+        if self.excludes is not None:
+            if not isinstance(self.excludes, List):
+                raise PipeRiderConfigTypeError("'excludes' should be a list of tables' name")
 
     def get_telemetry_id(self):
         return self.telemetry_id
