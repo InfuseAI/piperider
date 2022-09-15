@@ -74,7 +74,7 @@ export function getHistogramChartData(
 ): ChartData<'bar' | 'scatter'> {
   const { histogram, type } = data;
   const isDatetime = type === 'datetime';
-  const { counts = [], bin_edges } = histogram || ({} as Histogram);
+  const { counts = [], bin_edges = [] } = histogram || ({} as Histogram);
 
   const newData = isDatetime
     ? counts.map((v, i) => ({ x: bin_edges[i], y: v }))

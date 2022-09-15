@@ -1,4 +1,3 @@
-import { Text } from '@chakra-ui/react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { NO_VALUE } from '../components/shared/Columns/constants';
 import type { ColumnSchema } from '../sdlc/single-report-schema';
@@ -81,20 +80,16 @@ export function formatIntervalMinMax(num: number) {
 
 // SR side: No need for object record handling
 // CR side: needs record handling
-export function formatTestExpectedOrActual(value) {
+export function formatTestExpectedOrActual(value?: unknown): any {
   if (!value) {
     return NO_VALUE;
   }
 
   // Needed due to comparison's get assertions DS
   if (typeof value === 'object') {
-    return Object.keys(value).map((key) => (
-      <Text key={key}>
-        {typeof value[key] === 'string'
-          ? value[key]
-          : JSON.stringify(value[key])}
-      </Text>
-    ));
+    return Object.keys(value).map((key) =>
+      typeof value[key] === 'string' ? value[key] : JSON.stringify(value[key]),
+    );
   }
 
   return value;
