@@ -6,15 +6,14 @@ import requests
 from rich.console import Console
 from rich.prompt import Prompt
 
-from piperider_cli import __version__
-from piperider_cli import event
+from piperider_cli import __version__, get_user_id
 
 USER_FEEDBACK_API_TOKEN = '371aa67a-a6eb-44cc-9d02-4a05810f24ac'
 
 
 def _feedback_collector(message, email=None, version=__version__):
     try:
-        user_id = event._collector._user_id
+        user_id = get_user_id()
         json_payload = {
             'user_id': user_id,
             'message': message,

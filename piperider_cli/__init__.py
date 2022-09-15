@@ -5,6 +5,10 @@ import sys
 from datetime import datetime
 
 from dateutil import tz
+from ruamel import yaml
+
+PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
+PIPERIDER_USER_PROFILE = os.path.join(PIPERIDER_USER_HOME, 'profile.yml')
 
 
 def create_logger(name) -> logging.Logger:
@@ -48,6 +52,12 @@ def get_sentry_dns():
     with open(dns_file) as f:
         dns = f.read().strip()
         return dns
+
+
+def get_user_id():
+    with open(PIPERIDER_USER_PROFILE, 'r') as f:
+        user_profile = yaml.YAML().load(f)
+        return user_profile.get('user_id')
 
 
 def clone_directory(src, dst):
