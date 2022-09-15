@@ -8,12 +8,12 @@ import { TiSortNumerically } from 'react-icons/ti';
 import { VscSymbolOperator } from 'react-icons/vsc';
 import { ColumnSchema } from '../../../sdlc';
 import {
-  zeroAsFallbackHandler,
-  formatIntervalMinMax,
   formatAsAbbreviatedNumber,
+  formatIntervalMinMax,
   formatNumber,
-} from '../../../utils';
-import { FlatStackedBarChartProps } from '../Charts';
+} from '../../../utils/formatters';
+import { zeroAsFallbackHandler } from '../../../utils/transformers';
+import { FlatStackedBarChartProps } from '../Charts/FlatStackedBarChart';
 import { MetricMetaKeys, MetricsInfoProps } from './ColumnMetrics';
 import {
   VALIDS,
@@ -28,6 +28,7 @@ import {
 } from './constants';
 
 /**
+ * @param metakey metric properties on the column-schema
  * @param columnData
  * @returns the metrics of the column data. will return null when properties have missing operands
  */
@@ -42,6 +43,10 @@ export function getColumnMetricRatio(
   return result;
 }
 
+/**
+ * @param columnDatum
+ * @returns a boolean indicating whether a column is categorical (e.g. topk)
+ */
 export function checkColumnCategorical(columnDatum?: ColumnSchema): boolean {
   if (columnDatum) {
     const { distinct, type } = columnDatum;
@@ -52,7 +57,6 @@ export function checkColumnCategorical(columnDatum?: ColumnSchema): boolean {
   return false;
 }
 /**
- *
  * @param columnDatum
  * @param compType defines if it's generic-type based composition metric (dynamic) or a general composition (static)
  * @returns
@@ -245,6 +249,7 @@ export function containsAvgSDSummary(columnType?: ColumnSchema['type']) {
 }
 export function containsMinMaxSummary(columnType?: ColumnSchema['type']) {
   return (
+    columnType === 'datetime' ||
     columnType === 'numeric' ||
     columnType === 'integer' ||
     columnType === 'string'

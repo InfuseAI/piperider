@@ -1,12 +1,14 @@
 import { Flex, Text } from '@chakra-ui/react';
 import isNumber from 'lodash/isNumber';
+
 import BooleanPieChart from './BooleanPieChart';
 import CategoricalBarChart from './CategoricalBarChart';
 import HistogramChart from './HistogramChart';
-import { TRUES, FALSES, NULLS, INVALIDS } from '../Columns/constants';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { FlatBoxPlotChartProps } from './FlatBoxPlotChart';
+
+import { TRUES, FALSES, NULLS, INVALIDS } from '../Columns/constants';
 import { checkColumnCategorical, containsDataSummary } from '../Columns/utils';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
 
 /**
  * Handles logic for rendering the right charts
