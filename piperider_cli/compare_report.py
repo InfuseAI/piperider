@@ -3,6 +3,7 @@ import os
 import sys
 from datetime import datetime
 
+import inquirer
 import readchar
 from rich.console import Console
 
@@ -168,9 +169,12 @@ class CompareReport(object):
             return True
         return False
 
-    def select_one_report(self, action='compare') -> ProfilerOutput:
+    def select_multiple_reports(self, action='compare', limit=None):
         def _report_validater(answers, current) -> bool:
-            return len(current) == 1
+            if limit is None:
+                return len(current) > 0
+            else:
+                return len(current) == limit
 
         profiler_outputs = self.list_existing_outputs()
         arrow_alias_msg = ''
@@ -180,20 +184,38 @@ class CompareReport(object):
             readchar.key.DOWN = 's'
             arrow_alias_msg = " 'w' to Up, 's' to Down,"
 
-        if len(profiler_outputs) < 1:
-            raise Exception("Not enough reports to compare. Please run 'piperider run' first.")
+        if limit is None:
+            if len(profiler_outputs) == 0:
+                raise Exception("Not enough reports to compare. Please run 'piperider run' first.")
+            questions = [
+                inquirer.Checkbox('profiler_output',
+                                  message=f"Please select the reports to {action} ({arrow_alias_msg} SPACE to select, and ENTER to confirm )",
+                                  choices=profiler_outputs,
+                                  carousel=True,
+                                  validate=_report_validater,
+                                  )
+            ]
+        else:
+            if len(profiler_outputs) < limit:
+                raise Exception("Not enough reports to compare. Please run 'piperider run' first.")
+            report_msg = 'a report' if limit == 1 else f'the {limit} reports'
+            questions = [
+                inquirer_hack.LimitedCheckboxQuestion('profiler_output',
+                                                      message=f"Please select {report_msg} to {action} ({arrow_alias_msg} SPACE to select, and ENTER to confirm )",
+                                                      choices=profiler_outputs,
+                                                      carousel=True,
+                                                      validate=_report_validater,
+                                                      limited=limit,
+                                                      )
+            ]
 
-        questions = [
-            inquirer_hack.LimitedCheckboxQuestion('profiler_output',
-                                                  message=f"Please select a report to {action} ({arrow_alias_msg} SPACE to select, and ENTER to confirm )",
-                                                  choices=profiler_outputs,
-                                                  carousel=True,
-                                                  validate=_report_validater,
-                                                  limited=1,
-                                                  )
-        ]
         answers = inquirer_hack.prompt_ex(questions, raise_keyboard_interrupt=True)
+        if answers:
+            return answers['profiler_output']
+        return None
 
+    def select_one_report(self, action='compare') -> ProfilerOutput:
+        answers = self.select_multiple_reports(action=action, limit=1)
         if answers:
             return answers['profiler_output'][0]
         else:
@@ -204,33 +226,7 @@ class CompareReport(object):
         Select multiple files from a list of files.
         """
 
-        # execution.
-
-        def _report_validater(answers, current) -> bool:
-            return len(current) == 2
-
-        profiler_outputs = self.list_existing_outputs()
-        arrow_alias_msg = ''
-        if sys.platform == "win32" or sys.platform == "cygwin":
-            # change readchar key UP & DOWN by 'w' and 's'
-            readchar.key.UP = 'w'
-            readchar.key.DOWN = 's'
-            arrow_alias_msg = " 'w' to Up, 's' to Down,"
-
-        if len(profiler_outputs) < 2:
-            raise Exception("Not enough reports to compare. Please run 'piperider run' first.")
-
-        questions = [
-            inquirer_hack.LimitedCheckboxQuestion(
-                'profiler_outputs',
-                message=f"Please select the 2 reports to {action} ({arrow_alias_msg} SPACE to select, and ENTER to confirm )",
-                choices=profiler_outputs,
-                carousel=True,
-                validate=_report_validater,
-                limited=2,
-            ),
-        ]
-        answers = inquirer_hack.prompt_ex(questions, raise_keyboard_interrupt=True)
+        answers = self.select_multiple_reports(action=action, limit=2)
         if answers:
             return answers['profiler_outputs'][0], answers['profiler_outputs'][1]
         return None, None

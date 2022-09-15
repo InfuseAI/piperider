@@ -32,7 +32,7 @@ def ask_login_info():
     if response.get('link'):
         webbrowser.open(response.get('link'))
 
-    console.print('Please paste the api token from magic link. The link had be sent to your email address.')
+    console.print('Please paste the api token from magic link. The link has been sent to your email address.')
     while True:
         api_token = Prompt.ask('[[yellow]?[/yellow]] API token')
         if len(api_token) > 0:
@@ -81,22 +81,31 @@ class CloudConnector():
     def upload_report(report_path=None, report_dir=None, datasource=None, debug=False):
         console.rule('Upload Report')
 
+        def upload_to_cloud(path):
+            if not os.path.exists(path):
+                raise FileNotFoundError(f'File not found: {path}')
+
+            console.print(f'Uploading report [bold green]{path}[/bold green]')
+            response = piperider_cloud.upload_report(path)
+            # TODO refine the output when API is ready
+            if response.get('success') is True:
+                return 0
+
+            console.print(f'[[bold yellow]Skipped[/bold yellow]] Reason: {response.get("message")}')
+            if debug:
+                console.print(response)
+            return 1
+
+        rc = 0
         filesystem = FileSystem(report_dir=report_dir)
         report = CompareReport(filesystem.get_output_dir(), None, None, datasource=datasource)
         if report_path is None:
-            report_path = report.select_one_report(action='upload').path
+            for r in report.select_multiple_reports(action='upload'):
+                ret = upload_to_cloud(r.path)
+                rc = ret if rc == 0 else rc
+        else:
+            rc = upload_to_cloud(report_path)
 
-        if not os.path.exists(report_path):
-            raise FileNotFoundError(f'File not found: {report_path}')
-
-        console.print(f'Uploading report [bold green]{report_path}[/bold green]')
-        response = piperider_cloud.upload_report(report_path)
-        # TODO refine the output when API is ready
-        if response.get('success') is True:
+        if rc == 0:
             console.rule('Upload Success')
-            return 0
-
-        console.print(f'[[bold red]Abort[/bold red]] Upload failed. Reason: {response.get("message")}')
-        if debug:
-            console.print(response)
-        return 1
+        return rc

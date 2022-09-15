@@ -242,7 +242,8 @@ def upload_report(**kwargs):
     report_path = kwargs.get('run')
     datasource = kwargs.get('datasource')
     report_dir = kwargs.get('report_dir')
-    ret = CloudConnector.upload_report(report_path=report_path, datasource=datasource, report_dir=report_dir)
+    ret = CloudConnector.upload_report(report_path=report_path, datasource=datasource, report_dir=report_dir,
+                                       debug=kwargs.get('debug', False))
     return ret
 
 
