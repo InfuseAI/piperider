@@ -33,7 +33,7 @@ export interface FlatStackedBarChartProps {
  * @param data the values labels & values
  * @returns a stacked bar chart that shows the composition: null + invalid + trues + falses = 100%
  */
-export function FlatStackedBarChart({
+export default function FlatStackedBarChart({
   data,
   animation = false,
 }: FlatStackedBarChartProps) {

@@ -39,7 +39,7 @@ type HistogramChartProps = {
   hideAxis?: boolean;
 };
 
-export function HistogramChart({
+export default function HistogramChart({
   data,
   hideAxis = false,
   animation = false,
@@ -83,8 +83,6 @@ export function getHistogramChartData(
   const newLabels = bin_edges
     .map((v, i) => formatDisplayedBinItem(bin_edges, i))
     .slice(0, -1); // exclude last
-
-  console.log({ newLabels });
 
   return {
     labels: newLabels,

@@ -7,7 +7,7 @@ import {
   containsAvgSDSummary,
   transformCompositionAsFlatStackInput,
 } from '../../../utils/transformers';
-import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
+import FlatStackedBarChart from '../Charts/FlatStackedBarChart';
 import { GeneralStats } from '../Columns/ColumnMetrics/GeneralStats';
 import { TypedStats } from '../Columns/ColumnMetrics/TypedStats';
 

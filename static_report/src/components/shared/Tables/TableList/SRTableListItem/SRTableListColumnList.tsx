@@ -1,6 +1,6 @@
 import { Grid, GridItem, Flex, Text } from '@chakra-ui/react';
 
-import { HistogramChart } from '../../../Charts/HistogramChart';
+import HistogramChart from '../../../Charts/HistogramChart';
 import { ColumnName } from '../ColumnName';
 import { AssertionLabel } from '../../../Assertions';
 

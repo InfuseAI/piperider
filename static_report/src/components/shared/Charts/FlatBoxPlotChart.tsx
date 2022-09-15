@@ -33,7 +33,7 @@ export interface FlatBoxPlotChartProps {
  * A flat boxplot chart that visualizes a single chartDataset (e.g. quantiles)
  * @param data the counts labels & values
  */
-export function FlatBoxPlotChart({
+export default function FlatBoxPlotChart({
   quantileData,
   animation = false,
 }: FlatBoxPlotChartProps) {

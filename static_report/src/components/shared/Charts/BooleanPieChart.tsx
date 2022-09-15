@@ -27,7 +27,7 @@ export interface BooleanPieChartProps {
  * @param data the counts labels & values
  * @returns a pie chart that shows the composition: null + invalid + trues + falses = 100%
  */
-export function BooleanPieChart({
+export default function BooleanPieChart({
   data: { counts, labels, ratios },
   animation = false,
 }: BooleanPieChartProps) {
