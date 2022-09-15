@@ -9,7 +9,7 @@ import {
 import { NoData } from '../../../Layouts/NoData';
 import { SRTableListColumnLabel } from './SRTableListColumnLabel';
 
-import { getReportAggregateAssertions } from '../../../../../utils/assertion';
+import { getReportAggregateAssertions } from '../../utils';
 import {
   formatColumnValueWith,
   formatNumber,

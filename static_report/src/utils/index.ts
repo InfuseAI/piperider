@@ -1,5 +1,5 @@
 export * from './amplitudeEvents';
-export * from './assertion';
+export * from '../components/shared/Tables/utils';
 export * from '../components/shared/Charts/utils';
 export * from './formatters';
 export * from './layout';

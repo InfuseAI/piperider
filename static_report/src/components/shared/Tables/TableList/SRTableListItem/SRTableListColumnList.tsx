@@ -6,7 +6,7 @@ import { AssertionLabel } from '../../../Assertions';
 
 import type { TableSchema } from '../../../../../sdlc/single-report-schema';
 import type { Selectable } from '../../../../../types';
-import { getAssertions } from '../../../../../utils/assertion';
+import { getAssertions } from '../../utils';
 import { getIconForColumnType } from '../../../Columns/utils';
 
 interface Props extends Selectable {

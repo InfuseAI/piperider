@@ -10,7 +10,7 @@ import isString from 'lodash/isString';
 import partial from 'lodash/partial';
 
 import { AssertionLabel, AssertionsLabelIcon } from '../../../Assertions';
-import { getComparisonAssertions } from '../../../../../utils/assertion';
+import { getComparisonAssertions } from '../../utils';
 import type { ComparisonReportSchema } from '../../../../../types';
 import {
   formatColumnValueWith,

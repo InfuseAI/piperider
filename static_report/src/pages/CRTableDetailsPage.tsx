@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { useState } from 'react';
 
 import { Main } from '../components/shared/Layouts/Main';
-import { getComparisonAssertions } from '../utils/assertion';
+import { getComparisonAssertions } from '../components/shared/Tables/utils';
 
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import {
