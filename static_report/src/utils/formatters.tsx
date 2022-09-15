@@ -49,8 +49,6 @@ export function formatNumber(
   locales = 'en-US',
   options?: Intl.NumberFormatOptions,
 ) {
-  console.log('a change!');
-
   if (typeof num !== 'number') return num;
   return new Intl.NumberFormat(locales, options).format(num);
 }

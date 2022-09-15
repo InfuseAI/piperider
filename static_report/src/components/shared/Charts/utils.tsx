@@ -9,6 +9,7 @@ import {
   ChartKind,
   getChartKindByColumnType,
 } from '../../../utils/transformers';
+import { FlatBoxPlotChartProps } from './FlatBoxPlotChart';
 
 /**
  * Handles logic for rendering the right charts
@@ -59,12 +60,7 @@ export function getDataChart(
   //histogram dataset
   if (chartKind === 'histogram' && histogram && type) {
     //BUG: race-condition when time-series is used /w animation here
-    return (
-      <HistogramChart
-        data={{ histogram, min, max, type, total }}
-        animationOptions={false}
-      />
-    );
+    return <HistogramChart data={{ histogram, min, max, type, total }} />;
   }
   //pie dataset
   if (
@@ -109,4 +105,20 @@ export function renderChartUnavailableMsg(
       </Text>
     </Flex>
   );
+}
+
+export function getBoxPlotKeyData({
+  p25,
+  p50,
+  p75,
+  max,
+  min,
+}: FlatBoxPlotChartProps['quantileData']) {
+  return {
+    min: Number(min),
+    q1: Number(p25),
+    mean: Number(p50),
+    q3: Number(p75),
+    max: Number(max),
+  };
 }

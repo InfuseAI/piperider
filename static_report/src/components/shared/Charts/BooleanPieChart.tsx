@@ -66,7 +66,7 @@ export function getBooleanPieChartData(
 }
 /**
  * @param ratios list of {v} / total ratio metric
- * @param param0  chart option overrides
+ * @param param1  chart option overrides
  * @returns merged Chart.js option object for 'pie'
  */
 export function getBooleanPieChartOptions(
