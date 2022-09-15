@@ -7,7 +7,6 @@ import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 import nodePolyfills from 'rollup-plugin-node-polyfills';
 import { readFileSync } from 'fs';
 
-//TODO: create another package.lib.json
 const packageJson = JSON.parse(
   readFileSync(new URL('./package.json', import.meta.url)),
 );
@@ -41,7 +40,7 @@ const rollupConfig = [
       terser(),
       nodePolyfills(),
     ],
-    external: ['react', 'react-dom', '@emotion/react'],
+    external: ['react', 'react-dom'],
   },
   {
     input: 'dist/esm/lib/index.d.ts',

@@ -3308,9 +3308,6 @@ __metadata:
     wouter: 2.8.0-alpha.2
     zod: ^3.17.10
   peerDependencies:
-    "@emotion/react": ^11.9.0
-    "@emotion/styled": ^11.8.1
-    framer-motion: ^6.3.4
     react: ^18.1.0
     react-dom: ^18.1.0
     usehooks-ts: ^2.6.0
