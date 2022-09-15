@@ -1,16 +1,14 @@
 import { Flex, Text } from '@chakra-ui/react';
 import isNumber from 'lodash/isNumber';
-import { BooleanPieChart } from '../components/shared/Charts/BooleanPieChart';
-import { CategoricalBarChart } from '../components/shared/Charts/CategoricalBarChart';
-import { HistogramChart } from '../components/shared/Charts/HistogramChart';
+import { BooleanPieChart } from './BooleanPieChart';
+import { CategoricalBarChart } from './CategoricalBarChart';
+import { HistogramChart } from './HistogramChart';
+import { TRUES, FALSES, NULLS, INVALIDS } from '../Columns/constants';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import {
-  TRUES,
-  FALSES,
-  NULLS,
-  INVALIDS,
-} from '../components/shared/Columns/constants';
-import { ColumnSchema } from '../sdlc/single-report-schema';
-import { ChartKind, getChartKindByColumnType } from './transformers';
+  ChartKind,
+  getChartKindByColumnType,
+} from '../../../utils/transformers';
 
 /**
  * Handles logic for rendering the right charts
@@ -54,7 +52,7 @@ export function getDataChart(
       <CategoricalBarChart
         data={topk}
         total={total || 0}
-        animationOptions={hasAnimation ? {} : false}
+        animation={hasAnimation ? {} : false}
       />
     );
   }

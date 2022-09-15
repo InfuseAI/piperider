@@ -11,6 +11,9 @@ import {
 import { Pie } from 'react-chartjs-2';
 import { formatIntervalMinMax } from '../../../utils/formatters';
 
+/**
+ * Props for creating a BooleanPieChart Component
+ */
 export interface BooleanPieChartProps {
   data: {
     labels: string[];
@@ -20,7 +23,7 @@ export interface BooleanPieChartProps {
   animation?: AnimationOptions<'pie'>['animation'];
 }
 /**
- * A pie chart that visualizes boolean dataset
+ * @description A pie chart that visualizes boolean dataset
  * @param data the counts labels & values
  * @returns a pie chart that shows the composition: null + invalid + trues + falses = 100%
  */
@@ -29,12 +32,9 @@ export function BooleanPieChart({
   animation = false,
 }: BooleanPieChartProps) {
   ChartJS.register(ArcElement);
-  const chartOptions = getBooleanPieChartOptions(
-    {
-      animation,
-    },
-    ratios,
-  );
+  const chartOptions = getBooleanPieChartOptions(ratios, {
+    animation,
+  });
   const chartData = getBooleanPieChartData(labels, {
     data: counts,
   });
@@ -46,11 +46,12 @@ export function BooleanPieChart({
 /**
  * @param labels labels for each pie slice
  * @param dataset single dataset for the pie
+ * @returns Chart.js data object
  */
-export const getBooleanPieChartData = (
+export function getBooleanPieChartData(
   labels: string[],
   dataset: ChartDataset<'pie'>,
-): ChartData<'pie'> => {
+): ChartData<'pie'> {
   return {
     labels,
     datasets: [
@@ -62,15 +63,16 @@ export const getBooleanPieChartData = (
       },
     ],
   };
-};
+}
 /**
- * @param param0  chart option overrides
  * @param ratios list of {v} / total ratio metric
+ * @param param0  chart option overrides
+ * @returns merged Chart.js option object for 'pie'
  */
-export const getBooleanPieChartOptions = (
-  { ...configOverrides }: ChartOptions<'pie'> = {},
+export function getBooleanPieChartOptions(
   ratios: BooleanPieChartProps['data']['ratios'],
-): ChartOptions<'pie'> => {
+  { ...configOverrides }: ChartOptions<'pie'> = {},
+): ChartOptions<'pie'> {
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -97,4 +99,4 @@ export const getBooleanPieChartOptions = (
     },
     ...configOverrides,
   };
-};
+}

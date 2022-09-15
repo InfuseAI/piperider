@@ -1,10 +1,6 @@
-export {
-  type BooleanPieChartProps,
-  getBooleanPieChartOptions,
-  getBooleanPieChartData,
-} from './BooleanPieChart';
-//FIXME: export getter for objects [chart-options, chart-data]
+export * from './BooleanPieChart';
 export * from './CategoricalBarChart';
+//FIXME: [WIP] extract logic <bookmark>
 export * from './ChartContainer';
 export * from './FlatBoxPlotChart';
 export * from './FlatStackedBarChart';

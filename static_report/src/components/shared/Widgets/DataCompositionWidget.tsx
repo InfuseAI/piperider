@@ -1,7 +1,7 @@
 import { Divider, Text, Box } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { Comparable } from '../../../types';
-import { renderChartUnavailableMsg } from '../../../utils/charts';
+import { renderChartUnavailableMsg } from '../Charts/utils';
 import { formatTitleCase } from '../../../utils/formatters';
 import {
   containsAvgSDSummary,

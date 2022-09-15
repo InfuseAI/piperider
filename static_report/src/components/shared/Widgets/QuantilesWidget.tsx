@@ -1,6 +1,6 @@
 import { Divider, Box, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { renderChartUnavailableMsg } from '../../../utils/charts';
+import { renderChartUnavailableMsg } from '../Charts/utils';
 import { FlatBoxPlotChart } from '../Charts/FlatBoxPlotChart';
 import { QuantilesMatrix } from '../Columns/ColumnMatrices/QuantilesMatrix';
 

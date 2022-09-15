@@ -1,7 +1,7 @@
 import { Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import { Selectable, ZColSchema } from '../../../../types';
-import { getDataChart } from '../../../../utils/charts';
+import { getDataChart } from '../../Charts/utils';
 import {
   checkColumnCategorical,
   getChartKindByColumnType,

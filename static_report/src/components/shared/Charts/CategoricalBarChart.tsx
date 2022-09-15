@@ -16,25 +16,58 @@ import {
   formatTruncateString,
 } from '../../../utils/formatters';
 
+const barPercentage = 0.6;
+const categoryPercentage = 0.5;
+const borderRadius = 10;
+
 /**
- * A horizontal progress bar chart that visualizes categorical dataset, plotted 1:1 to each category group
+ * Props for creating a CategoricalBarChart Component
  */
-//needs min/max
-interface Props {
+export interface CategoricalBarChartProps {
   data: Topk;
   total: number;
-  animationOptions?: AnimationOptions<'bar'>['animation'];
+  animation: AnimationOptions<'bar'>['animation'];
 }
+/**
+ * A horizontal progress bar chart that visualizes categorical dataset, plotted 1:1 to each category group (up to max: 5; else bar radii start looking weird)
+ */
 export function CategoricalBarChart({
-  data: { counts, values },
+  data,
   total,
-  animationOptions = false,
-}: Props) {
+  animation = false,
+}: CategoricalBarChartProps) {
   ChartJS.register(CategoryScale, BarElement);
-  const chartOptions: ChartOptions<'bar'> = {
+  const chartOptions = getCatBarChartOptions(data.counts, total, { animation });
+  const chartData = getCatBarChartData(data, { animation });
+  return (
+    <Bar
+      data={chartData}
+      options={chartOptions}
+      plugins={[progressBarPlugin, Tooltip]}
+    />
+  );
+}
+
+interface DrawRoundedArgs {
+  leftBound: number;
+  rightBound: number;
+  barTopYPos: number;
+  barBottomYPos: number;
+  drawRadius: number;
+  fillColor: string;
+}
+
+/**
+ * @returns merged Chart.js option object for categorical 'bar'
+ */
+export function getCatBarChartOptions(
+  counts: Topk['counts'],
+  total: number,
+  { ...configOverrides }: ChartOptions<'bar'> = {},
+): ChartOptions<'bar'> {
+  return {
     responsive: true,
     maintainAspectRatio: false,
-    animation: animationOptions,
     indexAxis: 'y',
     scales: {
       x: {
@@ -61,11 +94,17 @@ export function CategoricalBarChart({
         },
       },
     },
+    ...configOverrides,
   };
-  const barPercentage = 0.6;
-  const categoryPercentage = 0.5;
-  const borderRadius = 10;
-  const chartData: ChartData<'bar'> = {
+}
+/**
+ * @returns merged Chart.js data object for categorical 'bar'
+ */
+export function getCatBarChartData(
+  { values, counts }: Topk,
+  { ...configOverrides }: ChartOptions<'bar'> = {},
+): ChartData<'bar'> {
+  return {
     labels: values.slice(0, 5), // showing top cats
     datasets: [
       {
@@ -82,85 +121,76 @@ export function CategoricalBarChart({
       },
     ],
   };
-  const progressBar: Plugin<'bar'> = {
-    id: 'progressBar',
-    beforeDatasetDraw({
-      ctx,
-      data,
-      chartArea: { left, right, height },
-      scales: { y },
-    }) {
-      ctx.save();
-      const dataset = data.datasets[0];
-      const fontColor = '#36454f';
-      const fontSize = 14;
-      const barHeight =
-        (height / y.ticks.length) * barPercentage * categoryPercentage;
+}
+/**
+ * Chart.js custom plugin to draw rounded radius on backdrop bar
+ */
+export const progressBarPlugin: Plugin<'bar'> = {
+  id: 'progressBar',
+  beforeDatasetDraw({
+    ctx,
+    data,
+    chartArea: { left, right, height },
+    scales: { y },
+  }) {
+    ctx.save();
+    const dataset = data.datasets[0];
+    const fontColor = '#36454f';
+    const fontSize = 14;
+    const barHeight =
+      (height / y.ticks.length) * barPercentage * categoryPercentage;
 
-      const radiusOffset = dataset.data.length < 5 ? 5 : 0;
-      dataset.data.forEach((datum, index) => {
-        const yPos = y.getPixelForValue(index);
-        const barTopYPos = yPos - barHeight / 2;
-        const barBottomYPos = yPos + barHeight / 2;
-        const barTopLabelYPos = barTopYPos - fontSize / 2;
-        const drawRadius = radiusOffset + borderRadius / 2;
+    const radiusOffset = dataset.data.length < 5 ? 5 : 0;
+    dataset.data.forEach((datum, index) => {
+      const yPos = y.getPixelForValue(index);
+      const barTopYPos = yPos - barHeight / 2;
+      const barBottomYPos = yPos + barHeight / 2;
+      const barTopLabelYPos = barTopYPos - fontSize / 2;
+      const drawRadius = radiusOffset + borderRadius / 2;
 
-        // draw custom label value text
-        const rawValue = dataset.data[index];
-        const value =
-          typeof rawValue !== 'number'
-            ? rawValue
-            : formatAsAbbreviatedNumber(rawValue);
+      // draw custom label value text
+      const rawValue = dataset.data[index];
+      const value =
+        typeof rawValue !== 'number'
+          ? rawValue
+          : formatAsAbbreviatedNumber(rawValue);
 
-        ctx.fillStyle = fontColor;
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(String(value), right, barTopLabelYPos);
+      ctx.fillStyle = fontColor;
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(value), right, barTopLabelYPos);
 
-        // draw custom label title text
-        const rawTitle = data.labels?.[index];
-        const title =
-          typeof rawTitle !== 'number'
-            ? rawTitle
-            : formatAsAbbreviatedNumber(rawTitle);
-        ctx.fillStyle = fontColor;
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(
-          formatTruncateString(String(title), 30),
-          left,
-          barTopLabelYPos,
-        );
+      // draw custom label title text
+      const rawTitle = data.labels?.[index];
+      const title =
+        typeof rawTitle !== 'number'
+          ? rawTitle
+          : formatAsAbbreviatedNumber(rawTitle);
+      ctx.fillStyle = fontColor;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(
+        formatTruncateString(String(title), 30),
+        left,
+        barTopLabelYPos,
+      );
 
-        // draw custom progress bar backdrop
-        drawRoundedBarBackdrop(ctx, {
-          leftBound: left,
-          rightBound: right,
-          barTopYPos,
-          barBottomYPos,
-          drawRadius,
-          fillColor: String(dataset.borderColor),
-        });
+      // draw custom progress bar backdrop
+      drawRoundedBarBackdrop(ctx, {
+        leftBound: left,
+        rightBound: right,
+        barTopYPos,
+        barBottomYPos,
+        drawRadius,
+        fillColor: String(dataset.borderColor),
       });
-    },
-  };
-  return (
-    <Bar
-      data={chartData}
-      options={chartOptions}
-      plugins={[progressBar, Tooltip]}
-    />
-  );
-}
+    });
+  },
+};
 
-interface DrawRoundedArgs {
-  leftBound: number;
-  rightBound: number;
-  barTopYPos: number;
-  barBottomYPos: number;
-  drawRadius: number;
-  fillColor: string;
-}
+/**
+ * handles drawing backdrop for the progress bar plugin
+ */
 function drawRoundedBarBackdrop(
   ctx: CanvasRenderingContext2D,
   {
