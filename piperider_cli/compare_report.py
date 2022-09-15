@@ -217,7 +217,7 @@ class CompareReport(object):
     def select_one_report(self, action='compare') -> ProfilerOutput:
         answers = self.select_multiple_reports(action=action, limit=1)
         if answers:
-            return answers['profiler_output'][0]
+            return answers[0]
         else:
             return None
 
@@ -228,7 +228,7 @@ class CompareReport(object):
 
         answers = self.select_multiple_reports(action=action, limit=2)
         if answers:
-            return answers['profiler_outputs'][0], answers['profiler_outputs'][1]
+            return answers[0], answers[1]
         return None, None
 
     def generate_data(self) -> ComparisonData:
