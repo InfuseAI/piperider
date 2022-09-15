@@ -1,5 +1,6 @@
 // export * from './Assertions';
 // export * from './Layouts';
+// export * from './Modals';
 export * from './Charts/BooleanPieChart';
 export * from './Charts/CategoricalBarChart';
 export * from './Charts/FlatBoxPlotChart';
@@ -13,6 +14,5 @@ export {
 } from './Charts/utils';
 export * from './Columns/constants';
 export * from './Columns/utils';
-// export * from './Modals';
-// export * from './Tables';
+// export * from './Tables/utils';
 // export * from './Widgets';
