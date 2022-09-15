@@ -87,27 +87,6 @@ export function checkColumnCategorical(columnDatum?: ColumnSchema): boolean {
   return false;
 }
 
-/**
- * Determines the chart kind suitable for column.type
- * @param columnDatum
- * @returns a string literal describing the chart kind
- */
-export type ChartKind = 'topk' | 'histogram' | 'pie' | undefined;
-export function getChartKindByColumnType(
-  columnDatum?: ColumnSchema,
-): ChartKind {
-  if (!columnDatum) return;
-  const { topk, histogram, trues, falses, type } = columnDatum;
-  const isCategorical = checkColumnCategorical(columnDatum);
-  const isPieKind = type === 'boolean' && isNumber(trues) && isNumber(falses);
-  const isCategoryKind = topk && isCategorical;
-  const isHistogramKind = containsDataSummary(type) && histogram;
-
-  if (isPieKind) return 'pie';
-  if (isCategoryKind) return 'topk';
-  if (isHistogramKind) return 'histogram';
-}
-
 export const zeroAsFallbackHandler = (v) => (v ? v : 0);
 /**
  *

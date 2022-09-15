@@ -6,8 +6,8 @@ import HistogramChart from './HistogramChart';
 import { TRUES, FALSES, NULLS, INVALIDS } from '../Columns/constants';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import {
-  ChartKind,
-  getChartKindByColumnType,
+  checkColumnCategorical,
+  containsDataSummary,
 } from '../../../utils/transformers';
 import { FlatBoxPlotChartProps } from './FlatBoxPlotChart';
 
@@ -85,13 +85,20 @@ export function getDataChart(
   return renderChartUnavailableMsg(valids, schema_type);
 }
 
+export function getChartUnavailMsg(
+  valids?: ColumnSchema['valids'],
+  schema_type?: ColumnSchema['schema_type'],
+) {
+  return Boolean(valids)
+    ? `Chart rendering unavailable for (type: ${schema_type})`
+    : `There are insufficient valid data points in this dataset`;
+}
+
 export function renderChartUnavailableMsg(
   valids?: ColumnSchema['valids'],
   schema_type?: ColumnSchema['schema_type'],
 ) {
-  const noRenderMessage = Boolean(valids)
-    ? `Chart rendering unavailable for (type: ${schema_type})`
-    : `There are insufficient valid data points in this dataset`;
+  const noRenderMessage = getChartUnavailMsg(valids, schema_type);
   return (
     <Flex
       h={'inherit'}
@@ -121,4 +128,25 @@ export function getBoxPlotKeyData({
     q3: Number(p75),
     max: Number(max),
   };
+}
+
+/**
+ * Determines the chart kind suitable for column.type
+ * @param columnDatum
+ * @returns a string literal describing the chart kind
+ */
+export type ChartKind = 'topk' | 'histogram' | 'pie' | undefined;
+export function getChartKindByColumnType(
+  columnDatum?: ColumnSchema,
+): ChartKind {
+  if (!columnDatum) return;
+  const { topk, histogram, trues, falses, type } = columnDatum;
+  const isCategorical = checkColumnCategorical(columnDatum);
+  const isPieKind = type === 'boolean' && isNumber(trues) && isNumber(falses);
+  const isCategoryKind = topk && isCategorical;
+  const isHistogramKind = containsDataSummary(type) && histogram;
+
+  if (isPieKind) return 'pie';
+  if (isCategoryKind) return 'topk';
+  if (isHistogramKind) return 'histogram';
 }

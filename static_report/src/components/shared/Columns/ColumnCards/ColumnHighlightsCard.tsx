@@ -1,11 +1,8 @@
 import { Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import { Selectable, ZColSchema } from '../../../../types';
-import { getDataChart } from '../../Charts/utils';
-import {
-  checkColumnCategorical,
-  getChartKindByColumnType,
-} from '../../../../utils/transformers';
+import { getChartKindByColumnType, getDataChart } from '../../Charts/utils';
+import { checkColumnCategorical } from '../../../../utils/transformers';
 import { ChartContainer } from '../../Charts/ChartContainer';
 import { ColumnTypeHeader } from '../ColumnTypeHeader';
 import { ColumnTypeDetailBoolean } from './ColumnTypeDetail/ColumnTypeDetailBoolean';
