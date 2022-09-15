@@ -4,12 +4,12 @@ import {
   formatColumnValueWith,
   formatIntervalMinMax,
 } from '../../../../../utils/formatters';
-import { getColumnMetricRatio } from '../../../../../utils/transformers';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { QuantilesMatrix } from '../../ColumnMatrices/QuantilesMatrix';
 import { DataCompositionMatrix } from '../../ColumnMatrices/DataCompositionMatrix';
 import { StatisticalMatrix } from '../../ColumnMatrices/StatisticalMatrix';
 import { NEGATIVES, ZEROS } from '../../constants';
+import { getColumnMetricRatio } from '../../utils';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailNumeric: React.FC<Props> = ({ columnDatum }) => {

@@ -5,11 +5,8 @@ import CategoricalBarChart from './CategoricalBarChart';
 import HistogramChart from './HistogramChart';
 import { TRUES, FALSES, NULLS, INVALIDS } from '../Columns/constants';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import {
-  checkColumnCategorical,
-  containsDataSummary,
-} from '../../../utils/transformers';
 import { FlatBoxPlotChartProps } from './FlatBoxPlotChart';
+import { checkColumnCategorical, containsDataSummary } from '../Columns/utils';
 
 /**
  * Handles logic for rendering the right charts

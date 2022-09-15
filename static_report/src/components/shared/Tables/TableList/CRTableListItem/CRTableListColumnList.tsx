@@ -1,7 +1,4 @@
-import {
-  getIconForColumnType,
-  transformAsNestedBaseTargetRecord,
-} from '../../../../../utils/transformers';
+import { transformAsNestedBaseTargetRecord } from '../../../../../utils/transformers';
 import type { ColumnSchema } from '../../../../../sdlc/single-report-schema';
 import { SaferTableSchema, Selectable } from '../../../../../types';
 import { Box, Flex, Grid, GridItem, Icon, Text } from '@chakra-ui/react';
@@ -14,6 +11,7 @@ import {
   CRTargetTableAssertionsSummary,
 } from './CRTableListAssertions';
 import { NoData } from '../../../Layouts/NoData';
+import { getIconForColumnType } from '../../../Columns/utils';
 
 interface Props extends Selectable {
   baseTableDatum?: SaferTableSchema;

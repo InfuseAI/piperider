@@ -40,7 +40,7 @@ const rollupConfig = [
       terser(),
       nodePolyfills(),
     ],
-    external: ['react', 'react-dom'],
+    external: ['react', 'react-dom', 'react-icons'],
   },
   {
     input: 'dist/esm/lib/index.d.ts',

@@ -9,10 +9,6 @@ import { mainContentAreaHeight } from '../utils/layout';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 import { ColumnDetailMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
 
-import {
-  containsColumnQuantile,
-  containsDataSummary,
-} from '../utils/transformers';
 import { formatReportTime } from '../utils/formatters';
 
 import type { SingleReportSchema } from '../sdlc/single-report-schema';
@@ -20,6 +16,10 @@ import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidge
 import { NoData } from '../components/shared/Layouts/NoData';
 import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
 import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
+import {
+  containsDataSummary,
+  containsColumnQuantile,
+} from '../components/shared/Columns/utils';
 interface Props {
   data: SingleReportSchema;
   columnName: string;

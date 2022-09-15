@@ -5,11 +5,11 @@ import {
   formatIntervalMinMax,
   formatTopKMetrics,
 } from '../../../../../utils/formatters';
-import { getColumnMetricRatio } from '../../../../../utils/transformers';
 import { DataCompositionMatrix } from '../../ColumnMatrices/DataCompositionMatrix';
 import { UniquenessMetrics } from '../../ColumnMatrices/UniquenessMatrix';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { MODE, VALIDS } from '../../constants';
+import { getColumnMetricRatio } from '../../utils';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailCategorical: React.FC<Props> = ({

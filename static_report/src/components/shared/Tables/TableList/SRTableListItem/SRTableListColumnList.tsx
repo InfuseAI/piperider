@@ -4,10 +4,10 @@ import HistogramChart from '../../../Charts/HistogramChart';
 import { ColumnName } from '../ColumnName';
 import { AssertionLabel } from '../../../Assertions';
 
-import { getIconForColumnType } from '../../../../../utils/transformers';
 import type { TableSchema } from '../../../../../sdlc/single-report-schema';
 import type { Selectable } from '../../../../../types';
 import { getAssertions } from '../../../../../utils/assertion';
+import { getIconForColumnType } from '../../../Columns/utils';
 
 interface Props extends Selectable {
   table: TableSchema;

@@ -2,7 +2,6 @@ import { Flex, Text } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import { Selectable, ZColSchema } from '../../../../types';
 import { getChartKindByColumnType, getDataChart } from '../../Charts/utils';
-import { checkColumnCategorical } from '../../../../utils/transformers';
 import { ChartContainer } from '../../Charts/ChartContainer';
 import { ColumnTypeHeader } from '../ColumnTypeHeader';
 import { ColumnTypeDetailBoolean } from './ColumnTypeDetail/ColumnTypeDetailBoolean';
@@ -11,6 +10,7 @@ import { ColumnTypeDetailDatetime } from './ColumnTypeDetail/ColumnTypeDetailDat
 import { ColumnTypeDetailNumeric } from './ColumnTypeDetail/ColumnTypeDetailNumeric';
 import { ColumnTypeDetailOther } from './ColumnTypeDetail/ColumnTypeDetailOther';
 import { ColumnTypeDetailText } from './ColumnTypeDetail/ColumnTypeDetailText';
+import { checkColumnCategorical } from '../utils';
 
 interface Props extends Selectable {
   columnDatum: ColumnSchema;

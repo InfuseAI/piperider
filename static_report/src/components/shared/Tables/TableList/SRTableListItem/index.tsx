@@ -14,9 +14,9 @@ import {
   formatColumnValueWith,
   formatNumber,
 } from '../../../../../utils/formatters';
-import { getIconForColumnType } from '../../../../../utils/transformers';
 import type { SaferTableSchema, Selectable } from '../../../../../types';
 import { AssertionLabel } from '../../../Assertions/AssertionLabel';
+import { getIconForColumnType } from '../../../Columns/utils';
 
 interface Props extends Selectable {
   isExpanded: boolean;

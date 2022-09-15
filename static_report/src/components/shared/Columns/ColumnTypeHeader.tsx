@@ -1,8 +1,8 @@
 import { InfoIcon } from '@chakra-ui/icons';
 
 import { Flex, FlexProps, Icon, Text, Tooltip } from '@chakra-ui/react';
-import { getIconForColumnType } from '../../../utils/transformers';
 import type { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { getIconForColumnType } from './utils';
 
 interface Props extends FlexProps {
   columnDatum?: ColumnSchema;

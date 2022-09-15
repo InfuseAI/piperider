@@ -4,10 +4,10 @@ import {
   formatColumnValueWith,
   formatIntervalMinMax,
 } from '../../../../../utils/formatters';
-import { getColumnMetricRatio } from '../../../../../utils/transformers';
 import { MetricCell } from '../../ColumnMetrics/MetricCell';
 import { DataCompositionMatrix } from '../../ColumnMatrices/DataCompositionMatrix';
 import { VALIDS } from '../../constants';
+import { getColumnMetricRatio } from '../../utils';
 
 type Props = { columnDatum: ColumnSchema };
 export const ColumnTypeDetailOther: React.FC<Props> = ({ columnDatum }) => {

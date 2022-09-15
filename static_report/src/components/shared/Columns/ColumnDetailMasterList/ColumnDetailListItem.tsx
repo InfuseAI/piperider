@@ -13,11 +13,8 @@ import {
   formatColumnValueWith,
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
-import {
-  getColumnMetricRatio,
-  getIconForColumnType,
-} from '../../../../utils/transformers';
 import { NO_VALUE } from '../constants';
+import { getColumnMetricRatio, getIconForColumnType } from '../utils';
 
 interface Props extends Comparable {
   baseColumnDatum?: ColumnSchema;

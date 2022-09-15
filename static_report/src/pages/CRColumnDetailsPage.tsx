@@ -12,15 +12,15 @@ import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidge
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 
 import { formatReportTime } from '../utils/formatters';
-import {
-  containsColumnQuantile,
-  containsDataSummary,
-} from '../utils/transformers';
 
 import type { ComparisonReportSchema } from '../types';
 import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
 import { NoData } from '../components/shared/Layouts/NoData';
 import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
+import {
+  containsDataSummary,
+  containsColumnQuantile,
+} from '../components/shared/Columns/utils';
 interface Props {
   data: ComparisonReportSchema;
   columnName: string;

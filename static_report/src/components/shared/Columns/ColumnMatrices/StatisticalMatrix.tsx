@@ -4,9 +4,9 @@ import {
   formatColumnValueWith,
   formatNumber,
 } from '../../../../utils/formatters';
-import { checkColumnCategorical } from '../../../../utils/transformers';
 import { MetricCell } from '../ColumnMetrics/MetricCell';
 import { AVG, MAX, MIN, STDDEV, PLUSMINUS } from '../constants';
+import { checkColumnCategorical } from '../utils';
 
 type Props = { columnDatum: ColumnSchema };
 export function StatisticalMatrix({ columnDatum }: Props) {
