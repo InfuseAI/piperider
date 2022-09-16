@@ -438,7 +438,8 @@ class StringColumnProfiler(BaseColumnProfiler):
     def profile(self):
         with self.engine.connect() as conn:
             cte = self._get_table_cte()
-            stmt = select([
+
+            columns = [
                 func.count().label("_total"),
                 func.count(cte.c.orig).label("_non_nulls"),
                 func.count(cte.c.c).label("_valids"),
@@ -448,18 +449,31 @@ class StringColumnProfiler(BaseColumnProfiler):
                 func.avg(cte.c.len).label("_avg"),
                 func.min(cte.c.len).label("_min"),
                 func.max(cte.c.len).label("_max"),
-                func.avg(func.cast(cte.c.len, Float) * func.cast(cte.c.len, Float)).label("_square_avg"),
-            ])
-            result = conn.execute(stmt).fetchone()
-            _total, _non_nulls, _valids, _zero_length, _distinct, _sum, _avg, _min, _max, _square_avg = result
+            ]
+
+            if self._get_database_backend() == 'sqlite':
+                columns.append(func.avg(func.cast(cte.c.len, Float) * func.cast(cte.c.len, Float)).label("_square_avg"))
+                stmt = select(columns)
+                result = conn.execute(stmt).fetchone()
+                _total, _non_nulls, _valids, _zero_length, _distinct, _sum, _avg, _min, _max, _square_avg = result
+                _square_avg = dtof(_square_avg)
+                _stddev = None
+                if _square_avg is not None and _avg is not None:
+                    try:
+                        _stddev = math.sqrt(_square_avg - _avg * _avg)
+                    except ValueError:
+                        pass
+            else:
+                columns.append(func.stddev(cte.c.len).label("_stddev"))
+                stmt = select(columns)
+                result = conn.execute(stmt).fetchone()
+                _total, _non_nulls, _valids, _zero_length, _distinct, _sum, _avg, _min, _max, _stddev = result
+                _stddev = dtof(_stddev)
+
             _sum = dtof(_sum)
             _min = dtof(_min)
             _max = dtof(_max)
             _avg = dtof(_avg)
-            _square_avg = dtof(_square_avg)
-            _stddev = None
-            if _square_avg is not None and _avg is not None:
-                _stddev = math.sqrt(_square_avg - _avg * _avg)
 
             result = {
                 'total': _total,
@@ -542,7 +556,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
         with self.engine.connect() as conn:
             cte = self._get_table_cte()
 
-            stmt = select([
+            columns = [
                 func.count().label("_total"),
                 func.count(cte.c.orig).label("_non_nulls"),
                 func.count(cte.c.c).label("_valids"),
@@ -553,18 +567,31 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 func.avg(cte.c.c).label("_avg"),
                 func.min(cte.c.c).label("_min"),
                 func.max(cte.c.c).label("_max"),
-                func.avg(func.cast(cte.c.c, Float) * func.cast(cte.c.c, Float)).label("_square_avg"),
-            ])
-            result = conn.execute(stmt).fetchone()
-            _total, _non_nulls, _valids, _zeros, _negatives, _distinct, _sum, _avg, _min, _max, _square_avg = result
+            ]
+
+            if self._get_database_backend() == 'sqlite':
+                columns.append(func.avg(func.cast(cte.c.c, Float) * func.cast(cte.c.c, Float)).label("_square_avg"))
+                stmt = select(columns)
+                result = conn.execute(stmt).fetchone()
+                _total, _non_nulls, _valids, _zeros, _negatives, _distinct, _sum, _avg, _min, _max, _square_avg = result
+                _square_avg = dtof(_square_avg)
+                _stddev = None
+                if _square_avg is not None and _avg is not None:
+                    try:
+                        _stddev = math.sqrt(_square_avg - _avg * _avg)
+                    except ValueError:
+                        pass
+            else:
+                columns.append(func.stddev(cte.c.c).label("_stddev"))
+                stmt = select(columns)
+                result = conn.execute(stmt).fetchone()
+                _total, _non_nulls, _valids, _zeros, _negatives, _distinct, _sum, _avg, _min, _max, _stddev = result
+                _stddev = dtof(_stddev)
+
             _sum = dtof(_sum)
             _min = dtof(_min)
             _max = dtof(_max)
             _avg = dtof(_avg)
-            _square_avg = dtof(_square_avg)
-            _stddev = None
-            if _square_avg is not None and _avg is not None:
-                _stddev = math.sqrt(_square_avg - _avg * _avg)
 
             result = {
                 'total': _total,
