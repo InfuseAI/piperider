@@ -101,6 +101,7 @@ export function CRTablesListPage({ data }: Props) {
                         targetTableDatum={table.target}
                         onSelect={() => setLocation(`/tables/${key}`)}
                       >
+                        {/* SR version = <AssertionLabel /> */}
                         <CRTableListAssertions data={data} tableName={key} />
                       </CRTableListItem>
 

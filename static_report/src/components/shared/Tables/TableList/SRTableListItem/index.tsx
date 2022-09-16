@@ -50,27 +50,28 @@ export function SRTableListItem({
         </GridItem>
 
         <GridItem>
-          <Flex gap={10} color="gray.500">
+          <Flex gap={10} color="gray.500" bg={'yellow.100'}>
             <Text>Rows</Text>
+            {/* DIFF_1 */}
             <Text>{formatColumnValueWith(table.row_count, formatNumber)}</Text>
           </Flex>
         </GridItem>
 
-        <GridItem>
-          <AssertionLabel total={total} failed={failed}>
-            {isExpanded && (
-              <Flex
-                as="a"
-                data-cy="sr-navigate-report-detail"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onSelect({ tableName: table?.name });
-                }}
-              >
-                <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
-              </Flex>
-            )}
-          </AssertionLabel>
+        <GridItem bg={'orange.100'}>
+          {/* DIFF_2 */}
+          <AssertionLabel total={total} failed={failed} />
+          {isExpanded && (
+            <Flex
+              as="a"
+              data-cy="sr-navigate-report-detail"
+              onClick={(event) => {
+                event.stopPropagation();
+                onSelect({ tableName: table?.name });
+              }}
+            >
+              <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
+            </Flex>
+          )}
         </GridItem>
       </Grid>
 
@@ -90,6 +91,7 @@ export function SRTableListItem({
               <Text as="span" minWidth="95px" maxWidth="205px" textAlign="left">
                 {table.col_count} Columns
               </Text>
+              {/* DIFF_3 */}
               <Flex
                 __css={{
                   display: 'flex',
