@@ -94,7 +94,7 @@ export function CRTablesListPage({ data }: Props) {
                 <AccordionItem>
                   {({ isExpanded }) => (
                     <>
-                      {/* Accordion Parent */}
+                      {/* FIXME: Accordion Parent */}
                       <CRTableListItem
                         isExpanded={isExpanded}
                         baseTableDatum={table.base}
@@ -107,6 +107,7 @@ export function CRTablesListPage({ data }: Props) {
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
                         {view === 'summary' ? (
+                          // FIXME:
                           <Stack gap={6}>
                             <CRTableListColumnList
                               baseTableDatum={table?.base}
@@ -119,6 +120,7 @@ export function CRTablesListPage({ data }: Props) {
                             />
                           </Stack>
                         ) : (
+                          //FIXME:
                           <CRTableSchemaDetails
                             visibleDetail
                             baseTableDatum={table?.base}

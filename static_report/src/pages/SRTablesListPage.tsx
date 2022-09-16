@@ -66,7 +66,6 @@ export function SRTablesListPage({ data }: Props) {
         <Accordion allowToggle>
           {Object.keys(tables).map((key) => {
             const table = tables[key];
-
             zReport(ZTableSchema.safeParse(table));
 
             return (
@@ -74,7 +73,7 @@ export function SRTablesListPage({ data }: Props) {
                 <AccordionItem>
                   {({ isExpanded }) => (
                     <>
-                      {/* Accordion Parent */}
+                      {/* FIXME: Accordion Parent */}
                       <SRTableListItem
                         isExpanded={isExpanded}
                         tableDatum={table}
@@ -86,6 +85,7 @@ export function SRTablesListPage({ data }: Props) {
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
                         {view === 'summary' ? (
+                          // FIXME:
                           <Stack gap={6}>
                             <SRTableListColumnList
                               table={table}
@@ -97,6 +97,7 @@ export function SRTablesListPage({ data }: Props) {
                             />
                           </Stack>
                         ) : (
+                          // FIXME:
                           <SRTableListSchemaDetail
                             table={table}
                             onSelect={({ tableName, columnName }) =>

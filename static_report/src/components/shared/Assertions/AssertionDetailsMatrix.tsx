@@ -13,6 +13,9 @@ import { formatTestExpectedOrActual } from '../../../utils/formatters';
 import { CRAssertionData } from '../../../types';
 
 type Props = { data?: CRAssertionData; type?: string };
+/**
+ * A matrix showing tabular data of the assertion details across base and target
+ */
 export function AssertionDetailsMatrix({ data, type = 'piperider' }: Props) {
   const isDbtType = type === 'dbt';
   return (
