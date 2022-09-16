@@ -12,9 +12,8 @@ import {
 import groupBy from 'lodash/groupBy';
 import { nanoid } from 'nanoid';
 
-import { CRAssertionTests } from '../../../types';
+import { CRAssertionData, CRAssertionTests } from '../../../types';
 import { AssertionStatus } from '../Assertions/AssertionStatus';
-import type { CRModalData } from '../Modals/CRModal/CRModal';
 
 type AssertionRow = {
   name: string;
@@ -39,7 +38,7 @@ type Props = {
     data,
   }: {
     type: 'piperider' | 'dbt';
-    data: CRModalData;
+    data: CRAssertionData;
   }) => void;
 };
 

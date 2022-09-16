@@ -1,4 +1,17 @@
-import { Flex, Heading, useDisclosure } from '@chakra-ui/react';
+import {
+  Button,
+  Flex,
+  Text,
+  Heading,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  useDisclosure,
+} from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
 
@@ -7,11 +20,8 @@ import { getComparisonAssertions } from '../components/shared/Tables/utils';
 
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import {
-  CRModal,
-  TestDetail,
-} from '../components/shared/Modals/CRModal/CRModal';
-import {
   ComparisonReportSchema,
+  CRAssertionData,
   ZComparisonSchema,
   zReport,
   ZTableSchema,
@@ -24,7 +34,12 @@ import { CRAssertionDetailsWidget } from '../components/shared/Widgets/CRAsserti
 import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
 import { TABLE_DETAILS_ROUTE_PATH } from '../utils/routes';
 import { NoData } from '../components/shared/Layouts/NoData';
+import { AssertionDetailsMatrix } from '../components/shared/Assertions/AssertionDetailsMatrix';
 
+export type TestDetail = {
+  type?: 'piperider' | 'dbt';
+  data?: CRAssertionData;
+};
 type Props = {
   data: ComparisonReportSchema;
   tableName: string;
@@ -115,6 +130,8 @@ export default function CRTableDetailsPage({ data, tableName }: Props) {
                   type,
                   data,
                 });
+                console.log(type, data);
+
                 modal.onOpen();
               }}
             />
@@ -140,17 +157,38 @@ export default function CRTableDetailsPage({ data, tableName }: Props) {
             />
           </CollapseContent>
         </Flex>
+        <Modal
+          {...modal}
+          isOpen={modal.isOpen}
+          size="2xl"
+          onClose={() => {
+            modal.onClose();
+          }}
+        >
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>
+              <Text
+                title={testDetail?.data?.name}
+                noOfLines={1}
+                maxWidth="calc(100% - 50px)"
+              >
+                {testDetail?.data?.name}
+              </Text>
+            </ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <AssertionDetailsMatrix
+                data={testDetail?.data}
+                type={testDetail?.type}
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button onClick={modal.onClose}>Close</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </Flex>
-
-      <CRModal
-        {...modal}
-        type={testDetail?.type}
-        data={testDetail?.data}
-        onClose={() => {
-          modal.onClose();
-          setTestDetail(null);
-        }}
-      />
     </Main>
   );
 }

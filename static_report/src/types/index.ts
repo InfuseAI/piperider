@@ -5,6 +5,7 @@ import {
   tableSchemaSchema,
 } from './../sdlc/single-report-schema.z';
 import {
+  AssertionTest,
   ColumnSchema,
   SingleReportSchema,
   TableSchema,
@@ -48,6 +49,10 @@ export type CRAssertionTests = {
   expected?: unknown;
   actual?: unknown;
 };
+
+export type CRAssertionData = {
+  name: string;
+} & CRTargetData<AssertionTest & { message?: string }>;
 
 export interface CRTargetData<T> {
   base?: T;
