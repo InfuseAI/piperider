@@ -39,7 +39,7 @@ type HistogramChartProps = {
   hideAxis?: boolean;
 };
 
-export default function HistogramChart({
+export function HistogramChart({
   data,
   hideAxis = false,
   animation = false,

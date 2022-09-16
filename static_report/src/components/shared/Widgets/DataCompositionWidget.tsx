@@ -3,7 +3,7 @@ import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { Comparable } from '../../../types';
 import { renderChartUnavailableMsg } from '../Charts/utils';
 import { formatTitleCase } from '../../../utils/formatters';
-import FlatStackedBarChart from '../Charts/FlatStackedBarChart';
+import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
 import { GeneralStats } from '../Columns/ColumnMetrics/GeneralStats';
 import { TypedStats } from '../Columns/ColumnMetrics/TypedStats';
 import {

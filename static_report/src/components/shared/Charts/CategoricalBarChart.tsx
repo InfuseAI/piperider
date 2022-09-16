@@ -31,7 +31,7 @@ export interface CategoricalBarChartProps {
 /**
  * A horizontal progress bar chart that visualizes categorical dataset, plotted 1:1 to each category group (up to max: 5; else bar radii start looking weird)
  */
-export default function CategoricalBarChart({
+export function CategoricalBarChart({
   data,
   total,
   animation = false,

@@ -1,9 +1,9 @@
 import { Flex, Text } from '@chakra-ui/react';
 import isNumber from 'lodash/isNumber';
 
-import BooleanPieChart from './BooleanPieChart';
-import CategoricalBarChart from './CategoricalBarChart';
-import HistogramChart from './HistogramChart';
+import { BooleanPieChart } from './BooleanPieChart';
+import { CategoricalBarChart } from './CategoricalBarChart';
+import { HistogramChart } from './HistogramChart';
 import { FlatBoxPlotChartProps } from './FlatBoxPlotChart';
 
 import { TRUES, FALSES, NULLS, INVALIDS } from '../Columns/constants';

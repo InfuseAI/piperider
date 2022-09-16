@@ -4,7 +4,7 @@ import { SaferTableSchema, Selectable } from '../../../../../types';
 import { Box, Flex, Grid, GridItem, Icon, Text } from '@chakra-ui/react';
 import { getAssertions } from '../../utils';
 import { FiArrowRight, FiChevronRight } from 'react-icons/fi';
-import HistogramChart from '../../../Charts/HistogramChart';
+import { HistogramChart } from '../../../Charts/HistogramChart';
 import { ColumnName } from '../ColumnName';
 import {
   CRBaseTableAssertionsSummary,
