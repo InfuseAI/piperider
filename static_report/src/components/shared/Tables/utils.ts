@@ -31,7 +31,7 @@ export function getAssertions(assertions: AssertionTest[]) {
 }
 
 /**
- * Get the report assertions by giving piperider and dbt assertions.
+ * Get the report assertions combined total, passed, failed, by giving piperider and dbt assertions.
  */
 export function getReportAggregateAssertions(
   piperiderAssertions?: SaferTableSchema['piperider_assertion_result'],

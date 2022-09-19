@@ -27,14 +27,13 @@ import {
   Divider,
   Flex,
   Grid,
-  Stack,
   Text,
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 import { useLocation } from 'wouter';
 
-import { CRTableListColumnList } from '../components/shared/Tables/TableList/CRTableListItem/CRTableListColumnList';
-import { CRTableSchemaDetails } from '../components/shared/Tables/TableList/CRTableListItem/CRTableSchemaDetails';
+import { TableColumnSummaryList } from '../components/shared/Tables/TableList/TableColumnSummaryList';
+import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
 import { tableListGridTempCols } from '../utils/layout';
 
@@ -104,21 +103,17 @@ export function CRTablesListPage({ data }: Props) {
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
                         {view === 'summary' ? (
-                          // FIXME:
-                          <Stack gap={6}>
-                            <CRTableListColumnList
-                              baseTableDatum={table?.base}
-                              targetTableDatum={table?.target}
-                              onSelect={({ tableName, columnName }) =>
-                                setLocation(
-                                  `/tables/${tableName}/columns/${columnName}`,
-                                )
-                              }
-                            />
-                          </Stack>
+                          <TableColumnSummaryList
+                            baseTableDatum={table?.base}
+                            targetTableDatum={table?.target}
+                            onSelect={({ tableName, columnName }) =>
+                              setLocation(
+                                `/tables/${tableName}/columns/${columnName}`,
+                              )
+                            }
+                          />
                         ) : (
-                          //FIXME:
-                          <CRTableSchemaDetails
+                          <TableColumnSchemaList
                             visibleDetail
                             baseTableDatum={table?.base}
                             targetTableDatum={table?.target}

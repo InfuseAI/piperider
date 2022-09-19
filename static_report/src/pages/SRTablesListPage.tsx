@@ -5,7 +5,6 @@ import {
   Divider,
   Flex,
   Grid,
-  Stack,
   Text,
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
@@ -23,11 +22,11 @@ import { SR_LIST_VIEW } from '../utils/localStorageKeys';
 import { type SingleReportSchema } from '../sdlc/single-report-schema';
 
 import { zReport, ZTableSchema } from '../types';
-import { SRTableListColumnList } from '../components/shared/Tables/TableList/SRTableListItem/SRTableListColumnList';
-import { SRTableListSchemaDetail } from '../components/shared/Tables/TableList/SRTableListItem/SRTableListSchemaDetail';
 import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
 import { TableListItem } from '../components/shared/Tables/TableList/TableListItem';
 import { tableListGridTempCols } from '../utils/layout';
+import { TableColumnSummaryList } from '../components/shared/Tables/TableList/TableColumnSummaryList';
+import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 
 type Props = { data: SingleReportSchema };
 
@@ -85,21 +84,20 @@ export function SRTablesListPage({ data }: Props) {
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
                         {view === 'summary' ? (
-                          // FIXME:
-                          <Stack gap={6}>
-                            <SRTableListColumnList
-                              table={table}
-                              onSelect={({ tableName, columnName }) =>
-                                setLocation(
-                                  `/tables/${tableName}/columns/${columnName}`,
-                                )
-                              }
-                            />
-                          </Stack>
+                          <TableColumnSummaryList
+                            baseTableDatum={table}
+                            singleOnly
+                            onSelect={({ tableName, columnName }) =>
+                              setLocation(
+                                `/tables/${tableName}/columns/${columnName}`,
+                              )
+                            }
+                          />
                         ) : (
-                          // FIXME:
-                          <SRTableListSchemaDetail
-                            table={table}
+                          <TableColumnSchemaList
+                            singleOnly
+                            visibleDetail
+                            baseTableDatum={table}
                             onSelect={({ tableName, columnName }) =>
                               setLocation(
                                 `/tables/${tableName}/columns/${columnName}`,

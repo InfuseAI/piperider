@@ -79,7 +79,7 @@ export function TableListItem({
           />
         </GridItem>
         <GridItem>
-          <Flex color="gray.500" bg={'yellow.100'}>
+          <Flex color="gray.500">
             <Text mr={4}>Rows</Text>
             {/* DIFF_1: OK */}
             {singleOnly ? (
@@ -95,7 +95,7 @@ export function TableListItem({
             )}
           </Flex>
         </GridItem>
-        <GridItem bg={'orange.100'}>
+        <GridItem>
           <Flex gap={2}>
             {/* DIFF_2 : SR+CR */}
             {singleOnly ? (
@@ -141,7 +141,7 @@ export function TableListItem({
           {isExpanded ? (
             <TableItemDescription description={description || ''} />
           ) : (
-            <Flex color="gray.500" maxWidth="650px" bg={'cyan.100'}>
+            <Flex color="gray.500" maxWidth="650px">
               <Text as="span" mr={4}>
                 Columns
               </Text>
