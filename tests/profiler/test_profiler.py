@@ -154,7 +154,7 @@ class TestProfiler:
 
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result['avg'] == 472.0
-        assert almost_equal(result['stddev'], 376.47)
+        assert almost_equal(result['stddev'], 420.91)
         assert result['sum'] == 2360
         assert result['min'] == 10
         assert result['p5'] == 10
@@ -215,7 +215,7 @@ class TestProfiler:
         assert result["positives"] == 1
 
         assert result['avg'] == 0
-        assert almost_equal(result['stddev'], 16.33)
+        assert almost_equal(result['stddev'], 20)
         assert result['sum'] == 0
         assert result['min'] == -20
         assert result['p5'] == -20
@@ -265,7 +265,7 @@ class TestProfiler:
 
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result['avg'] == 448
-        assert almost_equal(result['stddev'], 407.69)
+        assert almost_equal(result['stddev'], 455.82)
         assert result['sum'] == 2240
         assert result['min'] == -110
         assert result['p5'] == -110
@@ -350,7 +350,7 @@ class TestProfiler:
         assert result["min"] == 0
         assert result["max"] == 11
         assert almost_equal(result["avg"], 5.57)
-        assert almost_equal(result["stddev"], 3.54)
+        assert almost_equal(result["stddev"], 3.82)
         assert result["histogram"]["counts"][0] == 1
         assert result["histogram"]["counts"][-1] == 1
         assert result["topk"]["counts"][0] == 2
