@@ -28,20 +28,8 @@ export function CRTableListAssertions({
   targetAssertionFailed,
   targetAssertionTotal,
 }: Props) {
-  // const baseAssertionTotal =
-  //   baseOverview.tests.length + dbtBaseOverview.tests.length;
-  // const baseOverviewFailed = getAssertionValue(baseOverview.failed);
-  // const dbtBaseOverviewFailed = getAssertionValue(dbtBaseOverview.failed);
-  // const baseAssertionFailed = baseOverviewFailed + dbtBaseOverviewFailed;
-
-  // const targetOverviewAssertions =
-  //   targetOverview.tests.length + dbtTargetOverview.tests.length;
-  // const targetOverviewFailed = getAssertionValue(targetOverview.failed);
-  // const dbtTargetOverviewFailed = getAssertionValue(dbtTargetOverview.failed);
-  // const targetAssertionFailed = targetOverviewFailed + dbtTargetOverviewFailed;
-
   return (
-    <Flex gap={2} color="gray.500" alignItems="center">
+    <Flex gap={2} color="gray.500" alignItems="center" bg={'orange.300'}>
       {/* base assertions */}
       <Flex gap={1} alignItems="center">
         <CRBaseTableAssertion
@@ -163,16 +151,6 @@ export function CRTargetTableAssertionsDelta({
       </Text>
     </Center>
   );
-}
-
-export function CRBaseTableAssertionsSummary({
-  total,
-  failed,
-}: {
-  total: number;
-  failed: number;
-}) {
-  return <AssertionLabel singleOnly={false} total={total} failed={failed} />;
 }
 
 export function CRTargetTableAssertionsSummary({

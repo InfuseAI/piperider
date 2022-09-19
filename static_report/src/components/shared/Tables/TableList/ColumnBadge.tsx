@@ -1,7 +1,7 @@
 import { Flex, Text, Icon } from '@chakra-ui/react';
 import { FiGrid } from 'react-icons/fi';
 
-export function SRTableListColumnLabel({
+export function ColumnBadge({
   name,
   icon = FiGrid,
 }: {

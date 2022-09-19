@@ -6,8 +6,10 @@ import {
   TableItemName,
   TableItemDescription,
 } from './TableListItemDecorations';
-import { CRTableListColumnsSummary } from './CRTableListItem/CRTableListColumnsSummary';
-import { CRTableListDeltaSummary } from './CRTableListItem/CRTableListDeltaSummary';
+import { TableRowColDeltaSummary } from './TableRowColDeltaSummary';
+
+//FIXME: merge these
+import { CRTableListAssertions } from './CRTableListItem/CRTableListAssertions';
 
 import type {
   Comparable,
@@ -18,11 +20,10 @@ import {
   formatColumnValueWith,
   formatNumber,
 } from '../../../../utils/formatters';
-import { SRTableListColumnLabel } from './SRTableListItem/SRTableListColumnLabel';
+import { ColumnBadge } from './ColumnBadge';
 import { getIconForColumnType } from '../../Columns/utils';
 import { NoData } from '../../Layouts';
 import { AssertionLabel } from '../../Assertions/AssertionLabel';
-import { CRTableListAssertions } from './CRTableListItem/CRTableListAssertions';
 import { getReportAggregateAssertions } from '../utils';
 import { tableListGridTempCols } from '../../../../utils/layout';
 
@@ -81,14 +82,13 @@ export function TableListItem({
         <GridItem>
           <Flex color="gray.500">
             <Text mr={4}>Rows</Text>
-            {/* DIFF_1: OK */}
             {singleOnly ? (
               <Text>
                 {formatColumnValueWith(fallbackTable?.row_count, formatNumber)}
               </Text>
             ) : (
               // Rows 10 -> 10 | Columns 10 -> 10
-              <CRTableListDeltaSummary
+              <TableRowColDeltaSummary
                 baseCount={baseTableDatum?.row_count}
                 targetCount={targetTableDatum?.row_count}
               />
@@ -97,7 +97,6 @@ export function TableListItem({
         </GridItem>
         <GridItem>
           <Flex gap={2}>
-            {/* DIFF_2 : SR+CR */}
             {singleOnly ? (
               <AssertionLabel total={baseTotal} failed={baseFailed} />
             ) : (
@@ -145,7 +144,6 @@ export function TableListItem({
               <Text as="span" mr={4}>
                 Columns
               </Text>
-              {/* DIFF_3 */}
               {singleOnly ? (
                 <Flex
                   __css={{
@@ -162,7 +160,7 @@ export function TableListItem({
                 >
                   {columns.length > 0 &&
                     columns.map((name) => (
-                      <SRTableListColumnLabel
+                      <ColumnBadge
                         key={name}
                         name={name}
                         icon={
@@ -173,7 +171,7 @@ export function TableListItem({
                     ))}
                 </Flex>
               ) : (
-                <CRTableListColumnsSummary
+                <TableRowColDeltaSummary
                   baseCount={baseTableDatum?.col_count}
                   targetCount={targetTableDatum?.col_count}
                 />

@@ -6,13 +6,11 @@ import { getReportAggregateAssertions } from '../utils';
 import { FiArrowRight, FiChevronRight } from 'react-icons/fi';
 import { HistogramChart } from '../../Charts/HistogramChart';
 import { ColumnName } from './ColumnName';
-import {
-  CRBaseTableAssertionsSummary,
-  CRTargetTableAssertionsSummary,
-} from './CRTableListItem/CRTableListAssertions';
+import { CRTargetTableAssertionsSummary } from './CRTableListItem/CRTableListAssertions';
 import { NoData } from '../../Layouts/NoData';
 import { getIconForColumnType } from '../../Columns/utils';
 import { tableListGridTempCols } from '../../../../utils/layout';
+import { AssertionLabel } from '../../Assertions';
 
 interface Props extends Selectable, Comparable {
   baseTableDatum?: SaferTableSchema;
@@ -108,7 +106,7 @@ export function TableColumnSummaryList({
             <GridItem>
               {baseAssertions.total > 0 && targetAssertions.total > 0 ? (
                 <Flex gap={2} color="gray.500" alignItems="center">
-                  <CRBaseTableAssertionsSummary {...baseAssertions} />
+                  <AssertionLabel {...baseAssertions} />
                   {!singleOnly && (
                     <>
                       <Icon as={FiArrowRight} />

@@ -5,7 +5,7 @@ import {
   FiArrowRight,
 } from 'react-icons/fi';
 
-export function CRTableListColumnsSummary({
+export function TableRowColDeltaSummary({
   baseCount = 0,
   targetCount = 0,
 }: {
@@ -26,12 +26,14 @@ export function CRTableListColumnsSummary({
     <Flex gap={1} alignItems="center" color="black">
       <Text as="span">{baseCount}</Text>
       <Icon as={FiArrowRight} />
-      <Icon
-        as={baseCount < targetCount ? FiArrowUpCircle : FiArrowDownCircle}
-        mr={1}
-        boxSize={5}
-      />
-      <Text as="span">{targetCount}</Text>
+      <Flex alignItems="center">
+        <Icon
+          as={baseCount < targetCount ? FiArrowUpCircle : FiArrowDownCircle}
+          mr={1}
+          boxSize={5}
+        />
+        <Text as="span">{targetCount}</Text>
+      </Flex>
     </Flex>
   );
 }
