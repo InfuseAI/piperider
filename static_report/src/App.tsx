@@ -32,8 +32,6 @@ if (sentryDns) {
   Sentry.setTag('piperider.version', appVersion);
 }
 
-const SRTableDetailsPage = lazy(() => import('./pages/SRTableDetailsPage'));
-const CRTableDetailsPage = lazy(() => import('./pages/CRTableDetailsPage'));
 const SRColumnDetailsPage = lazy(() => import('./pages/SRColumnDetailsPage'));
 const CRColumnDetailsPage = lazy(() => import('./pages/CRColumnDetailsPage'));
 
@@ -48,15 +46,6 @@ function AppSingle() {
               <SRTablesListPage data={window.PIPERIDER_SINGLE_REPORT_DATA} />
             )}
           />
-
-          <Route path={TABLE_DETAILS_ROUTE_PATH}>
-            {({ tableName }) => (
-              <SRTableDetailsPage
-                tableName={decodeURIComponent(tableName)}
-                data={window.PIPERIDER_SINGLE_REPORT_DATA}
-              />
-            )}
-          </Route>
 
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
             {({ tableName, columnName }) => (
@@ -90,15 +79,6 @@ function AppComparison() {
               />
             )}
           />
-
-          <Route path={TABLE_DETAILS_ROUTE_PATH}>
-            {({ tableName }) => (
-              <CRTableDetailsPage
-                tableName={decodeURIComponent(tableName)}
-                data={window.PIPERIDER_COMPARISON_REPORT_DATA}
-              />
-            )}
-          </Route>
 
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
             {({ tableName, columnName }) => (

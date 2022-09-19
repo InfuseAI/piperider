@@ -78,7 +78,9 @@ export function SRTablesListPage({ data }: Props) {
                         baseTableDatum={table}
                         singleOnly
                         onSelect={({ tableName }) =>
-                          setLocation(`/tables/${tableName}`)
+                          setLocation(
+                            `/tables/${tableName}/columns/${tableName}`,
+                          )
                         }
                       />
                       {/* Accordion Children Types */}
