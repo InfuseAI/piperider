@@ -6,11 +6,11 @@ import {
   FiArrowDownCircle,
   FiArrowRight,
 } from 'react-icons/fi';
-import { AssertionLabel, AssertionsLabelIcon } from '../../../Assertions';
+import { AssertionLabel, AssertionsLabelIcon } from '../../Assertions';
 import {
   formatColumnValueWith,
   formatNumber,
-} from '../../../../../utils/formatters';
+} from '../../../../utils/formatters';
 
 interface Props {
   baseAssertionTotal: number;
@@ -22,17 +22,17 @@ interface Props {
  * SR = e.g. <checkmark> All of 10
  * CR = e.g. All Passed|Failed / 10 total -> 10/10
  */
-export function CRTableListAssertions({
+export function TableListAssertionSummary({
   baseAssertionFailed,
   baseAssertionTotal,
   targetAssertionFailed,
   targetAssertionTotal,
 }: Props) {
   return (
-    <Flex gap={2} color="gray.500" alignItems="center" bg={'orange.300'}>
+    <Flex gap={2} color="gray.500" alignItems="center">
       {/* base assertions */}
       <Flex gap={1} alignItems="center">
-        <CRBaseTableAssertion
+        <BaseTableAssertionSummary
           total={baseAssertionTotal}
           failed={baseAssertionFailed}
         />
@@ -46,13 +46,13 @@ export function CRTableListAssertions({
 
       {/* target assertions */}
       <Flex gap={1} alignItems="center">
-        <CRTargetTableAssertion
+        <TargetTableAssertion
           total={targetAssertionTotal}
           failed={targetAssertionFailed}
           failedDelta={targetAssertionFailed - baseAssertionFailed}
         />
         <Text as="span">/</Text>
-        <CRTargetTableAssertionsDelta
+        <TargetTableAssertionsDelta
           baseAssertions={baseAssertionTotal}
           targetAssertions={targetAssertionTotal}
         />
@@ -61,7 +61,7 @@ export function CRTableListAssertions({
   );
 }
 
-export function CRBaseTableAssertion({
+function BaseTableAssertionSummary({
   total,
   failed,
 }: {
@@ -91,7 +91,7 @@ export function CRBaseTableAssertion({
   );
 }
 
-export function CRTargetTableAssertion({
+function TargetTableAssertion({
   total,
   failed,
   failedDelta,
@@ -129,7 +129,7 @@ export function CRTargetTableAssertion({
   );
 }
 
-export function CRTargetTableAssertionsDelta({
+function TargetTableAssertionsDelta({
   baseAssertions,
   targetAssertions,
 }: {
@@ -153,7 +153,7 @@ export function CRTargetTableAssertionsDelta({
   );
 }
 
-export function CRTargetTableAssertionsSummary({
+export function TargetTableAssertionsSummary({
   total,
   failed,
   baseAssertionsFailed,
@@ -186,36 +186,18 @@ export function CRTargetTableAssertionsSummary({
       failed={failed}
       comparisonDelta={<ComparisonDelta delta={delta} total={total} />}
       icon={
-        <ComparisonLabelIcon
-          isPassed={isPassed}
-          isFailedEqual={isFailedEqual}
-          isMoreFailed={isMoreFailed}
+        <Icon
+          boxSize={5}
+          as={
+            isPassed
+              ? FiCheck
+              : isFailedEqual
+              ? FiX
+              : isMoreFailed
+              ? FiArrowUpCircle
+              : FiArrowDownCircle
+          }
         />
-      }
-    />
-  );
-}
-
-function ComparisonLabelIcon({
-  isPassed,
-  isFailedEqual,
-  isMoreFailed,
-}: {
-  isPassed: boolean;
-  isFailedEqual: boolean;
-  isMoreFailed: boolean;
-}) {
-  return (
-    <Icon
-      boxSize={5}
-      as={
-        isPassed
-          ? FiCheck
-          : isFailedEqual
-          ? FiX
-          : isMoreFailed
-          ? FiArrowUpCircle
-          : FiArrowDownCircle
       }
     />
   );

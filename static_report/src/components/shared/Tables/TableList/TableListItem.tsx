@@ -8,8 +8,7 @@ import {
 } from './TableListItemDecorations';
 import { TableRowColDeltaSummary } from './TableRowColDeltaSummary';
 
-//FIXME: merge these
-import { CRTableListAssertions } from './CRTableListItem/CRTableListAssertions';
+import { TableListAssertionSummary } from './TableListAssertions';
 
 import type {
   Comparable,
@@ -87,7 +86,6 @@ export function TableListItem({
                 {formatColumnValueWith(fallbackTable?.row_count, formatNumber)}
               </Text>
             ) : (
-              // Rows 10 -> 10 | Columns 10 -> 10
               <TableRowColDeltaSummary
                 baseCount={baseTableDatum?.row_count}
                 targetCount={targetTableDatum?.row_count}
@@ -100,7 +98,7 @@ export function TableListItem({
             {singleOnly ? (
               <AssertionLabel total={baseTotal} failed={baseFailed} />
             ) : (
-              <CRTableListAssertions
+              <TableListAssertionSummary
                 baseAssertionFailed={baseFailed}
                 baseAssertionTotal={baseTotal}
                 targetAssertionFailed={targetFailed}
