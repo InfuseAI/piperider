@@ -10,6 +10,7 @@ from ruamel.yaml import CommentedMap
 from piperider_cli.datasource import DATASOURCE_PROVIDERS, DataSource
 from piperider_cli.error import \
     PipeRiderConfigError, \
+    PipeRiderConfigTypeError, \
     PipeRiderInvalidDataSourceError, \
     DbtProjectNotFoundError, \
     DbtProfileNotFoundError, \
@@ -35,11 +36,17 @@ class Configuration(object):
     def __init__(self, dataSources: List[DataSource], **kwargs):
         self.dataSources: List[DataSource] = dataSources
         self.profiler_config = kwargs.get('profiler', {})
+        self.includes = kwargs.get('includes', None)
+        self.excludes = kwargs.get('excludes', None)
         self.tables = kwargs.get('tables', {})
         self.telemetry_id = kwargs.get('telemetry_id', None)
         if self.telemetry_id is None:
             self.telemetry_id = uuid.uuid4().hex
         self.report_dir = self._to_report_dir(kwargs.get('report_dir', '.'))
+
+        self._verify_input_config()
+        self.includes = [str(t) for t in self.includes] if self.includes else self.includes
+        self.excludes = [str(t) for t in self.excludes] if self.excludes else self.excludes
 
     def _to_report_dir(self, dirname: str):
         if dirname is None or dirname.strip() == '':
@@ -47,6 +54,20 @@ class Configuration(object):
         if dirname.startswith('.'):
             return os.path.abspath(os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, dirname))
         return os.path.abspath(dirname)
+
+    def _verify_input_config(self):
+        if self.profiler_config:
+            limit = self.profiler_config.get('table', {}).get('limit', 0)
+            if not isinstance(limit, int):
+                raise PipeRiderConfigTypeError("profiler 'limit' should be an integer")
+
+        if self.includes is not None:
+            if not isinstance(self.includes, List):
+                raise PipeRiderConfigTypeError("'includes' should be a list of tables' name")
+
+        if self.excludes is not None:
+            if not isinstance(self.excludes, List):
+                raise PipeRiderConfigTypeError("'excludes' should be a list of tables' name")
 
     def get_telemetry_id(self):
         return self.telemetry_id
@@ -166,6 +187,8 @@ class Configuration(object):
             dataSources=data_sources,
             profiler=config.get('profiler', {}),
             tables=config.get('tables', {}),
+            includes=config.get('includes', None),
+            excludes=config.get('excludes', None),
             telemetry_id=config.get('telemetry', {}).get('id'),
             report_dir=config.get('report_dir', '.')
         )

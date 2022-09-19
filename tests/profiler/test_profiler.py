@@ -1,5 +1,6 @@
 from datetime import date, datetime
 
+from piperider_cli.configuration import Configuration
 from piperider_cli.profiler import Profiler
 from sqlalchemy import *
 from typing import List
@@ -592,7 +593,7 @@ class TestProfiler:
         ]
         self.create_table("test", data)
 
-        profiler = Profiler(engine, profiler_config={'table': {'limit': 3}})
+        profiler = Profiler(engine, config=Configuration([], profiler={'table': {'limit': 3}}))
         result = profiler.profile()
         assert result["tables"]["test"]['columns']["num"]["min"] == 1.0
         assert result["tables"]["test"]['columns']["num"]["max"] == 2.0
@@ -600,3 +601,50 @@ class TestProfiler:
         assert result["tables"]["test"]['columns']["num"]["total"] == 3
         assert result["tables"]["test"]['columns']["num"]["nulls"] == 1
         assert result["tables"]["test"]['row_count'] == 5
+
+    def test_incl_excl_tables(self):
+        engine = self.engine = create_engine('sqlite://')
+
+        data = [
+            ("col",),
+            (1,)
+        ]
+        self.create_table("a", data)
+        self.create_table("b", data)
+        self.create_table("c", data)
+
+        metadata = MetaData()
+        metadata.reflect(bind=engine)
+        tables = list(metadata.tables.keys())
+
+        profiler = Profiler(engine, config=Configuration([], includes=None, excludes=None))
+        final_tables = profiler._apply_incl_excl_tables(tables)
+        assert final_tables == ['a', 'b', 'c']
+
+        profiler = Profiler(engine, config=Configuration([], includes=['a', 'b'], excludes=None))
+        final_tables = profiler._apply_incl_excl_tables(tables)
+        assert final_tables == ['a', 'b']
+
+        profiler = Profiler(engine, config=Configuration([], includes=['a', 'b', 'c', 'd'], excludes=None))
+        final_tables = profiler._apply_incl_excl_tables(tables)
+        assert final_tables == ['a', 'b', 'c']
+
+        profiler = Profiler(engine, config=Configuration([], includes=[], excludes=None))
+        final_tables = profiler._apply_incl_excl_tables(tables)
+        assert final_tables == []
+
+        profiler = Profiler(engine, config=Configuration([], includes=None, excludes=[]))
+        final_tables = profiler._apply_incl_excl_tables(tables)
+        assert final_tables == ['a', 'b', 'c']
+
+        profiler = Profiler(engine, config=Configuration([], includes=None, excludes=['a']))
+        final_tables = profiler._apply_incl_excl_tables(tables)
+        assert final_tables == ['b', 'c']
+
+        profiler = Profiler(engine, config=Configuration([], includes=['a'], excludes=['b']))
+        final_tables = profiler._apply_incl_excl_tables(tables)
+        assert final_tables == ['a']
+
+        profiler = Profiler(engine, config=Configuration([], includes=['A', 'B'], excludes=None))
+        final_tables = profiler._apply_incl_excl_tables(tables)
+        assert final_tables == ['a', 'b']

@@ -17,6 +17,7 @@ from sqlalchemy.sql.expression import CTE, false, true, table as table_clause, c
 from sqlalchemy.types import Float
 
 from .event import ProfilerEventHandler, DefaultProfilerEventHandler
+from ..configuration import Configuration
 
 HISTOGRAM_NUM_BUCKET = 50
 
@@ -73,11 +74,11 @@ class Profiler:
     event_handler: ProfilerEventHandler
 
     def __init__(self, engine: Engine, event_handler: ProfilerEventHandler = DefaultProfilerEventHandler(),
-                 profiler_config: dict = None):
+                 config: Configuration = None):
         self.engine = engine
         self.inspector = inspect(self.engine) if self.engine else None
         self.event_handler = event_handler
-        self.config = profiler_config if profiler_config else {}
+        self.config = config
 
     def profile(self, tables: List[str] = None) -> dict:
         """
@@ -107,8 +108,10 @@ class Profiler:
             if not tables:
                 self.event_handler.handle_fetch_metadata_all_start()
                 metadata.reflect(bind=self.engine)
-                tables = self.metadata.tables.keys()
+                tables = list(self.metadata.tables.keys())
+                tables = self._apply_incl_excl_tables(tables)
             else:
+                tables = self._apply_incl_excl_tables(tables)
                 for table in tables:
                     self.event_handler.handle_fetch_metadata_table_start(table)
                     if len(table.split('.')) == 2:
@@ -129,6 +132,26 @@ class Profiler:
         self.event_handler.handle_run_end(result)
 
         return result
+
+    def _apply_incl_excl_tables(self, tables: List[str]) -> List[str]:
+        if not self.config:
+            return tables
+        if self.config.includes is None and self.config.excludes is None:
+            return tables
+
+        if self.config.includes is None:
+            allow_list = tables
+        else:
+            upper_includes = [t.upper() for t in self.config.includes]
+            allow_list = [t for t in tables if t.upper() in upper_includes]
+
+        if self.config.excludes is None:
+            final_list = allow_list
+        else:
+            upper_excludes = [t.upper() for t in self.config.excludes]
+            final_list = [t for t in allow_list if t.upper() not in upper_excludes]
+
+        return final_list
 
     def _drop_unsupported_columns(self, table: Table):
         array_columns = []
@@ -263,39 +286,40 @@ class Profiler:
         return result
 
     def _profile_column(self, table: Table, column: Column) -> dict:
+        profiler_config = self.config.profiler_config if self.config else {}
         if isinstance(column.type, String):
             # VARCHAR
             # CHAR
             # TEXT
             # CLOB
             generic_type = "string"
-            profiler = StringColumnProfiler(self.engine, self.config, table, column)
+            profiler = StringColumnProfiler(self.engine, profiler_config, table, column)
         elif isinstance(column.type, Integer):
             # INTEGER
             # BIGINT
             # SMALLINT
             generic_type = "integer"
-            profiler = NumericColumnProfiler(self.engine, self.config, table, column, is_integer=True)
+            profiler = NumericColumnProfiler(self.engine, profiler_config, table, column, is_integer=True)
         elif isinstance(column.type, Numeric):
             # NUMERIC
             # DECIMAL
             # FLOAT
             generic_type = "numeric"
-            profiler = NumericColumnProfiler(self.engine, self.config, table, column, is_integer=False)
+            profiler = NumericColumnProfiler(self.engine, profiler_config, table, column, is_integer=False)
         elif isinstance(column.type, Date) or isinstance(column.type, DateTime) or \
             (self.engine.url.get_backend_name() == 'snowflake' and str(column.type).startswith('TIMESTAMP')):
             # DATE
             # DATETIME
             # TIMEZONE_NTZ
             generic_type = "datetime"
-            profiler = DatetimeColumnProfiler(self.engine, self.config, table, column)
+            profiler = DatetimeColumnProfiler(self.engine, profiler_config, table, column)
         elif isinstance(column.type, Boolean):
             # BOOLEAN
             generic_type = "boolean"
-            profiler = BooleanColumnProfiler(self.engine, self.config, table, column)
+            profiler = BooleanColumnProfiler(self.engine, profiler_config, table, column)
         else:
             generic_type = "other"
-            profiler = BaseColumnProfiler(self.engine, self.config, table, column)
+            profiler = BaseColumnProfiler(self.engine, profiler_config, table, column)
 
         result = {
             "name": column.name,
@@ -345,6 +369,9 @@ class BaseColumnProfiler:
     def _get_limited_table_cte(self):
         t = self.table
         c = self.column
+        if not self.config:
+            return t, c
+
         limit = self.config.get('table', {}).get('limit', 0)
         if limit <= 0:
             return t, c

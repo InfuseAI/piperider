@@ -579,8 +579,13 @@ class Runner():
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
         engine = ds.create_engine()
-        profiler = Profiler(engine, RichProfilerEventHandler(tables if tables else available_tables),
-                            configuration.profiler_config)
+
+        if table:
+            # cli --table is specified, no inclusion and exclusion applied
+            configuration.includes = None
+            configuration.excludes = None
+
+        profiler = Profiler(engine, RichProfilerEventHandler(tables if tables else available_tables), configuration)
         try:
             profile_result = profiler.profile(tables)
             decorate_with_metadata(profile_result)

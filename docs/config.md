@@ -25,7 +25,7 @@ Example
 ## Profiler
 PipeRider provides a row-limited setting to help with profiling partial of a large dataset and gives you quick navigation.
 
-| Field | type | Description | Default |
+| Field | Type | Description | Default |
 | --- | --- | --- | --- |
 | limit | integer | the maximum row count to profile | all rows |
 
@@ -40,7 +40,7 @@ profiler:
 ## Tables
 Tables provide a structure to describe tables and columns in the data source.
 
-| Field | type | Description | Default |
+| Field | Type | Description | Default |
 | --- | --- | --- | --- |
 | description | string | the maximum row count to profile | empty string |
 
@@ -61,10 +61,12 @@ There would be plenty of tables in the data source. PipeRider provides a allowli
 
 PipeRider includes tables in the allowlist first then excludes tables in the blocklist.
 
-| Field | type | Description | Default |
+| Field | Type | Description | Default |
 | --- | --- | --- | --- |
-| includes | array | list of tables allowing to profile | empty array |
-| excludes | array | list of tables blocking to profile | empty array |
+| includes | array | list of tables allowing to profile | no tables are included |
+| excludes | array | list of tables blocking to profile | no table are excluded |
+
+*\* an empty array means no table are specified*
 
 Example
 ```

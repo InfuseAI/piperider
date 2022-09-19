@@ -26,6 +26,13 @@ class PipeRiderConfigError(PipeRiderError):
     hint = "Please execute command 'piperider init' to move forward."
 
 
+class PipeRiderConfigTypeError(PipeRiderError):
+    def __init__(self, msg):
+        self.message = msg
+
+    hint = "Please check your input configuration in config.yml"
+
+
 class PipeRiderCredentialError(PipeRiderError):
     def __init__(self, name):
         self.name = name

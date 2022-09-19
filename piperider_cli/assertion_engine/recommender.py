@@ -18,7 +18,6 @@ class AssertionRecommender:
         self.recommended_rule_callbacks = []
         self.load_recommended_rules()
         self.generated_assertions: List[RecommendedAssertion] = []
-        pass
 
     def prepare_assertion_template(self, profiling_result):
         for name, table in profiling_result.get('tables', {}).items():
