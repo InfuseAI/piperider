@@ -447,7 +447,7 @@ def _append_descriptions_from_assertion(profile_result):
         for column_name, column_v in columns_content.items():
             if column_name not in profile_result['tables'][table_name]['columns'] or column_v is None:
                 continue
-            column_desc = column_v.get('description', column_name)
+            column_desc = column_v.get('description', '')
             if column_desc:
                 profile_result['tables'][table_name]['columns'][column_name][
                     'description'] = f'{column_desc} - via PipeRider'
@@ -627,7 +627,6 @@ class Runner():
         _show_summary(profile_result, assertion_results, assertion_exceptions, dbt_test_results)
         _show_recommended_assertion_notice_message(console, assertion_results)
 
-        _append_descriptions(profile_result)
         if dbt_adapter.is_ready():
             dbt_adapter.append_descriptions(profile_result, default_schema)
         _append_descriptions_from_assertion(profile_result)
