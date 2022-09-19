@@ -6,62 +6,51 @@ import {
   FiArrowDownCircle,
   FiArrowRight,
 } from 'react-icons/fi';
-import isString from 'lodash/isString';
-import partial from 'lodash/partial';
-
 import { AssertionLabel, AssertionsLabelIcon } from '../../../Assertions';
-import { getComparisonAssertions } from '../../utils';
-import type { ComparisonReportSchema } from '../../../../../types';
 import {
   formatColumnValueWith,
   formatNumber,
 } from '../../../../../utils/formatters';
 
-const getAssertionValue = partial((value: string | number) =>
-  isString(value) ? 0 : value,
-);
-
+interface Props {
+  baseAssertionTotal: number;
+  baseAssertionFailed: number;
+  targetAssertionTotal: number;
+  targetAssertionFailed: number;
+}
+/**
+ * SR = e.g. <checkmark> All of 10
+ * CR = e.g. All Passed|Failed / 10 total -> 10/10
+ */
 export function CRTableListAssertions({
-  data,
-  tableName,
-}: {
-  data: ComparisonReportSchema;
-  tableName: string;
-}) {
-  const [baseOverview, targetOverview] = getComparisonAssertions({
-    data,
-    tableName,
-    type: 'piperider',
-  });
-  const [dbtBaseOverview, dbtTargetOverview] = getComparisonAssertions({
-    data,
-    tableName,
-    type: 'dbt',
-  });
+  baseAssertionFailed,
+  baseAssertionTotal,
+  targetAssertionFailed,
+  targetAssertionTotal,
+}: Props) {
+  // const baseAssertionTotal =
+  //   baseOverview.tests.length + dbtBaseOverview.tests.length;
+  // const baseOverviewFailed = getAssertionValue(baseOverview.failed);
+  // const dbtBaseOverviewFailed = getAssertionValue(dbtBaseOverview.failed);
+  // const baseAssertionFailed = baseOverviewFailed + dbtBaseOverviewFailed;
 
-  const baseOverviewAssertions =
-    baseOverview.tests.length + dbtBaseOverview.tests.length;
-  const baseOverviewFailed = getAssertionValue(baseOverview.failed);
-  const dbtBaseOverviewFailed = getAssertionValue(dbtBaseOverview.failed);
-  const baseFailed = baseOverviewFailed + dbtBaseOverviewFailed;
-
-  const targetOverviewAssertions =
-    targetOverview.tests.length + dbtTargetOverview.tests.length;
-  const targetOverviewFailed = getAssertionValue(targetOverview.failed);
-  const dbtTargetOverviewFailed = getAssertionValue(dbtTargetOverview.failed);
-  const targetFailed = targetOverviewFailed + dbtTargetOverviewFailed;
+  // const targetOverviewAssertions =
+  //   targetOverview.tests.length + dbtTargetOverview.tests.length;
+  // const targetOverviewFailed = getAssertionValue(targetOverview.failed);
+  // const dbtTargetOverviewFailed = getAssertionValue(dbtTargetOverview.failed);
+  // const targetAssertionFailed = targetOverviewFailed + dbtTargetOverviewFailed;
 
   return (
     <Flex gap={2} color="gray.500" alignItems="center">
       {/* base assertions */}
       <Flex gap={1} alignItems="center">
         <CRBaseTableAssertion
-          total={baseOverviewAssertions}
-          failed={baseFailed}
+          total={baseAssertionTotal}
+          failed={baseAssertionFailed}
         />
         <Text as="span">/</Text>
         <Text as="span" width="60px">
-          {formatColumnValueWith(baseOverviewAssertions, formatNumber)} total
+          {formatColumnValueWith(baseAssertionTotal, formatNumber)} total
         </Text>
       </Flex>
 
@@ -70,14 +59,14 @@ export function CRTableListAssertions({
       {/* target assertions */}
       <Flex gap={1} alignItems="center">
         <CRTargetTableAssertion
-          total={targetOverviewAssertions}
-          failed={targetFailed}
-          failedDelta={targetFailed - baseFailed}
+          total={targetAssertionTotal}
+          failed={targetAssertionFailed}
+          failedDelta={targetAssertionFailed - baseAssertionFailed}
         />
         <Text as="span">/</Text>
         <CRTargetTableAssertionsDelta
-          baseAssertions={baseOverviewAssertions}
-          targetAssertions={targetOverviewAssertions}
+          baseAssertions={baseAssertionTotal}
+          targetAssertions={targetAssertionTotal}
         />
       </Flex>
     </Flex>

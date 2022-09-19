@@ -25,8 +25,9 @@ import { type SingleReportSchema } from '../sdlc/single-report-schema';
 import { zReport, ZTableSchema } from '../types';
 import { SRTableListColumnList } from '../components/shared/Tables/TableList/SRTableListItem/SRTableListColumnList';
 import { SRTableListSchemaDetail } from '../components/shared/Tables/TableList/SRTableListItem/SRTableListSchemaDetail';
-import { SRTableListItem } from '../components/shared/Tables/TableList/SRTableListItem';
 import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
+import { TableListItem } from '../components/shared/Tables/TableList/TableListItem';
+import { tableListGridTempCols } from '../utils/layout';
 
 type Props = { data: SingleReportSchema };
 
@@ -58,9 +59,9 @@ export function SRTablesListPage({ data }: Props) {
       </TableActionBar>
 
       <Flex direction="column" width="900px" minHeight="650px">
-        <Grid templateColumns="1fr 2fr 1fr" px={4} my={6}>
-          <Text width="100px">Name</Text>
-          <Text width="">Summary</Text>
+        <Grid templateColumns={tableListGridTempCols} px={4} my={6}>
+          <Text>Name</Text>
+          <Text>Summary</Text>
           <Text>Assertions</Text>
         </Grid>
         <Accordion allowToggle>
@@ -73,15 +74,14 @@ export function SRTablesListPage({ data }: Props) {
                 <AccordionItem>
                   {({ isExpanded }) => (
                     <>
-                      {/* FIXME: Accordion Parent */}
-                      <SRTableListItem
+                      <TableListItem
                         isExpanded={isExpanded}
-                        tableDatum={table}
+                        baseTableDatum={table}
+                        singleOnly
                         onSelect={({ tableName }) =>
                           setLocation(`/tables/${tableName}`)
                         }
                       />
-
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
                         {view === 'summary' ? (

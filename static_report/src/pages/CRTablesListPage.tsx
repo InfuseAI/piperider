@@ -8,7 +8,7 @@ import {
 
 import { formatReportTime } from '../utils/formatters';
 
-import { CRTableListItem } from '../components/shared/Tables/TableList/CRTableListItem';
+import { TableListItem } from '../components/shared/Tables/TableList/TableListItem';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { CR_LIST_VIEW } from '../utils/localStorageKeys';
 import {
@@ -35,8 +35,8 @@ import { useLocation } from 'wouter';
 
 import { CRTableListColumnList } from '../components/shared/Tables/TableList/CRTableListItem/CRTableListColumnList';
 import { CRTableSchemaDetails } from '../components/shared/Tables/TableList/CRTableListItem/CRTableSchemaDetails';
-import { CRTableListAssertions } from '../components/shared/Tables/TableList/CRTableListItem/CRTableListAssertions';
 import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
+import { tableListGridTempCols } from '../utils/layout';
 
 type Props = { data: ComparisonReportSchema };
 
@@ -79,9 +79,9 @@ export function CRTablesListPage({ data }: Props) {
       </TableActionBar>
 
       <Flex direction="column" width="900px" minHeight="650px">
-        <Grid templateColumns="218px 2fr 1.5fr" px={4} my={6}>
-          <Text width="100px">Name</Text>
-          <Text width="">Summary</Text>
+        <Grid templateColumns={tableListGridTempCols} px={4} my={6}>
+          <Text>Name</Text>
+          <Text>Summary</Text>
           <Text>Assertions</Text>
         </Grid>
         <Accordion allowToggle>
@@ -94,16 +94,12 @@ export function CRTablesListPage({ data }: Props) {
                 <AccordionItem>
                   {({ isExpanded }) => (
                     <>
-                      {/* FIXME: Accordion Parent */}
-                      <CRTableListItem
+                      <TableListItem
                         isExpanded={isExpanded}
                         baseTableDatum={table.base}
                         targetTableDatum={table.target}
                         onSelect={() => setLocation(`/tables/${key}`)}
-                      >
-                        {/* SR version = <AssertionLabel /> */}
-                        <CRTableListAssertions data={data} tableName={key} />
-                      </CRTableListItem>
+                      />
 
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
