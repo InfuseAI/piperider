@@ -4,7 +4,7 @@ import traceback
 import typing as t
 
 import sentry_sdk
-from click.core import Command, Context
+from click.core import Command, Context, Group
 from rich.console import Console
 from rich.markup import escape
 
@@ -15,6 +15,16 @@ from piperider_cli.guide import Guide
 _enable_trackback: bool = os.environ.get('PIPERIDER_PRINT_TRACKBACK') == '1'
 
 guide = Guide()
+
+beta_message = '(Experimental)'
+
+
+class BetaGroup(Group):
+    def __init__(self, *args, **kwargs):
+        kwargs['hidden'] = not os.environ.get('PIPERIDER_BETA', 'false').lower() == 'true'
+        if kwargs.get('short_help'):
+            kwargs['short_help'] = f'{beta_message} {kwargs["short_help"]}'
+        super().__init__(*args, **kwargs)
 
 
 class TrackCommand(Command):
@@ -33,7 +43,10 @@ class TrackCommand(Command):
         no_args_is_help: bool = False,
         hidden: bool = False,
         deprecated: bool = False,
+        beta: bool = False,
     ) -> None:
+        if beta:
+            short_help = f'{beta_message} {short_help}'
         super(TrackCommand, self).__init__(name, context_settings, callback, params, help, epilog, short_help,
                                            options_metavar, add_help_option, no_args_is_help, hidden, deprecated)
 

@@ -16,8 +16,13 @@ _yml = yaml.YAML()
 
 def init():
     api_key = _get_api_key()
-    user_profile = None
+    user_profile = load_user_profile()
 
+    _collector.set_api_key(api_key)
+    _collector.set_user_id(user_profile.get('user_id'))
+
+
+def load_user_profile():
     if not os.path.exists(PIPERIDER_USER_PROFILE):
         user_profile = _generate_user_profile()
     else:
@@ -26,8 +31,14 @@ def init():
             if user_profile.get('user_id') is None:
                 user_profile = _generate_user_profile()
 
-    _collector.set_api_key(api_key)
-    _collector.set_user_id(user_profile.get('user_id'))
+    return user_profile
+
+
+def update_user_profile(update_values):
+    original = load_user_profile()
+    original.update(update_values)
+    with open(PIPERIDER_USER_PROFILE, 'w+') as f:
+        _yml.dump(original, f)
 
 
 def _get_api_key():

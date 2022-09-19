@@ -6,6 +6,7 @@ from rich.markup import escape
 
 from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
+from piperider_cli.cloud import PipeRiderCloud
 from piperider_cli.configuration import Configuration, PIPERIDER_CONFIG_PATH
 from piperider_cli.error import DbtAdapterCommandNotFoundError, DbtCommandNotFoundError, PipeRiderDiagnosticError, \
     PipeRiderError
@@ -13,6 +14,8 @@ from piperider_cli.error import DbtAdapterCommandNotFoundError, DbtCommandNotFou
 CONSOLE_MSG_PASS = '[bold green]✅ PASS[/bold green]\n'
 CONSOLE_MSG_FAIL = '[bold red]😱 FAILED[/bold red]\n'
 CONSOLE_MSG_ALL_SET = '[bold]🎉 You are all set![/bold]\n'
+
+piperider_cloud = PipeRiderCloud()
 
 
 class AbstractChecker(metaclass=ABCMeta):
@@ -160,6 +163,17 @@ class CheckAssertionFiles(AbstractChecker):
         return error_msg == '', error_msg
 
 
+class CloudAccountChecker(AbstractChecker):
+    def check_function(self, configurator: Configuration) -> (bool, str):
+        if not piperider_cloud.available:
+            msg = 'API Token is configured, but cannot connect to the service.'
+            self.console.print(f'  [bold red]{msg}[/bold red]')
+            return False, msg
+        else:
+            self.console.print(f"  Run as user: [bold green]{piperider_cloud.me().get('email')}[/bold green]")
+            return True, ""
+
+
 class Validator():
     @staticmethod
     def diagnose():
@@ -168,4 +182,6 @@ class Validator():
         handler.set_checker('format of data sources', CheckDataSources)
         handler.set_checker('connections', CheckConnections)
         handler.set_checker('assertion files', CheckAssertionFiles)
+        if piperider_cloud.has_configured():
+            handler.set_checker('cloud account', CloudAccountChecker)
         return handler.execute()

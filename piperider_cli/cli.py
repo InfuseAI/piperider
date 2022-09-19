@@ -9,8 +9,9 @@ from rich.syntax import Syntax
 from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_generator import AssertionGenerator
+from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
-from piperider_cli.event.track import TrackCommand
+from piperider_cli.event.track import TrackCommand, BetaGroup
 from piperider_cli.feedback import Feedback
 from piperider_cli.generate_report import GenerateReport
 from piperider_cli.guide import Guide
@@ -219,3 +220,41 @@ def compare_reports(**kwargs):
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
                        report_dir=kwargs.get('report_dir'), output=kwargs.get('output'),
                        debug=kwargs.get('debug', False))
+
+
+@cli.group('cloud', short_help='Manage PipeRider Cloud', cls=BetaGroup)
+def cloud(**kwargs):
+    # Manage PipeRider Cloud.
+    pass
+
+
+@cloud.command(short_help='Upload a report to the PipeRider Cloud.', beta=True, cls=TrackCommand)
+@click.option('--run', type=click.Path(exists=True), help='Specify the raw result file.')
+@click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
+@click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
+              help='Specify the datasource.')
+@add_options(debug_option)
+def upload_report(**kwargs):
+    """
+    Upload a single run report to PipeRider Cloud
+    """
+    report_path = kwargs.get('run')
+    datasource = kwargs.get('datasource')
+    report_dir = kwargs.get('report_dir')
+    ret = CloudConnector.upload_report(report_path=report_path, datasource=datasource, report_dir=report_dir,
+                                       debug=kwargs.get('debug', False))
+    return ret
+
+
+@cloud.command(short_help='Login to PipeRider Cloud.', beta=True, cls=TrackCommand)
+@add_options(debug_option)
+def login(**kwargs):
+    ret = CloudConnector.login()
+    return ret
+
+
+@cloud.command(short_help='Logout from PipeRider Cloud.', beta=True, cls=TrackCommand)
+@add_options(debug_option)
+def logout(**kwargs):
+    ret = CloudConnector.logout()
+    return ret
