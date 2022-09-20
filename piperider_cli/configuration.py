@@ -205,12 +205,15 @@ class Configuration(object):
         )
 
         for d in self.dataSources:
-            if d.credential_source == 'config':
-                datasource = dict(name=d.name, type=d.type_name, **d.credential)
-            else:
-                datasource = dict(name=d.name, type=d.type_name)
+            datasource = dict(name=d.name, type=d.type_name)
             if d.args.get('dbt'):
+                # dbt project
                 datasource['dbt'] = d.args.get('dbt')
+            else:
+                # non-dbt project
+                if d.credential_source == 'config':
+                    datasource.update(**d.credential)
+
             config['dataSources'].append(datasource)
 
         template = '''
