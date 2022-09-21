@@ -69,7 +69,7 @@ export function TableColumnSchemaList({
           </Text>
         </Flex>
       )}
-      <Flex justifyContent={'space-evenly'}>
+      <Flex>
         <TableContainer width="100%" maxWidth={tableListMaxWidth}>
           <Table variant="simple">
             <Thead>

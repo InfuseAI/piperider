@@ -14,7 +14,6 @@ import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 import { formatReportTime } from '../utils/formatters';
 
 import type { ComparisonReportSchema } from '../types';
-import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
 import { NoData } from '../components/shared/Layouts/NoData';
 import {
   containsDataSummary,

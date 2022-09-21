@@ -124,11 +124,11 @@ export function TableListItem({
             }}
           >
             <Text
-              p={1}
-              borderRadius={'lg'}
-              border={'1px solid'}
-              borderColor={'blue.400'}
-              color={'blue.400'}
+              py={1}
+              px={2}
+              borderRadius={'md'}
+              bg={'blue.700'}
+              color={'white'}
             >
               Table Details
             </Text>
