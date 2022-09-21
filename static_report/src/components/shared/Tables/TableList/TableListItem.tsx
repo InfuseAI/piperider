@@ -62,7 +62,7 @@ export function TableListItem({
   return (
     <TableAccordionWrapper
       isExpanded={isExpanded}
-      data-cy="cr-table-overview-btn"
+      data-cy="table-list-accordion-btn"
     >
       <Grid
         templateColumns={tableListGridTempCols}

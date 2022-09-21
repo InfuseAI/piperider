@@ -6,7 +6,7 @@ describe('Comparison Report (sp500.db -> profiler-e2e.db)', () => {
     toggleToSchema.click();
 
     const tableAccordionBtn = cy
-      .get('[data-cy="cr-table-overview-btn"]')
+      .get('[data-cy="table-list-accordion-btn"]')
       .first();
     tableAccordionBtn.should('be.visible');
     tableAccordionBtn.click();

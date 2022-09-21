@@ -2,12 +2,12 @@ describe('Single Report [table-list-page, table-detail-page]', () => {
   it('should expand the table overview by clicking items', () => {
     cy.visit('http://localhost:3000');
 
-    const first = cy.get('[data-cy="sr-table-overview-btn"]').first();
+    const first = cy.get('[data-cy="table-list-accordion-btn"]').first();
     first.should('have.attr', 'aria-expanded', 'false');
     first.click();
     first.should('have.attr', 'aria-expanded', 'true');
 
-    const second = cy.get('[data-cy="sr-table-overview-btn"]').eq(1);
+    const second = cy.get('[data-cy="table-list-accordion-btn"]').eq(1);
     first.should('have.attr', 'aria-expanded', 'false');
     second.click();
     second.should('have.attr', 'aria-expanded', 'true');
@@ -20,7 +20,7 @@ describe('Single Report [table-list-page, table-detail-page]', () => {
 
     cy.get('[data-cy="sr-navigate-report-detail"]').should('not.exist');
 
-    const first = cy.get('[data-cy="sr-table-overview-btn"]').first();
+    const first = cy.get('[data-cy="table-list-accordion-btn"]').first();
     first.click();
 
     const navigateBtn = cy
@@ -32,7 +32,7 @@ describe('Single Report [table-list-page, table-detail-page]', () => {
   it('should navigate to the table detail page and back to overview page', () => {
     cy.visit('http://localhost:3000');
 
-    const first = cy.get('[data-cy="sr-table-overview-btn"]').first();
+    const first = cy.get('[data-cy="table-list-accordion-btn"]').first();
     first.click();
 
     const navigateBtn = cy
@@ -75,7 +75,7 @@ describe('Single Report [column-detail-page]', () => {
     schemaView.click();
 
     const tableAccordionBtn = cy
-      .get('[data-cy="sr-table-overview-btn"]')
+      .get('[data-cy="table-list-accordion-btn"]')
       .first();
     tableAccordionBtn.click();
     const columnAccordionItem = cy
@@ -90,7 +90,7 @@ describe('Single Report [column-detail-page]', () => {
     schemaView.click();
 
     const tableAccordionBtn = cy
-      .get('[data-cy="sr-table-overview-btn"]')
+      .get('[data-cy="table-list-accordion-btn"]')
       .first();
     tableAccordionBtn.click();
     const columnAccordionItem = cy
