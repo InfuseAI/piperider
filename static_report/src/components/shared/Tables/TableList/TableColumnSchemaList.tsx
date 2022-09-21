@@ -105,7 +105,7 @@ export function TableColumnSchemaList({
                         bg: 'blackAlpha.50',
                         cursor: visibleDetail ? 'pointer' : 'inherit',
                       }}
-                      data-cy="cr-table-list-schema-item"
+                      data-cy="table-list-schema-item"
                     >
                       <Td
                         whiteSpace="normal"

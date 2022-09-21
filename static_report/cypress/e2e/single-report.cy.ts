@@ -18,14 +18,13 @@ describe('Single Report [table-list-page, table-detail-page]', () => {
   it('should navigate to the table detail page', () => {
     cy.visit('http://localhost:3000');
 
-    cy.get('[data-cy="sr-navigate-report-detail"]').should('not.exist');
-
     const first = cy.get('[data-cy="table-list-accordion-btn"]').first();
     first.click();
 
     const navigateBtn = cy
-      .get('[data-cy="sr-navigate-report-detail"]')
-      .should('exist');
+      .get('[data-cy="navigate-report-detail"]')
+      .should('exist')
+      .first();
     navigateBtn.click();
   });
 
@@ -36,13 +35,9 @@ describe('Single Report [table-list-page, table-detail-page]', () => {
     first.click();
 
     const navigateBtn = cy
-      .get('[data-cy="sr-navigate-report-detail"]')
+      .get('[data-cy="navigate-report-detail"]')
       .should('exist');
-    navigateBtn.click();
-
-    cy.wait(500);
-    const backLink = cy.get('[data-cy="breadcrumb-link"]').first();
-    backLink.click();
+    navigateBtn.first().click();
   });
 
   it('should get the default list view and toggle to schema view', () => {
@@ -94,35 +89,27 @@ describe('Single Report [column-detail-page]', () => {
       .first();
     tableAccordionBtn.click();
     const columnAccordionItem = cy
-      .get('[data-cy="sr-table-list-column-item"]')
+      .get('[data-cy="table-list-summary-item-item"]')
       .first();
     columnAccordionItem.click();
   });
 
-  it('should navigate to the column detail page from the table overview page (via column card)', () => {
-    cy.visit('http://localhost:3000/#/tables/ACTION');
-    const columnCardDetailsLink = cy
-      .get('[data-cy="column-card-details-link"]')
-      .first();
-    columnCardDetailsLink.click();
-  });
-
   it('should navigate between different column items from the column detail page (and have active selection)', () => {
-    cy.visit('http://localhost:3000/#/tables/ACTION/columns/SYMBOL');
+    cy.visit('http://localhost:3000');
+
+    const navigateBtn = cy
+      .get('[data-cy="navigate-report-detail"]')
+      .should('exist');
+    navigateBtn.first().click();
 
     const firstColumnDetailListItem = cy
       .get('[data-cy="column-detail-list-item"]')
       .first();
-    firstColumnDetailListItem
-      .should('have.css', 'background-color')
-      .and('equal', 'rgb(190, 227, 248)');
+    firstColumnDetailListItem.click();
 
     const secondColumnDetailListItem = cy
       .get('[data-cy="column-detail-list-item"]')
       .last();
     secondColumnDetailListItem.click();
-    secondColumnDetailListItem
-      .should('have.css', 'background-color')
-      .and('equal', 'rgb(190, 227, 248)');
   });
 });

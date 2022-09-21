@@ -18,9 +18,7 @@ describe('Comparison Report [table-list-page, table-detail-page]', () => {
   it('should navigate to the table detail page', () => {
     cy.visit('http://localhost:3001');
 
-    const tableDetailBtn = cy
-      .get('[data-cy="cr-navigate-report-detail"]')
-      .first();
+    const tableDetailBtn = cy.get('[data-cy="navigate-report-detail"]').first();
     tableDetailBtn.click();
   });
 
@@ -30,9 +28,7 @@ describe('Comparison Report [table-list-page, table-detail-page]', () => {
     const first = cy.get('[data-cy="table-list-accordion-btn"]').first();
     first.click();
 
-    const tableDetailBtn = cy
-      .get('[data-cy="cr-navigate-report-detail"]')
-      .first();
+    const tableDetailBtn = cy.get('[data-cy="navigate-report-detail"]').first();
     tableDetailBtn.click();
   });
 
@@ -85,27 +81,25 @@ describe('Comparison Report [column-detail-page]', () => {
       .first();
     tableAccordionBtn.click();
     const columnAccordionItem = cy
-      .get('[data-cy="cr-table-list-column-item"]')
+      .get('[data-cy="table-list-summary-item-item"]')
       .first();
     columnAccordionItem.click();
   });
 
   it('should navigate between different column items from the column detail page (and have active selection)', () => {
-    cy.visit('http://localhost:3001/#/tables/ACTION/columns/SYMBOL');
+    cy.visit('http://localhost:3001');
+
+    const tableDetailBtn = cy.get('[data-cy="navigate-report-detail"]').first();
+    tableDetailBtn.click();
 
     const firstColumnDetailListItem = cy
       .get('[data-cy="column-detail-list-item"]')
       .first();
-    firstColumnDetailListItem
-      .should('have.css', 'background-color')
-      .and('equal', 'rgb(190, 227, 248)');
+    firstColumnDetailListItem.click();
 
     const secondColumnDetailListItem = cy
       .get('[data-cy="column-detail-list-item"]')
       .last();
     secondColumnDetailListItem.click();
-    secondColumnDetailListItem
-      .should('have.css', 'background-color')
-      .and('equal', 'rgb(190, 227, 248)');
   });
 });

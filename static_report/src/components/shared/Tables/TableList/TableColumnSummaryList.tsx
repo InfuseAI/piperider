@@ -80,7 +80,7 @@ export function TableColumnSummaryList({
               templateColumns={`${tableListGridTempCols} 2rem`}
               _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
               onClick={() => onSelect({ tableName, columnName: colName })}
-              data-cy="cr-table-list-column-item"
+              data-cy="table-list-summary-item-item"
             >
               <GridItem>
                 <ColumnName

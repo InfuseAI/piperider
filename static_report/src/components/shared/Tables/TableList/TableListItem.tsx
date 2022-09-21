@@ -117,7 +117,7 @@ export function TableListItem({
         </GridItem>
         <GridItem>
           <Link
-            data-cy="cr-navigate-report-detail"
+            data-cy="navigate-report-detail"
             onClick={(event) => {
               event.stopPropagation();
               onSelect({ tableName });
