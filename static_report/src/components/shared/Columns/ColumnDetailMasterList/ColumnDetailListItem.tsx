@@ -8,7 +8,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { Comparable } from '../../../../types';
+import { Comparable, Selectable } from '../../../../types';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
@@ -16,16 +16,17 @@ import {
 import { NO_VALUE } from '../constants';
 import { getColumnMetricRatio, getIconForColumnType } from '../utils';
 
-interface Props extends Comparable {
+interface Props extends Comparable, Selectable {
+  tableName: string;
   baseColumnDatum?: ColumnSchema;
   targetColumnDatum?: ColumnSchema;
-  onSelect: (arg: string) => void;
   isActive: boolean;
 }
 /**
  * A list item showing a base column detail's name, valid% progress bar(s) depending on split-view
  */
 export function ColumnDetailListItem({
+  tableName,
   baseColumnDatum,
   targetColumnDatum,
   onSelect,
@@ -54,7 +55,9 @@ export function ColumnDetailListItem({
         justifyContent={'space-between'}
         alignItems={'center'}
         cursor={'pointer'}
-        onClick={() => onSelect(fallbackColumnDatum?.name || '')}
+        onClick={() =>
+          onSelect({ tableName, columnName: fallbackColumnDatum?.name || '' })
+        }
         bg={isActive ? 'blue.100' : 'inherit'}
         _hover={{ bgColor: 'blackAlpha.50' }}
         data-cy="column-detail-list-item"

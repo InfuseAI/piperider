@@ -44,6 +44,7 @@ export default function SRColumnDetailsPage({
 
   const decodedColName = decodeURIComponent(columnName);
   const decodedTableName = decodeURIComponent(tableName);
+  console.log(decodedColName, decodedTableName);
 
   const dataColumns = dataTables[decodedTableName].columns;
   const columnDatum = dataColumns[decodedColName];
@@ -71,6 +72,8 @@ export default function SRColumnDetailsPage({
             currentColumn={decodedColName}
             onSelect={({ tableName, columnName }) => {
               setTabIndex(0); //resets tabs
+              console.log({ tableName, columnName });
+
               setLocation(`/tables/${tableName}/columns/${columnName}`);
             }}
             singleOnly

@@ -78,9 +78,8 @@ export function ColumnDetailMasterList({
     totalColumnCount += columnEntries.length;
     totalColumnEntries.push(columnEntries);
 
-    return [tableKey, columnEntries];
+    return [tableKey, columnEntries] as [string, typeof columnEntries]; //hack: mapping on entries return possible 'string.' type.
   });
-  console.log(masterTableColumnRecord);
 
   const quickFilters = Array.from(filterState.keys());
 
@@ -150,47 +149,43 @@ export function ColumnDetailMasterList({
 
       <Box minHeight={'70vh'} bg={'white'}>
         {/* QueryList */}
-        {masterTableColumnRecord
-          // .filter(([, colEntryList]) => {
-          //   // Logic: base-first lookup (tag filter UI)
-          //   return filterState.get(base?.type) || filterState.get(target?.type);
-          // })
-          // .filter(([key]) =>
-          //   filterString
-          //     ? key.search(new RegExp(filterString, 'gi')) > -1
-          //     : true,
-          // )
-          .map(([tableKey, colEntryList], tableIndex) => {
-            if (Array.isArray(colEntryList)) {
-              return colEntryList.map(
-                ([colKey, { base, target }], colEntryListIndex) => (
-                  <Box key={colKey}>
-                    {/* HEADER - Table */}
-                    {colEntryListIndex === 0 && (
-                      <Flex alignItems={'center'} p={3} gap={2}>
-                        <Icon as={FiGrid} color="gray.700" />
-                        <Text fontWeight={'semibold'}>
-                          {tableKey as string}
-                        </Text>
-                      </Flex>
-                    )}
-                    {/* LIST - Columns */}
-                    <ColumnDetailListItem
-                      isActive={base?.name === currentColumn}
-                      baseColumnDatum={base}
-                      targetColumnDatum={target}
-                      onSelect={(columnName) => {
-                        onSelect({ tableName: currentReport, columnName });
-                      }}
-                      singleOnly={singleOnly}
-                      p={3}
-                    />
-                  </Box>
-                ),
+        {masterTableColumnRecord.map(([tableKey, colEntryList], tableIndex) => {
+          return colEntryList
+            .filter(([, { base, target }]) => {
+              // Logic: base-first lookup (tag filter UI)
+              return (
+                filterState.get(base?.type) || filterState.get(target?.type)
               );
-            }
-            return null;
-          })}
+            })
+            .filter(([key]) =>
+              filterString
+                ? key.search(new RegExp(filterString, 'gi')) > -1
+                : true,
+            )
+            .map(([colKey, { base, target }], colEntryListIndex) => (
+              <Box key={colKey}>
+                {/* HEADER - Table */}
+                {colEntryListIndex === 0 && (
+                  <Flex alignItems={'center'} mx={4} my={2} gap={2}>
+                    <Icon as={FiGrid} color="gray.700" />
+                    <Text fontWeight={'semibold'}>{tableKey as string}</Text>
+                  </Flex>
+                )}
+                {/* LIST - Columns */}
+                <ColumnDetailListItem
+                  isActive={base?.name === currentColumn}
+                  tableName={tableKey}
+                  baseColumnDatum={base}
+                  targetColumnDatum={target}
+                  onSelect={(data) => {
+                    onSelect(data);
+                  }}
+                  singleOnly={singleOnly}
+                  p={3}
+                />
+              </Box>
+            ));
+        })}
       </Box>
     </Flex>
   );
