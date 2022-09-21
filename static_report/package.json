@@ -147,8 +147,5 @@
     "singleQuote": true,
     "trailingComma": "all"
   },
-  "packageManager": "yarn@3.2.1",
-  "volta": {
-    "node": "16.16.0"
-  }
+  "packageManager": "yarn@3.2.1"
 }
