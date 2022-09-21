@@ -70,7 +70,7 @@ describe('Comparison Report [column-detail-page]', () => {
       .first();
     tableAccordionBtn.click();
     const columnAccordionItem = cy
-      .get('[data-cy="cr-table-list-schema-item"]')
+      .get('[data-cy="table-list-schema-item"]')
       .first();
     columnAccordionItem.click();
   });

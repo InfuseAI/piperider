@@ -12,7 +12,7 @@ describe('Single Report (profiler-e2e.db)', () => {
     tableAccordionBtn.click();
 
     const tableListSchemaItem = cy
-      .get('[data-cy="sr-table-list-schema-item"]')
+      .get('[data-cy="table-list-schema-item"]')
       .first();
 
     tableListSchemaItem.click();
