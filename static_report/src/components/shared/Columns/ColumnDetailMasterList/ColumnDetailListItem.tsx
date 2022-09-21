@@ -62,7 +62,8 @@ export function ColumnDetailListItem({
       >
         <Flex alignItems={'center'}>
           <Icon
-            mx={2}
+            ml={5}
+            mr={2}
             p={1}
             rounded={'md'}
             color={'white'}

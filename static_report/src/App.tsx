@@ -8,10 +8,7 @@ import { NotFound } from './components/shared/Layouts/NotFound';
 import { SRTablesListPage } from './pages/SRTablesListPage';
 import { CRTablesListPage } from './pages/CRTablesListPage';
 import { useHashLocation } from './hooks/useHashLcocation';
-import {
-  COLUMN_DETAILS_ROUTE_PATH,
-  TABLE_DETAILS_ROUTE_PATH,
-} from './utils/routes';
+import { COLUMN_DETAILS_ROUTE_PATH } from './utils/routes';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns) {
@@ -51,7 +48,7 @@ function AppSingle() {
             {({ tableName, columnName }) => (
               <SRColumnDetailsPage
                 tableName={decodeURIComponent(tableName)}
-                columnName={decodeURIComponent(columnName)}
+                columnName={decodeURIComponent(String(columnName))}
                 data={window.PIPERIDER_SINGLE_REPORT_DATA}
               />
             )}
@@ -84,7 +81,7 @@ function AppComparison() {
             {({ tableName, columnName }) => (
               <CRColumnDetailsPage
                 tableName={decodeURIComponent(tableName)}
-                columnName={decodeURIComponent(columnName)}
+                columnName={decodeURIComponent(String(columnName))}
                 data={window.PIPERIDER_COMPARISON_REPORT_DATA}
               />
             )}

@@ -26,7 +26,7 @@ interface Props {
   tableName: string;
 }
 export default function SRColumnDetailsPage({
-  data: { tables, created_at },
+  data: { tables: dataTables, created_at },
   columnName,
   tableName,
 }: Props) {
@@ -45,22 +45,27 @@ export default function SRColumnDetailsPage({
   const decodedColName = decodeURIComponent(columnName);
   const decodedTableName = decodeURIComponent(tableName);
 
-  const dataColumns = tables[decodedTableName].columns;
+  const dataColumns = dataTables[decodedTableName].columns;
   const columnDatum = dataColumns[decodedColName];
 
-  const { type, histogram } = columnDatum;
+  //FIXME: <Schema> can be undefined if not matching columnDatum
+  const { type, histogram } = columnDatum || {};
+
+  //FIXME: Use Store for collectively SSOT handling data of tables + columns
+  // right now, components are reusing the same utilities, causing execution/implementation redundancies in code
 
   const borderVal = '1px solid lightgray';
 
   return (
     <Main isSingleReport time={time} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
-        <GridItem colSpan={3}>
+        {/* <GridItem colSpan={3}>
           <BreadcrumbNav routePathToMatch={COLUMN_DETAILS_ROUTE_PATH} />
-        </GridItem>
+        </GridItem> */}
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
+            baseDataTables={dataTables}
             baseDataColumns={dataColumns}
             currentReport={decodedTableName}
             currentColumn={decodedColName}

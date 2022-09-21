@@ -2,6 +2,7 @@ import { InfoIcon } from '@chakra-ui/icons';
 
 import { Flex, FlexProps, Icon, Text, Tooltip } from '@chakra-ui/react';
 import type { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { NO_VALUE } from './constants';
 import { getIconForColumnType } from './utils';
 
 interface Props extends FlexProps {
@@ -9,7 +10,7 @@ interface Props extends FlexProps {
 }
 
 export function ColumnTypeHeader({ columnDatum, ...props }: Props) {
-  const { description, name, schema_type } = columnDatum || {};
+  const { description, name = NO_VALUE, schema_type } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
 
   return (

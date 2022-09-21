@@ -8,26 +8,34 @@ import {
   TagLabel,
   Text,
   Box,
+  Icon,
 } from '@chakra-ui/react';
 import { useState } from 'react';
+import { FiGrid } from 'react-icons/fi';
 
-import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import {
+  ColumnSchema,
+  SingleReportSchema,
+} from '../../../../sdlc/single-report-schema';
 import { Comparable, SaferTableSchema, Selectable } from '../../../../types';
 import { transformAsNestedBaseTargetRecord } from '../../../../utils/transformers';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
 interface Props extends Selectable, Comparable {
+  baseDataTables?: SingleReportSchema['tables'];
+  targetDataTables?: SingleReportSchema['tables'];
   baseDataColumns?: SaferTableSchema['columns'];
   targetDataColumns?: SaferTableSchema['columns'];
   currentReport: string;
   currentColumn: string;
 }
-// FUTURE TODO: show Table list as well ?? (Accordion)
 /**
- * A master list UI for showing a top-level, navigable, filterable, list of columns. Belongs in the profiling column details page to view in-depth metrics and visualizations
+ * A master list UI for showing a top-level, navigable, filterable, list of all tables and columns from datasource. Belongs in the profiling column details page to view in-depth metrics and visualizations
  */
 export function ColumnDetailMasterList({
+  baseDataTables,
+  targetDataTables,
   baseDataColumns,
   targetDataColumns,
   currentReport,
@@ -49,11 +57,30 @@ export function ColumnDetailMasterList({
     ]),
   );
 
-  const combinedColumnRecord = transformAsNestedBaseTargetRecord<
-    SaferTableSchema['columns'],
-    ColumnSchema
-  >(baseDataColumns, targetDataColumns);
-  const combinedColumnEntries = Object.entries(combinedColumnRecord);
+  const combinedTableRecord = transformAsNestedBaseTargetRecord<
+    SingleReportSchema['tables'],
+    SaferTableSchema
+  >(baseDataTables, targetDataTables);
+  const combinedTableEntries = Object.entries(combinedTableRecord);
+
+  //To avoid re-iterating records later
+  let totalColumnCount = 0;
+  let totalColumnEntries = [] as any[]; //hack: inferred never
+
+  const masterTableColumnRecord = combinedTableEntries.map((tableEntryItem) => {
+    const [tableKey, { base, target }] = tableEntryItem;
+    const columnRecords = transformAsNestedBaseTargetRecord<
+      SaferTableSchema['columns'],
+      ColumnSchema
+    >(base?.columns, target?.columns);
+    const columnEntries = Object.entries(columnRecords);
+
+    totalColumnCount += columnEntries.length;
+    totalColumnEntries.push(columnEntries);
+
+    return [tableKey, columnEntries];
+  });
+  console.log(masterTableColumnRecord);
 
   const quickFilters = Array.from(filterState.keys());
 
@@ -71,7 +98,7 @@ export function ColumnDetailMasterList({
       >
         <Flex justify={'space-between'} alignItems={'center'} mb={3}>
           <Text as={'h3'} fontWeight={'bold'} textAlign={'right'}>
-            Columns ({combinedColumnEntries.length})
+            Columns ({totalColumnCount})
           </Text>
         </Flex>
 
@@ -123,29 +150,47 @@ export function ColumnDetailMasterList({
 
       <Box minHeight={'70vh'} bg={'white'}>
         {/* QueryList */}
-        {combinedColumnEntries
-          .filter(([key, { base, target }]) => {
-            // Logic: base-first lookup (tag filter UI)
-            return filterState.get(base?.type) || filterState.get(target?.type);
-          })
-          .filter(([key]) =>
-            filterString
-              ? key.search(new RegExp(filterString, 'gi')) > -1
-              : true,
-          )
-          .map(([key, { base, target }]) => (
-            <ColumnDetailListItem
-              key={key}
-              isActive={base?.name === currentColumn}
-              baseColumnDatum={base}
-              targetColumnDatum={target}
-              onSelect={(columnName) => {
-                onSelect({ tableName: currentReport, columnName });
-              }}
-              singleOnly={singleOnly}
-              p={3}
-            />
-          ))}
+        {masterTableColumnRecord
+          // .filter(([, colEntryList]) => {
+          //   // Logic: base-first lookup (tag filter UI)
+          //   return filterState.get(base?.type) || filterState.get(target?.type);
+          // })
+          // .filter(([key]) =>
+          //   filterString
+          //     ? key.search(new RegExp(filterString, 'gi')) > -1
+          //     : true,
+          // )
+          .map(([tableKey, colEntryList], tableIndex) => {
+            if (Array.isArray(colEntryList)) {
+              return colEntryList.map(
+                ([colKey, { base, target }], colEntryListIndex) => (
+                  <Box key={colKey}>
+                    {/* HEADER - Table */}
+                    {colEntryListIndex === 0 && (
+                      <Flex alignItems={'center'} p={3} gap={2}>
+                        <Icon as={FiGrid} color="gray.700" />
+                        <Text fontWeight={'semibold'}>
+                          {tableKey as string}
+                        </Text>
+                      </Flex>
+                    )}
+                    {/* LIST - Columns */}
+                    <ColumnDetailListItem
+                      isActive={base?.name === currentColumn}
+                      baseColumnDatum={base}
+                      targetColumnDatum={target}
+                      onSelect={(columnName) => {
+                        onSelect({ tableName: currentReport, columnName });
+                      }}
+                      singleOnly={singleOnly}
+                      p={3}
+                    />
+                  </Box>
+                ),
+              );
+            }
+            return null;
+          })}
       </Box>
     </Flex>
   );
