@@ -38,7 +38,6 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
         </Heading>
       </GridItem>
 
-      {/* Single+Comparison */}
       <Grid gap={2}>
         {!singleOnly && (
           <MetricsInfo
@@ -133,7 +132,7 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
           />
         )}
       </Grid>
-      <GridItem colSpan={1} mx={singleOnly ? '10em' : '5em'}>
+      <GridItem colSpan={singleOnly ? 1 : 3} mx={'5em'}>
         <Text
           fontSize="sm"
           border={'1px solid lightgray'}

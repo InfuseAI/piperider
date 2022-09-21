@@ -25,8 +25,6 @@ type ProfilerGenericTypes = ColumnSchema['type'];
 interface Props extends Selectable, Comparable {
   baseDataTables?: SingleReportSchema['tables'];
   targetDataTables?: SingleReportSchema['tables'];
-  baseDataColumns?: SaferTableSchema['columns'];
-  targetDataColumns?: SaferTableSchema['columns'];
   currentReport: string;
   currentColumn: string;
 }
@@ -36,8 +34,6 @@ interface Props extends Selectable, Comparable {
 export function ColumnDetailMasterList({
   baseDataTables,
   targetDataTables,
-  baseDataColumns,
-  targetDataColumns,
   currentReport,
   currentColumn,
   singleOnly,
@@ -166,7 +162,22 @@ export function ColumnDetailMasterList({
               <Box key={colKey}>
                 {/* HEADER - Table */}
                 {colEntryListIndex === 0 && (
-                  <Flex alignItems={'center'} mx={4} my={2} gap={2}>
+                  <Flex
+                    alignItems={'center'}
+                    px={4}
+                    py={2}
+                    gap={2}
+                    bg={
+                      currentColumn === '' && currentReport === tableKey
+                        ? 'blue.100'
+                        : 'gray.200'
+                    }
+                    cursor={'pointer'}
+                    _hover={{ bgColor: 'gray.300' }}
+                    onClick={() => {
+                      onSelect({ tableName: tableKey, columnName: '' });
+                    }}
+                  >
                     <Icon as={FiGrid} color="gray.700" />
                     <Text fontWeight={'semibold'}>{tableKey as string}</Text>
                   </Flex>

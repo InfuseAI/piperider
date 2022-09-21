@@ -47,8 +47,8 @@ function AppSingle() {
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
             {({ tableName, columnName }) => (
               <SRColumnDetailsPage
-                tableName={decodeURIComponent(tableName)}
-                columnName={decodeURIComponent(String(columnName))}
+                tableName={decodeURIComponent(tableName || '')}
+                columnName={decodeURIComponent(columnName || '')}
                 data={window.PIPERIDER_SINGLE_REPORT_DATA}
               />
             )}
@@ -80,8 +80,8 @@ function AppComparison() {
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
             {({ tableName, columnName }) => (
               <CRColumnDetailsPage
-                tableName={decodeURIComponent(tableName)}
-                columnName={decodeURIComponent(String(columnName))}
+                tableName={decodeURIComponent(tableName || '')}
+                columnName={decodeURIComponent(String(columnName || ''))}
                 data={window.PIPERIDER_COMPARISON_REPORT_DATA}
               />
             )}
