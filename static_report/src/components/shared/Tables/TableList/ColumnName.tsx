@@ -1,13 +1,19 @@
-import { Flex, Icon, Text } from '@chakra-ui/react';
+import { ColorProps, Flex, Icon, Text } from '@chakra-ui/react';
 import { FiCornerDownRight } from 'react-icons/fi';
+import { NO_VALUE } from '../../Columns';
 
-export function ColumnName({ name, icon }: { name: string; icon: any }) {
+interface Props {
+  name?: string;
+  icon: any;
+  iconColor?: ColorProps['color'];
+}
+export function ColumnName({ name, icon, iconColor = 'piperider.500' }: Props) {
   return (
     <Flex alignItems="center">
       <Icon as={FiCornerDownRight} color="gray.300" boxSize={5} />
-      <Icon as={icon} color="piperider.500" mx={2} boxSize={5} />
+      <Icon as={icon} color={iconColor} mx={2} boxSize={5} />
       <Text noOfLines={1} mr={1}>
-        {name}
+        {name || NO_VALUE}
       </Text>
     </Flex>
   );

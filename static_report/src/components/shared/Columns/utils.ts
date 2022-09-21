@@ -99,7 +99,7 @@ export function transformCompositionAsFlatStackInput(
       labels: [ZEROLENGTH, NONZEROLENGTH],
       counts: newCounts,
       ratios: newCounts.map((v) => v / (total || 0)),
-      colors: ['#FFCF36', '#002A53'],
+      colors: ['#FFCF36', '#5EC23A'],
     };
   }
   if (containsColumnQuantile(type)) {
@@ -108,7 +108,7 @@ export function transformCompositionAsFlatStackInput(
       labels: [NEGATIVES, ZEROS, POSITIVES],
       counts: newCounts,
       ratios: newCounts.map((v) => v / (total || 0)),
-      colors: ['#FFCF36', '#D9D9D9', '#002A53'],
+      colors: ['#FF0861', '#D9D9D9', '#5EC23A'],
     };
   }
 }
@@ -123,15 +123,8 @@ export function getIconForColumnType(columnDatum?: ColumnSchema): {
   icon: any; //IconType not provided
 } {
   const { type } = columnDatum || {};
-  const isCategorical = checkColumnCategorical(columnDatum);
 
-  if (isCategorical && type === 'string') {
-    return {
-      backgroundColor: 'purple.500',
-      icon: TbCircles,
-    };
-  }
-  if (isCategorical && type === 'integer') {
+  if (type === 'integer') {
     return { backgroundColor: 'orange.500', icon: TiSortNumerically };
   }
   if (type === 'string') {
@@ -168,14 +161,17 @@ export function transformSRMetricsInfoList(
 ): MetricsInfoProps[] {
   if (!columnDatum) return [];
   return metricsList.map(([metakey, name]) => {
-    const count = Number(columnDatum[metakey as string]);
+    const value = columnDatum[metakey];
+    const count = Number(value);
     const percent = count / Number(columnDatum.total);
 
     return {
       name,
       metakey,
       firstSlot: isNaN(count) ? NO_VALUE : formatIntervalMinMax(percent),
-      secondSlot: isNaN(count) ? NO_VALUE : formatAsAbbreviatedNumber(count),
+      secondSlot: isNaN(count)
+        ? value || NO_VALUE
+        : formatAsAbbreviatedNumber(count),
       tooltipValues: { secondSlot: formatNumber(count) },
     };
   });

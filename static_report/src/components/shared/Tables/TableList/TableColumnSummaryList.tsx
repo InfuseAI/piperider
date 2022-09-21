@@ -28,10 +28,10 @@ export function TableColumnSummaryList({
   >(baseTableDatum?.columns, targetTableDatum?.columns);
   const tableName = baseTableDatum?.name || targetTableDatum?.name;
   const columns = Object.keys(baseTableDatum?.columns || {}).map((colName) => {
-    const { icon: colIcon } = getIconForColumnType(
-      targetTableDatum
-        ? targetTableDatum?.columns[colName]
-        : baseTableDatum?.columns[colName],
+    const { icon: colIcon, backgroundColor } = getIconForColumnType(
+      baseTableDatum
+        ? baseTableDatum?.columns[colName]
+        : targetTableDatum?.columns[colName],
     );
 
     const baseAssertions = getReportAggregateAssertions(
@@ -46,6 +46,7 @@ export function TableColumnSummaryList({
     return {
       colName,
       colIcon,
+      colIconColor: backgroundColor,
       baseAssertions,
       targetAssertions,
     };
@@ -61,77 +62,89 @@ export function TableColumnSummaryList({
 
   return (
     <>
-      {columns.map(({ colName, colIcon, baseAssertions, targetAssertions }) => {
-        const colDatum = comparedColumns[colName];
+      {columns.map(
+        ({
+          colName,
+          colIcon,
+          colIconColor,
+          baseAssertions,
+          targetAssertions,
+        }) => {
+          const colDatum = comparedColumns[colName];
 
-        return (
-          <Grid
-            p={3}
-            key={colName}
-            alignItems="center"
-            templateColumns={`${tableListGridTempCols} 2rem`}
-            _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
-            onClick={() => onSelect({ tableName, columnName: colName })}
-            data-cy="cr-table-list-column-item"
-          >
-            <GridItem>
-              <ColumnName name={colName} icon={colIcon} />
-            </GridItem>
+          return (
+            <Grid
+              p={3}
+              key={colName}
+              alignItems="center"
+              templateColumns={`${tableListGridTempCols} 2rem`}
+              _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
+              onClick={() => onSelect({ tableName, columnName: colName })}
+              data-cy="cr-table-list-column-item"
+            >
+              <GridItem>
+                <ColumnName
+                  name={colName}
+                  icon={colIcon}
+                  iconColor={colIconColor}
+                />
+              </GridItem>
 
-            <GridItem>
-              <Grid
-                gap={4}
-                templateColumns={singleOnly ? '1fr' : '1fr 1fr'}
-                height="80px"
-              >
-                <GridItem>
-                  {colDatum?.base ? (
-                    <HistogramChart hideAxis data={colDatum.base} />
-                  ) : (
-                    <NoData />
-                  )}
-                </GridItem>
-                {!singleOnly && (
-                  <GridItem mr={2}>
-                    {colDatum?.target ? (
-                      <HistogramChart hideAxis data={colDatum.target} />
+              <GridItem>
+                <Grid
+                  gap={4}
+                  templateColumns={singleOnly ? '1fr' : '1fr 1fr'}
+                  height="80px"
+                >
+                  <GridItem>
+                    {colDatum?.base ? (
+                      <HistogramChart hideAxis data={colDatum.base} />
                     ) : (
                       <NoData />
                     )}
                   </GridItem>
-                )}
-              </Grid>
-            </GridItem>
-
-            <GridItem>
-              {baseAssertions.total > 0 &&
-              (singleOnly || targetAssertions.total > 0) ? (
-                <Flex gap={2} color="gray.500" alignItems="center">
-                  <AssertionLabel {...baseAssertions} />
                   {!singleOnly && (
-                    <>
-                      <Icon as={FiArrowRight} />
-                      <TargetTableAssertionsSummary
-                        {...targetAssertions}
-                        baseAssertionsFailed={baseAssertions.failed}
-                        delta={targetAssertions.total - baseAssertions.total}
-                      />
-                    </>
+                    <GridItem mr={2}>
+                      {colDatum?.target ? (
+                        <HistogramChart hideAxis data={colDatum.target} />
+                      ) : (
+                        <NoData />
+                      )}
+                    </GridItem>
                   )}
-                </Flex>
-              ) : (
-                <Text color="gray.500">No assertions</Text>
-              )}
-            </GridItem>
+                </Grid>
+              </GridItem>
 
-            <GridItem>
-              <Flex alignItems="center">
-                <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
-              </Flex>
-            </GridItem>
-          </Grid>
-        );
-      })}
+              <GridItem>
+                {baseAssertions.total > 0 &&
+                (singleOnly || targetAssertions.total > 0) ? (
+                  <Flex gap={2} color="gray.500" alignItems="center">
+                    <AssertionLabel {...baseAssertions} />
+                    {!singleOnly && (
+                      <>
+                        <Icon as={FiArrowRight} />
+                        <TargetTableAssertionsSummary
+                          {...targetAssertions}
+                          baseAssertionsFailed={baseAssertions.failed}
+                          delta={targetAssertions.total - baseAssertions.total}
+                        />
+                      </>
+                    )}
+                  </Flex>
+                ) : (
+                  <Text color="gray.500">No assertions</Text>
+                )}
+              </GridItem>
+
+              <GridItem>
+                <Flex alignItems="center">
+                  <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
+                </Flex>
+              </GridItem>
+            </Grid>
+          );
+        },
+      )}
     </>
   );
 }

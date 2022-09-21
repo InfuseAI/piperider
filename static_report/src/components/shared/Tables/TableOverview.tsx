@@ -32,7 +32,7 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
         <Text color="gray.500">Table</Text>
         <Heading fontSize={24}>
           <Flex alignItems="center">
-            <Icon as={FiGrid} mr={1} />
+            <Icon as={FiGrid} mr={2} color={'piperider.500'} />
             {fallback?.name}
           </Flex>
         </Heading>

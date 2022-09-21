@@ -60,7 +60,6 @@ export function ColumnDetailMasterList({
     SaferTableSchema
   >(baseDataTables, targetDataTables);
   const combinedTableEntries = Object.entries(combinedTableRecord);
-  console.log(combinedTableEntries);
 
   //To avoid re-iterating records later
   let totalColumnCount = 0;
@@ -166,6 +165,7 @@ export function ColumnDetailMasterList({
                 {/* HEADER - Table */}
                 {colEntryListIndex === 0 && (
                   <Flex
+                    top={0}
                     alignItems={'center'}
                     px={4}
                     py={2}
