@@ -38,7 +38,7 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
         </Heading>
       </GridItem>
 
-      <Grid gap={2}>
+      <GridItem gap={2} colSpan={1} my={singleOnly ? 0 : 3}>
         {!singleOnly && (
           <MetricsInfo
             name=""
@@ -131,8 +131,8 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
             secondSlotWidth={'16em'}
           />
         )}
-      </Grid>
-      <GridItem colSpan={singleOnly ? 1 : 3} mx={'5em'}>
+      </GridItem>
+      <GridItem colSpan={1}>
         <Text
           fontSize="sm"
           border={'1px solid lightgray'}

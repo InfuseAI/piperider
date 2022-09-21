@@ -97,7 +97,7 @@ export function CRTablesListPage({ data }: Props) {
                         isExpanded={isExpanded}
                         baseTableDatum={table.base}
                         targetTableDatum={table.target}
-                        onSelect={() => setLocation(`/tables/${key}`)}
+                        onSelect={() => setLocation(`/tables/${key}/columns/`)}
                       />
 
                       {/* Accordion Children Types */}

@@ -14,8 +14,6 @@ import { formatReportTime } from '../utils/formatters';
 import type { SingleReportSchema } from '../sdlc/single-report-schema';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { NoData } from '../components/shared/Layouts/NoData';
-import { BreadcrumbNav } from '../components/shared/Layouts/BreadcrumbNav';
-import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
 import {
   containsDataSummary,
   containsColumnQuantile,
@@ -37,14 +35,6 @@ export default function SRColumnDetailsPage({
   const [tabIndex, setTabIndex] = useState<number>(0);
   const time = formatReportTime(created_at) || '';
 
-  if (!tableName) {
-    return (
-      <Main isSingleReport time={time}>
-        <NoData text="No profile data found for table name." />
-      </Main>
-    );
-  }
-
   const decodedColName = decodeURIComponent(columnName);
   const decodedTableName = decodeURIComponent(tableName);
   const isTableDetailsView = decodedColName.length === 0;
@@ -55,6 +45,14 @@ export default function SRColumnDetailsPage({
 
   //FIXME: <Schema> can be undefined if not matching columnDatum
   const { type, histogram } = columnDatum || {};
+
+  if (!tableName || !dataTable) {
+    return (
+      <Main isSingleReport time={time}>
+        <NoData text={`No profile data found for table name: ${tableName}`} />
+      </Main>
+    );
+  }
 
   //FIXME: Use Store for collectively SSOT handling data of tables + columns
   // right now, components are reusing the same utilities, causing execution/implementation redundancies in code

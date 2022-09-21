@@ -13,18 +13,20 @@ import {
 import { useState } from 'react';
 import { FiGrid } from 'react-icons/fi';
 
+import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import {
-  ColumnSchema,
-  SingleReportSchema,
-} from '../../../../sdlc/single-report-schema';
-import { Comparable, SaferTableSchema, Selectable } from '../../../../types';
+  Comparable,
+  SaferSRSchema,
+  SaferTableSchema,
+  Selectable,
+} from '../../../../types';
 import { transformAsNestedBaseTargetRecord } from '../../../../utils/transformers';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
 interface Props extends Selectable, Comparable {
-  baseDataTables?: SingleReportSchema['tables'];
-  targetDataTables?: SingleReportSchema['tables'];
+  baseDataTables?: SaferSRSchema['tables'];
+  targetDataTables?: SaferSRSchema['tables'];
   currentReport: string;
   currentColumn: string;
 }
@@ -54,10 +56,11 @@ export function ColumnDetailMasterList({
   );
 
   const combinedTableRecord = transformAsNestedBaseTargetRecord<
-    SingleReportSchema['tables'],
+    SaferSRSchema['tables'],
     SaferTableSchema
   >(baseDataTables, targetDataTables);
   const combinedTableEntries = Object.entries(combinedTableRecord);
+  console.log(combinedTableEntries);
 
   //To avoid re-iterating records later
   let totalColumnCount = 0;
