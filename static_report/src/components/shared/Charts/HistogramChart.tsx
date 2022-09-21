@@ -44,7 +44,13 @@ export function HistogramChart({
   hideAxis = false,
   animation = false,
 }: HistogramChartProps) {
-  ChartJS.register(BarElement, TimeSeriesScale, LinearScale, CategoryScale);
+  ChartJS.register(
+    BarElement,
+    TimeSeriesScale,
+    LinearScale,
+    CategoryScale,
+    Tooltip,
+  );
 
   const chartOptions = getHistogramChartOptions(data, hideAxis, { animation });
 
@@ -58,7 +64,7 @@ export function HistogramChart({
       type="bar"
       options={chartOptions}
       data={chartData as any}
-      plugins={[Tooltip]}
+      plugins={[]}
     />
   );
 }
