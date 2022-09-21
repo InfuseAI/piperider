@@ -3,7 +3,6 @@ import {
   Divider,
   Flex,
   FlexProps,
-  Icon,
   Progress,
   Text,
 } from '@chakra-ui/react';
@@ -14,7 +13,6 @@ import {
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
 import { ColumnName } from '../../Tables';
-import { NO_VALUE } from '../constants';
 import { getColumnMetricRatio, getIconForColumnType } from '../utils';
 
 interface Props extends Comparable, Selectable {

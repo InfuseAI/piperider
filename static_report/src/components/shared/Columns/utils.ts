@@ -3,7 +3,7 @@ import isNumber from 'lodash/isNumber';
 import { AiOutlineFileText } from 'react-icons/ai';
 import { BiText, BiQuestionMark } from 'react-icons/bi';
 import { BsCalendarDate } from 'react-icons/bs';
-import { TbCircles, TbCircleHalf } from 'react-icons/tb';
+import { TbCircleHalf } from 'react-icons/tb';
 import { TiSortNumerically } from 'react-icons/ti';
 import { VscSymbolOperator } from 'react-icons/vsc';
 import { ColumnSchema } from '../../../sdlc';
@@ -172,7 +172,9 @@ export function transformSRMetricsInfoList(
       secondSlot: isNaN(count)
         ? value || NO_VALUE
         : formatAsAbbreviatedNumber(count),
-      tooltipValues: { secondSlot: formatNumber(count) },
+      tooltipValues: {
+        secondSlot: isNaN(count) ? value || NO_VALUE : formatNumber(count),
+      },
     };
   });
 }

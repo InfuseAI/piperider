@@ -47,7 +47,9 @@ export function TableItemName({
   return (
     <Flex alignItems="center" justifyContent="flex-start">
       <Icon as={FiGrid} color="piperider.500" />
-      <Text mx={1}>{name}</Text>
+      <Tooltip label={name} placement={'top'}>
+        <Text mx={1}>{name}</Text>
+      </Tooltip>
 
       {!descriptionIconVisible && (
         <Tooltip label={description} placement="right-end" shouldWrapChildren>

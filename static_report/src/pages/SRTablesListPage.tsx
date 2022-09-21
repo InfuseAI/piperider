@@ -37,7 +37,7 @@ export function SRTablesListPage({ data }: Props) {
     'summary',
   );
 
-  useDocumentTitle('Report List');
+  useDocumentTitle('Single-Run Reports');
 
   return (
     <Main isSingleReport time={formatReportTime(created_at) || ''}>

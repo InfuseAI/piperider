@@ -124,7 +124,7 @@ export default function CRColumnDetailsPage({
             </Heading>
             <TableColumnSchemaList
               baseTableDatum={baseDataTable}
-              singleOnly
+              targetTableDatum={targetDataTable}
               onSelect={() => {}}
             />
           </GridItem>

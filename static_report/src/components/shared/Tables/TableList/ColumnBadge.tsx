@@ -1,13 +1,16 @@
-import { Flex, Text, Icon } from '@chakra-ui/react';
+import { Flex, Text, Icon, ColorProps } from '@chakra-ui/react';
 import { FiGrid } from 'react-icons/fi';
 
+interface Props {
+  name?: string;
+  icon: any;
+  iconColor?: ColorProps['color'];
+}
 export function ColumnBadge({
   name,
   icon = FiGrid,
-}: {
-  name: string;
-  icon?: any;
-}) {
+  iconColor = 'piperider.500',
+}: Props) {
   return (
     <Flex
       borderRadius="md"
@@ -16,7 +19,7 @@ export function ColumnBadge({
       px={1}
       alignItems="center"
     >
-      <Icon as={icon} color="piperider.500" mr={1} />
+      <Icon as={icon} color={iconColor} mr={1} />
       <Text as="span" fontSize="sm" color="gray.600" width="max-content">
         {name}
       </Text>

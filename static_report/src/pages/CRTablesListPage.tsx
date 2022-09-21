@@ -52,7 +52,7 @@ export function CRTablesListPage({ data }: Props) {
   zReport(ZSingleSchema.safeParse(base));
   zReport(ZSingleSchema.safeParse(target));
 
-  useDocumentTitle('Report List');
+  useDocumentTitle('Comparison Reports');
 
   return (
     <Main

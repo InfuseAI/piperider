@@ -157,16 +157,19 @@ export function TableListItem({
                   }}
                 >
                   {columns.length > 0 &&
-                    columns.map((name) => (
-                      <ColumnBadge
-                        key={name}
-                        name={name}
-                        icon={
-                          getIconForColumnType(baseTableDatum?.columns[name])
-                            .icon
-                        }
-                      />
-                    ))}
+                    columns.map((name) => {
+                      const { backgroundColor, icon } = getIconForColumnType(
+                        baseTableDatum?.columns[name],
+                      );
+                      return (
+                        <ColumnBadge
+                          key={name}
+                          name={name}
+                          icon={icon}
+                          iconColor={backgroundColor}
+                        />
+                      );
+                    })}
                 </Flex>
               ) : (
                 <TableRowColDeltaSummary
