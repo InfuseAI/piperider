@@ -36,7 +36,7 @@ PipeRider will make your life easier by:
 **For data engineers**
 * :zap: 2 min install & set-up
 * :relieved: Non-intrusive & open-source: install and use locally
-* :money_with_wings: Fast & cheap: 10M rows, 8 columns takes only 16s to profile
+* :money_with_wings: Fast & cheap: 100M rows & 8 columns (or 50M & 16 columns) takes only 18s to profile
 * :ledger: Cloud DataWarehouse native & auto-config for dbt
 
 
