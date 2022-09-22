@@ -3,6 +3,7 @@
   "author": {
     "name": "infuseai"
   },
+  "homepage": "./",
   "description": "A UI library for building Piperider generated reports",
   "version": "0.1.0-alpha.1",
   "license": "MIT",
