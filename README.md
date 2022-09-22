@@ -71,8 +71,8 @@ PipeRider will make your life easier by:
 
 
 ## Key features
-* [Generate an HTML Report](https://docs.piperider.io/how-to-guides/generate-report) featuring your data profile and data assertion test results ([interactive sample](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.8.0/index.html))
-* [Compare two reports](https://docs.piperider.io/how-to-guides/compare-reports) to understand how your data has changed over time ([interactive sample](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.8.0/index.html))
+* [Generate an HTML Report](https://docs.piperider.io/how-to-guides/generate-report) featuring your data profile and data assertion test results ([interactive sample](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.9.0/index.html))
+* [Compare two reports](https://docs.piperider.io/how-to-guides/compare-reports) to understand how your data has changed over time ([interactive sample](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.9.0/index.html))
 * Test your data with data assertions:
   * Built-in [data assertions](https://docs.piperider.io/data-quality-assertions/assertion-configuration)
   * Extensible through [custom assertions](https://docs.piperider.io/data-quality-assertions/custom-assertions)
