@@ -20,7 +20,11 @@ import {
 } from '../components/shared/Columns/utils';
 import { TableOverview } from '../components/shared/Tables/TableOverview';
 import { SRAssertionDetailsWidget } from '../components/shared/Widgets/SRAssertionDetailsWidget';
-import { TableColumnSchemaList } from '../lib';
+import {
+  BreadcrumbMetaItem,
+  BreadcrumbNav,
+  TableColumnSchemaList,
+} from '../lib';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
@@ -58,20 +62,29 @@ export default function SRColumnDetailsPage({
   // right now, components are reusing the same utilities, causing execution/implementation redundancies in code
 
   const borderVal = '1px solid lightgray';
+  const breadcrumbList: BreadcrumbMetaItem[] = [
+    { label: 'Tables', path: '/' },
+    { label: decodedTableName, path: `/tables/${decodedTableName}/columns/` },
+    {
+      label: decodedColName,
+      path: `/tables/${decodedTableName}/columns/${decodedColName}`,
+    },
+  ];
 
   return (
     <Main isSingleReport time={time} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
+        <GridItem colSpan={3}>
+          <BreadcrumbNav breadcrumbList={breadcrumbList} />
+        </GridItem>
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
             baseDataTables={dataTables}
-            currentReport={decodedTableName}
+            currentTable={decodedTableName}
             currentColumn={decodedColName}
             onSelect={({ tableName, columnName }) => {
               setTabIndex(0); //resets tabs
-              console.log({ tableName, columnName });
-
               setLocation(`/tables/${tableName}/columns/${columnName}`);
             }}
             singleOnly

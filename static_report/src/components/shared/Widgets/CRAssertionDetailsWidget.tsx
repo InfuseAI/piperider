@@ -77,7 +77,6 @@ export function CRAssertionDetailsWidget({ assertions, ...props }: Props) {
 
   const { passedAssertionRows, failedAssertionRows } =
     mergeGroupedAssertionRows(piperiderAssertionRows, dbtAssertionRows);
-  console.log(passedAssertionRows, failedAssertionRows);
 
   if (piperiderAssertionRows.length === 0 && dbtAssertionRows.length === 0) {
     return (

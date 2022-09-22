@@ -27,7 +27,7 @@ type ProfilerGenericTypes = ColumnSchema['type'];
 interface Props extends Selectable, Comparable {
   baseDataTables?: SaferSRSchema['tables'];
   targetDataTables?: SaferSRSchema['tables'];
-  currentReport: string;
+  currentTable: string;
   currentColumn: string;
 }
 /**
@@ -36,7 +36,7 @@ interface Props extends Selectable, Comparable {
 export function ColumnDetailMasterList({
   baseDataTables,
   targetDataTables,
-  currentReport,
+  currentTable,
   currentColumn,
   singleOnly,
   onSelect,
@@ -54,32 +54,26 @@ export function ColumnDetailMasterList({
       ['other', true],
     ]),
   );
+  const baseTable = baseDataTables?.[currentTable];
+  const targetTable = targetDataTables?.[currentTable];
 
-  const combinedTableRecord = transformAsNestedBaseTargetRecord<
-    SaferSRSchema['tables'],
-    SaferTableSchema
-  >(baseDataTables, targetDataTables);
-  const combinedTableEntries = Object.entries(combinedTableRecord);
+  const combinedColumnRecord = transformAsNestedBaseTargetRecord<
+    SaferTableSchema['columns'],
+    ColumnSchema
+  >(baseTable?.columns, targetTable?.columns);
 
-  //To avoid re-iterating records later
-  let totalColumnCount = 0;
-  let totalColumnEntries = [] as any[]; //hack: inferred never
-
-  const masterTableColumnRecord = combinedTableEntries.map((tableEntryItem) => {
-    const [tableKey, { base, target }] = tableEntryItem;
-    const columnRecords = transformAsNestedBaseTargetRecord<
-      SaferTableSchema['columns'],
-      ColumnSchema
-    >(base?.columns, target?.columns);
-    const columnEntries = Object.entries(columnRecords);
-
-    totalColumnCount += columnEntries.length;
-    totalColumnEntries.push(columnEntries);
-
-    return [tableKey, columnEntries] as [string, typeof columnEntries]; //hack: mapping on entries return possible 'string.' type.
-  });
+  const combinedTableColumnEntries = Object.entries(combinedColumnRecord);
 
   const quickFilters = Array.from(filterState.keys());
+
+  const filteredTableColumnEntries = combinedTableColumnEntries
+    .filter(([, { base, target }]) => {
+      // Logic: base-first lookup (tag filter UI)
+      return filterState.get(base?.type) || filterState.get(target?.type);
+    })
+    .filter(([key]) =>
+      filterString ? key.search(new RegExp(filterString, 'gi')) > -1 : true,
+    );
 
   return (
     <Flex direction={'column'} position={'relative'}>
@@ -95,7 +89,7 @@ export function ColumnDetailMasterList({
       >
         <Flex justify={'space-between'} alignItems={'center'} mb={3}>
           <Text as={'h3'} fontWeight={'bold'} textAlign={'right'}>
-            Columns ({totalColumnCount})
+            Columns ({filteredTableColumnEntries.length})
           </Text>
         </Flex>
 
@@ -147,60 +141,41 @@ export function ColumnDetailMasterList({
 
       <Box minHeight={'70vh'} bg={'white'}>
         {/* QueryList */}
-        {masterTableColumnRecord.map(([tableKey, colEntryList], tableIndex) => {
-          return colEntryList
-            .filter(([, { base, target }]) => {
-              // Logic: base-first lookup (tag filter UI)
-              return (
-                filterState.get(base?.type) || filterState.get(target?.type)
-              );
-            })
-            .filter(([key]) =>
-              filterString
-                ? key.search(new RegExp(filterString, 'gi')) > -1
-                : true,
-            )
-            .map(([colKey, { base, target }], colEntryListIndex) => (
-              <Box key={colKey}>
-                {/* HEADER - Table */}
-                {colEntryListIndex === 0 && (
-                  <Flex
-                    top={0}
-                    alignItems={'center'}
-                    px={4}
-                    py={2}
-                    gap={2}
-                    bg={
-                      currentColumn === '' && currentReport === tableKey
-                        ? 'blue.100'
-                        : 'gray.200'
-                    }
-                    cursor={'pointer'}
-                    _hover={{ bgColor: 'gray.300' }}
-                    onClick={() => {
-                      onSelect({ tableName: tableKey, columnName: '' });
-                    }}
-                  >
-                    <Icon as={FiGrid} color="gray.700" />
-                    <Text noOfLines={1} fontWeight={'semibold'}>
-                      {tableKey}
-                    </Text>
-                  </Flex>
-                )}
-                {/* LIST - Columns */}
-                <ColumnDetailListItem
-                  isActive={base?.name === currentColumn}
-                  tableName={tableKey}
-                  baseColumnDatum={base}
-                  targetColumnDatum={target}
-                  onSelect={(data) => {
-                    onSelect(data);
-                  }}
-                  singleOnly={singleOnly}
-                  p={3}
-                />
-              </Box>
-            ));
+        {/* HEADER - Table */}
+        <Flex
+          top={0}
+          p={5}
+          gap={2}
+          cursor={'pointer'}
+          alignItems={'center'}
+          bg={currentColumn === '' && currentTable ? 'blue.100' : 'gray.200'}
+          _hover={{ bgColor: 'gray.300' }}
+          onClick={() => {
+            onSelect({ tableName: currentTable, columnName: '' });
+          }}
+        >
+          <Icon as={FiGrid} color="piperider.500" />
+          <Text noOfLines={1} fontWeight={'semibold'}>
+            {currentTable}
+          </Text>
+        </Flex>
+        {filteredTableColumnEntries.map(([colKey, { base, target }]) => {
+          return (
+            <Box key={colKey}>
+              {/* LIST - Columns */}
+              <ColumnDetailListItem
+                isActive={base?.name === currentColumn}
+                tableName={currentTable}
+                baseColumnDatum={base}
+                targetColumnDatum={target}
+                onSelect={(data) => {
+                  onSelect(data);
+                }}
+                singleOnly={singleOnly}
+                p={3}
+              />
+            </Box>
+          );
         })}
       </Box>
     </Flex>

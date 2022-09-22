@@ -23,6 +23,10 @@ import { TableOverview } from '../components/shared/Tables/TableOverview';
 import { CRAssertionDetailsWidget } from '../components/shared/Widgets/CRAssertionDetailsWidget';
 import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 import { getComparisonAssertions } from '../components/shared/Tables/utils';
+import {
+  BreadcrumbMetaItem,
+  BreadcrumbNav,
+} from '../components/shared/Layouts/BreadcrumbNav';
 interface Props {
   data: ComparisonReportSchema;
   columnName: string;
@@ -87,15 +91,26 @@ export default function CRColumnDetailsPage({
     ...(dbtBaseOverview?.tests || []),
     ...(dbtTargetOverview?.tests || []),
   ];
+  const breadcrumbList: BreadcrumbMetaItem[] = [
+    { label: 'Tables', path: '/' },
+    { label: decodedTableName, path: `/tables/${decodedTableName}/columns/` },
+    {
+      label: decodedColName,
+      path: `/tables/${decodedTableName}/columns/${decodedColName}`,
+    },
+  ];
   return (
     <Main isSingleReport={false} time={time} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
+        <GridItem colSpan={3}>
+          <BreadcrumbNav breadcrumbList={breadcrumbList} />
+        </GridItem>
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
             baseDataTables={baseTables}
             targetDataTables={targetTables}
-            currentReport={decodedTableName}
+            currentTable={decodedTableName}
             currentColumn={decodedColName}
             onSelect={({ tableName, columnName }) => {
               setTabIndex(0); //reset tabs
