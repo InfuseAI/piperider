@@ -74,8 +74,10 @@ export function CRAssertionDetailsWidget({ assertions, ...props }: Props) {
 
   const piperiderAssertionRows = groupedAssertions(groupPiperiderAssertions);
   const dbtAssertionRows = groupedAssertions(groupDbtAssertions);
+
   const { passedAssertionRows, failedAssertionRows } =
     mergeGroupedAssertionRows(piperiderAssertionRows, dbtAssertionRows);
+  console.log(passedAssertionRows, failedAssertionRows);
 
   if (piperiderAssertionRows.length === 0 && dbtAssertionRows.length === 0) {
     return (
@@ -91,6 +93,7 @@ export function CRAssertionDetailsWidget({ assertions, ...props }: Props) {
         <Table variant="simple">
           <Thead>
             <Tr>
+              <Th>Column</Th>
               <Th>Assertion</Th>
               <Th>Base Status</Th>
               <Th>Target Status</Th>
@@ -101,6 +104,7 @@ export function CRAssertionDetailsWidget({ assertions, ...props }: Props) {
           <Tbody>
             {failedAssertionRows.map((row) => (
               <Tr key={nanoid()}>
+                <Td>{row.base?.column}</Td>
                 <Td>{row.name}</Td>
                 <Td>
                   <AssertionStatus status={row.base?.status} />
@@ -127,6 +131,7 @@ export function CRAssertionDetailsWidget({ assertions, ...props }: Props) {
 
             {passedAssertionRows.map((row) => (
               <Tr key={nanoid()}>
+                <Td>{row.base?.column}</Td>
                 <Td>{row.name}</Td>
                 <Td>
                   <AssertionStatus status={row.base?.status} />
