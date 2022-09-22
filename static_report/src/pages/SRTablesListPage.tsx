@@ -22,7 +22,7 @@ import { type SingleReportSchema } from '../sdlc/single-report-schema';
 
 import { zReport, ZTableSchema } from '../types';
 import { TableListItem } from '../components/shared/Tables/TableList/TableListItem';
-import { tableListGridTempCols } from '../utils/layout';
+import { tableListGridTempCols, tableListWidth } from '../utils/layout';
 import { TableColumnSummaryList } from '../components/shared/Tables/TableList/TableColumnSummaryList';
 import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 
@@ -50,7 +50,7 @@ export function SRTablesListPage({ data }: Props) {
         }}
       ></TableActionBar>
 
-      <Flex direction="column" width="900px" minHeight="650px">
+      <Flex direction="column" width={tableListWidth} minHeight="650px">
         <Grid templateColumns={tableListGridTempCols} px={4} my={6}>
           <Text>Name</Text>
           <Text>Summary</Text>

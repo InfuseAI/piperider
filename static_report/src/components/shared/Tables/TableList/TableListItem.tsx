@@ -24,7 +24,10 @@ import { getIconForColumnType } from '../../Columns/utils';
 import { NoData } from '../../Layouts';
 import { AssertionLabel } from '../../Assertions/AssertionLabel';
 import { getReportAggregateAssertions } from '../utils';
-import { tableListGridTempCols } from '../../../../utils/layout';
+import {
+  tableListGridTempCols,
+  tableListMaxWidth,
+} from '../../../../utils/layout';
 
 interface Props extends Selectable, Comparable {
   isExpanded: boolean;
@@ -66,8 +69,8 @@ export function TableListItem({
     >
       <Grid
         templateColumns={tableListGridTempCols}
+        width={tableListMaxWidth}
         justifyItems="flex-start"
-        width="calc(900px - 30px)"
         position={'relative'}
         rowGap={3}
       >

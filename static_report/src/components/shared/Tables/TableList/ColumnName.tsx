@@ -9,7 +9,7 @@ interface Props {
 }
 export function ColumnName({ name, icon, iconColor = 'piperider.500' }: Props) {
   return (
-    <Flex alignItems="center">
+    <Flex alignItems="center" maxW={'14em'}>
       <Icon as={FiCornerDownRight} color="gray.300" boxSize={5} />
       <Icon as={icon} color={iconColor} mx={2} boxSize={5} />
       <Tooltip label={name}>

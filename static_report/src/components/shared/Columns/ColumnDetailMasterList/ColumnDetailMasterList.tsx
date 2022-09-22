@@ -182,7 +182,9 @@ export function ColumnDetailMasterList({
                     }}
                   >
                     <Icon as={FiGrid} color="gray.700" />
-                    <Text fontWeight={'semibold'}>{tableKey as string}</Text>
+                    <Text noOfLines={1} fontWeight={'semibold'}>
+                      {tableKey}
+                    </Text>
                   </Flex>
                 )}
                 {/* LIST - Columns */}
