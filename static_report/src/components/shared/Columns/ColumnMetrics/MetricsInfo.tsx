@@ -58,7 +58,7 @@ export function MetricsInfo({
         isDisabled={!Boolean(metaDescription)}
         placement={'top'}
       >
-        <Text width={width || '5em'} fontWeight={700}>
+        <Text width={width || '8em'} fontWeight={700} fontSize={'sm'}>
           {name}
           <Text
             ml={2}

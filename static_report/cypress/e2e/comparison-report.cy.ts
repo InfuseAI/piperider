@@ -2,12 +2,12 @@ describe('Comparison Report [table-list-page, table-detail-page]', () => {
   it('should expand the table overview by clicking items', () => {
     cy.visit('http://localhost:3001');
 
-    const first = cy.get('[data-cy="cr-table-overview-btn"]').first();
+    const first = cy.get('[data-cy="table-list-accordion-btn"]').first();
     first.should('have.attr', 'aria-expanded', 'false');
     first.click();
     first.should('have.attr', 'aria-expanded', 'true');
 
-    const second = cy.get('[data-cy="cr-table-overview-btn"]').eq(1);
+    const second = cy.get('[data-cy="table-list-accordion-btn"]').eq(1);
     first.should('have.attr', 'aria-expanded', 'false');
     second.click();
     second.should('have.attr', 'aria-expanded', 'true');
@@ -18,31 +18,18 @@ describe('Comparison Report [table-list-page, table-detail-page]', () => {
   it('should navigate to the table detail page', () => {
     cy.visit('http://localhost:3001');
 
-    cy.get('[data-cy="cr-navigate-report-detail"]').should('not.exist');
-
-    const first = cy.get('[data-cy="cr-table-overview-btn"]').first();
-    first.click();
-
-    const navigateBtn = cy
-      .get('[data-cy="cr-navigate-report-detail"]')
-      .should('exist');
-    navigateBtn.click();
+    const tableDetailBtn = cy.get('[data-cy="navigate-report-detail"]').first();
+    tableDetailBtn.click();
   });
 
   it('should navigate to the table detail page and back to overview page', () => {
     cy.visit('http://localhost:3001');
 
-    const first = cy.get('[data-cy="cr-table-overview-btn"]').first();
+    const first = cy.get('[data-cy="table-list-accordion-btn"]').first();
     first.click();
 
-    const navigateBtn = cy
-      .get('[data-cy="cr-navigate-report-detail"]')
-      .should('exist');
-    navigateBtn.click();
-
-    cy.wait(500);
-    const backLink = cy.get('[data-cy="breadcrumb-link"]').first();
-    backLink.click();
+    const tableDetailBtn = cy.get('[data-cy="navigate-report-detail"]').first();
+    tableDetailBtn.click();
   });
 
   it('should get the default list view and toggle to schema view', () => {
@@ -75,11 +62,11 @@ describe('Comparison Report [column-detail-page]', () => {
     schemaView.click();
 
     const tableAccordionBtn = cy
-      .get('[data-cy="cr-table-overview-btn"]')
+      .get('[data-cy="table-list-accordion-btn"]')
       .first();
     tableAccordionBtn.click();
     const columnAccordionItem = cy
-      .get('[data-cy="cr-table-list-schema-item"]')
+      .get('[data-cy="table-list-schema-item"]')
       .first();
     columnAccordionItem.click();
   });
@@ -90,31 +77,29 @@ describe('Comparison Report [column-detail-page]', () => {
     schemaView.click();
 
     const tableAccordionBtn = cy
-      .get('[data-cy="cr-table-overview-btn"]')
+      .get('[data-cy="table-list-accordion-btn"]')
       .first();
     tableAccordionBtn.click();
     const columnAccordionItem = cy
-      .get('[data-cy="cr-table-list-column-item"]')
+      .get('[data-cy="table-list-summary-item-item"]')
       .first();
     columnAccordionItem.click();
   });
 
   it('should navigate between different column items from the column detail page (and have active selection)', () => {
-    cy.visit('http://localhost:3001/#/tables/ACTION/columns/SYMBOL');
+    cy.visit('http://localhost:3001');
+
+    const tableDetailBtn = cy.get('[data-cy="navigate-report-detail"]').first();
+    tableDetailBtn.click();
 
     const firstColumnDetailListItem = cy
       .get('[data-cy="column-detail-list-item"]')
       .first();
-    firstColumnDetailListItem
-      .should('have.css', 'background-color')
-      .and('equal', 'rgb(190, 227, 248)');
+    firstColumnDetailListItem.click();
 
     const secondColumnDetailListItem = cy
       .get('[data-cy="column-detail-list-item"]')
       .last();
     secondColumnDetailListItem.click();
-    secondColumnDetailListItem
-      .should('have.css', 'background-color')
-      .and('equal', 'rgb(190, 227, 248)');
   });
 });

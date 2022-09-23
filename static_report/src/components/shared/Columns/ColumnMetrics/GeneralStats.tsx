@@ -3,9 +3,9 @@ import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import { Comparable, ZColSchema, zReport } from '../../../../types';
 import {
   MetricNameMetakeyList,
-  transformCRMetricsInfoList,
   transformSRMetricsInfoList,
-} from '../../../../utils/transformers';
+  transformCRMetricsInfoList,
+} from '../utils';
 import { MetricsInfo } from './MetricsInfo';
 
 interface Props extends Comparable {

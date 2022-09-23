@@ -8,13 +8,15 @@ import {
   Tbody,
   Td,
   Text,
+  useDisclosure,
 } from '@chakra-ui/react';
 import groupBy from 'lodash/groupBy';
 import { nanoid } from 'nanoid';
+import { useState } from 'react';
 
 import { CRAssertionTests } from '../../../types';
-import { AssertionStatus } from '../AssertionStatus';
-import type { CRModalData } from '../Modals/CRModal/CRModal';
+import { AssertionStatus } from '../Assertions/AssertionStatus';
+import { CRModal, TestDetail } from '../Modals/CRModal/CRModal';
 
 type AssertionRow = {
   name: string;
@@ -34,13 +36,6 @@ type Props = {
     piperider: CRAssertionTests[];
     dbt: CRAssertionTests[];
   };
-  onDetailVisible: ({
-    type,
-    data,
-  }: {
-    type: 'piperider' | 'dbt';
-    data: CRModalData;
-  }) => void;
 };
 
 function groupedAssertions(
@@ -65,7 +60,8 @@ function groupedAssertions(
 
 export function CRAssertionDetailsWidget({ assertions, ...props }: Props) {
   const { piperider, dbt } = assertions;
-
+  const modal = useDisclosure();
+  const [testDetail, setTestDetail] = useState<TestDetail | null>(null);
   // group by "level", "column", "name"
   const groupPiperiderAssertions = groupBy<CRAssertionTests>(
     piperider,
@@ -78,6 +74,7 @@ export function CRAssertionDetailsWidget({ assertions, ...props }: Props) {
 
   const piperiderAssertionRows = groupedAssertions(groupPiperiderAssertions);
   const dbtAssertionRows = groupedAssertions(groupDbtAssertions);
+
   const { passedAssertionRows, failedAssertionRows } =
     mergeGroupedAssertionRows(piperiderAssertionRows, dbtAssertionRows);
 
@@ -90,70 +87,86 @@ export function CRAssertionDetailsWidget({ assertions, ...props }: Props) {
   }
 
   return (
-    <TableContainer>
-      <Table variant="simple">
-        <Thead>
-          <Tr>
-            <Th>Assertion</Th>
-            <Th>Base Status</Th>
-            <Th>Target Status</Th>
-            <Th>Source</Th>
-            <Th />
-          </Tr>
-        </Thead>
-        <Tbody>
-          {failedAssertionRows.map((row) => (
-            <Tr key={nanoid()}>
-              <Td>{row.name}</Td>
-              <Td>
-                <AssertionStatus status={row.base?.status} />
-              </Td>
-              <Td>
-                <AssertionStatus status={row.target?.status} />
-              </Td>
-              <Td>{row.source}</Td>
-              <Td
-                onClick={() => {
-                  props.onDetailVisible({
-                    type: 'piperider',
-                    data: row,
-                  });
-                }}
-              >
-                <Text as="span" cursor="pointer">
-                  🔍
-                </Text>
-              </Td>
+    <>
+      <TableContainer>
+        <Table variant="simple">
+          <Thead>
+            <Tr>
+              <Th>Column</Th>
+              <Th>Assertion</Th>
+              <Th>Base Status</Th>
+              <Th>Target Status</Th>
+              <Th>Source</Th>
+              <Th />
             </Tr>
-          ))}
+          </Thead>
+          <Tbody>
+            {failedAssertionRows.map((row) => (
+              <Tr key={nanoid()}>
+                <Td>{row.base?.column}</Td>
+                <Td>{row.name}</Td>
+                <Td>
+                  <AssertionStatus status={row.base?.status} />
+                </Td>
+                <Td>
+                  <AssertionStatus status={row.target?.status} />
+                </Td>
+                <Td>{row.source}</Td>
+                <Td
+                  onClick={() => {
+                    setTestDetail({
+                      type: 'piperider',
+                      data: row,
+                    });
+                    modal.onOpen();
+                  }}
+                >
+                  <Text as="span" cursor="pointer">
+                    🔍
+                  </Text>
+                </Td>
+              </Tr>
+            ))}
 
-          {passedAssertionRows.map((row) => (
-            <Tr key={nanoid()}>
-              <Td>{row.name}</Td>
-              <Td>
-                <AssertionStatus status={row.base?.status} />
-              </Td>
-              <Td>
-                <AssertionStatus status={row.target?.status} />
-              </Td>
-              <Td>{row.source}</Td>
-              <Td
-                onClick={() => {
-                  props.onDetailVisible({
-                    type: 'piperider',
-                    data: row,
-                  });
-                }}
-              >
-                <Text as="span" cursor="pointer">
-                  🔍
-                </Text>
-              </Td>
-            </Tr>
-          ))}
-        </Tbody>
-      </Table>
-    </TableContainer>
+            {passedAssertionRows.map((row) => (
+              <Tr key={nanoid()}>
+                <Td>{row.base?.column}</Td>
+                <Td>{row.name}</Td>
+                <Td>
+                  <AssertionStatus status={row.base?.status} />
+                </Td>
+                <Td>
+                  <AssertionStatus status={row.target?.status} />
+                </Td>
+                <Td>{row.source}</Td>
+                <Td
+                  onClick={() => {
+                    setTestDetail({
+                      type: 'piperider',
+                      data: row,
+                    });
+                    modal.onOpen();
+                  }}
+                >
+                  <Text as="span" cursor="pointer">
+                    🔍
+                  </Text>
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
+      <CRModal
+        {...modal}
+        type={testDetail?.type}
+        data={testDetail?.data}
+        onClose={() => {
+          modal.onClose();
+          setTestDetail(null);
+        }}
+      />
+    </>
   );
 }
 

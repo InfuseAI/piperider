@@ -6,13 +6,13 @@ describe('Single Report (profiler-e2e.db)', () => {
     toggleToSchema.click();
 
     const tableAccordionBtn = cy
-      .get('[data-cy="sr-table-overview-btn"]')
+      .get('[data-cy="table-list-accordion-btn"]')
       .first();
     tableAccordionBtn.should('be.visible');
     tableAccordionBtn.click();
 
     const tableListSchemaItem = cy
-      .get('[data-cy="sr-table-list-schema-item"]')
+      .get('[data-cy="table-list-schema-item"]')
       .first();
 
     tableListSchemaItem.click();

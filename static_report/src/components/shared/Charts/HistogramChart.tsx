@@ -22,13 +22,6 @@ import { DATE_RANGE, TEXTLENGTH, VALUE_RANGE } from '../Columns/constants';
 import 'chartjs-adapter-date-fns';
 import { DeepPartial } from 'chart.js/types/utils';
 
-ChartJS.register(
-  TimeSeriesScale,
-  LinearScale,
-  CategoryScale,
-  BarElement,
-  Tooltip,
-);
 /**
  * Histogram Chart that can display generic data types such as Numeric, Datetime, Integer
  * X: The Min/Max of the labels range is the scaled width of charting area
@@ -40,31 +33,128 @@ type ScaleTypeConfig = DeepPartial<
   ScaleOptionsByType<keyof CartesianScaleTypeRegistry>
 >;
 
-type Props = {
+type HistogramChartProps = {
   data: Pick<ColumnSchema, 'total' | 'type' | 'histogram' | 'min' | 'max'>;
-  animationOptions?: AnimationOptions<'bar'>['animation'];
+  animation?: AnimationOptions<'bar'>['animation'];
   hideAxis?: boolean;
 };
 
 export function HistogramChart({
-  data: { histogram, type, total, min, max },
+  data,
   hideAxis = false,
-  animationOptions = false,
-}: Props) {
+  animation = false,
+}: HistogramChartProps) {
+  ChartJS.register(
+    BarElement,
+    TimeSeriesScale,
+    LinearScale,
+    CategoryScale,
+    Tooltip,
+  );
+
+  const chartOptions = getHistogramChartOptions(data, hideAxis, { animation });
+
+  // Histograms are a mix between bar and scatter options (union)
+  // uses cartesian x,y coordinates to plot and infer labels
+  const chartData = getHistogramChartData(data);
+
+  //infer `any` to allow for union data configurations & options
+  return (
+    <Chart
+      type="bar"
+      options={chartOptions}
+      data={chartData as any}
+      plugins={[]}
+    />
+  );
+}
+
+export function getHistogramChartData(
+  data: HistogramChartProps['data'],
+): ChartData<'bar' | 'scatter'> {
+  const { histogram, type } = data;
   const isDatetime = type === 'datetime';
-  const { counts = [], bin_edges: binEdges = [] } =
-    (histogram as Histogram) || ({} as Histogram);
+  const { counts = [], bin_edges = [] } = histogram || ({} as Histogram);
 
   const newData = isDatetime
-    ? counts.map((v, i) => ({ x: binEdges[i], y: v }))
+    ? counts.map((v, i) => ({ x: bin_edges[i], y: v }))
     : counts;
+
+  const newLabels = bin_edges
+    .map((v, i) => formatDisplayedBinItem(bin_edges, i))
+    .slice(0, -1); // exclude last
+
+  return {
+    labels: newLabels,
+    datasets: [
+      {
+        label: 'counts',
+        data: newData as any, //infer `any` to allow datestring
+        backgroundColor: '#63B3ED',
+        borderColor: '#4299E1',
+        hoverBackgroundColor: '#002A53',
+        borderWidth: 1,
+        categoryPercentage: 1, // tells bar to fill "bin area"
+        barPercentage: 1, //tells bar to fill "bar area"
+        xAxisID: 'x',
+      },
+    ],
+  };
+}
+
+export function getHistogramChartOptions(
+  data: HistogramChartProps['data'],
+  hideAxis = false,
+  { ...configOverrides }: ChartOptions<'bar'> = {},
+): ChartOptions<'bar'> {
+  const { histogram, type, total } = data;
+  const { counts = [], bin_edges: binEdges = [] } =
+    histogram || ({} as Histogram);
+  const isDatetime = type === 'datetime';
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      tooltip: {
+        mode: 'index',
+        position: 'nearest',
+        intersect: false,
+        callbacks: {
+          title([{ dataIndex }]) {
+            const result = formatDisplayedBinItem(binEdges, dataIndex);
+
+            const percentOfTotal = formatIntervalMinMax(
+              counts[dataIndex] / (total as number), //total is always given (schema should make required)
+            );
+
+            const prefix = isDatetime
+              ? DATE_RANGE
+              : type === 'string'
+              ? TEXTLENGTH
+              : VALUE_RANGE;
+
+            return `${prefix}\n${result}\n(${percentOfTotal})`;
+          },
+        },
+      },
+    },
+    scales: getScales(data, hideAxis),
+    ...configOverrides,
+  };
+}
+/**
+ * get x, y scales for histogram (dynamic based on datetime or not)
+ */
+function getScales(
+  { histogram, min, max, type }: HistogramChartProps['data'],
+  hideAxis = false,
+) {
+  const isDatetime = type === 'datetime';
+  const { counts = [], bin_edges: binEdges = [] } =
+    histogram || ({} as Histogram);
+
   const newLabels = binEdges
-    .map(
-      (v, i) =>
-        `${formatAsAbbreviatedNumber(v)}-${formatAsAbbreviatedNumber(
-          binEdges[i + 1],
-        )}`,
-    )
+    .map((v, i) => formatDisplayedBinItem(binEdges, i))
     .slice(0, -1); // exclude last
 
   //swap x-scale when histogram is datetime
@@ -84,9 +174,6 @@ export function HistogramChart({
       minRotation: 30,
       maxRotation: 30,
       maxTicksLimit: 8,
-      callback(val) {
-        return val;
-      },
     },
   };
   /**
@@ -122,64 +209,8 @@ export function HistogramChart({
       },
     },
   };
-
-  const chartOptions: ChartOptions<'bar'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: animationOptions,
-    plugins: {
-      tooltip: {
-        mode: 'index',
-        position: 'nearest',
-        intersect: false,
-        callbacks: {
-          title([{ dataIndex }]) {
-            const result = formatDisplayedBinItem(binEdges, dataIndex);
-
-            const percentOfTotal = formatIntervalMinMax(
-              counts[dataIndex] / (total as number), //total is always given (schema should make required)
-            );
-
-            const prefix = isDatetime
-              ? DATE_RANGE
-              : type === 'string'
-              ? TEXTLENGTH
-              : VALUE_RANGE;
-
-            return `${prefix}\n${result}\n(${percentOfTotal})`;
-          },
-        },
-      },
-    },
-    scales: {
-      x: xScaleBase,
-      y: yScaleBase,
-    },
-  };
-
-  // Histograms are a mix between bar and scatter options (union)
-  // uses cartesian x,y coordinates to plot and infer labels
-  const chartData: ChartData<'bar' | 'scatter'> = {
-    labels: newLabels,
-    datasets: [
-      {
-        label: 'counts',
-        data: newData as any, //infer `any` to allow datestring
-        backgroundColor: '#63B3ED',
-        borderColor: '#4299E1',
-        hoverBackgroundColor: '#002A53',
-        borderWidth: 1,
-        categoryPercentage: 1, // tells bar to fill "bin area"
-        barPercentage: 1, //tells bar to fill "bar area"
-        xAxisID: 'x',
-      },
-    ],
-  };
-
-  //infer `any` to allow for union data configurations & options
-  return <Chart type="bar" options={chartOptions} data={chartData as any} />;
+  return { x: xScaleBase, y: yScaleBase };
 }
-
 /**
  * @returns a formatted, abbreviated, histogram bin display text
  */

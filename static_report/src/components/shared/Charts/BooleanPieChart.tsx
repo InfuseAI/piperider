@@ -6,32 +6,76 @@ import {
   ArcElement,
   Legend,
   AnimationOptions,
+  ChartDataset,
 } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 import { formatIntervalMinMax } from '../../../utils/formatters';
 
-ChartJS.register(ArcElement, Tooltip);
-interface Props {
+/**
+ * Props for creating a BooleanPieChart Component
+ */
+export interface BooleanPieChartProps {
   data: {
     labels: string[];
     counts: number[];
     ratios: number[];
   };
-  animationOptions?: AnimationOptions<'pie'>['animation'];
+  animation?: AnimationOptions<'pie'>['animation'];
 }
 /**
- * A pie chart that visualizes boolean dataset
+ * @description A pie chart that visualizes boolean dataset
  * @param data the counts labels & values
  * @returns a pie chart that shows the composition: null + invalid + trues + falses = 100%
  */
 export function BooleanPieChart({
   data: { counts, labels, ratios },
-  animationOptions = false,
-}: Props) {
-  const chartOptions: ChartOptions<'pie'> = {
+  animation = false,
+}: BooleanPieChartProps) {
+  ChartJS.register(ArcElement);
+  const chartOptions = getBooleanPieChartOptions(ratios, {
+    animation,
+  });
+  const chartData = getBooleanPieChartData(labels, {
+    data: counts,
+  });
+  return (
+    <Pie data={chartData} options={chartOptions} plugins={[Tooltip, Legend]} />
+  );
+}
+
+/**
+ * @param labels labels for each pie slice
+ * @param dataset single dataset for the pie
+ * @returns Chart.js data object
+ */
+export function getBooleanPieChartData(
+  labels: string[],
+  dataset: ChartDataset<'pie'>,
+): ChartData<'pie'> {
+  return {
+    labels,
+    datasets: [
+      {
+        borderWidth: 0,
+        backgroundColor: ['#63B3ED', '#D9D9D9', '#FF0861', '#FFCF36'],
+        hoverOffset: 4,
+        ...dataset,
+      },
+    ],
+  };
+}
+/**
+ * @param ratios list of {v} / total ratio metric
+ * @param param1  chart option overrides
+ * @returns merged Chart.js option object for 'pie'
+ */
+export function getBooleanPieChartOptions(
+  ratios: BooleanPieChartProps['data']['ratios'],
+  { ...configOverrides }: ChartOptions<'pie'> = {},
+): ChartOptions<'pie'> {
+  return {
     responsive: true,
     maintainAspectRatio: false,
-    animation: animationOptions,
     layout: {
       padding: 10,
     },
@@ -53,17 +97,6 @@ export function BooleanPieChart({
         },
       },
     },
+    ...configOverrides,
   };
-  const chartData: ChartData<'pie'> = {
-    labels,
-    datasets: [
-      {
-        data: counts,
-        borderWidth: 0,
-        backgroundColor: ['#63B3ED', '#D9D9D9', '#FF0861', '#FFCF36'],
-        hoverOffset: 4,
-      },
-    ],
-  };
-  return <Pie data={chartData} options={chartOptions} plugins={[Legend]} />;
 }

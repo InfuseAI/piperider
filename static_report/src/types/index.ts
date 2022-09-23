@@ -5,10 +5,13 @@ import {
   tableSchemaSchema,
 } from './../sdlc/single-report-schema.z';
 import {
+  AssertionTest,
   ColumnSchema,
   SingleReportSchema,
   TableSchema,
 } from '../sdlc/single-report-schema';
+
+export * from '../sdlc';
 
 export interface SaferSRSchema extends Omit<SingleReportSchema, 'tables'> {
   tables: { [k: string]: SaferTableSchema | undefined };
@@ -46,6 +49,10 @@ export type CRAssertionTests = {
   expected?: unknown;
   actual?: unknown;
 };
+
+export type CRAssertionData = {
+  name: string;
+} & CRTargetData<AssertionTest & { message?: string }>;
 
 export interface CRTargetData<T> {
   base?: T;

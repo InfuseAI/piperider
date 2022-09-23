@@ -1,6 +1,7 @@
 import { FlexProps, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import { Comparable, ZColSchema, zReport } from '../../../../types';
+import { NO_VALUE, TEXTLENGTH } from '../constants';
 import {
   containsAvgSDSummary,
   containsDistinctDuplicateSummary,
@@ -8,8 +9,7 @@ import {
   MetricNameMetakeyList,
   transformCRMetricsInfoList,
   transformSRMetricsInfoList,
-} from '../../../../utils/transformers';
-import { NO_VALUE, TEXTLENGTH } from '../constants';
+} from '../utils';
 import { MetricsInfo } from './MetricsInfo';
 
 interface Props extends Comparable {

@@ -6,7 +6,7 @@ import {
   zReport,
   ZTableSchema,
 } from '../../../types';
-import { getDataChart } from '../../../utils/charts';
+import { getDataChart } from '../Charts/utils';
 import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
 import { ChartContainer } from '../Charts/ChartContainer';
 import { ColumnStatsCard } from '../Columns/ColumnCards/ColumnStatsCard';

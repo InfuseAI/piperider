@@ -1,6 +1,6 @@
 import { useLocalStorage } from 'usehooks-ts';
 
-import { Main } from '../components/shared/Main';
+import { Main } from '../components/shared/Layouts/Main';
 import {
   TableActionBar,
   type TableActionBarView,
@@ -8,7 +8,7 @@ import {
 
 import { formatReportTime } from '../utils/formatters';
 
-import { CRTableListItem } from '../components/shared/Tables/TableList/CRTableListItem';
+import { TableListItem } from '../components/shared/Tables/TableList/TableListItem';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { CR_LIST_VIEW } from '../utils/localStorageKeys';
 import {
@@ -24,19 +24,16 @@ import {
   Accordion,
   AccordionItem,
   AccordionPanel,
-  Divider,
   Flex,
   Grid,
-  Stack,
   Text,
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 import { useLocation } from 'wouter';
 
-import { CRTableListColumnList } from '../components/shared/Tables/TableList/CRTableListItem/CRTableListColumnList';
-import { CRTableSchemaDetails } from '../components/shared/Tables/TableList/CRTableListItem/CRTableSchemaDetails';
-import { CRTableListAssertions } from '../components/shared/Tables/TableList/CRTableListItem/CRTableListAssertions';
-import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
+import { TableColumnSummaryList } from '../components/shared/Tables/TableList/TableColumnSummaryList';
+import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
+import { tableListGridTempCols, tableListWidth } from '../utils/layout';
 
 type Props = { data: ComparisonReportSchema };
 
@@ -55,7 +52,7 @@ export function CRTablesListPage({ data }: Props) {
   zReport(ZSingleSchema.safeParse(base));
   zReport(ZSingleSchema.safeParse(target));
 
-  useDocumentTitle('Report List');
+  useDocumentTitle('Comparison Reports');
 
   return (
     <Main
@@ -71,17 +68,12 @@ export function CRTablesListPage({ data }: Props) {
         toggleView={(nextView) => {
           setView(nextView);
         }}
-      >
-        <>
-          <Divider orientation="vertical" mx={3} />
-          <BreadcrumbNav routePathToMatch="/" />
-        </>
-      </TableActionBar>
+      ></TableActionBar>
 
-      <Flex direction="column" width="900px" minHeight="650px">
-        <Grid templateColumns="218px 2fr 1.5fr" px={4} my={6}>
-          <Text width="100px">Name</Text>
-          <Text width="">Summary</Text>
+      <Flex direction="column" width={tableListWidth} minHeight="650px">
+        <Grid templateColumns={tableListGridTempCols} px={4} my={6}>
+          <Text>Name</Text>
+          <Text>Summary</Text>
           <Text>Assertions</Text>
         </Grid>
         <Accordion allowToggle>
@@ -94,32 +86,27 @@ export function CRTablesListPage({ data }: Props) {
                 <AccordionItem>
                   {({ isExpanded }) => (
                     <>
-                      {/* Accordion Parent */}
-                      <CRTableListItem
+                      <TableListItem
                         isExpanded={isExpanded}
                         baseTableDatum={table.base}
                         targetTableDatum={table.target}
-                        onSelect={() => setLocation(`/tables/${key}`)}
-                      >
-                        <CRTableListAssertions data={data} tableName={key} />
-                      </CRTableListItem>
+                        onSelect={() => setLocation(`/tables/${key}/columns/`)}
+                      />
 
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
                         {view === 'summary' ? (
-                          <Stack gap={6}>
-                            <CRTableListColumnList
-                              baseTableDatum={table?.base}
-                              targetTableDatum={table?.target}
-                              onSelect={({ tableName, columnName }) =>
-                                setLocation(
-                                  `/tables/${tableName}/columns/${columnName}`,
-                                )
-                              }
-                            />
-                          </Stack>
+                          <TableColumnSummaryList
+                            baseTableDatum={table?.base}
+                            targetTableDatum={table?.target}
+                            onSelect={({ tableName, columnName }) =>
+                              setLocation(
+                                `/tables/${tableName}/columns/${columnName}`,
+                              )
+                            }
+                          />
                         ) : (
-                          <CRTableSchemaDetails
+                          <TableColumnSchemaList
                             visibleDetail
                             baseTableDatum={table?.base}
                             targetTableDatum={table?.target}

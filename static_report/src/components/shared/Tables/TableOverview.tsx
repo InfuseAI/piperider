@@ -32,14 +32,13 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
         <Text color="gray.500">Table</Text>
         <Heading fontSize={24}>
           <Flex alignItems="center">
-            <Icon as={FiGrid} mr={1} />
+            <Icon as={FiGrid} mr={2} color={'piperider.500'} />
             {fallback?.name}
           </Flex>
         </Heading>
       </GridItem>
 
-      {/* Single+Comparison */}
-      <Grid gap={2}>
+      <GridItem gap={2} colSpan={1} my={singleOnly ? 0 : 3}>
         {!singleOnly && (
           <MetricsInfo
             name=""
@@ -47,13 +46,11 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
             firstSlotWidth={'16em'}
             secondSlot={'Target'}
             secondSlotWidth={'16em'}
-            width={'100%'}
             fontWeight={'bold'}
             mb={3}
           />
         )}
         <MetricsInfo
-          width={'100%'}
           name="Row Count"
           metakey="row_count"
           firstSlot={formatNumber(baseTable?.row_count)}
@@ -62,7 +59,6 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
           secondSlotWidth={'16em'}
         />
         <MetricsInfo
-          width={'100%'}
           name="Column Count"
           metakey="col_count"
           firstSlot={formatNumber(baseTable?.col_count)}
@@ -75,7 +71,6 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
 
         {fallback?.bytes && (
           <MetricsInfo
-            width={'100%'}
             name="Volume Size"
             metakey="bytes"
             firstSlot={formatBytes(baseTable?.bytes)}
@@ -91,7 +86,6 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
 
         {fallback?.created && (
           <MetricsInfo
-            width={'100%'}
             name="Created At"
             metakey="created"
             firstSlot={formatReportTime(baseTable?.created)}
@@ -102,7 +96,6 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
         )}
         {fallback?.last_altered && (
           <MetricsInfo
-            width={'100%'}
             name="Last Altered"
             metakey="last_altered"
             firstSlot={formatReportTime(baseTable?.last_altered)}
@@ -113,7 +106,6 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
         )}
         {fallback?.freshness && (
           <MetricsInfo
-            width={'100%'}
             name="Freshness"
             metakey="freshness"
             firstSlot={formatDuration(
@@ -132,8 +124,8 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
             secondSlotWidth={'16em'}
           />
         )}
-      </Grid>
-      <GridItem colSpan={1} mx={singleOnly ? '10em' : '5em'}>
+      </GridItem>
+      <GridItem colSpan={1}>
         <Text
           fontSize="sm"
           border={'1px solid lightgray'}

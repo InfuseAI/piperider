@@ -9,10 +9,13 @@ import {
   Grid,
   GridItem,
 } from '@chakra-ui/react';
-import { isNumber } from 'lodash';
+import isNumber from 'lodash/isNumber';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { getDataChart, renderChartUnavailableMsg } from '../../../utils/charts';
-import { ChartKind } from '../../../utils/transformers';
+import {
+  ChartKind,
+  getDataChart,
+  renderChartUnavailableMsg,
+} from '../Charts/utils';
 import { ChartContainer } from '../Charts/ChartContainer';
 import { TEXTLENGTH } from '../Columns/constants';
 

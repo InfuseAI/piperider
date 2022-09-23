@@ -17,42 +17,68 @@ import {
 import { Chart } from 'react-chartjs-2';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { formatAsAbbreviatedNumber } from '../../../utils/formatters';
+import { getBoxPlotKeyData } from './utils';
 
-ChartJS.register(
-  BoxPlotController,
-  BoxAndWiskers,
-  LinearScale,
-  CategoryScale,
-  Tooltip,
-);
-type Props = {
+const meanBackgroundColor = '#4780A8';
+const backgroundColor = '#D9D9D9';
+
+/**
+ * Props for creating a FlatBoxPlotChart Component
+ */
+export interface FlatBoxPlotChartProps {
   quantileData: Pick<ColumnSchema, 'p50' | 'min' | 'max' | 'p25' | 'p75'>;
-  animationOptions?: AnimationOptions<'boxplot'>['animation'];
-};
+  animation?: AnimationOptions<'boxplot'>['animation'];
+}
 /**
  * A flat boxplot chart that visualizes a single chartDataset (e.g. quantiles)
  * @param data the counts labels & values
  */
 export function FlatBoxPlotChart({
-  quantileData: { min, max, p25, p50, p75 },
-  animationOptions = false,
-}: Props) {
-  const meanBackgroundColor = '#4780A8';
-  const backgroundColor = '#D9D9D9';
+  quantileData,
+  animation = false,
+}: FlatBoxPlotChartProps) {
+  ChartJS.register(
+    BoxPlotController,
+    BoxAndWiskers,
+    LinearScale,
+    CategoryScale,
+  );
+
+  const chartOptions = getBoxPlotChartOptions(quantileData, { animation });
+  const chartData = getBoxPlotChartData(quantileData);
+  return (
+    <Chart
+      type={'boxplot'}
+      data={chartData}
+      options={chartOptions}
+      plugins={[Legend, Tooltip]}
+    />
+  );
+}
+
+/**
+ * @param quantileData max, min, mean, q1, q3
+ * @param param1  chart option overrides
+ * @returns merged Chart.js option object for 'boxplot'
+ */
+export function getBoxPlotChartOptions(
+  quantileData: FlatBoxPlotChartProps['quantileData'],
+  { ...configOverrides }: ChartOptions<'boxplot'> = {},
+): ChartOptions<'boxplot'> {
+  const {
+    max: newMax,
+    min: newMin,
+    mean: newMean,
+    q1: newQ1,
+    q3: newQ3,
+  } = getBoxPlotKeyData(quantileData);
   const legendItems: LegendItem[] = [
     { text: 'box region', fillStyle: backgroundColor },
     { text: 'p50', fillStyle: meanBackgroundColor },
   ];
-  const newMin = Number(min);
-  const newQ1 = Number(p25);
-  const newMedian = Number(p50);
-  const newQ3 = Number(p75);
-  const newMax = Number(max);
-
-  const chartOptions: ChartOptions<'boxplot'> = {
+  return {
     responsive: true,
     maintainAspectRatio: false,
-    animation: animationOptions,
     layout: {
       padding: 10,
     },
@@ -83,7 +109,7 @@ export function FlatBoxPlotChart({
           label() {
             const formattedMin = formatAsAbbreviatedNumber(newMin);
             const formattedMax = formatAsAbbreviatedNumber(newMax);
-            const formattedMean = formatAsAbbreviatedNumber(newMedian);
+            const formattedMean = formatAsAbbreviatedNumber(newMean);
             const formattedQ1 = formatAsAbbreviatedNumber(newQ1);
             const formattedQ3 = formatAsAbbreviatedNumber(newQ3);
             const result = `MIN: ${formattedMin} / P25: ${formattedQ1} / P50 (median): ${formattedMean} / P75: ${formattedQ3} / MAX: ${formattedMax}`;
@@ -92,20 +118,35 @@ export function FlatBoxPlotChart({
         },
       },
     },
+    ...configOverrides,
   };
-  const chartData: ChartData<'boxplot'> = {
+}
+/**
+ * @param quantileData max, min, mean, q1, q3
+ * @returns merged Chart.js data object for 'boxplot'
+ */
+export function getBoxPlotChartData(
+  quantileData: FlatBoxPlotChartProps['quantileData'],
+): ChartData<'boxplot'> {
+  const {
+    max: newMax,
+    min: newMin,
+    mean: newMean,
+    q1: newQ1,
+    q3: newQ3,
+  } = getBoxPlotKeyData(quantileData);
+  return {
     labels: [''],
     datasets: [
       {
         data: [
           {
-            min: Number(min),
-            q1: Number(p25),
-            mean: Number(p50),
-            q3: Number(p75),
-            max: Number(max),
-            //ignored but required interface
-            median: Number(p50),
+            min: newMin,
+            q1: newQ1,
+            mean: newMean,
+            q3: newQ3,
+            max: newMax,
+            median: newMean, //median is ignored but required interface
             items: [],
             outliers: [],
           },
@@ -120,12 +161,4 @@ export function FlatBoxPlotChart({
       },
     ],
   };
-  return (
-    <Chart
-      type={'boxplot'}
-      data={chartData}
-      options={chartOptions}
-      plugins={[Legend]}
-    />
-  );
 }

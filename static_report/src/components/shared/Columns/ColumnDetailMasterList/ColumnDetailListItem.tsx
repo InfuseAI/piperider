@@ -3,32 +3,29 @@ import {
   Divider,
   Flex,
   FlexProps,
-  Icon,
   Progress,
   Text,
 } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { Comparable } from '../../../../types';
+import { Comparable, Selectable } from '../../../../types';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
-import {
-  getColumnMetricRatio,
-  getIconForColumnType,
-} from '../../../../utils/transformers';
-import { NO_VALUE } from '../constants';
+import { ColumnName } from '../../Tables';
+import { getColumnMetricRatio, getIconForColumnType } from '../utils';
 
-interface Props extends Comparable {
+interface Props extends Comparable, Selectable {
+  tableName: string;
   baseColumnDatum?: ColumnSchema;
   targetColumnDatum?: ColumnSchema;
-  onSelect: (arg: string) => void;
   isActive: boolean;
 }
 /**
  * A list item showing a base column detail's name, valid% progress bar(s) depending on split-view
  */
 export function ColumnDetailListItem({
+  tableName,
   baseColumnDatum,
   targetColumnDatum,
   onSelect,
@@ -36,8 +33,8 @@ export function ColumnDetailListItem({
   singleOnly,
   ...props
 }: Props & FlexProps) {
-  const { icon, backgroundColor } = getIconForColumnType(baseColumnDatum);
   const fallbackColumnDatum = baseColumnDatum || targetColumnDatum;
+  const { icon, backgroundColor } = getIconForColumnType(fallbackColumnDatum);
   const baseValidsOfTotal = getColumnMetricRatio('valids', baseColumnDatum);
   const targetValidsOfTotal = getColumnMetricRatio('valids', targetColumnDatum);
   const baseValidsPercentValue = Number(baseValidsOfTotal) * 100;
@@ -57,27 +54,20 @@ export function ColumnDetailListItem({
         justifyContent={'space-between'}
         alignItems={'center'}
         cursor={'pointer'}
-        onClick={() => onSelect(fallbackColumnDatum?.name || '')}
+        onClick={() =>
+          onSelect({ tableName, columnName: fallbackColumnDatum?.name || '' })
+        }
         bg={isActive ? 'blue.100' : 'inherit'}
         _hover={{ bgColor: 'blackAlpha.50' }}
         data-cy="column-detail-list-item"
         {...props}
       >
-        <Flex alignItems={'center'}>
-          <Icon
-            mx={2}
-            p={1}
-            rounded={'md'}
-            color={'white'}
-            backgroundColor={backgroundColor}
-            as={icon}
-            boxSize={5}
-          />
-          <Text noOfLines={1} width={'14em'} fontSize={'lg'}>
-            {fallbackColumnDatum?.name || NO_VALUE}
-          </Text>
-        </Flex>
-        <Box width={'100%'}>
+        <ColumnName
+          iconColor={backgroundColor}
+          icon={icon}
+          name={fallbackColumnDatum?.name}
+        />
+        <Box w={'12em'}>
           {!singleOnly && (
             <Text fontSize={'sm'} color={'gray.600'} fontWeight={'semibold'}>
               Base

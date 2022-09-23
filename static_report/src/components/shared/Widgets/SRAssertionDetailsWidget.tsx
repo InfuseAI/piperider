@@ -11,13 +11,17 @@ import {
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 
-import { AssertionStatus } from '../AssertionStatus';
+import { AssertionStatus } from '../Assertions/AssertionStatus';
 import { formatTestExpectedOrActual } from '../../../utils/formatters';
 
 import type { AssertionValue } from '../../../types';
 import type { AssertionTest } from '../../../sdlc/single-report-schema';
+import { NO_VALUE } from '../Columns';
 
-type AssertionWithSource = AssertionTest & { source?: 'PipeRider' | 'dbt' };
+type AssertionWithSource = AssertionTest & {
+  source?: 'PipeRider' | 'dbt';
+  colName?: string;
+};
 
 type AssertStatusCounts = {
   passed: AssertionWithSource[];
@@ -51,6 +55,7 @@ export function SRAssertionDetailsWidget({ assertions }: Props) {
         <Table variant="simple">
           <Thead>
             <Tr>
+              <Th>Column</Th>
               <Th>Assertion</Th>
               <Th>Status</Th>
               <Th>Expected</Th>
@@ -62,6 +67,7 @@ export function SRAssertionDetailsWidget({ assertions }: Props) {
           <Tbody>
             {failedAssertions.map((assertion) => (
               <Tr key={assertion.name}>
+                <Td>{assertion.colName}</Td>
                 <Td>{assertion.name}</Td>
                 <Td>
                   <AssertionStatus status={assertion.status} />
@@ -76,6 +82,7 @@ export function SRAssertionDetailsWidget({ assertions }: Props) {
 
             {passedAssertions.map((assertion) => (
               <Tr key={nanoid()}>
+                <Td>{assertion.colName || NO_VALUE}</Td>
                 <Td>{assertion.name}</Td>
                 <Td>
                   <AssertionStatus status={assertion.status} />
@@ -124,7 +131,10 @@ function mergeAssertions(piperider?: AssertionValue, dbt?: AssertionValue) {
   const { passed: pprColAssertionPassed, failed: pprColAssertionFailed } =
     Object.keys(piperider?.columns || {})
       .flatMap((colName) =>
-        (piperider?.columns[colName] || []).map((assertion) => assertion),
+        (piperider?.columns[colName] || []).map((assertion) => ({
+          ...assertion,
+          colName,
+        })),
       )
       .reduce<AssertStatusCounts>(
         (acc, assertion) =>
@@ -145,7 +155,10 @@ function mergeAssertions(piperider?: AssertionValue, dbt?: AssertionValue) {
   const { passed: dbtColAssertionPassed, failed: dbtColAssertionFailed } =
     Object.keys(dbt?.columns || {})
       .flatMap((colName) =>
-        (dbt?.columns[colName] || []).map((assertion) => assertion),
+        (dbt?.columns[colName] || []).map((assertion) => ({
+          ...assertion,
+          colName,
+        })),
       )
       .reduce<AssertStatusCounts>(
         (acc, assertion) => extractAssertionWithSource('dbt', assertion, acc),

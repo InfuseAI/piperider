@@ -1,15 +1,15 @@
 import { Divider, Text, Box } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { Comparable } from '../../../types';
-import { renderChartUnavailableMsg } from '../../../utils/charts';
+import { renderChartUnavailableMsg } from '../Charts/utils';
 import { formatTitleCase } from '../../../utils/formatters';
-import {
-  containsAvgSDSummary,
-  transformCompositionAsFlatStackInput,
-} from '../../../utils/transformers';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
 import { GeneralStats } from '../Columns/ColumnMetrics/GeneralStats';
 import { TypedStats } from '../Columns/ColumnMetrics/TypedStats';
+import {
+  containsAvgSDSummary,
+  transformCompositionAsFlatStackInput,
+} from '../Columns/utils';
 
 interface Props extends Comparable {
   hasAnimation?: boolean;
@@ -40,7 +40,7 @@ export function DataCompositionWidget({
           <Box height={'55px'}>
             <FlatStackedBarChart
               data={dataCompInput}
-              animationOptions={animationOptions}
+              animation={animationOptions}
             />
           </Box>
           <Box mt={6}>
@@ -59,7 +59,7 @@ export function DataCompositionWidget({
             <Box height={'55px'}>
               <FlatStackedBarChart
                 data={dynamicCompInput}
-                animationOptions={animationOptions}
+                animation={animationOptions}
               />
             </Box>
             <Box mt={6}>

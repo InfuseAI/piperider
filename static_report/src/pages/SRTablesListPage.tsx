@@ -2,17 +2,15 @@ import {
   Accordion,
   AccordionItem,
   AccordionPanel,
-  Divider,
   Flex,
   Grid,
-  Stack,
   Text,
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 import { useLocalStorage } from 'usehooks-ts';
 import { useLocation } from 'wouter';
 
-import { Main } from '../components/shared/Main';
+import { Main } from '../components/shared/Layouts/Main';
 import {
   TableActionBar,
   type TableActionBarView,
@@ -23,10 +21,10 @@ import { SR_LIST_VIEW } from '../utils/localStorageKeys';
 import { type SingleReportSchema } from '../sdlc/single-report-schema';
 
 import { zReport, ZTableSchema } from '../types';
-import { SRTableListColumnList } from '../components/shared/Tables/TableList/SRTableListItem/SRTableListColumnList';
-import { SRTableListSchemaDetail } from '../components/shared/Tables/TableList/SRTableListItem/SRTableListSchemaDetail';
-import { SRTableListItem } from '../components/shared/Tables/TableList/SRTableListItem';
-import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
+import { TableListItem } from '../components/shared/Tables/TableList/TableListItem';
+import { tableListGridTempCols, tableListWidth } from '../utils/layout';
+import { TableColumnSummaryList } from '../components/shared/Tables/TableList/TableColumnSummaryList';
+import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 
 type Props = { data: SingleReportSchema };
 
@@ -39,7 +37,7 @@ export function SRTablesListPage({ data }: Props) {
     'summary',
   );
 
-  useDocumentTitle('Report List');
+  useDocumentTitle('Single-Run Reports');
 
   return (
     <Main isSingleReport time={formatReportTime(created_at) || ''}>
@@ -50,23 +48,17 @@ export function SRTablesListPage({ data }: Props) {
         toggleView={(nextView) => {
           setView(nextView);
         }}
-      >
-        <>
-          <Divider orientation="vertical" mx={3} />
-          <BreadcrumbNav routePathToMatch="/" />
-        </>
-      </TableActionBar>
+      ></TableActionBar>
 
-      <Flex direction="column" width="900px" minHeight="650px">
-        <Grid templateColumns="1fr 2fr 1fr" px={4} my={6}>
-          <Text width="100px">Name</Text>
-          <Text width="">Summary</Text>
+      <Flex direction="column" width={tableListWidth} minHeight="650px">
+        <Grid templateColumns={tableListGridTempCols} px={4} my={6}>
+          <Text>Name</Text>
+          <Text>Summary</Text>
           <Text>Assertions</Text>
         </Grid>
         <Accordion allowToggle>
           {Object.keys(tables).map((key) => {
             const table = tables[key];
-
             zReport(ZTableSchema.safeParse(table));
 
             return (
@@ -74,31 +66,31 @@ export function SRTablesListPage({ data }: Props) {
                 <AccordionItem>
                   {({ isExpanded }) => (
                     <>
-                      {/* Accordion Parent */}
-                      <SRTableListItem
+                      <TableListItem
                         isExpanded={isExpanded}
-                        tableDatum={table}
+                        baseTableDatum={table}
+                        singleOnly
                         onSelect={({ tableName }) =>
-                          setLocation(`/tables/${tableName}`)
+                          setLocation(`/tables/${tableName}/columns/`)
                         }
                       />
-
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
                         {view === 'summary' ? (
-                          <Stack gap={6}>
-                            <SRTableListColumnList
-                              table={table}
-                              onSelect={({ tableName, columnName }) =>
-                                setLocation(
-                                  `/tables/${tableName}/columns/${columnName}`,
-                                )
-                              }
-                            />
-                          </Stack>
+                          <TableColumnSummaryList
+                            baseTableDatum={table}
+                            singleOnly
+                            onSelect={({ tableName, columnName }) =>
+                              setLocation(
+                                `/tables/${tableName}/columns/${columnName}`,
+                              )
+                            }
+                          />
                         ) : (
-                          <SRTableListSchemaDetail
-                            table={table}
+                          <TableColumnSchemaList
+                            singleOnly
+                            visibleDetail
+                            baseTableDatum={table}
                             onSelect={({ tableName, columnName }) =>
                               setLocation(
                                 `/tables/${tableName}/columns/${columnName}`,

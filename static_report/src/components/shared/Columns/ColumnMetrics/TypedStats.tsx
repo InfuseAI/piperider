@@ -2,11 +2,11 @@ import { FlexProps } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import { Comparable, ZColSchema, zReport } from '../../../../types';
 import {
-  containsColumnQuantile,
   MetricNameMetakeyList,
-  transformCRMetricsInfoList,
   transformSRMetricsInfoList,
-} from '../../../../utils/transformers';
+  transformCRMetricsInfoList,
+  containsColumnQuantile,
+} from '../utils';
 import { MetricsInfo } from './MetricsInfo';
 
 interface Props extends Comparable {

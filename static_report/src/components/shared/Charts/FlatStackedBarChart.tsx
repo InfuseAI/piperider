@@ -16,7 +16,9 @@ import {
   formatTitleCase,
 } from '../../../utils/formatters';
 
-ChartJS.register(Tooltip, CategoryScale, LinearScale, BarElement);
+/**
+ * Props to create FlatStackedBarChart Component
+ */
 export interface FlatStackedBarChartProps {
   data: {
     labels: string[];
@@ -24,7 +26,7 @@ export interface FlatStackedBarChartProps {
     ratios: number[];
     colors: string[];
   };
-  animationOptions?: AnimationOptions<'bar'>['animation'];
+  animation?: AnimationOptions<'bar'>['animation'];
 }
 /**
  * A stacked bar chart that visualizes a flat dataset, where every item in the list is shown as a bar segment of the entire stack (e.g. data composition - valids, negatives, zeroes, positives)
@@ -32,12 +34,28 @@ export interface FlatStackedBarChartProps {
  * @returns a stacked bar chart that shows the composition: null + invalid + trues + falses = 100%
  */
 export function FlatStackedBarChart({
-  data: { labels, counts, ratios, colors },
-  animationOptions = false,
+  data,
+  animation = false,
 }: FlatStackedBarChartProps) {
-  const chartOptions: ChartOptions<'bar'> = {
+  ChartJS.register(BarElement, CategoryScale, LinearScale);
+
+  const chartOptions = getFlatSackedBarChartOptions(data, { animation });
+  const chartData = getFlatSackedBarChartData(data);
+  return (
+    <Bar data={chartData} options={chartOptions} plugins={[Tooltip, Legend]} />
+  );
+}
+/**
+ * @param param0 chart data
+ * @param param1  chart option overrides
+ * @returns merged Chart.js option object for 'bar'
+ */
+export function getFlatSackedBarChartOptions(
+  { counts, labels, ratios }: FlatStackedBarChartProps['data'],
+  { ...configOverrides }: ChartOptions<'bar'> = {},
+): ChartOptions<'bar'> {
+  return {
     responsive: true,
-    animation: animationOptions,
     maintainAspectRatio: false,
     indexAxis: 'y', //makes chart horizontal
     scales: {
@@ -83,7 +101,18 @@ export function FlatStackedBarChart({
         },
       },
     },
+    ...configOverrides,
   };
+}
+/**
+ * @param param0 chart data
+ * @returns merged Chart.js data object for 'bar'
+ */
+export function getFlatSackedBarChartData({
+  counts,
+  labels,
+  colors,
+}: FlatStackedBarChartProps['data']): ChartData<'bar'> {
   const datasets: ChartDataset<'bar'>[] = labels.map((label, idx) => {
     return {
       label,
@@ -93,9 +122,8 @@ export function FlatStackedBarChart({
     };
   });
 
-  const chartData: ChartData<'bar'> = {
+  return {
     labels: [''], //one-slot only
     datasets,
   };
-  return <Bar data={chartData} options={chartOptions} plugins={[Legend]} />;
 }

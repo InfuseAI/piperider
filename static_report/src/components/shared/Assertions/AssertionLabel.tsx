@@ -10,7 +10,6 @@ export interface AssertionLabelProps extends Comparable {
   failed: number;
   icon?: ReactNode;
   comparisonDelta?: ReactNode;
-  children?: ReactNode;
 }
 
 export function AssertionLabel({
@@ -49,8 +48,6 @@ export function AssertionLabel({
           <Text as="span">{formatColumnValueWith(total, formatNumber)}</Text>
         )}
       </Flex>
-
-      {props?.children}
     </Flex>
   );
 }

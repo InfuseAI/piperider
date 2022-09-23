@@ -1,32 +1,37 @@
-import { Grid, GridItem } from '@chakra-ui/react';
+import { Grid, GridItem, Heading } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
 import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
-import { Main } from '../components/shared/Main';
+import { Main } from '../components/shared/Layouts/Main';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { mainContentAreaHeight } from '../utils/layout';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
-import { ColumnDetailsMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
+import { ColumnDetailMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
 
-import {
-  containsColumnQuantile,
-  containsDataSummary,
-} from '../utils/transformers';
 import { formatReportTime } from '../utils/formatters';
 
 import type { SingleReportSchema } from '../sdlc/single-report-schema';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
-import { NoData } from '../components/shared/NoData';
-import { BreadcrumbNav } from '../components/shared/BreadcrumbNav';
-import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
+import { NoData } from '../components/shared/Layouts/NoData';
+import {
+  containsDataSummary,
+  containsColumnQuantile,
+} from '../components/shared/Columns/utils';
+import { TableOverview } from '../components/shared/Tables/TableOverview';
+import { SRAssertionDetailsWidget } from '../components/shared/Widgets/SRAssertionDetailsWidget';
+import {
+  BreadcrumbMetaItem,
+  BreadcrumbNav,
+  TableColumnSchemaList,
+} from '../lib';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
   tableName: string;
 }
 export default function SRColumnDetailsPage({
-  data: { tables, created_at },
+  data: { tables: dataTables, created_at },
   columnName,
   tableName,
 }: Props) {
@@ -34,35 +39,49 @@ export default function SRColumnDetailsPage({
   const [tabIndex, setTabIndex] = useState<number>(0);
   const time = formatReportTime(created_at) || '';
 
-  if (!columnName || !tableName) {
+  const decodedColName = decodeURIComponent(columnName);
+  const decodedTableName = decodeURIComponent(tableName);
+  const isTableDetailsView = decodedColName.length === 0;
+
+  const dataTable = dataTables[decodedTableName];
+  const dataColumns = dataTable.columns;
+  const columnDatum = dataColumns[decodedColName];
+
+  //FIXME: <Schema> can be undefined if not matching columnDatum
+  const { type, histogram } = columnDatum || {};
+
+  if (!tableName || !dataTable) {
     return (
       <Main isSingleReport time={time}>
-        <NoData text="No profile data found." />
+        <NoData text={`No profile data found for table name: ${tableName}`} />
       </Main>
     );
   }
 
-  const decodedColName = decodeURIComponent(columnName);
-  const decodedTableName = decodeURIComponent(tableName);
-
-  const dataColumns = tables[decodedTableName].columns;
-  const columnDatum = dataColumns[decodedColName];
-
-  const { type, histogram } = columnDatum;
+  //FIXME: Use Store for collectively SSOT handling data of tables + columns
+  // right now, components are reusing the same utilities, causing execution/implementation redundancies in code
 
   const borderVal = '1px solid lightgray';
+  const breadcrumbList: BreadcrumbMetaItem[] = [
+    { label: 'Tables', path: '/' },
+    { label: decodedTableName, path: `/tables/${decodedTableName}/columns/` },
+    {
+      label: decodedColName,
+      path: `/tables/${decodedTableName}/columns/${decodedColName}`,
+    },
+  ];
 
   return (
     <Main isSingleReport time={time} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
         <GridItem colSpan={3}>
-          <BreadcrumbNav routePathToMatch={COLUMN_DETAILS_ROUTE_PATH} />
+          <BreadcrumbNav breadcrumbList={breadcrumbList} />
         </GridItem>
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
-          <ColumnDetailsMasterList
-            baseDataColumns={dataColumns}
-            currentReport={decodedTableName}
+          <ColumnDetailMasterList
+            baseDataTables={dataTables}
+            currentTable={decodedTableName}
             currentColumn={decodedColName}
             onSelect={({ tableName, columnName }) => {
               setTabIndex(0); //resets tabs
@@ -71,57 +90,85 @@ export default function SRColumnDetailsPage({
             singleOnly
           />
         </GridItem>
-
-        {/* Detail Area */}
-        <Grid
-          templateColumns={'500px 1fr'}
-          templateRows={'5em 1fr 1fr'}
-          width={'100%'}
-          maxHeight={mainContentAreaHeight}
-          overflowY={'auto'}
-        >
-          {/* Label Block */}
-          <GridItem colSpan={2} rowSpan={1}>
-            <ColumnTypeHeader
-              columnDatum={columnDatum}
-              maxHeight={'5em'}
-              height={'100%'}
-              bg={'blue.800'}
-              color={'white'}
+        {/* Detail Area - Table Detail */}
+        {isTableDetailsView ? (
+          <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
+            <TableOverview baseTable={dataTable} singleOnly />
+            <Heading size="md" my={5}>
+              Assertions
+            </Heading>
+            <SRAssertionDetailsWidget
+              assertions={{
+                piperider: dataTable.piperider_assertion_result,
+                dbt: dataTable?.dbt_assertion_result,
+              }}
+            />
+            <Heading size="md" my={5}>
+              Schema
+            </Heading>
+            <TableColumnSchemaList
+              baseTableDatum={dataTable}
+              singleOnly
+              onSelect={() => {}}
             />
           </GridItem>
-          {/* Data Composition Block */}
-          <GridItem p={10} bg={'gray.50'} borderRight={borderVal}>
-            <DataCompositionWidget columnDatum={columnDatum} hasAnimation />
-          </GridItem>
-          {/* Chart Block - toggleable tabs */}
-          <GridItem gridRow={'span 1'} minWidth={0} p={9} bg={'gray.50'}>
-            <ChartTabsWidget
-              baseColumnDatum={columnDatum}
-              hasAnimation
-              tabIndex={tabIndex}
-              onSelectTab={(i) => setTabIndex(i)}
-            />
-          </GridItem>
-          <GridItem
-            gridRow={'span 1'}
-            p={9}
-            bg={'gray.50'}
-            borderRight={borderVal}
+        ) : (
+          // {/* Detail Area - Columns */}
+          <Grid
+            templateColumns={'500px 1fr'}
+            templateRows={'5em 1fr 1fr'}
+            width={'100%'}
+            maxHeight={mainContentAreaHeight}
+            overflowY={'auto'}
           >
-            {containsDataSummary(type) && (
-              <>
-                <DataSummaryWidget columnDatum={columnDatum} />
-              </>
-            )}
-          </GridItem>
-          {/* Quantiles Block */}
-          {containsColumnQuantile(type) && histogram && (
-            <GridItem gridRow={'span 1'} p={9} bg={'gray.50'} minWidth={'1px'}>
-              <QuantilesWidget columnDatum={columnDatum} />
+            {/* Label Block */}
+            <GridItem colSpan={2} rowSpan={1}>
+              <ColumnTypeHeader
+                columnDatum={columnDatum}
+                maxHeight={'5em'}
+                height={'100%'}
+                bg={'blue.800'}
+                color={'white'}
+              />
             </GridItem>
-          )}
-        </Grid>
+            {/* Data Composition Block */}
+            <GridItem p={10} bg={'gray.50'} borderRight={borderVal}>
+              <DataCompositionWidget columnDatum={columnDatum} hasAnimation />
+            </GridItem>
+            {/* Chart Block - toggleable tabs */}
+            <GridItem gridRow={'span 1'} minWidth={0} p={9} bg={'gray.50'}>
+              <ChartTabsWidget
+                baseColumnDatum={columnDatum}
+                hasAnimation
+                tabIndex={tabIndex}
+                onSelectTab={(i) => setTabIndex(i)}
+              />
+            </GridItem>
+            <GridItem
+              gridRow={'span 1'}
+              p={9}
+              bg={'gray.50'}
+              borderRight={borderVal}
+            >
+              {containsDataSummary(type) && (
+                <>
+                  <DataSummaryWidget columnDatum={columnDatum} />
+                </>
+              )}
+            </GridItem>
+            {/* Quantiles Block */}
+            {containsColumnQuantile(type) && histogram && (
+              <GridItem
+                gridRow={'span 1'}
+                p={9}
+                bg={'gray.50'}
+                minWidth={'1px'}
+              >
+                <QuantilesWidget columnDatum={columnDatum} />
+              </GridItem>
+            )}
+          </Grid>
+        )}
       </Grid>
     </Main>
   );
