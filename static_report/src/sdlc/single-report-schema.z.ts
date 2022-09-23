@@ -39,7 +39,7 @@ export const dataSourceSchema = z.object({
 });
 
 export const columnSchemaSchema = z.object({
-  total: z.number().optional(),
+  samples: z.number().optional(),
   nulls: z.number().optional(),
   non_nulls: z.number().optional(),
   distinct: z.number().optional(),
@@ -92,7 +92,7 @@ export const tableSchemaSchema = z.object({
   description: z.string().optional(),
   row_count: z.number().optional(),
   duplicate_rows: z.number().optional(),
-  total: z.number().optional(),
+  samples: z.number().optional(),
   created: z.string().optional(),
   last_altered: z.string().optional(),
   bytes: z.number().optional(),

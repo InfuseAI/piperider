@@ -35,7 +35,7 @@ export interface TableSchema {
   /**
    * Number of rows after applying the row-limit configuration (rows will be unaffected if none is set)
    */
-  total?: number;
+  samples?: number;
   /**
    * The time that this table created at in ISO 8601 format including time zone
    */
@@ -70,7 +70,7 @@ export interface ColumnSchema {
   /**
    * The total count of values, regardless validity
    */
-  total?: number;
+  samples?: number;
   /**
    * The count of values that are null type
    */

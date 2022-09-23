@@ -72,7 +72,7 @@
                   ],
                   "additionalProperties": false,
                   "properties": {
-                    "total": {
+                    "samples": {
                       "description": "The total count of values, regardless validity",
                       "type": "integer"
                     },

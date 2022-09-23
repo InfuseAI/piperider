@@ -191,14 +191,13 @@ export function transformTableAsFlatStackInput(
 ): FlatStackedBarChartProps['data'] | undefined {
   if (!tableDatum?.duplicate_rows) return;
 
-  const { duplicate_rows = 0, total = 0, row_count = 0 } = tableDatum || {};
-  const sample = total;
-  const sampleRatio = total / row_count;
+  const { duplicate_rows = 0, samples = 0, row_count = 0 } = tableDatum || {};
+  const sampleRatio = samples / row_count;
   const duplicateRowRatio = duplicate_rows / row_count;
 
   return {
     labels: [SAMPLE, DUPLICATE_ROWS],
-    counts: [sample, duplicate_rows],
+    counts: [samples, duplicate_rows],
     ratios: [sampleRatio, duplicateRowRatio],
     colors: ['#63B3ED', '#FF0861'],
   };

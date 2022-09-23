@@ -36,9 +36,9 @@ export function getColumnMetricRatio(
   metakey: MetricMetaKeys,
   columnData?: ColumnSchema,
 ) {
-  const { [metakey]: metavalue, total } = columnData || {};
+  const { [metakey]: metavalue, samples } = columnData || {};
 
-  const result = isNumber(metavalue) && total ? metavalue / total : null;
+  const result = isNumber(metavalue) && samples ? metavalue / samples : null;
 
   return result;
 }
@@ -75,7 +75,7 @@ export function transformCompositionAsFlatStackInput(
     positives,
     non_zero_length,
     zero_length,
-    total,
+    samples,
     type,
   } = columnDatum;
 
@@ -98,7 +98,7 @@ export function transformCompositionAsFlatStackInput(
     return {
       labels: [ZEROLENGTH, NONZEROLENGTH],
       counts: newCounts,
-      ratios: newCounts.map((v) => v / (total || 0)),
+      ratios: newCounts.map((v) => v / (samples || 0)),
       colors: ['#FFCF36', '#5EC23A'],
     };
   }
@@ -107,7 +107,7 @@ export function transformCompositionAsFlatStackInput(
     return {
       labels: [NEGATIVES, ZEROS, POSITIVES],
       counts: newCounts,
-      ratios: newCounts.map((v) => v / (total || 0)),
+      ratios: newCounts.map((v) => v / (samples || 0)),
       colors: ['#FF0861', '#D9D9D9', '#5EC23A'],
     };
   }
@@ -163,7 +163,7 @@ export function transformSRMetricsInfoList(
   return metricsList.map(([metakey, name]) => {
     const value = columnDatum[metakey];
     const count = Number(value);
-    const percent = count / Number(columnDatum.total);
+    const percent = count / Number(columnDatum.samples);
 
     return {
       name,

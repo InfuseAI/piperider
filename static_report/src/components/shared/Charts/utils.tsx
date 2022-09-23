@@ -25,7 +25,7 @@ export function getDataChart(
   hasAnimation?: boolean,
 ) {
   const {
-    total,
+    samples,
     name,
     type,
     schema_type,
@@ -52,7 +52,7 @@ export function getDataChart(
     return (
       <CategoricalBarChart
         data={topk}
-        total={total || 0}
+        total={samples || 0}
         animation={hasAnimation ? {} : false}
       />
     );
@@ -60,7 +60,7 @@ export function getDataChart(
   //histogram dataset
   if (chartKind === 'histogram' && histogram && type) {
     //BUG: race-condition when time-series is used /w animation here
-    return <HistogramChart data={{ histogram, min, max, type, total }} />;
+    return <HistogramChart data={{ histogram, min, max, type, samples }} />;
   }
   //pie dataset
   if (
@@ -74,7 +74,7 @@ export function getDataChart(
     const labels = [TRUES, FALSES, NULLS, INVALIDS].map(
       (v) => v.charAt(0) + v.slice(1).toLowerCase(),
     );
-    const ratios = counts.map((v) => v / Number(total));
+    const ratios = counts.map((v) => v / Number(samples));
     return (
       <BooleanPieChart
         data={{ counts, labels, ratios }}

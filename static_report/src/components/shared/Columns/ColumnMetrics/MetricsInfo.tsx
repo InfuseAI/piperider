@@ -10,7 +10,7 @@ export type MetricMetaKeys =
   | keyof Pick<
       ColumnSchema,
       | 'nulls'
-      | 'total'
+      | 'samples'
       | 'valids'
       | 'invalids'
       | 'positives'
@@ -35,7 +35,7 @@ export type TableMetaKeys =
       | 'bytes'
       | 'created'
       | 'row_count'
-      | 'total'
+      | 'samples'
     >;
 export interface MetricsInfoProps {
   name: string;
