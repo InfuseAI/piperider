@@ -91,6 +91,8 @@ export const tableSchemaSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   row_count: z.number().optional(),
+  duplicate_rows: z.number().optional(),
+  total: z.number().optional(),
   created: z.string().optional(),
   last_altered: z.string().optional(),
   bytes: z.number().optional(),
