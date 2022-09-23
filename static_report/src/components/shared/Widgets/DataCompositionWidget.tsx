@@ -74,5 +74,5 @@ export function DataCompositionWidget({
       </Box>
     );
   }
-  return <>{renderChartUnavailableMsg()}</>;
+  return <>{renderChartUnavailableMsg({})}</>;
 }

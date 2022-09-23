@@ -1,3 +1,4 @@
+import { FlatStackedBarChartProps } from './../Charts/FlatStackedBarChart';
 import { NO_VALUE } from '../Columns/constants';
 import {
   AssertionValue,
@@ -5,6 +6,13 @@ import {
   ComparisonReportSchema,
   ComparsionSource,
 } from '../../../types';
+import { DUPLICATE_ROWS, SAMPLE } from './constant';
+import { MetricsInfoProps, TableMetaKeys } from '../Columns';
+import {
+  formatAsAbbreviatedNumber,
+  formatIntervalMinMax,
+  formatNumber,
+} from '../../../utils/formatters';
 
 export function getSingleAssertionStatusCounts(
   assertion: AssertionValue,
@@ -172,4 +180,60 @@ export function getComparisonAssertionTests({
     failed,
     tests: [...table, ...columns.flat()],
   };
+}
+
+/**
+ * Provides Flat stack input data transform for table.duplicate_rows
+ * @param tableDatum
+ */
+export function transformTableAsFlatStackInput(
+  tableDatum?: SaferTableSchema,
+): FlatStackedBarChartProps['data'] | undefined {
+  if (!tableDatum?.duplicate_rows) return;
+
+  const { duplicate_rows = 0, total = 0, row_count = 0 } = tableDatum || {};
+  const sample = total;
+  const sampleRatio = total / row_count;
+  const duplicateRowRatio = duplicate_rows / row_count;
+
+  return {
+    labels: [SAMPLE, DUPLICATE_ROWS],
+    counts: [sample, duplicate_rows],
+    ratios: [sampleRatio, duplicateRowRatio],
+    colors: ['#63B3ED', '#FF0861'],
+  };
+}
+
+export type TableMetakeyList = [TableMetaKeys, string][];
+/**
+  Conditional scenarios:
+  
+  1. base-only (% + count) <<<
+  2. base+target (count + count)
+  3. base||target (count || count)
+  
+ * gets the list of metrics to display, based on metakey
+ */
+export function transformSRTableMetricsInfoList(
+  metricsList: TableMetakeyList,
+  tableDatum?: SaferTableSchema,
+): MetricsInfoProps[] {
+  if (!tableDatum) return [];
+  return metricsList.map(([metakey, name]) => {
+    const value = tableDatum[metakey];
+    const count = Number(value);
+    const percent = count / Number(tableDatum.row_count);
+
+    return {
+      name,
+      metakey,
+      firstSlot: isNaN(count) ? NO_VALUE : formatIntervalMinMax(percent),
+      secondSlot: isNaN(count)
+        ? value || NO_VALUE
+        : formatAsAbbreviatedNumber(count),
+      tooltipValues: {
+        secondSlot: isNaN(count) ? value || NO_VALUE : formatNumber(count),
+      },
+    };
+  });
 }

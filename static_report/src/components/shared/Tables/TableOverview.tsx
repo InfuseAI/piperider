@@ -1,6 +1,5 @@
-import { Text, Heading, Flex, Icon, Grid, GridItem } from '@chakra-ui/react';
+import { Text, Grid, GridItem } from '@chakra-ui/react';
 import { formatDuration, intervalToDuration, subSeconds } from 'date-fns';
-import { FiGrid } from 'react-icons/fi';
 
 import {
   Comparable,
@@ -10,10 +9,12 @@ import {
 } from '../../../types';
 import {
   formatBytes,
+  formatIntervalMinMax,
   formatNumber,
   formatReportTime,
 } from '../../../utils/formatters';
 import { MetricsInfo } from '../Columns/ColumnMetrics/MetricsInfo';
+import { DupedTableRowsWidget } from '../Widgets/DupedTableRowsWidget';
 
 interface Props extends Comparable {
   baseTable?: SaferTableSchema;
@@ -27,19 +28,11 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
   const fallback = baseTable || targetTable;
 
   return (
-    <Grid mb={8} gap={6} templateColumns={singleOnly ? '1fr 2fr' : '1fr 1fr'}>
-      <GridItem gap={1} colSpan={2}>
-        <Text color="gray.500">Table</Text>
-        <Heading fontSize={24}>
-          <Flex alignItems="center">
-            <Icon as={FiGrid} mr={2} color={'piperider.500'} />
-            {fallback?.name}
-          </Flex>
-        </Heading>
-      </GridItem>
-
+    <Grid mb={8} gap={6} templateColumns={singleOnly ? '1fr 1fr' : '1fr 1fr'}>
+      {/* Overview Metrics Section */}
       <GridItem gap={2} colSpan={1} my={singleOnly ? 0 : 3}>
         {!singleOnly && (
+          // FIXME: use MetricMetaKeyList!
           <MetricsInfo
             name=""
             firstSlot={'Base'}
@@ -51,7 +44,7 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
           />
         )}
         <MetricsInfo
-          name="Row Count"
+          name="Rows"
           metakey="row_count"
           firstSlot={formatNumber(baseTable?.row_count)}
           firstSlotWidth={'16em'}
@@ -59,13 +52,25 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
           secondSlotWidth={'16em'}
         />
         <MetricsInfo
-          name="Column Count"
+          name="Columns"
           metakey="col_count"
           firstSlot={formatNumber(baseTable?.col_count)}
           firstSlotWidth={'16em'}
           secondSlot={formatNumber(targetTable?.col_count)}
           secondSlotWidth={'16em'}
         />
+        {/* {baseTable?.duplicate_rows && (
+          // FIXME: Comparison ? (single-view)
+          <MetricsInfo
+            name="Samples"
+            firstSlot={formatIntervalMinMax(
+              Number(baseTable?.total) / Number(baseTable?.row_count),
+            )}
+            firstSlotWidth={'16em'}
+            secondSlot={formatNumber(baseTable?.total)}
+            secondSlotWidth={'16em'}
+          />
+        )} */}
 
         {/* CDW metadata */}
 
@@ -125,6 +130,7 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
           />
         )}
       </GridItem>
+      {/* Description Section */}
       <GridItem colSpan={1}>
         <Text
           fontSize="sm"
@@ -135,6 +141,10 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
         >
           {fallback?.description}
         </Text>
+      </GridItem>
+
+      <GridItem colSpan={1} height={300}>
+        <DupedTableRowsWidget tableDatum={fallback} />
       </GridItem>
     </Grid>
   );

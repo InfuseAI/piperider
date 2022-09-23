@@ -6,24 +6,37 @@ import {
 } from '../../../../sdlc/single-report-schema';
 import { NO_VALUE } from '../constants';
 
-export type MetricMetaKeys = keyof Pick<
-  ColumnSchema,
-  | 'nulls'
-  | 'total'
-  | 'valids'
-  | 'invalids'
-  | 'positives'
-  | 'zeros'
-  | 'negatives'
-  | 'non_zero_length'
-  | 'zero_length'
-  | 'avg'
-  | 'stddev'
-  | 'min'
-  | 'max'
-  | 'distinct'
-  | 'duplicates'
->;
+export type MetricMetaKeys =
+  | keyof Pick<
+      ColumnSchema,
+      | 'nulls'
+      | 'total'
+      | 'valids'
+      | 'invalids'
+      | 'positives'
+      | 'zeros'
+      | 'negatives'
+      | 'non_zero_length'
+      | 'zero_length'
+      | 'avg'
+      | 'stddev'
+      | 'min'
+      | 'max'
+      | 'distinct'
+      | 'duplicates'
+    >;
+export type TableMetaKeys =
+  | keyof Pick<
+      TableSchema,
+      | 'duplicate_rows'
+      | 'col_count'
+      | 'freshness'
+      | 'last_altered'
+      | 'bytes'
+      | 'created'
+      | 'row_count'
+      | 'total'
+    >;
 export interface MetricsInfoProps {
   name: string;
   subtitle?: string;

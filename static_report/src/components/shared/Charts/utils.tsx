@@ -9,6 +9,7 @@ import { FlatBoxPlotChartProps } from './FlatBoxPlotChart';
 import { TRUES, FALSES, NULLS, INVALIDS } from '../Columns/constants';
 import { checkColumnCategorical, containsDataSummary } from '../Columns/utils';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { ReactNode } from 'react';
 
 /**
  * Handles logic for rendering the right charts
@@ -81,7 +82,7 @@ export function getDataChart(
       />
     );
   }
-  return renderChartUnavailableMsg(valids, schema_type);
+  return renderChartUnavailableMsg({ valids, schema_type });
 }
 
 export function getChartUnavailMsg(
@@ -93,10 +94,15 @@ export function getChartUnavailMsg(
     : `There are insufficient valid data points in this dataset`;
 }
 
-export function renderChartUnavailableMsg(
-  valids?: ColumnSchema['valids'],
-  schema_type?: ColumnSchema['schema_type'],
-) {
+export function renderChartUnavailableMsg({
+  valids,
+  schema_type,
+  messageOverwrite,
+}: {
+  valids?: ColumnSchema['valids'];
+  schema_type?: ColumnSchema['schema_type'];
+  messageOverwrite?: ReactNode;
+}) {
   const noRenderMessage = getChartUnavailMsg(valids, schema_type);
   return (
     <Flex
@@ -107,7 +113,7 @@ export function renderChartUnavailableMsg(
       bg={'blackAlpha.300'}
     >
       <Text alignSelf={'center'} textAlign={'center'} w={'inherit'}>
-        {noRenderMessage}
+        {messageOverwrite ?? noRenderMessage}
       </Text>
     </Flex>
   );

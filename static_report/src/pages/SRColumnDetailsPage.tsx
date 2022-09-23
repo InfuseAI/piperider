@@ -1,4 +1,12 @@
-import { Grid, GridItem, Heading } from '@chakra-ui/react';
+import {
+  Grid,
+  GridItem,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+} from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
 import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
@@ -25,6 +33,7 @@ import {
   BreadcrumbNav,
   TableColumnSchemaList,
 } from '../lib';
+import { TableHeader } from '../components/shared/Tables/TableHeader';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
@@ -93,24 +102,34 @@ export default function SRColumnDetailsPage({
         {/* Detail Area - Table Detail */}
         {isTableDetailsView ? (
           <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
-            <TableOverview baseTable={dataTable} singleOnly />
-            <Heading size="md" my={5}>
-              Assertions
-            </Heading>
-            <SRAssertionDetailsWidget
-              assertions={{
-                piperider: dataTable.piperider_assertion_result,
-                dbt: dataTable?.dbt_assertion_result,
-              }}
-            />
-            <Heading size="md" my={5}>
-              Schema
-            </Heading>
-            <TableColumnSchemaList
-              baseTableDatum={dataTable}
-              singleOnly
-              onSelect={() => {}}
-            />
+            <TableHeader tableName={dataTable.name} mb={5} />
+            <Tabs defaultIndex={0}>
+              <TabList>
+                <Tab>Overview</Tab>
+                <Tab>Assertions</Tab>
+                <Tab>Schema</Tab>
+              </TabList>
+              <TabPanels>
+                <TabPanel>
+                  <TableOverview baseTable={dataTable} singleOnly />
+                </TabPanel>
+                <TabPanel>
+                  <SRAssertionDetailsWidget
+                    assertions={{
+                      piperider: dataTable.piperider_assertion_result,
+                      dbt: dataTable?.dbt_assertion_result,
+                    }}
+                  />
+                </TabPanel>
+                <TabPanel>
+                  <TableColumnSchemaList
+                    baseTableDatum={dataTable}
+                    singleOnly
+                    onSelect={() => {}}
+                  />
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
           </GridItem>
         ) : (
           // {/* Detail Area - Columns */}
