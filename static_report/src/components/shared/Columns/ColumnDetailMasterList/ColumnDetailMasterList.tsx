@@ -20,7 +20,12 @@ import {
   SaferTableSchema,
   Selectable,
 } from '../../../../types';
+import {
+  formatColumnValueWith,
+  formatNumber,
+} from '../../../../utils/formatters';
 import { transformAsNestedBaseTargetRecord } from '../../../../utils/transformers';
+import { TableRowColDeltaSummary } from '../../Tables/TableList/TableRowColDeltaSummary';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
@@ -56,6 +61,7 @@ export function ColumnDetailMasterList({
   );
   const baseTable = baseDataTables?.[currentTable];
   const targetTable = targetDataTables?.[currentTable];
+  const fallbackTable = baseTable || targetTable;
 
   const combinedColumnRecord = transformAsNestedBaseTargetRecord<
     SaferTableSchema['columns'],
@@ -145,19 +151,32 @@ export function ColumnDetailMasterList({
         <Flex
           top={0}
           p={5}
-          gap={2}
           cursor={'pointer'}
-          alignItems={'center'}
-          bg={currentColumn === '' && currentTable ? 'blue.100' : 'gray.200'}
-          _hover={{ bgColor: 'gray.300' }}
+          justify={'space-between'}
+          bg={currentColumn === '' && currentTable ? 'blue.100' : 'white'}
+          _hover={{ bgColor: 'blackAlpha.50' }}
           onClick={() => {
             onSelect({ tableName: currentTable, columnName: '' });
           }}
         >
-          <Icon as={FiGrid} color="piperider.500" />
-          <Text noOfLines={1} fontWeight={'semibold'}>
-            {currentTable}
-          </Text>
+          <Flex alignItems={'center'} gap={2}>
+            <Icon as={FiGrid} color="piperider.500" />
+            <Text noOfLines={1}>{currentTable}</Text>
+          </Flex>
+          {/* TODO: Repeated in TableListItem */}
+          <Flex color="gray.500">
+            <Text mr={4}>Rows</Text>
+            {singleOnly ? (
+              <Text>
+                {formatColumnValueWith(fallbackTable?.row_count, formatNumber)}
+              </Text>
+            ) : (
+              <TableRowColDeltaSummary
+                baseCount={baseTable?.row_count}
+                targetCount={targetTable?.row_count}
+              />
+            )}
+          </Flex>
         </Flex>
         {filteredTableColumnEntries.map(([colKey, { base, target }]) => {
           return (
