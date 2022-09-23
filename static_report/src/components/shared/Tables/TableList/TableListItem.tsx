@@ -30,6 +30,7 @@ import {
 } from '../../../../utils/layout';
 import { transformAsNestedBaseTargetRecord } from '../../../../utils';
 import { ColumnSchemaDeltaSummary } from './ColumnSchemaDeltaSummary';
+import { NO_DESCRIPTION_MSG } from '../constant';
 
 interface Props extends Selectable, Comparable {
   isExpanded: boolean;
@@ -47,8 +48,10 @@ export function TableListItem({
   const fallbackTable = baseTableDatum || targetTableDatum;
   const tableName = fallbackTable?.name;
   const description =
-    baseTableDatum?.description || targetTableDatum?.description;
-
+    baseTableDatum?.description ||
+    targetTableDatum?.description ||
+    NO_DESCRIPTION_MSG;
+  //SR vars
   const columns = Object.keys(baseTableDatum?.columns || {}).map((key) => key);
 
   const { failed: baseFailed, total: baseTotal } =

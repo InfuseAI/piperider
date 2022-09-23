@@ -15,6 +15,7 @@ import {
 } from '../../../utils/formatters';
 import { MetricsInfo } from '../Columns/ColumnMetrics/MetricsInfo';
 import { DupedTableRowsWidget } from '../Widgets/DupedTableRowsWidget';
+import { NO_DESCRIPTION_MSG } from './constant';
 
 interface Props extends Comparable {
   baseTable?: SaferTableSchema;
@@ -139,7 +140,7 @@ export function TableOverview({ baseTable, targetTable, singleOnly }: Props) {
           h={'12em'}
           overflow={'auto'}
         >
-          {fallback?.description}
+          {fallback?.description ?? NO_DESCRIPTION_MSG}
         </Text>
       </GridItem>
 
