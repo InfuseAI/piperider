@@ -77,7 +77,7 @@ PipeRider will make your life easier by:
   * Built-in [data assertions](https://docs.piperider.io/data-quality-assertions/assertion-configuration)
   * Extensible through [custom assertions](https://docs.piperider.io/data-quality-assertions/custom-assertions)
   * Auto-generated data assertions
-* Currently supports [Postgres](https://docs.piperider.io/data-sources/postgres-connector), [Snowflake](https://docs.piperider.io/data-sources/snowflake-connector), SQLite, [BigQuery](https://docs.piperider.io/data-sources/bigquery-connector), [Redshift](https://docs.piperider.io/data-sources/redshift-connector), [DuckDB](https://docs.piperider.io/data-sources/duckdb-connector/), [CSV](https://docs.piperider.io/data-sources/csv-connector/) and [Parquet](https://docs.piperider.io/data-sources/parquet-connector/).
+* [Support various data sources](https://docs.piperider.io/data-sources/supported-data-sources) like Snowflake, BigQuery, Redshift, Postgres, SQLite, DuckDB, CSV, Parquet and more.
 * Zero-config [support for dbt](https://docs.piperider.io/dbt-integration/) projects
 * Automation through [GitHub Actions](https://docs.piperider.io/how-to-guides/github-action/), [save reports in S3](https://docs.piperider.io/how-to-guides/aws-s3-+-github-ci/)
 
