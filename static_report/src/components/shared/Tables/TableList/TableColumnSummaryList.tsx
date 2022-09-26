@@ -26,7 +26,7 @@ export function TableColumnSummaryList({
   const comparedColumns = transformAsNestedBaseTargetRecord<
     SaferTableSchema['columns'],
     ColumnSchema
-  >(baseTableDatum?.columns, targetTableDatum?.columns);
+  >(baseTableDatum?.columns, targetTableDatum?.columns, { metadata: true });
   const tableName = baseTableDatum?.name || targetTableDatum?.name;
   const columns = Object.keys(baseTableDatum?.columns || {}).map((colName) => {
     const { icon: colIcon, backgroundColor } = getIconForColumnType(
@@ -72,9 +72,11 @@ export function TableColumnSummaryList({
           targetAssertions,
         }) => {
           const colDatum = comparedColumns[colName];
-
+          const isAsymmetricCol =
+            colDatum.base?.changed || colDatum.target?.changed;
           return (
             <Grid
+              py={3}
               key={colName}
               alignItems="center"
               templateColumns={`${tableListGridTempCols} 2rem`}
@@ -88,10 +90,20 @@ export function TableColumnSummaryList({
                   icon={colIcon}
                   iconColor={colIconColor}
                 />
-                <ColumnSchemaTypeLabel
-                  schemaType={colDatum.base?.schema_type}
-                  ml={25}
-                />
+                <Flex
+                  alignItems={'center'}
+                  my={2}
+                  color={isAsymmetricCol ? 'red.500' : 'gray.700'}
+                >
+                  <ColumnSchemaTypeLabel
+                    schemaType={colDatum.base?.schema_type}
+                    ml={25}
+                  />
+                  <Icon as={FiArrowRight} mx={3} />
+                  <ColumnSchemaTypeLabel
+                    schemaType={colDatum.target?.schema_type}
+                  />
+                </Flex>
               </GridItem>
 
               <GridItem>

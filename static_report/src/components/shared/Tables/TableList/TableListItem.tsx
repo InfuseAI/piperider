@@ -4,13 +4,13 @@ import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import {
   TableAccordionWrapper,
   TableItemName,
-  TableItemDescription,
 } from './TableListItemDecorations';
 import { TableRowColDeltaSummary } from './TableRowColDeltaSummary';
 
 import { TableListAssertionSummary } from './TableListAssertions';
 
 import type {
+  ColumnSchema,
   Comparable,
   SaferTableSchema,
   Selectable,
@@ -28,6 +28,8 @@ import {
   tableListGridTempCols,
   tableListMaxWidth,
 } from '../../../../utils/layout';
+import { transformAsNestedBaseTargetRecord } from '../../../../utils';
+import { ColumnSchemaDeltaSummary } from './ColumnSchemaDeltaSummary';
 
 interface Props extends Selectable, Comparable {
   isExpanded: boolean;
@@ -59,6 +61,14 @@ export function TableListItem({
       targetTableDatum?.dbt_assertion_result,
     );
 
+  const comparedColumns = transformAsNestedBaseTargetRecord<
+    SaferTableSchema['columns'],
+    ColumnSchema
+  >(baseTableDatum?.columns, targetTableDatum?.columns, { metadata: true });
+
+  const {
+    __meta__: { added, deleted, changed },
+  } = comparedColumns;
   if (!fallbackTable) {
     return <NoData />;
   }
@@ -74,16 +84,13 @@ export function TableListItem({
         position={'relative'}
         rowGap={3}
       >
+        {/* 1st Row */}
         <GridItem>
-          <TableItemName
-            name={tableName || ''}
-            description={description}
-            descriptionIconVisible={isExpanded}
-          />
+          <TableItemName name={tableName || ''} description={description} />
         </GridItem>
         <GridItem>
           <Flex color="gray.500">
-            <Text mr={4}>Rows</Text>
+            <Text mr={4}>Rows:</Text>
             {singleOnly ? (
               <Text>
                 {formatColumnValueWith(fallbackTable?.row_count, formatNumber)}
@@ -118,6 +125,7 @@ export function TableListItem({
             />
           </Flex>
         </GridItem>
+        {/* 2nd Row */}
         <GridItem>
           <Link
             data-cy="navigate-report-detail"
@@ -138,50 +146,54 @@ export function TableListItem({
           </Link>
         </GridItem>
         <GridItem colSpan={2}>
-          {isExpanded ? (
-            <TableItemDescription description={description || ''} />
-          ) : (
-            <Flex color="gray.500" maxWidth="650px">
-              <Text as="span" mr={4}>
-                Columns
-              </Text>
-              {singleOnly ? (
-                <Flex
-                  __css={{
-                    display: 'flex',
-                    gap: 3,
-                    alignItems: 'center',
-                    maxWidth: '100%',
-                    overflowX: 'scroll',
-                    scrollbarWidth: 'none',
-                    '&::-webkit-scrollbar': {
-                      display: 'none',
-                    },
-                  }}
-                >
-                  {columns.length > 0 &&
-                    columns.map((name) => {
-                      const { backgroundColor, icon } = getIconForColumnType(
-                        baseTableDatum?.columns[name],
-                      );
-                      return (
-                        <ColumnBadge
-                          key={name}
-                          name={name}
-                          icon={icon}
-                          iconColor={backgroundColor}
-                        />
-                      );
-                    })}
-                </Flex>
-              ) : (
-                <TableRowColDeltaSummary
-                  baseCount={baseTableDatum?.col_count}
-                  targetCount={targetTableDatum?.col_count}
+          <Flex color="gray.500" maxWidth="650px">
+            <Text as="span" mr={4}>
+              Columns:
+            </Text>
+            {isExpanded ? (
+              !singleOnly && (
+                <ColumnSchemaDeltaSummary
+                  added={added}
+                  deleted={deleted}
+                  changed={changed}
                 />
-              )}
-            </Flex>
-          )}
+              )
+            ) : singleOnly ? (
+              <Flex
+                __css={{
+                  display: 'flex',
+                  gap: 3,
+                  alignItems: 'center',
+                  maxWidth: '100%',
+                  overflowX: 'scroll',
+                  scrollbarWidth: 'none',
+                  '&::-webkit-scrollbar': {
+                    display: 'none',
+                  },
+                }}
+              >
+                {columns.length > 0 &&
+                  columns.map((name) => {
+                    const { backgroundColor, icon } = getIconForColumnType(
+                      baseTableDatum?.columns[name],
+                    );
+                    return (
+                      <ColumnBadge
+                        key={name}
+                        name={name}
+                        icon={icon}
+                        iconColor={backgroundColor}
+                      />
+                    );
+                  })}
+              </Flex>
+            ) : (
+              <TableRowColDeltaSummary
+                baseCount={baseTableDatum?.col_count}
+                targetCount={targetTableDatum?.col_count}
+              />
+            )}
+          </Flex>
         </GridItem>
       </Grid>
     </TableAccordionWrapper>

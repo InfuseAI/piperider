@@ -13,7 +13,11 @@ import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 
 import { formatReportTime } from '../utils/formatters';
 
-import type { ComparisonReportSchema } from '../types';
+import type {
+  ColumnSchema,
+  ComparisonReportSchema,
+  SaferTableSchema,
+} from '../types';
 import { NoData } from '../components/shared/Layouts/NoData';
 import {
   containsDataSummary,
@@ -27,6 +31,8 @@ import {
   BreadcrumbMetaItem,
   BreadcrumbNav,
 } from '../components/shared/Layouts/BreadcrumbNav';
+import { ColumnSchemaDeltaSummary } from '../components/shared/Tables/TableList/ColumnSchemaDeltaSummary';
+import { transformAsNestedBaseTargetRecord } from '../utils';
 interface Props {
   data: ComparisonReportSchema;
   columnName: string;
@@ -91,6 +97,14 @@ export default function CRColumnDetailsPage({
     ...(dbtBaseOverview?.tests || []),
     ...(dbtTargetOverview?.tests || []),
   ];
+  const comparedColumns = transformAsNestedBaseTargetRecord<
+    SaferTableSchema['columns'],
+    ColumnSchema
+  >(baseDataColumns, targetDataColumns, { metadata: true });
+
+  const {
+    __meta__: { added, deleted, changed },
+  } = comparedColumns;
   const breadcrumbList: BreadcrumbMetaItem[] = [
     { label: 'Tables', path: '/' },
     { label: decodedTableName, path: `/tables/${decodedTableName}/columns/` },
@@ -137,6 +151,11 @@ export default function CRColumnDetailsPage({
             <Heading size="md" my={5}>
               Schema
             </Heading>
+            <ColumnSchemaDeltaSummary
+              added={added}
+              deleted={deleted}
+              changed={changed}
+            />
             <TableColumnSchemaList
               baseTableDatum={baseDataTable}
               targetTableDatum={targetDataTable}

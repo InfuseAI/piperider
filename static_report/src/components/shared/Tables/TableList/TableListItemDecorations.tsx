@@ -36,14 +36,9 @@ export function TableAccordionWrapper({
 export type TableItemNameProps = {
   name: string;
   description?: string;
-  descriptionIconVisible: boolean;
 };
 
-export function TableItemName({
-  name,
-  description,
-  descriptionIconVisible,
-}: TableItemNameProps) {
+export function TableItemName({ name, description }: TableItemNameProps) {
   return (
     <Flex alignItems="center" justifyContent="flex-start" width={'10em'}>
       <Icon as={FiGrid} color="piperider.500" />
@@ -53,24 +48,11 @@ export function TableItemName({
         </Text>
       </Tooltip>
 
-      {!descriptionIconVisible && (
-        <Tooltip label={description} placement="right-end" shouldWrapChildren>
-          <Flex alignItems={'center'}>
-            <Icon as={FiAlertCircle} ml={1} />
-          </Flex>
-        </Tooltip>
-      )}
+      <Tooltip label={description} placement="right-end" shouldWrapChildren>
+        <Flex alignItems={'center'}>
+          <Icon as={FiAlertCircle} ml={1} />
+        </Flex>
+      </Tooltip>
     </Flex>
-  );
-}
-
-export function TableItemDescription({ description }: { description: string }) {
-  return (
-    <Text color="gray.500" noOfLines={3} textAlign="left">
-      <Text as="span">Description</Text>{' '}
-      <Text as="span" ml={4} title={description}>
-        {description}
-      </Text>
-    </Text>
   );
 }
