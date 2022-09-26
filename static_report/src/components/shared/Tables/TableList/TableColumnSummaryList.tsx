@@ -11,6 +11,7 @@ import { getIconForColumnType } from '../../Columns/utils';
 import { tableListGridTempCols } from '../../../../utils/layout';
 import { AssertionLabel } from '../../Assertions';
 import { TargetTableAssertionsSummary } from './TableListAssertions';
+import { ColumnSchemaTypeLabel } from './ColumnSchemaTypeLabel';
 
 interface Props extends Selectable, Comparable {
   baseTableDatum?: SaferTableSchema;
@@ -74,7 +75,6 @@ export function TableColumnSummaryList({
 
           return (
             <Grid
-              p={3}
               key={colName}
               alignItems="center"
               templateColumns={`${tableListGridTempCols} 2rem`}
@@ -87,6 +87,10 @@ export function TableColumnSummaryList({
                   name={colName}
                   icon={colIcon}
                   iconColor={colIconColor}
+                />
+                <ColumnSchemaTypeLabel
+                  schemaType={colDatum.base?.schema_type}
+                  ml={25}
                 />
               </GridItem>
 

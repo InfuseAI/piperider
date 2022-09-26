@@ -48,14 +48,16 @@ export function TableItemName({
     <Flex alignItems="center" justifyContent="flex-start" width={'10em'}>
       <Icon as={FiGrid} color="piperider.500" />
       <Tooltip label={name} placement={'top'}>
-        <Text noOfLines={1} mr={1}>
+        <Text noOfLines={1} mx={1}>
           {name}
         </Text>
       </Tooltip>
 
       {!descriptionIconVisible && (
         <Tooltip label={description} placement="right-end" shouldWrapChildren>
-          <Icon as={FiAlertCircle} ml={1} />
+          <Flex alignItems={'center'}>
+            <Icon as={FiAlertCircle} ml={1} />
+          </Flex>
         </Tooltip>
       )}
     </Flex>
