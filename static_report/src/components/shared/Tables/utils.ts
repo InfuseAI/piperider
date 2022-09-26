@@ -13,7 +13,12 @@ import {
   SaferTableSchema,
 } from '../../../types';
 
-export function getAssertions(assertions: AssertionTest[]) {
+/**
+ * For getting either single column/table's assertion tests
+ * @param assertions
+ */
+export function getAssertions(assertions?: AssertionTest[]) {
+  if (!Array.isArray(assertions)) return { total: 0, passed: 0, failed: 0 };
   const total = assertions.length;
   const failed = assertions.reduce((acc, test) => {
     if (test.status === 'failed') {
