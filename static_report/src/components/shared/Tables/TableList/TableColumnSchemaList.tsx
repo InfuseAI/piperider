@@ -44,9 +44,7 @@ export function TableColumnSchemaList({
   const comparedColumns = transformAsNestedBaseTargetRecord<
     SaferTableSchema['columns'],
     ColumnSchema
-  >(baseTableDatum?.columns, targetTableDatum?.columns, { metadata: true });
-
-  const { ...actualColumns } = comparedColumns;
+  >(baseTableDatum?.columns, targetTableDatum?.columns);
 
   const isNotSingle = !singleOnly;
 
@@ -70,7 +68,7 @@ export function TableColumnSchemaList({
             </Tr>
           </Thead>
           <Tbody>
-            {Object.entries(actualColumns).map(
+            {Object.entries(comparedColumns).map(
               ([key, { base: baseColumn, target: targetColumn }]) => {
                 const fallbackColumn = baseColumn || targetColumn;
                 return (

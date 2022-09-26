@@ -1,4 +1,4 @@
-import { Flex, Grid, GridItem, Heading, Text } from '@chakra-ui/react';
+import { Box, Flex, Grid, GridItem, Heading, Text } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
 
@@ -148,14 +148,16 @@ export default function CRColumnDetailsPage({
                 dbt: dbtAssertions,
               }}
             />
-            <Heading size="md" my={5}>
-              Schema
-            </Heading>
-            <ColumnSchemaDeltaSummary
-              added={added}
-              deleted={deleted}
-              changed={changed}
-            />
+            <Flex alignItems={'center'}>
+              <Heading size="md" my={5} mr={3}>
+                Schema
+              </Heading>
+              <ColumnSchemaDeltaSummary
+                added={added}
+                deleted={deleted}
+                changed={changed}
+              />
+            </Flex>
             <TableColumnSchemaList
               baseTableDatum={baseDataTable}
               targetTableDatum={targetDataTable}
