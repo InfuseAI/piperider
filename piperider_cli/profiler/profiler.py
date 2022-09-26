@@ -235,6 +235,28 @@ class Profiler:
         if size_bytes:
             result['bytes'] = size_bytes
 
+    def _profile_table_duplicate_rows(self, result: dict, table: Table):
+        with self.engine.connect() as conn:
+            if self.engine.url.get_backend_name() == 'snowflake':
+                columns = [column for column in table.columns]
+                cte = select([func.hash(*columns).label('h')]).select_from(table).cte()
+                cte = select([
+                    cte.c.h,
+                    func.count().label('c')
+                ]).select_from(cte).group_by(cte.c.h).having(func.count() > 1).cte()
+                stmt = select([func.sum(cte.c.c)]).select_from(cte)
+                duplicate_rows, = conn.execute(stmt).fetchone()
+            else:
+                columns = [column for column in table.columns]
+                cte = select([
+                    *columns,
+                    func.count().label('c')
+                ]).select_from(table).group_by(*columns).having(func.count() > 1).cte()
+                stmt = select([func.sum(cte.c.c)]).select_from(cte)
+                duplicate_rows, = conn.execute(stmt).fetchone()
+
+            result['duplicate_rows'] = duplicate_rows if duplicate_rows is not None else 0
+
     def _profile_table(self, table: Table) -> dict:
         candidate_columns = self._drop_unsupported_columns(table)
         col_index = 0
@@ -255,6 +277,7 @@ class Profiler:
 
         # Profile table metrics
         self._profile_table_metadata(result, table)
+        self._profile_table_duplicate_rows(result, table)
         self.event_handler.handle_table_progress(result, col_count, col_index)
 
         # Profile columns
