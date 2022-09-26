@@ -115,29 +115,21 @@ pip install 'piperider[postgres,snowflake]'
 You can follow the [quick start guide](https://docs.piperider.io/quick-start) to learn more about PipeRider.
 
 ## Attach PipeRider to a dbt project
-Initialize PipeRider inside a dbt project and your data source settings will be automatically configured
 
 `piperider init` creates `/.piperider` under a dbt project root and generates necessary configurations.
 
-![piperider_init](images/init_pipe.gif)
-
 ## Scan data quality from models
 
-`piperider run` scans the models from data sources and creates assessment results in `/.piperider/output`
+`piperider run` runs profiling, and tests against assertions, and will render an HTML report `/.piperider/outputs`
 
-![piperider_run](images/run_pipe.gif)
+You can do a run for a specific table using `piperider run --table $TABLENAME`
+You can specifying the output location of a report using `piperider generate-report -o $PATHNAME` or specifying it in the config file.
 
-## Generate reports
+[All details on generating reports](https://docs.piperider.io/how-to-guides/generate-report)
 
-`piperider generate-report` generate a static HTML report.
+## Compare reports
 
-![piperider_report](images/report_pipe.gif)
-
-## Generate comparison view
-
-You can use `piperider compare-report` to compare 2 reports.
-
-![piperider_compare](images/compare_pipe.gif)
+You can use `piperider compare-reports` to compare 2 reports.
 
 # Learn More
 
