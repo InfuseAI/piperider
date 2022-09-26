@@ -1,36 +1,14 @@
-import {
-  Button,
-  Flex,
-  Text,
-  Icon,
-  ButtonGroup,
-  Tooltip,
-} from '@chakra-ui/react';
+import { Flex, Text, Icon, Tooltip } from '@chakra-ui/react';
 import { ReactNode } from 'react';
-import {
-  FiDatabase,
-  FiCreditCard,
-  FiBookOpen,
-  FiAlertCircle,
-} from 'react-icons/fi';
-
-export type TableActionBarView = 'schema' | 'summary';
+import { FiDatabase, FiAlertCircle } from 'react-icons/fi';
 
 type Props = {
-  currentView: 'schema' | 'summary';
-  toggleView: (view: TableActionBarView) => void;
   sourceName: string;
   sourceType: string;
   children?: ReactNode;
 };
 
-export function TableActionBar({
-  currentView,
-  toggleView,
-  sourceName,
-  sourceType,
-  children,
-}: Props) {
+export function TableActionBar({ sourceName, sourceType, children }: Props) {
   return (
     <Flex
       alignSelf="flex-start"
@@ -41,7 +19,7 @@ export function TableActionBar({
       borderBottomColor="gray.300"
     >
       <Flex gap={1} alignItems="center">
-        <Icon as={FiDatabase} boxSize={4} />
+        <Icon as={FiDatabase} mr={2} />
         <Text fontSize="large">{sourceName}</Text>
         <Tooltip
           label={sourceType}
@@ -49,34 +27,12 @@ export function TableActionBar({
           placement="right-end"
           shouldWrapChildren
         >
-          <Icon as={FiAlertCircle} />
+          <Flex alignItems={'center'}>
+            <Icon as={FiAlertCircle} />
+          </Flex>
         </Tooltip>
         {children}
       </Flex>
-
-      <ButtonGroup
-        size="sm"
-        isAttached
-        variant="outline"
-        data-attached={currentView}
-      >
-        <Button
-          data-cy="schema-view"
-          bgColor={currentView === 'schema' ? 'gray.200' : 'inherit'}
-          onClick={() => toggleView('schema')}
-          _active={{ bgColor: 'gray.50' }}
-        >
-          <Icon as={FiCreditCard} mr={1} boxSize={4} /> Schema
-        </Button>
-        <Button
-          data-cy="summary-view"
-          bgColor={currentView === 'summary' ? 'gray.200' : 'inherit'}
-          onClick={() => toggleView('summary')}
-          _active={{ bgColor: 'gray.50' }}
-        >
-          <Icon as={FiBookOpen} mr={1} boxSize={4} /> Summary
-        </Button>
-      </ButtonGroup>
     </Flex>
   );
 }
