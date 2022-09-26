@@ -1,7 +1,7 @@
 import { transformAsNestedBaseTargetRecord } from '../../../../utils/transformers';
 import type { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import { Comparable, SaferTableSchema, Selectable } from '../../../../types';
-import { Flex, Grid, GridItem, Icon, Text } from '@chakra-ui/react';
+import { Badge, Flex, Grid, GridItem, Icon, Text } from '@chakra-ui/react';
 import { getAssertions } from '../utils';
 import { FiArrowRight, FiChevronRight } from 'react-icons/fi';
 import { HistogramChart } from '../../Charts/HistogramChart';
@@ -87,9 +87,10 @@ export function TableColumnSummaryList({
           return (
             <Grid
               py={3}
+              position={'relative'}
               key={colName}
               alignItems="center"
-              templateColumns={`${tableListGridTempCols} 2rem`}
+              templateColumns={`${tableListGridTempCols}`}
               _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
               onClick={() => onSelect({ tableName, columnName: colName })}
               data-cy="table-list-summary-item-item"
@@ -100,20 +101,24 @@ export function TableColumnSummaryList({
                   icon={colIcon}
                   iconColor={colIconColor}
                 />
-                <Flex
-                  alignItems={'center'}
+                <Badge
+                  colorScheme={isAsymmetricCol ? 'red' : ''}
+                  ml={25}
                   my={2}
-                  color={isAsymmetricCol ? 'red.500' : 'gray.700'}
                 >
-                  <ColumnSchemaTypeLabel
-                    schemaType={colDatum.base?.schema_type}
-                    ml={25}
-                  />
-                  <Icon as={FiArrowRight} mx={3} />
-                  <ColumnSchemaTypeLabel
-                    schemaType={colDatum.target?.schema_type}
-                  />
-                </Flex>
+                  <Flex
+                    alignItems={'center'}
+                    color={isAsymmetricCol ? 'red.500' : 'gray.700'}
+                  >
+                    <ColumnSchemaTypeLabel
+                      schemaType={colDatum.base?.schema_type}
+                    />
+                    <Icon as={FiArrowRight} mx={3} />
+                    <ColumnSchemaTypeLabel
+                      schemaType={colDatum.target?.schema_type}
+                    />
+                  </Flex>
+                </Badge>
               </GridItem>
 
               <GridItem>
@@ -144,7 +149,7 @@ export function TableColumnSummaryList({
               <GridItem>
                 {baseAssertions.total > 0 &&
                 (singleOnly || targetAssertions.total > 0) ? (
-                  <Flex gap={2} color="gray.500" alignItems="center">
+                  <Flex gap={2} color="gray.500" alignItems="center" ml={5}>
                     <AssertionLabel {...baseAssertions} />
                     {!singleOnly && (
                       <>
@@ -162,7 +167,7 @@ export function TableColumnSummaryList({
                 )}
               </GridItem>
 
-              <GridItem>
+              <GridItem position={'absolute'} right={0}>
                 <Flex alignItems="center">
                   <Icon as={FiChevronRight} color="piperider.500" boxSize={6} />
                 </Flex>
