@@ -48,8 +48,6 @@ describe('Comparison Report [table-list-page, table-detail-page]', () => {
 describe('Comparison Report [column-detail-page]', () => {
   it('should navigate to the column detail page from the table list page (via schema)', () => {
     cy.visit('http://localhost:3001');
-    const schemaView = cy.get('[data-cy="schema-view"]');
-    schemaView.click();
 
     const tableAccordionBtn = cy
       .get('[data-cy="table-list-accordion-btn"]')
