@@ -46,19 +46,6 @@ describe('Comparison Report [table-list-page, table-detail-page]', () => {
 });
 
 describe('Comparison Report [column-detail-page]', () => {
-  it('should navigate to the column detail page from the table list page (via schema)', () => {
-    cy.visit('http://localhost:3001');
-
-    const tableAccordionBtn = cy
-      .get('[data-cy="table-list-accordion-btn"]')
-      .first();
-    tableAccordionBtn.click();
-    const columnAccordionItem = cy
-      .get('[data-cy="table-list-schema-item"]')
-      .first();
-    columnAccordionItem.click();
-  });
-
   it('should navigate to the column detail page from the table list page (via summary)', () => {
     cy.visit('http://localhost:3001');
 
@@ -67,7 +54,7 @@ describe('Comparison Report [column-detail-page]', () => {
       .first();
     tableAccordionBtn.click();
     const columnAccordionItem = cy
-      .get('[data-cy="table-list-summary-item-item"]')
+      .get('[data-cy="table-list-summary-item"]')
       .first();
     columnAccordionItem.click();
   });

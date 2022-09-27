@@ -7,11 +7,5 @@ describe('Comparison Report (sp500.db -> profiler-e2e.db)', () => {
       .first();
     tableAccordionBtn.should('be.visible');
     tableAccordionBtn.click();
-
-    const tableListSchemaItem = cy
-      .get('[data-cy="table-list-schema-item"]')
-      .first();
-
-    tableListSchemaItem.click();
   });
 });

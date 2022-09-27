@@ -8,10 +8,9 @@ describe('Single Report (profiler-e2e.db)', () => {
     tableAccordionBtn.should('be.visible');
     tableAccordionBtn.click();
 
-    const tableListSchemaItem = cy
-      .get('[data-cy="table-list-schema-item"]')
+    const columnAccordionItem = cy
+      .get('[data-cy="table-list-summary-item"]')
       .first();
-
-    tableListSchemaItem.click();
+    columnAccordionItem.click();
   });
 });

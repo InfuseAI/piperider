@@ -1,7 +1,7 @@
 import { transformAsNestedBaseTargetRecord } from '../../../../utils/transformers';
 import type { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import { Comparable, SaferTableSchema, Selectable } from '../../../../types';
-import { Badge, Flex, Grid, GridItem, Icon, Text } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, Icon, Text } from '@chakra-ui/react';
 import { getAssertions } from '../utils';
 import { FiArrowRight, FiChevronRight } from 'react-icons/fi';
 import { HistogramChart } from '../../Charts/HistogramChart';
@@ -95,7 +95,7 @@ export function TableColumnSummaryList({
               templateColumns={`${tableListGridTempCols}`}
               _hover={{ bgColor: 'gray.50', cursor: 'pointer' }}
               onClick={() => onSelect({ tableName, columnName: colName })}
-              data-cy="table-list-summary-item-item"
+              data-cy="table-list-summary-item"
             >
               <GridItem>
                 <ColumnName
@@ -103,29 +103,15 @@ export function TableColumnSummaryList({
                   icon={colIcon}
                   iconColor={colIconColor}
                 />
-                <Badge
-                  colorScheme={isAsymmetricCol ? 'red' : 'gray'}
-                  ml={25}
-                  my={2}
-                  px={2}
-                >
-                  <Flex
-                    alignItems={'center'}
-                    color={isAsymmetricCol ? 'red' : 'gray.600'}
-                  >
-                    <ColumnSchemaTypeLabel
-                      schemaType={colDatum.base?.schema_type}
-                    />
-                    {!singleOnly && (
-                      <>
-                        <Icon as={FiArrowRight} mx={3} />
-                        <ColumnSchemaTypeLabel
-                          schemaType={colDatum.target?.schema_type}
-                        />
-                      </>
-                    )}
-                  </Flex>
-                </Badge>
+                <Flex ml={25} my={2}>
+                  <ColumnSchemaTypeLabel
+                    maxW={'15em'}
+                    baseSchemaType={colDatum.base?.schema_type}
+                    targetSchemaType={colDatum.target?.schema_type}
+                    isAsymmetricCol={isAsymmetricCol}
+                    singleOnly={singleOnly}
+                  />
+                </Flex>
               </GridItem>
 
               <GridItem>
