@@ -32,16 +32,6 @@ describe('Comparison Report [table-list-page, table-detail-page]', () => {
     tableDetailBtn.click();
   });
 
-  it('should get the default list view and toggle to schema view', () => {
-    cy.visit('http://localhost:3001');
-
-    cy.get('[data-attached]').should('have.attr', 'data-attached', 'summary');
-
-    const toggleToSchema = cy.get('[data-cy="schema-view"]');
-    toggleToSchema.click();
-    cy.get('[data-attached]').should('have.attr', 'data-attached', 'schema');
-  });
-
   it('should open and close the feedback modal', () => {
     cy.visit('http://localhost:3001');
 
@@ -73,8 +63,6 @@ describe('Comparison Report [column-detail-page]', () => {
 
   it('should navigate to the column detail page from the table list page (via summary)', () => {
     cy.visit('http://localhost:3001');
-    const schemaView = cy.get('[data-cy="summary-view"]');
-    schemaView.click();
 
     const tableAccordionBtn = cy
       .get('[data-cy="table-list-accordion-btn"]')
