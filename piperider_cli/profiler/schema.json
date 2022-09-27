@@ -76,6 +76,10 @@
                       "description": "The total count of values, regardless validity",
                       "type": "integer"
                     },
+                    "samples": {
+                      "description": "Number of rows after applying the row-limit configuration (rows will be unaffected if none is set",
+                      "type": "integer"
+                    },
                     "nulls": {
                       "description": "The count of values that are null type",
                       "type": "integer"

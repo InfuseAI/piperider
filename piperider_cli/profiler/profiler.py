@@ -290,6 +290,7 @@ class Profiler:
         result = {
             "name": table.name,
             "row_count": 0,
+            "samples": 0,
             "col_count": col_count,
             "columns": columns
         }
@@ -326,6 +327,7 @@ class Profiler:
                             raise exc
                         else:
                             columns[column.name] = data
+                            columns[column.name]['total'] = result['row_count']
                             col_index = col_index + 1
                             self.event_handler.handle_table_progress(result, col_count, col_index)
                 finally:
@@ -470,6 +472,7 @@ class BaseColumnProfiler:
 
             return {
                 'total': _total,
+                'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
                 'valids': _non_nulls,
@@ -550,6 +553,7 @@ class StringColumnProfiler(BaseColumnProfiler):
 
             result = {
                 'total': _total,
+                'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
                 'valids': _valids,
@@ -666,6 +670,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
 
             result = {
                 'total': _total,
+                'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
                 'valids': _valids,
@@ -995,6 +1000,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
 
             result = {
                 'total': _total,
+                'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
                 'valids': _valids,
@@ -1184,6 +1190,7 @@ class BooleanColumnProfiler(BaseColumnProfiler):
 
             return {
                 'total': _total,
+                'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
                 'valids': _valids,
