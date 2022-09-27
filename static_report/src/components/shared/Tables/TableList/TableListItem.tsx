@@ -150,49 +150,57 @@ export function TableListItem({
             <Text as="span" mr={4}>
               Columns:
             </Text>
-            {isExpanded ? (
-              !singleOnly && (
+            {isExpanded &&
+              (singleOnly ? (
+                <Text>
+                  {formatColumnValueWith(
+                    fallbackTable?.col_count,
+                    formatNumber,
+                  )}
+                </Text>
+              ) : (
                 <ColumnSchemaDeltaSummary
                   added={added}
                   deleted={deleted}
                   changed={changed}
                 />
-              )
-            ) : singleOnly ? (
-              <Flex
-                __css={{
-                  display: 'flex',
-                  gap: 3,
-                  alignItems: 'center',
-                  maxWidth: '100%',
-                  overflowX: 'scroll',
-                  scrollbarWidth: 'none',
-                  '&::-webkit-scrollbar': {
-                    display: 'none',
-                  },
-                }}
-              >
-                {columns.length > 0 &&
-                  columns.map((name) => {
-                    const { backgroundColor, icon } = getIconForColumnType(
-                      baseTableDatum?.columns[name],
-                    );
-                    return (
-                      <ColumnBadge
-                        key={name}
-                        name={name}
-                        icon={icon}
-                        iconColor={backgroundColor}
-                      />
-                    );
-                  })}
-              </Flex>
-            ) : (
-              <TableRowColDeltaSummary
-                baseCount={baseTableDatum?.col_count}
-                targetCount={targetTableDatum?.col_count}
-              />
-            )}
+              ))}
+            {!isExpanded &&
+              (singleOnly ? (
+                <Flex
+                  __css={{
+                    display: 'flex',
+                    gap: 3,
+                    alignItems: 'center',
+                    maxWidth: '100%',
+                    overflowX: 'scroll',
+                    scrollbarWidth: 'none',
+                    '&::-webkit-scrollbar': {
+                      display: 'none',
+                    },
+                  }}
+                >
+                  {columns.length > 0 &&
+                    columns.map((name) => {
+                      const { backgroundColor, icon } = getIconForColumnType(
+                        baseTableDatum?.columns[name],
+                      );
+                      return (
+                        <ColumnBadge
+                          key={name}
+                          name={name}
+                          icon={icon}
+                          iconColor={backgroundColor}
+                        />
+                      );
+                    })}
+                </Flex>
+              ) : (
+                <TableRowColDeltaSummary
+                  baseCount={baseTableDatum?.col_count}
+                  targetCount={targetTableDatum?.col_count}
+                />
+              ))}
           </Flex>
         </GridItem>
       </Grid>
