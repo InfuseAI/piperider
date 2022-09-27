@@ -82,8 +82,10 @@ export function TableColumnSummaryList({
           targetAssertions,
         }) => {
           const colDatum = comparedColumns[colName];
-          const isAsymmetricCol =
-            colDatum.base?.changed || colDatum.target?.changed;
+          const isAsymmetricCol = singleOnly
+            ? false
+            : colDatum.base?.changed || colDatum.target?.changed;
+
           return (
             <Grid
               py={3}
@@ -102,21 +104,26 @@ export function TableColumnSummaryList({
                   iconColor={colIconColor}
                 />
                 <Badge
-                  colorScheme={isAsymmetricCol ? 'red' : ''}
+                  colorScheme={isAsymmetricCol ? 'red' : 'gray'}
                   ml={25}
                   my={2}
+                  px={2}
                 >
                   <Flex
                     alignItems={'center'}
-                    color={isAsymmetricCol ? 'red.500' : 'gray.700'}
+                    color={isAsymmetricCol ? 'red' : 'gray.600'}
                   >
                     <ColumnSchemaTypeLabel
                       schemaType={colDatum.base?.schema_type}
                     />
-                    <Icon as={FiArrowRight} mx={3} />
-                    <ColumnSchemaTypeLabel
-                      schemaType={colDatum.target?.schema_type}
-                    />
+                    {!singleOnly && (
+                      <>
+                        <Icon as={FiArrowRight} mx={3} />
+                        <ColumnSchemaTypeLabel
+                          schemaType={colDatum.target?.schema_type}
+                        />
+                      </>
+                    )}
                   </Flex>
                 </Badge>
               </GridItem>
