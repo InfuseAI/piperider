@@ -23,8 +23,7 @@
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "react": "^18.1.0",
-    "react-dom": "^18.1.0",
-    "usehooks-ts": "^2.6.0"
+    "react-dom": "^18.1.0"
   },
   "devDependencies": {
     "@amplitude/analytics-browser": "^1.1.2",
@@ -148,5 +147,8 @@
     "singleQuote": true,
     "trailingComma": "all"
   },
-  "packageManager": "yarn@3.2.1"
+  "packageManager": "yarn@3.2.1",
+  "dependencies": {
+    "jotai": "^1.8.4"
+  }
 }

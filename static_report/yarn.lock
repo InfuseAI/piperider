@@ -3285,6 +3285,7 @@ __metadata:
     framer-motion: ^6.3.4
     http-server: ^14.1.1
     inter-ui: ^3.19.3
+    jotai: ^1.8.4
     json-schema-to-typescript: ^10.1.5
     nanoid: ^3.3.4
     node-html-parser: ^5.3.3
@@ -3317,7 +3318,6 @@ __metadata:
     "@emotion/styled": ^11.8.1
     react: ^18.1.0
     react-dom: ^18.1.0
-    usehooks-ts: ^2.6.0
   languageName: unknown
   linkType: soft
 
@@ -11728,6 +11728,43 @@ __metadata:
   bin:
     jest: bin/jest.js
   checksum: 96f1d69042b3c6dfc695f2a4e4b0db38af6fb78582ad1a02beaa57cfcd77cbd31567d7d865c1c85709b7c3e176eefa3b2035ffecd646005f15d8ef528eccf205
+  languageName: node
+  linkType: hard
+
+"jotai@npm:^1.8.4":
+  version: 1.8.4
+  resolution: "jotai@npm:1.8.4"
+  peerDependencies:
+    "@babel/core": "*"
+    "@babel/template": "*"
+    "@tanstack/query-core": "*"
+    "@urql/core": "*"
+    immer: "*"
+    optics-ts: "*"
+    react: ">=16.8"
+    valtio: "*"
+    wonka: "*"
+    xstate: "*"
+  peerDependenciesMeta:
+    "@babel/core":
+      optional: true
+    "@babel/template":
+      optional: true
+    "@tanstack/query-core":
+      optional: true
+    "@urql/core":
+      optional: true
+    immer:
+      optional: true
+    optics-ts:
+      optional: true
+    valtio:
+      optional: true
+    wonka:
+      optional: true
+    xstate:
+      optional: true
+  checksum: a3e9ffe9d1dad088bc965702fb2ae6f14162282d950bcb149f423ca7e8738466892b8b8652b65dda11d26e481056105170b961e4b19caa34400c3402d4e16157
   languageName: node
   linkType: hard
 
