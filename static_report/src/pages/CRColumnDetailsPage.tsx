@@ -1,4 +1,4 @@
-import { Box, Flex, Grid, GridItem, Heading, Text } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, Heading, Text } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
 
