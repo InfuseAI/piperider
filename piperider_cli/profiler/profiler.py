@@ -225,7 +225,13 @@ class Profiler:
                     ]).select_from(table)
                     row_count, = conn.execute(stmt).fetchone()
 
-        result['row_count'] = row_count
+        result['row_count'] = result['samples'] = row_count
+
+        if self.config:
+            limit = self.config.profiler_config.get('table', {}).get('limit', 0)
+            if row_count > limit > 0:
+                result['samples'] = limit
+
         if created:
             result['created'] = created
         if last_altered:
@@ -236,10 +242,21 @@ class Profiler:
             result['bytes'] = size_bytes
 
     def _profile_table_duplicate_rows(self, result: dict, table: Table):
+        if not self.config:
+            return
+        if not self.config.profiler_config.get('table', {}).get('duplicateRows'):
+            return
+
+        limit = self.config.profiler_config.get('table', {}).get('limit', 0)
+        columns = [column for column in table.columns]
+
         with self.engine.connect() as conn:
             if self.engine.url.get_backend_name() == 'snowflake':
-                columns = [column for column in table.columns]
-                cte = select([func.hash(*columns).label('h')]).select_from(table).cte()
+                if limit <= 0:
+                    cte = select([func.hash(*columns).label('h')]).select_from(table).cte()
+                else:
+                    cte = select([func.hash(*columns).label('h')]).select_from(table).limit(limit).cte()
+
                 cte = select([
                     cte.c.h,
                     func.count().label('c')
@@ -247,11 +264,19 @@ class Profiler:
                 stmt = select([func.sum(cte.c.c)]).select_from(cte)
                 duplicate_rows, = conn.execute(stmt).fetchone()
             else:
-                columns = [column for column in table.columns]
-                cte = select([
-                    *columns,
-                    func.count().label('c')
-                ]).select_from(table).group_by(*columns).having(func.count() > 1).cte()
+                if limit <= 0:
+                    cte = select([
+                        *columns,
+                        func.count().label('c')
+                    ]).select_from(table).group_by(*columns).having(func.count() > 1).cte()
+                else:
+                    cte = select([*columns]).select_from(table).limit(limit).cte()
+                    columns = [column for column in cte.columns]
+                    cte = select([
+                        *columns,
+                        func.count().label('c')
+                    ]).select_from(cte).group_by(*columns).having(func.count() > 1).cte()
+
                 stmt = select([func.sum(cte.c.c)]).select_from(cte)
                 duplicate_rows, = conn.execute(stmt).fetchone()
 

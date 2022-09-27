@@ -31,6 +31,14 @@
               "description": "Number of rows in this table",
               "type": "integer"
             },
+            "duplicate_rows": {
+              "description": "Number of rows that have identical values across corresponding columns in this table",
+              "type": "integer"
+            },
+            "samples": {
+              "description": "Number of rows after applying the row-limit configuration (rows will be unaffected if none is set)",
+              "type": "integer"
+            },
             "created": {
               "description": "The time that this table created at in ISO 8601 format including time zone",
               "type": "string"

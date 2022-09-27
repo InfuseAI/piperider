@@ -221,6 +221,7 @@ profiler:
   table:
     # the maximum row count to profile. (Default unlimited)
     limit: 1000000
+    duplicateRows: false
 
 The tables to include/exclude
 includes: []
