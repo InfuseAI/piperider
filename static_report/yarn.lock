@@ -3285,7 +3285,6 @@ __metadata:
     framer-motion: ^6.3.4
     http-server: ^14.1.1
     inter-ui: ^3.19.3
-    jotai: ^1.8.4
     json-schema-to-typescript: ^10.1.5
     nanoid: ^3.3.4
     node-html-parser: ^5.3.3
@@ -3308,6 +3307,7 @@ __metadata:
     web-vitals: ^2.1.4
     wouter: 2.8.0-alpha.2
     zod: ^3.17.10
+    zustand: ^4.1.1
   peerDependencies:
     "@chakra-ui/icons": ^2.0.1
     "@chakra-ui/react": ^2.1.2
@@ -11731,43 +11731,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jotai@npm:^1.8.4":
-  version: 1.8.4
-  resolution: "jotai@npm:1.8.4"
-  peerDependencies:
-    "@babel/core": "*"
-    "@babel/template": "*"
-    "@tanstack/query-core": "*"
-    "@urql/core": "*"
-    immer: "*"
-    optics-ts: "*"
-    react: ">=16.8"
-    valtio: "*"
-    wonka: "*"
-    xstate: "*"
-  peerDependenciesMeta:
-    "@babel/core":
-      optional: true
-    "@babel/template":
-      optional: true
-    "@tanstack/query-core":
-      optional: true
-    "@urql/core":
-      optional: true
-    immer:
-      optional: true
-    optics-ts:
-      optional: true
-    valtio:
-      optional: true
-    wonka:
-      optional: true
-    xstate:
-      optional: true
-  checksum: a3e9ffe9d1dad088bc965702fb2ae6f14162282d950bcb149f423ca7e8738466892b8b8652b65dda11d26e481056105170b961e4b19caa34400c3402d4e16157
-  languageName: node
-  linkType: hard
-
 "joycon@npm:^3.0.1":
   version: 3.1.1
   resolution: "joycon@npm:3.1.1"
@@ -17388,6 +17351,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"use-sync-external-store@npm:1.2.0":
+  version: 1.2.0
+  resolution: "use-sync-external-store@npm:1.2.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: 5c639e0f8da3521d605f59ce5be9e094ca772bd44a4ce7322b055a6f58eeed8dda3c94cabd90c7a41fb6fa852210092008afe48f7038792fd47501f33299116a
+  languageName: node
+  linkType: hard
+
 "use@npm:^3.1.0":
   version: 3.1.1
   resolution: "use@npm:3.1.1"
@@ -18242,5 +18214,22 @@ __metadata:
   version: 3.17.10
   resolution: "zod@npm:3.17.10"
   checksum: 5de630b8eceda3de211cce0a734b629f8c4ca4bc887127b0ebd57e9c9be23204725e60adf2faf1c5ccb9b660c7588a8b04f60dfda1ed8e67a789e93c15f838f1
+  languageName: node
+  linkType: hard
+
+"zustand@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "zustand@npm:4.1.1"
+  dependencies:
+    use-sync-external-store: 1.2.0
+  peerDependencies:
+    immer: ">=9.0"
+    react: ">=16.8"
+  peerDependenciesMeta:
+    immer:
+      optional: true
+    react:
+      optional: true
+  checksum: 03eefb193e2ecb43a761c81cb60f517c2780289dab0f55f2cbdb91400924c6291abb5a007b32ee19787b8f72b6769f891a38b64fd296660c170d632c3182f6e1
   languageName: node
   linkType: hard

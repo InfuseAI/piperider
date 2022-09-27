@@ -84,7 +84,8 @@
     "usehooks-ts": "^2.6.0",
     "web-vitals": "^2.1.4",
     "wouter": "2.8.0-alpha.2",
-    "zod": "^3.17.10"
+    "zod": "^3.17.10",
+    "zustand": "^4.1.1"
   },
   "scripts": {
     "analyze": "npx cra-bundle-analyzer",
@@ -147,8 +148,5 @@
     "singleQuote": true,
     "trailingComma": "all"
   },
-  "packageManager": "yarn@3.2.1",
-  "dependencies": {
-    "jotai": "^1.8.4"
-  }
+  "packageManager": "yarn@3.2.1"
 }
