@@ -23,11 +23,15 @@ Example
 ```
 
 ## Profiler
-PipeRider provides a row-limited setting to help with profiling partial of a large dataset and gives you quick navigation.
+Profiler configurations are used to customize the behavior of PipeRider profiler.
+
+- PipeRider provides the row-limited setting to help with profiling partial of a large dataset and gives you quick navigation.
+- Duplicate row detection could be a time costing metric, you can enabled it depend on your dataset usage.
 
 | Field | Type | Description | Default |
 | --- | --- | --- | --- |
-| limit | integer | the maximum row count to profile | all rows |
+| limit | integer | the maximum row count to profile | unlimited |
+| duplicateRows | boolean | enable duplicate rows metric | false |
 
 Example
 ```
@@ -35,6 +39,7 @@ profiler:
   table:
     # the maximum row count to profile (Default unlimited)
     limit: 1000000
+    duplicateRows: false
 ```
 
 ## Tables
