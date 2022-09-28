@@ -3,12 +3,15 @@ import os
 import re
 import sys
 import uuid
+import threading
 from datetime import datetime
 
 from rich import box
+from rich.color import Color
 from rich.console import Console
 from rich.pretty import Pretty
 from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedColumn, MofNCompleteColumn
+from rich.style import Style
 from rich.table import Table
 
 from piperider_cli import convert_to_tzlocal, datetime_to_str, clone_directory, \
@@ -50,7 +53,7 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         table_width, total_width = self._get_width(tables)
         total_column = TextColumn("{task.fields[coft]}", table_column=Column(width=total_width))
         text_column = TextColumn("{task.description}", table_column=Column(width=table_width))
-        bar_column = BarColumn(bar_width=80)
+        bar_column = BarColumn(bar_width=80, pulse_style=Style.from_color(Color.from_rgb(244, 164, 96)))
         mofn_column = MofNCompleteColumn(table_column=Column(width=5, justify="right"))
         time_elapsed_column = TimeElapsedColumn()
 
@@ -59,16 +62,16 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         self.tasks = {}
         self.table_total = 0
         self.table_completed = 0
+        self.lock = threading.Lock()
 
     def _get_width(self, tables):
         return max([len(x) for x in tables]), len(str(len(tables))) * 2 + 2
 
     def handle_run_start(self, run_result):
-        pass
+        self.progress.start()
 
     def handle_run_progress(self, run_result, total, completed):
         self.table_total = total
-        self.table_completed = completed
         pass
 
     def handle_run_end(self, run_result):
@@ -81,22 +84,25 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         print(f"fetching metadata for table '{table_name}'")
 
     def handle_table_start(self, table_result):
+        self.lock.acquire()
+        self.table_completed += 1
+        table_name = table_result['name']
+        padding = ' ' * (len(str(self.table_total)) - len(str(self.table_completed)))
+        coft = f'[{padding}{self.table_completed}/{self.table_total}]'
+        task_id = self.progress.add_task(table_name, total=None, **dict(coft=coft))
+        self.tasks[table_name] = task_id
+        self.lock.release()
         pass
 
     def handle_table_progress(self, table_result, total, completed):
         if completed == 0:
             table_name = table_result['name']
-            padding = ' ' * (len(str(self.table_total)) - len(str(self.table_completed + 1)))
-            coft = f'[{padding}{self.table_completed + 1}/{self.table_total}]'
-            task_id = self.progress.add_task(table_name, total=total, **dict(coft=coft))
-            self.tasks[table_name] = task_id
-            self.progress.start()
+            task_id = self.tasks[table_name]
+            self.progress.update(task_id, total=total)
+        pass
 
     def handle_table_end(self, table_result):
-        self.progress.stop()
-        table_name = table_result['name']
-        task_id = self.tasks[table_name]
-        self.progress.remove_task(task_id)
+        pass
 
     def handle_column_start(self, table_name, column_result):
         pass

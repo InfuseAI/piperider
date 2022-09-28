@@ -122,14 +122,33 @@ class Profiler:
         table_count = len(tables)
         table_index = 0
         self.event_handler.handle_run_progress(result, table_count, table_index)
-        for table_name in tables:
-            t = self.metadata.tables[table_name]
-            tresult = self._profile_table(t)
-            profiled_tables[table_name] = tresult
-            table_index = table_index + 1
-            self.event_handler.handle_run_progress(result, table_count, table_index)
 
-        self.event_handler.handle_run_end(result)
+        if isinstance(self.engine.pool, SingletonThreadPool):
+            for table_name in tables:
+                t = self.metadata.tables[table_name]
+                tresult = self._profile_table(t)
+                profiled_tables[table_name] = tresult
+                table_index = table_index + 1
+                self.event_handler.handle_run_progress(result, table_count, table_index)
+
+            self.event_handler.handle_run_end(result)
+        else:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                future_to_profile = {executor.submit(self._profile_table, table): table for table in
+                                     self.metadata.tables.values()}
+                try:
+                    for future in concurrent.futures.as_completed(future_to_profile):
+                        table = future_to_profile[future]
+                        try:
+                            data = future.result()
+                        except Exception as exc:
+                            raise exc
+                        else:
+                            profiled_tables[table.name] = data
+                            table_index = table_index + 1
+                            self.event_handler.handle_run_progress(result, table_count, table_index)
+                finally:
+                    self.event_handler.handle_run_end(result)
 
         return result
 
