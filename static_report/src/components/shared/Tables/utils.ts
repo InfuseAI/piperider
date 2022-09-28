@@ -1,90 +1,10 @@
 import { NO_VALUE } from '../Columns/constants';
-import { AssertionTest } from '../../../sdlc/single-report-schema';
-import {
-  dbtAssertionResultSchema,
-  pipeRiderAssertionResultSchema,
-} from '../../../sdlc/single-report-schema.z';
 import {
   AssertionValue,
   ReportAssertionStatusCounts,
   ComparisonReportSchema,
   ComparsionSource,
-  zReport,
-  SaferTableSchema,
 } from '../../../types';
-
-/**
- * For getting either single column/table's assertion tests
- * @param assertions
- */
-export function getAssertions(assertions?: AssertionTest[]) {
-  if (!Array.isArray(assertions)) return { total: 0, passed: 0, failed: 0 };
-  const total = assertions.length;
-  const failed = assertions.reduce((acc, test) => {
-    if (test.status === 'failed') {
-      acc++;
-    }
-    return acc;
-  }, 0);
-  const passed = total - failed;
-
-  return {
-    total,
-    passed,
-    failed,
-  };
-}
-
-/**
- * Get the report assertions combined total, passed, failed, by giving piperider and dbt assertions.
- */
-export function getReportAggregateAssertions(
-  piperiderAssertions?: SaferTableSchema['piperider_assertion_result'],
-  dbtAssertion?: SaferTableSchema['dbt_assertion_result'],
-) {
-  let passed = 0;
-  let failed = 0;
-
-  zReport(
-    pipeRiderAssertionResultSchema
-      .optional()
-      .nullable()
-      .safeParse(piperiderAssertions),
-  );
-
-  const { passed: piperiderPassed, failed: piperiderFailed } =
-    getSingleAssertionStatusCounts(piperiderAssertions);
-
-  if (Number.isInteger(piperiderPassed)) {
-    passed += piperiderPassed as number;
-  }
-
-  if (Number.isInteger(piperiderFailed)) {
-    failed += piperiderFailed as number;
-  }
-
-  if (dbtAssertion) {
-    zReport(
-      dbtAssertionResultSchema.optional().nullable().safeParse(dbtAssertion),
-    );
-    const { passed: dbtPassed, failed: dbtFailed } =
-      getSingleAssertionStatusCounts(dbtAssertion);
-
-    if (Number.isInteger(dbtPassed)) {
-      passed += dbtPassed as number;
-    }
-
-    if (Number.isInteger(dbtFailed)) {
-      failed += dbtFailed as number;
-    }
-  }
-
-  return {
-    passed,
-    failed,
-    total: passed + failed,
-  };
-}
 
 export function getSingleAssertionStatusCounts(
   assertion: AssertionValue,
@@ -127,6 +47,41 @@ export function getSingleAssertionStatusCounts(
   };
 }
 
+export function getAssertionStatusCountsFromList(assertions: AssertionValue[]) {
+  const result = assertions.reduce<
+    ReportAssertionStatusCounts & { total: string | number }
+  >(
+    (accum, curr) => {
+      const { passed, failed } = getSingleAssertionStatusCounts(curr);
+
+      const isPassedNum = typeof passed === 'number';
+      const isFailedNum = typeof failed === 'number';
+
+      const passValue =
+        isPassedNum && typeof accum.passed === 'number'
+          ? passed + accum.passed
+          : passed;
+      const failValue =
+        isFailedNum && typeof accum.failed === 'number'
+          ? failed + accum.failed
+          : failed;
+      const totalValue =
+        isFailedNum && isPassedNum && typeof accum.total === 'number'
+          ? passed + failed + accum.total
+          : NO_VALUE;
+
+      return {
+        passed: passValue,
+        failed: failValue,
+        total: totalValue,
+      };
+    },
+    { passed: NO_VALUE, failed: NO_VALUE, total: NO_VALUE },
+  );
+  return result;
+}
+
+//FIXME: REFACTOR REMOVE USAGE (CR-COL-DETAILS-PAGE)
 export type ComparisonAssertions = {
   data: ComparisonReportSchema;
   tableName: string;
