@@ -25,8 +25,8 @@ import {
 import { nanoid } from 'nanoid';
 import { useLocation } from 'wouter';
 
-import { TableColumnSummaryList } from '../components/shared/Tables/TableList/TableColumnSummaryList';
 import { tableListGridTempCols, tableListWidth } from '../utils/layout';
+import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 
 type Props = { data: ComparisonReportSchema };
 
@@ -80,9 +80,10 @@ export function CRTablesListPage({ data }: Props) {
 
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
-                        <TableColumnSummaryList
+                        <TableColumnSchemaList
                           baseTableDatum={table?.base}
                           targetTableDatum={table?.target}
+                          visibleDetail
                           onSelect={({ tableName, columnName }) =>
                             setLocation(
                               `/tables/${tableName}/columns/${columnName}`,

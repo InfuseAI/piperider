@@ -11,12 +11,13 @@ import {
   formatColumnValueWith,
   formatNumber,
 } from '../../../../utils/formatters';
+import { NO_VALUE } from '../../Columns';
 
 interface Props {
-  baseAssertionTotal: number;
-  baseAssertionFailed: number;
-  targetAssertionTotal: number;
-  targetAssertionFailed: number;
+  baseAssertionTotal: number | string;
+  baseAssertionFailed: number | string;
+  targetAssertionTotal: number | string;
+  targetAssertionFailed: number | string;
 }
 /**
  * SR = e.g. <checkmark> All of 10
@@ -28,6 +29,11 @@ export function TableListAssertionSummary({
   targetAssertionFailed,
   targetAssertionTotal,
 }: Props) {
+  const failedDelta =
+    typeof baseAssertionFailed === 'number' &&
+    typeof targetAssertionFailed === 'number'
+      ? targetAssertionFailed - baseAssertionFailed
+      : NO_VALUE;
   return (
     <Flex gap={2} color="gray.500" alignItems="center">
       {/* base assertions */}
@@ -37,8 +43,8 @@ export function TableListAssertionSummary({
           failed={baseAssertionFailed}
         />
         <Text as="span">/</Text>
-        <Text as="span" width="60px">
-          {formatColumnValueWith(baseAssertionTotal, formatNumber)} total
+        <Text as="span">
+          {formatColumnValueWith(baseAssertionTotal, formatNumber)}
         </Text>
       </Flex>
 
@@ -49,7 +55,7 @@ export function TableListAssertionSummary({
         <TargetTableAssertion
           total={targetAssertionTotal}
           failed={targetAssertionFailed}
-          failedDelta={targetAssertionFailed - baseAssertionFailed}
+          failedDelta={failedDelta}
         />
         <Text as="span">/</Text>
         <TargetTableAssertionsDelta
@@ -65,30 +71,32 @@ function BaseTableAssertionSummary({
   total,
   failed,
 }: {
-  total: number;
-  failed: number;
+  total: number | string;
+  failed: number | string;
 }) {
   if (total === 0) {
     return (
       <Text as="span" color="gray.500">
-        none
+        0
       </Text>
     );
   }
 
   if (total > 0 && failed === 0) {
     return (
-      <Text as="span" color="#2CAA00" width="80px">
+      <Text as="span" color="#2CAA00">
         All Passed
       </Text>
     );
   }
 
-  return (
-    <Text as="span" color="#F60059" width="80px">
-      {formatColumnValueWith(failed, formatNumber)} failures
-    </Text>
-  );
+  if (failed > 0)
+    return (
+      <Text as="span" color="#F60059">
+        {formatColumnValueWith(failed, formatNumber)}
+      </Text>
+    );
+  return <Text>{NO_VALUE}</Text>;
 }
 
 function TargetTableAssertion({
@@ -96,9 +104,9 @@ function TargetTableAssertion({
   failed,
   failedDelta,
 }: {
-  total: number;
-  failed: number;
-  failedDelta: number;
+  total: number | string;
+  failed: number | string;
+  failedDelta: number | string;
 }) {
   if (total === 0) {
     return (
@@ -108,7 +116,7 @@ function TargetTableAssertion({
     );
   }
 
-  if (failedDelta !== 0) {
+  if (failedDelta !== 0 && typeof failedDelta === 'number') {
     return (
       <Center gap={1} color="#F60059">
         <AssertionsLabelIcon delta={failedDelta} />
@@ -133,10 +141,13 @@ function TargetTableAssertionsDelta({
   baseAssertions,
   targetAssertions,
 }: {
-  baseAssertions: number;
-  targetAssertions: number;
+  baseAssertions: number | string;
+  targetAssertions: number | string;
 }) {
-  const delta = targetAssertions - baseAssertions;
+  const delta =
+    typeof baseAssertions === 'number' && typeof targetAssertions === 'number'
+      ? targetAssertions - baseAssertions
+      : NO_VALUE;
   const isGreaterThanZero = delta > 0;
 
   if (targetAssertions === 0) {
@@ -145,7 +156,9 @@ function TargetTableAssertionsDelta({
 
   return (
     <Center gap={1}>
-      {delta !== 0 ? <AssertionsLabelIcon delta={delta} /> : null}
+      {typeof delta === 'number' && delta !== 0 ? (
+        <AssertionsLabelIcon delta={delta} />
+      ) : null}
       <Text as="span" color={isGreaterThanZero ? 'black' : 'inherit'}>
         {formatColumnValueWith(targetAssertions, formatNumber)}
       </Text>

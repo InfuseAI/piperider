@@ -2,15 +2,14 @@ import { transformAsNestedBaseTargetRecord } from '../../../../utils/transformer
 import type { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import { Comparable, SaferTableSchema, Selectable } from '../../../../types';
 import { Flex, Grid, GridItem, Icon, Text } from '@chakra-ui/react';
-import { getAssertions } from '../utils';
-import { FiArrowRight, FiChevronRight } from 'react-icons/fi';
+import { getAssertionStatusCountsFromList } from '../utils';
+import { FiChevronRight } from 'react-icons/fi';
 import { HistogramChart } from '../../Charts/HistogramChart';
 import { ColumnName } from './ColumnName';
 import { NoData } from '../../Layouts/NoData';
 import { getIconForColumnType } from '../../Columns/utils';
 import { tableListGridTempCols } from '../../../../utils/layout';
 import { AssertionLabel } from '../../Assertions';
-import { TargetTableAssertionsSummary } from './TableListAssertions';
 import { ColumnSchemaTypeLabel } from './ColumnSchemaTypeLabel';
 
 interface Props extends Selectable, Comparable {
@@ -34,25 +33,14 @@ export function TableColumnSummaryList({
         ? baseTableDatum?.columns[colName]
         : targetTableDatum?.columns[colName],
     );
-    const baseAssertions = getAssertions(
-      baseTableDatum?.piperider_assertion_result?.columns[colName],
-    );
-    const targetAssertions = getAssertions(
-      targetTableDatum?.piperider_assertion_result?.columns[colName],
-    );
-    const baseDbtAssertions = getAssertions(
-      baseTableDatum?.dbt_assertion_result?.columns[colName],
-    );
-    const targetDbtAssertions = getAssertions(
-      targetTableDatum?.dbt_assertion_result?.columns[colName],
-    );
-
-    baseAssertions.total += baseDbtAssertions.total;
-    baseAssertions.passed += baseDbtAssertions.passed;
-    baseAssertions.failed += baseDbtAssertions.failed;
-    targetAssertions.total += targetDbtAssertions.total;
-    targetAssertions.passed += targetDbtAssertions.passed;
-    targetAssertions.failed += targetDbtAssertions.failed;
+    const baseAssertions = getAssertionStatusCountsFromList([
+      baseTableDatum?.piperider_assertion_result,
+      baseTableDatum?.dbt_assertion_result,
+    ]);
+    const targetAssertions = getAssertionStatusCountsFromList([
+      targetTableDatum?.piperider_assertion_result,
+      targetTableDatum?.dbt_assertion_result,
+    ]);
 
     return {
       colName,
@@ -144,7 +132,7 @@ export function TableColumnSummaryList({
                 (singleOnly || targetAssertions.total > 0) ? (
                   <Flex gap={2} color="gray.500" alignItems="center" ml={5}>
                     <AssertionLabel {...baseAssertions} />
-                    {!singleOnly && (
+                    {/* {!singleOnly && (
                       <>
                         <Icon as={FiArrowRight} />
                         <TargetTableAssertionsSummary
@@ -153,7 +141,7 @@ export function TableColumnSummaryList({
                           delta={targetAssertions.total - baseAssertions.total}
                         />
                       </>
-                    )}
+                    )} */}
                   </Flex>
                 ) : (
                   <Text color="gray.500">No assertions</Text>

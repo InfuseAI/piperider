@@ -9,7 +9,7 @@ import { TableRowColDeltaSummary } from './TableRowColDeltaSummary';
 
 import { TableListAssertionSummary } from './TableListAssertions';
 
-import type {
+import {
   ColumnSchema,
   Comparable,
   SaferTableSchema,
@@ -23,7 +23,7 @@ import { ColumnBadge } from './ColumnBadge';
 import { getIconForColumnType } from '../../Columns/utils';
 import { NoData } from '../../Layouts';
 import { AssertionLabel } from '../../Assertions/AssertionLabel';
-import { getReportAggregateAssertions } from '../utils';
+import { getAssertionStatusCountsFromList } from '../utils';
 import {
   tableListGridTempCols,
   tableListMaxWidth,
@@ -48,18 +48,19 @@ export function TableListItem({
   const tableName = fallbackTable?.name;
   const description =
     baseTableDatum?.description || targetTableDatum?.description;
-  //SR vars
+
   const columns = Object.keys(baseTableDatum?.columns || {}).map((key) => key);
 
-  const { failed: baseFailed, total: baseTotal } = getReportAggregateAssertions(
-    baseTableDatum?.piperider_assertion_result,
-    baseTableDatum?.dbt_assertion_result,
-  );
+  const { failed: baseFailed, total: baseTotal } =
+    getAssertionStatusCountsFromList([
+      baseTableDatum?.piperider_assertion_result,
+      baseTableDatum?.dbt_assertion_result,
+    ]);
   const { failed: targetFailed, total: targetTotal } =
-    getReportAggregateAssertions(
+    getAssertionStatusCountsFromList([
       targetTableDatum?.piperider_assertion_result,
       targetTableDatum?.dbt_assertion_result,
-    );
+    ]);
 
   const comparedColumns = transformAsNestedBaseTargetRecord<
     SaferTableSchema['columns'],
@@ -105,9 +106,10 @@ export function TableListItem({
         </GridItem>
         <GridItem>
           <Flex gap={2}>
-            {singleOnly ? (
+            {singleOnly && (
               <AssertionLabel total={baseTotal} failed={baseFailed} />
-            ) : (
+            )}
+            {!singleOnly && (
               <TableListAssertionSummary
                 baseAssertionFailed={baseFailed}
                 baseAssertionTotal={baseTotal}

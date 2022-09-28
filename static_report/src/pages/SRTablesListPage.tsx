@@ -18,7 +18,7 @@ import { type SingleReportSchema } from '../sdlc/single-report-schema';
 import { zReport, ZTableSchema } from '../types';
 import { TableListItem } from '../components/shared/Tables/TableList/TableListItem';
 import { tableListGridTempCols, tableListWidth } from '../utils/layout';
-import { TableColumnSummaryList } from '../components/shared/Tables/TableList/TableColumnSummaryList';
+import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 
 type Props = { data: SingleReportSchema };
 
@@ -62,9 +62,10 @@ export function SRTablesListPage({ data }: Props) {
                       />
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
-                        <TableColumnSummaryList
-                          baseTableDatum={table}
+                        <TableColumnSchemaList
                           singleOnly
+                          visibleDetail
+                          baseTableDatum={table}
                           onSelect={({ tableName, columnName }) =>
                             setLocation(
                               `/tables/${tableName}/columns/${columnName}`,
