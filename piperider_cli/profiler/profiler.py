@@ -134,8 +134,8 @@ class Profiler:
             self.event_handler.handle_run_end(result)
         else:
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                future_to_profile = {executor.submit(self._profile_table, table): table for table in
-                                     self.metadata.tables.values()}
+                future_to_profile = {executor.submit(self._profile_table, t): t for t in self.metadata.tables.values()
+                                     if t.name in tables}
                 try:
                     for future in concurrent.futures.as_completed(future_to_profile):
                         table = future_to_profile[future]
