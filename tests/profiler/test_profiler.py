@@ -598,7 +598,8 @@ class TestProfiler:
         assert result["tables"]["test"]['columns']["num"]["min"] == 1.0
         assert result["tables"]["test"]['columns']["num"]["max"] == 2.0
         assert result["tables"]["test"]['columns']["num"]["avg"] == 1.5
-        assert result["tables"]["test"]['columns']["num"]["total"] == 3
+        assert result["tables"]["test"]['columns']["num"]["total"] == 5
+        assert result["tables"]["test"]['columns']["num"]["samples"] == 3
         assert result["tables"]["test"]['columns']["num"]["nulls"] == 1
         assert result["tables"]["test"]['row_count'] == 5
         assert result["tables"]["test"]['samples'] == 3

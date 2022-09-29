@@ -123,32 +123,14 @@ class Profiler:
         table_index = 0
         self.event_handler.handle_run_progress(result, table_count, table_index)
 
-        if isinstance(self.engine.pool, SingletonThreadPool):
-            for table_name in tables:
-                t = self.metadata.tables[table_name]
-                tresult = self._profile_table(t)
-                profiled_tables[table_name] = tresult
-                table_index = table_index + 1
-                self.event_handler.handle_run_progress(result, table_count, table_index)
+        for table_name in tables:
+            t = self.metadata.tables[table_name]
+            tresult = self._profile_table(t)
+            profiled_tables[table_name] = tresult
+            table_index = table_index + 1
+            self.event_handler.handle_run_progress(result, table_count, table_index)
 
-            self.event_handler.handle_run_end(result)
-        else:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                future_to_profile = {executor.submit(self._profile_table, t): t for t in self.metadata.tables.values()
-                                     if t.name in tables}
-                try:
-                    for future in concurrent.futures.as_completed(future_to_profile):
-                        table = future_to_profile[future]
-                        try:
-                            data = future.result()
-                        except Exception as exc:
-                            raise exc
-                        else:
-                            profiled_tables[table.name] = data
-                            table_index = table_index + 1
-                            self.event_handler.handle_run_progress(result, table_count, table_index)
-                finally:
-                    self.event_handler.handle_run_end(result)
+        self.event_handler.handle_run_end(result)
 
         return result
 
@@ -329,6 +311,7 @@ class Profiler:
         if isinstance(self.engine.pool, SingletonThreadPool):
             for column in candidate_columns:
                 columns[column.name] = self._profile_column(table, column)
+                columns[column.name]['total'] = result['row_count']
                 col_index = col_index + 1
                 self.event_handler.handle_table_progress(result, col_count, col_index)
 
@@ -490,7 +473,7 @@ class BaseColumnProfiler:
             _total, _non_nulls, = result
 
             return {
-                'total': _total,
+                'total': None,
                 'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
@@ -571,7 +554,7 @@ class StringColumnProfiler(BaseColumnProfiler):
             _stddev = dtof(_stddev)
 
             result = {
-                'total': _total,
+                'total': None,
                 'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
@@ -688,7 +671,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
             _stddev = dtof(_stddev)
 
             result = {
-                'total': _total,
+                'total': None,
                 'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
@@ -1018,7 +1001,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                     _max = datetime.fromisoformat(_max) if isinstance(_max, str) else _max
 
             result = {
-                'total': _total,
+                'total': None,
                 'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
@@ -1208,7 +1191,7 @@ class BooleanColumnProfiler(BaseColumnProfiler):
             _falses = _valids - _trues
 
             return {
-                'total': _total,
+                'total': None,
                 'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
