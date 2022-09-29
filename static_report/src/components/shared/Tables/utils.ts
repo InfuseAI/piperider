@@ -47,6 +47,9 @@ export function getSingleAssertionStatusCounts(
   };
 }
 
+/**
+ * Get the accumulated summed assertion status counts (passed, failed, total) from list of assertion-values
+ */
 export function getAssertionStatusCountsFromList(assertions: AssertionValue[]) {
   const result = assertions.reduce<
     ReportAssertionStatusCounts & { total: string | number }
@@ -54,21 +57,16 @@ export function getAssertionStatusCountsFromList(assertions: AssertionValue[]) {
     (accum, curr) => {
       const { passed, failed } = getSingleAssertionStatusCounts(curr);
 
-      const isPassedNum = typeof passed === 'number';
-      const isFailedNum = typeof failed === 'number';
+      // if source is string, curr-total should not include it later
+      const passValue = resolveStatusCountValues(passed, accum.passed);
+      const failValue = resolveStatusCountValues(failed, accum.failed);
+      //to exclude accumulating existing, escape to 0 when NO_VALUE
+      const currTotal = resolveStatusCountValues(
+        passed !== NO_VALUE ? passValue : 0,
+        failValue !== NO_VALUE ? failValue : 0,
+      );
 
-      const passValue =
-        isPassedNum && typeof accum.passed === 'number'
-          ? passed + accum.passed
-          : passed;
-      const failValue =
-        isFailedNum && typeof accum.failed === 'number'
-          ? failed + accum.failed
-          : failed;
-      const totalValue =
-        isFailedNum && isPassedNum && typeof accum.total === 'number'
-          ? passed + failed + accum.total
-          : NO_VALUE;
+      const totalValue = resolveStatusCountValues(currTotal, accum.total);
 
       return {
         passed: passValue,
@@ -79,6 +77,26 @@ export function getAssertionStatusCountsFromList(assertions: AssertionValue[]) {
     { passed: NO_VALUE, failed: NO_VALUE, total: NO_VALUE },
   );
   return result;
+}
+
+/**
+ * resolve util for handling assertion status counts (string | num)
+ * where number types will always prevail
+ * where string is typically a NO_VALUE
+ */
+function resolveStatusCountValues(
+  source: string | number,
+  target: string | number,
+) {
+  if (typeof source === 'number') {
+    if (typeof target === 'number') {
+      return source + target; // sum when both are nums
+    }
+    return source; // else overwrite as first-occurring num
+  } else if (typeof target === 'number') {
+    return target; // else always keep as num
+  }
+  return NO_VALUE;
 }
 
 //FIXME: REFACTOR REMOVE USAGE (CR-COL-DETAILS-PAGE)
