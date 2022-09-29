@@ -18,11 +18,12 @@ export function AssertionLabel({
   ...props
 }: AssertionLabelProps) {
   const isPassed = failed === 0;
+  const hasNoAssertions = total === 0;
   const hasBothStatusCounts =
     typeof total === 'number' && typeof failed === 'number';
   return (
     <Flex alignItems="center" justifyContent="space-between">
-      {hasBothStatusCounts ? (
+      {hasBothStatusCounts && !hasNoAssertions ? (
         <Flex gap={2}>
           <Flex
             alignItems="center"
