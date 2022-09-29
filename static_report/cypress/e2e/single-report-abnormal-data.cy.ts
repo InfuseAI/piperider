@@ -9,7 +9,7 @@ describe('Single Report (profiler-e2e.db)', () => {
     tableAccordionBtn.click();
 
     const columnAccordionItem = cy
-      .get('[data-cy="table-list-summary-item"]')
+      .get('[data-cy="table-list-schema-item"]')
       .first();
     columnAccordionItem.click();
   });
