@@ -1,4 +1,15 @@
-import { Flex, Grid, GridItem, Heading, Text } from '@chakra-ui/react';
+import {
+  Divider,
+  Flex,
+  Grid,
+  GridItem,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Text,
+} from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
 
@@ -24,15 +35,15 @@ import {
   containsColumnQuantile,
 } from '../components/shared/Columns/utils';
 import { TableOverview } from '../components/shared/Tables/TableOverview';
-import { CRAssertionDetailsWidget } from '../components/shared/Widgets/CRAssertionDetailsWidget';
 import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
-import { getComparisonAssertions } from '../components/shared/Tables/utils';
 import {
   BreadcrumbMetaItem,
   BreadcrumbNav,
 } from '../components/shared/Layouts/BreadcrumbNav';
 import { ColumnSchemaDeltaSummary } from '../components/shared/Tables/TableList/ColumnSchemaDeltaSummary';
 import { transformAsNestedBaseTargetRecord } from '../utils';
+import { TableHeader } from '../components/shared/Tables/TableHeader';
+import { SRAssertionDetailsWidget } from '../lib';
 interface Props {
   data: ComparisonReportSchema;
   columnName: string;
@@ -79,24 +90,7 @@ export default function CRColumnDetailsPage({
 
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
-  const [baseOverview, targetOverview] = getComparisonAssertions({
-    data,
-    tableName,
-    type: 'piperider',
-  });
-  const [dbtBaseOverview, dbtTargetOverview] = getComparisonAssertions({
-    data,
-    tableName,
-    type: 'dbt',
-  });
-  const piperiderAssertions = [
-    ...(baseOverview?.tests || []),
-    ...(targetOverview?.tests || []),
-  ];
-  const dbtAssertions = [
-    ...(dbtBaseOverview?.tests || []),
-    ...(dbtTargetOverview?.tests || []),
-  ];
+
   const comparedColumns = transformAsNestedBaseTargetRecord<
     SaferTableSchema['columns'],
     ColumnSchema
@@ -135,34 +129,57 @@ export default function CRColumnDetailsPage({
         {/* Detail Area - Table Detail */}
         {isTableDetailsView ? (
           <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
-            <TableOverview
-              baseTable={baseDataTable}
-              targetTable={targetDataTable}
-            />
-            <Heading size="md" my={5}>
-              Assertions
-            </Heading>
-            <CRAssertionDetailsWidget
-              assertions={{
-                piperider: piperiderAssertions,
-                dbt: dbtAssertions,
-              }}
-            />
-            <Flex alignItems={'center'}>
-              <Heading size="md" my={5} mr={3}>
-                Schema
-              </Heading>
-              <ColumnSchemaDeltaSummary
-                added={added}
-                deleted={deleted}
-                changed={changed}
-              />
-            </Flex>
-            <TableColumnSchemaList
-              baseTableDatum={baseDataTable}
-              targetTableDatum={targetDataTable}
-              onSelect={() => {}}
-            />
+            <TableHeader tableName={tableName} mb={5} />
+            <Tabs defaultIndex={0}>
+              <TabList>
+                <Tab>Overview</Tab>
+                <Tab>Assertions</Tab>
+                <Tab>Schema</Tab>
+              </TabList>
+              <TabPanels>
+                <TabPanel>
+                  <ComparableGridHeader />
+                  <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
+                    <TableOverview tableDatum={baseDataTable} />
+                    <Divider orientation="vertical" />
+                    <TableOverview tableDatum={targetDataTable} />
+                  </Grid>
+                </TabPanel>
+                <TabPanel>
+                  <ComparableGridHeader />
+                  <Grid templateColumns={'1fr 1px 1fr'} gap={3} height={'100%'}>
+                    <SRAssertionDetailsWidget
+                      assertions={{
+                        piperider: baseDataTable?.piperider_assertion_result,
+                        dbt: baseDataTable?.dbt_assertion_result,
+                      }}
+                    />
+                    <Divider orientation="vertical" />
+                    <SRAssertionDetailsWidget
+                      assertions={{
+                        piperider: targetDataTable?.piperider_assertion_result,
+                        dbt: targetDataTable?.dbt_assertion_result,
+                      }}
+                    />
+                  </Grid>
+                </TabPanel>
+                <TabPanel>
+                  <ComparableGridHeader />
+                  <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
+                    <ColumnSchemaDeltaSummary
+                      added={added}
+                      deleted={deleted}
+                      changed={changed}
+                    />
+                    <TableColumnSchemaList
+                      baseTableDatum={baseDataTable}
+                      targetTableDatum={targetDataTable}
+                      onSelect={() => {}}
+                    />
+                  </Grid>
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
           </GridItem>
         ) : (
           // {/* Detail Area */}
@@ -252,5 +269,23 @@ export default function CRColumnDetailsPage({
         )}
       </Grid>
     </Main>
+  );
+}
+function ComparableGridHeader() {
+  return (
+    <Grid templateColumns={'1fr 1fr'} mb={2} gap={5}>
+      {['Base', 'Target'].map((v, i) => (
+        <Flex key={i} alignItems={'center'} w={'100%'}>
+          <Text
+            fontWeight={'semibold'}
+            fontSize={'2xl'}
+            color={'gray.400'}
+            w={'100%'}
+          >
+            {v}
+          </Text>
+        </Flex>
+      ))}
+    </Grid>
   );
 }

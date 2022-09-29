@@ -9,6 +9,7 @@ import {
   Td,
   Text,
   Icon,
+  FlexProps,
 } from '@chakra-ui/react';
 import { FiChevronRight } from 'react-icons/fi';
 import { nanoid } from 'nanoid';

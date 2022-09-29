@@ -97,7 +97,7 @@ export function MetricsInfo({
             textAlign="right"
             fontSize={'sm'}
             width={firstSlotWidth}
-            noOfLines={1}
+            noOfLines={2}
           >
             {firstSlot || NO_VALUE}
           </Text>

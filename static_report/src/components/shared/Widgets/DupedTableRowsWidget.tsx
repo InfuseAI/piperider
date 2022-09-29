@@ -1,25 +1,21 @@
 import { Divider, Text, Box, Link } from '@chakra-ui/react';
-import { Comparable, SaferTableSchema } from '../../../types';
+import { SaferTableSchema } from '../../../types';
 import { renderChartUnavailableMsg } from '../Charts/utils';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
 import { transformTableAsFlatStackInput } from '../Tables/utils';
 import { DupedTableRowStats } from '../Tables/TableMetrics/DupedTableRowStats';
 
-interface Props extends Comparable {
+interface Props {
   hasAnimation?: boolean;
   tableDatum?: SaferTableSchema;
 }
-export function DupedTableRowsWidget({
-  tableDatum,
-  hasAnimation,
-  singleOnly,
-}: Props) {
+export function DupedTableRowsWidget({ tableDatum, hasAnimation }: Props) {
   const dataCompInput = transformTableAsFlatStackInput(tableDatum);
   const animationOptions = hasAnimation ? {} : false;
   if (dataCompInput) {
     return (
       <Box mb={6}>
-        <Text fontSize={'xl'}>Data Composition</Text>
+        <Text fontSize={'xl'}>Duplicate Rows</Text>
         <Divider my={3} />
         <Box height={'55px'}>
           <FlatStackedBarChart
@@ -37,7 +33,7 @@ export function DupedTableRowsWidget({
     <>
       {renderChartUnavailableMsg({
         messageOverwrite: (
-          <Text>
+          <Text as={'span'}>
             Configuration disabled. To enable, see{' '}
             <Link
               textDecoration={'underline'}

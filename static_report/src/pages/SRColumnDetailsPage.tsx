@@ -1,4 +1,5 @@
 import {
+  Divider,
   Grid,
   GridItem,
   Tab,
@@ -26,7 +27,10 @@ import {
   containsDataSummary,
   containsColumnQuantile,
 } from '../components/shared/Columns/utils';
-import { TableOverview } from '../components/shared/Tables/TableOverview';
+import {
+  TableDescription,
+  TableOverview,
+} from '../components/shared/Tables/TableOverview';
 import { SRAssertionDetailsWidget } from '../components/shared/Widgets/SRAssertionDetailsWidget';
 import {
   BreadcrumbMetaItem,
@@ -66,9 +70,6 @@ export default function SRColumnDetailsPage({
       </Main>
     );
   }
-
-  //FIXME: Use Store for collectively SSOT handling data of tables + columns
-  // right now, components are reusing the same utilities, causing execution/implementation redundancies in code
 
   const borderVal = '1px solid lightgray';
   const breadcrumbList: BreadcrumbMetaItem[] = [
@@ -111,7 +112,11 @@ export default function SRColumnDetailsPage({
               </TabList>
               <TabPanels>
                 <TabPanel>
-                  <TableOverview baseTable={dataTable} singleOnly />
+                  <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
+                    <TableOverview tableDatum={dataTable} />
+                    <Divider orientation="vertical" />
+                    <TableDescription description={dataTable.description} />
+                  </Grid>
                 </TabPanel>
                 <TabPanel>
                   <SRAssertionDetailsWidget

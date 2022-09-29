@@ -1,3 +1,5 @@
+import { NONDUPLICATE_ROWS } from './../Columns/constants';
+import { TableMetaKeys } from './../Columns/ColumnMetrics/MetricsInfo';
 import { FlatStackedBarChartProps } from './../Charts/FlatStackedBarChart';
 import { NO_VALUE } from '../Columns/constants';
 import {
@@ -5,9 +7,10 @@ import {
   ReportAssertionStatusCounts,
   ComparisonReportSchema,
   ComparsionSource,
+  SaferTableSchema,
 } from '../../../types';
-import { DUPLICATE_ROWS, SAMPLE } from './constant';
-import { MetricsInfoProps, TableMetaKeys } from '../Columns';
+import { DUPLICATE_ROWS } from './constant';
+import { MetricsInfoProps } from '../Columns';
 import {
   formatAsAbbreviatedNumber,
   formatIntervalMinMax,
@@ -189,16 +192,16 @@ export function getComparisonAssertionTests({
 export function transformTableAsFlatStackInput(
   tableDatum?: SaferTableSchema,
 ): FlatStackedBarChartProps['data'] | undefined {
-  if (!tableDatum?.duplicate_rows) return;
+  if (Number.isNaN(tableDatum?.duplicate_rows)) return;
 
-  const { duplicate_rows = 0, samples = 0, row_count = 0 } = tableDatum || {};
-  const sampleRatio = samples / row_count;
+  const { duplicate_rows = 0, row_count = 0 } = tableDatum || {};
+  const nonDuplicateRatio = (row_count - duplicate_rows) / row_count;
   const duplicateRowRatio = duplicate_rows / row_count;
 
   return {
-    labels: [SAMPLE, DUPLICATE_ROWS],
-    counts: [samples, duplicate_rows],
-    ratios: [sampleRatio, duplicateRowRatio],
+    labels: [NONDUPLICATE_ROWS, DUPLICATE_ROWS],
+    counts: [row_count, duplicate_rows],
+    ratios: [nonDuplicateRatio, duplicateRowRatio],
     colors: ['#63B3ED', '#FF0861'],
   };
 }

@@ -37,13 +37,11 @@ export function FlatStackedBarChart({
   data,
   animation = false,
 }: FlatStackedBarChartProps) {
-  ChartJS.register(BarElement, CategoryScale, LinearScale);
+  ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip);
 
   const chartOptions = getFlatSackedBarChartOptions(data, { animation });
   const chartData = getFlatSackedBarChartData(data);
-  return (
-    <Bar data={chartData} options={chartOptions} plugins={[Tooltip, Legend]} />
-  );
+  return <Bar data={chartData} options={chartOptions} plugins={[Legend]} />;
 }
 /**
  * @param param0 chart data

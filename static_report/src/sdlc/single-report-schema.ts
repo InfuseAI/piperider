@@ -68,7 +68,7 @@ export interface TableSchema {
  */
 export interface ColumnSchema {
   /**
-   * The total count of values, regardless validity
+   * Number of rows after applying the row-limit configuration (rows will be unaffected if none is set
    */
   samples?: number;
   /**

@@ -3,7 +3,7 @@ export const schemaMetaDescriptions = {
   "description": "Descriptor of this column",
   "row_count": "Number of rows in this table",
   "duplicate_rows": "Number of rows that have identical values across corresponding columns in this table",
-  "samples": "The total count of values, regardless validity",
+  "samples": "Number of rows after applying the row-limit configuration (rows will be unaffected if none is set",
   "created": "The time that this table created at in ISO 8601 format including time zone",
   "last_altered": "The last time that this table modified at in ISO 8601 format including time zone",
   "bytes": "The volume size of this table in bytes",
