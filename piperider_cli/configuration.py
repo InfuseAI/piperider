@@ -61,6 +61,10 @@ class Configuration(object):
             if not isinstance(limit, int):
                 raise PipeRiderConfigTypeError("profiler 'limit' should be an integer")
 
+            duplicate_rows = self.profiler_config.get('table', {}).get('duplicateRows', False)
+            if not isinstance(duplicate_rows, bool):
+                raise PipeRiderConfigTypeError("profiler 'duplicateRows' should be an boolean")
+
         if self.includes is not None:
             if not isinstance(self.includes, List):
                 raise PipeRiderConfigTypeError("'includes' should be a list of tables' name")

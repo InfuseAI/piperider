@@ -660,7 +660,7 @@ class TestProfiler:
         ]
         self.create_table("dup", data)
 
-        profiler = Profiler(engine, config=Configuration([], profiler={'table': {'duplicateRows': true}}))
+        profiler = Profiler(engine, config=Configuration([], profiler={'table': {'duplicateRows': True}}))
         result = profiler.profile()
         assert result["tables"]["dup"]['duplicate_rows'] == 0
 
@@ -673,7 +673,7 @@ class TestProfiler:
         ]
         self.create_table("dup", data)
 
-        profiler = Profiler(engine, config=Configuration([], profiler={'table': {'duplicateRows': true}}))
+        profiler = Profiler(engine, config=Configuration([], profiler={'table': {'duplicateRows': True}}))
         result = profiler.profile()
         assert result["tables"]["dup"]['duplicate_rows'] == 2
 
@@ -689,7 +689,7 @@ class TestProfiler:
         ]
         self.create_table("dup", data)
 
-        profiler = Profiler(engine, config=Configuration([], profiler={'table': {'duplicateRows': true}}))
+        profiler = Profiler(engine, config=Configuration([], profiler={'table': {'duplicateRows': True}}))
         result = profiler.profile()
         assert result["tables"]["dup"]['duplicate_rows'] == 5
 
@@ -705,6 +705,6 @@ class TestProfiler:
         ]
         self.create_table("dup", data)
 
-        profiler = Profiler(engine, config=Configuration([], profiler={'table': {'limit': 4, 'duplicateRows': true}}))
+        profiler = Profiler(engine, config=Configuration([], profiler={'table': {'limit': 4, 'duplicateRows': True}}))
         result = profiler.profile()
         assert result["tables"]["dup"]['duplicate_rows'] == 3
