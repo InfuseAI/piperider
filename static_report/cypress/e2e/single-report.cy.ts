@@ -62,7 +62,7 @@ describe('Single Report [column-detail-page]', () => {
       .first();
     tableAccordionBtn.click();
     const columnAccordionItem = cy
-      .get('[data-cy="table-list-summary-item"]')
+      .get('[data-cy="table-list-schema-item"]')
       .first();
     columnAccordionItem.click();
   });
@@ -75,7 +75,7 @@ describe('Single Report [column-detail-page]', () => {
       .first();
     tableAccordionBtn.click();
     const columnAccordionItem = cy
-      .get('[data-cy="table-list-summary-item"]')
+      .get('[data-cy="table-list-schema-item"]')
       .first();
     columnAccordionItem.click();
   });
