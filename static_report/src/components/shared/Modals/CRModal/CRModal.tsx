@@ -12,13 +12,13 @@ import {
 } from '@chakra-ui/react';
 import { AssertionTest } from '../../../../sdlc/single-report-schema';
 
-import { CRTargetData } from '../../../../types';
+import { ComparableData } from '../../../../types';
 import { DbtTable } from './CRModalDbtTable';
 import { PipeRiderTable } from './CRModalPiperiderTable';
 
 export type CRModalData = {
   name: string;
-} & CRTargetData<AssertionTest & { message?: string }>;
+} & ComparableData<AssertionTest & { message?: string }>;
 export type TestDetail = {
   type?: 'piperider' | 'dbt';
   data?: CRModalData;

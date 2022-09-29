@@ -52,9 +52,9 @@ export type CRAssertionTests = {
 
 export type CRAssertionData = {
   name: string;
-} & CRTargetData<AssertionTest & { message?: string }>;
+} & ComparableData<AssertionTest & { message?: string }>;
 
-export interface CRTargetData<T> {
+export interface ComparableData<T> {
   base?: T;
   target?: T;
 }

@@ -11,7 +11,7 @@ import { useHashLocation } from './hooks/useHashLcocation';
 import { COLUMN_DETAILS_ROUTE_PATH } from './utils/routes';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
-if (sentryDns) {
+if (sentryDns && process.env.NODE_ENV !== 'development') {
   const sentryEnv = window.PIPERIDER_METADATA.sentry_env || 'development';
   const appVersion = window.PIPERIDER_METADATA.version;
   const releaseVersion = sentryEnv === 'development' ? undefined : appVersion;

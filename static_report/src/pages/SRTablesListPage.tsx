@@ -13,16 +13,21 @@ import { Main } from '../components/shared/Layouts/Main';
 import { TableActionBar } from '../components/shared/Tables/TableActionBar';
 import { formatReportTime } from '../utils/formatters';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { type SingleReportSchema } from '../sdlc/single-report-schema';
 
-import { zReport, ZTableSchema } from '../types';
+import { SaferSRSchema, zReport, ZTableSchema } from '../types';
 import { TableListItem } from '../components/shared/Tables/TableList/TableListItem';
 import { tableListGridTempCols, tableListWidth } from '../utils/layout';
+import { useReportStore } from '../components/shared/Tables/store';
 import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 
-type Props = { data: SingleReportSchema };
+type Props = { data: SaferSRSchema };
 
 export function SRTablesListPage({ data }: Props) {
+  const setReportData = useReportStore((s) => s.setReportRawData);
+  setReportData({ base: data });
+  const state = useReportStore.getState();
+  console.log(state);
+
   const { created_at, datasource, tables } = data;
 
   const [, setLocation] = useLocation();
