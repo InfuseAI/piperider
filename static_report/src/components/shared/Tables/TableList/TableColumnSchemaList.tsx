@@ -9,7 +9,6 @@ import {
   Td,
   Text,
   Icon,
-  FlexProps,
 } from '@chakra-ui/react';
 import { FiChevronRight } from 'react-icons/fi';
 import { nanoid } from 'nanoid';
@@ -23,7 +22,6 @@ import {
   ZTableSchema,
 } from '../../../../types';
 import { NO_VALUE } from '../../Columns/constants';
-import { tableListMaxWidth } from '../../../../utils/layout';
 import { transformAsNestedBaseTargetRecord } from '../../../../utils/transformers';
 
 interface Props extends Selectable, Comparable {
@@ -50,8 +48,8 @@ export function TableColumnSchemaList({
   const isNotSingle = !singleOnly;
 
   return (
-    <Flex direction="column">
-      <TableContainer width="100%" maxWidth={tableListMaxWidth}>
+    <Flex direction="column" width={'100%'}>
+      <TableContainer width="100%">
         <Table variant="simple">
           <Thead>
             <Tr>

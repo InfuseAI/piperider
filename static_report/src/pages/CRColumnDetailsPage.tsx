@@ -13,7 +13,6 @@ import {
 import { useLocation } from 'wouter';
 import { useState } from 'react';
 
-import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
 import { Main } from '../components/shared/Layouts/Main';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
@@ -33,8 +32,12 @@ import { NoData } from '../components/shared/Layouts/NoData';
 import {
   containsDataSummary,
   containsColumnQuantile,
+  getIconForColumnType,
 } from '../components/shared/Columns/utils';
-import { TableOverview } from '../components/shared/Tables/TableOverview';
+import {
+  TableDescription,
+  TableOverview,
+} from '../components/shared/Tables/TableOverview';
 import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 import {
   BreadcrumbMetaItem,
@@ -42,7 +45,7 @@ import {
 } from '../components/shared/Layouts/BreadcrumbNav';
 import { ColumnSchemaDeltaSummary } from '../components/shared/Tables/TableList/ColumnSchemaDeltaSummary';
 import { transformAsNestedBaseTargetRecord } from '../utils';
-import { TableHeader } from '../components/shared/Tables/TableHeader';
+import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 import { SRAssertionDetailsWidget } from '../lib';
 interface Props {
   data: ComparisonReportSchema;
@@ -84,9 +87,6 @@ export default function CRColumnDetailsPage({
 
   const baseColumnDatum = baseDataColumns[decodedColName];
   const targetColumnDatum = targetDataColumns[decodedColName];
-  const columnHeaderDatum = baseColumnDatum?.type
-    ? baseColumnDatum
-    : targetColumnDatum;
 
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
@@ -107,6 +107,7 @@ export default function CRColumnDetailsPage({
       path: `/tables/${decodedTableName}/columns/${decodedColName}`,
     },
   ];
+  const { backgroundColor, icon } = getIconForColumnType(baseColumnDatum);
   return (
     <Main isSingleReport={false} time={time} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
@@ -129,7 +130,7 @@ export default function CRColumnDetailsPage({
         {/* Detail Area - Table Detail */}
         {isTableDetailsView ? (
           <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
-            <TableHeader tableName={tableName} mb={5} />
+            <TableColumnHeader title={tableName} subtitle={'Table'} mb={5} />
             <Tabs defaultIndex={0}>
               <TabList>
                 <Tab>Overview</Tab>
@@ -143,6 +144,13 @@ export default function CRColumnDetailsPage({
                     <TableOverview tableDatum={baseDataTable} />
                     <Divider orientation="vertical" />
                     <TableOverview tableDatum={targetDataTable} />
+                    <TableDescription
+                      description={baseDataTable?.description}
+                    />
+                    <Divider orientation="vertical" />
+                    <TableDescription
+                      description={targetDataTable?.description}
+                    />
                   </Grid>
                 </TabPanel>
                 <TabPanel>
@@ -185,41 +193,21 @@ export default function CRColumnDetailsPage({
           // {/* Detail Area */}
           <Grid
             templateColumns={'1fr 1fr'}
-            templateRows={'5em 3em 1fr 1fr'}
+            templateRows={'5em 5em 1fr 1fr'}
             width={'100%'}
             maxHeight={mainContentAreaHeight}
             overflowY={'auto'}
           >
             {/* Label Block */}
-            <GridItem colSpan={2} rowSpan={1}>
-              <ColumnTypeHeader
-                columnDatum={columnHeaderDatum}
-                maxHeight={'5em'}
-                height={'100%'}
-                bg={'blue.800'}
-                color={'white'}
+            <GridItem colSpan={2} rowSpan={2} p={9}>
+              <TableColumnHeader
+                title={columnName}
+                subtitle={'Column'}
+                mb={5}
+                icon={icon}
+                iconColor={backgroundColor}
               />
-            </GridItem>
-            {/* Sticky Sublabel */}
-            <GridItem colSpan={2} rowSpan={1} position={'sticky'} top={0}>
-              <Grid templateColumns={'1fr 1fr'} h={'100%'}>
-                {['Base', 'Target'].map((v, i) => (
-                  <Flex
-                    key={i}
-                    alignItems={'center'}
-                    pl={9}
-                    bg={'blackAlpha.300'}
-                  >
-                    <Text
-                      color={'white'}
-                      fontWeight={'semibold'}
-                      fontSize={'2xl'}
-                    >
-                      {v}
-                    </Text>
-                  </Flex>
-                ))}
-              </Grid>
+              <ComparableGridHeader />
             </GridItem>
             {/* Data Composition Block */}
             <GridItem colSpan={2} p={9} bg={'gray.50'}>
@@ -273,7 +261,7 @@ export default function CRColumnDetailsPage({
 }
 function ComparableGridHeader() {
   return (
-    <Grid templateColumns={'1fr 1fr'} mb={2} gap={5}>
+    <Grid templateColumns={'1fr 1fr'} mb={2} gap={10}>
       {['Base', 'Target'].map((v, i) => (
         <Flex key={i} alignItems={'center'} w={'100%'}>
           <Text

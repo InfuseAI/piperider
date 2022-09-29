@@ -10,7 +10,6 @@ import {
 } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
-import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
 import { Main } from '../components/shared/Layouts/Main';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
@@ -37,7 +36,7 @@ import {
   BreadcrumbNav,
   TableColumnSchemaList,
 } from '../lib';
-import { TableHeader } from '../components/shared/Tables/TableHeader';
+import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
@@ -103,7 +102,11 @@ export default function SRColumnDetailsPage({
         {/* Detail Area - Table Detail */}
         {isTableDetailsView ? (
           <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
-            <TableHeader tableName={dataTable.name} mb={5} />
+            <TableColumnHeader
+              title={dataTable.name}
+              subtitle={'Table'}
+              mb={5}
+            />
             <Tabs defaultIndex={0}>
               <TabList>
                 <Tab>Overview</Tab>
@@ -146,14 +149,8 @@ export default function SRColumnDetailsPage({
             overflowY={'auto'}
           >
             {/* Label Block */}
-            <GridItem colSpan={2} rowSpan={1}>
-              <ColumnTypeHeader
-                columnDatum={columnDatum}
-                maxHeight={'5em'}
-                height={'100%'}
-                bg={'blue.800'}
-                color={'white'}
-              />
+            <GridItem colSpan={2} rowSpan={1} p={9}>
+              <TableColumnHeader title={columnName} subtitle={'Column'} p={2} />
             </GridItem>
             {/* Data Composition Block */}
             <GridItem p={10} bg={'gray.50'} borderRight={borderVal}>
