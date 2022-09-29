@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { Main } from '../components/shared/Layouts/Main';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
-import { mainContentAreaHeight } from '../utils/layout';
+import { borderVal, mainContentAreaHeight } from '../utils/layout';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 import { ColumnDetailMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
 
@@ -25,6 +25,7 @@ import { NoData } from '../components/shared/Layouts/NoData';
 import {
   containsDataSummary,
   containsColumnQuantile,
+  getIconForColumnType,
 } from '../components/shared/Columns/utils';
 import {
   TableDescription,
@@ -61,6 +62,7 @@ export default function SRColumnDetailsPage({
 
   //FIXME: <Schema> can be undefined if not matching columnDatum
   const { type, histogram } = columnDatum || {};
+  const { backgroundColor, icon } = getIconForColumnType(columnDatum);
 
   if (!tableName || !dataTable) {
     return (
@@ -70,7 +72,6 @@ export default function SRColumnDetailsPage({
     );
   }
 
-  const borderVal = '1px solid lightgray';
   const breadcrumbList: BreadcrumbMetaItem[] = [
     { label: 'Tables', path: '/' },
     { label: decodedTableName, path: `/tables/${decodedTableName}/columns/` },
@@ -143,14 +144,21 @@ export default function SRColumnDetailsPage({
           // {/* Detail Area - Columns */}
           <Grid
             templateColumns={'500px 1fr'}
-            templateRows={'5em 1fr 1fr'}
+            templateRows={'7em 1fr 1fr'}
             width={'100%'}
             maxHeight={mainContentAreaHeight}
             overflowY={'auto'}
           >
             {/* Label Block */}
             <GridItem colSpan={2} rowSpan={1} p={9}>
-              <TableColumnHeader title={columnName} subtitle={'Column'} p={2} />
+              <TableColumnHeader
+                title={columnName}
+                subtitle={'Column'}
+                p={2}
+                borderBottom={borderVal}
+                icon={icon}
+                iconColor={backgroundColor}
+              />
             </GridItem>
             {/* Data Composition Block */}
             <GridItem p={10} bg={'gray.50'} borderRight={borderVal}>

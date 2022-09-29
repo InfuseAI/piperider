@@ -17,7 +17,7 @@ import { Main } from '../components/shared/Layouts/Main';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { ColumnDetailMasterList } from '../components/shared/Columns/ColumnDetailMasterList/ColumnDetailMasterList';
-import { mainContentAreaHeight } from '../utils/layout';
+import { borderVal, mainContentAreaHeight } from '../utils/layout';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 
@@ -204,6 +204,7 @@ export default function CRColumnDetailsPage({
                 title={columnName}
                 subtitle={'Column'}
                 mb={5}
+                borderBottom={borderVal}
                 icon={icon}
                 iconColor={backgroundColor}
               />
