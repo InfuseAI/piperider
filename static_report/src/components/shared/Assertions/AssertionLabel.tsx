@@ -4,6 +4,7 @@ import { FiCheck, FiX } from 'react-icons/fi';
 
 import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
 import type { Comparable } from '../../../types';
+import { NO_VALUE } from '../Columns';
 
 export interface AssertionLabelProps extends Comparable {
   total: number | string;
@@ -52,7 +53,7 @@ export function AssertionLabel({
           )}
         </Flex>
       ) : (
-        <Text color="gray.500">No assertions</Text>
+        <Text color="gray.500">{NO_VALUE}</Text>
       )}
     </Flex>
   );
