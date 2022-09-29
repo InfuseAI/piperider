@@ -1,4 +1,4 @@
-from piperider_cli.error import PipeRiderConnectorError
+from piperider_cli.error import PipeRiderConnectorError, PipeRiderCredentialFieldError
 from . import DataSource
 from .field import TextField, PasswordField
 
@@ -32,6 +32,7 @@ class SnowflakeDataSource(DataSource):
         schema = credential.get('schema')
         warehouse = credential.get('warehouse')
         role = credential.get('role')
+        authenticator = credential.get('authenticator')
         from snowflake.sqlalchemy.snowdialect import SnowflakeDialect
         from snowflake.sqlalchemy import URL
 
@@ -47,6 +48,11 @@ class SnowflakeDataSource(DataSource):
 
         if role:
             db_parameters["role"] = role
+
+        if authenticator:
+            if authenticator not in ['snowflake', 'username_password_mfa']:
+                raise PipeRiderCredentialFieldError('authenticator', 'The authentication method is not supported')
+            db_parameters["authenticator"] = authenticator
 
         return URL(**db_parameters)
 
