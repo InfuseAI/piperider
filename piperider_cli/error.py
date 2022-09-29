@@ -41,6 +41,12 @@ class PipeRiderCredentialError(PipeRiderError):
     hint = "Please execute command 'piperider init' to move forward."
 
 
+class PipeRiderCredentialFieldError(PipeRiderError):
+    def __init__(self, field, message):
+        self.message = message
+        self.hint = f"Please check '{field}' in credentials.yml"
+
+
 class DbtProfileBigQueryAuthWithTokenUnsupportedError(PipeRiderError):
     def __init__(self):
         self.message = "PipeRider haven't supported dbt BigQuery method with 'oauth-secrets' yet."

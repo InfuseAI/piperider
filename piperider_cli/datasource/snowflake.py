@@ -1,4 +1,4 @@
-from piperider_cli.error import PipeRiderConnectorError, PipeRiderConfigTypeError
+from piperider_cli.error import PipeRiderConnectorError, PipeRiderCredentialFieldError
 from . import DataSource
 from .field import TextField, PasswordField
 
@@ -51,7 +51,7 @@ class SnowflakeDataSource(DataSource):
 
         if authenticator:
             if authenticator not in ['snowflake', 'username_password_mfa']:
-                raise PipeRiderConfigTypeError('The authentication method is not supported')
+                raise PipeRiderCredentialFieldError('authenticator', 'The authentication method is not supported')
             db_parameters["authenticator"] = authenticator
 
         return URL(**db_parameters)
