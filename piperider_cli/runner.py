@@ -3,7 +3,6 @@ import os
 import re
 import sys
 import uuid
-import threading
 from datetime import datetime
 
 from rich import box
@@ -62,7 +61,6 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         self.tasks = {}
         self.table_total = 0
         self.table_completed = 0
-        self.lock = threading.Lock()
 
     def _get_width(self, tables):
         return max([len(x) for x in tables]), len(str(len(tables))) * 2 + 2
@@ -72,7 +70,6 @@ class RichProfilerEventHandler(ProfilerEventHandler):
 
     def handle_run_progress(self, run_result, total, completed):
         self.table_total = total
-        pass
 
     def handle_run_end(self, run_result):
         self.progress.stop()
@@ -84,22 +81,18 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         print(f"fetching metadata for table '{table_name}'")
 
     def handle_table_start(self, table_result):
-        self.lock.acquire()
         self.table_completed += 1
         table_name = table_result['name']
         padding = ' ' * (len(str(self.table_total)) - len(str(self.table_completed)))
         coft = f'[{padding}{self.table_completed}/{self.table_total}]'
         task_id = self.progress.add_task(table_name, total=None, **dict(coft=coft))
         self.tasks[table_name] = task_id
-        self.lock.release()
-        pass
 
     def handle_table_progress(self, table_result, total, completed):
         if completed == 0:
             table_name = table_result['name']
             task_id = self.tasks[table_name]
             self.progress.update(task_id, total=total)
-        pass
 
     def handle_table_end(self, table_result):
         pass
