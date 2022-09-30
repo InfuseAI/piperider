@@ -37,6 +37,7 @@ export function DupedTableRowsWidget({ tableDatum, hasAnimation }: Props) {
           <Text as={'span'}>
             Configuration disabled. To enable, see{' '}
             <Link
+              isExternal
               textDecoration={'underline'}
               href="https://docs.piperider.io/project-structure/config.yml"
             >
