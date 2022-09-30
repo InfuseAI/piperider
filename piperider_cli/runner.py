@@ -394,10 +394,10 @@ def _get_table_list(table, default_schema, dbt_adapter):
     return tables
 
 
-def prepare_default_output_path(filesytem: FileSystem, created_at, ds):
-    latest_symlink_path = os.path.join(filesytem.get_output_dir(), 'latest')
-    output_path = os.path.join(filesytem.get_output_dir(),
-                               f"{ds.name}-{convert_to_tzlocal(created_at).strftime('%Y%m%d%H%M%S')}")
+def prepare_default_output_path(filesystem: FileSystem, created_at, ds):
+    latest_symlink_path = os.path.join(filesystem.get_output_dir(), 'latest')
+    latest_source = f"{ds.name}-{convert_to_tzlocal(created_at).strftime('%Y%m%d%H%M%S')}"
+    output_path = os.path.join(filesystem.get_output_dir(), latest_source)
 
     if not os.path.exists(output_path):
         os.makedirs(output_path, exist_ok=True)
@@ -406,7 +406,7 @@ def prepare_default_output_path(filesytem: FileSystem, created_at, ds):
     if os.path.islink(latest_symlink_path):
         os.unlink(latest_symlink_path)
     if not os.path.exists(latest_symlink_path):
-        os.symlink(output_path, latest_symlink_path)
+        os.symlink(latest_source, latest_symlink_path)
     else:
         console = Console()
         console.print(f'[bold yellow]Warning: {latest_symlink_path} already exists[/bold yellow]')
@@ -513,7 +513,7 @@ class Runner():
         raise_exception_when_directory_not_writable(output)
 
         configuration = Configuration.load()
-        filesytem = FileSystem(report_dir=report_dir)
+        filesystem = FileSystem(report_dir=report_dir)
         datasources = {}
         datasource_names = []
         for ds in configuration.dataSources:
@@ -617,7 +617,7 @@ class Runner():
                     continue
                 profile_result['tables'][k]['dbt_assertion_result'] = v
 
-        output_path = prepare_default_output_path(filesytem, created_at, ds)
+        output_path = prepare_default_output_path(filesystem, created_at, ds)
         output_file = os.path.join(output_path, 'run.json')
         for t in profile_result['tables']:
             profile_result['tables'][t]['piperider_assertion_result'] = _transform_assertion_result(t,
