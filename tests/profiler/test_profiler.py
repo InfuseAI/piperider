@@ -598,9 +598,11 @@ class TestProfiler:
         assert result["tables"]["test"]['columns']["num"]["min"] == 1.0
         assert result["tables"]["test"]['columns']["num"]["max"] == 2.0
         assert result["tables"]["test"]['columns']["num"]["avg"] == 1.5
-        assert result["tables"]["test"]['columns']["num"]["total"] == 3
+        assert result["tables"]["test"]['columns']["num"]["total"] == 5
+        assert result["tables"]["test"]['columns']["num"]["samples"] == 3
         assert result["tables"]["test"]['columns']["num"]["nulls"] == 1
         assert result["tables"]["test"]['row_count'] == 5
+        assert result["tables"]["test"]['samples'] == 3
 
     def test_incl_excl_tables(self):
         engine = self.engine = create_engine('sqlite://')
@@ -648,3 +650,62 @@ class TestProfiler:
         profiler = Profiler(engine, config=Configuration([], includes=['A', 'B'], excludes=None))
         final_tables = profiler._apply_incl_excl_tables(tables)
         assert final_tables == ['a', 'b']
+
+    def test_duplicate_rows(self):
+        engine = self.engine = create_engine('sqlite://')
+
+        data = [
+            ('id', 'name', 'age'),
+            (1, 'aaa', 18),
+            (1, 'aaa', 21)
+        ]
+        self.create_table("dup", data)
+
+        profiler = Profiler(engine, config=Configuration([], profiler={'table': {'duplicateRows': True}}))
+        result = profiler.profile()
+        assert result["tables"]["dup"]['duplicate_rows'] == 0
+
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ('id', 'name', 'age'),
+            (1, 'aaa', 18),
+            (1, 'aaa', 18),
+            (1, 'aaa', 21)
+        ]
+        self.create_table("dup", data)
+
+        profiler = Profiler(engine, config=Configuration([], profiler={'table': {'duplicateRows': True}}))
+        result = profiler.profile()
+        assert result["tables"]["dup"]['duplicate_rows'] == 2
+
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ('id', 'name', 'age'),
+            (1, 'aaa', 18),
+            (1, 'aaa', 18),
+            (1, 'aaa', 18),
+            (1, 'aaa', 21),
+            (1, 'bbb', 21),
+            (1, 'bbb', 21)
+        ]
+        self.create_table("dup", data)
+
+        profiler = Profiler(engine, config=Configuration([], profiler={'table': {'duplicateRows': True}}))
+        result = profiler.profile()
+        assert result["tables"]["dup"]['duplicate_rows'] == 5
+
+        engine = self.engine = create_engine('sqlite://')
+        data = [
+            ('id', 'name', 'age'),
+            (1, 'aaa', 18),
+            (1, 'aaa', 18),
+            (1, 'aaa', 18),
+            (1, 'aaa', 21),
+            (1, 'bbb', 21),
+            (1, 'bbb', 21),
+        ]
+        self.create_table("dup", data)
+
+        profiler = Profiler(engine, config=Configuration([], profiler={'table': {'limit': 4, 'duplicateRows': True}}))
+        result = profiler.profile()
+        assert result["tables"]["dup"]['duplicate_rows'] == 3

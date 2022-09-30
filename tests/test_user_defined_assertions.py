@@ -5,6 +5,8 @@ import tempfile
 import uuid
 from unittest import TestCase
 
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer
+
 from piperider_cli.assertion_engine import AssertionContext, AssertionResult, AssertionEngine
 from piperider_cli.profiler import Profiler
 
@@ -37,7 +39,11 @@ def build_assertion_engine(project_dir, table, assertions):
     with open(assertion_path, 'w') as fh:
         fh.write(assertions)
 
-    profiler = Profiler(None)
+    db_engine = create_engine('sqlite://')
+    profiler = Profiler(db_engine)
+    profiler.metadata = MetaData()
+    Table(table, profiler.metadata, Column('misc', Integer))
+    profiler.metadata.create_all(db_engine)
     profiler.profile([table])
 
     engine = AssertionEngine(profiler, project_dir)

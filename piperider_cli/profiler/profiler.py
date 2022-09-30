@@ -122,6 +122,7 @@ class Profiler:
         table_count = len(tables)
         table_index = 0
         self.event_handler.handle_run_progress(result, table_count, table_index)
+
         for table_name in tables:
             t = self.metadata.tables[table_name]
             tresult = self._profile_table(t)
@@ -225,7 +226,13 @@ class Profiler:
                     ]).select_from(table)
                     row_count, = conn.execute(stmt).fetchone()
 
-        result['row_count'] = row_count
+        result['row_count'] = result['samples'] = row_count
+
+        if self.config:
+            limit = self.config.profiler_config.get('table', {}).get('limit', 0)
+            if row_count > limit > 0:
+                result['samples'] = limit
+
         if created:
             result['created'] = created
         if last_altered:
@@ -235,6 +242,47 @@ class Profiler:
         if size_bytes:
             result['bytes'] = size_bytes
 
+    def _profile_table_duplicate_rows(self, result: dict, table: Table):
+        if not self.config:
+            return
+        if not self.config.profiler_config.get('table', {}).get('duplicateRows'):
+            return
+
+        limit = self.config.profiler_config.get('table', {}).get('limit', 0)
+        columns = [column for column in table.columns]
+
+        with self.engine.connect() as conn:
+            if self.engine.url.get_backend_name() == 'snowflake':
+                if limit <= 0:
+                    cte = select([func.hash(*columns).label('h')]).select_from(table).cte()
+                else:
+                    cte = select([func.hash(*columns).label('h')]).select_from(table).limit(limit).cte()
+
+                cte = select([
+                    cte.c.h,
+                    func.count().label('c')
+                ]).select_from(cte).group_by(cte.c.h).having(func.count() > 1).cte()
+                stmt = select([func.sum(cte.c.c)]).select_from(cte)
+                duplicate_rows, = conn.execute(stmt).fetchone()
+            else:
+                if limit <= 0:
+                    cte = select([
+                        *columns,
+                        func.count().label('c')
+                    ]).select_from(table).group_by(*columns).having(func.count() > 1).cte()
+                else:
+                    cte = select([*columns]).select_from(table).limit(limit).cte()
+                    columns = [column for column in cte.columns]
+                    cte = select([
+                        *columns,
+                        func.count().label('c')
+                    ]).select_from(cte).group_by(*columns).having(func.count() > 1).cte()
+
+                stmt = select([func.sum(cte.c.c)]).select_from(cte)
+                duplicate_rows, = conn.execute(stmt).fetchone()
+
+            result['duplicate_rows'] = duplicate_rows if duplicate_rows is not None else 0
+
     def _profile_table(self, table: Table) -> dict:
         candidate_columns = self._drop_unsupported_columns(table)
         col_index = 0
@@ -243,6 +291,7 @@ class Profiler:
         result = {
             "name": table.name,
             "row_count": 0,
+            "samples": 0,
             "col_count": col_count,
             "columns": columns
         }
@@ -255,12 +304,14 @@ class Profiler:
 
         # Profile table metrics
         self._profile_table_metadata(result, table)
+        self._profile_table_duplicate_rows(result, table)
         self.event_handler.handle_table_progress(result, col_count, col_index)
 
         # Profile columns
         if isinstance(self.engine.pool, SingletonThreadPool):
             for column in candidate_columns:
                 columns[column.name] = self._profile_column(table, column)
+                columns[column.name]['total'] = result['row_count']
                 col_index = col_index + 1
                 self.event_handler.handle_table_progress(result, col_count, col_index)
 
@@ -278,6 +329,7 @@ class Profiler:
                             raise exc
                         else:
                             columns[column.name] = data
+                            columns[column.name]['total'] = result['row_count']
                             col_index = col_index + 1
                             self.event_handler.handle_table_progress(result, col_count, col_index)
                 finally:
@@ -421,7 +473,8 @@ class BaseColumnProfiler:
             _total, _non_nulls, = result
 
             return {
-                'total': _total,
+                'total': None,
+                'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
                 'valids': _non_nulls,
@@ -501,7 +554,8 @@ class StringColumnProfiler(BaseColumnProfiler):
             _stddev = dtof(_stddev)
 
             result = {
-                'total': _total,
+                'total': None,
+                'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
                 'valids': _valids,
@@ -617,7 +671,8 @@ class NumericColumnProfiler(BaseColumnProfiler):
             _stddev = dtof(_stddev)
 
             result = {
-                'total': _total,
+                'total': None,
+                'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
                 'valids': _valids,
@@ -946,7 +1001,8 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                     _max = datetime.fromisoformat(_max) if isinstance(_max, str) else _max
 
             result = {
-                'total': _total,
+                'total': None,
+                'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
                 'valids': _valids,
@@ -1135,7 +1191,8 @@ class BooleanColumnProfiler(BaseColumnProfiler):
             _falses = _valids - _trues
 
             return {
-                'total': _total,
+                'total': None,
+                'samples': _total,
                 'non_nulls': _non_nulls,
                 'nulls': _total - _non_nulls,
                 'valids': _valids,

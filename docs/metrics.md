@@ -5,6 +5,7 @@
 | Metric | Description | Field | Since |
 | --- | --- | --- | --- |
 | Row count | Number of rows in this table | `row_count` |  |
+| Sample count | Number of rows been profiled | `samples` | v0.10.0 |
 | Column count | Number of columns in this table | `col_count` |  |
 | Volume size *\** | The volume size of this table in bytes | `bytes` | v0.8.0 |
 | Created time *\**| The time that this table created at in ISO 8601 format including time zone | `created` | v0.8.0 |
@@ -38,6 +39,8 @@ Describe the composition of the data in one column.
 
 | Metric | Description | Column Type | Field | Since |
 | --- | --- | --- | --- | --- |
+| Row count | Number of rows in this table | `total` |  |
+| Sample count | Number of rows been profiled | `samples` | v0.10.0 |
 | Missing count | The count of null values. | All types | `nulls` | 0.6.0 |
 | Non null count | The count of non-null values. | All types | `non_nulls` |  |
 | Invalid count | The count of values that does not match the schema type. For example, a string in a numeric column. It only happen in sqlite | All types | `invalids` | 0.6.0 |
