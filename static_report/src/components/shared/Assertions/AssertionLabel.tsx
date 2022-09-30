@@ -5,6 +5,7 @@ import { FiCheck, FiX } from 'react-icons/fi';
 import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
 import type { Comparable } from '../../../types';
 import { NO_VALUE } from '../Columns';
+import { NO_ASSERTIONS } from '../Tables/constant';
 
 export interface AssertionLabelProps extends Comparable {
   total: number | string;
@@ -16,6 +17,8 @@ export interface AssertionLabelProps extends Comparable {
 export function AssertionLabel({
   total,
   failed,
+  singleOnly,
+  icon,
   ...props
 }: AssertionLabelProps) {
   const isPassed = failed === 0;
@@ -23,7 +26,7 @@ export function AssertionLabel({
   const hasBothStatusCounts =
     typeof total === 'number' && typeof failed === 'number';
   return (
-    <Flex alignItems="center" justifyContent="space-between">
+    <Flex alignItems="center" justifyContent="end">
       {hasBothStatusCounts && !hasNoAssertions ? (
         <Flex gap={2}>
           <Flex
@@ -34,8 +37,8 @@ export function AssertionLabel({
             py={0.5}
             px={1.5}
           >
-            {!props?.singleOnly && props?.icon ? (
-              props.icon
+            {!singleOnly && icon ? (
+              icon
             ) : (
               <Icon as={isPassed ? FiCheck : FiX} boxSize={4} />
             )}
@@ -46,14 +49,16 @@ export function AssertionLabel({
             of
           </Text>
 
-          {!props?.singleOnly && props?.comparisonDelta ? (
+          {!singleOnly && props?.comparisonDelta ? (
             props.comparisonDelta
           ) : (
             <Text as="span">{formatColumnValueWith(total, formatNumber)}</Text>
           )}
         </Flex>
       ) : (
-        <Text color="gray.500">{NO_VALUE}</Text>
+        <Text color="gray.500">
+          {hasNoAssertions ? NO_ASSERTIONS : NO_VALUE}
+        </Text>
       )}
     </Flex>
   );
