@@ -36,9 +36,10 @@ export function getColumnMetricRatio(
   metakey: MetricMetaKeys,
   columnData?: ColumnSchema,
 ) {
-  const { [metakey]: metavalue, total } = columnData || {};
+  const { [metakey]: metavalue, total, samples } = columnData || {};
 
-  const result = isNumber(metavalue) && total ? metavalue / total : null;
+  const result =
+    isNumber(metavalue) && total ? metavalue / (samples || total) : null;
 
   return result;
 }
@@ -106,7 +107,6 @@ export function transformCompositionAsFlatStackInput(
   }
   if (containsColumnQuantile(type)) {
     const newCounts = [negatives, zeros, positives].map(zeroAsFallbackHandler);
-    console.log(newCounts);
     return {
       labels: [NEGATIVES, ZEROS, POSITIVES],
       counts: newCounts,

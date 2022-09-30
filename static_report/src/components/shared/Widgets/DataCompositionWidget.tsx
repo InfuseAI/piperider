@@ -26,7 +26,6 @@ export function DataCompositionWidget({ columnDatum, hasAnimation }: Props) {
     'dynamic',
   );
   const animationOptions = hasAnimation ? {} : false;
-  console.log(dynamicCompInput);
 
   if (dataCompInput) {
     return (

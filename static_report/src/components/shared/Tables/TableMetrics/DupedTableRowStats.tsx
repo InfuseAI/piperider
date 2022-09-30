@@ -8,7 +8,7 @@ interface Props {
 }
 export function DupedTableRowStats({ tableDatum, ...props }: Props & BoxProps) {
   const metakeyEntries: TableMetakeyList = [
-    ['row_count', 'Total'],
+    [tableDatum?.samples ? 'samples' : 'row_count', 'Total'],
     ['duplicate_rows', 'Duplicates'],
   ];
   const metricsList = transformSRTableMetricsInfoList(
