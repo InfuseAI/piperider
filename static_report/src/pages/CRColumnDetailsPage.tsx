@@ -46,7 +46,7 @@ import {
 import { ColumnSchemaDeltaSummary } from '../components/shared/Tables/TableList/ColumnSchemaDeltaSummary';
 import { transformAsNestedBaseTargetRecord } from '../utils';
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
-import { SRAssertionDetailsWidget } from '../lib';
+import { CRAssertionDetailsWidget, getComparisonAssertions } from '../lib';
 interface Props {
   data: ComparisonReportSchema;
   columnName: string;
@@ -87,7 +87,24 @@ export default function CRColumnDetailsPage({
 
   const baseColumnDatum = baseDataColumns[decodedColName];
   const targetColumnDatum = targetDataColumns[decodedColName];
-
+  const [baseOverview, targetOverview] = getComparisonAssertions({
+    data,
+    tableName,
+    type: 'piperider',
+  });
+  const [dbtBaseOverview, dbtTargetOverview] = getComparisonAssertions({
+    data,
+    tableName,
+    type: 'dbt',
+  });
+  const piperiderAssertions = [
+    ...(baseOverview?.tests || []),
+    ...(targetOverview?.tests || []),
+  ];
+  const dbtAssertions = [
+    ...(dbtBaseOverview?.tests || []),
+    ...(dbtTargetOverview?.tests || []),
+  ];
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
 
@@ -154,19 +171,11 @@ export default function CRColumnDetailsPage({
                   </Grid>
                 </TabPanel>
                 <TabPanel>
-                  <ComparableGridHeader />
-                  <Grid templateColumns={'1fr 1px 1fr'} gap={3} height={'100%'}>
-                    <SRAssertionDetailsWidget
+                  <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
+                    <CRAssertionDetailsWidget
                       assertions={{
-                        piperider: baseDataTable?.piperider_assertion_result,
-                        dbt: baseDataTable?.dbt_assertion_result,
-                      }}
-                    />
-                    <Divider orientation="vertical" />
-                    <SRAssertionDetailsWidget
-                      assertions={{
-                        piperider: targetDataTable?.piperider_assertion_result,
-                        dbt: targetDataTable?.dbt_assertion_result,
+                        piperider: piperiderAssertions,
+                        dbt: dbtAssertions,
                       }}
                     />
                   </Grid>

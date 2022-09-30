@@ -39,6 +39,7 @@ export const dataSourceSchema = z.object({
 });
 
 export const columnSchemaSchema = z.object({
+  total: z.number().optional(),
   samples: z.number().optional(),
   nulls: z.number().optional(),
   non_nulls: z.number().optional(),

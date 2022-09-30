@@ -9,6 +9,7 @@ export const schemaMetaDescriptions = {
   "bytes": "The volume size of this table in bytes",
   "freshness": "Time differentiation between the current time and table's last altered time",
   "col_count": "Number of columns in this table",
+  "total": "The total count of values, regardless of validity",
   "nulls": "The count of values that are null type",
   "non_nulls": "The count of non null values",
   "distinct": "The count of distinct kinds of values (e.g. [a,b,c,c] => [a,b,c])",
