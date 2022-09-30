@@ -11,6 +11,7 @@ export type MetricMetaKeys =
       ColumnSchema,
       | 'nulls'
       | 'samples'
+      | 'total'
       | 'valids'
       | 'invalids'
       | 'positives'
@@ -36,6 +37,7 @@ export type TableMetaKeys =
       | 'created'
       | 'row_count'
       | 'samples'
+      | 'row_count'
     >;
 export interface MetricsInfoProps {
   name: string;

@@ -38,6 +38,7 @@ export function getDataChart(
     valids,
     min,
     max,
+    total,
   } = columnDatum || {};
 
   const hasSameTypeName =
@@ -52,7 +53,7 @@ export function getDataChart(
     return (
       <CategoricalBarChart
         data={topk}
-        total={samples || 0}
+        total={samples || total || 0}
         animation={hasAnimation ? {} : false}
       />
     );

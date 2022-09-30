@@ -39,7 +39,9 @@ export function GeneralStats({
       );
 
   // Total displays differently if has base/target
-  const totalMetaKeyEntry: MetricNameMetakeyList = [['samples', 'Total']];
+  const totalMetaKeyEntry: MetricNameMetakeyList = [
+    [baseColumnDatum?.samples ? 'samples' : 'total', 'Total'],
+  ];
 
   const totalMetricsList = singleOnly
     ? transformSRMetricsInfoList(totalMetaKeyEntry, baseColumnDatum)
