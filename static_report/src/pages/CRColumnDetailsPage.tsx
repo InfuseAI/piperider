@@ -172,13 +172,17 @@ export default function CRColumnDetailsPage({
                   </Grid>
                 </TabPanel>
                 <TabPanel>
-                  <ComparableGridHeader />
-                  <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
+                  <Flex pb={3}>
                     <ColumnSchemaDeltaSummary
+                      fontWeight={'semibold'}
+                      color={'gray.600'}
                       added={added}
                       deleted={deleted}
                       changed={changed}
                     />
+                  </Flex>
+                  <ComparableGridHeader />
+                  <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
                     <TableColumnSchemaList
                       baseTableDatum={baseDataTable}
                       targetTableDatum={targetDataTable}

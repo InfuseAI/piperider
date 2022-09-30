@@ -1,12 +1,17 @@
-import { Flex, Text } from '@chakra-ui/react';
+import { Flex, FlexProps, Text } from '@chakra-ui/react';
 interface Props {
   added: number;
   deleted: number;
   changed: number;
 }
-export function ColumnSchemaDeltaSummary({ added, deleted, changed }: Props) {
+export function ColumnSchemaDeltaSummary({
+  added,
+  deleted,
+  changed,
+  ...props
+}: Props & FlexProps) {
   return (
-    <Flex gap={2}>
+    <Flex gap={2} {...props}>
       ( Added:
       <Text as={'span'} fontWeight={700}>
         {added}

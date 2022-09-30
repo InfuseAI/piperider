@@ -37,7 +37,16 @@ export function TableGeneralStats({ tableDatum, ...props }: Props & BoxProps) {
     filteredMetakeyEntries,
     tableDatum,
   ).map((v) => {
-    if (v.metakey === 'bytes') {
+    if (v.metakey === 'row_count' || v.metakey === 'col_count') {
+      v.firstSlot = '';
+      v.tooltipValues = {
+        secondSlot: formatNumber(
+          v.metakey === 'row_count'
+            ? tableDatum?.row_count
+            : tableDatum?.col_count,
+        ),
+      };
+    } else if (v.metakey === 'bytes') {
       v.firstSlot = '';
       v.secondSlot = formatBytes(tableDatum?.bytes);
       v.tooltipValues = {

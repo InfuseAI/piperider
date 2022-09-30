@@ -91,7 +91,7 @@ export function MetricsInfo({
         <Tooltip
           label={tooltipValues?.firstSlot}
           isDisabled={!Boolean(tooltipValues?.firstSlot)}
-          placement={'top'}
+          placement={'top-end'}
         >
           <Text
             textAlign="right"
