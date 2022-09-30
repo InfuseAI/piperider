@@ -12,6 +12,7 @@ interface Props {
 export function DupedTableRowsWidget({ tableDatum, hasAnimation }: Props) {
   const dataCompInput = transformTableAsFlatStackInput(tableDatum);
   const animationOptions = hasAnimation ? {} : false;
+
   if (dataCompInput) {
     return (
       <Box mb={6}>
@@ -30,7 +31,7 @@ export function DupedTableRowsWidget({ tableDatum, hasAnimation }: Props) {
     );
   }
   return (
-    <>
+    <Box h={'300px'}>
       {renderChartUnavailableMsg({
         messageOverwrite: (
           <Text as={'span'}>
@@ -44,6 +45,6 @@ export function DupedTableRowsWidget({ tableDatum, hasAnimation }: Props) {
           </Text>
         ),
       })}
-    </>
+    </Box>
   );
 }

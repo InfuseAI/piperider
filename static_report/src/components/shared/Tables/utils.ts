@@ -192,7 +192,7 @@ export function getComparisonAssertionTests({
 export function transformTableAsFlatStackInput(
   tableDatum?: SaferTableSchema,
 ): FlatStackedBarChartProps['data'] | undefined {
-  if (Number.isNaN(tableDatum?.duplicate_rows)) return;
+  if (typeof tableDatum?.duplicate_rows !== 'number') return;
 
   const { duplicate_rows = 0, row_count = 0 } = tableDatum || {};
   const nonDuplicateRatio = (row_count - duplicate_rows) / row_count;
