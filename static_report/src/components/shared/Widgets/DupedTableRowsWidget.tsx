@@ -13,39 +13,40 @@ export function DupedTableRowsWidget({ tableDatum, hasAnimation }: Props) {
   const dataCompInput = transformTableAsFlatStackInput(tableDatum);
   const animationOptions = hasAnimation ? {} : false;
 
-  if (dataCompInput) {
-    return (
-      <Box mb={6}>
-        <Text fontSize={'xl'}>Duplicate Rows</Text>
-        <Divider my={3} />
-        <Box height={'55px'}>
-          <FlatStackedBarChart
-            data={dataCompInput}
-            animation={animationOptions}
-          />
-        </Box>
-        <Box mt={6}>
-          <DupedTableRowStats tableDatum={tableDatum} width={'100%'} />
-        </Box>
-      </Box>
-    );
-  }
   return (
-    <Box h={'300px'}>
-      {renderChartUnavailableMsg({
-        messageOverwrite: (
-          <Text as={'span'}>
-            Configuration disabled. To enable, see{' '}
-            <Link
-              isExternal
-              textDecoration={'underline'}
-              href="https://docs.piperider.io/project-structure/config.yml"
-            >
-              config docs
-            </Link>
-          </Text>
-        ),
-      })}
+    <Box mb={6}>
+      <Text fontSize={'xl'}>Duplicate Rows</Text>
+      <Divider my={3} />
+      {dataCompInput ? (
+        <>
+          <Box height={'55px'}>
+            <FlatStackedBarChart
+              data={dataCompInput}
+              animation={animationOptions}
+            />
+          </Box>
+          <Box mt={6}>
+            <DupedTableRowStats tableDatum={tableDatum} width={'100%'} />
+          </Box>
+        </>
+      ) : (
+        <Box h={'300px'}>
+          {renderChartUnavailableMsg({
+            messageOverwrite: (
+              <Text as={'span'}>
+                Configuration disabled. To enable, see{' '}
+                <Link
+                  isExternal
+                  textDecoration={'underline'}
+                  href="https://docs.piperider.io/project-structure/config.yml"
+                >
+                  config docs
+                </Link>
+              </Text>
+            ),
+          })}
+        </Box>
+      )}
     </Box>
   );
 }
