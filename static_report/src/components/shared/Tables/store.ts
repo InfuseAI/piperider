@@ -65,7 +65,6 @@ export const useReportStore = create<ReportState & ReportSetters>()((set) => ({
     // final setter
     set(resultState);
   },
-  // increasePopulation: () => set((state) => ({ bears: state.bears + 1 })),
 }));
 
 //FIXME: use this. to separate calls granularly

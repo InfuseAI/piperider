@@ -22,6 +22,7 @@ import { TableColumnSchemaList } from '../components/shared/Tables/TableList/Tab
 
 type Props = { data: SaferSRSchema };
 
+//FIXME: Refactor components w/ less props, more store consumption
 export function SRTablesListPage({ data }: Props) {
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
