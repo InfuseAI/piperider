@@ -50,7 +50,6 @@ export default function SRColumnDetailsPage({
 }: Props) {
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
-  const time = formatReportTime(created_at) || '';
 
   const decodedColName = decodeURIComponent(columnName);
   const decodedTableName = decodeURIComponent(tableName);
@@ -66,7 +65,7 @@ export default function SRColumnDetailsPage({
 
   if (!tableName || !dataTable) {
     return (
-      <Main isSingleReport time={time}>
+      <Main isSingleReport>
         <NoData text={`No profile data found for table name: ${tableName}`} />
       </Main>
     );
@@ -82,7 +81,7 @@ export default function SRColumnDetailsPage({
   ];
 
   return (
-    <Main isSingleReport time={time} maxHeight={mainContentAreaHeight}>
+    <Main isSingleReport maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
         <GridItem colSpan={3}>
           <BreadcrumbNav breadcrumbList={breadcrumbList} />

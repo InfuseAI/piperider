@@ -11,10 +11,9 @@ import { useLocation } from 'wouter';
 
 import { Main } from '../components/shared/Layouts/Main';
 import { TableActionBar } from '../components/shared/Tables/TableActionBar';
-import { formatReportTime } from '../utils/formatters';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
-import { SaferSRSchema, zReport, ZTableSchema } from '../types';
+import { SaferSRSchema } from '../types';
 import { TableListItem } from '../components/shared/Tables/TableList/TableListItem';
 import { tableListGridTempCols, tableListWidth } from '../utils/layout';
 import { useReportStore } from '../components/shared/Tables/store';
@@ -26,21 +25,15 @@ type Props = { data: SaferSRSchema };
 export function SRTablesListPage({ data }: Props) {
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
-  const state = useReportStore.getState();
-  console.log(state);
-
-  const { created_at, datasource, tables } = data;
+  const { tableColumnsOnly = [] } = useReportStore.getState();
 
   const [, setLocation] = useLocation();
 
   useDocumentTitle('Single-Run Reports');
 
   return (
-    <Main isSingleReport time={formatReportTime(created_at) || ''}>
-      <TableActionBar
-        sourceName={datasource.name}
-        sourceType={datasource.type}
-      />
+    <Main isSingleReport>
+      <TableActionBar />
 
       <Flex direction="column" width={tableListWidth} minHeight="650px">
         <Grid templateColumns={tableListGridTempCols} px={4} my={6}>
@@ -49,18 +42,15 @@ export function SRTablesListPage({ data }: Props) {
           <Text>Assertions</Text>
         </Grid>
         <Accordion allowToggle reduceMotion>
-          {Object.keys(tables).map((key) => {
-            const table = tables[key];
-            zReport(ZTableSchema.safeParse(table));
-
+          {tableColumnsOnly.map((tableColsEntry) => {
             return (
               <Flex key={nanoid()}>
                 <AccordionItem>
                   {({ isExpanded }) => (
                     <>
                       <TableListItem
+                        combinedTableEntries={tableColsEntry}
                         isExpanded={isExpanded}
-                        baseTableDatum={table}
                         singleOnly
                         onSelect={({ tableName }) =>
                           setLocation(`/tables/${tableName}/columns/`)
@@ -68,18 +58,16 @@ export function SRTablesListPage({ data }: Props) {
                       />
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
-                        {isExpanded && (
-                          <TableColumnSchemaList
-                            singleOnly
-                            visibleDetail
-                            baseTableDatum={table}
-                            onSelect={({ tableName, columnName }) =>
-                              setLocation(
-                                `/tables/${tableName}/columns/${columnName}`,
-                              )
-                            }
-                          />
-                        )}
+                        {/* <TableColumnSchemaList
+                          singleOnly
+                          visibleDetail
+                          baseTableDatum={table}
+                          onSelect={({ tableName, columnName }) =>
+                            setLocation(
+                              `/tables/${tableName}/columns/${columnName}`,
+                            )
+                          }
+                        /> */}
                       </AccordionPanel>
                     </>
                   )}

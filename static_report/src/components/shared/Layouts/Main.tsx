@@ -7,11 +7,10 @@ import { Sidebar } from './Sidebar';
 
 interface Props extends FlexProps {
   children: ReactNode;
-  time: string;
   isSingleReport: boolean;
 }
 
-export function Main({ children, isSingleReport, time, ...props }: Props) {
+export function Main({ children, isSingleReport, ...props }: Props) {
   const { colorMode } = useColorMode();
   const bgColor = { light: 'gray.50', dark: 'gray.900' };
   const color = { light: 'black', dark: 'white' };
@@ -27,7 +26,7 @@ export function Main({ children, isSingleReport, time, ...props }: Props) {
 
   return (
     <Flex direction="column">
-      <Navbar isSingleReport={isSingleReport} time={time} />
+      <Navbar isSingleReport={isSingleReport} />
 
       <Flex>
         <Sidebar />

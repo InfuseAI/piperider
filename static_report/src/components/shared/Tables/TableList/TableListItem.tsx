@@ -28,52 +28,49 @@ import {
   tableListGridTempCols,
   tableListMaxWidth,
 } from '../../../../utils/layout';
-import { transformAsNestedBaseTargetRecord } from '../../../../utils';
 import { ColumnSchemaDeltaSummary } from './ColumnSchemaDeltaSummary';
+import { TableColEntryItem, TableEntryItem } from '../store';
 import { NO_DESCRIPTION_MSG } from '../constant';
 
 interface Props extends Selectable, Comparable {
   isExpanded: boolean;
-  baseTableDatum?: SaferTableSchema;
-  targetTableDatum?: SaferTableSchema;
+  combinedTableEntries?: TableColEntryItem;
 }
 
 export function TableListItem({
   isExpanded,
-  baseTableDatum,
-  targetTableDatum,
+  combinedTableEntries,
   onSelect,
   singleOnly,
 }: Props) {
-  const fallbackTable = baseTableDatum || targetTableDatum;
-  const tableName = fallbackTable?.name;
-  const description =
-    baseTableDatum?.description ||
-    targetTableDatum?.description ||
-    NO_DESCRIPTION_MSG;
+  const [tableName, value] = combinedTableEntries || [];
+
+  const fallbackTable = value?.base || value?.target;
+  const description = fallbackTable?.description || NO_DESCRIPTION_MSG;
   //SR vars
-  const columns = Object.keys(baseTableDatum?.columns || {}).map((key) => key);
+  //FIXME: you need columns!
+  // const columns = Object.keys(baseTableDatum?.columns || {}).map((key) => key);
 
-  const { failed: baseFailed, total: baseTotal } =
-    getAssertionStatusCountsFromList([
-      baseTableDatum?.piperider_assertion_result,
-      baseTableDatum?.dbt_assertion_result,
-    ]);
-  const { failed: targetFailed, total: targetTotal } =
-    getAssertionStatusCountsFromList([
-      targetTableDatum?.piperider_assertion_result,
-      targetTableDatum?.dbt_assertion_result,
-    ]);
+  // const { failed: baseFailed, total: baseTotal } =
+  //   getAssertionStatusCountsFromList([
+  //     baseTableDatum?.piperider_assertion_result,
+  //     baseTableDatum?.dbt_assertion_result,
+  //   ]);
+  // const { failed: targetFailed, total: targetTotal } =
+  //   getAssertionStatusCountsFromList([
+  //     targetTableDatum?.piperider_assertion_result,
+  //     targetTableDatum?.dbt_assertion_result,
+  //   ]);
 
-  const comparedColumns = transformAsNestedBaseTargetRecord<
-    SaferTableSchema['columns'],
-    ColumnSchema
-  >(baseTableDatum?.columns, targetTableDatum?.columns, { metadata: true });
+  // const comparedColumns = transformAsNestedBaseTargetRecord<
+  //   SaferTableSchema['columns'],
+  //   ColumnSchema
+  // >(baseTableDatum?.columns, targetTableDatum?.columns, { metadata: true });
 
-  const {
-    __meta__: { added, deleted, changed },
-  } = comparedColumns;
-  if (!fallbackTable) {
+  // const {
+  //   __meta__: { added, deleted, changed },
+  // } = comparedColumns;
+  if (!combinedTableEntries) {
     return <NoData />;
   }
   return (

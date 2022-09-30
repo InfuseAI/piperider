@@ -1,19 +1,9 @@
 import { Main } from '../components/shared/Layouts/Main';
 import { TableActionBar } from '../components/shared/Tables/TableActionBar';
 
-import { formatReportTime } from '../utils/formatters';
-
 import { TableListItem } from '../components/shared/Tables/TableList/TableListItem';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import {
-  SaferSRSchema,
-  SaferTableSchema,
-  ZComparisonTableSchema,
-  zReport,
-  ZSingleSchema,
-  type ComparisonReportSchema,
-} from '../types';
-import { transformAsNestedBaseTargetRecord } from '../utils/transformers';
+import { type ComparisonReportSchema } from '../types';
 import {
   Accordion,
   AccordionItem,
@@ -26,35 +16,20 @@ import { nanoid } from 'nanoid';
 import { useLocation } from 'wouter';
 
 import { tableListGridTempCols, tableListWidth } from '../utils/layout';
-import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
+import { useReportStore } from '../components/shared/Tables/store';
 
 type Props = { data: ComparisonReportSchema };
 
-//FIXME: Refactor components w/ less props, more store consumption
 export function CRTablesListPage({ data }: Props) {
-  const [, setLocation] = useLocation();
-  const { base, input: target } = data;
-  const tables = transformAsNestedBaseTargetRecord<
-    SaferSRSchema['tables'],
-    SaferTableSchema
-  >(base.tables, target.tables);
-
-  zReport(ZSingleSchema.safeParse(base));
-  zReport(ZSingleSchema.safeParse(target));
-
   useDocumentTitle('Comparison Reports');
+  const [, setLocation] = useLocation();
+  const setReportData = useReportStore((s) => s.setReportRawData);
+  setReportData({ base: data.base, input: data.input });
+  const { tableColumnsOnly: tableColEntries = [] } = useReportStore.getState();
 
   return (
-    <Main
-      isSingleReport={false}
-      time={`${formatReportTime(base.created_at)} -> ${formatReportTime(
-        target.created_at,
-      )}`}
-    >
-      <TableActionBar
-        sourceName={data.input.datasource.name}
-        sourceType={data.input.datasource.type}
-      />
+    <Main isSingleReport={false}>
+      <TableActionBar />
 
       <Flex direction="column" width={tableListWidth} minHeight="650px">
         <Grid templateColumns={tableListGridTempCols} px={4} my={6}>
@@ -63,10 +38,7 @@ export function CRTablesListPage({ data }: Props) {
           <Text>Assertions</Text>
         </Grid>
         <Accordion allowToggle reduceMotion>
-          {Object.keys(tables).map((key) => {
-            const table = tables[key];
-            ZComparisonTableSchema(false).safeParse(table);
-
+          {tableColEntries.map((tableColEntry) => {
             return (
               <Flex key={nanoid()}>
                 <AccordionItem>
@@ -74,25 +46,24 @@ export function CRTablesListPage({ data }: Props) {
                     <>
                       <TableListItem
                         isExpanded={isExpanded}
-                        baseTableDatum={table.base}
-                        targetTableDatum={table.target}
-                        onSelect={() => setLocation(`/tables/${key}/columns/`)}
+                        combinedTableEntries={tableColEntry}
+                        onSelect={() =>
+                          setLocation(`/tables/${tableColEntry[0]}/columns/`)
+                        }
                       />
 
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
-                        {isExpanded && (
-                          <TableColumnSchemaList
-                            baseTableDatum={table?.base}
-                            targetTableDatum={table?.target}
-                            visibleDetail
-                            onSelect={({ tableName, columnName }) =>
-                              setLocation(
-                                `/tables/${tableName}/columns/${columnName}`,
-                              )
-                            }
-                          />
-                        )}
+                        {/* isExpanded && (<TableColumnSchemaList
+                          baseTableDatum={base}
+                          targetTableDatum={target}
+                          visibleDetail
+                          onSelect={({ tableName, columnName }) =>
+                            setLocation(
+                              `/tables/${tableName}/columns/${columnName}`,
+                            )
+                          }
+                        />) */}
                       </AccordionPanel>
                     </>
                   )}

@@ -59,18 +59,15 @@ export default function CRColumnDetailsPage({
   tableName,
 }: Props) {
   const {
-    base: { tables: baseTables, created_at: baseTime },
-    input: { tables: targetTables, created_at: targetTime },
+    base: { tables: baseTables },
+    input: { tables: targetTables },
   } = data;
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
-  const time = `${formatReportTime(baseTime)} -> ${formatReportTime(
-    targetTime,
-  )}`;
 
   if (!tableName || !baseTables || !targetTables) {
     return (
-      <Main isSingleReport={false} time={time}>
+      <Main isSingleReport={false}>
         <NoData text={`No profile data found for table name: ${tableName}`} />
       </Main>
     );
@@ -126,7 +123,7 @@ export default function CRColumnDetailsPage({
   ];
   const { backgroundColor, icon } = getIconForColumnType(baseColumnDatum);
   return (
-    <Main isSingleReport={false} time={time} maxHeight={mainContentAreaHeight}>
+    <Main isSingleReport={false} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
         <GridItem colSpan={3}>
           <BreadcrumbNav breadcrumbList={breadcrumbList} />

@@ -81,7 +81,7 @@ function AppComparison() {
             {({ tableName, columnName }) => (
               <CRColumnDetailsPage
                 tableName={decodeURIComponent(tableName || '')}
-                columnName={decodeURIComponent(String(columnName || ''))}
+                columnName={decodeURIComponent(columnName || '')}
                 data={window.PIPERIDER_COMPARISON_REPORT_DATA}
               />
             )}
