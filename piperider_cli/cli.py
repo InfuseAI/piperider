@@ -12,6 +12,7 @@ from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
 from piperider_cli.event.track import TrackCommand, BetaGroup
+from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.feedback import Feedback
 from piperider_cli.generate_report import GenerateReport
 from piperider_cli.guide import Guide
@@ -176,8 +177,10 @@ def run(**kwargs):
                       skip_recommend=skip_recommend,
                       dbt_command=dbt_command,
                       report_dir=kwargs.get('report_dir'))
-    if not skip_report and ret == 0:
+    if not skip_report and ret in (0, EC_ERR_TEST_FAILED):
         GenerateReport.exec(None, kwargs.get('report_dir'), output)
+    if ret != 0:
+        sys.exit(ret)
     return ret
 
 

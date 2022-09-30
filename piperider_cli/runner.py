@@ -22,6 +22,7 @@ from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration
 from piperider_cli.datasource import DataSource
 from piperider_cli.error import PipeRiderCredentialError
+from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.filesystem import FileSystem
 from piperider_cli.profiler import Profiler, ProfilerEventHandler
 
@@ -640,5 +641,8 @@ class Runner():
             console.print(f'Results saved to {output if output else output_path}')
 
         _analyse_and_log_run_event(profile_result, assertion_results, dbt_test_results, dbt_command)
+
+        if len(assertion_results) > 0 or len(assertion_exceptions) > 0:
+            return EC_ERR_TEST_FAILED
 
         return 0
