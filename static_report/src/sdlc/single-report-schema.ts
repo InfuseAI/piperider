@@ -29,6 +29,14 @@ export interface TableSchema {
    */
   row_count?: number;
   /**
+   * Number of rows that have identical values across corresponding columns in this table
+   */
+  duplicate_rows?: number;
+  /**
+   * Number of rows after applying the row-limit configuration (rows will be unaffected if none is set)
+   */
+  samples?: number;
+  /**
    * The time that this table created at in ISO 8601 format including time zone
    */
   created?: string;
@@ -60,9 +68,13 @@ export interface TableSchema {
  */
 export interface ColumnSchema {
   /**
-   * The total count of values, regardless validity
+   * The total count of values, regardless of validity
    */
   total?: number;
+  /**
+   * Number of rows after applying the row-limit configuration (rows will be unaffected if none is set
+   */
+  samples?: number;
   /**
    * The count of values that are null type
    */

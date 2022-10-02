@@ -40,16 +40,6 @@ describe('Single Report [table-list-page, table-detail-page]', () => {
     navigateBtn.first().click();
   });
 
-  it('should get the default list view and toggle to schema view', () => {
-    cy.visit('http://localhost:3000');
-
-    cy.get('[data-attached]').should('have.attr', 'data-attached', 'summary');
-
-    const toggleToSchema = cy.get('[data-cy="schema-view"]');
-    toggleToSchema.click();
-    cy.get('[data-attached]').should('have.attr', 'data-attached', 'schema');
-  });
-
   it('should open and close the feedback modal', () => {
     cy.visit('http://localhost:3000');
 
@@ -66,8 +56,6 @@ describe('Single Report [table-list-page, table-detail-page]', () => {
 describe('Single Report [column-detail-page]', () => {
   it('should navigate to the column detail page from the table list page (via schema)', () => {
     cy.visit('http://localhost:3000');
-    const schemaView = cy.get('[data-cy="schema-view"]');
-    schemaView.click();
 
     const tableAccordionBtn = cy
       .get('[data-cy="table-list-accordion-btn"]')
@@ -81,15 +69,13 @@ describe('Single Report [column-detail-page]', () => {
 
   it('should navigate to the column detail page from the table list page (via summary)', () => {
     cy.visit('http://localhost:3000');
-    const schemaView = cy.get('[data-cy="summary-view"]');
-    schemaView.click();
 
     const tableAccordionBtn = cy
       .get('[data-cy="table-list-accordion-btn"]')
       .first();
     tableAccordionBtn.click();
     const columnAccordionItem = cy
-      .get('[data-cy="table-list-summary-item-item"]')
+      .get('[data-cy="table-list-schema-item"]')
       .first();
     columnAccordionItem.click();
   });

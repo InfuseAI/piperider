@@ -24,5 +24,5 @@ export function DataSummaryWidget({ columnDatum }: Props) {
       </Box>
     );
   }
-  return <>{renderChartUnavailableMsg()}</>;
+  return <>{renderChartUnavailableMsg({})}</>;
 }

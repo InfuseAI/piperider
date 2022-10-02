@@ -4,13 +4,13 @@ import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import {
   TableAccordionWrapper,
   TableItemName,
-  TableItemDescription,
 } from './TableListItemDecorations';
 import { TableRowColDeltaSummary } from './TableRowColDeltaSummary';
 
 import { TableListAssertionSummary } from './TableListAssertions';
 
-import type {
+import {
+  ColumnSchema,
   Comparable,
   SaferTableSchema,
   Selectable,
@@ -23,11 +23,14 @@ import { ColumnBadge } from './ColumnBadge';
 import { getIconForColumnType } from '../../Columns/utils';
 import { NoData } from '../../Layouts';
 import { AssertionLabel } from '../../Assertions/AssertionLabel';
-import { getReportAggregateAssertions } from '../utils';
+import { getAssertionStatusCountsFromList } from '../utils';
 import {
   tableListGridTempCols,
   tableListMaxWidth,
 } from '../../../../utils/layout';
+import { transformAsNestedBaseTargetRecord } from '../../../../utils';
+import { ColumnSchemaDeltaSummary } from './ColumnSchemaDeltaSummary';
+import { NO_DESCRIPTION_MSG } from '../constant';
 
 interface Props extends Selectable, Comparable {
   isExpanded: boolean;
@@ -45,20 +48,31 @@ export function TableListItem({
   const fallbackTable = baseTableDatum || targetTableDatum;
   const tableName = fallbackTable?.name;
   const description =
-    baseTableDatum?.description || targetTableDatum?.description;
+    baseTableDatum?.description ||
+    targetTableDatum?.description ||
+    NO_DESCRIPTION_MSG;
   //SR vars
   const columns = Object.keys(baseTableDatum?.columns || {}).map((key) => key);
 
-  const { failed: baseFailed, total: baseTotal } = getReportAggregateAssertions(
-    baseTableDatum?.piperider_assertion_result,
-    baseTableDatum?.dbt_assertion_result,
-  );
+  const { failed: baseFailed, total: baseTotal } =
+    getAssertionStatusCountsFromList([
+      baseTableDatum?.piperider_assertion_result,
+      baseTableDatum?.dbt_assertion_result,
+    ]);
   const { failed: targetFailed, total: targetTotal } =
-    getReportAggregateAssertions(
+    getAssertionStatusCountsFromList([
       targetTableDatum?.piperider_assertion_result,
       targetTableDatum?.dbt_assertion_result,
-    );
+    ]);
 
+  const comparedColumns = transformAsNestedBaseTargetRecord<
+    SaferTableSchema['columns'],
+    ColumnSchema
+  >(baseTableDatum?.columns, targetTableDatum?.columns, { metadata: true });
+
+  const {
+    __meta__: { added, deleted, changed },
+  } = comparedColumns;
   if (!fallbackTable) {
     return <NoData />;
   }
@@ -74,16 +88,13 @@ export function TableListItem({
         position={'relative'}
         rowGap={3}
       >
+        {/* 1st Row */}
         <GridItem>
-          <TableItemName
-            name={tableName || ''}
-            description={description}
-            descriptionIconVisible={isExpanded}
-          />
+          <TableItemName name={tableName || ''} description={description} />
         </GridItem>
         <GridItem>
           <Flex color="gray.500">
-            <Text mr={4}>Rows</Text>
+            <Text mr={4}>Rows:</Text>
             {singleOnly ? (
               <Text>
                 {formatColumnValueWith(fallbackTable?.row_count, formatNumber)}
@@ -98,9 +109,10 @@ export function TableListItem({
         </GridItem>
         <GridItem>
           <Flex gap={2}>
-            {singleOnly ? (
+            {singleOnly && (
               <AssertionLabel total={baseTotal} failed={baseFailed} />
-            ) : (
+            )}
+            {!singleOnly && (
               <TableListAssertionSummary
                 baseAssertionFailed={baseFailed}
                 baseAssertionTotal={baseTotal}
@@ -118,6 +130,7 @@ export function TableListItem({
             />
           </Flex>
         </GridItem>
+        {/* 2nd Row */}
         <GridItem>
           <Link
             data-cy="navigate-report-detail"
@@ -138,14 +151,27 @@ export function TableListItem({
           </Link>
         </GridItem>
         <GridItem colSpan={2}>
-          {isExpanded ? (
-            <TableItemDescription description={description || ''} />
-          ) : (
-            <Flex color="gray.500" maxWidth="650px">
-              <Text as="span" mr={4}>
-                Columns
-              </Text>
-              {singleOnly ? (
+          <Flex color="gray.500" maxWidth="650px">
+            <Text as="span" mr={4}>
+              Columns:
+            </Text>
+            {isExpanded &&
+              (singleOnly ? (
+                <Text>
+                  {formatColumnValueWith(
+                    fallbackTable?.col_count,
+                    formatNumber,
+                  )}
+                </Text>
+              ) : (
+                <ColumnSchemaDeltaSummary
+                  added={added}
+                  deleted={deleted}
+                  changed={changed}
+                />
+              ))}
+            {!isExpanded &&
+              (singleOnly ? (
                 <Flex
                   __css={{
                     display: 'flex',
@@ -179,9 +205,8 @@ export function TableListItem({
                   baseCount={baseTableDatum?.col_count}
                   targetCount={targetTableDatum?.col_count}
                 />
-              )}
-            </Flex>
-          )}
+              ))}
+          </Flex>
         </GridItem>
       </Grid>
     </TableAccordionWrapper>

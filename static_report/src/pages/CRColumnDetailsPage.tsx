@@ -1,32 +1,52 @@
-import { Flex, Grid, GridItem, Heading, Text } from '@chakra-ui/react';
+import {
+  Divider,
+  Flex,
+  Grid,
+  GridItem,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Text,
+} from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
 
-import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
 import { Main } from '../components/shared/Layouts/Main';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
 import { ColumnDetailMasterList } from '../components/shared/Columns/ColumnDetailMasterList/ColumnDetailMasterList';
-import { mainContentAreaHeight } from '../utils/layout';
+import { borderVal, mainContentAreaHeight } from '../utils/layout';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 
 import { formatReportTime } from '../utils/formatters';
 
-import type { ComparisonReportSchema } from '../types';
+import type {
+  ColumnSchema,
+  ComparisonReportSchema,
+  SaferTableSchema,
+} from '../types';
 import { NoData } from '../components/shared/Layouts/NoData';
 import {
   containsDataSummary,
   containsColumnQuantile,
+  getIconForColumnType,
 } from '../components/shared/Columns/utils';
-import { TableOverview } from '../components/shared/Tables/TableOverview';
-import { CRAssertionDetailsWidget } from '../components/shared/Widgets/CRAssertionDetailsWidget';
+import {
+  TableDescription,
+  TableOverview,
+} from '../components/shared/Tables/TableOverview';
 import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
-import { getComparisonAssertions } from '../components/shared/Tables/utils';
 import {
   BreadcrumbMetaItem,
   BreadcrumbNav,
 } from '../components/shared/Layouts/BreadcrumbNav';
+import { ColumnSchemaDeltaSummary } from '../components/shared/Tables/TableList/ColumnSchemaDeltaSummary';
+import { transformAsNestedBaseTargetRecord } from '../utils';
+import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
+import { CRAssertionDetailsWidget, getComparisonAssertions } from '../lib';
 interface Props {
   data: ComparisonReportSchema;
   columnName: string;
@@ -67,12 +87,6 @@ export default function CRColumnDetailsPage({
 
   const baseColumnDatum = baseDataColumns[decodedColName];
   const targetColumnDatum = targetDataColumns[decodedColName];
-  const columnHeaderDatum = baseColumnDatum?.type
-    ? baseColumnDatum
-    : targetColumnDatum;
-
-  const { type: baseType } = baseColumnDatum || {};
-  const { type: targetType } = targetColumnDatum || {};
   const [baseOverview, targetOverview] = getComparisonAssertions({
     data,
     tableName,
@@ -91,6 +105,17 @@ export default function CRColumnDetailsPage({
     ...(dbtBaseOverview?.tests || []),
     ...(dbtTargetOverview?.tests || []),
   ];
+  const { type: baseType } = baseColumnDatum || {};
+  const { type: targetType } = targetColumnDatum || {};
+
+  const comparedColumns = transformAsNestedBaseTargetRecord<
+    SaferTableSchema['columns'],
+    ColumnSchema
+  >(baseDataColumns, targetDataColumns, { metadata: true });
+
+  const {
+    __meta__: { added, deleted, changed },
+  } = comparedColumns;
   const breadcrumbList: BreadcrumbMetaItem[] = [
     { label: 'Tables', path: '/' },
     { label: decodedTableName, path: `/tables/${decodedTableName}/columns/` },
@@ -99,6 +124,7 @@ export default function CRColumnDetailsPage({
       path: `/tables/${decodedTableName}/columns/${decodedColName}`,
     },
   ];
+  const { backgroundColor, icon } = getIconForColumnType(baseColumnDatum);
   return (
     <Main isSingleReport={false} time={time} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
@@ -121,67 +147,81 @@ export default function CRColumnDetailsPage({
         {/* Detail Area - Table Detail */}
         {isTableDetailsView ? (
           <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
-            <TableOverview
-              baseTable={baseDataTable}
-              targetTable={targetDataTable}
-            />
-            <Heading size="md" my={5}>
-              Assertions
-            </Heading>
-            <CRAssertionDetailsWidget
-              assertions={{
-                piperider: piperiderAssertions,
-                dbt: dbtAssertions,
-              }}
-            />
-            <Heading size="md" my={5}>
-              Schema
-            </Heading>
-            <TableColumnSchemaList
-              baseTableDatum={baseDataTable}
-              targetTableDatum={targetDataTable}
-              onSelect={() => {}}
-            />
+            <TableColumnHeader title={tableName} subtitle={'Table'} mb={5} />
+            <Tabs defaultIndex={0}>
+              <TabList>
+                <Tab>Overview</Tab>
+                <Tab>Assertions</Tab>
+                <Tab>Schema</Tab>
+              </TabList>
+              <TabPanels>
+                <TabPanel>
+                  <ComparableGridHeader />
+                  <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
+                    <TableOverview tableDatum={baseDataTable} />
+                    <Divider orientation="vertical" />
+                    <TableOverview tableDatum={targetDataTable} />
+                    <TableDescription
+                      description={baseDataTable?.description}
+                    />
+                    <Divider orientation="vertical" />
+                    <TableDescription
+                      description={targetDataTable?.description}
+                    />
+                  </Grid>
+                </TabPanel>
+                <TabPanel>
+                  <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
+                    <CRAssertionDetailsWidget
+                      assertions={{
+                        piperider: piperiderAssertions,
+                        dbt: dbtAssertions,
+                      }}
+                    />
+                  </Grid>
+                </TabPanel>
+                <TabPanel>
+                  <Flex pb={3}>
+                    <ColumnSchemaDeltaSummary
+                      fontWeight={'semibold'}
+                      color={'gray.600'}
+                      added={added}
+                      deleted={deleted}
+                      changed={changed}
+                    />
+                  </Flex>
+                  <ComparableGridHeader />
+                  <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
+                    <TableColumnSchemaList
+                      baseTableDatum={baseDataTable}
+                      targetTableDatum={targetDataTable}
+                      onSelect={() => {}}
+                    />
+                  </Grid>
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
           </GridItem>
         ) : (
           // {/* Detail Area */}
           <Grid
             templateColumns={'1fr 1fr'}
-            templateRows={'5em 3em 1fr 1fr'}
+            templateRows={'5em 5em 1fr 1fr'}
             width={'100%'}
             maxHeight={mainContentAreaHeight}
             overflowY={'auto'}
           >
             {/* Label Block */}
-            <GridItem colSpan={2} rowSpan={1}>
-              <ColumnTypeHeader
-                columnDatum={columnHeaderDatum}
-                maxHeight={'5em'}
-                height={'100%'}
-                bg={'blue.800'}
-                color={'white'}
+            <GridItem colSpan={2} rowSpan={2} p={9}>
+              <TableColumnHeader
+                title={columnName}
+                subtitle={'Column'}
+                mb={5}
+                borderBottom={borderVal}
+                icon={icon}
+                iconColor={backgroundColor}
               />
-            </GridItem>
-            {/* Sticky Sublabel */}
-            <GridItem colSpan={2} rowSpan={1} position={'sticky'} top={0}>
-              <Grid templateColumns={'1fr 1fr'} h={'100%'}>
-                {['Base', 'Target'].map((v, i) => (
-                  <Flex
-                    key={i}
-                    alignItems={'center'}
-                    pl={9}
-                    bg={'blackAlpha.300'}
-                  >
-                    <Text
-                      color={'white'}
-                      fontWeight={'semibold'}
-                      fontSize={'2xl'}
-                    >
-                      {v}
-                    </Text>
-                  </Flex>
-                ))}
-              </Grid>
+              <ComparableGridHeader />
             </GridItem>
             {/* Data Composition Block */}
             <GridItem colSpan={2} p={9} bg={'gray.50'}>
@@ -231,5 +271,23 @@ export default function CRColumnDetailsPage({
         )}
       </Grid>
     </Main>
+  );
+}
+function ComparableGridHeader() {
+  return (
+    <Grid templateColumns={'1fr 1fr'} mb={2} gap={10}>
+      {['Base', 'Target'].map((v, i) => (
+        <Flex key={i} alignItems={'center'} w={'100%'}>
+          <Text
+            fontWeight={'semibold'}
+            fontSize={'2xl'}
+            color={'gray.400'}
+            w={'100%'}
+          >
+            {v}
+          </Text>
+        </Flex>
+      ))}
+    </Grid>
   );
 }

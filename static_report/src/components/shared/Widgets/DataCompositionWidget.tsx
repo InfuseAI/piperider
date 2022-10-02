@@ -1,6 +1,5 @@
 import { Divider, Text, Box } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { Comparable } from '../../../types';
 import { renderChartUnavailableMsg } from '../Charts/utils';
 import { formatTitleCase } from '../../../utils/formatters';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
@@ -11,15 +10,11 @@ import {
   transformCompositionAsFlatStackInput,
 } from '../Columns/utils';
 
-interface Props extends Comparable {
+interface Props {
   hasAnimation?: boolean;
   columnDatum?: ColumnSchema;
 }
-export function DataCompositionWidget({
-  columnDatum,
-  hasAnimation,
-  singleOnly,
-}: Props) {
+export function DataCompositionWidget({ columnDatum, hasAnimation }: Props) {
   const { type } = columnDatum || {};
   const showGenericTypeComp = containsAvgSDSummary(type);
   const dataCompInput = transformCompositionAsFlatStackInput(
@@ -30,7 +25,9 @@ export function DataCompositionWidget({
     columnDatum,
     'dynamic',
   );
+
   const animationOptions = hasAnimation ? {} : false;
+
   if (dataCompInput) {
     return (
       <Box>
@@ -74,5 +71,5 @@ export function DataCompositionWidget({
       </Box>
     );
   }
-  return <>{renderChartUnavailableMsg()}</>;
+  return <>{renderChartUnavailableMsg({})}</>;
 }

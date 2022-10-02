@@ -9,6 +9,7 @@ import { FlatBoxPlotChartProps } from './FlatBoxPlotChart';
 import { TRUES, FALSES, NULLS, INVALIDS } from '../Columns/constants';
 import { checkColumnCategorical, containsDataSummary } from '../Columns/utils';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { ReactNode } from 'react';
 
 /**
  * Handles logic for rendering the right charts
@@ -24,7 +25,7 @@ export function getDataChart(
   hasAnimation?: boolean,
 ) {
   const {
-    total,
+    samples,
     name,
     type,
     schema_type,
@@ -37,6 +38,7 @@ export function getDataChart(
     valids,
     min,
     max,
+    total,
   } = columnDatum || {};
 
   const hasSameTypeName =
@@ -51,7 +53,7 @@ export function getDataChart(
     return (
       <CategoricalBarChart
         data={topk}
-        total={total || 0}
+        total={samples || total || 0}
         animation={hasAnimation ? {} : false}
       />
     );
@@ -59,7 +61,7 @@ export function getDataChart(
   //histogram dataset
   if (chartKind === 'histogram' && histogram && type) {
     //BUG: race-condition when time-series is used /w animation here
-    return <HistogramChart data={{ histogram, min, max, type, total }} />;
+    return <HistogramChart data={{ histogram, min, max, type, samples }} />;
   }
   //pie dataset
   if (
@@ -73,7 +75,7 @@ export function getDataChart(
     const labels = [TRUES, FALSES, NULLS, INVALIDS].map(
       (v) => v.charAt(0) + v.slice(1).toLowerCase(),
     );
-    const ratios = counts.map((v) => v / Number(total));
+    const ratios = counts.map((v) => v / Number(samples || total));
     return (
       <BooleanPieChart
         data={{ counts, labels, ratios }}
@@ -81,7 +83,7 @@ export function getDataChart(
       />
     );
   }
-  return renderChartUnavailableMsg(valids, schema_type);
+  return renderChartUnavailableMsg({ valids, schema_type });
 }
 
 export function getChartUnavailMsg(
@@ -93,10 +95,15 @@ export function getChartUnavailMsg(
     : `There are insufficient valid data points in this dataset`;
 }
 
-export function renderChartUnavailableMsg(
-  valids?: ColumnSchema['valids'],
-  schema_type?: ColumnSchema['schema_type'],
-) {
+export function renderChartUnavailableMsg({
+  valids,
+  schema_type,
+  messageOverwrite,
+}: {
+  valids?: ColumnSchema['valids'];
+  schema_type?: ColumnSchema['schema_type'];
+  messageOverwrite?: ReactNode;
+}) {
   const noRenderMessage = getChartUnavailMsg(valids, schema_type);
   return (
     <Flex
@@ -107,7 +114,7 @@ export function renderChartUnavailableMsg(
       bg={'blackAlpha.300'}
     >
       <Text alignSelf={'center'} textAlign={'center'} w={'inherit'}>
-        {noRenderMessage}
+        {messageOverwrite ?? noRenderMessage}
       </Text>
     </Flex>
   );

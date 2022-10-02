@@ -3,6 +3,7 @@ export const NULLS = 'MISSING';
 export const NONNULLs = 'NON-NULL';
 export const DUPLICATES = 'DUPLICATE';
 export const NONDUPLICATES = 'NON-DUPLICATE';
+export const NONDUPLICATE_ROWS = 'NON-DUPLICATE ROWS';
 export const VALIDS = 'VALID';
 export const INVALIDS = 'INVALID';
 export const MIN = 'MIN';

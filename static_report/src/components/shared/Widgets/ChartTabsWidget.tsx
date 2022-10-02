@@ -124,10 +124,10 @@ export function ChartTabsWidget({
           </TabPanels>
         </Tabs>
       ) : (
-        renderChartUnavailableMsg(
-          baseColumnDatum?.valids,
-          baseColumnDatum?.schema_type,
-        )
+        renderChartUnavailableMsg({
+          valids: baseColumnDatum?.valids,
+          schema_type: baseColumnDatum?.schema_type,
+        })
       )}
     </Box>
   );

@@ -34,7 +34,10 @@ type ScaleTypeConfig = DeepPartial<
 >;
 
 type HistogramChartProps = {
-  data: Pick<ColumnSchema, 'total' | 'type' | 'histogram' | 'min' | 'max'>;
+  data: Pick<
+    ColumnSchema,
+    'samples' | 'type' | 'histogram' | 'min' | 'max' | 'total'
+  >;
   animation?: AnimationOptions<'bar'>['animation'];
   hideAxis?: boolean;
 };
@@ -107,7 +110,7 @@ export function getHistogramChartOptions(
   hideAxis = false,
   { ...configOverrides }: ChartOptions<'bar'> = {},
 ): ChartOptions<'bar'> {
-  const { histogram, type, total } = data;
+  const { histogram, type, samples, total } = data;
   const { counts = [], bin_edges: binEdges = [] } =
     histogram || ({} as Histogram);
   const isDatetime = type === 'datetime';
@@ -124,7 +127,7 @@ export function getHistogramChartOptions(
             const result = formatDisplayedBinItem(binEdges, dataIndex);
 
             const percentOfTotal = formatIntervalMinMax(
-              counts[dataIndex] / (total as number), //total is always given (schema should make required)
+              counts[dataIndex] / Number(samples || total), //total is always given (schema should make required)
             );
 
             const prefix = isDatetime

@@ -1,11 +1,19 @@
-import { Grid, GridItem, Heading } from '@chakra-ui/react';
+import {
+  Divider,
+  Grid,
+  GridItem,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+} from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
-import { ColumnTypeHeader } from '../components/shared/Columns/ColumnTypeHeader';
 import { Main } from '../components/shared/Layouts/Main';
 import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
-import { mainContentAreaHeight } from '../utils/layout';
+import { borderVal, mainContentAreaHeight } from '../utils/layout';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 import { ColumnDetailMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
 
@@ -17,14 +25,19 @@ import { NoData } from '../components/shared/Layouts/NoData';
 import {
   containsDataSummary,
   containsColumnQuantile,
+  getIconForColumnType,
 } from '../components/shared/Columns/utils';
-import { TableOverview } from '../components/shared/Tables/TableOverview';
+import {
+  TableDescription,
+  TableOverview,
+} from '../components/shared/Tables/TableOverview';
 import { SRAssertionDetailsWidget } from '../components/shared/Widgets/SRAssertionDetailsWidget';
 import {
   BreadcrumbMetaItem,
   BreadcrumbNav,
   TableColumnSchemaList,
 } from '../lib';
+import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
@@ -49,6 +62,7 @@ export default function SRColumnDetailsPage({
 
   //FIXME: <Schema> can be undefined if not matching columnDatum
   const { type, histogram } = columnDatum || {};
+  const { backgroundColor, icon } = getIconForColumnType(columnDatum);
 
   if (!tableName || !dataTable) {
     return (
@@ -58,10 +72,6 @@ export default function SRColumnDetailsPage({
     );
   }
 
-  //FIXME: Use Store for collectively SSOT handling data of tables + columns
-  // right now, components are reusing the same utilities, causing execution/implementation redundancies in code
-
-  const borderVal = '1px solid lightgray';
   const breadcrumbList: BreadcrumbMetaItem[] = [
     { label: 'Tables', path: '/' },
     { label: decodedTableName, path: `/tables/${decodedTableName}/columns/` },
@@ -93,42 +103,61 @@ export default function SRColumnDetailsPage({
         {/* Detail Area - Table Detail */}
         {isTableDetailsView ? (
           <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
-            <TableOverview baseTable={dataTable} singleOnly />
-            <Heading size="md" my={5}>
-              Assertions
-            </Heading>
-            <SRAssertionDetailsWidget
-              assertions={{
-                piperider: dataTable.piperider_assertion_result,
-                dbt: dataTable?.dbt_assertion_result,
-              }}
+            <TableColumnHeader
+              title={dataTable.name}
+              subtitle={'Table'}
+              mb={5}
             />
-            <Heading size="md" my={5}>
-              Schema
-            </Heading>
-            <TableColumnSchemaList
-              baseTableDatum={dataTable}
-              singleOnly
-              onSelect={() => {}}
-            />
+            <Tabs defaultIndex={0}>
+              <TabList>
+                <Tab>Overview</Tab>
+                <Tab>Assertions</Tab>
+                <Tab>Schema</Tab>
+              </TabList>
+              <TabPanels>
+                <TabPanel>
+                  <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
+                    <TableOverview tableDatum={dataTable} />
+                    <Divider orientation="vertical" />
+                    <TableDescription description={dataTable.description} />
+                  </Grid>
+                </TabPanel>
+                <TabPanel>
+                  <SRAssertionDetailsWidget
+                    assertions={{
+                      piperider: dataTable.piperider_assertion_result,
+                      dbt: dataTable?.dbt_assertion_result,
+                    }}
+                  />
+                </TabPanel>
+                <TabPanel>
+                  <TableColumnSchemaList
+                    baseTableDatum={dataTable}
+                    singleOnly
+                    onSelect={() => {}}
+                  />
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
           </GridItem>
         ) : (
           // {/* Detail Area - Columns */}
           <Grid
             templateColumns={'500px 1fr'}
-            templateRows={'5em 1fr 1fr'}
+            templateRows={'7em 1fr 1fr'}
             width={'100%'}
             maxHeight={mainContentAreaHeight}
             overflowY={'auto'}
           >
             {/* Label Block */}
-            <GridItem colSpan={2} rowSpan={1}>
-              <ColumnTypeHeader
-                columnDatum={columnDatum}
-                maxHeight={'5em'}
-                height={'100%'}
-                bg={'blue.800'}
-                color={'white'}
+            <GridItem colSpan={2} rowSpan={1} p={9}>
+              <TableColumnHeader
+                title={columnName}
+                subtitle={'Column'}
+                p={2}
+                borderBottom={borderVal}
+                icon={icon}
+                iconColor={backgroundColor}
               />
             </GridItem>
             {/* Data Composition Block */}

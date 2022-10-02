@@ -6,24 +6,39 @@ import {
 } from '../../../../sdlc/single-report-schema';
 import { NO_VALUE } from '../constants';
 
-export type MetricMetaKeys = keyof Pick<
-  ColumnSchema,
-  | 'nulls'
-  | 'total'
-  | 'valids'
-  | 'invalids'
-  | 'positives'
-  | 'zeros'
-  | 'negatives'
-  | 'non_zero_length'
-  | 'zero_length'
-  | 'avg'
-  | 'stddev'
-  | 'min'
-  | 'max'
-  | 'distinct'
-  | 'duplicates'
->;
+export type MetricMetaKeys =
+  | keyof Pick<
+      ColumnSchema,
+      | 'nulls'
+      | 'samples'
+      | 'total'
+      | 'valids'
+      | 'invalids'
+      | 'positives'
+      | 'zeros'
+      | 'negatives'
+      | 'non_zero_length'
+      | 'zero_length'
+      | 'avg'
+      | 'stddev'
+      | 'min'
+      | 'max'
+      | 'distinct'
+      | 'duplicates'
+    >;
+export type TableMetaKeys =
+  | keyof Pick<
+      TableSchema,
+      | 'duplicate_rows'
+      | 'col_count'
+      | 'freshness'
+      | 'last_altered'
+      | 'bytes'
+      | 'created'
+      | 'row_count'
+      | 'samples'
+      | 'row_count'
+    >;
 export interface MetricsInfoProps {
   name: string;
   subtitle?: string;
@@ -78,13 +93,13 @@ export function MetricsInfo({
         <Tooltip
           label={tooltipValues?.firstSlot}
           isDisabled={!Boolean(tooltipValues?.firstSlot)}
-          placement={'top'}
+          placement={'top-end'}
         >
           <Text
             textAlign="right"
             fontSize={'sm'}
             width={firstSlotWidth}
-            noOfLines={1}
+            noOfLines={2}
           >
             {firstSlot || NO_VALUE}
           </Text>

@@ -29,5 +29,5 @@ export function QuantilesWidget({ columnDatum }: Props) {
       </Box>
     );
   }
-  return <>{renderChartUnavailableMsg()}</>;
+  return <>{renderChartUnavailableMsg({})}</>;
 }
