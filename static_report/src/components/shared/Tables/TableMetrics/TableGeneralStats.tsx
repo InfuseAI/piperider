@@ -5,16 +5,8 @@ import {
   TableMetaKeys,
 } from '../../Columns/ColumnMetrics/MetricsInfo';
 import { TableMetakeyList, transformSRTableMetricsInfoList } from '../utils';
-//FIXME: formatting
 import { formatDuration, intervalToDuration, subSeconds } from 'date-fns';
 import { formatBytes, formatNumber, formatReportTime } from '../../../../utils';
-// import {
-//   formatBytes,
-//   formatColumnValueWith,
-//   formatIntervalMinMax,
-//   formatNumber,
-//   formatReportTime,
-// } from '../../../utils/formatters';
 
 interface Props {
   tableDatum?: SaferTableSchema;

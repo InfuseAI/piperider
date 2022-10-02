@@ -75,7 +75,7 @@ export function getDataChart(
     const labels = [TRUES, FALSES, NULLS, INVALIDS].map(
       (v) => v.charAt(0) + v.slice(1).toLowerCase(),
     );
-    const ratios = counts.map((v) => v / Number(samples));
+    const ratios = counts.map((v) => v / Number(samples || total));
     return (
       <BooleanPieChart
         data={{ counts, labels, ratios }}
