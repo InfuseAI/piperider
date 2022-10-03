@@ -26,7 +26,6 @@ import {
 import { ColumnSchemaDeltaSummary } from './ColumnSchemaDeltaSummary';
 import { CompTableColEntryItem } from '../store';
 import { NO_DESCRIPTION_MSG } from '../constant';
-import { base_parse } from 'node-html-parser/dist/nodes/html';
 
 interface Props extends Selectable, Comparable {
   isExpanded: boolean;
@@ -39,31 +38,23 @@ export function TableListItem({
   onSelect,
   singleOnly,
 }: Props) {
-  const [tableName, tableValue] = combinedTableEntry || [];
+  const [tableName, tableValue, tableMetadata] = combinedTableEntry || [];
 
   const fallbackTable = tableValue?.base || tableValue?.target;
   const description = fallbackTable?.description || NO_DESCRIPTION_MSG;
 
-  // const { failed: baseFailed, total: baseTotal } =
-  //   getAssertionStatusCountsFromList([
-  //     baseTableDatum?.piperider_assertion_result,
-  //     baseTableDatum?.dbt_assertion_result,
-  //   ]);
-  // const { failed: targetFailed, total: targetTotal } =
-  //   getAssertionStatusCountsFromList([
-  //     targetTableDatum?.piperider_assertion_result,
-  //     targetTableDatum?.dbt_assertion_result,
-  //   ]);
+  //TODO: move into store?
+  const { failed: baseFailed, total: baseTotal } =
+    getAssertionStatusCountsFromList([
+      tableValue?.base?.piperider_assertion_result,
+      tableValue?.base?.dbt_assertion_result,
+    ]);
+  const { failed: targetFailed, total: targetTotal } =
+    getAssertionStatusCountsFromList([
+      tableValue?.target?.piperider_assertion_result,
+      tableValue?.target?.dbt_assertion_result,
+    ]);
 
-  // const comparedColumns = transformAsNestedBaseTargetRecord<
-  //   SaferTableSchema['columns'],
-  //   ColumnSchema
-  // >(baseTableDatum?.columns, targetTableDatum?.columns, { metadata: true });
-
-  //FIXME: Map as part of stored entry value
-  // const {
-  //   __meta__: { added, deleted, changed },
-  // } = comparedColumns;
   if (!combinedTableEntry) {
     return <NoData />;
   }
@@ -100,7 +91,7 @@ export function TableListItem({
         </GridItem>
         <GridItem>
           <Flex gap={2}>
-            {/* {singleOnly && (
+            {singleOnly && (
               <AssertionLabel total={baseTotal} failed={baseFailed} />
             )}
             {!singleOnly && (
@@ -110,7 +101,7 @@ export function TableListItem({
                 targetAssertionFailed={targetFailed}
                 targetAssertionTotal={targetTotal}
               />
-            )} */}
+            )}
             <Icon
               position={'absolute'}
               right={0}
@@ -155,13 +146,11 @@ export function TableListItem({
                   )}
                 </Text>
               ) : (
-                <></>
-                //FIXME:
-                // <ColumnSchemaDeltaSummary
-                //   added={fallbackTable?.columns.added}
-                //   deleted={fallbackTable?.columns.deleted}
-                //   changed={fallbackTable?.columns.changed}
-                // />
+                <ColumnSchemaDeltaSummary
+                  added={tableMetadata?.added}
+                  deleted={tableMetadata?.deleted}
+                  changed={tableMetadata?.changed}
+                />
               ))}
             {!isExpanded &&
               (singleOnly ? (

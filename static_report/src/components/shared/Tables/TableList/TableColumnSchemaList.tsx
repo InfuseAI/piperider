@@ -11,7 +11,6 @@ import {
   Icon,
 } from '@chakra-ui/react';
 import { FiChevronRight } from 'react-icons/fi';
-import { nanoid } from 'nanoid';
 
 import { Comparable, Selectable } from '../../../../types';
 import { NO_VALUE } from '../../Columns/constants';
@@ -30,6 +29,7 @@ export function TableColumnSchemaList({
   onSelect,
 }: Props) {
   const fallbackTable = baseTableEntryDatum || targetTableEntryDatum;
+
   const isNotSingle = !singleOnly;
 
   return (
@@ -53,11 +53,11 @@ export function TableColumnSchemaList({
           </Thead>
           <Tbody>
             {fallbackTable?.columns.map(
-              ([key, { base: baseColumn, target: targetColumn }]) => {
+              ([key, { base: baseColumn, target: targetColumn }, metadata]) => {
                 const fallbackColumn = baseColumn || targetColumn;
                 return (
                   <Tr
-                    key={nanoid(10)}
+                    key={key}
                     onClick={() =>
                       visibleDetail &&
                       onSelect({
@@ -74,7 +74,7 @@ export function TableColumnSchemaList({
                     <Td
                       whiteSpace="normal"
                       color={
-                        baseColumn?.changed && isNotSingle
+                        metadata?.mismatched && isNotSingle
                           ? 'red.500'
                           : 'inherit'
                       }
@@ -90,7 +90,7 @@ export function TableColumnSchemaList({
                     </Td>
                     <Td
                       color={
-                        baseColumn?.changed && isNotSingle
+                        metadata?.mismatched && isNotSingle
                           ? 'red.500'
                           : 'inherit'
                       }
@@ -101,7 +101,7 @@ export function TableColumnSchemaList({
                     {isNotSingle && (
                       <>
                         <Td
-                          color={targetColumn?.changed ? 'red.500' : 'inherit'}
+                          color={metadata?.mismatched ? 'red.500' : 'inherit'}
                           whiteSpace="normal"
                         >
                           <Text
@@ -114,7 +114,7 @@ export function TableColumnSchemaList({
                           </Text>
                         </Td>
                         <Td
-                          color={targetColumn?.changed ? 'red.500' : 'inherit'}
+                          color={metadata?.mismatched ? 'red.500' : 'inherit'}
                         >
                           {targetColumn?.schema_type ?? NO_VALUE}
                         </Td>

@@ -49,7 +49,7 @@ function AppSingle() {
               <SRColumnDetailsPage
                 tableName={decodeURIComponent(tableName || '')}
                 columnName={decodeURIComponent(columnName || '')}
-                data={window.PIPERIDER_SINGLE_REPORT_DATA}
+                data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
               />
             )}
           </Route>
@@ -82,7 +82,7 @@ function AppComparison() {
               <CRColumnDetailsPage
                 tableName={decodeURIComponent(tableName || '')}
                 columnName={decodeURIComponent(columnName || '')}
-                data={window.PIPERIDER_COMPARISON_REPORT_DATA}
+                data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}
               />
             )}
           </Route>

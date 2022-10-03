@@ -57,6 +57,11 @@ export type CRAssertionData = {
 export interface ComparableData<T> {
   base?: T;
   target?: T;
+  metadata?: {
+    added: number;
+    deleted: number;
+    changed: number;
+  };
 }
 
 /**

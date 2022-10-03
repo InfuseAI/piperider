@@ -163,7 +163,6 @@ export function ColumnDetailMasterList({
             <Icon as={FiGrid} color="piperider.500" />
             <Text noOfLines={1}>{currentTable}</Text>
           </Flex>
-          {/* TODO: Repeated in TableListItem */}
           <Flex color="gray.500">
             <Text mr={4}>Rows</Text>
             {singleOnly ? (

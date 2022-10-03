@@ -21,8 +21,6 @@ import { borderVal, mainContentAreaHeight } from '../utils/layout';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 
-import { formatReportTime } from '../utils/formatters';
-
 import type {
   ColumnSchema,
   ComparisonReportSchema,
@@ -47,6 +45,7 @@ import { ColumnSchemaDeltaSummary } from '../components/shared/Tables/TableList/
 import { transformAsNestedBaseTargetRecord } from '../utils';
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 import { CRAssertionDetailsWidget, getComparisonAssertions } from '../lib';
+import { useReportStore } from '../components/shared/Tables/store';
 interface Props {
   data: ComparisonReportSchema;
   columnName: string;
@@ -58,14 +57,13 @@ export default function CRColumnDetailsPage({
   columnName,
   tableName,
 }: Props) {
-  const {
-    base: { tables: baseTables },
-    input: { tables: targetTables },
-  } = data;
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
+  const setReportData = useReportStore((s) => s.setReportRawData);
+  setReportData({ base: data.base, input: data.input });
+  const { tableColumnsOnly = [] } = useReportStore.getState();
 
-  if (!tableName || !baseTables || !targetTables) {
+  if (!tableName || tableColumnsOnly.length === 0) {
     return (
       <Main isSingleReport={false}>
         <NoData text={`No profile data found for table name: ${tableName}`} />
@@ -73,17 +71,19 @@ export default function CRColumnDetailsPage({
     );
   }
 
-  const decodedColName = decodeURIComponent(columnName);
-  const decodedTableName = decodeURIComponent(tableName);
-  const isTableDetailsView = decodedColName.length === 0;
+  const isTableDetailsView = columnName.length === 0;
 
-  const baseDataTable = baseTables[decodedTableName];
-  const targetDataTable = targetTables[decodedTableName];
+  const baseDataTable = data.base.tables[tableName];
+  const targetDataTable = data.input.tables[tableName];
+
   const baseDataColumns = baseDataTable?.columns || {};
   const targetDataColumns = targetDataTable?.columns || {};
+  const baseColumnDatum = baseDataColumns[columnName];
+  const targetColumnDatum = targetDataColumns[columnName];
+  const { type: baseType } = baseColumnDatum || {};
+  const { type: targetType } = targetColumnDatum || {};
 
-  const baseColumnDatum = baseDataColumns[decodedColName];
-  const targetColumnDatum = targetDataColumns[decodedColName];
+  //TODO: move to store
   const [baseOverview, targetOverview] = getComparisonAssertions({
     data,
     tableName,
@@ -102,26 +102,27 @@ export default function CRColumnDetailsPage({
     ...(dbtBaseOverview?.tests || []),
     ...(dbtTargetOverview?.tests || []),
   ];
-  const { type: baseType } = baseColumnDatum || {};
-  const { type: targetType } = targetColumnDatum || {};
 
-  const comparedColumns = transformAsNestedBaseTargetRecord<
-    SaferTableSchema['columns'],
-    ColumnSchema
-  >(baseDataColumns, targetDataColumns, { metadata: true });
+  //TODO: move to store
+  const { backgroundColor, icon } = getIconForColumnType(baseColumnDatum);
 
-  const {
-    __meta__: { added, deleted, changed },
-  } = comparedColumns;
+  // const comparedColumns = transformAsNestedBaseTargetRecord<
+  //   SaferTableSchema['columns'],
+  //   ColumnSchema
+  // >(baseDataColumns, targetDataColumns, { metadata: true });
+
+  // const {
+  //   __meta__: { added, deleted, changed },
+  // } = comparedColumns;
+
   const breadcrumbList: BreadcrumbMetaItem[] = [
     { label: 'Tables', path: '/' },
-    { label: decodedTableName, path: `/tables/${decodedTableName}/columns/` },
+    { label: tableName, path: `/tables/${tableName}/columns/` },
     {
-      label: decodedColName,
-      path: `/tables/${decodedTableName}/columns/${decodedColName}`,
+      label: columnName,
+      path: `/tables/${tableName}/columns/${columnName}`,
     },
   ];
-  const { backgroundColor, icon } = getIconForColumnType(baseColumnDatum);
   return (
     <Main isSingleReport={false} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
@@ -133,8 +134,8 @@ export default function CRColumnDetailsPage({
           <ColumnDetailMasterList
             baseDataTables={baseTables}
             targetDataTables={targetTables}
-            currentTable={decodedTableName}
-            currentColumn={decodedColName}
+            currentTable={tableName}
+            currentColumn={columnName}
             onSelect={({ tableName, columnName }) => {
               setTabIndex(0); //reset tabs
               setLocation(`/tables/${tableName}/columns/${columnName}`);
@@ -182,18 +183,18 @@ export default function CRColumnDetailsPage({
                     <ColumnSchemaDeltaSummary
                       fontWeight={'semibold'}
                       color={'gray.600'}
-                      added={added}
+                      added={metadata.added}
                       deleted={deleted}
                       changed={changed}
                     />
                   </Flex>
                   <ComparableGridHeader />
                   <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
-                    <TableColumnSchemaList
-                      baseTableDatum={baseDataTable}
-                      targetTableDatum={targetDataTable}
+                    {/* <TableColumnSchemaList
+                      baseTableEntryDatum={baseDataTable}
+                      targetTableEntryDatum={targetDataTable}
                       onSelect={() => {}}
-                    />
+                    /> */}
                   </Grid>
                 </TabPanel>
               </TabPanels>

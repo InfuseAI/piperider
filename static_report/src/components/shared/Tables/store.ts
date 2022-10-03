@@ -10,7 +10,13 @@ import create from 'zustand';
 import { transformAsNestedBaseTargetRecord } from '../../../utils/transformers';
 import { formatReportTime } from '../../../utils/formatters';
 type ComparableReport = Partial<ComparisonReportSchema>;
-type EntryItem<T> = [string, T];
+type ComparableMetadata = {
+  added?: number;
+  deleted?: number;
+  changed?: number;
+  mismatched?: boolean;
+};
+type EntryItem<T> = [string, T, ComparableMetadata];
 export type CompColEntryItem = EntryItem<ComparableData<Partial<ColumnSchema>>>;
 export type CompTableWithColEntryOverwrite = Omit<
   Partial<SaferTableSchema>,
@@ -18,7 +24,6 @@ export type CompTableWithColEntryOverwrite = Omit<
 > & {
   columns: CompColEntryItem[];
 };
-//FIXME: Augment Columns.meta/Tables.meta + icons (add to comparable layer, alongside base|target)
 export type CompTableColEntryItem = EntryItem<
   ComparableData<CompTableWithColEntryOverwrite>
 >;
@@ -42,6 +47,7 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
     setReportRawData(rawData) {
       //should initialize entire report data, if available
       let resultState: ReportState = { rawData };
+      let isComparison = Boolean(rawData.base && rawData.input);
 
       /** Report */
       if (rawData.base) {
@@ -59,31 +65,47 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
       set({ reportTime: result });
 
       /** Tables */
-      const comparableTables = transformAsNestedBaseTargetRecord<
-        SaferSRSchema['tables'],
-        SaferTableSchema
-      >(rawData?.base?.tables, rawData?.input?.tables, { metadata: true });
-      const compTableEntries = Object.entries(comparableTables);
+      const { __meta__: tablesMetadata, ...comparableTables } =
+        transformAsNestedBaseTargetRecord<
+          SaferSRSchema['tables'],
+          SaferTableSchema
+        >(rawData?.base?.tables, rawData?.input?.tables, { metadata: true });
 
-      /** Table-Columns */
-      const tableColumnsResult = compTableEntries.map(
+      const tableColumnsResult = Object.entries(comparableTables).map(
         ([tableName, { base = {}, target = {} }]) => {
-          const comparableColumns = transformAsNestedBaseTargetRecord<
-            SaferTableSchema['columns'],
-            ColumnSchema
-          >(base?.columns, target?.columns, { metadata: true });
-          const compColEntries = Object.entries(comparableColumns);
+          const { __meta__: columnsMetadata, ...comparableColumns } =
+            transformAsNestedBaseTargetRecord<
+              SaferTableSchema['columns'],
+              ColumnSchema
+            >(base?.columns, target?.columns, { metadata: true });
+          const compColEntries = Object.entries(comparableColumns).map(
+            ([colName, { base, target }]) => {
+              return [
+                colName,
+                { base, target },
+                {
+                  mismatched: isComparison
+                    ? base?.name !== target?.name ||
+                      base?.schema_type !== target?.schema_type
+                    : false,
+                },
+              ] as CompColEntryItem;
+            },
+          );
 
-          // re-map table entry
-          const tableEntryValue: ComparableData<CompTableWithColEntryOverwrite> =
+          // table's columns are mirror
+          const entry = [
+            tableName,
             {
               base: { ...base, columns: compColEntries },
               target: { ...target, columns: compColEntries },
-            };
-          const result = [tableName, tableEntryValue] as CompTableColEntryItem;
-          return result;
+            },
+            columnsMetadata,
+          ];
+          return entry as CompTableColEntryItem;
         },
       );
+
       resultState.tableColumnsOnly = tableColumnsResult;
 
       // final setter

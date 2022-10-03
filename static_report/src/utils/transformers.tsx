@@ -68,7 +68,6 @@ export function transformAsNestedBaseTargetRecord<K, T>(
       changed: added + deleted,
     };
   }
-
   return result;
 }
 

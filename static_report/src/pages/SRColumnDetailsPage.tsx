@@ -130,11 +130,11 @@ export default function SRColumnDetailsPage({
                   />
                 </TabPanel>
                 <TabPanel>
-                  <TableColumnSchemaList
-                    baseTableDatum={dataTable}
+                  {/* <TableColumnSchemaList
+                    baseTableEntryDatum={dataTable}
                     singleOnly
                     onSelect={() => {}}
-                  />
+                  /> */}
                 </TabPanel>
               </TabPanels>
             </Tabs>

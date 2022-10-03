@@ -1,13 +1,13 @@
 import { Flex, FlexProps, Text } from '@chakra-ui/react';
 interface Props {
-  added: number;
-  deleted: number;
-  changed: number;
+  added?: number;
+  deleted?: number;
+  changed?: number;
 }
 export function ColumnSchemaDeltaSummary({
-  added,
-  deleted,
-  changed,
+  added = 0,
+  deleted = 0,
+  changed = 0,
   ...props
 }: Props & FlexProps) {
   return (
