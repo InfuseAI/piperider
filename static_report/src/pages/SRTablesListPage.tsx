@@ -42,7 +42,7 @@ export function SRTablesListPage({ data }: Props) {
           <Text>Summary</Text>
           <Text>Assertions</Text>
         </Grid>
-        <Accordion allowToggle>
+        <Accordion allowToggle reduceMotion>
           {Object.keys(tables).map((key) => {
             const table = tables[key];
             zReport(ZTableSchema.safeParse(table));
@@ -62,16 +62,18 @@ export function SRTablesListPage({ data }: Props) {
                       />
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
-                        <TableColumnSchemaList
-                          singleOnly
-                          visibleDetail
-                          baseTableDatum={table}
-                          onSelect={({ tableName, columnName }) =>
-                            setLocation(
-                              `/tables/${tableName}/columns/${columnName}`,
-                            )
-                          }
-                        />
+                        {isExpanded && (
+                          <TableColumnSchemaList
+                            singleOnly
+                            visibleDetail
+                            baseTableDatum={table}
+                            onSelect={({ tableName, columnName }) =>
+                              setLocation(
+                                `/tables/${tableName}/columns/${columnName}`,
+                              )
+                            }
+                          />
+                        )}
                       </AccordionPanel>
                     </>
                   )}
