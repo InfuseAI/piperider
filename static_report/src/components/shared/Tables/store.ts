@@ -36,7 +36,6 @@ export interface ReportState {
 
 interface ReportSetters {
   setReportRawData: (input: ComparableReport) => void;
-  setReportTime: (baseCreatedAt?: string, targetCreatedAt?: string) => void;
 }
 
 export const useReportStore = create<ReportState & ReportSetters>()(function (
@@ -113,12 +112,6 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
 
       // final setter
       set(resultState);
-    },
-    setReportTime(baseCreatedAt, targetCreatedAt) {
-      const baseTime = formatReportTime(baseCreatedAt);
-      const targetTime = formatReportTime(targetCreatedAt);
-      const result = targetTime ? `${baseTime} -> ${targetTime}` : baseTime;
-      set({ reportTime: result });
     },
   };
 });

@@ -88,7 +88,7 @@ export default function CRColumnDetailsPage({
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
 
-  //TODO: add to store
+  //TODO: move to store after assertions schema-change
   const [baseOverview, targetOverview] = getComparisonAssertions({
     data,
     tableName,

@@ -147,10 +147,7 @@ type CRAssertionArgs = {
   assertion: AssertionValue;
   from: ComparsionSource;
 };
-export function getComparisonAssertionTests({
-  assertion,
-  from,
-}: CRAssertionArgs) {
+function getComparisonAssertionTests({ assertion, from }: CRAssertionArgs) {
   const { passed, failed } = getSingleAssertionStatusCounts(assertion);
 
   if (!assertion) {
