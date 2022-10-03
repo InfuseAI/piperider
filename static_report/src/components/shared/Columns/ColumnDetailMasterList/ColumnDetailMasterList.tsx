@@ -25,7 +25,7 @@ import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
 interface Props extends Selectable, Comparable {
-  tableColEntry?: CompTableColEntryItem;
+  tableColEntry: CompTableColEntryItem;
   currentTable: string;
   currentColumn: string;
 }
@@ -53,8 +53,7 @@ export function ColumnDetailMasterList({
     ]),
   );
   const quickFilters = Array.from(filterState.keys());
-  const baseTable = tableColEntry?.[1].base;
-  const targetTable = tableColEntry?.[1].target;
+  const [, { base: baseTable, target: targetTable }] = tableColEntry;
   const fallbackTable = baseTable || targetTable;
   const fallbackColumns = fallbackTable?.columns || [];
 

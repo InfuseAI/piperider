@@ -37,6 +37,7 @@ import {
 } from '../lib';
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 import { useReportStore } from '../components/shared/Tables/store';
+import { getBreadcrumbPaths } from '../utils/routes';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
@@ -74,14 +75,10 @@ export default function SRColumnDetailsPage({
     );
   }
 
-  const breadcrumbList: BreadcrumbMetaItem[] = [
-    { label: 'Tables', path: '/' },
-    { label: tableName, path: `/tables/${tableName}/columns/` },
-    {
-      label: columnName,
-      path: `/tables/${tableName}/columns/${columnName}`,
-    },
-  ];
+  const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
+    tableName,
+    columnName,
+  );
 
   return (
     <Main isSingleReport maxHeight={mainContentAreaHeight}>

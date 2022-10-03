@@ -41,6 +41,7 @@ import { ColumnSchemaDeltaSummary } from '../components/shared/Tables/TableList/
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 import { CRAssertionDetailsWidget, getComparisonAssertions } from '../lib';
 import { useReportStore } from '../components/shared/Tables/store';
+import { getBreadcrumbPaths } from '../utils/routes';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -87,6 +88,7 @@ export default function CRColumnDetailsPage({
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
 
+  //TODO: add to store
   const [baseOverview, targetOverview] = getComparisonAssertions({
     data,
     tableName,
@@ -106,14 +108,10 @@ export default function CRColumnDetailsPage({
     ...(dbtTargetOverview?.tests || []),
   ];
 
-  const breadcrumbList: BreadcrumbMetaItem[] = [
-    { label: 'Tables', path: '/' },
-    { label: tableName, path: `/tables/${tableName}/columns/` },
-    {
-      label: columnName,
-      path: `/tables/${tableName}/columns/${columnName}`,
-    },
-  ];
+  const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
+    tableName,
+    columnName,
+  );
   const { backgroundColor, icon } = getIconForColumnType(baseColumnDatum);
   return (
     <Main isSingleReport={false} maxHeight={mainContentAreaHeight}>
