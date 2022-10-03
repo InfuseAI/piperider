@@ -22,6 +22,7 @@ from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration
 from piperider_cli.datasource import DataSource
 from piperider_cli.error import PipeRiderCredentialError
+from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.filesystem import FileSystem
 from piperider_cli.profiler import Profiler, ProfilerEventHandler
 
@@ -504,6 +505,25 @@ def decorate_with_metadata(profile_result: dict):
     profile_result['metadata_version'] = schema_version()
 
 
+def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results):
+    if assertion_exceptions and len(assertion_exceptions) > 0:
+        return False
+
+    if assertion_results:
+        for assertion in assertion_results:
+            if not assertion.result.status():
+                return False
+
+    if dbt_test_results:
+        for table, v in dbt_test_results.items():
+            for column, results in v['columns'].items():
+                for r in results:
+                    if r.get('status') == 'failed':
+                        return False
+
+    return True
+
+
 class Runner():
     @staticmethod
     def exec(datasource=None, table=None, output=None, interaction=True, skip_report=False, dbt_command='',
@@ -640,5 +660,8 @@ class Runner():
             console.print(f'Results saved to {output if output else output_path}')
 
         _analyse_and_log_run_event(profile_result, assertion_results, dbt_test_results, dbt_command)
+
+        if not _check_test_status(assertion_results, assertion_exceptions, dbt_test_results):
+            return EC_ERR_TEST_FAILED
 
         return 0
