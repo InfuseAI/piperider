@@ -17,8 +17,8 @@ import { getColumnMetricRatio, getIconForColumnType } from '../utils';
 
 interface Props extends Comparable, Selectable {
   tableName: string;
-  baseColumnDatum?: ColumnSchema;
-  targetColumnDatum?: ColumnSchema;
+  baseColumnDatum?: Partial<ColumnSchema>;
+  targetColumnDatum?: Partial<ColumnSchema>;
   isActive: boolean;
 }
 /**

@@ -14,24 +14,18 @@ import { useState } from 'react';
 import { FiGrid } from 'react-icons/fi';
 
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import {
-  Comparable,
-  SaferSRSchema,
-  SaferTableSchema,
-  Selectable,
-} from '../../../../types';
+import { Comparable, Selectable } from '../../../../types';
 import {
   formatColumnValueWith,
   formatNumber,
 } from '../../../../utils/formatters';
-import { transformAsNestedBaseTargetRecord } from '../../../../utils/transformers';
+import { CompTableColEntryItem } from '../../Tables/store';
 import { TableRowColDeltaSummary } from '../../Tables/TableList/TableRowColDeltaSummary';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
 interface Props extends Selectable, Comparable {
-  baseDataTables?: SaferSRSchema['tables'];
-  targetDataTables?: SaferSRSchema['tables'];
+  tableColEntry?: CompTableColEntryItem;
   currentTable: string;
   currentColumn: string;
 }
@@ -39,8 +33,7 @@ interface Props extends Selectable, Comparable {
  * A master list UI for showing a top-level, navigable, filterable, list of all tables and columns from datasource. Belongs in the profiling column details page to view in-depth metrics and visualizations
  */
 export function ColumnDetailMasterList({
-  baseDataTables,
-  targetDataTables,
+  tableColEntry,
   currentTable,
   currentColumn,
   singleOnly,
@@ -59,20 +52,13 @@ export function ColumnDetailMasterList({
       ['other', true],
     ]),
   );
-  const baseTable = baseDataTables?.[currentTable];
-  const targetTable = targetDataTables?.[currentTable];
-  const fallbackTable = baseTable || targetTable;
-
-  const combinedColumnRecord = transformAsNestedBaseTargetRecord<
-    SaferTableSchema['columns'],
-    ColumnSchema
-  >(baseTable?.columns, targetTable?.columns);
-
-  const combinedTableColumnEntries = Object.entries(combinedColumnRecord);
-
   const quickFilters = Array.from(filterState.keys());
+  const baseTable = tableColEntry?.[1].base;
+  const targetTable = tableColEntry?.[1].target;
+  const fallbackTable = baseTable || targetTable;
+  const fallbackColumns = fallbackTable?.columns || [];
 
-  const filteredTableColumnEntries = combinedTableColumnEntries
+  const filteredTableColumnEntries = fallbackColumns
     .filter(([, { base, target }]) => {
       // Logic: base-first lookup (tag filter UI)
       return filterState.get(base?.type) || filterState.get(target?.type);

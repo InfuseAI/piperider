@@ -34,7 +34,7 @@ import {
  */
 export function getColumnMetricRatio(
   metakey: MetricMetaKeys,
-  columnData?: ColumnSchema,
+  columnData?: Partial<ColumnSchema>,
 ) {
   const { [metakey]: metavalue, total, samples } = columnData || {};
 

@@ -124,8 +124,7 @@ export default function CRColumnDetailsPage({
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
-            baseDataTables={baseTables}
-            targetDataTables={targetTables}
+            tableColEntry={currentTableEntry}
             currentTable={tableName}
             currentColumn={columnName}
             onSelect={({ tableName, columnName }) => {

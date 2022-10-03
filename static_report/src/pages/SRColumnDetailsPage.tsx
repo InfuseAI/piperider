@@ -92,7 +92,7 @@ export default function SRColumnDetailsPage({
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
-            baseDataTables={data.tables}
+            tableColEntry={currentTableEntry}
             currentTable={tableName}
             currentColumn={columnName}
             onSelect={({ tableName, columnName }) => {
