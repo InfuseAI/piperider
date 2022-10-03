@@ -90,9 +90,10 @@ class ComparisonData(object):
         return json.dumps(output, separators=(',', ':'))
 
 
-def prepare_default_output_path(comparison_dir: str, created_at):
-    latest_symlink_path = os.path.join(comparison_dir, 'latest')
-    comparison_path = os.path.join(comparison_dir, created_at)
+def prepare_default_output_path(filesystem: FileSystem, created_at):
+    latest_symlink_path = os.path.join(filesystem.get_comparison_dir(), 'latest')
+    latest_source = created_at
+    comparison_path = os.path.join(filesystem.get_comparison_dir(), created_at)
 
     if not os.path.exists(comparison_path):
         os.makedirs(comparison_path, exist_ok=True)
@@ -101,7 +102,7 @@ def prepare_default_output_path(comparison_dir: str, created_at):
     if os.path.islink(latest_symlink_path):
         os.unlink(latest_symlink_path)
     if not os.path.exists(latest_symlink_path):
-        os.symlink(comparison_path, latest_symlink_path)
+        os.symlink(latest_source, latest_symlink_path)
     else:
         console = Console()
         console.print(f'[bold yellow]Warning: {latest_symlink_path} already exists[/bold yellow]')
@@ -262,7 +263,7 @@ class CompareReport(object):
                 f.write(html)
 
         data_id = comparison_data.id()
-        default_report_directory = prepare_default_output_path(filesystem.get_comparison_dir(), data_id)
+        default_report_directory = prepare_default_output_path(filesystem, data_id)
         output_report(default_report_directory)
         report_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'index.html')
 
