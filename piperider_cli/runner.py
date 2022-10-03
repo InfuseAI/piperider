@@ -505,6 +505,19 @@ def decorate_with_metadata(profile_result: dict):
     profile_result['metadata_version'] = schema_version()
 
 
+def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results):
+    status = True
+
+    if len(assertion_exceptions):
+        return False
+
+    for assertion in assertion_results:
+        if not assertion.result.status():
+            return False
+
+    return status
+
+
 class Runner():
     @staticmethod
     def exec(datasource=None, table=None, output=None, interaction=True, skip_report=False, dbt_command='',
@@ -642,7 +655,7 @@ class Runner():
 
         _analyse_and_log_run_event(profile_result, assertion_results, dbt_test_results, dbt_command)
 
-        if len(assertion_results) > 0 or len(assertion_exceptions) > 0:
+        if not _check_test_status(assertion_results, assertion_exceptions, dbt_test_results):
             return EC_ERR_TEST_FAILED
 
         return 0
