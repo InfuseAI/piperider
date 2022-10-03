@@ -506,16 +506,22 @@ def decorate_with_metadata(profile_result: dict):
 
 
 def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results):
-    status = True
-
-    if len(assertion_exceptions):
+    if assertion_exceptions and len(assertion_exceptions) > 0:
         return False
 
-    for assertion in assertion_results:
-        if not assertion.result.status():
-            return False
+    if assertion_results:
+        for assertion in assertion_results:
+            if not assertion.result.status():
+                return False
 
-    return status
+    if dbt_test_results:
+        for table, v in dbt_test_results.items():
+            for column, results in v['columns'].items():
+                for r in results:
+                    if r.get('status') == 'failed':
+                        return False
+
+    return True
 
 
 class Runner():
