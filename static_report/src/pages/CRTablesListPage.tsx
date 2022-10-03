@@ -17,6 +17,7 @@ import { useLocation } from 'wouter';
 
 import { tableListGridTempCols, tableListWidth } from '../utils/layout';
 import { useReportStore } from '../components/shared/Tables/store';
+import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 
 type Props = { data: ComparisonReportSchema };
 
@@ -46,7 +47,7 @@ export function CRTablesListPage({ data }: Props) {
                     <>
                       <TableListItem
                         isExpanded={isExpanded}
-                        combinedTableEntries={tableColEntry}
+                        combinedTableEntry={tableColEntry}
                         onSelect={() =>
                           setLocation(`/tables/${tableColEntry[0]}/columns/`)
                         }
@@ -54,16 +55,18 @@ export function CRTablesListPage({ data }: Props) {
 
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
-                        {/* isExpanded && (<TableColumnSchemaList
-                          baseTableDatum={base}
-                          targetTableDatum={target}
-                          visibleDetail
-                          onSelect={({ tableName, columnName }) =>
-                            setLocation(
-                              `/tables/${tableName}/columns/${columnName}`,
-                            )
-                          }
-                        />) */}
+                        {isExpanded && (
+                          <TableColumnSchemaList
+                            baseTableEntryDatum={tableColEntry[1].base}
+                            targetTableEntryDatum={tableColEntry[1].target}
+                            visibleDetail
+                            onSelect={({ tableName, columnName }) =>
+                              setLocation(
+                                `/tables/${tableName}/columns/${columnName}`,
+                              )
+                            }
+                          />
+                        )}
                       </AccordionPanel>
                     </>
                   )}

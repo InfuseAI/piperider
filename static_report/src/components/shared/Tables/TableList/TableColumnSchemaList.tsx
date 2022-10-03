@@ -13,38 +13,23 @@ import {
 import { FiChevronRight } from 'react-icons/fi';
 import { nanoid } from 'nanoid';
 
-import {
-  ColumnSchema,
-  Comparable,
-  SaferTableSchema,
-  Selectable,
-  zReport,
-  ZTableSchema,
-} from '../../../../types';
+import { Comparable, Selectable } from '../../../../types';
 import { NO_VALUE } from '../../Columns/constants';
-import { transformAsNestedBaseTargetRecord } from '../../../../utils/transformers';
+import { CompTableWithColEntryOverwrite } from '../store';
 
 interface Props extends Selectable, Comparable {
-  baseTableDatum?: SaferTableSchema;
-  targetTableDatum?: SaferTableSchema;
+  baseTableEntryDatum?: CompTableWithColEntryOverwrite;
+  targetTableEntryDatum?: CompTableWithColEntryOverwrite;
   visibleDetail?: boolean; //for reuse in other pages
 }
 export function TableColumnSchemaList({
-  baseTableDatum,
-  targetTableDatum,
+  baseTableEntryDatum,
+  targetTableEntryDatum,
   singleOnly,
   visibleDetail = false,
   onSelect,
 }: Props) {
-  zReport(ZTableSchema.safeParse(baseTableDatum));
-  zReport(ZTableSchema.safeParse(targetTableDatum));
-
-  const fallbackTable = baseTableDatum || targetTableDatum;
-  const comparedColumns = transformAsNestedBaseTargetRecord<
-    SaferTableSchema['columns'],
-    ColumnSchema
-  >(baseTableDatum?.columns, targetTableDatum?.columns);
-
+  const fallbackTable = baseTableEntryDatum || targetTableEntryDatum;
   const isNotSingle = !singleOnly;
 
   return (
@@ -67,7 +52,7 @@ export function TableColumnSchemaList({
             </Tr>
           </Thead>
           <Tbody>
-            {Object.entries(comparedColumns).map(
+            {fallbackTable?.columns.map(
               ([key, { base: baseColumn, target: targetColumn }]) => {
                 const fallbackColumn = baseColumn || targetColumn;
                 return (

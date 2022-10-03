@@ -9,12 +9,7 @@ import { TableRowColDeltaSummary } from './TableRowColDeltaSummary';
 
 import { TableListAssertionSummary } from './TableListAssertions';
 
-import {
-  ColumnSchema,
-  Comparable,
-  SaferTableSchema,
-  Selectable,
-} from '../../../../types';
+import { Comparable, Selectable } from '../../../../types';
 import {
   formatColumnValueWith,
   formatNumber,
@@ -29,27 +24,25 @@ import {
   tableListMaxWidth,
 } from '../../../../utils/layout';
 import { ColumnSchemaDeltaSummary } from './ColumnSchemaDeltaSummary';
-import { TableColEntryItem, TableEntryItem } from '../store';
+import { CompTableColEntryItem } from '../store';
 import { NO_DESCRIPTION_MSG } from '../constant';
+import { base_parse } from 'node-html-parser/dist/nodes/html';
 
 interface Props extends Selectable, Comparable {
   isExpanded: boolean;
-  combinedTableEntries?: TableColEntryItem;
+  combinedTableEntry?: CompTableColEntryItem;
 }
 
 export function TableListItem({
   isExpanded,
-  combinedTableEntries,
+  combinedTableEntry,
   onSelect,
   singleOnly,
 }: Props) {
-  const [tableName, value] = combinedTableEntries || [];
+  const [tableName, tableValue] = combinedTableEntry || [];
 
-  const fallbackTable = value?.base || value?.target;
+  const fallbackTable = tableValue?.base || tableValue?.target;
   const description = fallbackTable?.description || NO_DESCRIPTION_MSG;
-  //SR vars
-  //FIXME: you need columns!
-  // const columns = Object.keys(baseTableDatum?.columns || {}).map((key) => key);
 
   // const { failed: baseFailed, total: baseTotal } =
   //   getAssertionStatusCountsFromList([
@@ -67,10 +60,11 @@ export function TableListItem({
   //   ColumnSchema
   // >(baseTableDatum?.columns, targetTableDatum?.columns, { metadata: true });
 
+  //FIXME: Map as part of stored entry value
   // const {
   //   __meta__: { added, deleted, changed },
   // } = comparedColumns;
-  if (!combinedTableEntries) {
+  if (!combinedTableEntry) {
     return <NoData />;
   }
   return (
@@ -98,15 +92,15 @@ export function TableListItem({
               </Text>
             ) : (
               <TableRowColDeltaSummary
-                baseCount={baseTableDatum?.row_count}
-                targetCount={targetTableDatum?.row_count}
+                baseCount={tableValue?.base?.row_count}
+                targetCount={tableValue?.target?.row_count}
               />
             )}
           </Flex>
         </GridItem>
         <GridItem>
           <Flex gap={2}>
-            {singleOnly && (
+            {/* {singleOnly && (
               <AssertionLabel total={baseTotal} failed={baseFailed} />
             )}
             {!singleOnly && (
@@ -116,7 +110,7 @@ export function TableListItem({
                 targetAssertionFailed={targetFailed}
                 targetAssertionTotal={targetTotal}
               />
-            )}
+            )} */}
             <Icon
               position={'absolute'}
               right={0}
@@ -161,11 +155,13 @@ export function TableListItem({
                   )}
                 </Text>
               ) : (
-                <ColumnSchemaDeltaSummary
-                  added={added}
-                  deleted={deleted}
-                  changed={changed}
-                />
+                <></>
+                //FIXME:
+                // <ColumnSchemaDeltaSummary
+                //   added={fallbackTable?.columns.added}
+                //   deleted={fallbackTable?.columns.deleted}
+                //   changed={fallbackTable?.columns.changed}
+                // />
               ))}
             {!isExpanded &&
               (singleOnly ? (
@@ -182,15 +178,15 @@ export function TableListItem({
                     },
                   }}
                 >
-                  {columns.length > 0 &&
-                    columns.map((name) => {
-                      const { backgroundColor, icon } = getIconForColumnType(
-                        baseTableDatum?.columns[name],
-                      );
+                  {fallbackTable &&
+                    fallbackTable.columns?.length > 0 &&
+                    fallbackTable.columns.map(([colName, { base }]) => {
+                      const { backgroundColor, icon } =
+                        getIconForColumnType(base);
                       return (
                         <ColumnBadge
-                          key={name}
-                          name={name}
+                          key={colName}
+                          name={colName}
                           icon={icon}
                           iconColor={backgroundColor}
                         />
@@ -199,8 +195,8 @@ export function TableListItem({
                 </Flex>
               ) : (
                 <TableRowColDeltaSummary
-                  baseCount={baseTableDatum?.col_count}
-                  targetCount={targetTableDatum?.col_count}
+                  baseCount={tableValue?.base?.col_count}
+                  targetCount={tableValue?.target?.col_count}
                 />
               ))}
           </Flex>
