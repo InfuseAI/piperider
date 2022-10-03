@@ -2,7 +2,7 @@ import { Flex, Text, Icon, Tooltip } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { FiDatabase, FiAlertCircle } from 'react-icons/fi';
 import { NO_VALUE } from '../Columns';
-import { useReportStore } from './store';
+import { useReportStore } from '../../../utils/store';
 
 type Props = {
   children?: ReactNode;

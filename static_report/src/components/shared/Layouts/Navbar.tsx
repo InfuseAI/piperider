@@ -2,7 +2,7 @@ import { Flex, Icon, Image, Text, Link as CharakaLink } from '@chakra-ui/react';
 import { FiSquare, FiColumns } from 'react-icons/fi';
 import { Link } from 'wouter';
 import { NO_VALUE } from '../Columns';
-import { useReportStore } from '../Tables/store';
+import { useReportStore } from '../../../utils/store';
 
 type Props = {
   isSingleReport: boolean;

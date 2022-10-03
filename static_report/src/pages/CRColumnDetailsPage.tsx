@@ -40,7 +40,7 @@ import {
 import { ColumnSchemaDeltaSummary } from '../components/shared/Tables/TableList/ColumnSchemaDeltaSummary';
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 import { CRAssertionDetailsWidget, getComparisonAssertions } from '../lib';
-import { useReportStore } from '../components/shared/Tables/store';
+import { useReportStore } from '../utils/store';
 import { getBreadcrumbPaths } from '../utils/routes';
 
 interface Props {

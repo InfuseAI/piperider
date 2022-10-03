@@ -14,7 +14,7 @@ import { FiChevronRight } from 'react-icons/fi';
 
 import { Comparable, Selectable } from '../../../../types';
 import { NO_VALUE } from '../../Columns/constants';
-import { CompTableWithColEntryOverwrite } from '../store';
+import { CompTableWithColEntryOverwrite } from '../../../../utils/store';
 
 interface Props extends Selectable, Comparable {
   baseTableEntryDatum?: CompTableWithColEntryOverwrite;

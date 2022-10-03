@@ -19,7 +19,7 @@ import {
   formatColumnValueWith,
   formatNumber,
 } from '../../../../utils/formatters';
-import { CompTableColEntryItem } from '../../Tables/store';
+import { CompTableColEntryItem } from '../../../../utils/store';
 import { TableRowColDeltaSummary } from '../../Tables/TableList/TableRowColDeltaSummary';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 

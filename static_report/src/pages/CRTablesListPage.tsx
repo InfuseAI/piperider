@@ -16,7 +16,7 @@ import { nanoid } from 'nanoid';
 import { useLocation } from 'wouter';
 
 import { tableListGridTempCols, tableListWidth } from '../utils/layout';
-import { useReportStore } from '../components/shared/Tables/store';
+import { useReportStore } from '../utils/store';
 import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 
 type Props = { data: ComparisonReportSchema };

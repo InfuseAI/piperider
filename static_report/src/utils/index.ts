@@ -5,3 +5,4 @@ export * from './localStorageKeys';
 // export * from './theme';
 export * from './formatters';
 export * from './transformers';
+export * from './store';

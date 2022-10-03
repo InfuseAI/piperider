@@ -36,7 +36,7 @@ import {
   TableColumnSchemaList,
 } from '../lib';
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
-import { useReportStore } from '../components/shared/Tables/store';
+import { useReportStore } from '../utils/store';
 import { getBreadcrumbPaths } from '../utils/routes';
 interface Props {
   data: SingleReportSchema;

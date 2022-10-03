@@ -24,7 +24,7 @@ import {
   tableListMaxWidth,
 } from '../../../../utils/layout';
 import { ColumnSchemaDeltaSummary } from './ColumnSchemaDeltaSummary';
-import { CompTableColEntryItem } from '../store';
+import { CompTableColEntryItem } from '../../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../constant';
 
 interface Props extends Selectable, Comparable {
