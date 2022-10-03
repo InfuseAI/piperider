@@ -56,7 +56,10 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
       }
       if (rawData.input) {
         const { tables, ...reportOnly } = rawData.input;
-        resultState.reportOnly = { target: reportOnly };
+        resultState.reportOnly = {
+          ...resultState.reportOnly,
+          target: reportOnly,
+        };
       }
       /** Report Time */
       const baseTime = formatReportTime(rawData.base?.created_at);

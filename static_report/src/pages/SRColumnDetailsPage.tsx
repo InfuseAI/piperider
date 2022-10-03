@@ -17,8 +17,6 @@ import { borderVal, mainContentAreaHeight } from '../utils/layout';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 import { ColumnDetailMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
 
-import { formatReportTime } from '../utils/formatters';
-
 import type { SingleReportSchema } from '../sdlc/single-report-schema';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { NoData } from '../components/shared/Layouts/NoData';
@@ -38,32 +36,37 @@ import {
   TableColumnSchemaList,
 } from '../lib';
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
+import { useReportStore } from '../components/shared/Tables/store';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
   tableName: string;
 }
 export default function SRColumnDetailsPage({
-  data: { tables: dataTables, created_at },
+  data,
   columnName,
   tableName,
 }: Props) {
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
 
-  const decodedColName = decodeURIComponent(columnName);
-  const decodedTableName = decodeURIComponent(tableName);
-  const isTableDetailsView = decodedColName.length === 0;
+  const setReportData = useReportStore((s) => s.setReportRawData);
+  setReportData({ base: data });
+  const { tableColumnsOnly = [] } = useReportStore.getState();
+  const currentTableEntry = tableColumnsOnly.find(
+    ([tableKey]) => tableKey === tableName,
+  );
 
-  const dataTable = dataTables[decodedTableName];
+  const isTableDetailsView = columnName.length === 0;
+
+  const dataTable = data.tables[tableName];
   const dataColumns = dataTable.columns;
-  const columnDatum = dataColumns[decodedColName];
+  const columnDatum = dataColumns[columnName];
 
-  //FIXME: <Schema> can be undefined if not matching columnDatum
   const { type, histogram } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
 
-  if (!tableName || !dataTable) {
+  if (!tableName || !dataTable || !currentTableEntry) {
     return (
       <Main isSingleReport>
         <NoData text={`No profile data found for table name: ${tableName}`} />
@@ -73,10 +76,10 @@ export default function SRColumnDetailsPage({
 
   const breadcrumbList: BreadcrumbMetaItem[] = [
     { label: 'Tables', path: '/' },
-    { label: decodedTableName, path: `/tables/${decodedTableName}/columns/` },
+    { label: tableName, path: `/tables/${tableName}/columns/` },
     {
-      label: decodedColName,
-      path: `/tables/${decodedTableName}/columns/${decodedColName}`,
+      label: columnName,
+      path: `/tables/${tableName}/columns/${columnName}`,
     },
   ];
 
@@ -89,9 +92,9 @@ export default function SRColumnDetailsPage({
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
-            baseDataTables={dataTables}
-            currentTable={decodedTableName}
-            currentColumn={decodedColName}
+            baseDataTables={data.tables}
+            currentTable={tableName}
+            currentColumn={columnName}
             onSelect={({ tableName, columnName }) => {
               setTabIndex(0); //resets tabs
               setLocation(`/tables/${tableName}/columns/${columnName}`);
@@ -130,11 +133,11 @@ export default function SRColumnDetailsPage({
                   />
                 </TabPanel>
                 <TabPanel>
-                  {/* <TableColumnSchemaList
-                    baseTableEntryDatum={dataTable}
+                  <TableColumnSchemaList
+                    baseTableEntryDatum={currentTableEntry?.[1].base}
                     singleOnly
                     onSelect={() => {}}
-                  /> */}
+                  />
                 </TabPanel>
               </TabPanels>
             </Tabs>

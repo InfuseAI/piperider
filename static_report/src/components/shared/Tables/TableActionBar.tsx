@@ -10,6 +10,7 @@ type Props = {
 
 export function TableActionBar({ children }: Props) {
   const { reportOnly } = useReportStore.getState();
+
   return (
     <Flex
       alignSelf="flex-start"

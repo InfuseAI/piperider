@@ -21,11 +21,7 @@ import { borderVal, mainContentAreaHeight } from '../utils/layout';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 
-import type {
-  ColumnSchema,
-  ComparisonReportSchema,
-  SaferTableSchema,
-} from '../types';
+import type { ComparisonReportSchema } from '../types';
 import { NoData } from '../components/shared/Layouts/NoData';
 import {
   containsDataSummary,
@@ -42,10 +38,10 @@ import {
   BreadcrumbNav,
 } from '../components/shared/Layouts/BreadcrumbNav';
 import { ColumnSchemaDeltaSummary } from '../components/shared/Tables/TableList/ColumnSchemaDeltaSummary';
-import { transformAsNestedBaseTargetRecord } from '../utils';
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 import { CRAssertionDetailsWidget, getComparisonAssertions } from '../lib';
 import { useReportStore } from '../components/shared/Tables/store';
+
 interface Props {
   data: ComparisonReportSchema;
   columnName: string;
@@ -57,13 +53,21 @@ export default function CRColumnDetailsPage({
   columnName,
   tableName,
 }: Props) {
+  const {
+    base: { tables: baseTables },
+    input: { tables: targetTables },
+  } = data;
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
+  const isTableDetailsView = columnName.length === 0;
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data.base, input: data.input });
   const { tableColumnsOnly = [] } = useReportStore.getState();
+  const currentTableEntry = tableColumnsOnly.find(
+    ([tableKey]) => tableKey === tableName,
+  );
 
-  if (!tableName || tableColumnsOnly.length === 0) {
+  if (!tableName || !baseTables || !targetTables || !currentTableEntry) {
     return (
       <Main isSingleReport={false}>
         <NoData text={`No profile data found for table name: ${tableName}`} />
@@ -71,19 +75,18 @@ export default function CRColumnDetailsPage({
     );
   }
 
-  const isTableDetailsView = columnName.length === 0;
-
-  const baseDataTable = data.base.tables[tableName];
-  const targetDataTable = data.input.tables[tableName];
-
+  const [, { base: baseTableColEntry, target: targetTableColEntry }, metadata] =
+    currentTableEntry;
+  const baseDataTable = baseTables[tableName];
+  const targetDataTable = targetTables[tableName];
   const baseDataColumns = baseDataTable?.columns || {};
   const targetDataColumns = targetDataTable?.columns || {};
+
   const baseColumnDatum = baseDataColumns[columnName];
   const targetColumnDatum = targetDataColumns[columnName];
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
 
-  //TODO: move to store
   const [baseOverview, targetOverview] = getComparisonAssertions({
     data,
     tableName,
@@ -103,18 +106,6 @@ export default function CRColumnDetailsPage({
     ...(dbtTargetOverview?.tests || []),
   ];
 
-  //TODO: move to store
-  const { backgroundColor, icon } = getIconForColumnType(baseColumnDatum);
-
-  // const comparedColumns = transformAsNestedBaseTargetRecord<
-  //   SaferTableSchema['columns'],
-  //   ColumnSchema
-  // >(baseDataColumns, targetDataColumns, { metadata: true });
-
-  // const {
-  //   __meta__: { added, deleted, changed },
-  // } = comparedColumns;
-
   const breadcrumbList: BreadcrumbMetaItem[] = [
     { label: 'Tables', path: '/' },
     { label: tableName, path: `/tables/${tableName}/columns/` },
@@ -123,6 +114,7 @@ export default function CRColumnDetailsPage({
       path: `/tables/${tableName}/columns/${columnName}`,
     },
   ];
+  const { backgroundColor, icon } = getIconForColumnType(baseColumnDatum);
   return (
     <Main isSingleReport={false} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
@@ -184,17 +176,17 @@ export default function CRColumnDetailsPage({
                       fontWeight={'semibold'}
                       color={'gray.600'}
                       added={metadata.added}
-                      deleted={deleted}
-                      changed={changed}
+                      deleted={metadata.deleted}
+                      changed={metadata.changed}
                     />
                   </Flex>
                   <ComparableGridHeader />
                   <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
-                    {/* <TableColumnSchemaList
-                      baseTableEntryDatum={baseDataTable}
-                      targetTableEntryDatum={targetDataTable}
+                    <TableColumnSchemaList
+                      baseTableEntryDatum={baseTableColEntry}
+                      targetTableEntryDatum={targetTableColEntry}
                       onSelect={() => {}}
-                    /> */}
+                    />
                   </Grid>
                 </TabPanel>
               </TabPanels>
