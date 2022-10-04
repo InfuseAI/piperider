@@ -55,10 +55,10 @@ def assert_column_not_null(context: AssertionContext, table: str, column: str, m
     if context.asserts:
         return context.result.fail_with_no_assert_is_required()
 
-    total = column_metrics.get('total')
+    samples = column_metrics.get('samples')
     non_nulls = column_metrics.get('non_nulls')
 
-    success = (total == non_nulls)
+    success = (samples == non_nulls)
     context.result.actual = dict(success=success)
 
     if success:
