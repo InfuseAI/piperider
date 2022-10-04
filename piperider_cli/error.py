@@ -75,7 +75,7 @@ class PipeRiderInvalidDataSourceError(PipeRiderError):
 class PipeRiderConnectorError(PipeRiderError):
     def __init__(self, err_msg, datasource_name):
         self.message = err_msg
-        self.hint = f'Please run \'pip install piperider[{datasource_name}]\' to get the {datasource_name} connector'
+        self.hint = f'Please run \"pip install \'piperider[{datasource_name}]\'\" to get the {datasource_name} connector'
 
 
 class PipeRiderTableConnectionError(PipeRiderError):
