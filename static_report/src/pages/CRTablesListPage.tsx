@@ -61,7 +61,7 @@ export function CRTablesListPage({ data }: Props) {
           <Text>Summary</Text>
           <Text>Assertions</Text>
         </Grid>
-        <Accordion allowToggle>
+        <Accordion allowToggle reduceMotion>
           {Object.keys(tables).map((key) => {
             const table = tables[key];
             ZComparisonTableSchema(false).safeParse(table);
@@ -80,16 +80,18 @@ export function CRTablesListPage({ data }: Props) {
 
                       {/* Accordion Children Types */}
                       <AccordionPanel bgColor="white">
-                        <TableColumnSchemaList
-                          baseTableDatum={table?.base}
-                          targetTableDatum={table?.target}
-                          visibleDetail
-                          onSelect={({ tableName, columnName }) =>
-                            setLocation(
-                              `/tables/${tableName}/columns/${columnName}`,
-                            )
-                          }
-                        />
+                        {isExpanded && (
+                          <TableColumnSchemaList
+                            baseTableDatum={table?.base}
+                            targetTableDatum={table?.target}
+                            visibleDetail
+                            onSelect={({ tableName, columnName }) =>
+                              setLocation(
+                                `/tables/${tableName}/columns/${columnName}`,
+                              )
+                            }
+                          />
+                        )}
                       </AccordionPanel>
                     </>
                   )}
