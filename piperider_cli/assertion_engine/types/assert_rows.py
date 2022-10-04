@@ -38,6 +38,60 @@ class AssertRowCount(BaseAssertionType):
         return results
 
 
+class AssertMetricRowCount(BaseAssertionType):
+
+    def name(self):
+        return "row_count"
+
+    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
+        table_metrics = metrics.get('tables', {}).get(table)
+        if not table_metrics:
+            return context.result.fail_with_metric_not_found_error(context.table, context.column)
+
+        # Get the metric for the current table
+        row_count = table_metrics.get('row_count')
+        context.result.name = 'Row Count'
+        context.result.actual = row_count
+
+        min = context.asserts.get('gte', 0)
+        max = context.asserts.get('lt')
+
+        if max is None:
+            if min <= row_count:
+                return context.result.success()
+        else:
+            if not isinstance(max, int):
+                return context.result.fail_with_assertion_error('The max value should be an integer.')
+            if max < min:
+                return context.result.fail_with_assertion_error(
+                    'The max value should be greater than or equal to the min value.')
+            if min <= row_count < max:
+                return context.result.success()
+        return context.result.fail()
+        pass
+        # return assert_row_count_in_range(context, table, column, metrics)
+
+    def validate(self, context: AssertionContext) -> ValidationResult:
+        results = ValidationResult(context) \
+            .require_one_of_parameters(['gte', 'lte', 'gt', 'lt', 'eq', 'ne']) \
+            .int_if_present('gte') \
+            .int_if_present('lte') \
+            .int_if_present('gt') \
+            .int_if_present('lt') \
+            .int_if_present('eq') \
+            .int_if_present('ne')
+
+        if results.errors:
+            return results
+
+        # TODO: need operator expression validation here
+        # if context.asserts.get('min') is not None and context.asserts.get('max') is not None:
+        #     if context.asserts.get('min') > context.asserts.get('max'):
+        #         results.errors.append('The max value should be greater than or equal to the min value.')
+
+        return results
+
+
 def assert_row_count(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
     table_metrics = metrics.get('tables', {}).get(table)
     if not table_metrics:

@@ -188,11 +188,11 @@ class ValidationResult:
 class AssertionResult:
 
     def __init__(self):
+        self.name: str = None
         self._success: bool = False
         self._exception: Exception = None
         self.actual: dict = None
         self._expected: dict = None
-        self.is_builtin = False
 
     def status(self):
         return self._success
@@ -207,7 +207,39 @@ class AssertionResult:
                 return str(obj)
             return obj
 
-        return _castDatetimeToString(dict(self._expected))
+        def _metric_assertion_to_string(obj):
+            if len(self._expected.keys()) == 2:
+                operators = {
+                    'lte': ']',
+                    'lt': ')',
+                    'gte': '[',
+                    'gt': '('
+                }
+                boundary = []
+                for k, v in obj.items():
+                    if k.startswith('lt'):
+                        boundary.append(f'{v}{operators[k]}')
+                    else:
+                        boundary.insert(0, f'{operators[k]}{v}')
+
+                return ', '.join(boundary)
+            else:
+                operators = {
+                    'gt': '>',
+                    'gte': '≥',
+                    'eq': '=',
+                    'ne': '≠',
+                    'lt': '<',
+                    'lte': '≤'
+                }
+                k, v = list(obj.items())[0]
+                return f'{operators[k]} {v}'
+
+
+        if self.name.startswith('assert_'):
+            return _castDatetimeToString(dict(self._expected))
+        else:
+            return _metric_assertion_to_string(self._expected)
 
     @property
     def exception(self):
@@ -280,15 +312,17 @@ class AssertionResult:
 
 class AssertionContext:
     def __init__(self, table_name: str, column_name: str, payload: dict):
-        self.name: str = payload.get('name')
+        self.name: str = payload.get('name') if payload.get('name') is not None else payload.get('metric')
         self.table: str = table_name
         self.column: str = column_name
         self.parameters: dict = {}
         self.asserts: dict = {}
         self.tags: list = []
+        self.is_builtin = False
 
         # result
         self.result: AssertionResult = AssertionResult()
+        self.result.name = self.name
 
         self._load(payload)
 
@@ -297,14 +331,13 @@ class AssertionContext:
         self.asserts = payload.get('assert', {})
         self.tags = payload.get('tags', [])
         self.result._expected = payload.get('assert', dict(success=True))
-        pass
 
     def __repr__(self):
         return str(self.__dict__)
 
     def to_result_entry(self):
         return dict(
-            name=self.name,
+            name=self.result.name,
             status='passed' if self.result._success is True else 'failed',
             parameters=self.parameters,
             expected=self.result.expected(),
