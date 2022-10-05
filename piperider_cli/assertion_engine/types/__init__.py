@@ -15,7 +15,7 @@ from piperider_cli.assertion_engine.types.assert_column_types import \
 from piperider_cli.assertion_engine.types.assert_rows import \
     AssertRowCountInRange, \
     AssertRowCount, \
-    AssertMetricRowCount
+    AssertMetric
 from piperider_cli.assertion_engine.types.base import BaseAssertionType
 
 custom_registry = {}
@@ -45,10 +45,13 @@ def register_assertion_function(typename: BaseAssertionType):
     custom_registry[instance.name()] = instance
 
 
-def get_assertion(function_name: str) -> BaseAssertionType:
-    if function_name not in custom_registry:
-        return _NotFoundAssertion(function_name)
-    return custom_registry[function_name]
+def get_assertion(name: str, metric: str) -> BaseAssertionType:
+    if metric:
+        return AssertMetric()
+
+    if name not in custom_registry:
+        return _NotFoundAssertion(name)
+    return custom_registry[name]
 
 
 register_assertion_function(AssertRowCountInRange)
@@ -66,8 +69,6 @@ register_assertion_function(AssertColumnNotNull)
 register_assertion_function(AssertColumnNull)
 register_assertion_function(AssertColumnUnique)
 register_assertion_function(AssertColumnExist)
-
-register_assertion_function(AssertMetricRowCount)
 
 if __name__ == '__main__':
     pass

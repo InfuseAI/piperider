@@ -1,3 +1,5 @@
+from typing import Union
+
 from piperider_cli.assertion_engine import AssertionContext, AssertionResult
 from piperider_cli.assertion_engine.assertion import ValidationResult
 from piperider_cli.assertion_engine.types.base import BaseAssertionType
@@ -38,10 +40,10 @@ class AssertRowCount(BaseAssertionType):
         return results
 
 
-class AssertMetricRowCount(BaseAssertionType):
+class AssertMetric(BaseAssertionType):
 
     def name(self):
-        return "row_count"
+        return "row count"
 
     def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
         table_metrics = metrics.get('tables', {}).get(table)
@@ -53,41 +55,24 @@ class AssertMetricRowCount(BaseAssertionType):
         context.result.name = 'Row Count'
         context.result.actual = row_count
 
-        min = context.asserts.get('gte', 0)
-        max = context.asserts.get('lt')
+        if assert_metric_boundary(row_count, context.asserts):
+            return context.result.success()
 
-        if max is None:
-            if min <= row_count:
-                return context.result.success()
-        else:
-            if not isinstance(max, int):
-                return context.result.fail_with_assertion_error('The max value should be an integer.')
-            if max < min:
-                return context.result.fail_with_assertion_error(
-                    'The max value should be greater than or equal to the min value.')
-            if min <= row_count < max:
-                return context.result.success()
         return context.result.fail()
-        pass
-        # return assert_row_count_in_range(context, table, column, metrics)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
+        names = ['gte', 'lte', 'gt', 'lt', 'eq', 'ne']
         results = ValidationResult(context) \
-            .require_one_of_parameters(['gte', 'lte', 'gt', 'lt', 'eq', 'ne']) \
-            .int_if_present('gte') \
-            .int_if_present('lte') \
-            .int_if_present('gt') \
-            .int_if_present('lt') \
-            .int_if_present('eq') \
-            .int_if_present('ne')
+            .allow_only(*names) \
+            .if_present(int, *names)
+
+        if context.asserts is None:
+            results.errors.append(f'At least one of {names} is needed.')
 
         if results.errors:
             return results
 
-        # TODO: need operator expression validation here
-        # if context.asserts.get('min') is not None and context.asserts.get('max') is not None:
-        #     if context.asserts.get('min') > context.asserts.get('max'):
-        #         results.errors.append('The max value should be greater than or equal to the min value.')
+        assert_metric_validation(context.asserts, results)
 
         return results
 
@@ -152,3 +137,44 @@ def assert_row_count_in_range(context: AssertionContext, table: str, column: str
         return context.result.success()
 
     return context.result.fail()
+
+
+def assert_metric_boundary(metric: Union[int, float], metric_boundary: dict) -> bool:
+    for op, v in metric_boundary.items():
+        if op == 'gt' and not metric > v:
+            return False
+        elif op == 'gte' and not metric >= v:
+            return False
+        elif op == 'eq' and not metric == v:
+            return False
+        elif op == 'ne' and not metric != v:
+            return False
+        elif op == 'lt' and not metric < v:
+            return False
+        elif op == 'lte' and not metric <= v:
+            return False
+    return True
+
+
+def assert_metric_validation(metric_boundary: dict, results: ValidationResult):
+    if len(metric_boundary.keys()) == 1:
+        pass
+    elif len(metric_boundary.keys()) == 2:
+        lower = None
+        upper = None
+        for op, v in metric_boundary.items():
+            if op == 'eq' or op == 'ne':
+                results.errors.append('Only one operator allowed if the expression contains \'eq\' and \'ne\'')
+                return
+
+            if op.startswith('lt'):
+                upper = v
+            elif op.startswith('gt'):
+                lower = v
+
+        if upper is None or lower is None:
+            results.errors.append('Please specified your metric upper and lower boundary')
+        elif upper < lower:
+            results.errors.append('The max value should be greater than or equal to the min value.')
+    else:
+        results.errors.append('The number of operator should be 1 or 2.')

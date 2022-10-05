@@ -96,6 +96,18 @@ class ValidationResult:
                 self.errors.append(f'{name} parameter should be a {specific_type} value')
         return self
 
+    def if_present(self, specific_type, *names):
+        configuration: dict = self.context.asserts
+
+        if configuration is None:
+            return self
+
+        for name in names:
+            v = configuration.get(name)
+            if v and not isinstance(v, specific_type):
+                self.errors.append(f'{name} parameter should be a {specific_type.__name__} value')
+        return self
+
     def _require_numeric_pair(self, name, valid_types: set):
         configuration: dict = self.context.asserts
         values = configuration.get(name)
@@ -140,6 +152,15 @@ class ValidationResult:
         if not found:
             self.errors.append(f'There should contain any parameter names in {names}')
             return self
+        return self
+
+    def allow_only(self, *names):
+        if self.context.asserts is None:
+            return self
+
+        for column in self.context.asserts.keys():
+            if column not in names:
+                self.errors.append(f'\'{column}\' is not allowed, only allow {names}')
         return self
 
     def int_if_present(self, name: str):
@@ -207,39 +228,10 @@ class AssertionResult:
                 return str(obj)
             return obj
 
-        def _metric_assertion_to_string(obj):
-            if len(self._expected.keys()) == 2:
-                operators = {
-                    'lte': ']',
-                    'lt': ')',
-                    'gte': '[',
-                    'gt': '('
-                }
-                boundary = []
-                for k, v in obj.items():
-                    if k.startswith('lt'):
-                        boundary.append(f'{v}{operators[k]}')
-                    else:
-                        boundary.insert(0, f'{operators[k]}{v}')
-
-                return ', '.join(boundary)
-            else:
-                operators = {
-                    'gt': '>',
-                    'gte': '≥',
-                    'eq': '=',
-                    'ne': '≠',
-                    'lt': '<',
-                    'lte': '≤'
-                }
-                k, v = list(obj.items())[0]
-                return f'{operators[k]} {v}'
-
-
         if self.name.startswith('assert_'):
             return _castDatetimeToString(dict(self._expected))
         else:
-            return _metric_assertion_to_string(self._expected)
+            return self._metric_assertion_to_string()
 
     @property
     def exception(self):
@@ -309,10 +301,40 @@ class AssertionResult:
                         actual=self.actual,
                         expected=self.expected()))
 
+    def _metric_assertion_to_string(self):
+        if len(self._expected.keys()) == 2:
+            operators = {
+                'lte': ']',
+                'lt': ')',
+                'gte': '[',
+                'gt': '('
+            }
+            # TODO: optimization needed
+            boundary = []
+            for k, v in self._expected.items():
+                if k.startswith('lt'):
+                    boundary.append(f'{v}{operators[k]}')
+                else:
+                    boundary.insert(0, f'{operators[k]}{v}')
+
+            return ', '.join(boundary)
+        else:
+            operators = {
+                'gt': '>',
+                'gte': '≥',
+                'eq': '=',
+                'ne': '≠',
+                'lt': '<',
+                'lte': '≤'
+            }
+            k, v = list(self._expected.items())[0]
+            return f'{operators[k]} {v}'
+
 
 class AssertionContext:
     def __init__(self, table_name: str, column_name: str, payload: dict):
-        self.name: str = payload.get('name') if payload.get('name') is not None else payload.get('metric')
+        self.name: str = payload.get('name')
+        self.metric: str = payload.get('metric')
         self.table: str = table_name
         self.column: str = column_name
         self.parameters: dict = {}
@@ -322,7 +344,7 @@ class AssertionContext:
 
         # result
         self.result: AssertionResult = AssertionResult()
-        self.result.name = self.name
+        self.result.name = self.name if self.name is not None else self.metric
 
         self._load(payload)
 
@@ -578,7 +600,7 @@ class AssertionEngine:
 
         from piperider_cli.assertion_engine.types import get_assertion
         try:
-            assertion_instance = get_assertion(assertion.name)
+            assertion_instance = get_assertion(assertion.name, assertion.metric)
 
             try:
                 result = assertion_instance.execute(assertion, assertion.table, assertion.column, metrics_result)
@@ -617,7 +639,7 @@ class AssertionEngine:
 
         self.load_plugins()
         for assertion in self.assertions:
-            assertion_instance = get_assertion(assertion.name)
+            assertion_instance = get_assertion(assertion.name, assertion.metric)
             result = assertion_instance.validate(assertion)
             if result and result.has_errors():
                 results.append(result)
