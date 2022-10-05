@@ -1,31 +1,33 @@
-# Assertions
+# Assertion YAML
 
-In a piperider project, we can define assertions to validate the data in an expected state.
+PipeRider will parse all yaml files at `.piperider/assertions`. Grouping assertions by files is a way to organize your assertions. Using piperider diagnose to verify the format of assertion yaml files.
+Whether recommended assertions or assertion templates, the format looks like the example below. You can use [built-in assertion](assertions-builtin.md) or [custom assertions](assertions-custom.md) against tables or columns depending on the assertions.
 
-The tests are defined in `.piperider/assertions/{table}.yml`. Here is the example config
-
-```yaml
-#mytable.yml
-mytable:
-  tests:
-  - name: assert_row_count
-    assert:
-      count: [1, 10000000]
-  columns:
-    col1:
-      tests: []
-    col2:
-      tests:
-      - name: assert_column_min_in_range
-        assert:
-          min: [0, 50]
-      - name: assert_column_max_in_range
-        assert:
-          max: [0, 100000]
 ```
-
-To find the built-in tests, please see [assertions](./assertions/)
-
-# Range Semantic
-
-Usually, the expected value is defined as a range (e.g [0, 100]). The semantic is from 0 (inclusive) to 100 (exclusive)
+Table_name_1:
+  # Test Cases for Table
+  tests:
+  - metric: row_count
+    assert:
+      lte: 1000000 
+  columns:
+    column_name:
+      tests:
+      - name: assertion_column_not_null
+      - name: assertion_column_unique
+      - name: assertion_column_value
+        assert:
+          gte: 0
+          lte: 100
+      - metric: avg
+        assert:
+          gte: 45
+          le: 55
+        
+Table_name_2:
+  columns:
+    column_id:
+      tests:
+      - name: assertion_column_not_null
+      - name: assertion_column_unique
+```        
