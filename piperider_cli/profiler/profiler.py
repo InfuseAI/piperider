@@ -249,7 +249,7 @@ class Profiler:
             return
 
         limit = self.config.profiler_config.get('table', {}).get('limit', 0)
-        columns = [column for column in table.columns]
+        columns = [column.label(f'_{column.name}') for column in table.columns]
 
         with self.engine.connect() as conn:
             if self.engine.url.get_backend_name() == 'snowflake':
