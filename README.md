@@ -48,9 +48,9 @@ PipeRider will make your life easier by:
 
 
 ## Live Demo
-[![](https://i.imgur.com/WuFC4H6.png)](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.7.0/index.html)
+[![](https://i.imgur.com/WuFC4H6.png)](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.9.0/index.html)
 
-[Click here or on image to interact](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.7.0/index.html)
+[Click here or on image to interact](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.9.0/index.html)
 
 <!-- # Table of contents
 * [What's PipeRider?](#what's-piperider?)
