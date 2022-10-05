@@ -57,16 +57,18 @@ export function SRTablesListPage({ data }: Props) {
                       />
                       {/* Accordion Children */}
                       <AccordionPanel bgColor="white">
-                        <TableColumnSchemaList
-                          singleOnly
-                          visibleDetail
-                          baseTableEntryDatum={tableColsEntry[1].base}
-                          onSelect={({ tableName, columnName }) =>
-                            setLocation(
-                              `/tables/${tableName}/columns/${columnName}`,
-                            )
-                          }
-                        />
+                        {isExpanded && (
+                          <TableColumnSchemaList
+                            singleOnly
+                            visibleDetail
+                            baseTableEntryDatum={tableColsEntry[1].base}
+                            onSelect={({ tableName, columnName }) =>
+                              setLocation(
+                                `/tables/${tableName}/columns/${columnName}`,
+                              )
+                            }
+                          />
+                        )}
                       </AccordionPanel>
                     </>
                   )}
