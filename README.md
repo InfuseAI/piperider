@@ -24,7 +24,7 @@
 
 # Data Reliability = Profiling + Testing
 
-Piperider allows you to build data profiles and write assertion tests for easily evaluating and tracking your data's reliability over time.
+Piperider is a CLI tool that allows you to build data profiles and write assertion tests for easily evaluating and tracking your data's reliability over time.
 
 ## Core Concepts
 
@@ -55,15 +55,15 @@ pip install piperider
 
 By default, PipeRider supports built-in SQLite connector, extra connectors are available:
 
-| connectors | install                            |
-| ---------- | ---------------------------------- |
-| snowflake  | `pip install piperider[snowflake]` |
-| postgres   | `pip install piperider[postgres]`  |
-| bigquery   | `pip install piperider[bigquery]`  |
-| redshift   | `pip install piperider[redshift]`  |
-| parquet    | `pip install piperider[parquet]`   |
-| csv        | `pip install piperider[csv]`       |
-| duckdb     | `pip install piperider[duckdb]`    |
+| connectors | install                              |
+| ---------- | ------------------------------------ |
+| snowflake  | `pip install 'piperider[snowflake]'` |
+| postgres   | `pip install 'piperider[postgres]'`  |
+| bigquery   | `pip install 'piperider[bigquery]'`  |
+| redshift   | `pip install 'piperider[redshift]'`  |
+| parquet    | `pip install 'piperider[parquet]'`   |
+| csv        | `pip install 'piperider[csv]'`       |
+| duckdb     | `pip install 'piperider[duckdb]'`    |
 
 Use comma to install multiple connectors in one line:
 
