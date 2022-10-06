@@ -84,7 +84,9 @@ def _obtain_project_info(datasource=None):
             datasource_types=datasource_types,
         )
     except Exception:
-        return {}
+        return {
+            'project_id': '(not init)'
+        }
 
 
 def flush_events(command=None):
