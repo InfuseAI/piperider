@@ -12,10 +12,10 @@ from piperider_cli.assertion_engine.types.assert_column_types import \
     AssertColumnSchemaType, \
     AssertColumnType, \
     AssertColumnInTypes
+from piperider_cli.assertion_engine.types.assert_metrics import AssertMetric
 from piperider_cli.assertion_engine.types.assert_rows import \
     AssertRowCountInRange, \
-    AssertRowCount, \
-    AssertMetric
+    AssertRowCount
 from piperider_cli.assertion_engine.types.base import BaseAssertionType
 
 custom_registry = {}
