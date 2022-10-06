@@ -116,6 +116,10 @@ def log_event(prop, event_type, **kwargs):
     if kwargs.get('params'):
         ds = kwargs.get('params').get('datasource')
     project_info = _obtain_project_info(datasource=ds)
+
+    if not project_info.get('project_id'):
+        return
+
     payload = dict(
         **project_info,
         **prop,

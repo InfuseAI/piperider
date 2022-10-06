@@ -40,8 +40,6 @@ class Configuration(object):
         self.excludes = kwargs.get('excludes', None)
         self.tables = kwargs.get('tables', {})
         self.telemetry_id = kwargs.get('telemetry_id', None)
-        if self.telemetry_id is None:
-            self.telemetry_id = uuid.uuid4().hex
         self.report_dir = self._to_report_dir(kwargs.get('report_dir', '.'))
 
         self._verify_input_config()
@@ -203,6 +201,10 @@ class Configuration(object):
         :param path:
         :return:
         """
+
+        if self.telemetry_id is None:
+            self.telemetry_id = uuid.uuid4().hex
+
         config = dict(
             dataSources=[],
             telemetry=dict(id=self.telemetry_id)
