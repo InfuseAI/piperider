@@ -317,6 +317,8 @@ class Profiler:
 
             self.event_handler.handle_table_end(result)
         else:
+            for column in candidate_columns:
+                columns[column.name] = None
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
                 future_to_profile = {executor.submit(self._profile_column, table, column): column for column in
                                      candidate_columns}
