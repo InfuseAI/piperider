@@ -36,13 +36,13 @@ Piperider is a CLI tool that allows you to build data profiles and write asserti
 ## Key Features
 
 - **SQL-based** (additionally supports CSV)
-- **Data Profile Characteristics**
-  - Generates data profile [metrics](https://github.com/InfuseAI/piperider/blob/main/docs/metrics.md)
+- **Data Profiling Characteristics**
+  - Provides rich data profiling [metrics](https://github.com/InfuseAI/piperider/blob/main/docs/metrics.md)
   - e.g. `missing`, `uniqueness`, `duplicate_rows`, `quantiles`, `histogram`
 - **Test datasets with a mix of custom and built-in assertion definitions**
-- **Auto-generate recommended assertions based on your data profile**
-- **Generate data profile report** to visualize your data profile and assertion test results ([example](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.9.0/index.html))
-- **Generate profile comparison report** to visualize how your data has changed over time ([example](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.9.0/index.html))
+- **Auto-generates recommended assertions based on your single-run profiles**
+- **Generates single-run reports** to visualize your data profile and assertion test results ([example](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.9.0/index.html))
+- **Generates comparison reports** to visualize how your data has changed over time ([example](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.9.0/index.html))
 - **Supported Datasources**: Snowflake, BigQuery, Redshift, Postgres, SQLite, DuckDB, CSV, Parquet.
 
 # Quickstart
@@ -84,16 +84,20 @@ piperider diagnose    # verifies your data source connection & project config
 
 Next, execute `piperider run`, which will do a number of things:
 
-1. Create a data profile of your data source
+1. Create a single-run profile of your data source
 1. Auto-generate recommended or template assertions files (first-run only)
-1. Test that data profile against any available assertions, including custom and/or recommended assertions
-1. Generate a static HTML report, which helps visualize the data profile and assertion results.
+1. Test that single-run profile against any available assertions, including custom and/or recommended assertions
+1. Generate a static HTML report, which helps visualize the single-run profile and its assertion results.
 
 Common Usages/Tips:
 
-- Profile a specific table using `piperider run --table $TABLENAME`
-- Specify the output location of the generated report using `piperider generate-report -o $PATHNAME`
-- If you would like to re-generate the recommended assertions after the first-run, run `piperider generate-assertions`
+```bash
+piperider run --table $TABLENAME        # profile a specific table
+
+piperider generate-report -o $PATHNAME  # Specify the output location of the generated report
+
+piperider generate-assertions           # To re-generate the recommended assertions after the first-run
+```
 
 ## Comparing Your Data Profiles
 
@@ -101,14 +105,16 @@ With at least two runs completed, you can then run `piperider compare-reports`, 
 
 Common Usages/Tips:
 
-- Compare the last two reports automatically using `piperider compare-reports --last`
+```bash
+piperider compare-reports --last        # Compare the last two reports automatically using
+```
 
 For more details on the generated report, see the [doc](https://docs.piperider.io/how-to-guides/generate-report)
 
 ## Example Report Demo
 
-[See Generated Data Profile Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.9.0/index.html)
-[See Data Profile Comparison Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.9.0/index.html)
+[See Generated Single-Run Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.9.0/index.html)
+[See Comparison Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.9.0/index.html)
 
 # Development
 
