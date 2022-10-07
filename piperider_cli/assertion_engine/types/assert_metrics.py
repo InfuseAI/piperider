@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Union
+from typing import Union, List
 
 from piperider_cli.assertion_engine import AssertionContext, ValidationResult
 from piperider_cli.assertion_engine.types.base import BaseAssertionType
@@ -163,7 +163,7 @@ class MetricName:
         self._add('zero_length', 'zero length string count', ['string'])
         self._add('zero_length_p', 'zero length string percentage', ['string'])
         self._add('non_zero_length', 'non zero length string count', ['string'])
-        self._add('non_zero_length_p', 'non zero length string percentage ', ['string'])
+        self._add('non_zero_length_p', 'non zero length string percentage', ['string'])
         self._add('trues', 'true count', ['boolean'])
         self._add('trues_p', 'true percentage', ['boolean'])
         self._add('falses', 'false count', ['boolean'])
@@ -172,11 +172,11 @@ class MetricName:
         self._add('max', 'max', ['integer', 'numeric', 'datetime'])
         self._add('avg', 'average', ['integer', 'numeric'])
         self._add('sum', 'sum', ['integer', 'numeric'])
-        self._add('stddev', 'standard deviation ', ['integer', 'numeric'])
+        self._add('stddev', 'standard deviation', ['integer', 'numeric'])
         self._add('min', 'min length', ['string'])
         self._add('max', 'max length', ['string'])
         self._add('avg', 'average length', ['string'])
-        self._add('stddev', 'std. deviation of length ', ['string'])
+        self._add('stddev', 'std. deviation of length', ['string'])
         self._add('distinct', 'distinct count', ['integer', 'string', 'datetime'])
         self._add('distinct_p', 'distinct percentage', ['integer', 'string', 'datetime'])
         self._add('duplicates', 'duplicate count', ['integer', 'numeric', 'string', 'datetime'])
@@ -187,11 +187,11 @@ class MetricName:
         self._add('p5', '5th percentile', ['integer', 'numeric'])
         self._add('p25', '25th percentile ', ['integer', 'numeric'])
         self._add('p50', 'median', ['integer', 'numeric'])
-        self._add('p75', '75th percentile ', ['integer', 'numeric'])
-        self._add('p95', '95th percentile ', ['integer', 'numeric'])
+        self._add('p75', '75th percentile', ['integer', 'numeric'])
+        self._add('p95', '95th percentile', ['integer', 'numeric'])
         self._add('max', 'max', ['integer', 'numeric'])
 
-    def _add(self, field, name, col_types: list[str] = None):
+    def _add(self, field, name, col_types: List[str] = None):
         if col_types is None or len(col_types) == 0:
             if self.all_type not in self.mapping:
                 self.mapping[self.all_type] = {}
