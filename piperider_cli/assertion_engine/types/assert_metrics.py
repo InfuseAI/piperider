@@ -79,8 +79,13 @@ class AssertMetric(BaseAssertionType):
             return f'{operators[k]} {v}'
 
     @staticmethod
-    def _assert_metric_boundary(metric: Union[int, float], metric_boundary: dict) -> bool:
+    def _assert_metric_boundary(metric: Union[int, float, str], metric_boundary: dict) -> bool:
+        if isinstance(metric, str):
+            metric = datetime.fromisoformat(metric)
+
         for op, v in metric_boundary.items():
+            if isinstance(v, str):
+                v = datetime.fromisoformat(v)
             if op == 'gt' and not metric > v:
                 return False
             elif op == 'gte' and not metric >= v:
@@ -104,7 +109,7 @@ class AssertMetric(BaseAssertionType):
             upper = None
             for op, v in metric_boundary.items():
                 if op == 'eq' or op == 'ne':
-                    results.errors.append('Only one operator allowed if the expression contains \'eq\' and \'ne\'')
+                    results.errors.append("Only one operator allowed if the expression contains 'eq' and 'ne'")
                     return
 
                 if op.startswith('lt'):
@@ -114,8 +119,14 @@ class AssertMetric(BaseAssertionType):
 
             if upper is None or lower is None:
                 results.errors.append('Please specified your metric upper and lower boundary')
-            elif upper < lower:
-                results.errors.append('The max value should be greater than or equal to the min value.')
+                return
+
+            if isinstance(upper, str) and isinstance(lower, str):
+                upper = datetime.fromisoformat(upper)
+                lower = datetime.fromisoformat(lower)
+            if upper < lower:
+                results.errors.append("The 'lt' or 'lte' value should be greater than or equal to "
+                                      "the 'gt' or 'gte' value.")
         else:
             results.errors.append('The number of operator should be 1 or 2.')
 

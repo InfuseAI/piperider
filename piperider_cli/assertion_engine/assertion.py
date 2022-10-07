@@ -114,7 +114,7 @@ class ValidationResult:
                 metric_type.add('datetime')
                 try:
                     datetime.fromisoformat(v)
-                except ValueError as e:
+                except ValueError:
                     self.errors.append(f'\'{name}\' {err_msg}')
             else:
                 self.errors.append(f'\'{name}\' {err_msg}')
