@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Union
 
 from piperider_cli.assertion_engine import AssertionContext, ValidationResult
@@ -34,7 +35,7 @@ class AssertMetric(BaseAssertionType):
         names = ['gte', 'lte', 'gt', 'lt', 'eq', 'ne']
         results = ValidationResult(context) \
             .allow_only(*names) \
-            .if_present(int, *names)
+            .require_metric_consistency(*names)
 
         if context.asserts is None:
             results.errors.append(f'At least one of {names} is needed.')
@@ -93,10 +94,60 @@ class MetricName:
         self.mapping = {}
         self.all_type = 'ALL'
 
-        self._add('row_count', 'Row count')
-        self._add('min', 'Min', ['integer', 'numeric', 'datetime'])
-        self._add('min', 'Min length', ['string'])
-        self._add('nulls', 'Missing count')
+        # table metric
+        self._add('row_count', 'row count')
+        self._add('bytes', 'volume size')
+        self._add('freshness', 'freshness')
+        self._add('duplicate_rows', 'duplicate row count')
+        self._add('duplicate_rows_p', 'duplicate row percentage')
+
+        self._add('total', 'row count')
+        self._add('samples', 'sample count')
+        self._add('samples_p', 'sample percentage')
+        self._add('nulls', 'missing count')
+        self._add('nulls_p', 'missing percentage')
+        self._add('non_nulls', 'non null count')
+        self._add('non_nulls_p', 'non null percentage')
+        self._add('invalids', 'invalid count')
+        self._add('invalids_p', 'invalid percentage')
+        self._add('valids', 'valid count')
+        self._add('valids_p', 'valid percentage')
+        self._add('zeros', 'zero count', ['integer', 'numeric'])
+        self._add('zeros_p', 'zero percentage', ['integer', 'numeric'])
+        self._add('negatives', 'negative value count', ['integer', 'numeric'])
+        self._add('negatives_p', 'negative value percentage', ['integer', 'numeric'])
+        self._add('positives', 'positive value count', ['integer', 'numeric'])
+        self._add('positives_p', 'positive value percentage', ['integer', 'numeric'])
+        self._add('zero_length', 'zero length string count', ['string'])
+        self._add('zero_length_p', 'zero length string percentage', ['string'])
+        self._add('non_zero_length', 'non zero length string count', ['string'])
+        self._add('non_zero_length_p', 'non zero length string percentage ', ['string'])
+        self._add('trues', 'true count', ['boolean'])
+        self._add('trues_p', 'true percentage', ['boolean'])
+        self._add('falses', 'false count', ['boolean'])
+        self._add('falses_p', 'false percentage', ['boolean'])
+        self._add('min', 'min', ['integer', 'numeric', 'datetime'])
+        self._add('max', 'max', ['integer', 'numeric', 'datetime'])
+        self._add('avg', 'average', ['integer', 'numeric'])
+        self._add('sum', 'sum', ['integer', 'numeric'])
+        self._add('stddev', 'standard deviation ', ['integer', 'numeric'])
+        self._add('min', 'min length', ['string'])
+        self._add('max', 'max length', ['string'])
+        self._add('avg', 'average length', ['string'])
+        self._add('stddev', 'std. deviation of length ', ['string'])
+        self._add('distinct', 'distinct count', ['integer', 'string', 'datetime'])
+        self._add('distinct_p', 'distinct percentage', ['integer', 'string', 'datetime'])
+        self._add('duplicates', 'duplicate count', ['integer', 'numeric', 'string', 'datetime'])
+        self._add('duplicates_p', 'duplicate percentage', ['integer', 'numeric', 'string', 'datetime'])
+        self._add('non_duplicates', 'non duplicate count', ['integer', 'numeric', 'string', 'datetime'])
+        self._add('non_duplicates_p', 'non duplicate percentage', ['integer', 'numeric', 'string', 'datetime'])
+        self._add('min', 'min', ['integer', 'numeric'])
+        self._add('p5', '5th percentile', ['integer', 'numeric'])
+        self._add('p25', '25th percentile ', ['integer', 'numeric'])
+        self._add('p50', 'median', ['integer', 'numeric'])
+        self._add('p75', '75th percentile ', ['integer', 'numeric'])
+        self._add('p95', '95th percentile ', ['integer', 'numeric'])
+        self._add('max', 'max', ['integer', 'numeric'])
 
     def _add(self, field, name, col_types: list[str] = None):
         if col_types is None or len(col_types) == 0:

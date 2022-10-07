@@ -96,16 +96,32 @@ class ValidationResult:
                 self.errors.append(f'{name} parameter should be a {specific_type} value')
         return self
 
-    def if_present(self, specific_type, *names):
+    def require_metric_consistency(self, *names):
         configuration: dict = self.context.asserts
 
         if configuration is None:
             return self
 
+        metric_type = set()
+        err_msg = 'parameter should be a numeric value or a datetime string in ISO 8601 format'
         for name in names:
             v = configuration.get(name)
-            if v and not isinstance(v, specific_type):
-                self.errors.append(f'{name} parameter should be a {specific_type.__name__} value')
+            if v is None:
+                continue
+            if isinstance(v, int) or isinstance(v, float):
+                metric_type.add('numeric')
+            elif isinstance(v, str):
+                metric_type.add('datetime')
+                try:
+                    datetime.fromisoformat(v)
+                except ValueError as e:
+                    self.errors.append(f'\'{name}\' {err_msg}')
+            else:
+                self.errors.append(f'\'{name}\' {err_msg}')
+
+        if len(metric_type) > 1:
+            self.errors.append(f'parameter type should be consistent, found {metric_type}')
+
         return self
 
     def _require_numeric_pair(self, name, valid_types: set):
