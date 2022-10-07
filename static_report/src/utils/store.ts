@@ -1,4 +1,6 @@
 import {
+  AssertionSource,
+  AssertionTest,
   ColumnSchema,
   ComparableData,
   ComparisonReportSchema,
@@ -32,6 +34,9 @@ export interface ReportState {
   reportTime?: string;
   reportOnly?: ComparableData<Omit<SaferSRSchema, 'tables'>>;
   tableColumnsOnly?: CompTableColEntryItem[];
+  tableColumnAssertionsOnly?: ComparableData<
+    EnrichedTableOrColumnAssertionTest[]
+  >[];
 }
 
 interface ReportSetters {
@@ -61,7 +66,7 @@ const getReportTime = (rawData: ComparableReport) => {
 };
 
 /**
- * returns an aligned, compared (base/target), and normalized entries for profiler's tables and columns, making it easier to iterate and render over them. Each entry is equiped with a 3-element entry item that contains [key, {base, target}, metadata].
+ * returns an aligned, compared (base/target), and normalized entries for profiler's tables and columns, making it easier to iterate and render over them. Each entry is equipped with a 3-element entry item that contains [key, {base, target}, metadata].
  * Currently Assertions is not added to metadata yet.
  */
 const getTableColumnsOnly = (rawData: ComparableReport) => {
@@ -110,6 +115,100 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
   return tableColumnsResult;
 };
 
+/**
+ * Returns a compared, and separated table/column list of assertions, enriched with each member's belonging table names and column names
+ */
+type EnrichedAssertionTest = AssertionTest & {
+  kind: AssertionSource;
+};
+export type EnrichedTableOrColumnAssertionTest = EnrichedAssertionTest & {
+  isTableAssertion: boolean;
+  tableName?: string;
+  columnName?: string;
+};
+const _getKindMapper = (kind: AssertionSource) => (v) => ({ ...v, kind });
+const _getFlattenedTestEntries = (table?: SaferTableSchema) => {
+  //Flatten table assertions
+  const enrichedPipeAssertionTests: EnrichedAssertionTest[] = (
+    table?.piperider_assertion_result?.tests || []
+  ).map(_getKindMapper('piperider'));
+
+  const enrichedDbtAssertionTests: EnrichedAssertionTest[] = (
+    table?.dbt_assertion_result?.tests || []
+  ).map(_getKindMapper('dbt'));
+
+  const flatTableAssertionTests: EnrichedTableOrColumnAssertionTest[] =
+    enrichedPipeAssertionTests
+      .concat(enrichedDbtAssertionTests)
+      .map((v) => ({ isTableAssertion: true, tableName: table?.name, ...v }));
+
+  //Flatten and join w/ column assertions
+  const flatColumnPipeAssertions = Object.entries(
+    table?.piperider_assertion_result?.columns || {},
+  )
+    .map(
+      ([colKey, tests]) =>
+        [colKey, tests.map(_getKindMapper('piperider'))] as [
+          string,
+          EnrichedAssertionTest[],
+        ],
+    )
+    .reduce<EnrichedTableOrColumnAssertionTest[]>((accum, [colKey, tests]) => {
+      const result = tests.map((v) => ({
+        ...v,
+        tableName: table?.name || '',
+        columnName: colKey,
+        isTableAssertion: false,
+      }));
+      return [...accum, ...result];
+    }, []);
+  const flatColumnDbtAssertions = Object.entries(
+    table?.dbt_assertion_result?.columns || {},
+  )
+    .map(
+      ([colKey, tests]) =>
+        [colKey, tests.map(_getKindMapper('piperider'))] as [
+          string,
+          EnrichedAssertionTest[],
+        ],
+    )
+    .reduce<EnrichedTableOrColumnAssertionTest[]>((accum, [colKey, tests]) => {
+      const result = tests.map((v) => ({
+        ...v,
+        tableName: table?.name || '',
+        columnName: colKey,
+        isTableAssertion: false,
+      }));
+      return [...accum, ...result];
+    }, []);
+
+  const flatTableColAssertionEntries = [
+    ...flatTableAssertionTests,
+    ...flatColumnPipeAssertions,
+    ...flatColumnDbtAssertions,
+  ];
+
+  return flatTableColAssertionEntries;
+};
+const getTaColumnbleAssertionsOnly = (rawData: ComparableReport) => {
+  const comparableTables = transformAsNestedBaseTargetRecord<
+    SaferSRSchema['tables'],
+    SaferTableSchema
+  >(rawData?.base?.tables, rawData?.input?.tables);
+  const comparableTableEntries = Object.entries(comparableTables);
+  const compTableAssertionEntries = comparableTableEntries.map(
+    ([, { base, target }]) => {
+      const tableAssertions = {
+        base: _getFlattenedTestEntries(base),
+        target: _getFlattenedTestEntries(target),
+      };
+      return tableAssertions;
+    },
+  );
+
+  return compTableAssertionEntries;
+};
+
 //NOTE: `this` will not work in setter functions
 export const useReportStore = create<ReportState & ReportSetters>()(function (
   set,
@@ -124,12 +223,16 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
       const reportTime = getReportTime(rawData);
       /** Tables */
       const tableColumnsOnly = getTableColumnsOnly(rawData);
+      /** Table-level Assertions (flattened) */
+
+      const tableColumnAssertionsOnly = getTaColumnbleAssertionsOnly(rawData);
 
       const resultState: ReportState = {
         rawData,
         reportOnly,
         reportTime,
         tableColumnsOnly,
+        tableColumnAssertionsOnly,
       };
 
       // final setter

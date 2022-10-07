@@ -19,9 +19,9 @@ export function transformAsNestedBaseTargetRecord<K, T>(
     base: (T & { changed?: boolean }) | undefined;
     target: (T & { changed?: boolean }) | undefined;
   } & {
-    added: number;
-    deleted: number;
-    changed: number;
+    added?: number;
+    deleted?: number;
+    changed?: number;
   }
 > {
   const result = {};

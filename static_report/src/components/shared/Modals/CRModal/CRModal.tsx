@@ -13,25 +13,22 @@ import {
 import { AssertionTest } from '../../../../sdlc/single-report-schema';
 
 import { ComparableData } from '../../../../types';
-import { DbtTable } from './CRModalDbtTable';
-import { PipeRiderTable } from './CRModalPiperiderTable';
+import { AssertionTestDetail } from './AssertionTestDetail';
 
 export type CRModalData = {
-  name: string;
-} & ComparableData<AssertionTest & { message?: string }>;
+  assertionName: string;
+  assertionKind: 'piperider' | 'dbt';
+} & ComparableData<
+  AssertionTest & {
+    message?: string;
+  }
+>;
 export type TestDetail = {
-  type?: 'piperider' | 'dbt';
   data?: CRModalData;
 };
-type Props = UseDisclosureReturn & TestDetail;
 
-export function CRModal({
-  data,
-  type = 'piperider',
-  isOpen,
-  onClose,
-  ...props
-}: Props) {
+type Props = UseDisclosureReturn & TestDetail;
+export function CRModal({ data, isOpen, onClose, ...props }: Props) {
   return (
     <Modal
       {...props}
@@ -44,17 +41,17 @@ export function CRModal({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
-          <Text title={data?.name} noOfLines={1} maxWidth="calc(100% - 50px)">
-            {data?.name}
+          <Text
+            title={data?.assertionName}
+            noOfLines={1}
+            maxWidth="calc(100% - 50px)"
+          >
+            {data?.assertionName}
           </Text>
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {type === 'piperider' ? (
-            <PipeRiderTable data={data} />
-          ) : (
-            <DbtTable data={data} />
-          )}
+          <AssertionTestDetail data={data} />
         </ModalBody>
 
         <ModalFooter>

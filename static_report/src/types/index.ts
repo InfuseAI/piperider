@@ -26,6 +26,7 @@ export interface ComparisonReportSchema {
 }
 
 export type ComparsionSource = 'base' | 'target';
+export type AssertionSource = 'piperider' | 'dbt';
 
 export type AssertionValue =
   | TableSchema['piperider_assertion_result']

@@ -58,6 +58,7 @@ function groupedAssertions(
   });
 }
 
+//FIXME: remove this and CR
 export function CRAssertionDetailsWidget({ assertions, ...props }: Props) {
   const { piperider, dbt } = assertions;
   const modal = useDisclosure();
@@ -113,13 +114,13 @@ export function CRAssertionDetailsWidget({ assertions, ...props }: Props) {
                 </Td>
                 <Td>{row.source}</Td>
                 <Td
-                  onClick={() => {
-                    setTestDetail({
-                      type: 'piperider',
-                      data: row,
-                    });
-                    modal.onOpen();
-                  }}
+                // onClick={() => {
+                //   setTestDetail({
+                //     type: 'piperider',
+                //     data: row,
+                //   });
+                //   modal.onOpen();
+                // }}
                 >
                   <Text as="span" cursor="pointer">
                     🔍
@@ -140,13 +141,13 @@ export function CRAssertionDetailsWidget({ assertions, ...props }: Props) {
                 </Td>
                 <Td>{row.source}</Td>
                 <Td
-                  onClick={() => {
-                    setTestDetail({
-                      type: 'piperider',
-                      data: row,
-                    });
-                    modal.onOpen();
-                  }}
+                // onClick={() => {
+                //   setTestDetail({
+                //     type: 'piperider',
+                //     data: row,
+                //   });
+                //   modal.onOpen();
+                // }}
                 >
                   <Text as="span" cursor="pointer">
                     🔍
@@ -159,7 +160,6 @@ export function CRAssertionDetailsWidget({ assertions, ...props }: Props) {
       </TableContainer>
       <CRModal
         {...modal}
-        type={testDetail?.type}
         data={testDetail?.data}
         onClose={() => {
           modal.onClose();

@@ -35,6 +35,8 @@ type Props = {
   };
 };
 
+//FIXME: remove this and CR
+//FIXME: Merge this with CR
 export function SRAssertionDetailsWidget({ assertions }: Props) {
   const { passedAssertions, failedAssertions } = mergeAssertions(
     assertions?.piperider,
