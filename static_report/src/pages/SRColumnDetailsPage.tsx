@@ -29,8 +29,8 @@ import {
   TableDescription,
   TableOverview,
 } from '../components/shared/Tables/TableOverview';
-import { SRAssertionDetailsWidget } from '../components/shared/Widgets/SRAssertionDetailsWidget';
 import {
+  AssertionListWidget,
   BreadcrumbMetaItem,
   BreadcrumbNav,
   TableColumnSchemaList,
@@ -53,7 +53,8 @@ export default function SRColumnDetailsPage({
 
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
-  const { tableColumnsOnly = [] } = useReportStore.getState();
+  const { tableColumnsOnly = [], tableColumnAssertionsOnly } =
+    useReportStore.getState();
   const currentTableEntry = tableColumnsOnly.find(
     ([tableKey]) => tableKey === tableName,
   );
@@ -122,11 +123,10 @@ export default function SRColumnDetailsPage({
                   </Grid>
                 </TabPanel>
                 <TabPanel>
-                  <SRAssertionDetailsWidget
-                    assertions={{
-                      piperider: dataTable.piperider_assertion_result,
-                      dbt: dataTable?.dbt_assertion_result,
-                    }}
+                  <AssertionListWidget
+                    filterString={dataTable.name}
+                    assertionList={tableColumnAssertionsOnly}
+                    singleOnly
                   />
                 </TabPanel>
                 <TabPanel>

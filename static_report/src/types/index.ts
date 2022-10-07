@@ -37,20 +37,6 @@ export type ReportAssertionStatusCounts = {
   failed: string | number;
 };
 
-export type CRAssertionTests = {
-  level: string;
-  column: string;
-  from: ComparsionSource;
-  name: string;
-  status: 'passed' | 'failed';
-  parameters?: {
-    [k: string]: unknown;
-  };
-  tags?: string[];
-  expected?: unknown;
-  actual?: unknown;
-};
-
 export type CRAssertionData = {
   name: string;
 } & ComparableData<AssertionTest & { message?: string }>;

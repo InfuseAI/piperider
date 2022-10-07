@@ -39,9 +39,9 @@ import {
 } from '../components/shared/Layouts/BreadcrumbNav';
 import { ColumnSchemaDeltaSummary } from '../components/shared/Tables/TableList/ColumnSchemaDeltaSummary';
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
-import { CRAssertionDetailsWidget, getComparisonAssertions } from '../lib';
 import { useReportStore } from '../utils/store';
 import { getBreadcrumbPaths } from '../utils/routes';
+import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -63,7 +63,8 @@ export default function CRColumnDetailsPage({
   const isTableDetailsView = columnName.length === 0;
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data.base, input: data.input });
-  const { tableColumnsOnly = [] } = useReportStore.getState();
+  const { tableColumnsOnly = [], tableColumnAssertionsOnly } =
+    useReportStore.getState();
   const currentTableEntry = tableColumnsOnly.find(
     ([tableKey]) => tableKey === tableName,
   );
@@ -87,26 +88,6 @@ export default function CRColumnDetailsPage({
   const targetColumnDatum = targetDataColumns[columnName];
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
-
-  //TODO: move to store after assertions schema-change
-  const [baseOverview, targetOverview] = getComparisonAssertions({
-    data,
-    tableName,
-    type: 'piperider',
-  });
-  const [dbtBaseOverview, dbtTargetOverview] = getComparisonAssertions({
-    data,
-    tableName,
-    type: 'dbt',
-  });
-  const piperiderAssertions = [
-    ...(baseOverview?.tests || []),
-    ...(targetOverview?.tests || []),
-  ];
-  const dbtAssertions = [
-    ...(dbtBaseOverview?.tests || []),
-    ...(dbtTargetOverview?.tests || []),
-  ];
 
   const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
     tableName,
@@ -159,11 +140,9 @@ export default function CRColumnDetailsPage({
                 </TabPanel>
                 <TabPanel>
                   <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
-                    <CRAssertionDetailsWidget
-                      assertions={{
-                        piperider: piperiderAssertions,
-                        dbt: dbtAssertions,
-                      }}
+                    <AssertionListWidget
+                      filterString={tableName}
+                      assertionList={tableColumnAssertionsOnly}
                     />
                   </Grid>
                 </TabPanel>

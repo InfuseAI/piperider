@@ -5,8 +5,6 @@ import { NO_VALUE } from '../Columns/constants';
 import {
   AssertionValue,
   ReportAssertionStatusCounts,
-  ComparisonReportSchema,
-  ComparsionSource,
   SaferTableSchema,
 } from '../../../types';
 import { DUPLICATE_ROWS } from './constant';
@@ -108,78 +106,6 @@ function resolveStatusCountValues(
     return target; // else always keep as num
   }
   return NO_VALUE;
-}
-
-//FIXME: REFACTOR REMOVE USAGE (CR-COL-DETAILS-PAGE)
-export type ComparisonAssertions = {
-  data: ComparisonReportSchema;
-  tableName: string;
-  type: 'piperider' | 'dbt';
-};
-export function getComparisonAssertions({
-  data,
-  tableName,
-  type,
-}: ComparisonAssertions) {
-  const targets = {
-    piperider: 'piperider_assertion_result',
-    dbt: 'dbt_assertion_result',
-  };
-
-  const baseTables = { type: 'base', tables: data.base.tables[tableName] };
-  const targetTables = {
-    type: 'target',
-    tables: data.input.tables[tableName], //legacy 'input' key
-  };
-
-  //Warning: targetTables.tables can be undefined when mismatched
-  const assertions = [baseTables, targetTables].map((source) => {
-    return getComparisonAssertionTests({
-      assertion: source.tables && source.tables[targets[type]],
-      from: source.type as ComparsionSource,
-    });
-  });
-
-  return assertions;
-}
-
-type CRAssertionArgs = {
-  assertion: AssertionValue;
-  from: ComparsionSource;
-};
-function getComparisonAssertionTests({ assertion, from }: CRAssertionArgs) {
-  const { passed, failed } = getSingleAssertionStatusCounts(assertion);
-
-  if (!assertion) {
-    return {
-      passed,
-      failed,
-      tests: [],
-    };
-  }
-
-  const table = assertion.tests.map((test) => ({
-    ...test,
-    level: 'Table',
-    column: NO_VALUE,
-    from,
-  }));
-
-  const columns = Object.keys(assertion.columns).map((column) => {
-    const columnAssertion = assertion.columns[column];
-    return columnAssertion.map((test) => ({
-      ...test,
-      level: 'Column',
-      column,
-      from,
-    }));
-  });
-
-  return {
-    passed,
-    failed,
-    tests: [...table, ...columns.flat()],
-  };
 }
 
 /**
