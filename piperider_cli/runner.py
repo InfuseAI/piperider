@@ -228,7 +228,7 @@ def _show_assertion_result(results, exceptions, failed_only=False, single_table=
                     '[[bold green]  OK  [/bold green]]',
                     target,
                     test_function,
-                    _wrap_pretty(assertion.result.expected()),
+                    _wrap_pretty(assertion.result.expected),
                     Pretty(assertion.result.actual)
                 )
             else:
@@ -236,7 +236,7 @@ def _show_assertion_result(results, exceptions, failed_only=False, single_table=
                     '[[bold red]FAILED[/bold red]]',
                     target,
                     test_function,
-                    _wrap_pretty(assertion.result.expected()),
+                    _wrap_pretty(assertion.result.expected),
                     Pretty(assertion.result.actual)
                 )
                 if assertion.result.exception:

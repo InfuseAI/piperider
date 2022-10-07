@@ -234,20 +234,13 @@ class AssertionResult:
     def status(self):
         return self._success
 
+    @property
     def expected(self):
-        def _castDatetimeToString(obj):
-            if isinstance(obj, dict):
-                obj = {k: _castDatetimeToString(v) for k, v in obj.items()}
-            elif isinstance(obj, list):
-                obj = [_castDatetimeToString(i) for i in obj]
-            elif isinstance(obj, datetime):
-                return str(obj)
-            return obj
+        return self._expected
 
-        if self.name.startswith('assert_'):
-            return _castDatetimeToString(dict(self._expected))
-        else:
-            return self._metric_assertion_to_string()
+    @expected.setter
+    def expected(self, value):
+        self._expected = value
 
     @property
     def exception(self):
@@ -315,7 +308,7 @@ class AssertionResult:
         return str(dict(success=self._success,
                         exception=str(self._exception),
                         actual=self.actual,
-                        expected=self.expected()))
+                        expected=self.expected))
 
     def _metric_assertion_to_string(self):
         if len(self._expected.keys()) == 2:
@@ -378,7 +371,7 @@ class AssertionContext:
             name=self.result.name,
             status='passed' if self.result._success is True else 'failed',
             parameters=self.parameters,
-            expected=self.result.expected(),
+            expected=self.result.expected,
             actual=self.result.actual,
             tags=self.tags,
         )

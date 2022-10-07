@@ -25,11 +25,12 @@ class AssertMetric(BaseAssertionType):
 
         context.result.name = self.mapping.get(context.metric, target_metrics.get('type'))
         context.result.actual = value
+        context.result.expected = self._expected_message(context.asserts)
 
-        if self._assert_metric_boundary(value, context.asserts):
-            return context.result.success()
+        if not self._assert_metric_boundary(value, context.asserts):
+            return context.result.fail()
 
-        return context.result.fail()
+        return context.result.success()
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         names = ['gte', 'lte', 'gt', 'lt', 'eq', 'ne']
@@ -46,6 +47,36 @@ class AssertMetric(BaseAssertionType):
         self._assert_metric_validation(context.asserts, results)
 
         return results
+
+    @staticmethod
+    def _expected_message(asserts):
+        if len(asserts.keys()) == 2:
+            operators = {
+                'lte': ']',
+                'lt': ')',
+                'gte': '[',
+                'gt': '('
+            }
+            # TODO: optimization needed
+            boundary = []
+            for k, v in asserts.items():
+                if k.startswith('lt'):
+                    boundary.append(f'{v}{operators[k]}')
+                else:
+                    boundary.insert(0, f'{operators[k]}{v}')
+
+            return ', '.join(boundary)
+        else:
+            operators = {
+                'gt': '>',
+                'gte': '≥',
+                'eq': '=',
+                'ne': '≠',
+                'lt': '<',
+                'lte': '≤'
+            }
+            k, v = list(asserts.items())[0]
+            return f'{operators[k]} {v}'
 
     @staticmethod
     def _assert_metric_boundary(metric: Union[int, float], metric_boundary: dict) -> bool:
