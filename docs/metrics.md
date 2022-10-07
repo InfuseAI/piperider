@@ -83,12 +83,12 @@ The general statistic of a column
 
 The text length statistic of a column.
 
-| Metric                   | Description                                           | Column Type | Field    | Assertion | Since |
-| ------------------------ | ----------------------------------------------------- | ----------- | -------- | :-------: | ----- |
-| Min length               | The minimum text length of a string column            | string      | `min`    | o         | 0.6.0 |
-| Max length               | The maximum text length of a string column            | string      | `max`    | o         | 0.6.0 |
-| Average length           | The average text length of a string column            | string      | `avg`    | o         | 0.6.0 |
-| Std. Deviation of length | The standard deviation text length of a string column | string      | `stddev` | o         | 0.6.0 |
+| Metric                   | Description                                           | Column Type | Field           | Assertion | Since  |
+| ------------------------ | ----------------------------------------------------- | ----------- | --------------- | :-------: | ------ |
+| Min length               | The minimum text length of a string column            | string      | `min_length`    | o         | 0.11.0 |
+| Max length               | The maximum text length of a string column            | string      | `max_length`    | o         | 0.11.0 |
+| Average length           | The average text length of a string column            | string      | `avg_length`    | o         | 0.11.0 |
+| Std. Deviation of length | The standard deviation text length of a string column | string      | `stddev_length` | o         | 0.11.0 |
 
 ### Uniqueness
 
@@ -137,5 +137,5 @@ Calculate the quantiles of a numeric or integer column
 | --------------------- | ------------------------------------------------------------------------- | ---------------- | ----------- | :-------: | ----- |
 | Top K                 | The top n frequent items and counts                                       | integer, string  | `topk`      |           | 0.6.0 |
 | histogram             | The evenly-split bins. Calculate the counts for each bin.                 | integer, numeric | `histogram` |           | 0.6.0 |
-| Text length histogram | The evenly-split bins for text length. Calculate the counts for each bin. | string           | `histogram` |           | 0.6.0 |
+| Text length histogram | The evenly-split bins for text length. Calculate the counts for each bin. | string           | `histogram_length` |    | 0.6.0 |
 | Date histogram        | The histogram of date, month, or year. Depends on the data min/max range. | datetime         | `histogram` |           | 0.6.0 |
