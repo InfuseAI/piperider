@@ -567,10 +567,14 @@ class StringColumnProfiler(BaseColumnProfiler):
 
                 'distinct': _distinct,
                 'min': _min,
+                'min_length': _min,
                 'max': _max,
+                'max_length': _max,
                 'sum': _sum,
                 'avg': _avg,
+                'avg_length': _avg,
                 'stddev': _stddev,
+                'stddev_length': _stddev,
             }
 
             # uniqueness
@@ -591,6 +595,7 @@ class StringColumnProfiler(BaseColumnProfiler):
             if _valids > 0:
                 histogram = profile_histogram(conn, cte, cte.c.len, _min, _max, True)
             result['histogram'] = histogram
+            result['histogram_length'] = histogram
 
             # deprecated
             result['distribution'] = {
