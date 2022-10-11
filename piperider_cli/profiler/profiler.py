@@ -744,7 +744,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 "non_duplicates": _non_duplicates,
                 "non_duplicates_p": _non_duplicates / _non_nulls if _non_nulls else None
             })
-            result['duplicate_p'] = 1 - result['non_duplicates_p'] if result['non_duplicates_p'] else None
+            result['duplicates_p'] = 1 - result['non_duplicates_p'] if result['non_duplicates_p'] else None
 
             # histogram
             histogram = None
@@ -1078,7 +1078,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 "non_duplicates": _non_duplicates,
                 "non_duplicates_p": _non_duplicates / _non_nulls if _non_nulls else None,
             })
-            result['duplicate_p'] = 1 - result['non_duplicates_p'] if result['non_duplicates_p'] else None
+            result['duplicates_p'] = 1 - result['non_duplicates_p'] if result['non_duplicates_p'] else None
 
             # histogram
             histogram = None
