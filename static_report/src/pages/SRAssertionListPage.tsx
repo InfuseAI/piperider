@@ -1,6 +1,7 @@
 import { SearchIcon } from '@chakra-ui/icons';
 import { InputGroup, InputLeftElement, Input, Flex } from '@chakra-ui/react';
 import { useState } from 'react';
+import { AssertionStatusSummary } from '../components/shared/Assertions/AssertionStatusSummary';
 import { Main } from '../components/shared/Layouts/Main';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
 import { SaferSRSchema } from '../types';
@@ -18,7 +19,7 @@ export function SRAssertionListPage({ data }: Props) {
 
   return (
     <Main isSingleReport>
-      <Flex justify={'center'} w={tableListWidth} m={14}>
+      <Flex w={tableListWidth} mt={10}>
         <InputGroup my={2}>
           <InputLeftElement
             pointerEvents={'none'}
@@ -34,6 +35,12 @@ export function SRAssertionListPage({ data }: Props) {
           />
         </InputGroup>
       </Flex>
+      <AssertionStatusSummary
+        p={5}
+        w={'100%'}
+        failed={tableColumnAssertionsOnly?.metadata?.failed}
+        passed={tableColumnAssertionsOnly?.metadata?.passed}
+      />
       <AssertionListWidget
         singleOnly
         filterString={filterString}

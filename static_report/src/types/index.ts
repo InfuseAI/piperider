@@ -45,9 +45,12 @@ export interface ComparableData<T> {
   base?: T;
   target?: T;
   metadata?: {
-    added: number;
-    deleted: number;
-    changed: number;
+    added?: number;
+    deleted?: number;
+    changed?: number;
+    passed?: number;
+    failed?: number;
+    total?: number;
   };
 }
 

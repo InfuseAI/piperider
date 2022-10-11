@@ -1,6 +1,7 @@
 import { SearchIcon } from '@chakra-ui/icons';
 import { Flex, InputGroup, InputLeftElement, Input } from '@chakra-ui/react';
 import { useState } from 'react';
+import { AssertionStatusSummary } from '../components/shared/Assertions/AssertionStatusSummary';
 import { Main } from '../components/shared/Layouts/Main';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
 import { ComparisonReportSchema } from '../types';
@@ -17,7 +18,7 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
   const { tableColumnAssertionsOnly } = useReportStore.getState();
   return (
     <Main isSingleReport={false}>
-      <Flex justify={'center'} w={tableListWidth} m={14}>
+      <Flex justify={'center'} w={tableListWidth} mt={10}>
         <InputGroup my={2}>
           <InputLeftElement
             pointerEvents={'none'}
@@ -33,6 +34,12 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
           />
         </InputGroup>
       </Flex>
+      <AssertionStatusSummary
+        p={5}
+        w={'100%'}
+        failed={tableColumnAssertionsOnly?.metadata?.failed}
+        passed={tableColumnAssertionsOnly?.metadata?.passed}
+      />
       <AssertionListWidget
         comparableAssertions={tableColumnAssertionsOnly}
         filterString={filterString}

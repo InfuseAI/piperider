@@ -198,19 +198,35 @@ const getTaColumnbleAssertionsOnly = (rawData: ComparableReport) => {
   >(rawData?.base?.tables, rawData?.input?.tables);
   const comparableTableEntries = Object.entries(comparableTables);
   //this needs to be reduce, if you want flatten
-  const compTableAssertionEntries = comparableTableEntries.reduce(
+  const compTableAssertions = comparableTableEntries.reduce(
     (accum, [, { base, target }]) => {
+      const flatBaseTests = _getFlattenedTestEntries(base);
+      const flatTargetTests = _getFlattenedTestEntries(target);
       const tableAssertions = {
-        base: accum.base?.concat(_getFlattenedTestEntries(base)) || [],
-        target: accum.target?.concat(_getFlattenedTestEntries(target)) || [],
+        base: accum.base?.concat(flatBaseTests) || [],
+        target: accum.target?.concat(flatTargetTests) || [],
       };
 
       return tableAssertions;
     },
     {} as ComparableData<EnrichedTableOrColumnAssertionTest[]>,
   );
-
-  return compTableAssertionEntries;
+  const metadata = compTableAssertions.base
+    ?.concat(compTableAssertions.target || [])
+    .reduce(
+      (accum, { status }) => ({
+        total: accum.total + 1,
+        passed: accum.passed + (status === 'passed' ? 1 : 0),
+        failed: accum.failed + (status === 'failed' ? 1 : 0),
+      }),
+      {
+        total: 0,
+        passed: 0,
+        failed: 0,
+      },
+    );
+  compTableAssertions.metadata = metadata;
+  return compTableAssertions;
 };
 
 //NOTE: `this` will not work in setter functions
