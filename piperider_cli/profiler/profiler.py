@@ -476,10 +476,12 @@ class BaseColumnProfiler:
                 'total': None,
                 'samples': _total,
                 'non_nulls': _non_nulls,
+                'non_nulls_p': _non_nulls / _total if _total else None,
                 'nulls': _total - _non_nulls,
                 'nulls_p': (_total - _non_nulls) / _total if _total else None,
                 'valids': _non_nulls,
                 'invalids': 0,
+                'invalids_p': 0,
                 'distribution': None,
             }
 
@@ -558,14 +560,20 @@ class StringColumnProfiler(BaseColumnProfiler):
                 'total': None,
                 'samples': _total,
                 'non_nulls': _non_nulls,
+                'non_nulls_p': _non_nulls / _total if _total else None,
                 'nulls': _total - _non_nulls,
-                'nulls_p': (_total - _non_nulls) / _total if _total else None,
+                'nulls_p': None,
                 'valids': _valids,
+                'valids_p': _valids / _total if _total else None,
                 'invalids': _non_nulls - _valids,
+                'invalids_p': None,
                 'zero_length': _zero_length,
+                'zero_length_p': _zero_length / _total if _total else None,
                 'non_zero_length': _valids - _zero_length,
+                'non_zero_length_p': None,
 
                 'distinct': _distinct,
+                'distinct_p': _distinct / _non_nulls if _non_nulls else None,
                 'min': _min,
                 'min_length': _min,
                 'max': _max,
@@ -576,13 +584,19 @@ class StringColumnProfiler(BaseColumnProfiler):
                 'stddev': _stddev,
                 'stddev_length': _stddev,
             }
+            result['nulls_p'] = 1 - result['non_nulls_p'] if result['non_nulls_p'] else None
+            result['invalids_p'] = 1 - result['valids_p'] if result['valids_p'] else None
+            result['non_zero_length_p'] = 1 - result['zero_length_p'] if result['zero_length_p'] else None
 
             # uniqueness
             _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
             result.update({
                 "duplicates": _valids - _non_duplicates,
+                "duplicates_p": None,
                 "non_duplicates": _non_duplicates,
+                "non_duplicates_p": _non_duplicates / _non_nulls if _non_nulls else None,
             })
+            result['duplicates_p'] = 1 - result['non_duplicates_p'] if result['non_duplicates_p'] else None
 
             # top k
             topk = None
@@ -681,28 +695,42 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 'total': None,
                 'samples': _total,
                 'non_nulls': _non_nulls,
+                'non_nulls_p': _non_nulls / _total if _total else None,
                 'nulls': _total - _non_nulls,
-                'nulls_p': (_total - _non_nulls) / _total if _total else None,
+                'nulls_p': None,
                 'valids': _valids,
+                'valids_p': _valids / _total if _total else None,
                 'invalids': _non_nulls - _valids,
+                'invalids_p': None,
                 'zeros': _zeros,
+                'zeros_p': _zeros / _total if _total else None,
                 'negatives': _negatives,
+                'negatives_p': _negatives / _total if _total else None,
                 'positives': _valids - _zeros - _negatives,
+                'positives_p': None,
 
                 'distinct': _distinct,
+                'distinct_p': _distinct / _non_nulls if _non_nulls else None,
                 'min': _min,
                 'max': _max,
                 'sum': _sum,
                 'avg': _avg,
                 'stddev': _stddev,
             }
+            result['nulls_p'] = 1 - result['non_nulls_p'] if result['non_nulls_p'] else None
+            result['invalids_p'] = 1 - result['valids_p'] if result['valids_p'] else None
+            result['positives_p'] = 1 - result['zeros_p'] - result['negatives_p'] \
+                if result['zeros_p'] and result['negatives_p'] else None
 
             # uniqueness
             _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
             result.update({
                 "duplicates": _valids - _non_duplicates,
+                "duplicates_p": None,
                 "non_duplicates": _non_duplicates,
+                "non_duplicates_p": _non_duplicates / _non_nulls if _non_nulls else None
             })
+            result['duplicate_p'] = 1 - result['non_duplicates_p'] if result['non_duplicates_p'] else None
 
             # histogram
             histogram = None
@@ -1012,21 +1040,30 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 'total': None,
                 'samples': _total,
                 'non_nulls': _non_nulls,
+                'non_nulls_p': _non_nulls / _total if _total else None,
                 'nulls': _total - _non_nulls,
-                'nulls_p': (_total - _non_nulls) / _total if _total else None,
+                'nulls_p': None,
                 'valids': _valids,
+                'valids_p': _valids / _total if _total else None,
                 'invalids': _non_nulls - _valids,
+                'invalids_p': None,
                 'distinct': _distinct,
+                'distinct_p': _distinct / _non_nulls if _non_nulls else None,
                 'min': _min.isoformat() if _min is not None else None,
                 'max': _max.isoformat() if _max is not None else None,
             }
+            result['nulls_p'] = 1 - result['non_nulls_p'] if result['non_nulls_p'] else None
+            result['invalids_p'] = 1 - result['valids_p'] if result['valids_p'] else None
 
             # uniqueness
             _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
             result.update({
                 "duplicates": _valids - _non_duplicates,
+                "duplicates_p": None,
                 "non_duplicates": _non_duplicates,
+                "non_duplicates_p": _non_duplicates / _non_nulls if _non_nulls else None,
             })
+            result['duplicate_p'] = 1 - result['non_duplicates_p'] if result['non_duplicates_p'] else None
 
             # histogram
             histogram = None
@@ -1199,17 +1236,23 @@ class BooleanColumnProfiler(BaseColumnProfiler):
             _total, _non_nulls, _valids, _trues, _distinct = result
             _falses = _valids - _trues
 
-            return {
+            result = {
                 'total': None,
                 'samples': _total,
                 'non_nulls': _non_nulls,
+                'non_nulls_p': _non_nulls / _total if _total else None,
                 'nulls': _total - _non_nulls,
-                'nulls_p': (_total - _non_nulls) / _total if _total else None,
+                'nulls_p': None,
                 'valids': _valids,
+                'valids_p': _valids / _total if _total else None,
                 'invalids': _non_nulls - _valids,
+                'invalids_p': None,
                 'trues': _trues,
+                'trues_p': _trues / _total if _total else None,
                 'falses': _falses,
+                'falses_p': None,
                 'distinct': _distinct,
+                'distinct_p': _distinct / _non_nulls if _non_nulls else None,
 
                 # deprecated
                 'distribution': {
@@ -1218,6 +1261,12 @@ class BooleanColumnProfiler(BaseColumnProfiler):
                     'counts': [_falses, _trues]
                 }
             }
+
+            result['nulls_p'] = 1 - result['non_nulls_p'] if result['non_nulls_p'] else None
+            result['invalids_p'] = 1 - result['valids_p'] if result['valids_p'] else None
+            result['falses_p'] = 1 - result['trues_p'] if result['trues_p'] else None
+
+            return result
 
 
 def profile_topk(conn, expr, k=20) -> dict:
