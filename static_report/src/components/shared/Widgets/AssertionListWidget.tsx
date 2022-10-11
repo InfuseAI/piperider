@@ -181,7 +181,6 @@ export function AssertionListWidget({
                   : true,
               )
               .map((row, index) => {
-                const targetTest = targetFlatAssertions?.[index];
                 const {
                   tableName,
                   columnName,
@@ -191,6 +190,10 @@ export function AssertionListWidget({
                   kind,
                   status,
                 } = row.original;
+                const targetRef =
+                  targetFlatAssertions?.[index]?.name === tableName
+                    ? targetFlatAssertions?.[index]
+                    : undefined;
                 return (
                   <Tr key={row.id}>
                     <Td>
@@ -198,7 +201,7 @@ export function AssertionListWidget({
                     </Td>
                     {!singleOnly && (
                       <Td>
-                        <AssertionStatus status={targetTest?.status} />
+                        <AssertionStatus status={targetRef?.status} />
                       </Td>
                     )}
                     <Td>
@@ -233,7 +236,7 @@ export function AssertionListWidget({
                             assertionKind: kind,
                             assertionName: name,
                             base: row.original,
-                            target: targetTest,
+                            target: targetRef,
                           });
                           modal.onOpen();
                         }}
