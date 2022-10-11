@@ -92,6 +92,8 @@ Next, execute `piperider run`, which will do a number of things:
 Common Usages/Tips:
 
 ```bash
+piperider run                           # profile all tables in the data source.
+
 piperider run --table $TABLENAME        # profile a specific table
 
 piperider generate-report -o $PATHNAME  # Specify the output location of the generated report
