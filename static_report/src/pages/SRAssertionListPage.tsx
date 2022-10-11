@@ -37,7 +37,7 @@ export function SRAssertionListPage({ data }: Props) {
       <AssertionListWidget
         singleOnly
         filterString={filterString}
-        assertionList={tableColumnAssertionsOnly}
+        comparableAssertions={tableColumnAssertionsOnly}
       />
     </Main>
   );

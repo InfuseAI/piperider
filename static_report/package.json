@@ -44,6 +44,7 @@
     "@sentry/browser": "^7.8.0",
     "@sentry/tracing": "^7.8.0",
     "@sgratzl/chartjs-chart-boxplot": "~3.8.0",
+    "@tanstack/react-table": "^8.5.15",
     "@types/jest": "^28.1.2",
     "@types/lodash": "^4.14.182",
     "@types/node": "^18.0.0",

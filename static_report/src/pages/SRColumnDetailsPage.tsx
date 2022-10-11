@@ -125,7 +125,7 @@ export default function SRColumnDetailsPage({
                 <TabPanel>
                   <AssertionListWidget
                     filterString={dataTable.name}
-                    assertionList={tableColumnAssertionsOnly}
+                    comparableAssertions={tableColumnAssertionsOnly}
                     singleOnly
                   />
                 </TabPanel>

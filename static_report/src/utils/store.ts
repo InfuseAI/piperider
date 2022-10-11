@@ -36,7 +36,7 @@ export interface ReportState {
   tableColumnsOnly?: CompTableColEntryItem[];
   tableColumnAssertionsOnly?: ComparableData<
     EnrichedTableOrColumnAssertionTest[]
-  >[];
+  >;
 }
 
 interface ReportSetters {
@@ -116,7 +116,7 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
 };
 
 /**
- * Returns a compared, and separated table/column list of assertions, enriched with each member's belonging table names and column names
+ * Returns a compared and flatteded table/column list of assertions, enriched with each member's belonging table names and column names
  */
 type EnrichedAssertionTest = AssertionTest & {
   kind: AssertionSource;
@@ -162,6 +162,8 @@ const _getFlattenedTestEntries = (table?: SaferTableSchema) => {
       }));
       return [...accum, ...result];
     }, []);
+
+  //FIXME: DRY this.
   const flatColumnDbtAssertions = Object.entries(
     table?.dbt_assertion_result?.columns || {},
   )
@@ -187,7 +189,6 @@ const _getFlattenedTestEntries = (table?: SaferTableSchema) => {
     ...flatColumnPipeAssertions,
     ...flatColumnDbtAssertions,
   ];
-
   return flatTableColAssertionEntries;
 };
 const getTaColumnbleAssertionsOnly = (rawData: ComparableReport) => {
@@ -196,14 +197,17 @@ const getTaColumnbleAssertionsOnly = (rawData: ComparableReport) => {
     SaferTableSchema
   >(rawData?.base?.tables, rawData?.input?.tables);
   const comparableTableEntries = Object.entries(comparableTables);
-  const compTableAssertionEntries = comparableTableEntries.map(
-    ([, { base, target }]) => {
+  //this needs to be reduce, if you want flatten
+  const compTableAssertionEntries = comparableTableEntries.reduce(
+    (accum, [, { base, target }]) => {
       const tableAssertions = {
-        base: _getFlattenedTestEntries(base),
-        target: _getFlattenedTestEntries(target),
+        base: accum.base?.concat(_getFlattenedTestEntries(base)) || [],
+        target: accum.target?.concat(_getFlattenedTestEntries(target)) || [],
       };
+
       return tableAssertions;
     },
+    {} as ComparableData<EnrichedTableOrColumnAssertionTest[]>,
   );
 
   return compTableAssertionEntries;

@@ -3266,6 +3266,7 @@ __metadata:
     "@sentry/browser": ^7.8.0
     "@sentry/tracing": ^7.8.0
     "@sgratzl/chartjs-chart-boxplot": ~3.8.0
+    "@tanstack/react-table": ^8.5.15
     "@types/jest": ^28.1.2
     "@types/lodash": ^4.14.182
     "@types/node": ^18.0.0
@@ -4359,6 +4360,25 @@ __metadata:
     "@svgr/plugin-svgo": ^5.5.0
     loader-utils: ^2.0.0
   checksum: 540391bd63791625d26d6b5e0dd3c716ef51176bfba53bf0979a1ac4781afd2672f4bef2d76cf3d9cdc8e9ee61bda6863ed405a237b10406633ede4cd524f1cc
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-table@npm:^8.5.15":
+  version: 8.5.15
+  resolution: "@tanstack/react-table@npm:8.5.15"
+  dependencies:
+    "@tanstack/table-core": 8.5.15
+  peerDependencies:
+    react: ">=16"
+    react-dom: ">=16"
+  checksum: 1d80268eca88fd847dd8d8d86ef4b0a5e19945497497679026d74b907cf39739a22ea75929a4f2ce1a623af42d2a6b3d248a459eeda637b7d68e391a09ce1afc
+  languageName: node
+  linkType: hard
+
+"@tanstack/table-core@npm:8.5.15":
+  version: 8.5.15
+  resolution: "@tanstack/table-core@npm:8.5.15"
+  checksum: 03d63e126e843375c2950809d680cd670694cfbee4e3cdc8ca463d97ba64cadd11ee9addf000ab4cb20d35ffb668df5f50cb205c594dc6ef2d0942005662d0ce
   languageName: node
   linkType: hard
 
