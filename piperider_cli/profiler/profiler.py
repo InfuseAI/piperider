@@ -227,11 +227,13 @@ class Profiler:
                     row_count, = conn.execute(stmt).fetchone()
 
         result['row_count'] = result['samples'] = row_count
+        result['samples_p'] = 1
 
         if self.config:
             limit = self.config.profiler_config.get('table', {}).get('limit', 0)
             if row_count > limit > 0:
                 result['samples'] = limit
+                result['samples_p'] = limit / row_count if row_count else None
 
         if created:
             result['created'] = created
@@ -292,7 +294,10 @@ class Profiler:
             "name": table.name,
             "row_count": 0,
             "samples": 0,
+            "samples_p": None,
             "col_count": col_count,
+            "duplicate_rows": None,
+            "duplicate_rows_p": None,
             "columns": columns
         }
 
@@ -305,6 +310,8 @@ class Profiler:
         # Profile table metrics
         self._profile_table_metadata(result, table)
         self._profile_table_duplicate_rows(result, table)
+        result['duplicate_rows_p'] = result['duplicate_rows'] / result['samples'] \
+            if result['duplicate_rows'] is not None and result['samples'] else None
         self.event_handler.handle_table_progress(result, col_count, col_index)
 
         # Profile columns
@@ -312,6 +319,8 @@ class Profiler:
             for column in candidate_columns:
                 columns[column.name] = self._profile_column(table, column)
                 columns[column.name]['total'] = result['row_count']
+                columns[column.name]['samples_p'] = columns[column.name]['samples'] / columns[column.name]['total'] \
+                    if columns[column.name]['total'] else None
                 col_index = col_index + 1
                 self.event_handler.handle_table_progress(result, col_count, col_index)
 
@@ -330,6 +339,8 @@ class Profiler:
                         else:
                             columns[column.name] = data
                             columns[column.name]['total'] = result['row_count']
+                            columns[column.name]['samples_p'] = columns[column.name]['samples'] / columns[column.name]['total'] \
+                                if columns[column.name]['total'] else None
                             col_index = col_index + 1
                             self.event_handler.handle_table_progress(result, col_count, col_index)
                 finally:
@@ -475,6 +486,7 @@ class BaseColumnProfiler:
             return {
                 'total': None,
                 'samples': _total,
+                'samples_p': None,
                 'non_nulls': _non_nulls,
                 'non_nulls_p': _non_nulls / _total if _total else None,
                 'nulls': _total - _non_nulls,
@@ -559,6 +571,7 @@ class StringColumnProfiler(BaseColumnProfiler):
             result = {
                 'total': None,
                 'samples': _total,
+                'samples_p': None,
                 'non_nulls': _non_nulls,
                 'non_nulls_p': _non_nulls / _total if _total else None,
                 'nulls': _total - _non_nulls,
@@ -694,6 +707,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
             result = {
                 'total': None,
                 'samples': _total,
+                'samples_p': None,
                 'non_nulls': _non_nulls,
                 'non_nulls_p': _non_nulls / _total if _total else None,
                 'nulls': _total - _non_nulls,
@@ -1039,6 +1053,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             result = {
                 'total': None,
                 'samples': _total,
+                'samples_p': None,
                 'non_nulls': _non_nulls,
                 'non_nulls_p': _non_nulls / _total if _total else None,
                 'nulls': _total - _non_nulls,
@@ -1239,6 +1254,7 @@ class BooleanColumnProfiler(BaseColumnProfiler):
             result = {
                 'total': None,
                 'samples': _total,
+                'samples_p': None,
                 'non_nulls': _non_nulls,
                 'non_nulls_p': _non_nulls / _total if _total else None,
                 'nulls': _total - _non_nulls,
