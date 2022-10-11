@@ -12,6 +12,7 @@ import {
   useDisclosure,
   Code,
   chakra,
+  TableProps,
 } from '@chakra-ui/react';
 import {
   createColumnHelper,
@@ -35,6 +36,7 @@ interface Props extends Comparable {
   comparableAssertions: ReportState['tableColumnAssertionsOnly'];
   filterString?: string;
   setFilterString?: (input: string) => void;
+  tableSize?: TableProps['size'];
 }
 /*
 	* Assertion List Item
@@ -49,6 +51,7 @@ export function AssertionListWidget({
   comparableAssertions,
   filterString = '',
   singleOnly,
+  tableSize,
 }: Props) {
   const modal = useDisclosure();
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -112,7 +115,7 @@ export function AssertionListWidget({
   return (
     <>
       <TableContainer w={assertionListWidth}>
-        <Table variant="simple">
+        <Table variant="simple" size={tableSize}>
           <Thead>
             <Tr>
               {table.getFlatHeaders().map((headerRow) => {

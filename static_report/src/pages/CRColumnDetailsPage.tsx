@@ -143,6 +143,7 @@ export default function CRColumnDetailsPage({
                     <AssertionListWidget
                       filterString={tableName}
                       comparableAssertions={tableColumnAssertionsOnly}
+                      tableSize={'sm'}
                     />
                   </Grid>
                 </TabPanel>

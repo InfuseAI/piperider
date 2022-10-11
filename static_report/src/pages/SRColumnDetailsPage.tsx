@@ -127,6 +127,7 @@ export default function SRColumnDetailsPage({
                     filterString={dataTable.name}
                     comparableAssertions={tableColumnAssertionsOnly}
                     singleOnly
+                    tableSize={'sm'}
                   />
                 </TabPanel>
                 <TabPanel>
