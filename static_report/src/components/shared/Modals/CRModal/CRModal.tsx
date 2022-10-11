@@ -16,10 +16,10 @@ import { ComparableData } from '../../../../types';
 import { AssertionTestDetail } from './AssertionTestDetail';
 
 export type CRModalData = {
-  assertionName: string;
-  assertionKind: 'piperider' | 'dbt';
+  assertionName?: string;
+  assertionKind?: 'piperider' | 'dbt';
 } & ComparableData<
-  AssertionTest & {
+  Partial<AssertionTest> & {
     message?: string;
   }
 >;

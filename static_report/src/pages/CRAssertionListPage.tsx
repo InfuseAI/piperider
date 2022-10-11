@@ -15,9 +15,6 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base, input });
   const { tableColumnAssertionsOnly } = useReportStore.getState();
-  console.log(base, input);
-
-  console.log(tableColumnAssertionsOnly);
   return (
     <Main isSingleReport={false}>
       <Flex justify={'center'} w={tableListWidth} m={14}>
