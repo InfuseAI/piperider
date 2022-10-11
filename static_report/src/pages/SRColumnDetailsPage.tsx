@@ -1,5 +1,6 @@
 import {
   Divider,
+  Flex,
   Grid,
   GridItem,
   Tab,
@@ -30,9 +31,11 @@ import {
   TableOverview,
 } from '../components/shared/Tables/TableOverview';
 import {
+  AssertionLabel,
   AssertionListWidget,
   BreadcrumbMetaItem,
   BreadcrumbNav,
+  getAssertionStatusCountsFromList,
   TableColumnSchemaList,
 } from '../lib';
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
@@ -75,6 +78,12 @@ export default function SRColumnDetailsPage({
       </Main>
     );
   }
+
+  const { failed: baseFailed, total: baseTotal } =
+    getAssertionStatusCountsFromList([
+      dataTable?.piperider_assertion_result,
+      dataTable?.dbt_assertion_result,
+    ]);
 
   const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
     tableName,
@@ -123,6 +132,9 @@ export default function SRColumnDetailsPage({
                   </Grid>
                 </TabPanel>
                 <TabPanel>
+                  <Flex mb={5}>
+                    <AssertionLabel total={baseTotal} failed={baseFailed} />
+                  </Flex>
                   <AssertionListWidget
                     filterString={dataTable.name}
                     comparableAssertions={tableColumnAssertionsOnly}

@@ -42,6 +42,8 @@ import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader
 import { useReportStore } from '../utils/store';
 import { getBreadcrumbPaths } from '../utils/routes';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
+import { getAssertionStatusCountsFromList } from '../components/shared/Tables/utils';
+import { TableListAssertionSummary } from '../components/shared/Tables/TableList/TableListAssertions';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -88,6 +90,18 @@ export default function CRColumnDetailsPage({
   const targetColumnDatum = targetDataColumns[columnName];
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
+
+  //TODO: move to store after assertions schema-change
+  const { failed: baseFailed, total: baseTotal } =
+    getAssertionStatusCountsFromList([
+      baseDataTable?.piperider_assertion_result,
+      baseDataTable?.dbt_assertion_result,
+    ]);
+  const { failed: targetFailed, total: targetTotal } =
+    getAssertionStatusCountsFromList([
+      targetDataTable?.piperider_assertion_result,
+      targetDataTable?.dbt_assertion_result,
+    ]);
 
   const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
     tableName,
@@ -139,6 +153,14 @@ export default function CRColumnDetailsPage({
                   </Grid>
                 </TabPanel>
                 <TabPanel>
+                  <Flex mb={5} ml={-8}>
+                    <TableListAssertionSummary
+                      baseAssertionFailed={baseFailed}
+                      baseAssertionTotal={baseTotal}
+                      targetAssertionFailed={targetFailed}
+                      targetAssertionTotal={targetTotal}
+                    />
+                  </Flex>
                   <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
                     <AssertionListWidget
                       filterString={tableName}

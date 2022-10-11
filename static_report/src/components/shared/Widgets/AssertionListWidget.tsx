@@ -67,6 +67,7 @@ export function AssertionListWidget({
     {
       accessorFn: (row) => `${row.tableName}.${row.columnName}`,
       id: 'testSubject',
+      header: 'Test Subject',
     },
     columnHelper.accessor('name', {
       cell: (info) => info.getValue(),

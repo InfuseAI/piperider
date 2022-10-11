@@ -72,7 +72,7 @@ export function getAssertionStatusCountsFromList(assertions: AssertionValue[]) {
       //to exclude accumulating existing, escape to 0 when NO_VALUE
       const currTotal = resolveStatusCountValues(
         passed !== NO_VALUE ? passValue : 0,
-        failValue !== NO_VALUE ? failValue : 0,
+        failed !== NO_VALUE ? failValue : 0,
       );
 
       const totalValue = resolveStatusCountValues(currTotal, accum.total);
