@@ -34,7 +34,7 @@ class _NotFoundAssertion(BaseAssertionType):
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         result = ValidationResult(context)
-        result.errors.append(f'cannot find an assertion by name {context.name}')
+        result.errors.append(f"cannot find an assertion by name '{context.name}'")
         return result
 
 

@@ -214,10 +214,11 @@ class ValidationResult:
         def to_str(x):
             return '    ' + x
 
+        msg = f"name: '{self.context.name}'" if self.context.name else f"metric: '{self.context.metric}'"
         if self.context.column is None:
-            where = f'name: {self.context.name} for [{self.context.table}]'
+            where = f'{msg} for [{self.context.table}]'
         else:
-            where = f'name: {self.context.name} for [{self.context.table}] and [{self.context.column}]'
+            where = f'{msg} for [{self.context.table}] and [{self.context.column}]'
 
         return '\n'.join([where] + [to_str(x) for x in self.errors])
 
@@ -287,6 +288,16 @@ class AssertionResult:
         else:
             self._exception = AssertionError(
                 f"Column '{column}' metric not found.")
+        return self
+
+    def fail_with_profile_metric_not_found_error(self, table, column, metric):
+        self._success = False
+        if not column:
+            self._exception = AssertionError(
+                f"Metric '{metric}' is not found in Table '{table}' profiling result.")
+        else:
+            self._exception = AssertionError(
+                f"Metric '{metric}' is not found in Column '{table}-{column}' profiling result")
         return self
 
     def fail_with_no_assert_is_required(self):

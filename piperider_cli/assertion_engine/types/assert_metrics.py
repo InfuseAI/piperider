@@ -22,6 +22,17 @@ class AssertMetric(BaseAssertionType):
             return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
         value = target_metrics.get(context.metric)
+        if value is None:
+            try:
+                eq_v = context.asserts['eq']
+                if value is None and eq_v is None:
+                    pass
+                else:
+                    return context.result.fail_with_profile_metric_not_found_error(context.table, context.column,
+                                                                                   context.metric)
+            except KeyError:
+                return context.result.fail_with_profile_metric_not_found_error(context.table, context.column,
+                                                                               context.metric)
 
         context.result.name = self.mapping.get(context.metric, target_metrics.get('type'))
         context.result.actual = value
@@ -33,9 +44,13 @@ class AssertMetric(BaseAssertionType):
         return context.result.success()
 
     def validate(self, context: AssertionContext) -> ValidationResult:
+        results = ValidationResult(context)
+
+        if not self.mapping.is_exist(context.metric):
+            results.errors.append(f"cannot find a metric assertion by metric '{context.metric}'")
+
         names = ['gte', 'lte', 'gt', 'lt', 'eq', 'ne']
-        results = ValidationResult(context) \
-            .allow_only(*names) \
+        results = results.allow_only(*names) \
             .require_metric_consistency(*names)
 
         if context.asserts is None:
@@ -209,3 +224,12 @@ class MetricName:
             name = self.mapping[col_type].get(field)
 
         return name
+
+    def is_exist(self, field):
+        found = False
+        for type_field_mapping in self.mapping.values():
+            if field in type_field_mapping.keys():
+                found = True
+                break
+
+        return found
