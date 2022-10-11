@@ -21,23 +21,17 @@ class AssertMetric(BaseAssertionType):
         if not target_metrics:
             return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
-        value = target_metrics.get(context.metric)
-        if value is None:
-            try:
-                eq_v = context.asserts['eq']
-                if value is None and eq_v is None:
-                    pass
-                else:
-                    return context.result.fail_with_profile_metric_not_found_error(context.table, context.column,
-                                                                                   context.metric)
-            except KeyError:
-                return context.result.fail_with_profile_metric_not_found_error(context.table, context.column,
-                                                                               context.metric)
-
         context.result.name = self.mapping.get(context.metric, target_metrics.get('type'))
-        context.result.actual = value
         context.result.expected = self._expected_message(context.asserts)
 
+        if context.metric in target_metrics:
+            if target_metrics.get(context.metric) is None:
+                return context.result.fail_with_profile_metric_null_error(context.table, context.column, context.metric)
+        else:
+            return context.result.fail_with_profile_metric_not_found_error(context.table, context.column, context.metric)
+
+        value = target_metrics.get(context.metric)
+        context.result.actual = value
         if not self._assert_metric_boundary(value, context.asserts):
             return context.result.fail()
 
@@ -222,6 +216,9 @@ class MetricName:
 
         if name is None and col_type is not None:
             name = self.mapping[col_type].get(field)
+
+        if name is None:
+            return field
 
         return name
 

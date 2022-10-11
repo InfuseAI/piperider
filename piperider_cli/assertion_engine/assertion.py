@@ -297,7 +297,17 @@ class AssertionResult:
                 f"Metric '{metric}' is not found in Table '{table}' profiling result.")
         else:
             self._exception = AssertionError(
-                f"Metric '{metric}' is not found in Column '{table}-{column}' profiling result")
+                f"Metric '{metric}' is not found in Column '{table}-{column}' profiling result.")
+        return self
+
+    def fail_with_profile_metric_null_error(self, table, column, metric):
+        self._success = False
+        if not column:
+            self._exception = AssertionError(
+                f"Metric '{metric}' is undefined in Table '{table}' profiling result.")
+        else:
+            self._exception = AssertionError(
+                f"Metric '{metric}' is undefined in Column '{table}-{column}' profiling result.")
         return self
 
     def fail_with_no_assert_is_required(self):
