@@ -6,7 +6,7 @@ import { Main } from '../components/shared/Layouts/Main';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
 import { SaferSRSchema } from '../types';
 import { useReportStore } from '../utils';
-import { assertionListWidth, tableListWidth } from '../utils/layout';
+import { assertionListWidth } from '../utils/layout';
 
 interface Props {
   data: SaferSRSchema;
@@ -19,7 +19,7 @@ export function SRAssertionListPage({ data }: Props) {
 
   return (
     <Main isSingleReport>
-      <Flex w={tableListWidth} mt={10}>
+      <Flex w={'75%'} mt={10} ml={5} alignSelf={'start'}>
         <InputGroup my={2}>
           <InputLeftElement
             pointerEvents={'none'}

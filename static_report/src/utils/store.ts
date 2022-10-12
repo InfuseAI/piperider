@@ -120,6 +120,7 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
  */
 type EnrichedAssertionTest = AssertionTest & {
   kind: AssertionSource;
+  message?: string; //for dbt
 };
 export type EnrichedTableOrColumnAssertionTest = EnrichedAssertionTest & {
   isTableAssertion: boolean;

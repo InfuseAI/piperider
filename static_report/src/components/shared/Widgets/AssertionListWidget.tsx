@@ -70,15 +70,18 @@ export function AssertionListWidget({
       cell: (info) => info.getValue(),
       header: 'Assertion',
     }),
-    //TODO: dbt 'messages' display vs. actual/expected
-    //TODO: format actual/expected/message values as their formatted counterparts.
     columnHelper.accessor('expected', {
+      //dbt: empty
       cell: (info) => info.getValue(),
       header: 'Expected Value',
       enableGlobalFilter: false,
     }),
     columnHelper.accessor('actual', {
-      cell: (info) => info.getValue(),
+      //dbt: message
+      cell: (info) =>
+        info.row.original.kind === 'piperider'
+          ? info.getValue()
+          : info.row.original.message,
       header: 'Actual Value',
       enableGlobalFilter: false,
     }),
@@ -124,7 +127,7 @@ export function AssertionListWidget({
                   headerRow.id === 'name' ||
                   headerRow.id === 'kind';
                 const sortToggle = (
-                  <chakra.span pl="4">
+                  <chakra.span pl="4" pos={'absolute'} right={0}>
                     {headerRow.column.getIsSorted() ? (
                       headerRow.column.getIsSorted() === 'desc' ? (
                         <TriangleDownIcon aria-label="sorted descending" />
@@ -136,9 +139,11 @@ export function AssertionListWidget({
                 );
                 return singleOnly || hasSameTableCols ? (
                   <Th
+                    pos={'relative'}
                     key={headerRow.id}
                     onClick={headerRow.column.getToggleSortingHandler()}
                     _hover={{ cursor: 'pointer' }}
+                    textAlign={headerRow.id === 'status' ? 'center' : 'left'}
                   >
                     {flexRender(
                       headerRow.column.columnDef.header,
@@ -150,6 +155,7 @@ export function AssertionListWidget({
                   headerRow.id === 'status' && (
                     <Fragment key={headerRow.id}>
                       <Th
+                        pos={'relative'}
                         onClick={headerRow.column.getToggleSortingHandler()}
                         _hover={{ cursor: 'pointer' }}
                       >
@@ -157,6 +163,7 @@ export function AssertionListWidget({
                         {sortToggle}
                       </Th>
                       <Th
+                        pos={'relative'}
                         onClick={headerRow.column.getToggleSortingHandler()}
                         _hover={{ cursor: 'pointer' }}
                       >
@@ -199,7 +206,7 @@ export function AssertionListWidget({
                     : undefined;
                 return (
                   <Tr key={row.id}>
-                    <Td>
+                    <Td display={'flex'} justifyContent={'center'}>
                       <AssertionStatus status={status} />
                     </Td>
                     {!singleOnly && (

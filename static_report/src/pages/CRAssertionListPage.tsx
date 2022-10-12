@@ -5,7 +5,7 @@ import { AssertionStatusSummary } from '../components/shared/Assertions/Assertio
 import { Main } from '../components/shared/Layouts/Main';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
 import { ComparisonReportSchema } from '../types';
-import { assertionListWidth, tableListWidth } from '../utils/layout';
+import { assertionListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
 
 interface Props {
@@ -18,7 +18,7 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
   const { tableColumnAssertionsOnly } = useReportStore.getState();
   return (
     <Main isSingleReport={false}>
-      <Flex justify={'center'} w={tableListWidth} mt={10}>
+      <Flex w={'75%'} mt={10} ml={5} alignSelf={'start'}>
         <InputGroup my={2}>
           <InputLeftElement
             pointerEvents={'none'}
