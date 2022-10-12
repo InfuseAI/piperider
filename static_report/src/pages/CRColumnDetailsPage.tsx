@@ -64,6 +64,7 @@ export default function CRColumnDetailsPage({
   const [tabIndex, setTabIndex] = useState<number>(0);
   const isTableDetailsView = columnName.length === 0;
   const setReportData = useReportStore((s) => s.setReportRawData);
+
   setReportData({ base: data.base, input: data.input });
   const { tableColumnsOnly = [], tableColumnAssertionsOnly } =
     useReportStore.getState();

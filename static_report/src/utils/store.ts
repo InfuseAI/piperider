@@ -198,19 +198,23 @@ const getTaColumnbleAssertionsOnly = (rawData: ComparableReport) => {
     SaferTableSchema
   >(rawData?.base?.tables, rawData?.input?.tables);
   const comparableTableEntries = Object.entries(comparableTables);
+
   //this needs to be reduce, if you want flatten
   const compTableAssertions = comparableTableEntries.reduce(
     (accum, [, { base, target }]) => {
       const flatBaseTests = _getFlattenedTestEntries(base);
       const flatTargetTests = _getFlattenedTestEntries(target);
+
       const tableAssertions = {
-        base: accum.base?.concat(flatBaseTests) || [],
-        target: accum.target?.concat(flatTargetTests) || [],
+        base: accum.base?.concat(flatBaseTests),
+        target: accum.target?.concat(flatTargetTests),
       };
 
       return tableAssertions;
     },
-    {} as ComparableData<EnrichedTableOrColumnAssertionTest[]>,
+    { base: [], target: [] } as ComparableData<
+      EnrichedTableOrColumnAssertionTest[]
+    >,
   );
   const metadata = compTableAssertions.base
     ?.concat(compTableAssertions.target || [])
