@@ -428,6 +428,14 @@ def _append_descriptions(profile_result):
 
 def _clean_up_null_properties(table_results):
     removed = []
+    for t_metric, t_metric_val in table_results.items():
+        if t_metric_val is None:
+            removed.append(t_metric)
+
+    for r in removed:
+        del table_results[r]
+
+    removed = []
     for col_name, props in table_results.get('columns', {}).items():
         for k, v in props.items():
             if v is None:
