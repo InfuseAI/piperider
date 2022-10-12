@@ -18,7 +18,7 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
   const { tableColumnAssertionsOnly } = useReportStore.getState();
   return (
     <Main isSingleReport={false}>
-      <Flex w={'75%'} mt={10} ml={5} alignSelf={'start'}>
+      <Flex w={'70%'} mt={10} ml={65} alignSelf={'start'}>
         <InputGroup my={2}>
           <InputLeftElement
             pointerEvents={'none'}

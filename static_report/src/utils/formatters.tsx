@@ -87,9 +87,10 @@ export function formatTestExpectedOrActual(value?: unknown): any {
 
   // Needed due to comparison's get assertions DS
   if (typeof value === 'object') {
-    return Object.keys(value).map((key) =>
-      typeof value[key] === 'string' ? value[key] : JSON.stringify(value[key]),
-    );
+    return JSON.stringify(value);
+    // return Object.keys(value).map((key) =>
+    //   typeof value[key] === 'string' ? value[key] : JSON.stringify(value[key]),
+    // );
   }
 
   return value;

@@ -19,7 +19,7 @@ export function SRAssertionListPage({ data }: Props) {
 
   return (
     <Main isSingleReport>
-      <Flex w={'75%'} mt={10} ml={5} alignSelf={'start'}>
+      <Flex w={'75%'} mt={10} ml={65} alignSelf={'start'}>
         <InputGroup my={2}>
           <InputLeftElement
             pointerEvents={'none'}

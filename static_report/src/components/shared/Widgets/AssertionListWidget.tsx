@@ -27,6 +27,7 @@ import { Fragment, useState } from 'react';
 import { Comparable } from '../../../types';
 import {
   EnrichedTableOrColumnAssertionTest,
+  formatTestExpectedOrActual,
   ReportState,
 } from '../../../utils';
 import { AssertionStatus } from '../Assertions';
@@ -79,9 +80,9 @@ export function AssertionListWidget({
     columnHelper.accessor('actual', {
       //dbt: message
       cell: (info) =>
-        info.row.original.kind === 'piperider'
-          ? info.getValue()
-          : info.row.original.message,
+        info.row.original.kind === 'dbt'
+          ? info.row.original.message
+          : info.getValue(),
       header: 'Actual Value',
       enableGlobalFilter: false,
     }),
@@ -199,6 +200,7 @@ export function AssertionListWidget({
                   actual,
                   kind,
                   status,
+                  message,
                 } = row.original;
                 const targetRef =
                   targetFlatAssertions?.[index]?.name === tableName
@@ -224,14 +226,16 @@ export function AssertionListWidget({
                       <>
                         <Td>
                           <Code color={'gray.700'}>
-                            {JSON.stringify(expected)}
+                            {formatTestExpectedOrActual(expected)}
                           </Code>
                         </Td>
                         <Td>
                           <Code
                             color={status === 'failed' ? 'red.500' : 'gray.700'}
                           >
-                            {JSON.stringify(actual)}
+                            {formatTestExpectedOrActual(
+                              kind === 'piperider' ? actual : message,
+                            )}
                           </Code>
                         </Td>
                       </>
