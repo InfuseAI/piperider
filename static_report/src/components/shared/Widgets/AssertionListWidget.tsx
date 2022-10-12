@@ -13,6 +13,7 @@ import {
   Code,
   chakra,
   TableProps,
+  TableContainerProps,
 } from '@chakra-ui/react';
 import {
   createColumnHelper,
@@ -28,7 +29,6 @@ import {
   EnrichedTableOrColumnAssertionTest,
   ReportState,
 } from '../../../utils';
-import { assertionListWidth } from '../../../utils/layout';
 import { AssertionStatus } from '../Assertions';
 import { CRModal, CRModalData } from '../Modals/CRModal/CRModal';
 
@@ -39,23 +39,20 @@ interface Props extends Comparable {
   tableSize?: TableProps['size'];
 }
 /*
-	* Assertion List Item
-	Status = Pass | Fail 
-	Test Subject =“<TABLE>.<COLUMN>”
-	Assertion = assertion.name
-	Expected = assertion range expectation
-	Actual = actual value
-	Source (*)
+  A widget for displaying a UI table of comparable assertions (single vs both)
+  Allows sorting by selecting column headers (default, asc, desc)
+  Accepts a filterString for filtering the shown list
 */
 export function AssertionListWidget({
   comparableAssertions,
   filterString = '',
   singleOnly,
   tableSize,
-}: Props) {
+  ...props
+}: Props & TableContainerProps) {
   const modal = useDisclosure();
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [testDetail, setTestDetail] = useState<CRModalData | undefined>(); // modal
+  const [testDetail, setTestDetail] = useState<CRModalData | undefined>();
   const columnHelper = createColumnHelper<EnrichedTableOrColumnAssertionTest>();
 
   const columns = [
@@ -73,6 +70,8 @@ export function AssertionListWidget({
       cell: (info) => info.getValue(),
       header: 'Assertion',
     }),
+    //TODO: dbt 'messages' display vs. actual/expected
+    //TODO: format actual/expected/message values as their formatted counterparts.
     columnHelper.accessor('expected', {
       cell: (info) => info.getValue(),
       header: 'Expected Value',
@@ -115,7 +114,7 @@ export function AssertionListWidget({
 
   return (
     <>
-      <TableContainer w={assertionListWidth}>
+      <TableContainer {...props}>
         <Table variant="simple" size={tableSize}>
           <Thead>
             <Tr>
@@ -223,9 +222,7 @@ export function AssertionListWidget({
                         </Td>
                         <Td>
                           <Code
-                            color={
-                              status === 'failed' ? 'red.500' : 'green.500'
-                            }
+                            color={status === 'failed' ? 'red.500' : 'gray.700'}
                           >
                             {JSON.stringify(actual)}
                           </Code>

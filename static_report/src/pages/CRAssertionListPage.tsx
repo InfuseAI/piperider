@@ -5,7 +5,7 @@ import { AssertionStatusSummary } from '../components/shared/Assertions/Assertio
 import { Main } from '../components/shared/Layouts/Main';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
 import { ComparisonReportSchema } from '../types';
-import { tableListWidth } from '../utils/layout';
+import { assertionListWidth, tableListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
 
 interface Props {
@@ -36,11 +36,12 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
       </Flex>
       <AssertionStatusSummary
         p={5}
-        w={'100%'}
+        w={assertionListWidth}
         failed={tableColumnAssertionsOnly?.metadata?.failed}
         passed={tableColumnAssertionsOnly?.metadata?.passed}
       />
       <AssertionListWidget
+        w={assertionListWidth}
         comparableAssertions={tableColumnAssertionsOnly}
         filterString={filterString}
       />

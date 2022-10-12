@@ -10,13 +10,12 @@ export function AssertionStatusSummary({
 }: Props & FlexProps) {
   return (
     <Flex gap={2} {...props}>
-      Passed:
+      <Text fontWeight={700}>Test Status:</Text>
       <Text as={'span'} fontWeight={700}>
-        {passed}
+        {passed} Passed,
       </Text>
-      Failed:
       <Text as={'span'} fontWeight={700}>
-        {failed}
+        {failed} Failed
       </Text>
     </Flex>
   );

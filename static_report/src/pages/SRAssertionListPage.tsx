@@ -6,7 +6,7 @@ import { Main } from '../components/shared/Layouts/Main';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
 import { SaferSRSchema } from '../types';
 import { useReportStore } from '../utils';
-import { tableListWidth } from '../utils/layout';
+import { assertionListWidth, tableListWidth } from '../utils/layout';
 
 interface Props {
   data: SaferSRSchema;
@@ -37,11 +37,12 @@ export function SRAssertionListPage({ data }: Props) {
       </Flex>
       <AssertionStatusSummary
         p={5}
-        w={'100%'}
+        w={assertionListWidth}
         failed={tableColumnAssertionsOnly?.metadata?.failed}
         passed={tableColumnAssertionsOnly?.metadata?.passed}
       />
       <AssertionListWidget
+        w={assertionListWidth}
         singleOnly
         filterString={filterString}
         comparableAssertions={tableColumnAssertionsOnly}
