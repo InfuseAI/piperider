@@ -59,11 +59,18 @@ class AssertionRecommender:
             for callback in self.recommended_rule_callbacks:
                 assertion: RecommendedAssertion = callback(table, None, profiling_result)
                 if assertion:
-                    table_assertions.append(CommentedMap({
-                        'name': assertion.name,
-                        'assert': CommentedMap(assertion.asserts),
-                        'tags': [RECOMMENDED_ASSERTION_TAG]
-                    }))
+                    if assertion.name:
+                        table_assertions.append(CommentedMap({
+                            'name': assertion.name,
+                            'assert': CommentedMap(assertion.asserts),
+                            'tags': [RECOMMENDED_ASSERTION_TAG]
+                        }))
+                    else:
+                        table_assertions.append(CommentedMap({
+                            'metric': assertion.metric,
+                            'assert': CommentedMap(assertion.asserts),
+                            'tags': [RECOMMENDED_ASSERTION_TAG]
+                        }))
                     assertion.table = table
                     self.generated_assertions.append(assertion)
             for column, col in ta[table]['columns'].items():

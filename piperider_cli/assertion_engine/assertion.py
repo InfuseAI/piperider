@@ -251,9 +251,6 @@ class AssertionResult:
         if self._exception:
             return self
 
-        if self.actual is None or not self._expected:
-            return self.fail_with_assertion_implementation_error()
-
         return self
 
     def success(self, actual=None):
@@ -382,7 +379,7 @@ class AssertionContext:
         self.parameters = payload.get('parameters', {})
         self.asserts = payload.get('assert', {})
         self.tags = payload.get('tags', [])
-        self.result._expected = payload.get('assert', dict(success=True))
+        self.result.expected = payload.get('assert')
 
     def __repr__(self):
         return str(self.__dict__)

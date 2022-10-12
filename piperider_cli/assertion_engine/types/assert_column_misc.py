@@ -59,7 +59,7 @@ def assert_column_not_null(context: AssertionContext, table: str, column: str, m
     non_nulls = column_metrics.get('non_nulls')
 
     success = (samples == non_nulls)
-    context.result.actual = dict(success=success)
+    context.result.actual = None
 
     if success:
         return context.result.success()
@@ -100,7 +100,7 @@ def assert_column_unique(context: AssertionContext, table: str, column: str, met
     distinct = column_metrics.get('distinct')
 
     success = (valids == distinct)
-    context.result.actual = dict(success=success)
+    context.result.actual = None
 
     if success:
         return context.result.success()

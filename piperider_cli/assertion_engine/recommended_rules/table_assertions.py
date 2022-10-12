@@ -6,11 +6,11 @@ def recommended_table_row_count_assertion(table, column, profiling_result) -> Re
         return None
 
     row_count = profiling_result['tables'][table]['row_count']
-    test_function_name = 'assert_row_count'
+    test_metric_name = 'row_count'
     assertion_values = {
-        'min': int(row_count * 0.9),
+        'gte': int(row_count * 0.9),
     }
-    assertion = RecommendedAssertion(test_function_name, assertion_values)
+    assertion = RecommendedAssertion(None, test_metric_name, assertion_values)
     return assertion
 
 
@@ -23,7 +23,7 @@ def recommended_column_schema_type_assertion(table, column, profiling_result) ->
     assertion_values = {
         'schema_type': schema_type
     }
-    assertion = RecommendedAssertion(test_function_name, assertion_values)
+    assertion = RecommendedAssertion(test_function_name, None, assertion_values)
     return assertion
 
 
@@ -52,7 +52,7 @@ def recommended_column_min_assertion(table, column, profiling_result) -> Recomme
             assertion_values = {
                 'min': sorted([round(column_min * 0.9, 4), round(column_min * 1.1, 4)])
             }
-            assertion = RecommendedAssertion(test_function_name, assertion_values)
+            assertion = RecommendedAssertion(test_function_name, None, assertion_values)
             return assertion
     else:
         return None
@@ -83,7 +83,7 @@ def recommended_column_max_assertion(table, column, profiling_result) -> Recomme
             assertion_values = {
                 'max': sorted([round(column_max * 0.9, 4), round(column_max * 1.1, 4)])
             }
-            assertion = RecommendedAssertion(test_function_name, assertion_values)
+            assertion = RecommendedAssertion(test_function_name, None, assertion_values)
             return assertion
     else:
         return None
@@ -101,7 +101,7 @@ def recommended_column_unique_assertion(table, column, profiling_result) -> Reco
 
         if valids > 0 and distinct == valids:
             test_function_name = 'assert_column_unique'
-            assertion = RecommendedAssertion(test_function_name, None)
+            assertion = RecommendedAssertion(test_function_name, None, None)
             return assertion
     else:
         return None
@@ -117,7 +117,7 @@ def recommended_column_not_null_assertion(table, column, profiling_result) -> Re
 
     if total > 0 and non_nulls == total:
         test_function_name = 'assert_column_not_null'
-        assertion = RecommendedAssertion(test_function_name, None)
+        assertion = RecommendedAssertion(test_function_name, None, None)
         return assertion
     else:
         return None
@@ -126,8 +126,6 @@ def recommended_column_not_null_assertion(table, column, profiling_result) -> Re
 RecommendedRules = [
     recommended_table_row_count_assertion,
     recommended_column_schema_type_assertion,
-    recommended_column_min_assertion,
-    recommended_column_max_assertion,
     recommended_column_unique_assertion,
     recommended_column_not_null_assertion,
 ]

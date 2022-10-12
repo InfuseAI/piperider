@@ -202,6 +202,8 @@ def _show_assertion_result(results, exceptions, failed_only=False, single_table=
     console = Console()
 
     def _wrap_pretty(obj):
+        if obj is None:
+            return '-'
         return obj if isinstance(obj, str) else Pretty(obj)
 
     if results:
@@ -229,7 +231,7 @@ def _show_assertion_result(results, exceptions, failed_only=False, single_table=
                     target,
                     test_function,
                     _wrap_pretty(assertion.result.expected),
-                    Pretty(assertion.result.actual)
+                    _wrap_pretty(assertion.result.actual)
                 )
             else:
                 ascii_table.add_row(
@@ -237,7 +239,7 @@ def _show_assertion_result(results, exceptions, failed_only=False, single_table=
                     target,
                     test_function,
                     _wrap_pretty(assertion.result.expected),
-                    Pretty(assertion.result.actual)
+                    _wrap_pretty(assertion.result.actual)
                 )
                 if assertion.result.exception:
                     msg = f'[grey11 on white][purple4]{type(assertion.result.exception).__name__}[/purple4](\'{assertion.result.exception}\')[/grey11 on white]'
