@@ -14,6 +14,7 @@ import {
   chakra,
   TableProps,
   TableContainerProps,
+  Tooltip,
 } from '@chakra-ui/react';
 import {
   createColumnHelper,
@@ -108,6 +109,7 @@ export function AssertionListWidget({
     onSortingChange: setSorting,
     state: { sorting },
   });
+
   const filteredAssertions = table
     .getRowModel()
     .rows.filter(({ original: v }) =>
@@ -169,6 +171,7 @@ export function AssertionListWidget({
                         pos={'relative'}
                         onClick={headerRow.column.getToggleSortingHandler()}
                         _hover={{ cursor: 'pointer' }}
+                        textAlign={'center'}
                       >
                         Base Status
                         {sortToggle}
@@ -177,6 +180,7 @@ export function AssertionListWidget({
                         pos={'relative'}
                         onClick={headerRow.column.getToggleSortingHandler()}
                         _hover={{ cursor: 'pointer' }}
+                        textAlign={'center'}
                       >
                         Target Status
                         {sortToggle}
@@ -200,39 +204,71 @@ export function AssertionListWidget({
                 status,
                 message,
               } = row.original;
+              const actualColValue = formatTestExpectedOrActual(
+                kind === 'piperider' ? actual : message,
+              );
+              const expectedColValue = formatTestExpectedOrActual(expected);
+
+              //Temporary: guard for assuring it's matching assertion pairs
               const targetRef =
-                targetFlatAssertions?.[index]?.name === tableName
-                  ? targetFlatAssertions?.[index]
+                targetFlatAssertions?.[row.index]?.tableName === tableName
+                  ? targetFlatAssertions?.[row.index]
                   : undefined;
+
+              const testSubjectName = columnName
+                ? `${tableName}.${columnName}`
+                : `${tableName}`;
               return (
                 <Tr key={row.id}>
-                  <Td display={'flex'} justifyContent={'center'}>
-                    <AssertionStatus status={status} />
+                  <Td>
+                    <Flex justifyContent={'center'}>
+                      <AssertionStatus status={status} />
+                    </Flex>
                   </Td>
                   {!singleOnly && (
                     <Td>
-                      <AssertionStatus status={targetRef?.status} />
+                      <Flex justifyContent={'center'}>
+                        <AssertionStatus status={targetRef?.status} />
+                      </Flex>
                     </Td>
                   )}
-                  <Td>
-                    {columnName ? `${tableName}.${columnName}` : `${tableName}`}
+                  <Td maxWidth={'16em'}>
+                    <Tooltip label={testSubjectName}>
+                      <Text noOfLines={1} textOverflow={'ellipsis'}>
+                        {testSubjectName}
+                      </Text>
+                    </Tooltip>
                   </Td>
-                  <Td>{name}</Td>
+                  <Td maxWidth={'16em'}>
+                    <Tooltip label={name}>
+                      <Text noOfLines={1} textOverflow={'ellipsis'}>
+                        {name}
+                      </Text>
+                    </Tooltip>
+                  </Td>
                   {singleOnly && (
                     <>
                       <Td>
-                        <Code color={'gray.700'}>
-                          {formatTestExpectedOrActual(expected)}
-                        </Code>
+                        <Tooltip label={expectedColValue}>
+                          <Code
+                            maxWidth={'14em'}
+                            noOfLines={1}
+                            color={'gray.700'}
+                          >
+                            {expectedColValue}
+                          </Code>
+                        </Tooltip>
                       </Td>
                       <Td>
-                        <Code
-                          color={status === 'failed' ? 'red.500' : 'gray.700'}
-                        >
-                          {formatTestExpectedOrActual(
-                            kind === 'piperider' ? actual : message,
-                          )}
-                        </Code>
+                        <Tooltip label={actualColValue}>
+                          <Code
+                            maxWidth={'14em'}
+                            noOfLines={1}
+                            color={status === 'failed' ? 'red.500' : 'gray.700'}
+                          >
+                            {actualColValue}
+                          </Code>
+                        </Tooltip>
                       </Td>
                     </>
                   )}

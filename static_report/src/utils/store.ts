@@ -164,13 +164,12 @@ const _getFlattenedTestEntries = (table?: SaferTableSchema) => {
       return [...accum, ...result];
     }, []);
 
-  //FIXME: DRY this.
   const flatColumnDbtAssertions = Object.entries(
     table?.dbt_assertion_result?.columns || {},
   )
     .map(
       ([colKey, tests]) =>
-        [colKey, tests.map(_getKindMapper('piperider'))] as [
+        [colKey, tests.map(_getKindMapper('dbt'))] as [
           string,
           EnrichedAssertionTest[],
         ],
