@@ -144,9 +144,11 @@ export default function SRColumnDetailsPage({
                   </Grid>
                 </TabPanel>
                 <TabPanel>
-                  <Flex mb={5}>
-                    <AssertionLabel total={baseTotal} failed={baseFailed} />
-                  </Flex>
+                  {baseTotal > 0 && (
+                    <Flex mb={5}>
+                      <AssertionLabel total={baseTotal} failed={baseFailed} />
+                    </Flex>
+                  )}
                   <AssertionListWidget
                     filterString={dataTable.name}
                     comparableAssertions={tableColumnAssertionsOnly}

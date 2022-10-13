@@ -31,6 +31,7 @@ import {
   ReportState,
 } from '../../../utils';
 import { AssertionStatus } from '../Assertions';
+import { NoData } from '../Layouts/NoData';
 import { CRModal, CRModalData } from '../Modals/CRModal/CRModal';
 
 interface Props extends Comparable {
@@ -107,11 +108,20 @@ export function AssertionListWidget({
     onSortingChange: setSorting,
     state: { sorting },
   });
+  const filteredAssertions = table
+    .getRowModel()
+    .rows.filter(({ original: v }) =>
+      filterString
+        ? v.name.search(new RegExp(filterString, 'gi')) > -1 ||
+          (v.tableName || '').search(new RegExp(filterString, 'gi')) > -1 ||
+          (v.columnName || '').search(new RegExp(filterString, 'gi')) > -1
+        : true,
+    );
 
-  if (table.getRowModel().rows.length === 0) {
+  if (filteredAssertions.length === 0) {
     return (
       <Flex direction="column" justifyContent="center" alignItems="center">
-        <Text textAlign="center">No tests available</Text>
+        <NoData text="No Tests Available" />
       </Flex>
     );
   }
@@ -179,88 +189,74 @@ export function AssertionListWidget({
             </Tr>
           </Thead>
           <Tbody>
-            {table
-              .getRowModel()
-              .rows.filter(({ original: v }) =>
-                filterString
-                  ? v.name.search(new RegExp(filterString, 'gi')) > -1 ||
-                    (v.tableName || '').search(new RegExp(filterString, 'gi')) >
-                      -1 ||
-                    (v.columnName || '').search(
-                      new RegExp(filterString, 'gi'),
-                    ) > -1
-                  : true,
-              )
-              .map((row, index) => {
-                const {
-                  tableName,
-                  columnName,
-                  name,
-                  expected,
-                  actual,
-                  kind,
-                  status,
-                  message,
-                } = row.original;
-                const targetRef =
-                  targetFlatAssertions?.[index]?.name === tableName
-                    ? targetFlatAssertions?.[index]
-                    : undefined;
-                return (
-                  <Tr key={row.id}>
-                    <Td display={'flex'} justifyContent={'center'}>
-                      <AssertionStatus status={status} />
-                    </Td>
-                    {!singleOnly && (
-                      <Td>
-                        <AssertionStatus status={targetRef?.status} />
-                      </Td>
-                    )}
+            {filteredAssertions.map((row, index) => {
+              const {
+                tableName,
+                columnName,
+                name,
+                expected,
+                actual,
+                kind,
+                status,
+                message,
+              } = row.original;
+              const targetRef =
+                targetFlatAssertions?.[index]?.name === tableName
+                  ? targetFlatAssertions?.[index]
+                  : undefined;
+              return (
+                <Tr key={row.id}>
+                  <Td display={'flex'} justifyContent={'center'}>
+                    <AssertionStatus status={status} />
+                  </Td>
+                  {!singleOnly && (
                     <Td>
-                      {columnName
-                        ? `${tableName}.${columnName}`
-                        : `${tableName}`}
+                      <AssertionStatus status={targetRef?.status} />
                     </Td>
-                    <Td>{name}</Td>
-                    {singleOnly && (
-                      <>
-                        <Td>
-                          <Code color={'gray.700'}>
-                            {formatTestExpectedOrActual(expected)}
-                          </Code>
-                        </Td>
-                        <Td>
-                          <Code
-                            color={status === 'failed' ? 'red.500' : 'gray.700'}
-                          >
-                            {formatTestExpectedOrActual(
-                              kind === 'piperider' ? actual : message,
-                            )}
-                          </Code>
-                        </Td>
-                      </>
-                    )}
-                    <Td>{kind}</Td>
-                    {!singleOnly && (
-                      <Td
-                        onClick={() => {
-                          setTestDetail({
-                            assertionKind: kind,
-                            assertionName: name,
-                            base: row.original,
-                            target: targetRef,
-                          });
-                          modal.onOpen();
-                        }}
-                      >
-                        <Text as="span" cursor="pointer">
-                          🔍
-                        </Text>
+                  )}
+                  <Td>
+                    {columnName ? `${tableName}.${columnName}` : `${tableName}`}
+                  </Td>
+                  <Td>{name}</Td>
+                  {singleOnly && (
+                    <>
+                      <Td>
+                        <Code color={'gray.700'}>
+                          {formatTestExpectedOrActual(expected)}
+                        </Code>
                       </Td>
-                    )}
-                  </Tr>
-                );
-              })}
+                      <Td>
+                        <Code
+                          color={status === 'failed' ? 'red.500' : 'gray.700'}
+                        >
+                          {formatTestExpectedOrActual(
+                            kind === 'piperider' ? actual : message,
+                          )}
+                        </Code>
+                      </Td>
+                    </>
+                  )}
+                  <Td>{kind}</Td>
+                  {!singleOnly && (
+                    <Td
+                      onClick={() => {
+                        setTestDetail({
+                          assertionKind: kind,
+                          assertionName: name,
+                          base: row.original,
+                          target: targetRef,
+                        });
+                        modal.onOpen();
+                      }}
+                    >
+                      <Text as="span" cursor="pointer">
+                        🔍
+                      </Text>
+                    </Td>
+                  )}
+                </Tr>
+              );
+            })}
           </Tbody>
         </Table>
       </TableContainer>

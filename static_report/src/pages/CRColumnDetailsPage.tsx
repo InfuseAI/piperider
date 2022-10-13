@@ -164,14 +164,16 @@ export default function CRColumnDetailsPage({
                   </Grid>
                 </TabPanel>
                 <TabPanel>
-                  <Flex mb={5} ml={-8}>
-                    <TableListAssertionSummary
-                      baseAssertionFailed={baseFailed}
-                      baseAssertionTotal={baseTotal}
-                      targetAssertionFailed={targetFailed}
-                      targetAssertionTotal={targetTotal}
-                    />
-                  </Flex>
+                  {baseTotal > 0 && (
+                    <Flex mb={5}>
+                      <TableListAssertionSummary
+                        baseAssertionFailed={baseFailed}
+                        baseAssertionTotal={baseTotal}
+                        targetAssertionFailed={targetFailed}
+                        targetAssertionTotal={targetTotal}
+                      />
+                    </Flex>
+                  )}
                   <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
                     <AssertionListWidget
                       filterString={tableName}
