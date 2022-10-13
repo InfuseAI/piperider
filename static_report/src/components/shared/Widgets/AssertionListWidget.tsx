@@ -157,6 +157,7 @@ export function AssertionListWidget({
                     onClick={headerRow.column.getToggleSortingHandler()}
                     _hover={{ cursor: 'pointer' }}
                     textAlign={headerRow.id === 'status' ? 'center' : 'left'}
+                    px={headerRow.id === 'status' ? 0 : 2}
                   >
                     {flexRender(
                       headerRow.column.columnDef.header,
@@ -172,6 +173,7 @@ export function AssertionListWidget({
                         onClick={headerRow.column.getToggleSortingHandler()}
                         _hover={{ cursor: 'pointer' }}
                         textAlign={'center'}
+                        px={0}
                       >
                         Base Status
                         {sortToggle}
@@ -181,6 +183,7 @@ export function AssertionListWidget({
                         onClick={headerRow.column.getToggleSortingHandler()}
                         _hover={{ cursor: 'pointer' }}
                         textAlign={'center'}
+                        px={0}
                       >
                         Target Status
                         {sortToggle}
@@ -193,7 +196,7 @@ export function AssertionListWidget({
             </Tr>
           </Thead>
           <Tbody>
-            {filteredAssertions.map((row, index) => {
+            {filteredAssertions.map((row) => {
               const {
                 tableName,
                 columnName,
