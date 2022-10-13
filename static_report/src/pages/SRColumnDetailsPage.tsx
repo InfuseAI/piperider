@@ -31,12 +31,16 @@ import {
   TableOverview,
 } from '../components/shared/Tables/TableOverview';
 import {
+  AMPLITUDE_EVENTS,
   AssertionLabel,
   AssertionListWidget,
   BreadcrumbMetaItem,
   BreadcrumbNav,
   getAssertionStatusCountsFromList,
+  SR_TYPE_LABEL,
   TableColumnSchemaList,
+  useAmplitudeOnMount,
+  useDocumentTitle,
 } from '../lib';
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
@@ -51,6 +55,14 @@ export default function SRColumnDetailsPage({
   columnName,
   tableName,
 }: Props) {
+  useDocumentTitle('Single Report: Table Column Details');
+  useAmplitudeOnMount({
+    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+    eventProperties: {
+      type: SR_TYPE_LABEL,
+      page: 'column-details-page',
+    },
+  });
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
 

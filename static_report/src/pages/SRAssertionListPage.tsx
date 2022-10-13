@@ -4,14 +4,23 @@ import { useState } from 'react';
 import { AssertionStatusSummary } from '../components/shared/Assertions/AssertionStatusSummary';
 import { Main } from '../components/shared/Layouts/Main';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
+import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { SaferSRSchema } from '../types';
-import { useReportStore } from '../utils';
+import { AMPLITUDE_EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
 import { assertionListWidth } from '../utils/layout';
 
 interface Props {
   data: SaferSRSchema;
 }
 export function SRAssertionListPage({ data }: Props) {
+  useDocumentTitle('Single Report: Assertions');
+  useAmplitudeOnMount({
+    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+    eventProperties: {
+      type: SR_TYPE_LABEL,
+      page: 'assertion-list-page',
+    },
+  });
   const [filterString, setFilterString] = useState<string>('');
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base: data });

@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { AssertionStatusSummary } from '../components/shared/Assertions/AssertionStatusSummary';
 import { Main } from '../components/shared/Layouts/Main';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
+import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { ComparisonReportSchema } from '../types';
+import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
 import { assertionListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
 
@@ -12,6 +14,14 @@ interface Props {
   data: ComparisonReportSchema;
 }
 export function CRAssertionListPage({ data: { base, input } }: Props) {
+  useDocumentTitle('Comparison Report: Assertions');
+  useAmplitudeOnMount({
+    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+    eventProperties: {
+      type: CR_TYPE_LABEL,
+      page: 'assertion-list-page',
+    },
+  });
   const [filterString, setFilterString] = useState<string>('');
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base, input });

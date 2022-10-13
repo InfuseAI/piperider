@@ -18,11 +18,20 @@ import { useLocation } from 'wouter';
 import { tableListGridTempCols, tableListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
 import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
+import { useAmplitudeOnMount } from '../hooks';
+import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils/amplitudeEvents';
 
 type Props = { data: ComparisonReportSchema };
 
 export function CRTablesListPage({ data }: Props) {
-  useDocumentTitle('Comparison Reports');
+  useDocumentTitle('Comparison Report: Tables');
+  useAmplitudeOnMount({
+    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+    eventProperties: {
+      type: CR_TYPE_LABEL,
+      page: 'table-list-page',
+    },
+  });
   const [, setLocation] = useLocation();
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data.base, input: data.input });

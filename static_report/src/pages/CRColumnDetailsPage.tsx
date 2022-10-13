@@ -44,6 +44,8 @@ import { getBreadcrumbPaths } from '../utils/routes';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
 import { getAssertionStatusCountsFromList } from '../components/shared/Tables/utils';
 import { TableListAssertionSummary } from '../components/shared/Tables/TableList/TableListAssertions';
+import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
+import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -56,6 +58,14 @@ export default function CRColumnDetailsPage({
   columnName,
   tableName,
 }: Props) {
+  useDocumentTitle('Comparison Report: Table Column Details');
+  useAmplitudeOnMount({
+    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+    eventProperties: {
+      type: CR_TYPE_LABEL,
+      page: 'column-details-page',
+    },
+  });
   const {
     base: { tables: baseTables },
     input: { tables: targetTables },

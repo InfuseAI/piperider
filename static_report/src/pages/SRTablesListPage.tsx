@@ -18,6 +18,8 @@ import { TableListItem } from '../components/shared/Tables/TableList/TableListIt
 import { tableListGridTempCols, tableListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
 import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
+import { useAmplitudeOnMount } from '../hooks/useAmplitudeOnMount';
+import { AMPLITUDE_EVENTS, SR_TYPE_LABEL } from '../utils/amplitudeEvents';
 
 type Props = { data: SaferSRSchema };
 
@@ -28,7 +30,14 @@ export function SRTablesListPage({ data }: Props) {
 
   const [, setLocation] = useLocation();
 
-  useDocumentTitle('Single-Run Reports');
+  useDocumentTitle('Single-Run Report: Tables');
+  useAmplitudeOnMount({
+    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+    eventProperties: {
+      type: SR_TYPE_LABEL,
+      page: 'table-list-page',
+    },
+  });
 
   return (
     <Main isSingleReport>
