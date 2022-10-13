@@ -28,7 +28,7 @@ export function SRAssertionListPage({ data }: Props) {
 
   return (
     <Main isSingleReport>
-      <Flex w={assertionListWidth - 50} mt={10}>
+      <Flex maxW={assertionListWidth - 50} w={'100%'} mt={10}>
         <InputGroup my={2}>
           <InputLeftElement
             pointerEvents={'none'}

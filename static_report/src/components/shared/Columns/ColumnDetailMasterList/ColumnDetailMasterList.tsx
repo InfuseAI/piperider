@@ -84,7 +84,7 @@ export function ColumnDetailMasterList({
           </Text>
         </Flex>
 
-        {/* Search Bar */}
+        {/* FIXME: Refactor as Search Bar Component */}
         <InputGroup my={2}>
           <InputLeftElement
             pointerEvents={'none'}
