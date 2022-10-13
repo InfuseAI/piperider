@@ -215,10 +215,10 @@ class ValidationResult:
             return '    ' + x
 
         msg = f"name: '{self.context.name}'" if self.context.name else f"metric: '{self.context.metric}'"
-        if self.context.column is None:
-            where = f'{msg} for [{self.context.table}]'
-        else:
-            where = f'{msg} for [{self.context.table}] and [{self.context.column}]'
+
+        where = f'{msg} for [yellow]{self.context.table}[/yellow]'
+        if self.context.column is not None:
+            where = f'{where}.[blue]{self.context.column}[/blue]'
 
         return '\n'.join([where] + [to_str(x) for x in self.errors])
 
