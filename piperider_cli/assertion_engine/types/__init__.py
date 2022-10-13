@@ -3,7 +3,8 @@ from piperider_cli.assertion_engine.types.assert_column_misc import \
     AssertColumnNotNull, \
     AssertColumnNull, \
     AssertColumnUnique, \
-    AssertColumnExist
+    AssertColumnExist, \
+    AssertColumnValue
 from piperider_cli.assertion_engine.types.assert_column_ranges import \
     AssertColumnMinInRange, \
     AssertColumnMaxInRange, \
@@ -69,6 +70,7 @@ register_assertion_function(AssertColumnNotNull)
 register_assertion_function(AssertColumnNull)
 register_assertion_function(AssertColumnUnique)
 register_assertion_function(AssertColumnExist)
+register_assertion_function(AssertColumnValue)
 
 if __name__ == '__main__':
     pass

@@ -22,7 +22,7 @@ class AssertMetric(BaseAssertionType):
             return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
         context.result.name = self.mapping.get(context.metric, target_metrics.get('type'))
-        context.result.expected = self._expected_message(context.asserts)
+        context.result.expected = self.to_interval_notation(context.asserts)
 
         if context.metric in target_metrics:
             if target_metrics.get(context.metric) is None:
@@ -32,7 +32,7 @@ class AssertMetric(BaseAssertionType):
 
         value = target_metrics.get(context.metric)
         context.result.actual = value
-        if not self._assert_metric_boundary(value, context.asserts):
+        if not self.assert_metric_boundary(value, context.asserts):
             return context.result.fail()
 
         return context.result.success()
@@ -58,7 +58,7 @@ class AssertMetric(BaseAssertionType):
         return results
 
     @staticmethod
-    def _expected_message(asserts):
+    def to_interval_notation(asserts):
         if len(asserts.keys()) == 2:
             operators = {
                 'lte': ']',
@@ -66,15 +66,13 @@ class AssertMetric(BaseAssertionType):
                 'gte': '[',
                 'gt': '('
             }
-            # TODO: optimization needed
-            boundary = []
+            boundary = ''
             for k, v in asserts.items():
                 if k.startswith('lt'):
-                    boundary.append(f'{v}{operators[k]}')
+                    boundary += f'{v}{operators[k]}'
                 else:
-                    boundary.insert(0, f'{operators[k]}{v}')
-
-            return ', '.join(boundary)
+                    boundary = f'{operators[k]}{v}, {boundary}'
+            return boundary
         else:
             operators = {
                 'gt': '>',
@@ -88,7 +86,7 @@ class AssertMetric(BaseAssertionType):
             return f'{operators[k]} {v}'
 
     @staticmethod
-    def _assert_metric_boundary(metric: Union[int, float, str], metric_boundary: dict) -> bool:
+    def assert_metric_boundary(metric: Union[int, float, str], metric_boundary: dict) -> bool:
         if isinstance(metric, str):
             metric = datetime.fromisoformat(metric)
 
