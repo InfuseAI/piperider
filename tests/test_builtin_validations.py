@@ -340,5 +340,5 @@ ERROR: min parameter should be the same types""", results[0].as_internal_report(
         results = self.engine.validate_assertions()
         self.assertEqual(1, len(results))
         self.assertEqual("""Found assertion syntax problem => name: there_is_no_such_assertion for table orders_1k
-ERROR: cannot find an assertion by name there_is_no_such_assertion""",
+ERROR: cannot find an assertion by name 'there_is_no_such_assertion'""",
                          results[0].as_internal_report())

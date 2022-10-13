@@ -119,7 +119,7 @@ def _assert_column_in_range(context: AssertionContext, table: str, column: str, 
     if not observed.is_metric_available():
         return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
-    context.result.actual = {target_metric: observed.actual_value()}
+    context.result.actual = observed.actual_value()
 
     results = []
     for result in observed.check_range(values[0], values[1]):

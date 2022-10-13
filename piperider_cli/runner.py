@@ -200,12 +200,18 @@ def _show_dbt_test_result(dbt_test_results, title=None, failed_only=False):
 
 def _show_assertion_result(results, exceptions, failed_only=False, single_table=None, title=None):
     console = Console()
+
+    def _wrap_pretty(obj):
+        if obj is None:
+            return '-'
+        return obj if isinstance(obj, str) else Pretty(obj)
+
     if results:
         ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta',
                             box=box.SIMPLE, title=title)
         ascii_table.add_column('Status', style='bold white')
-        ascii_table.add_column('Target', style='bold')
-        ascii_table.add_column('Test Function', style='bold green')
+        ascii_table.add_column('Test Subject', style='bold')
+        ascii_table.add_column('Assertion', style='bold green')
         ascii_table.add_column('Expected', style='bold')
         ascii_table.add_column('Actual', style='cyan')
 
@@ -216,7 +222,7 @@ def _show_assertion_result(results, exceptions, failed_only=False, single_table=
                 continue
             table = assertion.table
             column = assertion.column
-            test_function = assertion.name
+            test_function = assertion.result.name
             success = assertion.result.status()
             target = f'[yellow]{table}[/yellow].[blue]{column}[/blue]' if column else f'[yellow]{table}[/yellow]'
             if success:
@@ -224,16 +230,16 @@ def _show_assertion_result(results, exceptions, failed_only=False, single_table=
                     '[[bold green]  OK  [/bold green]]',
                     target,
                     test_function,
-                    Pretty(assertion.result.expected()),
-                    Pretty(assertion.result.actual)
+                    _wrap_pretty(assertion.result.expected),
+                    _wrap_pretty(assertion.result.actual)
                 )
             else:
                 ascii_table.add_row(
                     '[[bold red]FAILED[/bold red]]',
                     target,
                     test_function,
-                    Pretty(assertion.result.expected()),
-                    Pretty(assertion.result.actual)
+                    _wrap_pretty(assertion.result.expected),
+                    _wrap_pretty(assertion.result.actual)
                 )
                 if assertion.result.exception:
                     msg = f'[grey11 on white][purple4]{type(assertion.result.exception).__name__}[/purple4](\'{assertion.result.exception}\')[/grey11 on white]'
@@ -423,6 +429,14 @@ def _append_descriptions(profile_result):
 
 
 def _clean_up_null_properties(table_results):
+    removed = []
+    for t_metric, t_metric_val in table_results.items():
+        if t_metric_val is None:
+            removed.append(t_metric)
+
+    for r in removed:
+        del table_results[r]
+
     removed = []
     for col_name, props in table_results.get('columns', {}).items():
         for k, v in props.items():

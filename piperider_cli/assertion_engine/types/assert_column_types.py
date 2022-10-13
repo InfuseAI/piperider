@@ -63,6 +63,7 @@ def assert_column_schema_type(context: AssertionContext, table: str, column: str
     assert_schema_type = context.asserts.get('schema_type').upper()
     if not assert_schema_type:
         return context.result.fail_with_assertion_error('Expect a SQL schema type')
+    context.result.expected = assert_schema_type
 
     schema_type = column_metrics.get('schema_type')
     context.result.actual = schema_type
@@ -85,6 +86,8 @@ def assert_column_type(context: AssertionContext, table: str, column: str, metri
 
     if assert_type not in COLUMN_TYPES:
         return context.result.fail_with_assertion_error(f'The column type should one of {COLUMN_TYPES}.')
+
+    context.result.expected = assert_type
 
     column_type = column_metrics.get('type')
 
@@ -111,6 +114,8 @@ def assert_column_in_types(context: AssertionContext, table: str, column: str, m
     if invalid_types:
         return context.result.fail_with_assertion_error(
             f'Invalid types {invalid_types}. The column type should one of {COLUMN_TYPES}.')
+
+    context.result.expected = assert_types
 
     column_type = column_metrics.get('type')
 

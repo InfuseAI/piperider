@@ -91,7 +91,7 @@ class UserDefinedTestAssertionsTests(TestCase):
         self.assertEqual(dict(success=True, exceptions=None),
                          dict(success=assertion_result._success, exceptions=assertion_result._exception))
         self.assertEqual(assertion_result.actual, 'I see you')
-        self.assertEqual(assertion_result.expected(), {'magic_number': 5566})
+        self.assertEqual(assertion_result.expected, {'magic_number': 5566})
 
     def test_user_defined_test_invoked_from_env_PIPERIDER_PLUGINS(self):
         random_dir = generate_random_directory()
@@ -121,4 +121,4 @@ class UserDefinedTestAssertionsTests(TestCase):
         self.assertEqual(dict(success=True, exceptions=None),
                          dict(success=assertion_result._success, exceptions=assertion_result._exception))
         self.assertEqual(assertion_result.actual, 'I see you')
-        self.assertEqual(assertion_result.expected(), {'magic_number': 5566})
+        self.assertEqual(assertion_result.expected, {'magic_number': 5566})

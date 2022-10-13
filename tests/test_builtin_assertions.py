@@ -63,7 +63,6 @@ class BuiltinAssertionsTests(TestCase):
                          '[1000, 200000.5]',
                          results[0].as_internal_report())
 
-
     def test_assert_row_count_in_range(self):
         assertions = """
         orders_1k:  # Table Name
@@ -216,3 +215,25 @@ class BuiltinAssertionsTests(TestCase):
             assertion_result = result.result
             self.assertEqual(dict(success=True, exceptions=None),
                              dict(success=assertion_result._success, exceptions=assertion_result._exception))
+
+    def test_assert_column_value(self):
+        assertions = """
+        orders_1k:  # Table Name
+          columns:
+            o_totalprice:
+              tests:
+              - name: assert_column_value
+                assert:
+                  lte: 440269.51
+                  gte: 1106.99
+                tags:
+                - OPTIONAL
+        """
+        engine = build_assertion_engine('orders_1k', assertions)
+
+        results, exceptions = engine.evaluate_all(self.metrics)
+        self.assertEqual([], exceptions)
+
+        assertion_result = results[0].result
+        self.assertEqual(dict(success=True, exceptions=None),
+                         dict(success=assertion_result._success, exceptions=assertion_result._exception))

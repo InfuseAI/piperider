@@ -35,9 +35,17 @@
               "description": "Number of rows that have identical values across corresponding columns in this table",
               "type": "integer"
             },
+            "duplicate_rows_p": {
+              "description": "Percentage of rows that have identical values across corresponding columns in this table",
+              "type": "number"
+            },
             "samples": {
               "description": "Number of rows after applying the row-limit configuration (rows will be unaffected if none is set)",
               "type": "integer"
+            },
+            "samples_p": {
+              "description": "Percentage of rows after applying the row-limit configuration (rows will be unaffected if none is set)",
+              "type": "number"
             },
             "created": {
               "description": "The time that this table created at in ISO 8601 format including time zone",
@@ -80,30 +88,57 @@
                       "description": "Number of rows after applying the row-limit configuration (rows will be unaffected if none is set",
                       "type": "integer"
                     },
+                    "samples_p": {
+                      "description": "Percentage of rows after applying the row-limit configuration (rows will be unaffected if none is set",
+                      "type": "number"
+                    },
                     "nulls": {
                       "description": "The count of values that are null type",
                       "type": "integer"
+                    },
+                    "nulls_p": {
+                      "description": "The percentage of values that are null type",
+                      "type": "number"
                     },
                     "non_nulls": {
                       "description": "The count of non null values",
                       "type": "integer"
                     },
+                    "non_nulls_p": {
+                      "description": "The percentage of non null values",
+                      "type": "number"
+                    },
                     "distinct": {
                       "description": "The count of distinct kinds of values (e.g. [a,b,c,c] => [a,b,c])",
                       "type": "integer"
+                    },
+                    "distinct_p": {
+                      "description": "The percentage of distinct kinds of values (e.g. [a,b,c,c] => [a,b,c])",
+                      "type": "number"
                     },
                     "duplicates": {
                       "description": "The count of values that are recurring (e.g. [a,b,c,c] => [c,c])",
                       "type": "integer"
                     },
+                    "duplicates_p": {
+                      "description": "The percentage of values that are recurring (e.g. [a,b,c,c] => [c,c])",
+                      "type": "number"
+                    },
                     "non_duplicates": {
                       "description": "The count of values that are non-recurring (e.g. [a,b,c,c] => [a,b])",
                       "type": "integer"
+                    },
+                    "non_duplicates_p": {
+                      "description": "The percentage of values that are non-recurring (e.g. [a,b,c,c] => [a,b])",
+                      "type": "number"
                     },
                     "distribution": {
                       "$ref": "#/definitions/distribution"
                     },
                     "histogram": {
+                      "$ref": "#/definitions/histogram"
+                    },
+                    "histogram_length": {
                       "$ref": "#/definitions/histogram"
                     },
                     "topk": {
@@ -136,37 +171,73 @@
                       "description": "The count of values that are non-null and not invalid",
                       "type": "integer"
                     },
+                    "valids_p": {
+                      "description": "The percentage of values that are non-null and not invalid",
+                      "type": "number"
+                    },
                     "invalids": {
                       "description": "The count of values that don't match the schema type. For example, a string in a numeric column.",
                       "type": "integer"
+                    },
+                    "invalids_p": {
+                      "description": "The percentage of values that don't match the schema type. For example, a string in a numeric column.",
+                      "type": "number"
                     },
                     "zeros": {
                       "description": "The count of numerical values that equal zero exactly",
                       "type": "integer"
                     },
+                    "zeros_p": {
+                      "description": "The percentage of numerical values that equal zero exactly",
+                      "type": "number"
+                    },
                     "negatives": {
                       "description": "The count of numerical values that are less than zero",
                       "type": "integer"
+                    },
+                    "negatives_p": {
+                      "description": "The percentage of numerical values that are less than zero",
+                      "type": "number"
                     },
                     "positives": {
                       "description": "The count of numerical values that are more than zero",
                       "type": "integer"
                     },
+                    "positives_p": {
+                      "description": "The percentage of numerical values that are more than zero",
+                      "type": "number"
+                    },
                     "zero_length": {
                       "description": "The count of string values with zero lengths exactly",
                       "type": "integer"
+                    },
+                    "zero_length_p": {
+                      "description": "The percentage of string values with zero lengths exactly",
+                      "type": "number"
                     },
                     "non_zero_length": {
                       "description": "The count of string values with non-zero lengths",
                       "type": "integer"
                     },
+                    "non_zero_length_p": {
+                      "description": "The percentage of string values with non-zero lengths",
+                      "type": "number"
+                    },
                     "trues": {
                       "description": "The count of boolean true values",
                       "type": "integer"
                     },
+                    "trues_p": {
+                      "description": "The percentage of boolean true values",
+                      "type": "number"
+                    },
                     "falses": {
                       "description": "The count of boolean false values",
                       "type": "integer"
+                    },
+                    "falses_p": {
+                      "description": "The percentage of boolean false values",
+                      "type": "number"
                     },
                     "profile_duration": {
                       "type": "string"
@@ -182,8 +253,16 @@
                       "description": "The average of a column's values",
                       "type": "number"
                     },
+                    "avg_length": {
+                      "description": "The average text length of a string column",
+                      "type": "number"
+                    },
                     "stddev": {
                       "description": "The standard deviation of a column's values",
+                      "type": "number"
+                    },
+                    "stddev_length": {
+                      "description": "The standard deviation of text length of a string column",
                       "type": "number"
                     },
                     "min": {
@@ -197,8 +276,12 @@
                         }
                       ]
                     },
+                    "min_length": {
+                      "description": "The minimum length of a string column",
+                      "type": "integer"
+                    },
                     "max": {
-                      "description": "The maximum value of a columns's range",
+                      "description": "The maximum value of a column's range",
                       "oneOf": [
                         {
                           "type": "string"
@@ -207,6 +290,10 @@
                           "type": "number"
                         }
                       ]
+                    },
+                    "max_length": {
+                      "description": "The maximum length of a string column",
+                      "type": "integer"
                     },
                     "p5": {
                       "description": "The quantile value of the dataset (5th percentile)",

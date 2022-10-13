@@ -96,6 +96,34 @@ class ValidationResult:
                 self.errors.append(f'{name} parameter should be a {specific_type} value')
         return self
 
+    def require_metric_consistency(self, *names):
+        configuration: dict = self.context.asserts
+
+        if configuration is None:
+            return self
+
+        metric_type = set()
+        err_msg = 'parameter should be a numeric value or a datetime string in ISO 8601 format'
+        for name in names:
+            v = configuration.get(name)
+            if v is None:
+                continue
+            if isinstance(v, int) or isinstance(v, float):
+                metric_type.add('numeric')
+            elif isinstance(v, str):
+                metric_type.add('datetime')
+                try:
+                    datetime.fromisoformat(v)
+                except ValueError:
+                    self.errors.append(f'\'{name}\' {err_msg}')
+            else:
+                self.errors.append(f'\'{name}\' {err_msg}')
+
+        if len(metric_type) > 1:
+            self.errors.append(f'parameter type should be consistent, found {metric_type}')
+
+        return self
+
     def _require_numeric_pair(self, name, valid_types: set):
         configuration: dict = self.context.asserts
         values = configuration.get(name)
@@ -142,6 +170,15 @@ class ValidationResult:
             return self
         return self
 
+    def allow_only(self, *names):
+        if self.context.asserts is None:
+            return self
+
+        for column in self.context.asserts.keys():
+            if column not in names:
+                self.errors.append(f'\'{column}\' is not allowed, only allow {names}')
+        return self
+
     def int_if_present(self, name: str):
         if name not in self.context.asserts:
             return self
@@ -177,10 +214,11 @@ class ValidationResult:
         def to_str(x):
             return '    ' + x
 
-        if self.context.column is None:
-            where = f'name: {self.context.name} for [{self.context.table}]'
-        else:
-            where = f'name: {self.context.name} for [{self.context.table}] and [{self.context.column}]'
+        msg = f"name: '[bold]{self.context.name}[/bold]'" if self.context.name else f"metric: '[bold]{self.context.metric}[/bold]'"
+
+        where = f'{msg} for [bold yellow]{self.context.table}[/bold yellow]'
+        if self.context.column is not None:
+            where = f'{where}.[bold blue]{self.context.column}[/bold blue]'
 
         return '\n'.join([where] + [to_str(x) for x in self.errors])
 
@@ -188,26 +226,22 @@ class ValidationResult:
 class AssertionResult:
 
     def __init__(self):
+        self.name: str = None
         self._success: bool = False
         self._exception: Exception = None
         self.actual: dict = None
         self._expected: dict = None
-        self.is_builtin = False
 
     def status(self):
         return self._success
 
+    @property
     def expected(self):
-        def _castDatetimeToString(obj):
-            if isinstance(obj, dict):
-                obj = {k: _castDatetimeToString(v) for k, v in obj.items()}
-            elif isinstance(obj, list):
-                obj = [_castDatetimeToString(i) for i in obj]
-            elif isinstance(obj, datetime):
-                return str(obj)
-            return obj
+        return self._expected
 
-        return _castDatetimeToString(dict(self._expected))
+    @expected.setter
+    def expected(self, value):
+        self._expected = value
 
     @property
     def exception(self):
@@ -216,9 +250,6 @@ class AssertionResult:
     def validate(self):
         if self._exception:
             return self
-
-        if self.actual is None or not self._expected:
-            return self.fail_with_assertion_implementation_error()
 
         return self
 
@@ -256,6 +287,16 @@ class AssertionResult:
                 f"Column '{column}' metric not found.")
         return self
 
+    def fail_with_profile_metric_not_found_error(self, table, column, metric):
+        self._success = False
+        if not column:
+            self._exception = AssertionError(
+                f"Metric '{metric}' is not found in Table '{table}' profiling result.")
+        else:
+            self._exception = AssertionError(
+                f"Metric '{metric}' is not found in Column '{table}-{column}' profiling result.")
+        return self
+
     def fail_with_no_assert_is_required(self):
         self._success = False
         self._exception = AssertionError("No assert is required.")
@@ -275,20 +316,52 @@ class AssertionResult:
         return str(dict(success=self._success,
                         exception=str(self._exception),
                         actual=self.actual,
-                        expected=self.expected()))
+                        expected=self.expected))
+
+    def _metric_assertion_to_string(self):
+        if len(self._expected.keys()) == 2:
+            operators = {
+                'lte': ']',
+                'lt': ')',
+                'gte': '[',
+                'gt': '('
+            }
+            # TODO: optimization needed
+            boundary = []
+            for k, v in self._expected.items():
+                if k.startswith('lt'):
+                    boundary.append(f'{v}{operators[k]}')
+                else:
+                    boundary.insert(0, f'{operators[k]}{v}')
+
+            return ', '.join(boundary)
+        else:
+            operators = {
+                'gt': '>',
+                'gte': '≥',
+                'eq': '=',
+                'ne': '≠',
+                'lt': '<',
+                'lte': '≤'
+            }
+            k, v = list(self._expected.items())[0]
+            return f'{operators[k]} {v}'
 
 
 class AssertionContext:
     def __init__(self, table_name: str, column_name: str, payload: dict):
         self.name: str = payload.get('name')
+        self.metric: str = payload.get('metric')
         self.table: str = table_name
         self.column: str = column_name
         self.parameters: dict = {}
         self.asserts: dict = {}
         self.tags: list = []
+        self.is_builtin = False
 
         # result
         self.result: AssertionResult = AssertionResult()
+        self.result.name = self.name if self.name is not None else self.metric
 
         self._load(payload)
 
@@ -296,18 +369,17 @@ class AssertionContext:
         self.parameters = payload.get('parameters', {})
         self.asserts = payload.get('assert', {})
         self.tags = payload.get('tags', [])
-        self.result._expected = payload.get('assert', dict(success=True))
-        pass
+        self.result.expected = payload.get('assert')
 
     def __repr__(self):
         return str(self.__dict__)
 
     def to_result_entry(self):
         return dict(
-            name=self.name,
+            name=self.result.name,
             status='passed' if self.result._success is True else 'failed',
             parameters=self.parameters,
-            expected=self.result.expected(),
+            expected=self.result.expected,
             actual=self.result.actual,
             tags=self.tags,
         )
@@ -545,7 +617,7 @@ class AssertionEngine:
 
         from piperider_cli.assertion_engine.types import get_assertion
         try:
-            assertion_instance = get_assertion(assertion.name)
+            assertion_instance = get_assertion(assertion.name, assertion.metric)
 
             try:
                 result = assertion_instance.execute(assertion, assertion.table, assertion.column, metrics_result)
@@ -584,7 +656,7 @@ class AssertionEngine:
 
         self.load_plugins()
         for assertion in self.assertions:
-            assertion_instance = get_assertion(assertion.name)
+            assertion_instance = get_assertion(assertion.name, assertion.metric)
             result = assertion_instance.validate(assertion)
             if result and result.has_errors():
                 results.append(result)

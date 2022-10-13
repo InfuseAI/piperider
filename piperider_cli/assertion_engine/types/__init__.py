@@ -3,7 +3,8 @@ from piperider_cli.assertion_engine.types.assert_column_misc import \
     AssertColumnNotNull, \
     AssertColumnNull, \
     AssertColumnUnique, \
-    AssertColumnExist
+    AssertColumnExist, \
+    AssertColumnValue
 from piperider_cli.assertion_engine.types.assert_column_ranges import \
     AssertColumnMinInRange, \
     AssertColumnMaxInRange, \
@@ -12,6 +13,7 @@ from piperider_cli.assertion_engine.types.assert_column_types import \
     AssertColumnSchemaType, \
     AssertColumnType, \
     AssertColumnInTypes
+from piperider_cli.assertion_engine.types.assert_metrics import AssertMetric
 from piperider_cli.assertion_engine.types.assert_rows import \
     AssertRowCountInRange, \
     AssertRowCount
@@ -33,7 +35,7 @@ class _NotFoundAssertion(BaseAssertionType):
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         result = ValidationResult(context)
-        result.errors.append(f'cannot find an assertion by name {context.name}')
+        result.errors.append(f"cannot find an assertion by name '{context.name}'")
         return result
 
 
@@ -44,10 +46,13 @@ def register_assertion_function(typename: BaseAssertionType):
     custom_registry[instance.name()] = instance
 
 
-def get_assertion(function_name: str) -> BaseAssertionType:
-    if function_name not in custom_registry:
-        return _NotFoundAssertion(function_name)
-    return custom_registry[function_name]
+def get_assertion(name: str, metric: str) -> BaseAssertionType:
+    if metric:
+        return AssertMetric()
+
+    if name not in custom_registry:
+        return _NotFoundAssertion(name)
+    return custom_registry[name]
 
 
 register_assertion_function(AssertRowCountInRange)
@@ -65,6 +70,7 @@ register_assertion_function(AssertColumnNotNull)
 register_assertion_function(AssertColumnNull)
 register_assertion_function(AssertColumnUnique)
 register_assertion_function(AssertColumnExist)
+register_assertion_function(AssertColumnValue)
 
 if __name__ == '__main__':
     pass
