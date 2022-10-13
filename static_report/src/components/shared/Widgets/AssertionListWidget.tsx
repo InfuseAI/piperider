@@ -192,7 +192,7 @@ export function AssertionListWidget({
                   )
                 );
               })}
-              {!singleOnly && <Th>View</Th>}
+              {!singleOnly && <Th textAlign={'center'}>View</Th>}
             </Tr>
           </Thead>
           <Tbody>
@@ -235,14 +235,14 @@ export function AssertionListWidget({
                       </Flex>
                     </Td>
                   )}
-                  <Td maxWidth={'16em'}>
+                  <Td maxWidth={'16em'} px={2}>
                     <Tooltip label={testSubjectName}>
                       <Text noOfLines={1} textOverflow={'ellipsis'}>
                         {testSubjectName}
                       </Text>
                     </Tooltip>
                   </Td>
-                  <Td maxWidth={'16em'}>
+                  <Td maxWidth={'16em'} px={2}>
                     <Tooltip label={name}>
                       <Text noOfLines={1} textOverflow={'ellipsis'}>
                         {name}
@@ -251,7 +251,7 @@ export function AssertionListWidget({
                   </Td>
                   {singleOnly && (
                     <>
-                      <Td>
+                      <Td px={2}>
                         <Tooltip label={expectedColValue}>
                           <Code
                             maxWidth={'14em'}
@@ -262,7 +262,7 @@ export function AssertionListWidget({
                           </Code>
                         </Tooltip>
                       </Td>
-                      <Td>
+                      <Td px={2}>
                         <Tooltip label={actualColValue}>
                           <Code
                             maxWidth={'14em'}
@@ -275,9 +275,10 @@ export function AssertionListWidget({
                       </Td>
                     </>
                   )}
-                  <Td>{kind}</Td>
+                  <Td px={2}>{kind}</Td>
                   {!singleOnly && (
                     <Td
+                      textAlign={'center'}
                       onClick={() => {
                         setTestDetail({
                           assertionKind: kind,
