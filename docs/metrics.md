@@ -48,24 +48,24 @@ Describe the composition of the data in one column.
 | Missing percentage           | The percentage of null values.                             | All types        | `nulls_p`         | o         | 0.11.0  |
 | Non null count               | The count of non-null values.                              | All types        | `non_nulls`       | o         |         |
 | Non null percentage          | The percentage of non-null values.                         | All types        | `non_nulls_p`     | o         | 0.11.0  |
-| Invalid count                | The percentage of values that does not match the schema type. For example, a string in a numeric column. It only happen in sqlite | All types        | `invalids`        | o         | 0.6.0 |
-| Invalid percentage           | The count of values that does not match the schema type. For example, a string in a numeric column. It only happen in sqlite | All types        | `invalids_p`        | o         | 0.11.0  |
-| Valid count                  | The percentage of non-null minus invalid values            | All types        | `valids`          | o         | 0.6.0   |
-| Valid percentage             | The count of non-null minus invalid values                 | All types        | `valids_p`        | o         | 0.11.0  |
-| Zero count                   | The percentage of zero values                              | integer, numeric | `zeros`           | o         | 0.6.0   |
-| Zero percentage              | The count of zero values                                   | integer, numeric | `zeros_p`         | o         | 0.11.0  |
-| Negative value count         | The percentage of negative values                          | integer, numeric | `negatives`       | o         | 0.6.0   |
-| Negative value percentage    | The count of negative values                               | integer, numeric | `negatives_p`     | o         | 0.11.0  |
-| Positive value count         | The percentage of positive values                          | integer, numeric | `positives`       | o         | 0.6.0   |
-| Positive value percentage    | The count of positive values                               | integer, numeric | `positives_p`     | o         | 0.11.0  |
-| Zero length string count     | The percentage of empty strings                            | string           | `zero_length`     | o         | 0.6.0   |
-| Zero length string percentage| The count of empty strings                                 | string           | `zero_length_p`   | o         | 0.11.0  |
-| Non zero length string count      | The percentage of non empty strings                   | string           | `non_zero_length` | o         | 0.6.0   |
-| Non zero length string percentage | The count of non empty strings                        | string           | `non_zero_length_p`| o        | 0.11.0  |
+| Invalid count                | The count of values that does not match the schema type. For example, a string in a numeric column. It only happen in sqlite | All types        | `invalids`        | o         | 0.6.0 |
+| Invalid percentage           | The percentage of values that does not match the schema type. For example, a string in a numeric column. It only happen in sqlite | All types        | `invalids_p`        | o         | 0.11.0  |
+| Valid count                  | The count of non-null minus invalid values            | All types        | `valids`          | o         | 0.6.0   |
+| Valid percentage             | The percentage of non-null minus invalid values                 | All types        | `valids_p`        | o         | 0.11.0  |
+| Zero count                   | The count of zero values                              | integer, numeric | `zeros`           | o         | 0.6.0   |
+| Zero percentage              | The percentage of zero values                                   | integer, numeric | `zeros_p`         | o         | 0.11.0  |
+| Negative value count         | The count of negative values                          | integer, numeric | `negatives`       | o         | 0.6.0   |
+| Negative value percentage    | The percentage of negative values                               | integer, numeric | `negatives_p`     | o         | 0.11.0  |
+| Positive value count         | The count of positive values                          | integer, numeric | `positives`       | o         | 0.6.0   |
+| Positive value percentage    | The percentage of positive values                               | integer, numeric | `positives_p`     | o         | 0.11.0  |
+| Zero length string count     | The count of empty strings                            | string           | `zero_length`     | o         | 0.6.0   |
+| Zero length string percentage| The percentage of empty strings                                 | string           | `zero_length_p`   | o         | 0.11.0  |
+| Non zero length string count      | The count of non empty strings                   | string           | `non_zero_length` | o         | 0.6.0   |
+| Non zero length string percentage | The percentage of non empty strings                        | string           | `non_zero_length_p`| o        | 0.11.0  |
 | True count                   | The count of true values                                   | boolean          | `trues`           | o         | 0.6.0   |
-| True percentage              | The count of true values                                   | boolean          | `trues_p`         | o         | 0.11.0  |
+| True percentage              | The percentage of true values                                   | boolean          | `trues_p`         | o         | 0.11.0  |
 | False count                  | The count of false values                                  | boolean          | `falses`          | o         | 0.6.0   |
-| False percentage             | The count of false values                                  | boolean          | `falses_p`        | o         | 0.11.0  |
+| False percentage             | The percentage of false values                                  | boolean          | `falses_p`        | o         | 0.11.0  |
 
 ### General Statistic
 

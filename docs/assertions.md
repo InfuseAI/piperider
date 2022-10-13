@@ -13,9 +13,9 @@ Table_name_1:
   columns:
     column_name:
       tests:
-      - name: assertion_column_not_null
-      - name: assertion_column_unique
-      - name: assertion_column_value
+      - name: assert_column_not_null
+      - name: assert_column_unique
+      - name: assert_column_value
         assert:
           gte: 0
           lte: 100
@@ -28,6 +28,6 @@ Table_name_2:
   columns:
     column_id:
       tests:
-      - name: assertion_column_not_null
-      - name: assertion_column_unique
+      - name: assert_column_not_null
+      - name: assert_column_unique
 ```        
