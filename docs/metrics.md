@@ -11,7 +11,7 @@
 | Volume size *\**          | The volume size of this table in bytes                                           | `bytes`        | o         | 0.8.0   |
 | Created time *\**         | The time that this table created at in ISO 8601 format including time zone       | `created`      |           | 0.8.0   |
 | Last altered time *\**    | The last time that this table modified at in ISO 8601 format including time zone | `last_altered` |           | 0.8.0   |
-| Freshness *\**            | Time differentiation between the current time and table's last altered time      | `freshness`    | o         | 0.8.0   |
+| Freshness *\**            | Time differentiation in seconds between the current time and table's last altered time      | `freshness`    | o         | 0.8.0   |
 | Duplicate row count       | Number of duplicate rows in this table                                           | `duplicate_rows`   | o     | 0.10.0  |
 | Duplicate row percentage  | Percentage of duplicate rows in this table                                       | `duplicate_rows_p` | o     | 0.11.0  |
 
@@ -44,10 +44,10 @@ Describe the composition of the data in one column.
 | Row count                    | Number of rows in this table                               | All types        | `total`           | o         |         |
 | Sample count                 | Number of rows been profiled                               | All types        | `samples`         | o         | 0.10.0  |
 | Sample percentage            | Percentage of rows been profiled                           | All types        | `samples_p`       | o         | 0.11.0  |
-| Missing count                | The count of null values.                                  | All types        | `nulls`           | o         | 0.6.0   |
-| Missing percentage           | The percentage of null values.                             | All types        | `nulls_p`         | o         | 0.11.0  |
-| Non null count               | The count of non-null values.                              | All types        | `non_nulls`       | o         |         |
-| Non null percentage          | The percentage of non-null values.                         | All types        | `non_nulls_p`     | o         | 0.11.0  |
+| Missing count                | The count of null values                                   | All types        | `nulls`           | o         | 0.6.0   |
+| Missing percentage           | The percentage of null values                              | All types        | `nulls_p`         | o         | 0.11.0  |
+| Non null count               | The count of non-null values                               | All types        | `non_nulls`       | o         |         |
+| Non null percentage          | The percentage of non-null values                          | All types        | `non_nulls_p`     | o         | 0.11.0  |
 | Invalid count                | The count of values that does not match the schema type. For example, a string in a numeric column. It only happen in sqlite | All types        | `invalids`        | o         | 0.6.0 |
 | Invalid percentage           | The percentage of values that does not match the schema type. For example, a string in a numeric column. It only happen in sqlite | All types        | `invalids_p`        | o         | 0.11.0  |
 | Valid count                  | The count of non-null minus invalid values            | All types        | `valids`          | o         | 0.6.0   |
@@ -77,7 +77,7 @@ The general statistic of a column
 | Max                | The value of the maximum item       | integer, numeric, datetime | `max`    | o         |       |
 | Average            | The average of a column.            | integer, numeric           | `avg`    | o         |       |
 | Sum                | The sum of a column.                | integer, numeric           | `sum`    | o         |       |
-| Standard deviation | The standard deviation of a column. | integer, numeric,          | `stddev` | o         | 0.4.0 |
+| Standard deviation | The standard deviation of a column. | integer, numeric           | `stddev` | o         | 0.4.0 |
 
 ### Text Length Statistic
 
@@ -136,6 +136,6 @@ Calculate the quantiles of a numeric or integer column
 | Metric                | Description                                                               | Column Type      | Field       | Assertion | Since |
 | --------------------- | ------------------------------------------------------------------------- | ---------------- | ----------- | :-------: | ----- |
 | Top K                 | The top n frequent items and counts                                       | integer, string  | `topk`      |           | 0.6.0 |
-| histogram             | The evenly-split bins. Calculate the counts for each bin.                 | integer, numeric | `histogram` |           | 0.6.0 |
-| Text length histogram | The evenly-split bins for text length. Calculate the counts for each bin. | string           | `histogram_length` |    | 0.6.0 |
-| Date histogram        | The histogram of date, month, or year. Depends on the data min/max range. | datetime         | `histogram` |           | 0.6.0 |
+| histogram             | The evenly-split bins. Calculate the counts for each bin                  | integer, numeric | `histogram` |           | 0.6.0 |
+| Text length histogram | The evenly-split bins for text length. Calculate the counts for each bin  | string           | `histogram_length` |    | 0.6.0 |
+| Date histogram        | The histogram of date, month, or year. Depends on the data min/max range  | datetime         | `histogram` |           | 0.6.0 |

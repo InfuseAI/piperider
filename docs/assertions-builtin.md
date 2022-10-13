@@ -21,7 +21,6 @@ your_table_name:
 
 - Description: The column values should not be null.
 - Assert: `None`
-- Tags:
 
 <details>
   <summary>YAML Example</summary>
@@ -40,10 +39,10 @@ your_table_name:
 
 - Description: Assert the column value should be in the range.
 - Assert:
-    - `gte`:  the value should be greater than or equals to. (optional)
-    - `gt`:  the value should be greater than. (optional)
-    - `lte`:  the value should less than or equals to. (optional)
-    - `lt`:  the value should be less than. (optional)
+    - `gte`:  the value should be greater than or equal to
+    - `gt`:  the value should be greater than
+    - `lte`:  the value should be less than or equal to
+    - `lt`:  the value should be less than
 
 <details>
   <summary>YAML Example: The value should be between [0, 10000)  </summary>
@@ -117,7 +116,6 @@ your_table_name:
 - Description: The column schema type should be specific schema type.
 - Assert:
   - schema_type: the schema type in data source. (e.g. `TEXT`, `DATE`, `VARCHAR(128)`, ...)
-- Tags:
 
 <details>
   <summary>YAML Example</summary>
@@ -159,11 +157,11 @@ your_table_name:
 
 - Description: Metric-based assertions are assert the value of a metric.
 - Assert:
-    - `gte`:  the value should be greater than or equals to
+    - `gte`:  the value should be greater than or equal to
     - `gt`:  the value should be greater than
-    - `lte`:  the value should less than or equals to
+    - `lte`:  the value should be less than or equal to
     - `lt`:  the value should be less than
-    - `eq`:  the value should equals to
+    - `eq`:  the value should equal to
     - `ne`:  the value should not equal to
 
 <details>

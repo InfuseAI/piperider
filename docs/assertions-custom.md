@@ -175,7 +175,7 @@ return context.result.fail()
 
 ## Profiling Data
 
-You might want to know what kinds of data you have in the `metric` dict? There is a `.profiler.json` in the output path
+You might want to know what kinds of data you have in the `metric` dict? There is a `run.json` in the output path
 of the `run` command. Open it and check the content:
 
 ```bash
@@ -183,15 +183,14 @@ ls -alh $(MY_PROJECT)/.piperider/outputs/$(DATASOURCE)-$(TIMESTAMP)
 # total 48
 # drwxr-xr-x   4 piperider  staff   128B  6  1 09:35 .
 # drwxr-xr-x  26 piperider  staff   832B  6  1 09:35 ..
-# -rw-r--r--   1 piperider  staff   6.2K  6  1 09:35 .profiler.json
-# -rw-r--r--   1 piperider  staff    15K  6  1 09:35 data.json
+# -rw-r--r--   1 piperider  staff   6.2K  6  1 09:35 run.json
 ```
 
 #### Validation
 
 Validation is used when `diagnose` or before `profiling` to verify the `assert` are well-defined in the assertion file.
 
-If everything was fine, the `validate` could return an ValidationResult without errors
+If everything was fine, the `validate` could return an ValidationResult without errors:
 
 ```python
   def validate(self, context: AssertionContext) -> ValidationResult:
@@ -202,8 +201,8 @@ If everything was fine, the `validate` could return an ValidationResult without 
 If you have found something wrong, tried to add the reason to the result object:
 
 ```python
-    def validate(self, context: AssertionContext) -> ValidationResult:
-        result = ValidationResult(context)
-        result.errors.append('explain to users why this broken')
-        return result
+  def validate(self, context: AssertionContext) -> ValidationResult:
+    result = ValidationResult(context)
+    result.errors.append('explain to users why this broken')
+    return result
 ```
