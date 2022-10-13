@@ -74,7 +74,7 @@ export function AssertionListWidget({
     columnHelper.accessor('expected', {
       //dbt: empty
       cell: (info) => info.getValue(),
-      header: 'Expected Value',
+      header: 'Expected',
       enableGlobalFilter: false,
     }),
     columnHelper.accessor('actual', {
@@ -83,7 +83,7 @@ export function AssertionListWidget({
         info.row.original.kind === 'dbt'
           ? info.row.original.message
           : info.getValue(),
-      header: 'Actual Value',
+      header: 'Actual',
       enableGlobalFilter: false,
     }),
     columnHelper.accessor('kind', {
