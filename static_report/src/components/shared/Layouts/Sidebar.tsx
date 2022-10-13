@@ -72,9 +72,11 @@ export function Sidebar() {
     isActive,
     children,
     url,
+    dataCyLabel,
   }: {
     isActive: boolean;
     url: string;
+    dataCyLabel: string;
     children: ReactNode;
   }) => (
     <Flex
@@ -86,6 +88,7 @@ export function Sidebar() {
       px={4}
       py={2}
       mb={2}
+      data-cy={dataCyLabel}
       onClick={() => setLocation(url)}
     >
       {children}
@@ -106,7 +109,11 @@ export function Sidebar() {
       p={4}
     >
       <Box>
-        <RibbonItemWrapper isActive={!location.includes('assertions')} url="/">
+        <RibbonItemWrapper
+          isActive={!location.includes('assertions')}
+          url="/"
+          dataCyLabel="sidebar-ribbon-tables"
+        >
           <Icon as={FiDatabase} boxSize={6} />
           <Text fontSize="sm" textAlign={'center'}>
             Data Profile
@@ -115,6 +122,7 @@ export function Sidebar() {
         <RibbonItemWrapper
           isActive={location.includes('assertions')}
           url="/assertions"
+          dataCyLabel="sidebar-ribbon-assertions"
         >
           <Icon as={GoChecklist} boxSize={8} />
           <Text fontSize="sm" textAlign={'center'}>
