@@ -62,25 +62,25 @@ class AssertColumnValue(BaseAssertionType):
         if not target_metrics:
             return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
+        context.result.expected = AssertMetric.to_interval_notation(context.asserts)
         has_fail = False
-        if 'min' in target_metrics:
+
+        if target_metrics.get('min') is not None:
             if not AssertMetric.assert_metric_boundary(target_metrics.get('min'), context.asserts):
                 has_fail = True
         else:
-            return context.result.fail_with_profile_metric_not_found_error(context.table, context.column,
-                                                                           context.metric)
-        if 'max' in target_metrics:
+            return context.result.fail()
+
+        if target_metrics.get('max') is not None:
             if not AssertMetric.assert_metric_boundary(target_metrics.get('max'), context.asserts):
                 has_fail = True
         else:
-            return context.result.fail_with_profile_metric_not_found_error(context.table, context.column,
-                                                                           context.metric)
+            return context.result.fail()
 
         context.result.actual = AssertMetric.to_interval_notation({
             'gte': target_metrics.get('min'),
             'lte': target_metrics.get('max')
         })
-        context.result.expected = AssertMetric.to_interval_notation(context.asserts)
 
         if has_fail:
             return context.result.fail()

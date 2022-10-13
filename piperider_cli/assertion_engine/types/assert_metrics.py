@@ -26,7 +26,7 @@ class AssertMetric(BaseAssertionType):
 
         if context.metric in target_metrics:
             if target_metrics.get(context.metric) is None:
-                return context.result.fail_with_profile_metric_null_error(context.table, context.column, context.metric)
+                return context.result.fail()
         else:
             return context.result.fail_with_profile_metric_not_found_error(context.table, context.column, context.metric)
 
