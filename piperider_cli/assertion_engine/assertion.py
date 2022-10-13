@@ -214,11 +214,11 @@ class ValidationResult:
         def to_str(x):
             return '    ' + x
 
-        msg = f"name: '{self.context.name}'" if self.context.name else f"metric: '{self.context.metric}'"
+        msg = f"name: '[bold]{self.context.name}[/bold]'" if self.context.name else f"metric: '[bold]{self.context.metric}[/bold]'"
 
-        where = f'{msg} for [yellow]{self.context.table}[/yellow]'
+        where = f'{msg} for [bold yellow]{self.context.table}[/bold yellow]'
         if self.context.column is not None:
-            where = f'{where}.[blue]{self.context.column}[/blue]'
+            where = f'{where}.[bold blue]{self.context.column}[/bold blue]'
 
         return '\n'.join([where] + [to_str(x) for x in self.errors])
 
