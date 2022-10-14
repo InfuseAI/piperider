@@ -24,7 +24,7 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Comparable } from '../../../types';
 import {
   EnrichedTableOrColumnAssertionTest,
@@ -35,6 +35,7 @@ import { AssertionStatus } from '../Assertions';
 import { NoData } from '../Layouts/NoData';
 import { CRModal, CRModalData } from '../Modals/CRModal/CRModal';
 
+type TargetStatus = { targetStatus?: 'passed' | 'failed' };
 interface Props extends Comparable {
   comparableAssertions: ReportState['tableColumnAssertionsOnly'];
   filterString?: string;
@@ -54,73 +55,113 @@ export function AssertionListWidget({
   ...props
 }: Props & TableContainerProps) {
   const modal = useDisclosure();
+  const [reactTableData, setReactTableData] = useState<
+    (EnrichedTableOrColumnAssertionTest & TargetStatus)[]
+  >([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [testDetail, setTestDetail] = useState<CRModalData | undefined>();
-  const columnHelper = createColumnHelper<EnrichedTableOrColumnAssertionTest>();
+  const columnHelper = createColumnHelper<
+    EnrichedTableOrColumnAssertionTest & TargetStatus
+  >();
+  useEffect(() => {
+    const joinedByIndexAssertions =
+      comparableAssertions?.base
+        ?.map((baseDatum, index) => {
+          return {
+            ...baseDatum,
+            targetStatus: comparableAssertions?.target?.[index].status,
+          };
+        })
+        .sort((v) => (v.status === 'failed' ? -1 : 1)) || [];
+    setReactTableData(joinedByIndexAssertions);
+  }, []);
 
-  const columns = [
-    columnHelper.accessor('status', {
-      cell: (info) => info.getValue(),
-      header: 'Status',
-      enableGlobalFilter: false,
-    }),
-    {
-      accessorFn: (row) => `${row.tableName}.${row.columnName}`,
-      id: 'testSubject',
-      header: 'Test Subject',
-    },
-    columnHelper.accessor('name', {
-      cell: (info) => info.getValue(),
-      header: 'Assertion',
-    }),
-    columnHelper.accessor('expected', {
-      //dbt: empty
-      cell: (info) => info.getValue(),
-      header: 'Expected',
-      enableGlobalFilter: false,
-    }),
-    columnHelper.accessor('actual', {
-      //dbt: message
-      cell: (info) =>
-        info.row.original.kind === 'dbt'
-          ? info.row.original.message
-          : info.getValue(),
-      header: 'Actual',
-      enableGlobalFilter: false,
-    }),
-    columnHelper.accessor('kind', {
-      cell: (info) => info.getValue(),
-      header: 'Source',
-      enableGlobalFilter: false,
-    }),
-  ];
+  const statusColHelperItem = singleOnly
+    ? [
+        columnHelper.accessor('status', {
+          cell: (info) => info.getValue(),
+          header: 'Status',
+          enableGlobalFilter: false,
+        }),
+      ]
+    : [
+        columnHelper.accessor('status', {
+          cell: (info) => info.getValue(),
+          header: 'Base Status',
+          enableGlobalFilter: false,
+        }),
+        columnHelper.accessor('targetStatus', {
+          cell: (info) => info.getValue(),
+          header: 'Target Status',
+          enableGlobalFilter: false,
+        }),
+      ];
+  const resultValueColHelperItem = singleOnly
+    ? [
+        columnHelper.accessor('expected', {
+          //dbt: empty
+          cell: (info) => info.getValue(),
+          header: 'Expected',
+        }),
+        columnHelper.accessor('actual', {
+          //dbt: message
+          cell: (info) =>
+            info.row.original.kind === 'dbt'
+              ? info.row.original.message
+              : info.getValue(),
+          header: 'Actual',
+        }),
+      ]
+    : [];
+  const columns = useMemo(
+    () => [
+      ...statusColHelperItem,
+      {
+        accessorFn: (row) => `${row.tableName}.${row.columnName}`,
+        id: 'testSubject',
+        header: 'Test Subject',
+      },
+      columnHelper.accessor('name', {
+        cell: (info) => info.getValue(),
+        header: 'Assertion',
+      }),
+      ...resultValueColHelperItem,
+      columnHelper.accessor('kind', {
+        cell: (info) => info.getValue(),
+        header: 'Source',
+        enableGlobalFilter: false,
+      }),
+    ],
+    [],
+  );
 
-  const { base: baseFlatAssertions, target: targetFlatAssertions } =
-    comparableAssertions || {};
+  //NOTE: comparison will still reference target's assertions directly
+  const { target: targetFlatAssertions } = comparableAssertions || {};
 
-  //NOTE: Uses fallback reference for assertions (comparison will still reference target's assertions directly)
-  const table = useReactTable({
+  const table = useReactTable<
+    EnrichedTableOrColumnAssertionTest & TargetStatus
+  >({
     columns,
-    data: (baseFlatAssertions || targetFlatAssertions || []).sort((v) => {
-      return v.status === 'failed' ? -1 : 1;
-    }),
+    data: reactTableData,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
-    state: { sorting },
+    // onGlobalFilterChange: setFilterString,
+    state: { sorting, globalFilter: filterString },
   });
 
-  const filteredAssertions = table
-    .getRowModel()
-    .rows.filter(({ original: v }) =>
-      filterString
-        ? v.name.search(new RegExp(filterString, 'gi')) > -1 ||
-          (v.tableName || '').search(new RegExp(filterString, 'gi')) > -1 ||
-          (v.columnName || '').search(new RegExp(filterString, 'gi')) > -1
-        : true,
-    );
+  //FIXME:
+  // const filteredAssertions = table
+  //   .getRowModel()
+  //   .rows.filter(({ original: v }) =>
+  //     filterString
+  //       ? v.name.search(new RegExp(filterString, 'gi')) > -1 ||
+  //         (v.tableName || '').search(new RegExp(filterString, 'gi')) > -1 ||
+  //         (v.columnName || '').search(new RegExp(filterString, 'gi')) > -1
+  //       : true,
+  //   );
 
-  if (filteredAssertions.length === 0) {
+  if (reactTableData.length === 0) {
     return (
       <Flex direction="column" justifyContent="center" alignItems="center">
         <NoData text="No Tests Available" />
@@ -135,10 +176,6 @@ export function AssertionListWidget({
           <Thead>
             <Tr>
               {table.getFlatHeaders().map((headerRow) => {
-                const hasSameTableCols =
-                  headerRow.id === 'testSubject' ||
-                  headerRow.id === 'name' ||
-                  headerRow.id === 'kind';
                 const sortToggle = (
                   <chakra.span pl="4" pos={'absolute'} right={0}>
                     {headerRow.column.getIsSorted() ? (
@@ -150,14 +187,15 @@ export function AssertionListWidget({
                     ) : null}
                   </chakra.span>
                 );
-                return singleOnly || hasSameTableCols ? (
+                const isStatusCol = Boolean(headerRow.id.match(/status/gi));
+                return (
                   <Th
                     pos={'relative'}
                     key={headerRow.id}
                     onClick={headerRow.column.getToggleSortingHandler()}
                     _hover={{ cursor: 'pointer' }}
-                    textAlign={headerRow.id === 'status' ? 'center' : 'left'}
-                    px={headerRow.id === 'status' ? 0 : 2}
+                    textAlign={isStatusCol ? 'center' : 'left'}
+                    px={isStatusCol ? 0 : 2}
                   >
                     {flexRender(
                       headerRow.column.columnDef.header,
@@ -165,38 +203,13 @@ export function AssertionListWidget({
                     )}
                     {sortToggle}
                   </Th>
-                ) : (
-                  headerRow.id === 'status' && (
-                    <Fragment key={headerRow.id}>
-                      <Th
-                        pos={'relative'}
-                        onClick={headerRow.column.getToggleSortingHandler()}
-                        _hover={{ cursor: 'pointer' }}
-                        textAlign={'center'}
-                        px={0}
-                      >
-                        Base Status
-                        {sortToggle}
-                      </Th>
-                      <Th
-                        pos={'relative'}
-                        onClick={headerRow.column.getToggleSortingHandler()}
-                        _hover={{ cursor: 'pointer' }}
-                        textAlign={'center'}
-                        px={0}
-                      >
-                        Target Status
-                        {sortToggle}
-                      </Th>
-                    </Fragment>
-                  )
                 );
               })}
               {!singleOnly && <Th textAlign={'center'}>View</Th>}
             </Tr>
           </Thead>
           <Tbody>
-            {filteredAssertions.map((row) => {
+            {table.getSortedRowModel().rows.map((row) => {
               const {
                 tableName,
                 columnName,
@@ -205,6 +218,7 @@ export function AssertionListWidget({
                 actual,
                 kind,
                 status,
+                targetStatus,
                 message,
               } = row.original;
               const actualColValue = formatTestExpectedOrActual(
@@ -231,7 +245,7 @@ export function AssertionListWidget({
                   {!singleOnly && (
                     <Td>
                       <Flex justifyContent={'center'}>
-                        <AssertionStatus status={targetRef?.status} />
+                        <AssertionStatus status={targetStatus} />
                       </Flex>
                     </Td>
                   )}
