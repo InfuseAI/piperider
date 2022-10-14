@@ -50,6 +50,7 @@ interface Props extends Comparable {
 export function AssertionListWidget({
   comparableAssertions,
   filterString = '',
+  setFilterString,
   singleOnly,
   tableSize,
   ...props
@@ -148,20 +149,10 @@ export function AssertionListWidget({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
-    // onGlobalFilterChange: setFilterString,
-    state: { sorting, globalFilter: filterString },
+    state: {
+      sorting,
+    },
   });
-
-  //FIXME:
-  // const filteredAssertions = table
-  //   .getRowModel()
-  //   .rows.filter(({ original: v }) =>
-  //     filterString
-  //       ? v.name.search(new RegExp(filterString, 'gi')) > -1 ||
-  //         (v.tableName || '').search(new RegExp(filterString, 'gi')) > -1 ||
-  //         (v.columnName || '').search(new RegExp(filterString, 'gi')) > -1
-  //       : true,
-  //   );
 
   if (reactTableData.length === 0) {
     return (
@@ -211,108 +202,122 @@ export function AssertionListWidget({
             </Tr>
           </Thead>
           <Tbody>
-            {table.getSortedRowModel().rows.map((row) => {
-              const {
-                tableName,
-                columnName,
-                name,
-                expected,
-                actual,
-                kind,
-                status,
-                targetStatus,
-                message,
-              } = row.original;
-              const actualColValue = formatTestExpectedOrActual(
-                kind === 'piperider' ? actual : message,
-              );
-              const expectedColValue = formatTestExpectedOrActual(expected);
+            {table
+              .getSortedRowModel()
+              .rows.filter(({ original: v }) =>
+                filterString
+                  ? v.name.search(new RegExp(filterString, 'gi')) > -1 ||
+                    (v.tableName || '').search(new RegExp(filterString, 'gi')) >
+                      -1 ||
+                    (v.columnName || '').search(
+                      new RegExp(filterString, 'gi'),
+                    ) > -1
+                  : true,
+              )
+              .map((row) => {
+                const {
+                  tableName,
+                  columnName,
+                  name,
+                  expected,
+                  actual,
+                  kind,
+                  status,
+                  targetStatus,
+                  message,
+                } = row.original;
+                const actualColValue = formatTestExpectedOrActual(
+                  kind === 'piperider' ? actual : message,
+                );
+                const expectedColValue = formatTestExpectedOrActual(expected);
 
-              //Temporary: guard for assuring it's matching assertion pairs
-              const targetRef =
-                targetFlatAssertions?.[row.index]?.tableName === tableName
-                  ? targetFlatAssertions?.[row.index]
-                  : undefined;
+                //Temporary: guard for assuring it's matching assertion pairs
+                const targetRef =
+                  targetFlatAssertions?.[row.index]?.tableName === tableName
+                    ? targetFlatAssertions?.[row.index]
+                    : undefined;
 
-              const testSubjectName = columnName
-                ? `${tableName}.${columnName}`
-                : `${tableName}`;
-              return (
-                <Tr key={row.id}>
-                  <Td>
-                    <Flex justifyContent={'center'}>
-                      <AssertionStatus status={status} />
-                    </Flex>
-                  </Td>
-                  {!singleOnly && (
+                const testSubjectName = columnName
+                  ? `${tableName}.${columnName}`
+                  : `${tableName}`;
+                return (
+                  <Tr key={row.id}>
                     <Td>
                       <Flex justifyContent={'center'}>
-                        <AssertionStatus status={targetStatus} />
+                        <AssertionStatus status={status} />
                       </Flex>
                     </Td>
-                  )}
-                  <Td maxWidth={'16em'} px={2}>
-                    <Tooltip label={testSubjectName}>
-                      <Text noOfLines={1} textOverflow={'ellipsis'}>
-                        {testSubjectName}
-                      </Text>
-                    </Tooltip>
-                  </Td>
-                  <Td maxWidth={'16em'} px={2}>
-                    <Tooltip label={name}>
-                      <Text noOfLines={1} textOverflow={'ellipsis'}>
-                        {name}
-                      </Text>
-                    </Tooltip>
-                  </Td>
-                  {singleOnly && (
-                    <>
-                      <Td px={2}>
-                        <Tooltip label={expectedColValue}>
-                          <Code
-                            maxWidth={'14em'}
-                            noOfLines={1}
-                            color={'gray.700'}
-                          >
-                            {expectedColValue}
-                          </Code>
-                        </Tooltip>
+                    {!singleOnly && (
+                      <Td>
+                        <Flex justifyContent={'center'}>
+                          <AssertionStatus status={targetStatus} />
+                        </Flex>
                       </Td>
-                      <Td px={2}>
-                        <Tooltip label={actualColValue}>
-                          <Code
-                            maxWidth={'14em'}
-                            noOfLines={1}
-                            color={status === 'failed' ? 'red.500' : 'gray.700'}
-                          >
-                            {actualColValue}
-                          </Code>
-                        </Tooltip>
-                      </Td>
-                    </>
-                  )}
-                  <Td px={2}>{kind}</Td>
-                  {!singleOnly && (
-                    <Td
-                      textAlign={'center'}
-                      onClick={() => {
-                        setTestDetail({
-                          assertionKind: kind,
-                          assertionName: name,
-                          base: row.original,
-                          target: targetRef,
-                        });
-                        modal.onOpen();
-                      }}
-                    >
-                      <Text as="span" cursor="pointer">
-                        🔍
-                      </Text>
+                    )}
+                    <Td maxWidth={'16em'} px={2}>
+                      <Tooltip label={testSubjectName}>
+                        <Text noOfLines={1} textOverflow={'ellipsis'}>
+                          {testSubjectName}
+                        </Text>
+                      </Tooltip>
                     </Td>
-                  )}
-                </Tr>
-              );
-            })}
+                    <Td maxWidth={'16em'} px={2}>
+                      <Tooltip label={name}>
+                        <Text noOfLines={1} textOverflow={'ellipsis'}>
+                          {name}
+                        </Text>
+                      </Tooltip>
+                    </Td>
+                    {singleOnly && (
+                      <>
+                        <Td px={2}>
+                          <Tooltip label={expectedColValue}>
+                            <Code
+                              maxWidth={'14em'}
+                              noOfLines={1}
+                              color={'gray.700'}
+                            >
+                              {expectedColValue}
+                            </Code>
+                          </Tooltip>
+                        </Td>
+                        <Td px={2}>
+                          <Tooltip label={actualColValue}>
+                            <Code
+                              maxWidth={'14em'}
+                              noOfLines={1}
+                              color={
+                                status === 'failed' ? 'red.500' : 'gray.700'
+                              }
+                            >
+                              {actualColValue}
+                            </Code>
+                          </Tooltip>
+                        </Td>
+                      </>
+                    )}
+                    <Td px={2}>{kind}</Td>
+                    {!singleOnly && (
+                      <Td
+                        textAlign={'center'}
+                        onClick={() => {
+                          setTestDetail({
+                            assertionKind: kind,
+                            assertionName: name,
+                            base: row.original,
+                            target: targetRef,
+                          });
+                          modal.onOpen();
+                        }}
+                      >
+                        <Text as="span" cursor="pointer">
+                          🔍
+                        </Text>
+                      </Td>
+                    )}
+                  </Tr>
+                );
+              })}
           </Tbody>
         </Table>
       </TableContainer>

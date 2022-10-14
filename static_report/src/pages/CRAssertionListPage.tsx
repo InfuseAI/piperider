@@ -48,6 +48,7 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
         w={assertionListWidth}
         comparableAssertions={tableColumnAssertionsOnly}
         filterString={filterString}
+        setFilterString={setFilterString}
       />
     </Main>
   );
