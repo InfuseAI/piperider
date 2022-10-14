@@ -85,7 +85,6 @@ export function Sidebar() {
       cursor="pointer"
       color={isActive ? 'piperider.500' : 'gray.500'}
       _hover={{ color: 'piperider.500' }}
-      px={4}
       py={2}
       mb={2}
       data-cy={dataCyLabel}
@@ -106,7 +105,7 @@ export function Sidebar() {
       borderRightColor="gray.200"
       alignItems="center"
       justifyContent="space-between"
-      p={4}
+      p={2}
     >
       <Box>
         <RibbonItemWrapper

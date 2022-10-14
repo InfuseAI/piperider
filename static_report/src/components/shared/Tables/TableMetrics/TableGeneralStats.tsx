@@ -76,9 +76,9 @@ export function TableGeneralStats({ tableDatum, ...props }: Props & BoxProps) {
             name={name}
             metakey={metakey}
             firstSlot={firstSlot}
-            firstSlotWidth={'10em'}
+            firstSlotWidth={'1em'}
             secondSlot={secondSlot}
-            secondSlotWidth={'16em'}
+            secondSlotWidth={'15em'}
             tooltipValues={tooltipValues}
             width="100%"
             {...props}
