@@ -1,15 +1,4 @@
-import { SearchIcon } from '@chakra-ui/icons';
-import {
-  Flex,
-  InputGroup,
-  InputLeftElement,
-  Input,
-  Tag,
-  TagLabel,
-  Text,
-  Box,
-  Icon,
-} from '@chakra-ui/react';
+import { Flex, Tag, TagLabel, Text, Box, Icon } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FiGrid } from 'react-icons/fi';
 
@@ -20,6 +9,7 @@ import {
   formatNumber,
 } from '../../../../utils/formatters';
 import { CompTableColEntryItem } from '../../../../utils/store';
+import { SearchTextInput } from '../../Layouts/SearchTextInput';
 import { TableRowColDeltaSummary } from '../../Tables/TableList/TableRowColDeltaSummary';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
@@ -84,21 +74,10 @@ export function ColumnDetailMasterList({
           </Text>
         </Flex>
 
-        {/* FIXME: Refactor as Search Bar Component */}
-        <InputGroup my={2}>
-          <InputLeftElement
-            pointerEvents={'none'}
-            children={<SearchIcon color={'gray.300'} />}
-          />
-          <Input
-            bg={'white'}
-            color={'black'}
-            type={'text'}
-            placeholder="Find By Column Name"
-            value={filterString}
-            onChange={({ target }) => setFilterString(target.value)}
-          />
-        </InputGroup>
+        <SearchTextInput
+          onChange={setFilterString}
+          filterString={filterString}
+        />
 
         {/* Tag Toggle Filters */}
         <Box>

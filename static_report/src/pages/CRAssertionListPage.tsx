@@ -1,8 +1,8 @@
-import { SearchIcon } from '@chakra-ui/icons';
-import { Flex, InputGroup, InputLeftElement, Input } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 import { useState } from 'react';
 import { AssertionStatusSummary } from '../components/shared/Assertions/AssertionStatusSummary';
 import { Main } from '../components/shared/Layouts/Main';
+import { SearchTextInput } from '../components/shared/Layouts/SearchTextInput';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { ComparisonReportSchema } from '../types';
@@ -29,20 +29,10 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
   return (
     <Main isSingleReport={false}>
       <Flex maxW={assertionListWidth - 50} w={'100%'} mt={10}>
-        <InputGroup my={2}>
-          <InputLeftElement
-            pointerEvents={'none'}
-            children={<SearchIcon color={'gray.300'} />}
-          />
-          <Input
-            bg={'white'}
-            color={'black'}
-            type={'text'}
-            placeholder="Find By Assertion or Test Subject (Table, Column)"
-            value={filterString}
-            onChange={({ target }) => setFilterString(target.value)}
-          />
-        </InputGroup>
+        <SearchTextInput
+          onChange={setFilterString}
+          filterString={filterString}
+        />
       </Flex>
       <AssertionStatusSummary
         p={5}
