@@ -1,10 +1,10 @@
 import { Flex } from '@chakra-ui/react';
 import { useState } from 'react';
-import { AssertionStatusSummary } from '../components/shared/Assertions/AssertionStatusSummary';
 import { Main } from '../components/shared/Layouts/Main';
 import { SearchTextInput } from '../components/shared/Layouts/SearchTextInput';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
+import { TableListAssertionSummary } from '../lib';
 import { ComparisonReportSchema } from '../types';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
 import { assertionListWidth } from '../utils/layout';
@@ -26,6 +26,8 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base, input });
   const { tableColumnAssertionsOnly } = useReportStore.getState();
+  const { metadata } = tableColumnAssertionsOnly || {};
+
   return (
     <Main isSingleReport={false}>
       <Flex maxW={assertionListWidth - 50} w={'100%'} mt={10}>
@@ -34,12 +36,14 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
           filterString={filterString}
         />
       </Flex>
-      <AssertionStatusSummary
-        p={5}
-        w={assertionListWidth}
-        failed={tableColumnAssertionsOnly?.metadata?.failed}
-        passed={tableColumnAssertionsOnly?.metadata?.passed}
-      />
+      <Flex justify={'start'} maxW={assertionListWidth - 50} w={'100%'} my={5}>
+        <TableListAssertionSummary
+          baseAssertionFailed={metadata?.base?.failed}
+          baseAssertionTotal={metadata?.base?.total}
+          targetAssertionFailed={metadata?.target?.failed}
+          targetAssertionTotal={metadata?.target?.total}
+        />
+      </Flex>
       <AssertionListWidget
         w={assertionListWidth}
         comparableAssertions={tableColumnAssertionsOnly}

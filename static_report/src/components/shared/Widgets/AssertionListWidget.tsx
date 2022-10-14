@@ -24,7 +24,7 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Comparable } from '../../../types';
 import {
   EnrichedTableOrColumnAssertionTest,
@@ -69,11 +69,12 @@ export function AssertionListWidget({
         ?.map((baseDatum, index) => {
           return {
             ...baseDatum,
-            targetStatus: comparableAssertions?.target?.[index].status,
+            targetStatus: comparableAssertions?.target?.[index]?.status,
           };
         })
         .sort((v) => (v.status === 'failed' ? -1 : 1)) || [];
     setReactTableData(joinedByIndexAssertions);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const statusColHelperItem = singleOnly
@@ -132,6 +133,7 @@ export function AssertionListWidget({
         enableGlobalFilter: false,
       }),
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 

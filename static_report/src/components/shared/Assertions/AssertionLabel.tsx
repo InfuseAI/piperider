@@ -8,8 +8,8 @@ import { NO_VALUE } from '../Columns';
 import { NO_ASSERTIONS } from '../Tables/constant';
 
 export interface AssertionLabelProps extends Comparable {
-  total: number | string;
-  failed: number | string;
+  total?: number | string;
+  failed?: number | string;
   icon?: ReactNode;
   comparisonDelta?: ReactNode;
 }

@@ -48,10 +48,7 @@ export interface ComparableData<T> {
     added?: number;
     deleted?: number;
     changed?: number;
-    passed?: number;
-    failed?: number;
-    total?: number;
-  };
+  } & ComparableData<{ passed?: number; failed?: number; total?: number }>;
 }
 
 /**

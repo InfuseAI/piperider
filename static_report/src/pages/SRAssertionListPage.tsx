@@ -1,6 +1,6 @@
 import { Flex } from '@chakra-ui/react';
 import { useState } from 'react';
-import { AssertionStatusSummary } from '../components/shared/Assertions/AssertionStatusSummary';
+import { AssertionLabel } from '../components/shared/Assertions/AssertionLabel';
 import { Main } from '../components/shared/Layouts/Main';
 import { SearchTextInput } from '../components/shared/Layouts/SearchTextInput';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
@@ -25,6 +25,7 @@ export function SRAssertionListPage({ data }: Props) {
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base: data });
   const { tableColumnAssertionsOnly } = useReportStore.getState();
+  const { metadata } = tableColumnAssertionsOnly || {};
 
   return (
     <Main isSingleReport>
@@ -34,14 +35,15 @@ export function SRAssertionListPage({ data }: Props) {
           filterString={filterString}
         />
       </Flex>
-      <AssertionStatusSummary
-        p={5}
-        w={assertionListWidth}
-        failed={tableColumnAssertionsOnly?.metadata?.failed}
-        passed={tableColumnAssertionsOnly?.metadata?.passed}
-      />
+      <Flex justify={'start'} maxW={assertionListWidth - 50} w={'100%'} my={5}>
+        <AssertionLabel
+          total={metadata?.base?.total}
+          failed={metadata?.base?.failed}
+        />
+      </Flex>
       <AssertionListWidget
-        w={assertionListWidth}
+        maxW={assertionListWidth - 25}
+        w={'100%'}
         singleOnly
         filterString={filterString}
         comparableAssertions={tableColumnAssertionsOnly}

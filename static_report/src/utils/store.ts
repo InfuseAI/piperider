@@ -191,6 +191,21 @@ const _getFlattenedTestEntries = (table?: SaferTableSchema) => {
   ];
   return flatTableColAssertionEntries;
 };
+const _getSingleAssertionMetadata = (
+  assertions: EnrichedTableOrColumnAssertionTest[] | undefined,
+) =>
+  assertions?.reduce(
+    (accum, { status }) => ({
+      total: accum.total + 1,
+      passed: accum.passed + (status === 'passed' ? 1 : 0),
+      failed: accum.failed + (status === 'failed' ? 1 : 0),
+    }),
+    {
+      total: 0,
+      passed: 0,
+      failed: 0,
+    },
+  );
 const getTaColumnbleAssertionsOnly = (rawData: ComparableReport) => {
   const comparableTables = transformAsNestedBaseTargetRecord<
     SaferSRSchema['tables'],
@@ -215,21 +230,11 @@ const getTaColumnbleAssertionsOnly = (rawData: ComparableReport) => {
       EnrichedTableOrColumnAssertionTest[]
     >,
   );
-  const metadata = compTableAssertions.base
-    ?.concat(compTableAssertions.target || [])
-    .reduce(
-      (accum, { status }) => ({
-        total: accum.total + 1,
-        passed: accum.passed + (status === 'passed' ? 1 : 0),
-        failed: accum.failed + (status === 'failed' ? 1 : 0),
-      }),
-      {
-        total: 0,
-        passed: 0,
-        failed: 0,
-      },
-    );
-  compTableAssertions.metadata = metadata;
+  const baseMetadata = _getSingleAssertionMetadata(compTableAssertions.base);
+  const targetMetadata = _getSingleAssertionMetadata(
+    compTableAssertions.target,
+  );
+  compTableAssertions.metadata = { base: baseMetadata, target: targetMetadata };
   return compTableAssertions;
 };
 
