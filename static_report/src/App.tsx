@@ -8,10 +8,15 @@ import { NotFound } from './components/shared/Layouts/NotFound';
 import { SRTablesListPage } from './pages/SRTablesListPage';
 import { CRTablesListPage } from './pages/CRTablesListPage';
 import { useHashLocation } from './hooks/useHashLcocation';
-import { COLUMN_DETAILS_ROUTE_PATH } from './utils/routes';
+import {
+  ASSERTIONS_ROUTE_PATH,
+  COLUMN_DETAILS_ROUTE_PATH,
+} from './utils/routes';
+import { SRAssertionListPage } from './pages/SRAssertionListPage';
+import { CRAssertionListPage } from './pages/CRAssertionListPage';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
-if (sentryDns) {
+if (sentryDns && process.env.NODE_ENV !== 'development') {
   const sentryEnv = window.PIPERIDER_METADATA.sentry_env || 'development';
   const appVersion = window.PIPERIDER_METADATA.version;
   const releaseVersion = sentryEnv === 'development' ? undefined : appVersion;
@@ -49,7 +54,15 @@ function AppSingle() {
               <SRColumnDetailsPage
                 tableName={decodeURIComponent(tableName || '')}
                 columnName={decodeURIComponent(columnName || '')}
-                data={window.PIPERIDER_SINGLE_REPORT_DATA}
+                data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
+              />
+            )}
+          </Route>
+
+          <Route path={ASSERTIONS_ROUTE_PATH}>
+            {() => (
+              <SRAssertionListPage
+                data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
               />
             )}
           </Route>
@@ -81,8 +94,16 @@ function AppComparison() {
             {({ tableName, columnName }) => (
               <CRColumnDetailsPage
                 tableName={decodeURIComponent(tableName || '')}
-                columnName={decodeURIComponent(String(columnName || ''))}
-                data={window.PIPERIDER_COMPARISON_REPORT_DATA}
+                columnName={decodeURIComponent(columnName || '')}
+                data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}
+              />
+            )}
+          </Route>
+
+          <Route path={ASSERTIONS_ROUTE_PATH}>
+            {() => (
+              <CRAssertionListPage
+                data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}
               />
             )}
           </Route>

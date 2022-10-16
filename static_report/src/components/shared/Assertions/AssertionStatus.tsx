@@ -1,6 +1,11 @@
 import { Text } from '@chakra-ui/react';
+import { AssertionTest } from '../../../sdlc';
 
-export function AssertionStatus({ status }: { status?: 'passed' | 'failed' }) {
+export function AssertionStatus({
+  status,
+}: {
+  status?: AssertionTest['status'];
+}) {
   switch (status) {
     case 'passed':
       return (

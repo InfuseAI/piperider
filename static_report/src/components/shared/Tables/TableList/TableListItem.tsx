@@ -9,12 +9,7 @@ import { TableRowColDeltaSummary } from './TableRowColDeltaSummary';
 
 import { TableListAssertionSummary } from './TableListAssertions';
 
-import {
-  ColumnSchema,
-  Comparable,
-  SaferTableSchema,
-  Selectable,
-} from '../../../../types';
+import { Comparable, Selectable } from '../../../../types';
 import {
   formatColumnValueWith,
   formatNumber,
@@ -28,52 +23,39 @@ import {
   tableListGridTempCols,
   tableListMaxWidth,
 } from '../../../../utils/layout';
-import { transformAsNestedBaseTargetRecord } from '../../../../utils';
 import { ColumnSchemaDeltaSummary } from './ColumnSchemaDeltaSummary';
+import { CompTableColEntryItem } from '../../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../constant';
 
 interface Props extends Selectable, Comparable {
   isExpanded: boolean;
-  baseTableDatum?: SaferTableSchema;
-  targetTableDatum?: SaferTableSchema;
+  combinedTableEntry?: CompTableColEntryItem;
 }
 
 export function TableListItem({
   isExpanded,
-  baseTableDatum,
-  targetTableDatum,
+  combinedTableEntry,
   onSelect,
   singleOnly,
 }: Props) {
-  const fallbackTable = baseTableDatum || targetTableDatum;
-  const tableName = fallbackTable?.name;
-  const description =
-    baseTableDatum?.description ||
-    targetTableDatum?.description ||
-    NO_DESCRIPTION_MSG;
-  //SR vars
-  const columns = Object.keys(baseTableDatum?.columns || {}).map((key) => key);
+  const [tableName, tableValue, tableMetadata] = combinedTableEntry || [];
 
+  const fallbackTable = tableValue?.base || tableValue?.target;
+  const description = fallbackTable?.description || NO_DESCRIPTION_MSG;
+
+  //TODO: move to store after assertions schema-change
   const { failed: baseFailed, total: baseTotal } =
     getAssertionStatusCountsFromList([
-      baseTableDatum?.piperider_assertion_result,
-      baseTableDatum?.dbt_assertion_result,
+      tableValue?.base?.piperider_assertion_result,
+      tableValue?.base?.dbt_assertion_result,
     ]);
   const { failed: targetFailed, total: targetTotal } =
     getAssertionStatusCountsFromList([
-      targetTableDatum?.piperider_assertion_result,
-      targetTableDatum?.dbt_assertion_result,
+      tableValue?.target?.piperider_assertion_result,
+      tableValue?.target?.dbt_assertion_result,
     ]);
 
-  const comparedColumns = transformAsNestedBaseTargetRecord<
-    SaferTableSchema['columns'],
-    ColumnSchema
-  >(baseTableDatum?.columns, targetTableDatum?.columns, { metadata: true });
-
-  const {
-    __meta__: { added, deleted, changed },
-  } = comparedColumns;
-  if (!fallbackTable) {
+  if (!combinedTableEntry) {
     return <NoData />;
   }
   return (
@@ -101,8 +83,8 @@ export function TableListItem({
               </Text>
             ) : (
               <TableRowColDeltaSummary
-                baseCount={baseTableDatum?.row_count}
-                targetCount={targetTableDatum?.row_count}
+                baseCount={tableValue?.base?.row_count}
+                targetCount={tableValue?.target?.row_count}
               />
             )}
           </Flex>
@@ -165,9 +147,9 @@ export function TableListItem({
                 </Text>
               ) : (
                 <ColumnSchemaDeltaSummary
-                  added={added}
-                  deleted={deleted}
-                  changed={changed}
+                  added={tableMetadata?.added}
+                  deleted={tableMetadata?.deleted}
+                  changed={tableMetadata?.changed}
                 />
               ))}
             {!isExpanded &&
@@ -185,15 +167,15 @@ export function TableListItem({
                     },
                   }}
                 >
-                  {columns.length > 0 &&
-                    columns.map((name) => {
-                      const { backgroundColor, icon } = getIconForColumnType(
-                        baseTableDatum?.columns[name],
-                      );
+                  {fallbackTable &&
+                    fallbackTable.columns?.length > 0 &&
+                    fallbackTable.columns.map(([colName, { base }]) => {
+                      const { backgroundColor, icon } =
+                        getIconForColumnType(base);
                       return (
                         <ColumnBadge
-                          key={name}
-                          name={name}
+                          key={colName}
+                          name={colName}
                           icon={icon}
                           iconColor={backgroundColor}
                         />
@@ -202,8 +184,8 @@ export function TableListItem({
                 </Flex>
               ) : (
                 <TableRowColDeltaSummary
-                  baseCount={baseTableDatum?.col_count}
-                  targetCount={targetTableDatum?.col_count}
+                  baseCount={tableValue?.base?.col_count}
+                  targetCount={tableValue?.target?.col_count}
                 />
               ))}
           </Flex>

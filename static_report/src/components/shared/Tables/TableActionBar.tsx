@@ -1,14 +1,16 @@
 import { Flex, Text, Icon, Tooltip } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { FiDatabase, FiAlertCircle } from 'react-icons/fi';
+import { NO_VALUE } from '../Columns';
+import { useReportStore } from '../../../utils/store';
 
 type Props = {
-  sourceName: string;
-  sourceType: string;
   children?: ReactNode;
 };
 
-export function TableActionBar({ sourceName, sourceType, children }: Props) {
+export function TableActionBar({ children }: Props) {
+  const { reportOnly } = useReportStore.getState();
+
   return (
     <Flex
       alignSelf="flex-start"
@@ -20,9 +22,11 @@ export function TableActionBar({ sourceName, sourceType, children }: Props) {
     >
       <Flex gap={1} alignItems="center">
         <Icon as={FiDatabase} mr={2} />
-        <Text fontSize="large">{sourceName}</Text>
+        <Text fontSize="large">
+          {reportOnly?.base?.datasource.name || NO_VALUE}
+        </Text>
         <Tooltip
-          label={sourceType}
+          label={reportOnly?.base?.datasource.type || NO_VALUE}
           prefix=""
           placement="right-end"
           shouldWrapChildren

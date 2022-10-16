@@ -25,6 +25,7 @@ export type MetricMetaKeys =
       | 'max'
       | 'distinct'
       | 'duplicates'
+      | 'sum'
     >;
 export type TableMetaKeys =
   | keyof Pick<

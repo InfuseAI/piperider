@@ -1,6 +1,8 @@
 import { track } from '@amplitude/analytics-browser';
 import type { EventOptions } from '@amplitude/analytics-types';
 
+export const SR_TYPE_LABEL = 'single-report';
+export const CR_TYPE_LABEL = 'comparison-report';
 export const AMPLITUDE_EVENTS = {
   PAGE_VIEW: 'Page View',
 };
@@ -16,15 +18,15 @@ export function amplitudeTrack({
   eventProperties = {},
   eventOptions = {},
 }: AmplitudeTrackEvent) {
-  const API_KEY = window.PIPERIDER_METADATA.amplitude_api_key;
   const PROJECT_ID = window.PIPERIDER_METADATA.amplitude_project_id;
 
+  const API_KEY = window.PIPERIDER_METADATA.amplitude_api_key;
   if (
     !API_KEY ||
     process.env.NODE_ENV === 'development' ||
     process.env.REACT_APP_E2E === 'true'
   ) {
-    return console.info(
+    return console.warn(
       eventName,
       { project_id: PROJECT_ID, ...eventProperties },
       eventOptions,

@@ -25,8 +25,10 @@ import {
   Image,
 } from '@chakra-ui/react';
 import { FiDatabase, FiMessageSquare } from 'react-icons/fi';
-import { useState } from 'react';
+import { GoChecklist } from 'react-icons/go';
+import { ReactNode, useState } from 'react';
 import { mainContentAreaHeight } from '../../../utils/layout';
+import { useLocation } from 'wouter';
 
 type Feedback = {
   user_id: string;
@@ -59,11 +61,38 @@ async function sendFeedback(data: Feedback): Promise<boolean> {
 }
 
 export function Sidebar() {
+  const [location, setLocation] = useLocation();
   const toast = useToast();
   const modal = useDisclosure();
   const [feedback, setFeedback] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [isSending, setIsSending] = useState(false);
+
+  const RibbonItemWrapper = ({
+    isActive,
+    children,
+    url,
+    dataCyLabel,
+  }: {
+    isActive: boolean;
+    url: string;
+    dataCyLabel: string;
+    children: ReactNode;
+  }) => (
+    <Flex
+      alignItems="center"
+      direction="column"
+      cursor="pointer"
+      color={isActive ? 'piperider.500' : 'gray.500'}
+      _hover={{ color: 'piperider.500' }}
+      py={2}
+      mb={2}
+      data-cy={dataCyLabel}
+      onClick={() => setLocation(url)}
+    >
+      {children}
+    </Flex>
+  );
 
   return (
     <Flex
@@ -76,21 +105,30 @@ export function Sidebar() {
       borderRightColor="gray.200"
       alignItems="center"
       justifyContent="space-between"
-      p={4}
+      p={2}
     >
-      <Flex
-        alignItems="center"
-        direction="column"
-        bgColor="white"
-        borderRadius="md"
-        cursor="pointer"
-        color="piperider.500"
-        px={4}
-        py={2}
-      >
-        <Icon as={FiDatabase} boxSize={6} />
-        <Text fontSize="sm">Data</Text>
-      </Flex>
+      <Box>
+        <RibbonItemWrapper
+          isActive={!location.includes('assertions')}
+          url="/"
+          dataCyLabel="sidebar-ribbon-tables"
+        >
+          <Icon as={FiDatabase} boxSize={6} />
+          <Text fontSize="sm" textAlign={'center'}>
+            Data Profile
+          </Text>
+        </RibbonItemWrapper>
+        <RibbonItemWrapper
+          isActive={location.includes('assertions')}
+          url="/assertions"
+          dataCyLabel="sidebar-ribbon-assertions"
+        >
+          <Icon as={GoChecklist} boxSize={8} />
+          <Text fontSize="sm" textAlign={'center'}>
+            Assertions
+          </Text>
+        </RibbonItemWrapper>
+      </Box>
 
       <Box>
         <Flex justify={'center'}>

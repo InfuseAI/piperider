@@ -13,10 +13,10 @@ import {
 } from '../../../../utils/formatters';
 
 interface Props {
-  baseAssertionTotal: number | string;
-  baseAssertionFailed: number | string;
-  targetAssertionTotal: number | string;
-  targetAssertionFailed: number | string;
+  baseAssertionTotal?: number | string;
+  baseAssertionFailed?: number | string;
+  targetAssertionTotal?: number | string;
+  targetAssertionFailed?: number | string;
 }
 
 export function TableListAssertionSummary({

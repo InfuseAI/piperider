@@ -34,7 +34,7 @@ import {
  */
 export function getColumnMetricRatio(
   metakey: MetricMetaKeys,
-  columnData?: ColumnSchema,
+  columnData?: Partial<ColumnSchema>,
 ) {
   const { [metakey]: metavalue, total, samples } = columnData || {};
 
@@ -121,7 +121,7 @@ export function transformCompositionAsFlatStackInput(
  * @param columnDatum
  * @returns
  */
-export function getIconForColumnType(columnDatum?: ColumnSchema): {
+export function getIconForColumnType(columnDatum?: Partial<ColumnSchema>): {
   backgroundColor: ColorProps['color'];
   icon: any; //IconType not provided
 } {

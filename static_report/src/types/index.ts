@@ -26,6 +26,7 @@ export interface ComparisonReportSchema {
 }
 
 export type ComparsionSource = 'base' | 'target';
+export type AssertionSource = 'piperider' | 'dbt';
 
 export type AssertionValue =
   | TableSchema['piperider_assertion_result']
@@ -36,27 +37,18 @@ export type ReportAssertionStatusCounts = {
   failed: string | number;
 };
 
-export type CRAssertionTests = {
-  level: string;
-  column: string;
-  from: ComparsionSource;
-  name: string;
-  status: 'passed' | 'failed';
-  parameters?: {
-    [k: string]: unknown;
-  };
-  tags?: string[];
-  expected?: unknown;
-  actual?: unknown;
-};
-
 export type CRAssertionData = {
   name: string;
-} & CRTargetData<AssertionTest & { message?: string }>;
+} & ComparableData<AssertionTest & { message?: string }>;
 
-export interface CRTargetData<T> {
+export interface ComparableData<T> {
   base?: T;
   target?: T;
+  metadata?: {
+    added?: number;
+    deleted?: number;
+    changed?: number;
+  } & ComparableData<{ passed?: number; failed?: number; total?: number }>;
 }
 
 /**

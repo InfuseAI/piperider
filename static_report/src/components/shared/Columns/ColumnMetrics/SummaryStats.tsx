@@ -45,6 +45,7 @@ export function SummaryStats({
   const minMaxMetakeyList: MetricNameMetakeyList = [
     ['min', `Min`],
     ['max', `Max`],
+    ['sum', `Sum`],
   ];
   const minMaxMetricsList = singleOnly
     ? transformSRMetricsInfoList(minMaxMetakeyList, baseColumnDatum)

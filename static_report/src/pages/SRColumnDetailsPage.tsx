@@ -1,5 +1,6 @@
 import {
   Divider,
+  Flex,
   Grid,
   GridItem,
   Tab,
@@ -17,8 +18,6 @@ import { borderVal, mainContentAreaHeight } from '../utils/layout';
 import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
 import { ColumnDetailMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
 
-import { formatReportTime } from '../utils/formatters';
-
 import type { SingleReportSchema } from '../sdlc/single-report-schema';
 import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
 import { NoData } from '../components/shared/Layouts/NoData';
@@ -31,58 +30,80 @@ import {
   TableDescription,
   TableOverview,
 } from '../components/shared/Tables/TableOverview';
-import { SRAssertionDetailsWidget } from '../components/shared/Widgets/SRAssertionDetailsWidget';
 import {
+  AMPLITUDE_EVENTS,
+  AssertionLabel,
+  AssertionListWidget,
   BreadcrumbMetaItem,
   BreadcrumbNav,
+  getAssertionStatusCountsFromList,
+  SR_TYPE_LABEL,
   TableColumnSchemaList,
+  useAmplitudeOnMount,
+  useDocumentTitle,
 } from '../lib';
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
+import { useReportStore } from '../utils/store';
+import { getBreadcrumbPaths } from '../utils/routes';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
   tableName: string;
 }
 export default function SRColumnDetailsPage({
-  data: { tables: dataTables, created_at },
+  data,
   columnName,
   tableName,
 }: Props) {
+  useDocumentTitle('Single Report: Table Column Details');
+  useAmplitudeOnMount({
+    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+    eventProperties: {
+      type: SR_TYPE_LABEL,
+      page: 'column-details-page',
+    },
+  });
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
-  const time = formatReportTime(created_at) || '';
 
-  const decodedColName = decodeURIComponent(columnName);
-  const decodedTableName = decodeURIComponent(tableName);
-  const isTableDetailsView = decodedColName.length === 0;
+  const setReportData = useReportStore((s) => s.setReportRawData);
+  setReportData({ base: data });
+  const { tableColumnsOnly = [], tableColumnAssertionsOnly } =
+    useReportStore.getState();
+  const currentTableEntry = tableColumnsOnly.find(
+    ([tableKey]) => tableKey === tableName,
+  );
 
-  const dataTable = dataTables[decodedTableName];
+  const isTableDetailsView = columnName.length === 0;
+
+  const dataTable = data.tables[tableName];
   const dataColumns = dataTable.columns;
-  const columnDatum = dataColumns[decodedColName];
+  const columnDatum = dataColumns[columnName];
 
-  //FIXME: <Schema> can be undefined if not matching columnDatum
   const { type, histogram } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
 
-  if (!tableName || !dataTable) {
+  if (!tableName || !dataTable || !currentTableEntry) {
     return (
-      <Main isSingleReport time={time}>
+      <Main isSingleReport>
         <NoData text={`No profile data found for table name: ${tableName}`} />
       </Main>
     );
   }
 
-  const breadcrumbList: BreadcrumbMetaItem[] = [
-    { label: 'Tables', path: '/' },
-    { label: decodedTableName, path: `/tables/${decodedTableName}/columns/` },
-    {
-      label: decodedColName,
-      path: `/tables/${decodedTableName}/columns/${decodedColName}`,
-    },
-  ];
+  const { failed: baseFailed, total: baseTotal } =
+    getAssertionStatusCountsFromList([
+      dataTable?.piperider_assertion_result,
+      dataTable?.dbt_assertion_result,
+    ]);
+
+  const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
+    tableName,
+    columnName,
+  );
 
   return (
-    <Main isSingleReport time={time} maxHeight={mainContentAreaHeight}>
+    <Main isSingleReport maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
         <GridItem colSpan={3}>
           <BreadcrumbNav breadcrumbList={breadcrumbList} />
@@ -90,9 +111,9 @@ export default function SRColumnDetailsPage({
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
-            baseDataTables={dataTables}
-            currentTable={decodedTableName}
-            currentColumn={decodedColName}
+            tableColEntry={currentTableEntry}
+            currentTable={tableName}
+            currentColumn={columnName}
             onSelect={({ tableName, columnName }) => {
               setTabIndex(0); //resets tabs
               setLocation(`/tables/${tableName}/columns/${columnName}`);
@@ -123,16 +144,21 @@ export default function SRColumnDetailsPage({
                   </Grid>
                 </TabPanel>
                 <TabPanel>
-                  <SRAssertionDetailsWidget
-                    assertions={{
-                      piperider: dataTable.piperider_assertion_result,
-                      dbt: dataTable?.dbt_assertion_result,
-                    }}
+                  {baseTotal > 0 && (
+                    <Flex mb={5}>
+                      <AssertionLabel total={baseTotal} failed={baseFailed} />
+                    </Flex>
+                  )}
+                  <AssertionListWidget
+                    filterString={dataTable.name}
+                    comparableAssertions={tableColumnAssertionsOnly}
+                    singleOnly
+                    tableSize={'sm'}
                   />
                 </TabPanel>
                 <TabPanel>
                   <TableColumnSchemaList
-                    baseTableDatum={dataTable}
+                    baseTableEntryDatum={currentTableEntry?.[1].base}
                     singleOnly
                     onSelect={() => {}}
                   />
