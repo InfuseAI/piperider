@@ -33,9 +33,17 @@ export interface TableSchema {
    */
   duplicate_rows?: number;
   /**
+   * Percentage of rows that have identical values across corresponding columns in this table
+   */
+  duplicate_rows_p?: number;
+  /**
    * Number of rows after applying the row-limit configuration (rows will be unaffected if none is set)
    */
   samples?: number;
+  /**
+   * Percentage of rows after applying the row-limit configuration (rows will be unaffected if none is set)
+   */
+  samples_p?: number;
   /**
    * The time that this table created at in ISO 8601 format including time zone
    */
@@ -76,27 +84,52 @@ export interface ColumnSchema {
    */
   samples?: number;
   /**
+   * Percentage of rows after applying the row-limit configuration (rows will be unaffected if none is set
+   */
+  samples_p?: number;
+  /**
    * The count of values that are null type
    */
   nulls?: number;
+  /**
+   * The percentage of values that are null type
+   */
+  nulls_p?: number;
   /**
    * The count of non null values
    */
   non_nulls?: number;
   /**
+   * The percentage of non null values
+   */
+  non_nulls_p?: number;
+  /**
    * The count of distinct kinds of values (e.g. [a,b,c,c] => [a,b,c])
    */
   distinct?: number;
+  /**
+   * The percentage of distinct kinds of values (e.g. [a,b,c,c] => [a,b,c])
+   */
+  distinct_p?: number;
   /**
    * The count of values that are recurring (e.g. [a,b,c,c] => [c,c])
    */
   duplicates?: number;
   /**
+   * The percentage of values that are recurring (e.g. [a,b,c,c] => [c,c])
+   */
+  duplicates_p?: number;
+  /**
    * The count of values that are non-recurring (e.g. [a,b,c,c] => [a,b])
    */
   non_duplicates?: number;
+  /**
+   * The percentage of values that are non-recurring (e.g. [a,b,c,c] => [a,b])
+   */
+  non_duplicates_p?: number;
   distribution?: Distribution;
   histogram?: Histogram;
+  histogram_length?: Histogram;
   topk?: Topk;
   /**
    * Name of this column
@@ -119,37 +152,73 @@ export interface ColumnSchema {
    */
   valids?: number;
   /**
+   * The percentage of values that are non-null and not invalid
+   */
+  valids_p?: number;
+  /**
    * The count of values that don't match the schema type. For example, a string in a numeric column.
    */
   invalids?: number;
+  /**
+   * The percentage of values that don't match the schema type. For example, a string in a numeric column.
+   */
+  invalids_p?: number;
   /**
    * The count of numerical values that equal zero exactly
    */
   zeros?: number;
   /**
+   * The percentage of numerical values that equal zero exactly
+   */
+  zeros_p?: number;
+  /**
    * The count of numerical values that are less than zero
    */
   negatives?: number;
+  /**
+   * The percentage of numerical values that are less than zero
+   */
+  negatives_p?: number;
   /**
    * The count of numerical values that are more than zero
    */
   positives?: number;
   /**
+   * The percentage of numerical values that are more than zero
+   */
+  positives_p?: number;
+  /**
    * The count of string values with zero lengths exactly
    */
   zero_length?: number;
+  /**
+   * The percentage of string values with zero lengths exactly
+   */
+  zero_length_p?: number;
   /**
    * The count of string values with non-zero lengths
    */
   non_zero_length?: number;
   /**
+   * The percentage of string values with non-zero lengths
+   */
+  non_zero_length_p?: number;
+  /**
    * The count of boolean true values
    */
   trues?: number;
   /**
+   * The percentage of boolean true values
+   */
+  trues_p?: number;
+  /**
    * The count of boolean false values
    */
   falses?: number;
+  /**
+   * The percentage of boolean false values
+   */
+  falses_p?: number;
   profile_duration?: string;
   elapsed_milli?: number;
   /**
@@ -161,17 +230,33 @@ export interface ColumnSchema {
    */
   avg?: number;
   /**
+   * The average text length of a string column
+   */
+  avg_length?: number;
+  /**
    * The standard deviation of a column's values
    */
   stddev?: number;
+  /**
+   * The standard deviation of text length of a string column
+   */
+  stddev_length?: number;
   /**
    * The minimum value of a column's range
    */
   min?: string | number;
   /**
-   * The maximum value of a columns's range
+   * The minimum length of a string column
+   */
+  min_length?: number;
+  /**
+   * The maximum value of a column's range
    */
   max?: string | number;
+  /**
+   * The maximum length of a string column
+   */
+  max_length?: number;
   /**
    * The quantile value of the dataset (5th percentile)
    */
