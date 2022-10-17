@@ -77,6 +77,8 @@ class TrackCommand(Command):
             if isinstance(e, PipeRiderError):
                 if e.hint:
                     self._show_hint_message(e.hint)
+                if hasattr(e, 'telemetry') and not e.telemetry:
+                    sys.exit(1)
             sentry_sdk.capture_exception(e)
             sentry_sdk.flush()
             sys.exit(1)

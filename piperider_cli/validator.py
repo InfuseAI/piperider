@@ -52,7 +52,7 @@ class CheckingHandler(object):
                         error_msg = ', '.join(str(e) for e in error_msg)
                     elif isinstance(error_msg, PipeRiderError):
                         hint = error_msg.hint
-                    raise PipeRiderDiagnosticError(checker['cls'].__class__.__name__, error_msg, hint=hint)
+                    raise PipeRiderDiagnosticError(checker['cls'], error_msg, hint=hint)
                 self.console.print(CONSOLE_MSG_PASS)
 
             self.console.print(CONSOLE_MSG_ALL_SET)
@@ -63,6 +63,9 @@ class CheckingHandler(object):
 
 
 class CheckConfiguration(AbstractChecker):
+    def __init__(self):
+        self.telemetry = False
+
     def check_function(self, configurator: Configuration) -> (bool, str):
         if not configurator:
             self.console.print(f'  {PIPERIDER_CONFIG_PATH}: [[bold red]FAILED[/bold red]]')

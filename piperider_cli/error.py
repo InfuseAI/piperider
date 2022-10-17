@@ -6,9 +6,9 @@ class PipeRiderError(Exception):
     """ Base class for piperider errors. """
 
     def __init__(self, *args, **kwargs):
-        self.message = args[0] or ''
+        self.message = args[0] if len(args) else ''
         self.hint = kwargs.get('hint') or ''
-        pass
+        self.telemetry = True
 
     def __str__(self):
         return self.message
@@ -35,10 +35,11 @@ class PipeRiderConfigTypeError(PipeRiderError):
 
 class PipeRiderCredentialError(PipeRiderError):
     def __init__(self, name):
+        super().__init__()
         self.name = name
         self.message = f"The credential of '{name}' is not configured."
-
-    hint = "Please execute command 'piperider init' to move forward."
+        self.hint = "Please execute command 'piperider init' to move forward."
+        self.telemetry = False
 
 
 class PipeRiderCredentialFieldError(PipeRiderError):
@@ -84,6 +85,13 @@ class PipeRiderTableConnectionError(PipeRiderError):
         self.hint = f'Please verify your {type_name} data source with correct access permission.'
 
 
+class PipeRiderTableNotFoundError(PipeRiderError):
+    def __init__(self, err_msg):
+        super().__init__()
+        self.message = err_msg
+        self.telemetry = False
+
+
 class PipeRiderDataBaseConnectionError(PipeRiderError):
     def __init__(self, name, type_name, db_path=None):
         self.message = f'No available database found from \'{name}\' data source.'
@@ -110,9 +118,11 @@ class PipeRiderDataBaseEncodingError(PipeRiderError):
 
 
 class PipeRiderDiagnosticError(PipeRiderError):
-    def __init__(self, check_name, error_msg, hint=None):
-        self.message = f'{check_name}: {error_msg}'
+    def __init__(self, check, error_msg, hint=None):
+        self.message = f'{check.__class__.__name__}: {error_msg}'
         self.hint = hint
+        if hasattr(check, 'telemetry') and not check.telemetry:
+            self.telemetry = False
 
 
 class DbtError(PipeRiderError):
@@ -157,6 +167,13 @@ class DbtInvocationError(DbtError):
         self.message = f"The dbt invocation completed with an error. Exit code: {exit_code}"
 
     hint = "Please reference dbt documentation for more information. ref: https://docs.getdbt.com/reference/exit-codes"
+
+
+class DbtTableNotFoundError(DbtError):
+    def __init__(self, err_msg):
+        super().__init__()
+        self.message = err_msg
+        self.telemetry = False
 
 
 class DbtCommandNotFoundError(PipeRiderError):

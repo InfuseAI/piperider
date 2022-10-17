@@ -12,6 +12,7 @@ from rich.pretty import Pretty
 from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedColumn, MofNCompleteColumn
 from rich.style import Style
 from rich.table import Table
+from sqlalchemy.exc import NoSuchTableError
 
 from piperider_cli import convert_to_tzlocal, datetime_to_str, clone_directory, \
     raise_exception_when_directory_not_writable
@@ -21,7 +22,7 @@ from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration
 from piperider_cli.datasource import DataSource
-from piperider_cli.error import PipeRiderCredentialError
+from piperider_cli.error import PipeRiderCredentialError, DbtTableNotFoundError, PipeRiderTableNotFoundError
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.filesystem import FileSystem
 from piperider_cli.profiler import Profiler, ProfilerEventHandler
@@ -386,7 +387,7 @@ def _get_table_list(table, default_schema, dbt_adapter):
     if dbt_adapter.is_ready():
         dbt_tables = dbt_adapter.list_dbt_tables(default_schema)
         if not dbt_tables:
-            raise Exception('No table found in dbt project.')
+            raise DbtTableNotFoundError('No table found in dbt project.')
 
         if not table:
             tables = dbt_tables
@@ -396,7 +397,7 @@ def _get_table_list(table, default_schema, dbt_adapter):
             if table.lower() in lower_tables:
                 index = lower_tables.index(table.lower())
                 suggestion = f"Do you mean '{dbt_tables[index]}'?"
-            raise Exception(f"Table '{table}' doesn't exist in dbt project. {suggestion}")
+            raise DbtTableNotFoundError(f"Table '{table}' doesn't exist in dbt project. {suggestion}")
 
     return tables
 
@@ -622,6 +623,8 @@ class Runner():
         try:
             profile_result = profiler.profile(tables)
             decorate_with_metadata(profile_result)
+        except NoSuchTableError as e:
+            raise PipeRiderTableNotFoundError(str(e))
         except Exception as e:
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
