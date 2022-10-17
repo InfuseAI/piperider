@@ -627,8 +627,7 @@ class Runner():
 
         profiler = Profiler(engine, RichProfilerEventHandler(tables if tables else available_tables), configuration)
         try:
-            profile_result = profiler.profile(tables)
-            decorate_with_metadata(profile_result)
+            run_result = profiler.profile(tables)
         except NoSuchTableError as e:
             console.print(f"[bold red]Error:[/bold red] No such table '{str(e)}'")
             return 1
@@ -637,7 +636,7 @@ class Runner():
 
         # TODO stop here if tests was not needed.
         assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
-                                                                      profile_result, created_at, skip_recommend)
+                                                                      run_result, created_at, skip_recommend)
         if assertion_results or dbt_test_results:
             console.rule('Assertion Results')
             if dbt_test_results:
@@ -650,32 +649,54 @@ class Runner():
 
         console.rule('Summary')
 
-        profile_result['id'] = run_id
-        profile_result['created_at'] = datetime_to_str(created_at)
-        profile_result['datasource'] = dict(name=ds.name, type=ds.type_name)
-
+        run_result['tests'] = []
         # Include dbt test results
         if dbt_test_results:
-            for k, v in dbt_test_results.items():
-                if k not in profile_result['tables']:
+            for t, v in dbt_test_results.items():
+                if t not in run_result['tables']:
                     continue
-                profile_result['tables'][k]['dbt_assertion_result'] = v
+                for test in v['tests']:
+                    test['table'] = t
+                    test['source'] = 'dbt'
+                    run_result['tests'].append(test)
+                for c in v['columns']:
+                    for c_test in v['columns'][c]:
+                        c_test['table'] = t
+                        c_test['column'] = c
+                        c_test['source'] = 'dbt'
+                        run_result['tests'].append(c_test)
 
-        output_path = prepare_default_output_path(filesystem, created_at, ds)
-        output_file = os.path.join(output_path, 'run.json')
-        for t in profile_result['tables']:
-            profile_result['tables'][t]['piperider_assertion_result'] = _transform_assertion_result(t,
-                                                                                                    assertion_results)
-            _clean_up_null_properties(profile_result['tables'][t])
-        _show_summary(profile_result, assertion_results, assertion_exceptions, dbt_test_results)
+        for t in run_result['tables']:
+            test_results = _transform_assertion_result(t, assertion_results)
+            for test in test_results['tests']:
+                test['table'] = t
+                test['source'] = 'piperider'
+                run_result['tests'].append(test)
+            for c in test_results['columns']:
+                for c_test in test_results['columns'][c]:
+                    c_test['table'] = t
+                    c_test['column'] = c
+                    c_test['source'] = 'piperider'
+                    run_result['tests'].append(c_test)
+
+            _clean_up_null_properties(run_result['tables'][t])
+        _show_summary(run_result, assertion_results, assertion_exceptions, dbt_test_results)
         _show_recommended_assertion_notice_message(console, assertion_results)
 
         if dbt_adapter.is_ready():
-            dbt_adapter.append_descriptions(profile_result, default_schema)
-        _append_descriptions_from_assertion(profile_result)
+            dbt_adapter.append_descriptions(run_result, default_schema)
+        _append_descriptions_from_assertion(run_result)
+
+        run_result['id'] = run_id
+        run_result['created_at'] = datetime_to_str(created_at)
+        run_result['datasource'] = dict(name=ds.name, type=ds.type_name)
+        decorate_with_metadata(run_result)
+
+        output_path = prepare_default_output_path(filesystem, created_at, ds)
+        output_file = os.path.join(output_path, 'run.json')
 
         with open(output_file, 'w') as f:
-            f.write(json.dumps(profile_result, separators=(',', ':')))
+            f.write(json.dumps(run_result, separators=(',', ':')))
 
         if output:
             clone_directory(output_path, output)
@@ -683,7 +704,7 @@ class Runner():
         if skip_report:
             console.print(f'Results saved to {output if output else output_path}')
 
-        _analyse_and_log_run_event(profile_result, assertion_results, dbt_test_results, dbt_command)
+        _analyse_and_log_run_event(run_result, assertion_results, dbt_test_results, dbt_command)
 
         if not _check_test_status(assertion_results, assertion_exceptions, dbt_test_results):
             return EC_ERR_TEST_FAILED
