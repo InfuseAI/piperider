@@ -70,6 +70,10 @@ export function MetricsInfo({
   const metaDescription = schemaMetaDescriptions[metakey || ''];
   const { width, ...restProps } = props;
   const isTargetNull = secondSlot === null;
+  const isDateInfo =
+    metakey === 'created' ||
+    metakey === 'freshness' ||
+    metakey === 'last_altered';
 
   return (
     <Flex {...restProps}>
@@ -104,7 +108,7 @@ export function MetricsInfo({
             textAlign="right"
             fontSize={'sm'}
             width={firstSlotWidth}
-            noOfLines={2}
+            noOfLines={isDateInfo ? 2 : 1}
           >
             {firstSlot || NO_VALUE}
           </Text>

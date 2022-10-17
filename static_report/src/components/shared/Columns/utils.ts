@@ -72,10 +72,15 @@ export function transformCompositionAsFlatStackInput(
     invalids,
     valids,
     negatives,
+    negatives_p,
     zeros,
+    zeros_p,
     positives,
+    positives_p,
     non_zero_length,
+    non_zero_length_p,
     zero_length,
+    zero_length_p,
     samples,
     type,
     total,
@@ -97,21 +102,31 @@ export function transformCompositionAsFlatStackInput(
   }
 
   if (type === 'string') {
-    const newCounts = [zero_length, non_zero_length].map(zeroAsFallbackHandler);
+    const zeroLengthOfTotal =
+      zero_length_p ?? (zero_length || 0) / (samples || total || 0);
+    const nonZeroLengthOfTotal =
+      non_zero_length_p ?? (non_zero_length || 0) / (samples || total || 0);
     return {
       labels: [ZEROLENGTH, NONZEROLENGTH],
-      counts: newCounts,
-      ratios: newCounts.map((v) => v / (samples || total || 0)),
+      counts: [zero_length, non_zero_length].map(zeroAsFallbackHandler),
+      ratios: [zeroLengthOfTotal, nonZeroLengthOfTotal],
       colors: ['#FFCF36', '#5EC23A'],
     };
   }
   if (containsColumnQuantile(type)) {
+    const negativesOfTotal =
+      negatives_p ?? getColumnMetricRatio('negatives', columnDatum);
+    const zerosOfTotal = zeros_p ?? getColumnMetricRatio('zeros', columnDatum);
+    const positivesOfTotal =
+      positives_p ?? getColumnMetricRatio('positives', columnDatum);
     const newCounts = [negatives, zeros, positives].map(zeroAsFallbackHandler);
     return {
       labels: [NEGATIVES, ZEROS, POSITIVES],
       counts: newCounts,
-      ratios: newCounts.map((v) => v / (samples || total || 0)),
-      colors: ['#FF0861', '#D9D9D9', '#5EC23A'],
+      ratios: [negativesOfTotal, zerosOfTotal, positivesOfTotal].map(
+        zeroAsFallbackHandler,
+      ),
+      colors: ['#FF0861', '#FFCF36', '#5EC23A'],
     };
   }
 }
