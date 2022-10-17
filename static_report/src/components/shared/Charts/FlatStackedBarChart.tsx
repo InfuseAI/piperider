@@ -52,13 +52,25 @@ export function getFlatSackedBarChartOptions(
   { counts, labels, ratios }: FlatStackedBarChartProps['data'],
   { ...configOverrides }: ChartOptions<'bar'> = {},
 ): ChartOptions<'bar'> {
+  const max = counts.reduce((accum, v) => accum + v, 0);
   return {
     responsive: true,
     maintainAspectRatio: false,
     indexAxis: 'y', //makes chart horizontal
     scales: {
-      x: { stacked: true, display: false, grid: { display: false } },
-      y: { stacked: true, display: false, grid: { display: false } },
+      x: {
+        max,
+        stacked: true,
+        display: false,
+        grid: { display: false },
+      },
+      y: {
+        stacked: true,
+        display: false,
+        grid: {
+          display: false,
+        },
+      },
     },
     plugins: {
       tooltip: {
@@ -79,13 +91,11 @@ export function getFlatSackedBarChartOptions(
         position: 'bottom',
         align: 'end',
         labels: {
-          padding: 15,
-          textAlign: 'left',
+          padding: 8,
           boxHeight: 10,
           boxWidth: 10,
-          usePointStyle: true,
           generateLabels({ data: { datasets } }) {
-            return datasets.map(({ backgroundColor }, index) => {
+            const legendLabels = datasets.map(({ backgroundColor }, index) => {
               const ratio = formatIntervalMinMax(ratios[index]);
               const label = formatTitleCase(labels[index]);
               return {
@@ -95,6 +105,9 @@ export function getFlatSackedBarChartOptions(
                 fillStyle: backgroundColor as string,
               };
             });
+            console.log(legendLabels);
+
+            return legendLabels;
           },
         },
       },
@@ -116,6 +129,8 @@ export function getFlatSackedBarChartData({
       label,
       data: [counts[idx]], //one-slot only per dataset (flat)
       borderWidth: 0,
+      barThickness: 16,
+      barPercentage: 1.0,
       backgroundColor: colors[idx],
     };
   });

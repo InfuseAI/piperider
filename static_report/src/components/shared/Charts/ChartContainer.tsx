@@ -34,10 +34,6 @@ export function ChartContainer({
   return (
     <>
       <Flex
-        px={6}
-        py={6}
-        my={3}
-        mx={3}
         minHeight={`${height}px`}
         maxHeight={`${height}px`}
         width={'calc(100% - 24px)'}

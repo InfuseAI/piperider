@@ -123,13 +123,12 @@ export function transformTableAsFlatStackInput(
   const duplicateRowRatio = duplicate_rows / total;
 
   return {
-    labels: [NONDUPLICATE_ROWS, DUPLICATE_ROWS],
-    counts: [total, duplicate_rows],
-    ratios: [nonDuplicateRatio, duplicateRowRatio],
-    colors: ['#63B3ED', '#FF0861'],
+    labels: [DUPLICATE_ROWS, NONDUPLICATE_ROWS],
+    counts: [duplicate_rows, total],
+    ratios: [duplicateRowRatio, nonDuplicateRatio],
+    colors: ['#63B3ED', '#D9D9D9'],
   };
 }
-
 export type TableMetakeyList = [TableMetaKeys, string][];
 /**
   Conditional scenarios:

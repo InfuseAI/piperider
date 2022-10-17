@@ -169,14 +169,14 @@ export default function SRColumnDetailsPage({
         ) : (
           // {/* Detail Area - Columns */}
           <Grid
-            templateColumns={'500px 1fr'}
-            templateRows={'7em 1fr 1fr'}
+            templateColumns={'1fr 1fr'}
+            templateRows={'8em 400px'}
             width={'100%'}
             maxHeight={mainContentAreaHeight}
             overflowY={'auto'}
           >
             {/* Label Block */}
-            <GridItem colSpan={2} rowSpan={1} p={9}>
+            <GridItem colSpan={2} p={9}>
               <TableColumnHeader
                 title={columnName}
                 subtitle={'Column'}
@@ -187,11 +187,11 @@ export default function SRColumnDetailsPage({
               />
             </GridItem>
             {/* Data Composition Block */}
-            <GridItem p={10} bg={'gray.50'} borderRight={borderVal}>
+            <GridItem px={10} bg={'gray.50'} borderRight={borderVal}>
               <DataCompositionWidget columnDatum={columnDatum} hasAnimation />
             </GridItem>
             {/* Chart Block - toggleable tabs */}
-            <GridItem gridRow={'span 1'} minWidth={0} p={9} bg={'gray.50'}>
+            <GridItem gridRow={'span 1'} minWidth={0} px={10} bg={'gray.50'}>
               <ChartTabsWidget
                 baseColumnDatum={columnDatum}
                 hasAnimation
@@ -201,7 +201,7 @@ export default function SRColumnDetailsPage({
             </GridItem>
             <GridItem
               gridRow={'span 1'}
-              p={9}
+              px={10}
               bg={'gray.50'}
               borderRight={borderVal}
             >
@@ -213,12 +213,7 @@ export default function SRColumnDetailsPage({
             </GridItem>
             {/* Quantiles Block */}
             {containsColumnQuantile(type) && histogram && (
-              <GridItem
-                gridRow={'span 1'}
-                p={9}
-                bg={'gray.50'}
-                minWidth={'1px'}
-              >
+              <GridItem gridRow={'span 1'} bg={'gray.50'} minWidth={'1px'}>
                 <QuantilesWidget columnDatum={columnDatum} />
               </GridItem>
             )}

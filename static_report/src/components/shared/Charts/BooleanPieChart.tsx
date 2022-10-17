@@ -57,7 +57,7 @@ export function getBooleanPieChartData(
     datasets: [
       {
         borderWidth: 0,
-        backgroundColor: ['#63B3ED', '#D9D9D9', '#FF0861', '#FFCF36'],
+        backgroundColor: ['#63B3ED', '#FFCF36', '#D9D9D9', '#FF0861'], // trues, falses, nulls, invalids
         hoverOffset: 4,
         ...dataset,
       },

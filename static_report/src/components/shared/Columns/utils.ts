@@ -64,7 +64,6 @@ export function checkColumnCategorical(columnDatum?: ColumnSchema): boolean {
  */
 export function transformCompositionAsFlatStackInput(
   columnDatum?: ColumnSchema,
-  compType: 'static' | 'dynamic' = 'static',
 ): FlatStackedBarChartProps['data'] | undefined {
   if (!columnDatum) return;
   const {
@@ -86,49 +85,66 @@ export function transformCompositionAsFlatStackInput(
     total,
   } = columnDatum;
 
-  if (compType === 'static') {
-    const nullsOfTotal = getColumnMetricRatio('nulls', columnDatum);
-    const invalidsOfTotal = getColumnMetricRatio('invalids', columnDatum);
-    const validsOfTotal = getColumnMetricRatio('valids', columnDatum);
+  const nullsOfTotal = getColumnMetricRatio('nulls', columnDatum);
+  const invalidsOfTotal = getColumnMetricRatio('invalids', columnDatum);
+  const validsOfTotal = getColumnMetricRatio('valids', columnDatum);
 
-    return {
-      labels: [VALIDS, INVALIDS, NULLS].map(zeroAsFallbackHandler),
-      counts: [valids, invalids, nulls].map(zeroAsFallbackHandler),
-      ratios: [validsOfTotal, invalidsOfTotal, nullsOfTotal].map(
-        zeroAsFallbackHandler,
-      ),
-      colors: ['#63B3ED', '#FF0861', '#D9D9D9'],
-    };
-  }
+  const invalidNullLabels = [INVALIDS, NULLS];
+  const invalidNullCounts = [invalids, nulls];
+  const invalidNullColors = ['#FF0861', '#D9D9D9'];
+  const invalidNullRatios = [invalidsOfTotal, nullsOfTotal];
 
+  // Text Compositions
   if (type === 'string') {
     const zeroLengthOfTotal =
       zero_length_p ?? (zero_length || 0) / (samples || total || 0);
     const nonZeroLengthOfTotal =
       non_zero_length_p ?? (non_zero_length || 0) / (samples || total || 0);
     return {
-      labels: [ZEROLENGTH, NONZEROLENGTH],
-      counts: [zero_length, non_zero_length].map(zeroAsFallbackHandler),
-      ratios: [zeroLengthOfTotal, nonZeroLengthOfTotal],
-      colors: ['#FFCF36', '#5EC23A'],
+      labels: [ZEROLENGTH, NONZEROLENGTH, ...invalidNullLabels],
+      counts: [zero_length, non_zero_length, ...invalidNullCounts].map(
+        zeroAsFallbackHandler,
+      ),
+      ratios: [
+        zeroLengthOfTotal,
+        nonZeroLengthOfTotal,
+        invalidsOfTotal,
+        nullsOfTotal,
+      ].map(zeroAsFallbackHandler),
+      colors: ['#FFCF36', '#5EC23A', ...invalidNullColors],
     };
   }
+
+  // Numeric/Integer Compositions
   if (containsColumnQuantile(type)) {
     const negativesOfTotal =
       negatives_p ?? getColumnMetricRatio('negatives', columnDatum);
     const zerosOfTotal = zeros_p ?? getColumnMetricRatio('zeros', columnDatum);
     const positivesOfTotal =
       positives_p ?? getColumnMetricRatio('positives', columnDatum);
-    const newCounts = [negatives, zeros, positives].map(zeroAsFallbackHandler);
+
+    const newCounts = [negatives, zeros, positives, ...invalidNullCounts].map(
+      zeroAsFallbackHandler,
+    );
     return {
-      labels: [NEGATIVES, ZEROS, POSITIVES],
+      labels: [NEGATIVES, ZEROS, POSITIVES, ...invalidNullLabels],
       counts: newCounts,
-      ratios: [negativesOfTotal, zerosOfTotal, positivesOfTotal].map(
-        zeroAsFallbackHandler,
-      ),
-      colors: ['#FF0861', '#FFCF36', '#5EC23A'],
+      ratios: [
+        negativesOfTotal,
+        zerosOfTotal,
+        positivesOfTotal,
+        ...invalidNullRatios,
+      ].map(zeroAsFallbackHandler),
+      colors: ['#805AD5', '#FFCF36', '#5EC23A', ...invalidNullColors],
     };
   }
+  //default compositions will show 'valids instead
+  return {
+    labels: [VALIDS, ...invalidNullLabels].map(zeroAsFallbackHandler),
+    counts: [valids, ...invalidNullCounts].map(zeroAsFallbackHandler),
+    ratios: [validsOfTotal, ...invalidNullRatios].map(zeroAsFallbackHandler),
+    colors: ['#63B3ED', ...invalidNullColors],
+  };
 }
 
 /**

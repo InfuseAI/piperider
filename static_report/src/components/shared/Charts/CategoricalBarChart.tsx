@@ -30,6 +30,9 @@ export interface CategoricalBarChartProps {
 }
 /**
  * A horizontal progress bar chart that visualizes categorical dataset, plotted 1:1 to each category group (up to max: 5; else bar radii start looking weird)
+ * FIXME: Remove rounded
+ * FIXME: Set fixed height per bar (no scaling)
+ * FIXME: Check unfilled area (total denominator)
  */
 export function CategoricalBarChart({
   data,
@@ -39,6 +42,8 @@ export function CategoricalBarChart({
   ChartJS.register(CategoryScale, BarElement);
   const chartOptions = getCatBarChartOptions(data.counts, total, { animation });
   const chartData = getCatBarChartData(data, { animation });
+  // console.log(chartData);
+
   return (
     <Bar
       data={chartData}

@@ -23,10 +23,9 @@ export function GeneralStats({
 }: Props & FlexProps) {
   zReport(ZColSchema.safeParse(baseColumnDatum));
   zReport(ZColSchema.safeParse(targetColumnDatum));
-  console.log(baseColumnDatum);
 
   const metakeyEntries: MetricNameMetakeyList = [
-    ['valids', 'Valid'],
+    // ['valids', 'Valid'],
     ['invalids', 'Invalid'],
     ['nulls', 'Missing'],
   ];

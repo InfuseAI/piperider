@@ -68,7 +68,9 @@ export function ChartTabsWidget({
 
   return (
     <Box height={'100%'}>
-      <Text fontSize={'xl'}>Visualizations</Text>
+      <Text fontSize={'xl'} mb={3}>
+        Visualizations
+      </Text>
       {hasAny ? (
         <Tabs isLazy index={tabIndex} onChange={(i) => onSelectTab(i)}>
           <TabList>
@@ -80,7 +82,7 @@ export function ChartTabsWidget({
 
           <TabPanels>
             {hasTopk && (
-              <TabPanel px={0}>
+              <TabPanel p={0}>
                 {_renderGridSplitView(
                   baseColumnDatum,
                   targetColumnDatum,
@@ -91,7 +93,7 @@ export function ChartTabsWidget({
               </TabPanel>
             )}
             {hasHistogram && (
-              <TabPanel px={0}>
+              <TabPanel p={0}>
                 {_renderGridSplitView(
                   baseColumnDatum,
                   targetColumnDatum,
@@ -102,7 +104,7 @@ export function ChartTabsWidget({
               </TabPanel>
             )}
             {hasBoolean && (
-              <TabPanel px={0}>
+              <TabPanel p={0}>
                 {_renderGridSplitView(
                   baseColumnDatum,
                   targetColumnDatum,
@@ -113,7 +115,7 @@ export function ChartTabsWidget({
               </TabPanel>
             )}
             {isOther && (
-              <TabPanel px={0}>
+              <TabPanel p={0}>
                 {_renderGridSplitView(
                   baseColumnDatum,
                   targetColumnDatum,
