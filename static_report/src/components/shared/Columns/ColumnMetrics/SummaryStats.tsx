@@ -26,12 +26,13 @@ export function SummaryStats({
   ...props
 }: Props & FlexProps) {
   zReport(ZColSchema.safeParse(baseColumnDatum));
-  const subtitle = baseColumnDatum?.type === 'string' ? ` (${TEXTLENGTH})` : '';
+  const isColTypeString = baseColumnDatum?.type === 'string';
+  const subtitle = isColTypeString ? ` (${TEXTLENGTH})` : '';
 
   // Each list below are separated to render differently
   const avgSDMetakeyList: MetricNameMetakeyList = [
-    ['avg', `Average`],
-    ['stddev', `SD`],
+    [isColTypeString ? 'avg_length' : 'avg', `Average`],
+    [isColTypeString ? 'stddev_length' : 'stddev', `SD`],
   ];
   const avgSDMetricsList = singleOnly
     ? transformSRMetricsInfoList(avgSDMetakeyList, baseColumnDatum)
@@ -43,10 +44,11 @@ export function SummaryStats({
       );
 
   const minMaxMetakeyList: MetricNameMetakeyList = [
-    ['min', `Min`],
-    ['max', `Max`],
-    ['sum', `Sum`],
+    [isColTypeString ? 'min_length' : 'min', `Min`],
+    [isColTypeString ? 'max_length' : 'max', `Max`],
   ];
+  !isColTypeString && minMaxMetakeyList.push(['sum', `Sum`]); //text-length has no sum
+
   const minMaxMetricsList = singleOnly
     ? transformSRMetricsInfoList(minMaxMetakeyList, baseColumnDatum)
     : transformCRMetricsInfoList(

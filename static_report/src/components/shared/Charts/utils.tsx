@@ -58,10 +58,19 @@ export function getDataChart(
       />
     );
   }
+
   //histogram dataset
   if (chartKind === 'histogram' && histogram && type) {
+    const isTextHistogramData =
+      type !== 'string'
+        ? columnDatum?.histogram
+        : columnDatum?.histogram_length;
     //BUG: race-condition when time-series is used /w animation here
-    return <HistogramChart data={{ histogram, min, max, type, samples }} />;
+    return (
+      <HistogramChart
+        data={{ histogram: isTextHistogramData, min, max, type, samples }}
+      />
+    );
   }
   //pie dataset
   if (

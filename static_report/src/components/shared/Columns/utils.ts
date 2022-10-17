@@ -157,6 +157,7 @@ export type MetricNameMetakeyList = [MetricMetaKeys, string][];
   3. base||target (count || count)
   
  * gets the list of metrics to display, based on metakey
+ * will prioritize `<metric>_p` percentage values and fallback on UI logic calculations when undefined
  */
 export function transformSRMetricsInfoList(
   metricsList: MetricNameMetakeyList,
@@ -165,8 +166,13 @@ export function transformSRMetricsInfoList(
   if (!columnDatum) return [];
   return metricsList.map(([metakey, name]) => {
     const value = columnDatum[metakey];
+    const pValue = columnDatum[metakey + '_p'];
+
     const count = Number(value);
-    const percent = count / (columnDatum.samples || Number(columnDatum.total));
+    const percent =
+      pValue >= 0
+        ? pValue
+        : count / (columnDatum.samples || Number(columnDatum.total));
 
     return {
       name,
@@ -188,7 +194,7 @@ export function transformSRMetricsInfoList(
   2. base+target (count + count) <<<
   3. base||target (count || count) <<<
   
- * gets the list of metrics to display, based on metakey
+ * gets the list of metrics to display, based on metakey.
  */
 export function transformCRMetricsInfoList(
   metricsList: MetricNameMetakeyList,

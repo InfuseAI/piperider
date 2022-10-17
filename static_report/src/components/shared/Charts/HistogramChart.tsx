@@ -37,7 +37,8 @@ type HistogramChartProps = {
   data: Pick<
     ColumnSchema,
     'samples' | 'type' | 'histogram' | 'min' | 'max' | 'total'
-  >;
+  > &
+    Partial<Pick<ColumnSchema, 'histogram_length'>>;
   animation?: AnimationOptions<'bar'>['animation'];
   hideAxis?: boolean;
 };
