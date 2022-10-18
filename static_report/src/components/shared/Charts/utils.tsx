@@ -48,8 +48,11 @@ export function getDataChart(
     chartKindOverride ||
     getChartKindByColumnType(hasSameTypeName ? baseColumnRef : columnDatum);
 
+  //FIXME: Change to List Items
   //TopK dataset
   if (chartKind === 'topk' && topk) {
+    console.log(topk, samples);
+
     return (
       <CategoricalBarChart
         data={topk}

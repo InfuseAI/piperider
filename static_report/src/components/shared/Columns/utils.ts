@@ -1,3 +1,10 @@
+import {
+  NEGATIVE_VAL_COLOR,
+  ZERO_VAL_COLOR,
+  NON_ZERO_VAL_COLOR,
+  INVALID_VAL_COLOR,
+  NULL_VAL_COLOR,
+} from './../../../utils/theme';
 import { ColorProps } from '@chakra-ui/styled-system';
 import isNumber from 'lodash/isNumber';
 import { AiOutlineFileText } from 'react-icons/ai';
@@ -91,7 +98,7 @@ export function transformCompositionAsFlatStackInput(
 
   const invalidNullLabels = [INVALIDS, NULLS];
   const invalidNullCounts = [invalids, nulls];
-  const invalidNullColors = ['#FF0861', '#D9D9D9'];
+  const invalidNullColors = [INVALID_VAL_COLOR, NULL_VAL_COLOR];
   const invalidNullRatios = [invalidsOfTotal, nullsOfTotal];
 
   // Text Compositions
@@ -111,7 +118,7 @@ export function transformCompositionAsFlatStackInput(
         invalidsOfTotal,
         nullsOfTotal,
       ].map(zeroAsFallbackHandler),
-      colors: ['#FFCF36', '#5EC23A', ...invalidNullColors],
+      colors: [ZERO_VAL_COLOR, NON_ZERO_VAL_COLOR, ...invalidNullColors],
     };
   }
 
@@ -135,7 +142,12 @@ export function transformCompositionAsFlatStackInput(
         positivesOfTotal,
         ...invalidNullRatios,
       ].map(zeroAsFallbackHandler),
-      colors: ['#805AD5', '#FFCF36', '#5EC23A', ...invalidNullColors],
+      colors: [
+        NEGATIVE_VAL_COLOR,
+        ZERO_VAL_COLOR,
+        NON_ZERO_VAL_COLOR,
+        ...invalidNullColors,
+      ],
     };
   }
   //default compositions will show 'valids instead

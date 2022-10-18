@@ -187,11 +187,22 @@ export default function SRColumnDetailsPage({
               />
             </GridItem>
             {/* Data Composition Block */}
-            <GridItem px={10} bg={'gray.50'} borderRight={borderVal}>
+            <GridItem
+              colSpan={1}
+              px={10}
+              bg={'gray.50'}
+              borderRight={borderVal}
+            >
               <DataCompositionWidget columnDatum={columnDatum} hasAnimation />
             </GridItem>
             {/* Chart Block - toggleable tabs */}
-            <GridItem gridRow={'span 1'} minWidth={0} px={10} bg={'gray.50'}>
+            <GridItem
+              colSpan={1}
+              gridRow={'span 1'}
+              minWidth={0}
+              px={10}
+              bg={'gray.50'}
+            >
               <ChartTabsWidget
                 baseColumnDatum={columnDatum}
                 hasAnimation

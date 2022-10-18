@@ -20,20 +20,18 @@ export function DataCompositionWidget({ columnDatum, hasAnimation }: Props) {
       <Box mb={6}>
         <Text fontSize={'xl'}>Data Composition</Text>
         <Divider my={3} />
-        <Box h={dataCompInput.labels.length > 3 ? '90px' : '60px'}>
+        <Box h={`4em`}>
           <FlatStackedBarChart
             data={dataCompInput}
             animation={animationOptions}
           />
         </Box>
-        <Box mt={6}>
+        <Box mt={3}>
           <GeneralStats
             baseColumnDatum={columnDatum}
             singleOnly
             width={'100%'}
           />
-        </Box>
-        <Box mt={6}>
           <TypedStats baseColumnDatum={columnDatum} singleOnly width={'100%'} />
         </Box>
       </Box>

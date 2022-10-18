@@ -1,19 +1,20 @@
 import { FlexProps } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import { Comparable, ZColSchema, zReport } from '../../../../types';
+import { colorMap } from '../../../../utils/theme';
 import {
   MetricNameMetakeyList,
   transformSRMetricsInfoList,
   transformCRMetricsInfoList,
 } from '../utils';
-import { MetricsInfo } from './MetricsInfo';
+import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
 
 interface Props extends Comparable {
   baseColumnDatum?: ColumnSchema;
   targetColumnDatum?: ColumnSchema;
 }
 /**
- * Shows metric stats for Totals, Valids, Invalids, Missing(nulls)
+ * Shows metric stats for Invalids, Missing(nulls)
  */
 export function GeneralStats({
   baseColumnDatum,
@@ -38,37 +39,8 @@ export function GeneralStats({
         targetColumnDatum,
       );
 
-  // Total displays differently if has base/target
-  const totalMetaKeyEntry: MetricNameMetakeyList = [
-    [baseColumnDatum?.samples ? 'samples' : 'total', 'Total'],
-  ];
-
-  const totalMetricsList = singleOnly
-    ? transformSRMetricsInfoList(totalMetaKeyEntry, baseColumnDatum)
-    : transformCRMetricsInfoList(
-        totalMetaKeyEntry,
-        baseColumnDatum,
-        targetColumnDatum,
-        'count',
-      );
-
   return (
     <>
-      {/* Total - (1): % + n (2): n + n */}
-      {totalMetricsList.map(
-        ({ firstSlot, secondSlot, metakey, name, tooltipValues }, index) => (
-          <MetricsInfo
-            key={index}
-            name={name}
-            metakey={metakey}
-            firstSlot={firstSlot}
-            secondSlot={secondSlot}
-            tooltipValues={tooltipValues}
-            width="100%"
-            {...props}
-          />
-        ),
-      )}
       {/* Others - (1): % + n (2): % + % */}
       {metricsList.map(
         ({ firstSlot, secondSlot, metakey, name, tooltipValues }, index) => (
@@ -79,6 +51,8 @@ export function GeneralStats({
             firstSlot={firstSlot}
             secondSlot={secondSlot}
             tooltipValues={tooltipValues}
+            showColorSquare
+            squareColor={colorMap.get(metakey as MetricMetaKeys)}
             width="100%"
             {...props}
           />

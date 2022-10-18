@@ -6,15 +6,11 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
-  Legend,
   ChartDataset,
   AnimationOptions,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import {
-  formatIntervalMinMax,
-  formatTitleCase,
-} from '../../../utils/formatters';
+import { formatIntervalMinMax } from '../../../utils/formatters';
 
 /**
  * Props to create FlatStackedBarChart Component
@@ -41,7 +37,7 @@ export function FlatStackedBarChart({
 
   const chartOptions = getFlatSackedBarChartOptions(data, { animation });
   const chartData = getFlatSackedBarChartData(data);
-  return <Bar data={chartData} options={chartOptions} plugins={[Legend]} />;
+  return <Bar data={chartData} options={chartOptions} plugins={[]} />;
 }
 /**
  * @param param0 chart data
@@ -84,30 +80,6 @@ export function getFlatSackedBarChartOptions(
             const count = counts[datasetIndex];
             const label = `${ratio}\n${count}`;
             return label;
-          },
-        },
-      },
-      legend: {
-        position: 'bottom',
-        align: 'end',
-        labels: {
-          padding: 8,
-          boxHeight: 10,
-          boxWidth: 10,
-          generateLabels({ data: { datasets } }) {
-            const legendLabels = datasets.map(({ backgroundColor }, index) => {
-              const ratio = formatIntervalMinMax(ratios[index]);
-              const label = formatTitleCase(labels[index]);
-              return {
-                lineWidth: 0,
-                text: `${label}  (${ratio})`,
-                fontColor: 'rgba(0,0,0,0.7)',
-                fillStyle: backgroundColor as string,
-              };
-            });
-            console.log(legendLabels);
-
-            return legendLabels;
           },
         },
       },
