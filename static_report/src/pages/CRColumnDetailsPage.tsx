@@ -232,23 +232,6 @@ export default function CRColumnDetailsPage({
                 <DataCompositionWidget columnDatum={targetColumnDatum} />
               </Grid>
             </GridItem>
-            {/* Chart Block - toggleable tabs */}
-            <GridItem
-              colSpan={2}
-              gridRow={'span 1'}
-              minWidth={0}
-              p={9}
-              bg={'gray.50'}
-            >
-              <ChartTabsWidget
-                baseColumnDatum={baseColumnDatum}
-                targetColumnDatum={targetColumnDatum}
-                hasSplitView
-                hasAnimation
-                tabIndex={tabIndex}
-                onSelectTab={(i) => setTabIndex(i)}
-              />
-            </GridItem>
             {/* Data Summary Block (avg, stddev, ...) */}
             {(containsDataSummary(baseType) ||
               containsDataSummary(targetType)) && (
@@ -269,6 +252,23 @@ export default function CRColumnDetailsPage({
                 </Grid>
               </GridItem>
             )}
+            {/* Chart Block - toggleable tabs */}
+            <GridItem
+              colSpan={2}
+              gridRow={'span 1'}
+              minWidth={0}
+              p={9}
+              bg={'gray.50'}
+            >
+              <ChartTabsWidget
+                baseColumnDatum={baseColumnDatum}
+                targetColumnDatum={targetColumnDatum}
+                hasSplitView
+                hasAnimation
+                tabIndex={tabIndex}
+                onSelectTab={(i) => setTabIndex(i)}
+              />
+            </GridItem>
           </Grid>
         )}
       </Grid>

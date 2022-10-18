@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from '@chakra-ui/react';
+import { Flex, Text } from '@chakra-ui/react';
 import isNumber from 'lodash/isNumber';
 
 import { BooleanPieChart } from './BooleanPieChart';
