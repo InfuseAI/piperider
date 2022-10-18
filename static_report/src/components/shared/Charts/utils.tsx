@@ -1,8 +1,7 @@
-import { Flex, Text } from '@chakra-ui/react';
+import { Box, Flex, Text } from '@chakra-ui/react';
 import isNumber from 'lodash/isNumber';
 
 import { BooleanPieChart } from './BooleanPieChart';
-import { CategoricalBarChart } from './CategoricalBarChart';
 import { HistogramChart } from './HistogramChart';
 import { FlatBoxPlotChartProps } from './FlatBoxPlotChart';
 
@@ -10,6 +9,7 @@ import { TRUES, FALSES, NULLS, INVALIDS } from '../Columns/constants';
 import { checkColumnCategorical, containsDataSummary } from '../Columns/utils';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ReactNode } from 'react';
+import { TopKSummaryItem } from './TopKSummaryItem';
 
 /**
  * Handles logic for rendering the right charts
@@ -48,17 +48,19 @@ export function getDataChart(
     chartKindOverride ||
     getChartKindByColumnType(hasSameTypeName ? baseColumnRef : columnDatum);
 
-  //FIXME: Change to List Items
   //TopK dataset
   if (chartKind === 'topk' && topk) {
-    console.log(topk, samples);
-
     return (
-      <CategoricalBarChart
-        data={topk}
-        total={samples || total || 0}
-        animation={hasAnimation ? {} : false}
-      />
+      <Box w={'100%'} overflowY={'auto'}>
+        {topk.values.slice(0, 10).map((v, index) => (
+          <TopKSummaryItem
+            key={index}
+            topkCount={topk.counts[index]}
+            topkLabel={topk.values[index]}
+            samples={samples || total || 0}
+          />
+        ))}
+      </Box>
     );
   }
 

@@ -36,7 +36,6 @@ export function ChartContainer({
       <Flex
         minHeight={`${height}px`}
         maxHeight={`${height}px`}
-        width={'calc(100% - 24px)'}
         bg={'whiteAlpha.700'}
         rounded={'md'}
         onClick={() => allowModalPopup && onOpen()}
