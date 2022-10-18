@@ -152,9 +152,14 @@ class DbtProfileInvalidError(DbtError):
 
 
 class DbtInvocationError(DbtError):
-    def __init__(self, exit_code):
+    def __init__(self, cmd_arr, exit_code, output):
         self.exit_code = exit_code
-        self.message = f"The dbt invocation completed with an error. Exit code: {exit_code}"
+        self.message = f"""
+The dbt invocation completed with an error.
+Command: {cmd_arr}
+Exit code: {exit_code}
+{output}
+"""
 
     hint = "Please reference dbt documentation for more information. ref: https://docs.getdbt.com/reference/exit-codes"
 
