@@ -226,7 +226,7 @@ export default function CRColumnDetailsPage({
               <ComparableGridHeader />
             </GridItem>
             {/* Data Composition Block */}
-            <GridItem colSpan={2} p={9} bg={'gray.50'}>
+            <GridItem colSpan={2} px={9} py={2} bg={'gray.50'}>
               <Grid templateColumns={'1fr 1fr'} gap={8} minWidth={0}>
                 <DataCompositionWidget columnDatum={baseColumnDatum} />
                 <DataCompositionWidget columnDatum={targetColumnDatum} />
@@ -235,7 +235,13 @@ export default function CRColumnDetailsPage({
             {/* Data Summary Block (avg, stddev, ...) */}
             {(containsDataSummary(baseType) ||
               containsDataSummary(targetType)) && (
-              <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
+              <GridItem
+                colSpan={2}
+                gridRow={'span 1'}
+                px={9}
+                py={2}
+                bg={'gray.50'}
+              >
                 <Grid templateColumns={'1fr 1fr'} gap={8}>
                   {<DataSummaryWidget columnDatum={baseColumnDatum} />}
                   {<DataSummaryWidget columnDatum={targetColumnDatum} />}
