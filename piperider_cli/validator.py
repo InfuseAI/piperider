@@ -8,8 +8,7 @@ from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
 from piperider_cli.cloud import PipeRiderCloud
 from piperider_cli.configuration import Configuration, PIPERIDER_CONFIG_PATH
-from piperider_cli.error import DbtAdapterCommandNotFoundError, DbtCommandNotFoundError, PipeRiderDiagnosticError, \
-    PipeRiderError
+from piperider_cli.error import DbtAdapterCommandNotFoundError, DbtCommandNotFoundError, PipeRiderError
 
 CONSOLE_MSG_PASS = '[bold green]✅ PASS[/bold green]\n'
 CONSOLE_MSG_FAIL = '[bold red]😱 FAILED[/bold red]\n'
@@ -36,36 +35,33 @@ class CheckingHandler(object):
         self.checker_chain.append({'name': name, 'cls': checker()})
 
     def execute(self):
-        try:
-            if not self.configurator:
-                try:
-                    self.configurator = Configuration.load()
-                except Exception:
-                    pass
+        if not self.configurator:
+            try:
+                self.configurator = Configuration.load()
+            except Exception:
+                pass
 
-            for checker in self.checker_chain:
-                self.console.print(f'Check {checker["name"]}:')
-                passed, error_msg = checker['cls'].check_function(self.configurator)
-                if not passed:
-                    hint = None
-                    if isinstance(error_msg, list):
-                        error_msg = ', '.join(str(e) for e in error_msg)
-                    elif isinstance(error_msg, PipeRiderError):
-                        hint = error_msg.hint
-                    raise PipeRiderDiagnosticError(checker['cls'], error_msg, hint=hint)
-                self.console.print(CONSOLE_MSG_PASS)
+        for checker in self.checker_chain:
+            self.console.print(f'Check {checker["name"]}:')
+            passed, error_msg = checker['cls'].check_function(self.configurator)
+            if not passed:
+                hint = None
+                if isinstance(error_msg, list):
+                    error_msg = ', '.join(str(e) for e in error_msg)
+                elif isinstance(error_msg, PipeRiderError):
+                    hint = error_msg.hint
+                self.console.print(CONSOLE_MSG_FAIL)
+                self.console.print(f"[bold red]Error:[/bold red] {checker['cls'].__class__.__name__}: {error_msg}")
+                if hint:
+                    self.console.print(f'[bold yellow]Hint[/bold yellow]:\n  {escape(hint)}')
+                return False
+            self.console.print(CONSOLE_MSG_PASS)
 
-            self.console.print(CONSOLE_MSG_ALL_SET)
-        except Exception as e:
-            self.console.print(CONSOLE_MSG_FAIL)
-            raise e
+        self.console.print(CONSOLE_MSG_ALL_SET)
         return True
 
 
 class CheckConfiguration(AbstractChecker):
-    def __init__(self):
-        self.telemetry = False
-
     def check_function(self, configurator: Configuration) -> (bool, str):
         if not configurator:
             self.console.print(f'  {PIPERIDER_CONFIG_PATH}: [[bold red]FAILED[/bold red]]')
