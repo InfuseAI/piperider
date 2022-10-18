@@ -93,7 +93,6 @@ export function getBoxPlotChartOptions(
         labels: {
           boxHeight: 10,
           boxWidth: 10,
-          usePointStyle: true,
           padding: 15,
           generateLabels() {
             return legendItems.map(({ text, fillStyle }) => ({

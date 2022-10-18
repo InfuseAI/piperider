@@ -9,7 +9,7 @@ import { TRUES, FALSES, NULLS, INVALIDS } from '../Columns/constants';
 import { checkColumnCategorical, containsDataSummary } from '../Columns/utils';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ReactNode } from 'react';
-import { TopKSummaryItem } from './TopKSummaryItem';
+import { TopKSummaryList } from './TopKSummaryList';
 
 /**
  * Handles logic for rendering the right charts
@@ -50,18 +50,7 @@ export function getDataChart(
 
   //TopK dataset
   if (chartKind === 'topk' && topk) {
-    return (
-      <Box w={'100%'} overflowY={'auto'}>
-        {topk.values.slice(0, 10).map((v, index) => (
-          <TopKSummaryItem
-            key={index}
-            topkCount={topk.counts[index]}
-            topkLabel={topk.values[index]}
-            samples={samples || total || 0}
-          />
-        ))}
-      </Box>
-    );
+    return <TopKSummaryList topk={topk} valids={valids || 0} />;
   }
 
   //histogram dataset

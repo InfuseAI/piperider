@@ -68,7 +68,7 @@ export function ChartTabsWidget({
   const histogramLabel = isText ? TEXTLENGTH : 'Histogram';
 
   return (
-    <Box>
+    <Box pb={10}>
       <Text fontSize={'xl'} mb={3}>
         Visualizations
       </Text>
@@ -84,7 +84,7 @@ export function ChartTabsWidget({
 
           <TabPanels>
             {hasTopk && (
-              <TabPanel p={0}>
+              <TabPanel px={0}>
                 {_renderGridSplitView(
                   baseColumnDatum,
                   targetColumnDatum,
@@ -95,7 +95,7 @@ export function ChartTabsWidget({
               </TabPanel>
             )}
             {hasHistogram && (
-              <TabPanel p={0}>
+              <TabPanel px={0}>
                 {_renderGridSplitView(
                   baseColumnDatum,
                   targetColumnDatum,
@@ -106,7 +106,7 @@ export function ChartTabsWidget({
               </TabPanel>
             )}
             {hasBoolean && (
-              <TabPanel p={0}>
+              <TabPanel px={0}>
                 {_renderGridSplitView(
                   baseColumnDatum,
                   targetColumnDatum,
@@ -117,7 +117,7 @@ export function ChartTabsWidget({
               </TabPanel>
             )}
             {isOther && (
-              <TabPanel p={0}>
+              <TabPanel px={0}>
                 {_renderGridSplitView(
                   baseColumnDatum,
                   targetColumnDatum,
@@ -155,7 +155,7 @@ function _renderGridSplitView(
     <Grid templateColumns={hasSplitView ? '1fr 1fr' : '1fr'}>
       <GridItem minWidth={0}>
         {
-          <ChartContainer p={0} title={baseColumnDatum?.name}>
+          <ChartContainer px={0} title={baseColumnDatum?.name}>
             {getDataChart(
               baseColumnDatum,
               targetColumnDatum,

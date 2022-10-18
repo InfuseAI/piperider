@@ -101,7 +101,7 @@ export default function SRColumnDetailsPage({
     tableName,
     columnName,
   );
-
+  const hasQuantile = containsColumnQuantile(type);
   return (
     <Main isSingleReport maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
@@ -170,13 +170,15 @@ export default function SRColumnDetailsPage({
           // {/* Detail Area - Columns */}
           <Grid
             templateColumns={'1fr 1fr'}
-            templateRows={'8em 400px'}
+            templateRows={`8em 300px 1fr ${hasQuantile ? '1fr' : ''}`}
+            gridAutoFlow={'column'}
             width={'100%'}
-            maxHeight={mainContentAreaHeight}
+            pb={5}
+            // maxHeight={mainContentAreaHeight}
             overflowY={'auto'}
           >
             {/* Label Block */}
-            <GridItem colSpan={2} p={9}>
+            <GridItem colSpan={2} p={6}>
               <TableColumnHeader
                 title={columnName}
                 subtitle={'Column'}
@@ -195,23 +197,9 @@ export default function SRColumnDetailsPage({
             >
               <DataCompositionWidget columnDatum={columnDatum} hasAnimation />
             </GridItem>
-            {/* Chart Block - toggleable tabs */}
+            {/** */}
             <GridItem
-              colSpan={1}
-              gridRow={'span 1'}
-              minWidth={0}
-              px={10}
-              bg={'gray.50'}
-            >
-              <ChartTabsWidget
-                baseColumnDatum={columnDatum}
-                hasAnimation
-                tabIndex={tabIndex}
-                onSelectTab={(i) => setTabIndex(i)}
-              />
-            </GridItem>
-            <GridItem
-              gridRow={'span 1'}
+              gridRow={'auto'}
               px={10}
               bg={'gray.50'}
               borderRight={borderVal}
@@ -223,11 +211,26 @@ export default function SRColumnDetailsPage({
               )}
             </GridItem>
             {/* Quantiles Block */}
-            {containsColumnQuantile(type) && histogram && (
-              <GridItem gridRow={'span 1'} bg={'gray.50'} minWidth={'1px'}>
+            {hasQuantile && histogram && (
+              <GridItem bg={'gray.50'} minWidth={'1px'} borderRight={borderVal}>
                 <QuantilesWidget columnDatum={columnDatum} />
               </GridItem>
             )}
+            {/* Chart Block - toggleable tabs */}
+            <GridItem
+              colSpan={1}
+              rowSpan={hasQuantile ? 3 : 2}
+              minWidth={0}
+              px={10}
+              bg={'gray.50'}
+            >
+              <ChartTabsWidget
+                baseColumnDatum={columnDatum}
+                hasAnimation
+                tabIndex={tabIndex}
+                onSelectTab={(i) => setTabIndex(i)}
+              />
+            </GridItem>
           </Grid>
         )}
       </Grid>
