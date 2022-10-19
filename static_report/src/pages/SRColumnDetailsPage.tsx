@@ -170,11 +170,11 @@ export default function SRColumnDetailsPage({
           // {/* Detail Area - Columns */}
           <Grid
             templateColumns={'1fr 1fr'}
-            templateRows={`8em 300px 1fr ${hasQuantile ? '1fr' : ''}`}
+            templateRows={`8em 1fr 1fr ${hasQuantile ? '1fr' : ''}`}
             gridAutoFlow={'column'}
             width={'100%'}
             pb={5}
-            // maxHeight={mainContentAreaHeight}
+            maxHeight={mainContentAreaHeight}
             overflowY={'auto'}
           >
             {/* Label Block */}

@@ -1,10 +1,9 @@
-import { Box, Divider, Flex, Link, Text } from '@chakra-ui/react';
+import { Box, Divider, Flex, Link, Text, Tooltip } from '@chakra-ui/react';
 import {
   ChartOptions,
   Chart as ChartJS,
   CategoryScale,
   BarElement,
-  Tooltip,
   ChartData,
   AnimationOptions,
 } from 'chart.js';
@@ -22,60 +21,65 @@ interface Props {
 }
 /**
  * A list of each topk summary item (categorical)
+ * Last list item will show 'others', which is the count difference of valids and displayed topk items
  */
 export function TopKSummaryList({ topk, valids }: Props) {
   const [isDisplayTopTen, setIsDisplayTopTen] = useState<boolean>(true);
   const endAtIndex = isDisplayTopTen ? 10 : topk.counts.length;
   const displayList = topk.counts.slice(0, endAtIndex);
-  const remainingSumCount = topk.counts
-    .slice(endAtIndex)
-    .reduce((accum, curr) => accum + curr, 0);
+  const remainingSumCount =
+    valids - displayList.reduce((accum, curr) => accum + curr, 0);
 
   return (
-    <Box w={'100%'} px={3}>
-      {displayList
-        .concat(remainingSumCount ? [remainingSumCount] : [])
-        .map((v, index) => {
-          const isLastItemOthers =
-            remainingSumCount && index === displayList.length;
-          const topkCount = isLastItemOthers ? remainingSumCount : v;
-          const topkLabel = isLastItemOthers ? 'Others' : topk.values[index];
-
-          return (
-            <Fragment key={index}>
-              <Flex
-                alignItems={'center'}
-                width={'100%'}
-                _hover={{ bg: 'blackAlpha.300' }}
-              >
+    <Box w={'100%'}>
+      {displayList.concat([remainingSumCount]).map((v, index) => {
+        const isLastItemOthers = index === displayList.length;
+        const topkCount = isLastItemOthers ? remainingSumCount : v;
+        const topkLabel = isLastItemOthers ? 'Others' : topk.values[index];
+        const displayTopkCount = formatAsAbbreviatedNumber(topkCount);
+        const displayTopkRatio = formatIntervalMinMax(topkCount / valids);
+        return (
+          <Fragment key={index}>
+            <Flex
+              alignItems={'center'}
+              width={'100%'}
+              _hover={{ bg: 'blackAlpha.300' }}
+              px={3}
+            >
+              <Tooltip label={topkLabel} placement="start">
                 <Text noOfLines={1} width={'14em'} fontSize={'sm'}>
                   {topkLabel}
                 </Text>
-                <Flex height={'2em'} width={'10em'}>
-                  <CategoricalBarChart
-                    topkCount={topkCount}
-                    topkLabel={topkLabel}
-                    valids={valids}
-                  />
-                </Flex>
-                <Text mr={5} fontSize={'sm'}>
-                  {formatAsAbbreviatedNumber(topkCount)}
-                </Text>
-                <Text color={'gray.400'} fontSize={'sm'}>
-                  {formatIntervalMinMax(topkCount / valids)}
-                </Text>
+              </Tooltip>
+              <Flex height={'2em'} width={'10em'}>
+                <CategoricalBarChart
+                  topkCount={topkCount}
+                  topkLabel={topkLabel}
+                  valids={valids}
+                />
               </Flex>
-              <Divider />
-            </Fragment>
-          );
-        })}
+              <Tooltip label={displayTopkCount} placement="start">
+                <Text ml={5} mr={2} fontSize={'sm'} width={'4em'} noOfLines={1}>
+                  {displayTopkCount}
+                </Text>
+              </Tooltip>
+              <Tooltip label={displayTopkRatio} placement="start">
+                <Text color={'gray.400'} fontSize={'sm'} width={'4em'}>
+                  {displayTopkRatio}
+                </Text>
+              </Tooltip>
+            </Flex>
+            <Divider />
+          </Fragment>
+        );
+      })}
       {topk.values.length > 10 && (
         <Flex py={5} justify={'start'}>
           <Link
             onClick={() => setIsDisplayTopTen((prevState) => !prevState)}
             textColor={'blue.500'}
           >
-            {isDisplayTopTen ? 'View Remaining Items' : 'View Top-10 Only'}
+            {isDisplayTopTen ? 'View More Items' : 'View Only Top-10'}
           </Link>
         </Flex>
       )}
@@ -108,7 +112,7 @@ export function CategoricalBarChart({
     topkLabel,
   });
 
-  return <Bar data={chartData} options={chartOptions} plugins={[Tooltip]} />;
+  return <Bar data={chartData} options={chartOptions} plugins={[]} />;
 }
 
 /**
@@ -135,22 +139,7 @@ export function getCatBarChartOptions(
     },
     plugins: {
       tooltip: {
-        mode: 'y',
-        position: 'nearest',
-        padding: 5,
-        titleMarginBottom: 0,
-        intersect: false,
-        callbacks: {
-          title([{ dataIndex, dataset, label }]) {
-            const result = dataset.data[dataIndex];
-            const percentOfTotal = formatIntervalMinMax(count / valids);
-
-            return `${label}: ${result} (${percentOfTotal})`;
-          },
-          label() {
-            return '';
-          },
-        },
+        enabled: false,
       },
     },
     ...configOverrides,
