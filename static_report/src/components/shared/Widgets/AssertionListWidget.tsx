@@ -32,8 +32,11 @@ import {
   ReportState,
 } from '../../../utils';
 import { AssertionStatus } from '../Assertions';
+import {
+  CRAssertionModal,
+  CRAssertionModalData,
+} from '../Assertions/CRAssertionModal';
 import { NoData } from '../Layouts/NoData';
-import { CRModal, CRModalData } from '../Modals/CRModal/CRModal';
 
 type TargetStatus = { targetStatus?: 'passed' | 'failed' };
 interface Props extends Comparable {
@@ -60,7 +63,9 @@ export function AssertionListWidget({
     (EnrichedTableOrColumnAssertionTest & TargetStatus)[]
   >([]);
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [testDetail, setTestDetail] = useState<CRModalData | undefined>();
+  const [testDetail, setTestDetail] = useState<
+    CRAssertionModalData | undefined
+  >();
   const columnHelper = createColumnHelper<
     EnrichedTableOrColumnAssertionTest & TargetStatus
   >();
@@ -321,7 +326,7 @@ export function AssertionListWidget({
           </Tbody>
         </Table>
       </TableContainer>
-      <CRModal
+      <CRAssertionModal
         {...modal}
         data={testDetail}
         onClose={() => {
