@@ -64,6 +64,14 @@ def format_float(val: Union[int, float]) -> str:
         return f"{val / (10 ** 12):.0f}T"
 
 
+def percentage(number, total):
+    if number is None:
+        return None
+    if not total:
+        return None
+    return number / total
+
+
 class Profiler:
     """
     Profiler profile tables and columns by a sqlalchemy engine.
@@ -233,7 +241,7 @@ class Profiler:
             limit = self.config.profiler_config.get('table', {}).get('limit', 0)
             if row_count > limit > 0:
                 result['samples'] = limit
-                result['samples_p'] = limit / row_count if row_count else None
+                result['samples_p'] = percentage(limit, row_count)
 
         if created:
             result['created'] = created
@@ -283,7 +291,11 @@ class Profiler:
                 stmt = select([func.sum(cte.c.c)]).select_from(cte)
                 duplicate_rows, = conn.execute(stmt).fetchone()
 
-            result['duplicate_rows'] = duplicate_rows if duplicate_rows is not None else 0
+            samples = result['samples']
+            duplicate_rows = duplicate_rows if duplicate_rows is not None else 0
+
+            result['duplicate_rows'] = duplicate_rows
+            result['duplicate_rows_p'] = percentage(duplicate_rows, samples)
 
     def _profile_table(self, table: Table) -> dict:
         candidate_columns = self._drop_unsupported_columns(table)
@@ -310,17 +322,15 @@ class Profiler:
         # Profile table metrics
         self._profile_table_metadata(result, table)
         self._profile_table_duplicate_rows(result, table)
-        result['duplicate_rows_p'] = result['duplicate_rows'] / result['samples'] \
-            if result['duplicate_rows'] is not None and result['samples'] else None
         self.event_handler.handle_table_progress(result, col_count, col_index)
 
         # Profile columns
+        samples_p = result['samples_p']
         if isinstance(self.engine.pool, SingletonThreadPool):
             for column in candidate_columns:
                 columns[column.name] = self._profile_column(table, column)
                 columns[column.name]['total'] = result['row_count']
-                columns[column.name]['samples_p'] = columns[column.name]['samples'] / columns[column.name]['total'] \
-                    if columns[column.name]['total'] else None
+                columns[column.name]['samples_p'] = samples_p
                 col_index = col_index + 1
                 self.event_handler.handle_table_progress(result, col_count, col_index)
 
@@ -341,8 +351,7 @@ class Profiler:
                         else:
                             columns[column.name] = data
                             columns[column.name]['total'] = result['row_count']
-                            columns[column.name]['samples_p'] = columns[column.name]['samples'] / columns[column.name]['total'] \
-                                if columns[column.name]['total'] else None
+                            columns[column.name]['samples_p'] = samples_p
                             col_index = col_index + 1
                             self.event_handler.handle_table_progress(result, col_count, col_index)
                 finally:
@@ -484,16 +493,19 @@ class BaseColumnProfiler:
             ])
             result = conn.execute(stmt).fetchone()
             _total, _non_nulls, = result
+            _nulls = _total - _non_nulls
+            _valid = _non_nulls
 
             return {
                 'total': None,
                 'samples': _total,
                 'samples_p': None,
                 'non_nulls': _non_nulls,
-                'non_nulls_p': _non_nulls / _total if _total else None,
-                'nulls': _total - _non_nulls,
-                'nulls_p': (_total - _non_nulls) / _total if _total else None,
-                'valids': _non_nulls,
+                'non_nulls_p': percentage(_non_nulls, _total),
+                'nulls': _nulls,
+                'nulls_p': percentage(_nulls, _total),
+                'valids': _valid,
+                'valids_p': percentage(_valid, _total),
                 'invalids': 0,
                 'invalids_p': 0,
                 'distribution': None,
@@ -564,6 +576,9 @@ class StringColumnProfiler(BaseColumnProfiler):
                 result = conn.execute(stmt).fetchone()
                 _total, _non_nulls, _valids, _zero_length, _distinct, _sum, _avg, _min, _max, _stddev = result
 
+            _nulls = _total - _non_nulls
+            _invalids = _non_nulls - _valids
+            _non_zero_length = _valids - _zero_length
             _sum = dtof(_sum)
             _min = dtof(_min)
             _max = dtof(_max)
@@ -575,20 +590,20 @@ class StringColumnProfiler(BaseColumnProfiler):
                 'samples': _total,
                 'samples_p': None,
                 'non_nulls': _non_nulls,
-                'non_nulls_p': _non_nulls / _total if _total else None,
-                'nulls': _total - _non_nulls,
-                'nulls_p': None,
+                'non_nulls_p': percentage(_non_nulls, _total),
+                'nulls': _nulls,
+                'nulls_p': percentage(_nulls, _total),
                 'valids': _valids,
-                'valids_p': _valids / _total if _total else None,
-                'invalids': _non_nulls - _valids,
-                'invalids_p': None,
+                'valids_p': percentage(_valids, _total),
+                'invalids': _invalids,
+                'invalids_p': percentage(_invalids, _total),
                 'zero_length': _zero_length,
-                'zero_length_p': _zero_length / _total if _total else None,
-                'non_zero_length': _valids - _zero_length,
-                'non_zero_length_p': None,
+                'zero_length_p': percentage(_zero_length, _total),
+                'non_zero_length': _non_zero_length,
+                'non_zero_length_p': percentage(_non_zero_length, _total),
 
                 'distinct': _distinct,
-                'distinct_p': _distinct / _non_nulls if _non_nulls else None,
+                'distinct_p': percentage(_distinct, _valids),
                 'min': _min,
                 'min_length': _min,
                 'max': _max,
@@ -599,19 +614,16 @@ class StringColumnProfiler(BaseColumnProfiler):
                 'stddev': _stddev,
                 'stddev_length': _stddev,
             }
-            result['nulls_p'] = 1 - result['non_nulls_p'] if result['non_nulls_p'] is not None else None
-            result['invalids_p'] = 1 - result['valids_p'] if result['valids_p'] is not None else None
-            result['non_zero_length_p'] = 1 - result['zero_length_p'] if result['zero_length_p'] is not None else None
 
             # uniqueness
             _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
+            _duplicates = _valids - _non_duplicates
             result.update({
-                "duplicates": _valids - _non_duplicates,
-                "duplicates_p": None,
+                "duplicates": _duplicates,
+                "duplicates_p": percentage(_duplicates, _valids),
                 "non_duplicates": _non_duplicates,
-                "non_duplicates_p": _non_duplicates / _non_nulls if _non_nulls else None,
+                "non_duplicates_p": percentage(_non_duplicates, _valids),
             })
-            result['duplicates_p'] = 1 - result['non_duplicates_p'] if result['non_duplicates_p'] is not None else None
 
             # top k
             topk = None
@@ -700,6 +712,9 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 result = conn.execute(stmt).fetchone()
                 _total, _non_nulls, _valids, _zeros, _negatives, _distinct, _sum, _avg, _min, _max, _stddev = result
 
+            _nulls = _total - _non_nulls
+            _invalids = _non_nulls - _valids
+            _positives = _valids - _zeros - _negatives
             _sum = dtof(_sum)
             _min = dtof(_min)
             _max = dtof(_max)
@@ -711,42 +726,38 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 'samples': _total,
                 'samples_p': None,
                 'non_nulls': _non_nulls,
-                'non_nulls_p': _non_nulls / _total if _total else None,
-                'nulls': _total - _non_nulls,
-                'nulls_p': None,
+                'non_nulls_p': percentage(_non_nulls, _total),
+                'nulls': _nulls,
+                'nulls_p': percentage(_nulls, _total),
                 'valids': _valids,
-                'valids_p': _valids / _total if _total else None,
-                'invalids': _non_nulls - _valids,
-                'invalids_p': None,
+                'valids_p': percentage(_valids, _total),
+                'invalids': _invalids,
+                'invalids_p': percentage(_invalids, _total),
                 'zeros': _zeros,
-                'zeros_p': _zeros / _total if _total else None,
+                'zeros_p': percentage(_zeros, _total),
                 'negatives': _negatives,
-                'negatives_p': _negatives / _total if _total else None,
-                'positives': _valids - _zeros - _negatives,
-                'positives_p': None,
+                'negatives_p': percentage(_negatives, _total),
+                'positives': _positives,
+                'positives_p': percentage(_positives, _total),
 
                 'distinct': _distinct,
-                'distinct_p': _distinct / _non_nulls if _non_nulls else None,
+                'distinct_p': percentage(_distinct, _valids),
                 'min': _min,
                 'max': _max,
                 'sum': _sum,
                 'avg': _avg,
                 'stddev': _stddev,
             }
-            result['nulls_p'] = 1 - result['non_nulls_p'] if result['non_nulls_p'] is not None else None
-            result['invalids_p'] = 1 - result['valids_p'] if result['valids_p'] is not None else None
-            result['positives_p'] = 1 - result['zeros_p'] - result['negatives_p'] \
-                if result['zeros_p'] is not None and result['negatives_p'] is not None else None
 
             # uniqueness
             _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
+            _duplicates = _valids - _non_duplicates
             result.update({
-                "duplicates": _valids - _non_duplicates,
-                "duplicates_p": None,
+                "duplicates": _duplicates,
+                "duplicates_p": percentage(_duplicates, _valids),
                 "non_duplicates": _non_duplicates,
-                "non_duplicates_p": _non_duplicates / _non_nulls if _non_nulls else None
+                "non_duplicates_p": percentage(_non_duplicates, _valids),
             })
-            result['duplicates_p'] = 1 - result['non_duplicates_p'] if result['non_duplicates_p'] is not None else None
 
             # histogram
             histogram = None
@@ -1044,6 +1055,9 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             ])
             result = conn.execute(stmt).fetchone()
             _total, _non_nulls, _valids, _distinct, _min, _max = result
+            _nulls = _total - _non_nulls
+            _invalids = _non_nulls - _valids
+
             if self._get_database_backend() == 'sqlite':
                 if isinstance(self.column.type, Date):
                     _min = datetime.fromisoformat(_min).date() if isinstance(_min, str) else _min
@@ -1057,30 +1071,28 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 'samples': _total,
                 'samples_p': None,
                 'non_nulls': _non_nulls,
-                'non_nulls_p': _non_nulls / _total if _total else None,
-                'nulls': _total - _non_nulls,
-                'nulls_p': None,
+                'non_nulls_p': percentage(_non_nulls, _total),
+                'nulls': _nulls,
+                'nulls_p': percentage(_nulls, _total),
                 'valids': _valids,
-                'valids_p': _valids / _total if _total else None,
-                'invalids': _non_nulls - _valids,
-                'invalids_p': None,
+                'valids_p': percentage(_valids, _total),
+                'invalids': _invalids,
+                'invalids_p': percentage(_invalids, _total),
                 'distinct': _distinct,
-                'distinct_p': _distinct / _non_nulls if _non_nulls else None,
+                'distinct_p': percentage(_distinct, _valids),
                 'min': _min.isoformat() if _min is not None else None,
                 'max': _max.isoformat() if _max is not None else None,
             }
-            result['nulls_p'] = 1 - result['non_nulls_p'] if result['non_nulls_p'] is not None else None
-            result['invalids_p'] = 1 - result['valids_p'] if result['valids_p'] is not None else None
 
             # uniqueness
             _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
+            _duplicates = _valids - _non_duplicates
             result.update({
-                "duplicates": _valids - _non_duplicates,
-                "duplicates_p": None,
+                "duplicates": _duplicates,
+                "duplicates_p": percentage(_duplicates, _valids),
                 "non_duplicates": _non_duplicates,
-                "non_duplicates_p": _non_duplicates / _non_nulls if _non_nulls else None,
+                "non_duplicates_p": percentage(_non_duplicates, _valids),
             })
-            result['duplicates_p'] = 1 - result['non_duplicates_p'] if result['non_duplicates_p'] is not None else None
 
             # histogram
             histogram = None
@@ -1251,6 +1263,8 @@ class BooleanColumnProfiler(BaseColumnProfiler):
             ]).select_from(cte)
             result = conn.execute(stmt).fetchone()
             _total, _non_nulls, _valids, _trues, _distinct = result
+            _nulls = _total - _non_nulls
+            _invalids = _non_nulls - _valids
             _falses = _valids - _trues
 
             result = {
@@ -1258,19 +1272,19 @@ class BooleanColumnProfiler(BaseColumnProfiler):
                 'samples': _total,
                 'samples_p': None,
                 'non_nulls': _non_nulls,
-                'non_nulls_p': _non_nulls / _total if _total else None,
-                'nulls': _total - _non_nulls,
-                'nulls_p': None,
+                'non_nulls_p': percentage(_non_nulls, _total),
+                'nulls': _nulls,
+                'nulls_p': percentage(_nulls, _total),
                 'valids': _valids,
-                'valids_p': _valids / _total if _total else None,
-                'invalids': _non_nulls - _valids,
-                'invalids_p': None,
+                'valids_p': percentage(_valids, _total),
+                'invalids': _invalids,
+                'invalids_p': percentage(_invalids, _total),
                 'trues': _trues,
-                'trues_p': _trues / _total if _total else None,
+                'trues_p': percentage(_trues, _total),
                 'falses': _falses,
-                'falses_p': None,
+                'falses_p': percentage(_falses, _total),
                 'distinct': _distinct,
-                'distinct_p': _distinct / _non_nulls if _non_nulls else None,
+                'distinct_p': percentage(_distinct, _valids),
 
                 # deprecated
                 'distribution': {
@@ -1279,10 +1293,6 @@ class BooleanColumnProfiler(BaseColumnProfiler):
                     'counts': [_falses, _trues]
                 }
             }
-
-            result['nulls_p'] = 1 - result['non_nulls_p'] if result['non_nulls_p'] is not None else None
-            result['invalids_p'] = 1 - result['valids_p'] if result['valids_p'] is not None else None
-            result['falses_p'] = 1 - result['trues_p'] if result['trues_p'] is not None else None
 
             return result
 
