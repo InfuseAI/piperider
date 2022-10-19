@@ -25,7 +25,7 @@ export function getDataChart(
   hasAnimation?: boolean,
 ) {
   const {
-    samples,
+    samples = 0,
     name,
     type,
     schema_type,
@@ -38,7 +38,6 @@ export function getDataChart(
     valids,
     min,
     max,
-    total,
   } = columnDatum || {};
 
   const hasSameTypeName =
@@ -78,7 +77,7 @@ export function getDataChart(
     const labels = [TRUES, FALSES, NULLS, INVALIDS].map(
       (v) => v.charAt(0) + v.slice(1).toLowerCase(),
     );
-    const ratios = counts.map((v) => v / Number(samples || total));
+    const ratios = counts.map((v) => v / samples);
     return (
       <BooleanPieChart
         data={{ counts, labels, ratios }}

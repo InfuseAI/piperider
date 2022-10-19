@@ -6,7 +6,6 @@ import {
   NULL_VAL_COLOR,
 } from './../../../utils/theme';
 import { ColorProps } from '@chakra-ui/styled-system';
-import isNumber from 'lodash/isNumber';
 import { AiOutlineFileText } from 'react-icons/ai';
 import { BiText, BiQuestionMark } from 'react-icons/bi';
 import { BsCalendarDate } from 'react-icons/bs';
@@ -35,23 +34,6 @@ import {
 } from './constants';
 
 /**
- * @param metakey metric properties on the column-schema
- * @param columnData
- * @returns the metrics of the column data. will return null when properties have missing operands
- */
-export function getColumnMetricRatio(
-  metakey: MetricMetaKeys,
-  columnData?: Partial<ColumnSchema>,
-) {
-  const { [metakey]: metavalue, total, samples } = columnData || {};
-
-  const result =
-    isNumber(metavalue) && total ? metavalue / (samples || total) : null;
-
-  return result;
-}
-
-/**
  * @param columnDatum
  * @returns a boolean indicating whether a column is categorical (e.g. topk)
  */
@@ -75,8 +57,11 @@ export function transformCompositionAsFlatStackInput(
   if (!columnDatum) return;
   const {
     nulls,
+    nulls_p,
     invalids,
+    invalids_p,
     valids,
+    valids_p,
     negatives,
     negatives_p,
     zeros,
@@ -87,61 +72,39 @@ export function transformCompositionAsFlatStackInput(
     non_zero_length_p,
     zero_length,
     zero_length_p,
-    samples,
     type,
-    total,
   } = columnDatum;
-
-  const nullsOfTotal = getColumnMetricRatio('nulls', columnDatum);
-  const invalidsOfTotal = getColumnMetricRatio('invalids', columnDatum);
-  const validsOfTotal = getColumnMetricRatio('valids', columnDatum);
 
   const invalidNullLabels = [INVALIDS, NULLS];
   const invalidNullCounts = [invalids, nulls];
   const invalidNullColors = [INVALID_VAL_COLOR, NULL_VAL_COLOR];
-  const invalidNullRatios = [invalidsOfTotal, nullsOfTotal];
+  const invalidNullRatios = [invalids_p, nulls_p];
 
   // Text Compositions
   if (type === 'string') {
-    const zeroLengthOfTotal =
-      zero_length_p ?? (zero_length || 0) / (samples || total || 0);
-    const nonZeroLengthOfTotal =
-      non_zero_length_p ?? (non_zero_length || 0) / (samples || total || 0);
     return {
       labels: [ZEROLENGTH, NONZEROLENGTH, ...invalidNullLabels],
       counts: [zero_length, non_zero_length, ...invalidNullCounts].map(
         zeroAsFallbackHandler,
       ),
-      ratios: [
-        zeroLengthOfTotal,
-        nonZeroLengthOfTotal,
-        invalidsOfTotal,
-        nullsOfTotal,
-      ].map(zeroAsFallbackHandler),
+      ratios: [zero_length_p, non_zero_length_p, invalids_p, nulls_p].map(
+        zeroAsFallbackHandler,
+      ),
       colors: [ZERO_VAL_COLOR, NON_ZERO_VAL_COLOR, ...invalidNullColors],
     };
   }
 
   // Numeric/Integer Compositions
   if (containsColumnQuantile(type)) {
-    const negativesOfTotal =
-      negatives_p ?? getColumnMetricRatio('negatives', columnDatum);
-    const zerosOfTotal = zeros_p ?? getColumnMetricRatio('zeros', columnDatum);
-    const positivesOfTotal =
-      positives_p ?? getColumnMetricRatio('positives', columnDatum);
-
     const newCounts = [negatives, zeros, positives, ...invalidNullCounts].map(
       zeroAsFallbackHandler,
     );
     return {
       labels: [NEGATIVES, ZEROS, POSITIVES, ...invalidNullLabels],
       counts: newCounts,
-      ratios: [
-        negativesOfTotal,
-        zerosOfTotal,
-        positivesOfTotal,
-        ...invalidNullRatios,
-      ].map(zeroAsFallbackHandler),
+      ratios: [negatives_p, zeros_p, positives_p, ...invalidNullRatios].map(
+        zeroAsFallbackHandler,
+      ),
       colors: [
         NEGATIVE_VAL_COLOR,
         ZERO_VAL_COLOR,
@@ -154,7 +117,7 @@ export function transformCompositionAsFlatStackInput(
   return {
     labels: [VALIDS, ...invalidNullLabels].map(zeroAsFallbackHandler),
     counts: [valids, ...invalidNullCounts].map(zeroAsFallbackHandler),
-    ratios: [validsOfTotal, ...invalidNullRatios].map(zeroAsFallbackHandler),
+    ratios: [valids_p, ...invalidNullRatios].map(zeroAsFallbackHandler),
     colors: ['#63B3ED', ...invalidNullColors],
   };
 }
@@ -212,10 +175,7 @@ export function transformSRMetricsInfoList(
     const pValue = columnDatum[metakey + '_p'];
 
     const count = Number(value);
-    const percent =
-      pValue >= 0
-        ? pValue
-        : count / (columnDatum.samples || Number(columnDatum.total));
+    const percent = pValue >= 0 ? pValue : count / (columnDatum.samples || 0);
 
     return {
       name,

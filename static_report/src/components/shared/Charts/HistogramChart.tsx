@@ -111,7 +111,7 @@ export function getHistogramChartOptions(
   hideAxis = false,
   { ...configOverrides }: ChartOptions<'bar'> = {},
 ): ChartOptions<'bar'> {
-  const { histogram, type, samples, total } = data;
+  const { histogram, type, samples = 0 } = data;
   const { counts = [], bin_edges: binEdges = [] } =
     histogram || ({} as Histogram);
   const isDatetime = type === 'datetime';
@@ -128,7 +128,7 @@ export function getHistogramChartOptions(
             const result = formatDisplayedBinItem(binEdges, dataIndex);
 
             const percentOfTotal = formatIntervalMinMax(
-              counts[dataIndex] / Number(samples || total), //total is always given (schema should make required)
+              counts[dataIndex] / samples,
             );
 
             const prefix = isDatetime

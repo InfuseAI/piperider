@@ -117,15 +117,18 @@ export function transformTableAsFlatStackInput(
 ): FlatStackedBarChartProps['data'] | undefined {
   if (typeof tableDatum?.duplicate_rows !== 'number') return;
 
-  const { duplicate_rows = 0, row_count = 0, samples } = tableDatum || {};
-  const total = samples || row_count; //fallback to row_count for unsampled rows
-  const nonDuplicateRatio = (total - duplicate_rows) / total;
-  const duplicateRowRatio = duplicate_rows / total;
+  const {
+    duplicate_rows = 0,
+    samples = 0,
+    samples_p = 0,
+    duplicate_rows_p = 0,
+  } = tableDatum || {};
 
+  const nonDuplicateRatio = samples_p - duplicate_rows_p;
   return {
     labels: [DUPLICATE_ROWS, NONDUPLICATE_ROWS],
-    counts: [duplicate_rows, total],
-    ratios: [duplicateRowRatio, nonDuplicateRatio],
+    counts: [duplicate_rows, samples],
+    ratios: [duplicate_rows_p, nonDuplicateRatio],
     colors: ['#63B3ED', '#D9D9D9'],
   };
 }

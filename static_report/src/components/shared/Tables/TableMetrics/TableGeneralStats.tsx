@@ -68,10 +68,7 @@ export function TableGeneralStats({ tableDatum, ...props }: Props & BoxProps) {
         secondSlot: tableDatum?.freshness,
       };
     } else if (v.metakey === 'samples') {
-      const sampleRatio =
-        tableDatum?.samples_p ??
-        (tableDatum?.samples || 0 / (tableDatum?.samples || 0));
-      v.firstSlot = formatIntervalMinMax(sampleRatio);
+      v.firstSlot = formatIntervalMinMax(tableDatum?.samples_p || 0);
     }
     return v;
   });

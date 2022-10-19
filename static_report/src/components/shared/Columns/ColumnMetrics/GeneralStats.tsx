@@ -26,7 +26,6 @@ export function GeneralStats({
   zReport(ZColSchema.safeParse(targetColumnDatum));
 
   const metakeyEntries: MetricNameMetakeyList = [
-    // ['valids', 'Valid'],
     ['invalids', 'Invalid'],
     ['nulls', 'Missing'],
   ];
