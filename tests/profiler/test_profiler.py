@@ -89,12 +89,19 @@ class TestProfiler:
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 3
         assert result["nulls"] == 1
+        assert almost_equal(result["nulls_p"], 1 / 3)
         assert result["non_nulls"] == 2
+        assert almost_equal(result["non_nulls_p"], 2 / 3)
         assert result["valids"] == 2
+        assert almost_equal(result["valids_p"], 2 / 3)
         assert result["invalids"] == 0
+        assert almost_equal(result["invalids_p"], 0 / 3)
         assert result["zeros"] == 1
+        assert almost_equal(result["zeros_p"], 1 / 3)
         assert result["negatives"] == 0
+        assert almost_equal(result["negatives_p"], 0 / 3)
         assert result["positives"] == 1
+        assert almost_equal(result["positives_p"], 1 / 3)
 
         histogram = result["histogram"]
         assert histogram["labels"][0] == '0'
@@ -208,12 +215,19 @@ class TestProfiler:
 
         assert result["total"] == 4
         assert result["nulls"] == 1
+        assert almost_equal(result["nulls_p"], 1 / 4)
         assert result["non_nulls"] == 3
+        assert almost_equal(result["non_nulls_p"], 3 / 4)
         assert result["valids"] == 3
+        assert almost_equal(result["valids_p"], 3 / 4)
         assert result["invalids"] == 0
+        assert almost_equal(result["invalids_p"], 0 / 4)
         assert result["zeros"] == 1
+        assert almost_equal(result["zeros_p"], 1 / 4)
         assert result["negatives"] == 1
+        assert almost_equal(result["negatives_p"], 1 / 4)
         assert result["positives"] == 1
+        assert almost_equal(result["positives_p"], 1 / 4)
 
         assert result['avg'] == 0
         assert almost_equal(result['stddev'], 20)
@@ -318,7 +332,17 @@ class TestProfiler:
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 5
         assert result["non_nulls"] == 4
+        assert almost_equal(result["non_nulls_p"], 4 / 5)
+        assert result["valids"] == 2
+        assert almost_equal(result["valids_p"], 2 / 5)
         assert result["invalids"] == 2
+        assert almost_equal(result["invalids_p"], 2 / 5)
+        assert result["distinct"] == 1
+        assert almost_equal(result["distinct_p"], 1 / result["valids"])
+        assert result["duplicates"] == 2
+        assert almost_equal(result["duplicates_p"], 2 / result["valids"])
+        assert result["non_duplicates"] == 0
+        assert almost_equal(result["non_duplicates_p"], 0 / result["valids"])
 
     def test_string_metrics(self):
         engine = self.engine = create_engine('sqlite://')
@@ -342,11 +366,23 @@ class TestProfiler:
 
         assert result["total"] == 8
         assert result["nulls"] == 1
+        assert almost_equal(result["nulls_p"], 1 / 8)
         assert result["non_nulls"] == 7
+        assert almost_equal(result["non_nulls_p"], 7 / 8)
         assert result["valids"] == 7
+        assert almost_equal(result["valids_p"], 7 / 8)
         assert result["invalids"] == 0
+        assert almost_equal(result["invalids_p"], 0 / 8)
         assert result["zero_length"] == 1
+        assert almost_equal(result["zero_length_p"], 1 / 8)
         assert result["non_zero_length"] == 6
+        assert almost_equal(result["non_zero_length_p"], 6 / 8)
+        assert result["distinct"] == 6
+        assert almost_equal(result["distinct_p"], 6 / result["valids"])
+        assert result["duplicates"] == 2
+        assert almost_equal(result["duplicates_p"], 2 / result["valids"])
+        assert result["non_duplicates"] == 5
+        assert almost_equal(result["non_duplicates_p"], 5 / result["valids"])
 
         assert result["min"] == 0
         assert result["max"] == 11
@@ -379,8 +415,17 @@ class TestProfiler:
         result = profiler.profile()["tables"]["test"]['columns']["str"]
         assert result["total"] == 7
         assert result["non_nulls"] == 6
+        assert almost_equal(result["non_nulls_p"], 6 / 7)
         assert result["valids"] == 5
+        assert almost_equal(result["valids_p"], 5 / 7)
         assert result["invalids"] == 1
+        assert almost_equal(result["invalids_p"], 1 / 7)
+        assert result["distinct"] == 4
+        assert almost_equal(result["distinct_p"], 4 / result["valids"])
+        assert result["duplicates"] == 2
+        assert almost_equal(result["duplicates_p"], 2 / result["valids"])
+        assert result["non_duplicates"] == 3
+        assert almost_equal(result["non_duplicates_p"], 3 / result["valids"])
 
     def test_datetime_metric(self):
         engine = self.engine = create_engine('sqlite://')
@@ -397,9 +442,19 @@ class TestProfiler:
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 3
         assert result["non_nulls"] == 2
+        assert almost_equal(result["non_nulls_p"], 2 / 3)
         assert result["nulls"] == 1
+        assert almost_equal(result["nulls_p"], 1 / 3)
         assert result["invalids"] == 0
+        assert almost_equal(result["invalids_p"], 0 / 3)
         assert result["valids"] == 2
+        assert almost_equal(result["valids_p"], 2 / 3)
+        assert result["distinct"] == 1
+        assert almost_equal(result["distinct_p"], 1 / result["valids"])
+        assert result["duplicates"] == 2
+        assert almost_equal(result["duplicates_p"], 2 / result["valids"])
+        assert result["non_duplicates"] == 0
+        assert almost_equal(result["non_duplicates_p"], 0 / result["valids"])
 
     def test_datetime_invalid(self):
         engine = self.engine = create_engine('sqlite://')
@@ -422,7 +477,15 @@ class TestProfiler:
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 8
         assert result["non_nulls"] == 7
+        assert almost_equal(result["non_nulls_p"], 7 / 8)
         assert result["invalids"] == 2
+        assert almost_equal(result["invalids_p"], 2 / 8)
+        assert result["distinct"] == 4
+        assert almost_equal(result["distinct_p"], 4 / result["valids"])
+        assert result["duplicates"] == 2
+        assert almost_equal(result["duplicates_p"], 2 / result["valids"])
+        assert result["non_duplicates"] == 3
+        assert almost_equal(result["non_duplicates_p"], 3 / result["valids"])
 
     def test_boolean_metric(self):
         engine = self.engine = create_engine('sqlite://')
@@ -440,11 +503,19 @@ class TestProfiler:
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 4
         assert result["nulls"] == 1
+        assert almost_equal(result["nulls_p"], 1 / 4)
         assert result["non_nulls"] == 3
+        assert almost_equal(result["non_nulls_p"], 3 / 4)
         assert result["valids"] == 3
+        assert almost_equal(result["valids_p"], 3 / 4)
         assert result["invalids"] == 0
+        assert almost_equal(result["invalids_p"], 0 / 4)
         assert result["trues"] == 2
+        assert almost_equal(result["trues_p"], 2 / 4)
         assert result["falses"] == 1
+        assert almost_equal(result["falses_p"], 1 / 4)
+        assert result["distinct"] == 2
+        assert almost_equal(result["distinct_p"], 2 / result["valids"])
 
     def test_boolean_invalid(self):
         engine = self.engine = create_engine('sqlite://')
@@ -467,7 +538,11 @@ class TestProfiler:
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 7
         assert result["non_nulls"] == 6
+        assert almost_equal(result["non_nulls_p"], 6 / 7)
         assert result["invalids"] == 3
+        assert almost_equal(result["invalids_p"], 3 / 7)
+        assert result["distinct"] == 2
+        assert almost_equal(result["distinct_p"], 2 / result["valids"])
 
     def test_date_boundary(self):
         # yearly
@@ -677,6 +752,7 @@ class TestProfiler:
         profiler = Profiler(engine, config=Configuration([], profiler={'table': {'duplicateRows': True}}))
         result = profiler.profile()
         assert result["tables"]["dup"]['duplicate_rows'] == 2
+        assert almost_equal(result["tables"]["dup"]['duplicate_rows_p'], 2 / 3)
 
         engine = self.engine = create_engine('sqlite://')
         data = [
@@ -693,6 +769,7 @@ class TestProfiler:
         profiler = Profiler(engine, config=Configuration([], profiler={'table': {'duplicateRows': True}}))
         result = profiler.profile()
         assert result["tables"]["dup"]['duplicate_rows'] == 5
+        assert almost_equal(result["tables"]["dup"]['duplicate_rows_p'], 5 / 6)
 
         engine = self.engine = create_engine('sqlite://')
         data = [
@@ -709,3 +786,4 @@ class TestProfiler:
         profiler = Profiler(engine, config=Configuration([], profiler={'table': {'limit': 4, 'duplicateRows': True}}))
         result = profiler.profile()
         assert result["tables"]["dup"]['duplicate_rows'] == 3
+        assert almost_equal(result["tables"]["dup"]['duplicate_rows_p'], 3 / 4)

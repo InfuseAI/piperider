@@ -494,6 +494,7 @@ class BaseColumnProfiler:
                 'nulls': _total - _non_nulls,
                 'nulls_p': (_total - _non_nulls) / _total if _total else None,
                 'valids': _non_nulls,
+                'valids_p': _non_nulls / _total if _total else None,
                 'invalids': 0,
                 'invalids_p': 0,
                 'distribution': None,
@@ -588,7 +589,7 @@ class StringColumnProfiler(BaseColumnProfiler):
                 'non_zero_length_p': None,
 
                 'distinct': _distinct,
-                'distinct_p': _distinct / _non_nulls if _non_nulls else None,
+                'distinct_p': _distinct / _valids if _valids else None,
                 'min': _min,
                 'min_length': _min,
                 'max': _max,
@@ -600,8 +601,11 @@ class StringColumnProfiler(BaseColumnProfiler):
                 'stddev_length': _stddev,
             }
             result['nulls_p'] = 1 - result['non_nulls_p'] if result['non_nulls_p'] is not None else None
-            result['invalids_p'] = 1 - result['valids_p'] if result['valids_p'] is not None else None
-            result['non_zero_length_p'] = 1 - result['zero_length_p'] if result['zero_length_p'] is not None else None
+            result['invalids_p'] = 1 - result['nulls_p'] - result['valids_p'] \
+                if result['nulls_p'] is not None and result['valids_p'] is not None else None
+            result['non_zero_length_p'] = 1 - result['nulls_p'] - result['invalids_p'] - result['zero_length_p'] \
+                if result['nulls_p'] is not None and result['invalids_p'] is not None and \
+                result['zero_length_p'] is not None else None
 
             # uniqueness
             _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
@@ -609,7 +613,7 @@ class StringColumnProfiler(BaseColumnProfiler):
                 "duplicates": _valids - _non_duplicates,
                 "duplicates_p": None,
                 "non_duplicates": _non_duplicates,
-                "non_duplicates_p": _non_duplicates / _non_nulls if _non_nulls else None,
+                "non_duplicates_p": _non_duplicates / _valids if _valids else None,
             })
             result['duplicates_p'] = 1 - result['non_duplicates_p'] if result['non_duplicates_p'] is not None else None
 
@@ -726,7 +730,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 'positives_p': None,
 
                 'distinct': _distinct,
-                'distinct_p': _distinct / _non_nulls if _non_nulls else None,
+                'distinct_p': _distinct / _valids if _valids else None,
                 'min': _min,
                 'max': _max,
                 'sum': _sum,
@@ -734,9 +738,11 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 'stddev': _stddev,
             }
             result['nulls_p'] = 1 - result['non_nulls_p'] if result['non_nulls_p'] is not None else None
-            result['invalids_p'] = 1 - result['valids_p'] if result['valids_p'] is not None else None
-            result['positives_p'] = 1 - result['zeros_p'] - result['negatives_p'] \
-                if result['zeros_p'] is not None and result['negatives_p'] is not None else None
+            result['invalids_p'] = 1 - result['nulls_p'] - result['valids_p'] \
+                if result['nulls_p'] is not None and result['valids_p'] is not None else None
+            result['positives_p'] = 1 - result['nulls_p'] - result['invalids_p'] - result['zeros_p'] - result['negatives_p'] \
+                if result['nulls_p'] is not None and result['invalids_p'] is not None and \
+                result['zeros_p'] is not None and result['negatives_p'] is not None else None
 
             # uniqueness
             _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
@@ -744,7 +750,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 "duplicates": _valids - _non_duplicates,
                 "duplicates_p": None,
                 "non_duplicates": _non_duplicates,
-                "non_duplicates_p": _non_duplicates / _non_nulls if _non_nulls else None
+                "non_duplicates_p": _non_duplicates / _valids if _valids else None
             })
             result['duplicates_p'] = 1 - result['non_duplicates_p'] if result['non_duplicates_p'] is not None else None
 
@@ -1065,12 +1071,13 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 'invalids': _non_nulls - _valids,
                 'invalids_p': None,
                 'distinct': _distinct,
-                'distinct_p': _distinct / _non_nulls if _non_nulls else None,
+                'distinct_p': _distinct / _valids if _valids else None,
                 'min': _min.isoformat() if _min is not None else None,
                 'max': _max.isoformat() if _max is not None else None,
             }
             result['nulls_p'] = 1 - result['non_nulls_p'] if result['non_nulls_p'] is not None else None
-            result['invalids_p'] = 1 - result['valids_p'] if result['valids_p'] is not None else None
+            result['invalids_p'] = 1 - result['nulls_p'] - result['valids_p'] \
+                if result['nulls_p'] is not None and result['valids_p'] is not None else None
 
             # uniqueness
             _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
@@ -1078,7 +1085,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 "duplicates": _valids - _non_duplicates,
                 "duplicates_p": None,
                 "non_duplicates": _non_duplicates,
-                "non_duplicates_p": _non_duplicates / _non_nulls if _non_nulls else None,
+                "non_duplicates_p": _non_duplicates / _valids if _valids else None,
             })
             result['duplicates_p'] = 1 - result['non_duplicates_p'] if result['non_duplicates_p'] is not None else None
 
@@ -1270,7 +1277,7 @@ class BooleanColumnProfiler(BaseColumnProfiler):
                 'falses': _falses,
                 'falses_p': None,
                 'distinct': _distinct,
-                'distinct_p': _distinct / _non_nulls if _non_nulls else None,
+                'distinct_p': _distinct / _valids if _valids else None,
 
                 # deprecated
                 'distribution': {
@@ -1281,8 +1288,11 @@ class BooleanColumnProfiler(BaseColumnProfiler):
             }
 
             result['nulls_p'] = 1 - result['non_nulls_p'] if result['non_nulls_p'] is not None else None
-            result['invalids_p'] = 1 - result['valids_p'] if result['valids_p'] is not None else None
-            result['falses_p'] = 1 - result['trues_p'] if result['trues_p'] is not None else None
+            result['invalids_p'] = 1 - result['nulls_p'] - result['valids_p'] \
+                if result['nulls_p'] is not None and result['valids_p'] is not None else None
+            result['falses_p'] = 1 - result['nulls_p'] - result['invalids_p'] - result['trues_p'] \
+                if result['nulls_p'] is not None and result['invalids_p'] is not None and \
+                result['trues_p'] is not None else None
 
             return result
 
