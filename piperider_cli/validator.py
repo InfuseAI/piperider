@@ -170,7 +170,7 @@ class CloudAccountChecker(AbstractChecker):
             self.console.print(f'  [bold red]{msg}[/bold red]')
             return False, msg
         else:
-            self.console.print(f"  Run as user: [bold green]{piperider_cloud.me().get('email')}[/bold green]")
+            self.console.print(f"  Run as user: [bold green]{piperider_cloud.me.get('email')}[/bold green]")
             return True, ""
 
 

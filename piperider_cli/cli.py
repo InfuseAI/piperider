@@ -250,9 +250,10 @@ def upload_report(**kwargs):
 
 
 @cloud.command(short_help='Login to PipeRider Cloud.', beta=True, cls=TrackCommand)
+@click.option('--token', default=None, type=click.STRING, help='Specify the API token.')
 @add_options(debug_option)
 def login(**kwargs):
-    ret = CloudConnector.login()
+    ret = CloudConnector.login(api_token=kwargs.get('token'))
     return ret
 
 
