@@ -678,6 +678,7 @@ class TestProfiler:
         assert result["tables"]["test"]['columns']["num"]["nulls"] == 1
         assert result["tables"]["test"]['row_count'] == 5
         assert result["tables"]["test"]['samples'] == 3
+        assert almost_equal(result["tables"]["test"]['samples_p'], 3 / 5)
 
     def test_incl_excl_tables(self):
         engine = self.engine = create_engine('sqlite://')
