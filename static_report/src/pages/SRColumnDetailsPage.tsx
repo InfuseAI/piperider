@@ -91,6 +91,7 @@ export default function SRColumnDetailsPage({
     );
   }
 
+  //FIXME: Legacy
   const { failed: baseFailed, total: baseTotal } =
     getAssertionStatusCountsFromList([
       dataTable?.piperider_assertion_result,

@@ -128,6 +128,7 @@ export type EnrichedTableOrColumnAssertionTest = EnrichedAssertionTest & {
   columnName?: string;
 };
 const _getKindMapper = (kind: AssertionSource) => (v) => ({ ...v, kind });
+//FIXME: LEGACY
 const _getFlattenedTestEntries = (table?: SaferTableSchema) => {
   //Flatten table assertions
   const enrichedPipeAssertionTests: EnrichedAssertionTest[] = (

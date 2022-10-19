@@ -102,7 +102,7 @@ export default function CRColumnDetailsPage({
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
 
-  //TODO: move to store after assertions schema-change
+  //FIXME: LEGACY
   const { failed: baseFailed, total: baseTotal } =
     getAssertionStatusCountsFromList([
       baseDataTable?.piperider_assertion_result,

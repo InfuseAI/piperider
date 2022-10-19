@@ -5,7 +5,6 @@ import {
   tableSchemaSchema,
 } from './../sdlc/single-report-schema.z';
 import {
-  AssertionTest,
   ColumnSchema,
   SingleReportSchema,
   TableSchema,
@@ -26,8 +25,10 @@ export interface ComparisonReportSchema {
 }
 
 export type ComparsionSource = 'base' | 'target';
+//FIXME: LEGACY
 export type AssertionSource = 'piperider' | 'dbt';
 
+//FIXME: LEGACY
 export type AssertionValue =
   | TableSchema['piperider_assertion_result']
   | TableSchema['dbt_assertion_result'];
@@ -37,9 +38,19 @@ export type ReportAssertionStatusCounts = {
   failed: string | number;
 };
 
-export type CRAssertionData = {
-  name: string;
-} & ComparableData<AssertionTest & { message?: string }>;
+export type Selectable = {
+  onSelect: ({
+    tableName,
+    columnName,
+  }: {
+    tableName?: string;
+    columnName?: string;
+  }) => void;
+};
+
+export type Comparable = {
+  singleOnly?: boolean;
+};
 
 export interface ComparableData<T> {
   base?: T;
@@ -86,17 +97,3 @@ export const ZSingleSchema = singleReportSchemaSchema.merge(
 //TODO: temp bypass flag until `input` -> `target` on schema.json
 export const ZComparisonSchema = (flag?: boolean) =>
   zWrapForComparison(ZSingleSchema, ZSingleSchema, flag);
-
-export type Selectable = {
-  onSelect: ({
-    tableName,
-    columnName,
-  }: {
-    tableName?: string;
-    columnName?: string;
-  }) => void;
-};
-
-export type Comparable = {
-  singleOnly?: boolean;
-};
