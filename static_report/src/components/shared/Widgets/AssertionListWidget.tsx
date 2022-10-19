@@ -31,11 +31,11 @@ import {
   formatTestExpectedOrActual,
   ReportState,
 } from '../../../utils';
-import { AssertionStatus } from '../Assertions';
+import { AssertionStatusIcon } from '../Assertions';
 import {
   CRAssertionModal,
   CRAssertionModalData,
-} from '../Assertions/CRAssertionModal';
+} from '../Assertions/AssertionCRModal';
 import { NoData } from '../Layouts/NoData';
 
 type TargetStatus = { targetStatus?: 'passed' | 'failed' };
@@ -249,13 +249,13 @@ export function AssertionListWidget({
                   <Tr key={row.id}>
                     <Td>
                       <Flex justifyContent={'center'}>
-                        <AssertionStatus status={status} />
+                        <AssertionStatusIcon status={status} />
                       </Flex>
                     </Td>
                     {!singleOnly && (
                       <Td>
                         <Flex justifyContent={'center'}>
-                          <AssertionStatus status={targetStatus} />
+                          <AssertionStatusIcon status={targetStatus} />
                         </Flex>
                       </Td>
                     )}

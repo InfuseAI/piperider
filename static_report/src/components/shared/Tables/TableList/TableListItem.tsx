@@ -17,7 +17,7 @@ import {
 import { ColumnBadge } from './ColumnBadge';
 import { getIconForColumnType } from '../../Columns/utils';
 import { NoData } from '../../Layouts';
-import { AssertionLabel } from '../../Assertions/AssertionLabel';
+import { AssertionPassFailCountLabel } from '../../Assertions/AssertionPassFailCountLabel';
 import { getAssertionStatusCountsFromList } from '../utils';
 import {
   tableListGridTempCols,
@@ -92,7 +92,10 @@ export function TableListItem({
         <GridItem>
           <Flex gap={2}>
             {singleOnly && (
-              <AssertionLabel total={baseTotal} failed={baseFailed} />
+              <AssertionPassFailCountLabel
+                total={baseTotal}
+                failed={baseFailed}
+              />
             )}
             {!singleOnly && (
               <TableListAssertionSummary

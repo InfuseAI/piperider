@@ -1,7 +1,7 @@
 import { Text } from '@chakra-ui/react';
 import { AssertionTest } from '../../../sdlc';
 
-export function AssertionStatus({
+export function AssertionStatusIcon({
   status,
 }: {
   status?: AssertionTest['status'];

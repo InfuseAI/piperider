@@ -1,4 +1,3 @@
-export * from './AssertionLabel';
-export * from './AssertionsLabelIcon';
-export * from './AssertionStatus';
-export * from './AssertionDetailsMatrix';
+export * from './AssertionCRModal';
+export * from './AssertionPassFailCountLabel';
+export * from './AssertionStatusIcon';

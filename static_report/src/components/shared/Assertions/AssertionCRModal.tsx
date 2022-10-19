@@ -18,7 +18,7 @@ import {
   Td,
 } from '@chakra-ui/react';
 import { formatTestExpectedOrActual } from '../../../utils/formatters';
-import { AssertionStatus } from './AssertionStatus';
+import { AssertionStatusIcon } from './AssertionStatusIcon';
 import { NO_VALUE } from '../Columns/constants';
 import { NoData } from '../Layouts';
 import { AssertionTest } from '../../../sdlc/single-report-schema';
@@ -98,7 +98,7 @@ function AssertionTestDetail({ data }: DetailProps) {
           <Tr>
             <Td fontWeight={700}>Base</Td>
             <Td>
-              <AssertionStatus status={data?.base?.status} />
+              <AssertionStatusIcon status={data?.base?.status} />
             </Td>
             {isDbtKind ? (
               <Td>{data?.base?.message ?? NO_VALUE}</Td>
@@ -113,7 +113,7 @@ function AssertionTestDetail({ data }: DetailProps) {
           <Tr>
             <Td fontWeight={700}>Target</Td>
             <Td>
-              <AssertionStatus status={data?.target?.status} />
+              <AssertionStatusIcon status={data?.target?.status} />
             </Td>
             {isDbtKind ? (
               <Td>{data?.target?.message ?? NO_VALUE}</Td>

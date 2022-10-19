@@ -32,7 +32,7 @@ import {
 } from '../components/shared/Tables/TableOverview';
 import {
   AMPLITUDE_EVENTS,
-  AssertionLabel,
+  AssertionPassFailCountLabel,
   AssertionListWidget,
   BreadcrumbMetaItem,
   BreadcrumbNav,
@@ -146,7 +146,10 @@ export default function SRColumnDetailsPage({
                 <TabPanel>
                   {baseTotal > 0 && (
                     <Flex mb={5}>
-                      <AssertionLabel total={baseTotal} failed={baseFailed} />
+                      <AssertionPassFailCountLabel
+                        total={baseTotal}
+                        failed={baseFailed}
+                      />
                     </Flex>
                   )}
                   <AssertionListWidget
