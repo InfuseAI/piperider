@@ -14,6 +14,7 @@ import {
   formatAsAbbreviatedNumber,
   formatIntervalMinMax,
 } from '../../../utils/formatters';
+import { INFO_VAL_COLOR } from '../../../utils/theme';
 
 interface Props {
   topk: Topk;
@@ -158,7 +159,7 @@ export function getCatBarChartData({
       {
         indexAxis: 'y',
         data: [topkCount], // showing top cats
-        backgroundColor: '#63B3ED',
+        backgroundColor: INFO_VAL_COLOR,
         hoverBackgroundColor: '#002a53',
         borderWidth: 1,
         borderColor: '#002a53',

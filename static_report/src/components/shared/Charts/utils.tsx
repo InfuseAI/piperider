@@ -54,14 +54,14 @@ export function getDataChart(
 
   //histogram dataset
   if (chartKind === 'histogram' && histogram && type) {
-    const isTextHistogramData =
+    const dynamicHistogramData =
       type !== 'string'
         ? columnDatum?.histogram
         : columnDatum?.histogram_length;
     //BUG: race-condition when time-series is used /w animation here
     return (
       <HistogramChart
-        data={{ histogram: isTextHistogramData, min, max, type, samples }}
+        data={{ histogram: dynamicHistogramData, min, max, type, samples }}
       />
     );
   }

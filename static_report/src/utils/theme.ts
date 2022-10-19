@@ -31,6 +31,7 @@ const theme = extendTheme({
 });
 
 // For Charts
+export const INFO_VAL_COLOR = '#63B3ED';
 export const NEGATIVE_VAL_COLOR = '#805AD5';
 export const ZERO_VAL_COLOR = '#FFCF36';
 export const NON_ZERO_VAL_COLOR = '#5EC23A';

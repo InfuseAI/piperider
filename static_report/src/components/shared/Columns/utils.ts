@@ -4,6 +4,7 @@ import {
   NON_ZERO_VAL_COLOR,
   INVALID_VAL_COLOR,
   NULL_VAL_COLOR,
+  INFO_VAL_COLOR,
 } from './../../../utils/theme';
 import { ColorProps } from '@chakra-ui/styled-system';
 import { AiOutlineFileText } from 'react-icons/ai';
@@ -118,7 +119,7 @@ export function transformCompositionAsFlatStackInput(
     labels: [VALIDS, ...invalidNullLabels].map(zeroAsFallbackHandler),
     counts: [valids, ...invalidNullCounts].map(zeroAsFallbackHandler),
     ratios: [valids_p, ...invalidNullRatios].map(zeroAsFallbackHandler),
-    colors: ['#63B3ED', ...invalidNullColors],
+    colors: [INFO_VAL_COLOR, ...invalidNullColors],
   };
 }
 

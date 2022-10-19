@@ -14,6 +14,7 @@ import {
   formatIntervalMinMax,
   formatNumber,
 } from '../../../utils/formatters';
+import { INFO_VAL_COLOR } from '../../../utils/theme';
 
 export function getSingleAssertionStatusCounts(
   assertion: AssertionValue,
@@ -129,7 +130,7 @@ export function transformTableAsFlatStackInput(
     labels: [DUPLICATE_ROWS, NONDUPLICATE_ROWS],
     counts: [duplicate_rows, samples],
     ratios: [duplicate_rows_p, nonDuplicateRatio],
-    colors: ['#63B3ED', '#D9D9D9'],
+    colors: [INFO_VAL_COLOR, 'NULL_VAL_COLOR'],
   };
 }
 export type TableMetakeyList = [TableMetaKeys, string][];

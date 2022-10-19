@@ -21,6 +21,7 @@ import { DATE_RANGE, TEXTLENGTH, VALUE_RANGE } from '../Columns/constants';
 
 import 'chartjs-adapter-date-fns';
 import { DeepPartial } from 'chart.js/types/utils';
+import { INFO_VAL_COLOR } from '../../../utils/theme';
 
 /**
  * Histogram Chart that can display generic data types such as Numeric, Datetime, Integer
@@ -94,7 +95,7 @@ export function getHistogramChartData(
       {
         label: 'counts',
         data: newData as any, //infer `any` to allow datestring
-        backgroundColor: '#63B3ED',
+        backgroundColor: INFO_VAL_COLOR,
         borderColor: '#4299E1',
         hoverBackgroundColor: '#002A53',
         borderWidth: 1,
