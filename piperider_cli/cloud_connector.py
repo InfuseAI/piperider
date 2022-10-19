@@ -1,3 +1,4 @@
+import os
 import webbrowser
 from typing import List
 
@@ -48,7 +49,7 @@ def verify_api_token(api_token) -> bool:
         return False
 
     # Write API Token back to user profile
-    piperider_cloud.service.update_configuration()
+    piperider_cloud.service.update_api_token()
     return True
 
 
@@ -81,6 +82,28 @@ def show_user_info():
     )
     console.print(ascii_table)
     pass
+
+
+def check_default_config(options: dict):
+    if options is None:
+        return
+
+    cloud_config = piperider_cloud.config
+
+    auto_upload_flag = options.get('auto_upload')
+
+    if cloud_config.get('auto_upload') is not None and auto_upload_flag is None:
+        # Skip if auto_upload is already set
+        return
+    if auto_upload_flag is None and cloud_config.get('auto_upload') is None:
+        console.print('Please select default behavior for auto upload')
+        if FANCY_USER_INPUT:
+            auto_upload_flag = inquirer.confirm('Auto upload reports to cloud', default=True)
+        else:
+            auto_upload_flag = Prompt.ask('[[yellow]?[/yellow]] Auto upload reports to cloud', choices=['y', 'n'],
+                                          default='y') == 'y'
+    console.print(f'[[bold green]Config[/bold green]] Default auto upload behavior is set to {auto_upload_flag}')
+    piperider_cloud.update_config({'auto_upload': auto_upload_flag})
 
 
 def select_reports(report_dir=None, datasource=None) -> List[ProfilerOutput]:
@@ -121,11 +144,20 @@ def upload_to_cloud(report: ProfilerOutput, debug=False) -> dict:
 
 class CloudConnector():
     @staticmethod
-    def login(api_token=None):
+    def is_login() -> bool:
+        return piperider_cloud.available
+
+    @staticmethod
+    def is_auto_upload() -> bool:
+        return piperider_cloud.config.get('auto_upload', False)
+
+    @staticmethod
+    def login(api_token=None, options: dict = None, debug=False):
 
         if piperider_cloud.available:
             console.rule('Already Logged In')
             show_user_info()
+            check_default_config(options)
             return 0
 
         if api_token is None:
@@ -135,6 +167,7 @@ class CloudConnector():
             if verify_api_token(api_token):
                 console.rule('Login Successful')
                 show_user_info()
+                check_default_config(options)
                 return 0
 
         console.rule('Login Failed', style='red')
@@ -150,6 +183,12 @@ class CloudConnector():
         piperider_cloud.logout()
         console.rule('Logout')
         return 0
+
+    @staticmethod
+    def upload_latest_report(report_dir=None, debug=False) -> int:
+        filesystem = FileSystem(report_dir=report_dir)
+        latest_report_path = os.path.join(filesystem.get_output_dir(), 'latest', 'run.json')
+        return CloudConnector.upload_report(latest_report_path, debug=debug)
 
     @staticmethod
     def upload_report(report_path=None, report_dir=None, datasource=None, debug=False) -> int:
@@ -196,7 +235,4 @@ class CloudConnector():
             ascii_table.add_row(status, response.get('name'), response.get('created_at'), url, message)
 
         console.print(ascii_table)
-
-        if rc == 0:
-            console.rule('Upload Success')
         return rc

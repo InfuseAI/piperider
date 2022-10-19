@@ -24,7 +24,6 @@ class CloudServiceHelper:
         self.user_profile = load_user_profile()
         if self.user_profile is None:
             return
-
         self.load_configuration()
 
     @property
@@ -42,7 +41,16 @@ class CloudServiceHelper:
         self.api_token = os.environ.get(SERVICE_ENV_API_KEY,
                                         self.user_profile.get('api_token'))
 
-    def update_configuration(self):
+    def get_config(self) -> dict:
+        config = self.user_profile.get('cloud_config', {})
+        return config if config else {}
+
+    def update_config(self, options: dict):
+        cloud_config = self.get_config()
+        cloud_config.update(options)
+        update_user_profile({'cloud_config': cloud_config})
+
+    def update_api_token(self):
         if self.api_token:
             update_user_profile({'api_token': self.api_token})
         else:
@@ -85,11 +93,16 @@ class PipeRiderCloud:
 
     def __init__(self):
         self.service = CloudServiceHelper()
+        self.config: dict = self.service.get_config()
         try:
             self.available, self.me = self.service.validate()
         except BaseException:
             self.available = False
             self.me = None
+
+    def update_config(self, options: dict):
+        self.service.update_config(options)
+        self.config = self.service.get_config()
 
     def validate(self, api_token=None):
         if api_token:
@@ -105,7 +118,7 @@ class PipeRiderCloud:
 
     def logout(self):
         self.service.api_token = None
-        self.service.update_configuration()
+        self.service.update_api_token()
 
     def magic_login(self, email):
         if self.available:
