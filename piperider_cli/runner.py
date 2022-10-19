@@ -339,25 +339,6 @@ def _show_table_summary(ascii_table: Table, table: str, profiled_result, asserti
     )
 
 
-def _transform_assertion_result(table: str, results):
-    tests = []
-    columns = {}
-    if results is None:
-        return dict(tests=tests, columns=columns)
-
-    for r in results:
-        if r.table == table:
-            entry = r.to_result_entry()
-            if r.column:
-                if r.column not in columns:
-                    columns[r.column] = []
-                columns[r.column].append(entry)
-            else:
-                tests.append(entry)
-
-    return dict(tests=tests, columns=columns)
-
-
 def _validate_assertions(console: Console):
     assertion_engine = AssertionEngine(None)
     assertion_engine.load_all_assertions_for_validation()
@@ -666,19 +647,9 @@ class Runner():
                         c_test['source'] = 'dbt'
                         run_result['tests'].append(c_test)
 
-        for t in run_result['tables']:
-            test_results = _transform_assertion_result(t, assertion_results)
-            for test in test_results['tests']:
-                test['table'] = t
-                test['source'] = 'piperider'
-                run_result['tests'].append(test)
-            for c in test_results['columns']:
-                for c_test in test_results['columns'][c]:
-                    c_test['table'] = t
-                    c_test['column'] = c
-                    c_test['source'] = 'piperider'
-                    run_result['tests'].append(c_test)
+        run_result['tests'].extend([r.to_result_entry() for r in assertion_results])
 
+        for t in run_result['tables']:
             _clean_up_null_properties(run_result['tables'][t])
         _show_summary(run_result, assertion_results, assertion_exceptions, dbt_test_results)
         _show_recommended_assertion_notice_message(console, assertion_results)
