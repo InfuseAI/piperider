@@ -6,9 +6,8 @@ class PipeRiderError(Exception):
     """ Base class for piperider errors. """
 
     def __init__(self, *args, **kwargs):
-        self.message = args[0] or ''
+        self.message = args[0] if len(args) else ''
         self.hint = kwargs.get('hint') or ''
-        pass
 
     def __str__(self):
         return self.message
@@ -31,14 +30,6 @@ class PipeRiderConfigTypeError(PipeRiderError):
         self.message = msg
 
     hint = "Please check your input configuration in config.yml"
-
-
-class PipeRiderCredentialError(PipeRiderError):
-    def __init__(self, name):
-        self.name = name
-        self.message = f"The credential of '{name}' is not configured."
-
-    hint = "Please execute command 'piperider init' to move forward."
 
 
 class PipeRiderCredentialFieldError(PipeRiderError):
@@ -107,12 +98,6 @@ class PipeRiderDataBaseEncodingError(PipeRiderError):
             else:  # Linux or Mac platform
                 self.hint = f'Please use the following command to convert file encoding.\n' \
                             f'    \'iconv -f {current_encoding} -t {support_encoding} "{file_path}" > "utf8-{os.path.basename(file_path)}"\''
-
-
-class PipeRiderDiagnosticError(PipeRiderError):
-    def __init__(self, check_name, error_msg, hint=None):
-        self.message = f'{check_name}: {error_msg}'
-        self.hint = hint
 
 
 class DbtError(PipeRiderError):
