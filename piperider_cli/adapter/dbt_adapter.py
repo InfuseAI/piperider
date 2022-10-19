@@ -65,7 +65,11 @@ class DefaultDbtAdaptee(DbtAdaptee):
         out, err = proc.communicate()
         # Exit code ref: https://docs.getdbt.com/reference/exit-codes
         if proc.returncode == 2:
-            raise DbtInvocationError()
+            message = "The dbt invocation completed with an error. Exit code: 2"
+            if out:
+                message = f"{message}\n{out.decode()}"
+            raise DbtInvocationError(message)
+
         if out:
             return out.decode()
 

@@ -55,7 +55,8 @@ class TrackCommand(Command):
         if params.get('debug'):
             console.print_exception(show_locals=True)
         else:
-            console.print(f'[bold red]Error:[/bold red] {msg}')
+            console.print('[bold red]Error:[/bold red] ', end='')
+            console.out(msg, highlight=False)
 
     def _show_hint_message(self, hint):
         console = Console()
