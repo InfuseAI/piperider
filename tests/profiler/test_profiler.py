@@ -338,11 +338,11 @@ class TestProfiler:
         assert result["invalids"] == 2
         assert almost_equal(result["invalids_p"], 2 / 5)
         assert result["distinct"] == 1
-        assert almost_equal(result["distinct_p"], 1 / result["valids"])
+        assert almost_equal(result["distinct_p"], 1 / 2)
         assert result["duplicates"] == 2
-        assert almost_equal(result["duplicates_p"], 2 / result["valids"])
+        assert almost_equal(result["duplicates_p"], 2 / 2)
         assert result["non_duplicates"] == 0
-        assert almost_equal(result["non_duplicates_p"], 0 / result["valids"])
+        assert almost_equal(result["non_duplicates_p"], 0 / 2)
 
     def test_string_metrics(self):
         engine = self.engine = create_engine('sqlite://')
@@ -378,11 +378,11 @@ class TestProfiler:
         assert result["non_zero_length"] == 6
         assert almost_equal(result["non_zero_length_p"], 6 / 8)
         assert result["distinct"] == 6
-        assert almost_equal(result["distinct_p"], 6 / result["valids"])
+        assert almost_equal(result["distinct_p"], 6 / 7)
         assert result["duplicates"] == 2
-        assert almost_equal(result["duplicates_p"], 2 / result["valids"])
+        assert almost_equal(result["duplicates_p"], 2 / 7)
         assert result["non_duplicates"] == 5
-        assert almost_equal(result["non_duplicates_p"], 5 / result["valids"])
+        assert almost_equal(result["non_duplicates_p"], 5 / 7)
 
         assert result["min"] == 0
         assert result["max"] == 11
@@ -421,11 +421,11 @@ class TestProfiler:
         assert result["invalids"] == 1
         assert almost_equal(result["invalids_p"], 1 / 7)
         assert result["distinct"] == 4
-        assert almost_equal(result["distinct_p"], 4 / result["valids"])
+        assert almost_equal(result["distinct_p"], 4 / 5)
         assert result["duplicates"] == 2
-        assert almost_equal(result["duplicates_p"], 2 / result["valids"])
+        assert almost_equal(result["duplicates_p"], 2 / 5)
         assert result["non_duplicates"] == 3
-        assert almost_equal(result["non_duplicates_p"], 3 / result["valids"])
+        assert almost_equal(result["non_duplicates_p"], 3 / 5)
 
     def test_datetime_metric(self):
         engine = self.engine = create_engine('sqlite://')
@@ -450,11 +450,11 @@ class TestProfiler:
         assert result["valids"] == 2
         assert almost_equal(result["valids_p"], 2 / 3)
         assert result["distinct"] == 1
-        assert almost_equal(result["distinct_p"], 1 / result["valids"])
+        assert almost_equal(result["distinct_p"], 1 / 2)
         assert result["duplicates"] == 2
-        assert almost_equal(result["duplicates_p"], 2 / result["valids"])
+        assert almost_equal(result["duplicates_p"], 2 / 2)
         assert result["non_duplicates"] == 0
-        assert almost_equal(result["non_duplicates_p"], 0 / result["valids"])
+        assert almost_equal(result["non_duplicates_p"], 0 / 2)
 
     def test_datetime_invalid(self):
         engine = self.engine = create_engine('sqlite://')
@@ -481,11 +481,11 @@ class TestProfiler:
         assert result["invalids"] == 2
         assert almost_equal(result["invalids_p"], 2 / 8)
         assert result["distinct"] == 4
-        assert almost_equal(result["distinct_p"], 4 / result["valids"])
+        assert almost_equal(result["distinct_p"], 4 / 5)
         assert result["duplicates"] == 2
-        assert almost_equal(result["duplicates_p"], 2 / result["valids"])
+        assert almost_equal(result["duplicates_p"], 2 / 5)
         assert result["non_duplicates"] == 3
-        assert almost_equal(result["non_duplicates_p"], 3 / result["valids"])
+        assert almost_equal(result["non_duplicates_p"], 3 / 5)
 
     def test_boolean_metric(self):
         engine = self.engine = create_engine('sqlite://')
@@ -515,7 +515,7 @@ class TestProfiler:
         assert result["falses"] == 1
         assert almost_equal(result["falses_p"], 1 / 4)
         assert result["distinct"] == 2
-        assert almost_equal(result["distinct_p"], 2 / result["valids"])
+        assert almost_equal(result["distinct_p"], 2 / 3)
 
     def test_boolean_invalid(self):
         engine = self.engine = create_engine('sqlite://')
@@ -542,7 +542,7 @@ class TestProfiler:
         assert result["invalids"] == 3
         assert almost_equal(result["invalids_p"], 3 / 7)
         assert result["distinct"] == 2
-        assert almost_equal(result["distinct_p"], 2 / result["valids"])
+        assert almost_equal(result["distinct_p"], 2 / 3)
 
     def test_date_boundary(self):
         # yearly
