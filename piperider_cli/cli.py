@@ -11,7 +11,7 @@ from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
-from piperider_cli.event.track import TrackCommand, BetaGroup
+from piperider_cli.event.track import TrackCommand
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.feedback import Feedback
 from piperider_cli.generate_report import GenerateReport
@@ -232,13 +232,13 @@ def compare_reports(**kwargs):
                        debug=kwargs.get('debug', False))
 
 
-@cli.group('cloud', short_help='Manage PipeRider Cloud', cls=BetaGroup)
+@cli.group('cloud', short_help='Manage PipeRider Cloud')
 def cloud(**kwargs):
     # Manage PipeRider Cloud.
     pass
 
 
-@cloud.command(short_help='Upload a report to the PipeRider Cloud.', beta=True, cls=TrackCommand)
+@cloud.command(short_help='Upload a report to the PipeRider Cloud.', cls=TrackCommand)
 @click.option('--run', type=click.Path(exists=True), help='Specify the raw result file.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
@@ -256,7 +256,7 @@ def upload_report(**kwargs):
     return ret
 
 
-@cloud.command(short_help='Login to PipeRider Cloud.', beta=True, cls=TrackCommand)
+@cloud.command(short_help='Login to PipeRider Cloud.', cls=TrackCommand)
 @click.option('--token', default=None, type=click.STRING, help='Specify the API token.')
 @click.option('--enable-auto-upload', default=None, is_flag=True, help='Enable auto upload.')
 @click.option('--disable-auto-upload', default=None, is_flag=True, help='Disable auto upload.')
@@ -275,7 +275,7 @@ def login(**kwargs):
     return ret
 
 
-@cloud.command(short_help='Logout from PipeRider Cloud.', beta=True, cls=TrackCommand)
+@cloud.command(short_help='Logout from PipeRider Cloud.', cls=TrackCommand)
 @add_options(debug_option)
 def logout(**kwargs):
     ret = CloudConnector.logout()
