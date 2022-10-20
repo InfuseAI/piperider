@@ -16,8 +16,7 @@
           "type": "object",
           "required": [
             "name",
-            "columns",
-            "piperider_assertion_result"
+            "columns"
           ],
           "additionalProperties": false,
           "properties": {
@@ -318,79 +317,15 @@
                   }
                 }
               }
-            },
-            "piperider_assertion_result": {
-              "oneOf": [
-                {
-                  "type": "null"
-                },
-                {
-                  "title": "PipeRiderAssertionResult",
-                  "type": "object",
-                  "required": [
-                    "tests",
-                    "columns"
-                  ],
-                  "additionalProperties": false,
-                  "properties": {
-                    "tests": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/definitions/assertion_test"
-                      }
-                    },
-                    "columns": {
-                      "type": "object",
-                      "patternProperties": {
-                        ".+": {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/definitions/assertion_test"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            },
-            "dbt_assertion_result": {
-              "oneOf": [
-                {
-                  "type": "null"
-                },
-                {
-                  "title": "DbtAssertionResult",
-                  "type": "object",
-                  "required": [
-                    "tests",
-                    "columns"
-                  ],
-                  "additionalProperties": false,
-                  "properties": {
-                    "tests": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/definitions/assertion_test"
-                      }
-                    },
-                    "columns": {
-                      "type": "object",
-                      "patternProperties": {
-                        ".+": {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/definitions/assertion_test"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
             }
           }
         }
+      }
+    },
+    "tests": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/assertion_test"
       }
     },
     "id": {
@@ -556,22 +491,56 @@
       "title": "AssertionTest",
       "type": "object",
       "required": [
+        "id",
         "name",
-        "status"
+        "metric",
+        "table",
+        "column",
+        "tags",
+        "status",
+        "expected",
+        "actual",
+        "message",
+        "display_name",
+        "source"
       ],
       "additionalProperties": false,
       "properties": {
+        "id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
-        "status": {
-          "enum": [
-            "passed",
-            "failed"
+        "metric": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
-        "parameters": {
-          "type": "object"
+        "table": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "column": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "tags": {
           "type": "array",
@@ -579,8 +548,30 @@
             "type": "string"
           }
         },
+        "status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
         "expected": {},
-        "actual": {}
+        "actual": {},
+        "message": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        }
       }
     }
   }
