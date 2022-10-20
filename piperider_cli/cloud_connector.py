@@ -8,6 +8,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
 
+from piperider_cli import datetime_to_str, str_to_datetime
 from piperider_cli.cloud import PipeRiderCloud
 from piperider_cli.compare_report import CompareReport, ProfilerOutput
 from piperider_cli.datasource import FANCY_USER_INPUT
@@ -232,7 +233,8 @@ class CloudConnector():
                 'success') else '[bold yellow]Skipped[/bold yellow]'
             url = f"[deep_sky_blue1]{response.get('report_url', 'N/A')}[/deep_sky_blue1]"
             message = response.get('message')
-            ascii_table.add_row(status, response.get('name'), response.get('created_at'), url, message)
+            created_at = datetime_to_str(str_to_datetime(response.get('created_at')), to_tzlocal=True)
+            ascii_table.add_row(status, response.get('name'), created_at, url, message)
 
         console.print(ascii_table)
         return rc
