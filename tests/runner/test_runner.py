@@ -73,9 +73,18 @@ class TestRunner(TestCase):
     def test_dbt_run_results(self):
         results = self.dbt_adapter.run_dbt_command(None, 'PUBLIC')
 
-        self.assertIn('PRICE_20210128', results)
-        self.assertIn('ma60', results['PRICE_20210128']['columns'])
-        self.assertEqual('failed', results['PRICE_20210128']['columns']['ma60'][0]['status'])
+        table_names = [r.get('table') for r in results]
+        column_names = [r.get('column') for r in results]
+
+        self.assertIn('PRICE_20210128', table_names)
+        self.assertIn('ma60', column_names)
+
+        status = None
+        for r in results:
+            if r.get('table') == 'PRICE_20210128' and r.get('column') == 'ma60':
+                status = r.get('status')
+                break
+        self.assertEqual('failed', status)
 
     def test_dbt_append_descriptions(self):
         self.dbt_adapter.append_descriptions(self.profile_results, 'PUBLIC')
