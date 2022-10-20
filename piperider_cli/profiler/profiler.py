@@ -318,6 +318,7 @@ class Profiler:
             return result
 
         self.event_handler.handle_table_start(result)
+        profile_start = time.perf_counter()
 
         # Profile table metrics
         self._profile_table_metadata(result, table)
@@ -333,6 +334,10 @@ class Profiler:
                 columns[column.name]['samples_p'] = samples_p
                 col_index = col_index + 1
                 self.event_handler.handle_table_progress(result, col_count, col_index)
+            profile_end = time.perf_counter()
+            duration = profile_end - profile_start
+            result["profile_duration"] = f"{duration:.2f}"
+            result["elapsed_milli"] = int(duration * 1000)
 
             self.event_handler.handle_table_end(result)
         else:
@@ -355,6 +360,11 @@ class Profiler:
                             col_index = col_index + 1
                             self.event_handler.handle_table_progress(result, col_count, col_index)
                 finally:
+                    profile_end = time.perf_counter()
+                    duration = profile_end - profile_start
+                    result["profile_duration"] = f"{duration:.2f}"
+                    result["elapsed_milli"] = int(duration * 1000)
+
                     self.event_handler.handle_table_end(result)
 
         return result
@@ -699,7 +709,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
             if self._get_database_backend() == 'sqlite':
                 columns.append((func.count(cte.c.c) * func.sum(
                     func.cast(cte.c.c, Float) * func.cast(cte.c.c, Float)) - func.sum(cte.c.c) * func.sum(cte.c.c)) / (
-                    (func.count(cte.c.c) - 1) * func.count(cte.c.c)).label('_variance'))
+                                   (func.count(cte.c.c) - 1) * func.count(cte.c.c)).label('_variance'))
                 stmt = select(columns)
                 result = conn.execute(stmt).fetchone()
                 _total, _non_nulls, _valids, _zeros, _negatives, _distinct, _sum, _avg, _min, _max, _variance = result
