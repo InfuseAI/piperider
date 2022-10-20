@@ -354,7 +354,6 @@ class AssertionContext:
         self.metric: str = payload.get('metric')
         self.table: str = table_name
         self.column: str = column_name
-        self.parameters: dict = {}
         self.asserts: dict = {}
         self.tags: list = []
         self.is_builtin = False
@@ -366,7 +365,6 @@ class AssertionContext:
         self._load(payload)
 
     def _load(self, payload):
-        self.parameters = payload.get('parameters', {})
         self.asserts = payload.get('assert', {})
         self.tags = payload.get('tags', [])
         self.result.expected = payload.get('assert')
@@ -402,7 +400,6 @@ class AssertionContext:
             table=self.table,
             column=self.column,
             status='passed' if self.result._success is True else 'failed',
-            parameters=self.parameters,
             expected=self.result.expected,
             actual=self.result.actual,
             tags=self.tags,

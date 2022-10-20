@@ -236,7 +236,7 @@ class DbtAdapter:
 
         run_results = self.adaptee.get_run_results()
 
-        output = {}
+        output = []
         unique_tests = {}
 
         for result in run_results.get('results', []):
@@ -277,15 +277,19 @@ class DbtAdapter:
 
             parent_table = f'{schema}.{table_name}' if schema and schema != default_schema else table_name
 
-            if parent_table not in output:
-                output[parent_table] = dict(columns={}, tests=[])
-
-            if column not in output[parent_table]['columns']:
-                output[parent_table]['columns'][column] = []
-            output[parent_table]['columns'][column].append(dict(
+            output.append(dict(
+                id=unique_id,
                 name=unique_id,
+                metric=None,
+                table=parent_table,
+                column=column if column != resource['name'] else None,
                 status='passed' if unique_tests[unique_id]['status'] == 'pass' else 'failed',
+                expected=None,
+                actual=None,
+                tags=[],
                 message=unique_tests[unique_id]['message'],
+                display_name=resource['name'],
+                source='dbt'
             ))
 
         return output
