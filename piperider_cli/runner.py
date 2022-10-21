@@ -129,11 +129,11 @@ def _agreed_to_generate_recommended_assertions(console: Console, interactive: bo
         return True
 
 
-def _execute_assertions(console: Console, profiler, ds: DataSource, interaction: bool,
-                        output, result, created_at, skip_recommend: bool):
+def _execute_assertions(console: Console, engine, ds_name: str, interaction: bool,
+                        output, profiler_result, created_at, skip_recommend: bool):
     # TODO: Implement running test cases based on profiling result
-    assertion_engine = AssertionEngine(profiler)
-    assertion_engine.load_assertions(result)
+    assertion_engine = AssertionEngine(engine)
+    assertion_engine.load_assertions(profiler_result)
     assertion_exist = True if assertion_engine.assertions_content else False
 
     if not assertion_exist:
@@ -141,23 +141,23 @@ def _execute_assertions(console: Console, profiler, ds: DataSource, interaction:
         if _agreed_to_generate_recommended_assertions(console, interaction, skip_recommend):
             # Generate recommended assertions
             console.rule('Generating Recommended Assertions')
-            recommended_assertions = assertion_engine.generate_recommended_assertions(result)
+            recommended_assertions = assertion_engine.generate_recommended_assertions(profiler_result)
             for f in recommended_assertions:
                 console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
             if _agreed_to_run_recommended_assertions(console, interaction):
-                assertion_engine.load_assertions()
+                assertion_engine.load_assertions(profiler_result)
             else:
-                console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds.name} ]')
+                console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds_name} ]')
                 return [], []
         else:
             # Generate assertion templates
             console.rule('Generating Assertion Templates')
-            template_assertions = assertion_engine.generate_template_assertions(result)
+            template_assertions = assertion_engine.generate_template_assertions(profiler_result)
             for f in template_assertions:
                 console.print(f'[bold green]Template Assertion[/bold green]: {f}')
 
     # Execute assertions
-    results, exceptions = assertion_engine.evaluate_all(result)
+    results, exceptions = assertion_engine.evaluate_all()
     return results, exceptions
 
 
@@ -609,9 +609,11 @@ class Runner():
             configuration.includes = None
             configuration.excludes = None
 
+        run_result = {}
         profiler = Profiler(engine, RichProfilerEventHandler(tables if tables else available_tables), configuration)
         try:
-            run_result = profiler.profile(tables)
+            profiler_result = profiler.profile(tables)
+            run_result.update(profiler_result)
         except NoSuchTableError as e:
             console.print(f"[bold red]Error:[/bold red] No such table '{str(e)}'")
             return 1
@@ -619,8 +621,8 @@ class Runner():
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
         # TODO stop here if tests was not needed.
-        assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
-                                                                      run_result, created_at, skip_recommend)
+        assertion_results, assertion_exceptions = _execute_assertions(console, engine, ds.name, interaction, output,
+                                                                      profiler_result, created_at, skip_recommend)
 
         run_result['tests'] = []
         if assertion_results or dbt_test_results:

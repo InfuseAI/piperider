@@ -6,7 +6,6 @@ from unittest import TestCase
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer
 
 from piperider_cli.assertion_engine import AssertionEngine
-from piperider_cli.profiler import Profiler
 
 
 def build_test_assertions(assertion_config_text: str):
@@ -20,16 +19,14 @@ def build_test_assertions(assertion_config_text: str):
     return assertions_dir
 
 
-def build_assertion_engine(table, assertions):
+def build_assertion_engine(table, profiler_result, assertions):
     db_engine = create_engine('sqlite://')
-    profiler = Profiler(db_engine)
-    profiler.metadata = MetaData()
-    Table(table, profiler.metadata, Column('misc', Integer))
-    profiler.metadata.create_all(db_engine)
-    profiler.profile([table])
+    metadata = MetaData()
+    Table(table, metadata, Column('misc', Integer))
+    metadata.create_all(db_engine)
 
-    engine = AssertionEngine(profiler, build_test_assertions(assertions))
-    engine.load_assertions(config_path=None)
+    engine = AssertionEngine(db_engine, build_test_assertions(assertions))
+    engine.load_assertions(profiler_result=profiler_result, config_path=None)
     return engine
 
 
@@ -52,7 +49,7 @@ class BuiltinAssertionsTests(TestCase):
             tags:
             - OPTIONAL
         """
-        engine = build_assertion_engine('orders_1k', assertions)
+        engine = build_assertion_engine('orders_1k', self.metrics, assertions)
         results = engine.validate_assertions()
 
         self.assertEqual(1, len(results))
@@ -74,9 +71,9 @@ class BuiltinAssertionsTests(TestCase):
             tags:
             - OPTIONAL
         """
-        engine = build_assertion_engine('orders_1k', assertions)
+        engine = build_assertion_engine('orders_1k', self.metrics, assertions)
 
-        results, exceptions = engine.evaluate_all(self.metrics)
+        results, exceptions = engine.evaluate_all()
         self.assertEqual([], exceptions)
 
         assertion_result = results[0].result
@@ -110,9 +107,9 @@ class BuiltinAssertionsTests(TestCase):
                 tags:
                 - OPTIONAL
         """
-        engine = build_assertion_engine('orders_1k', assertions)
+        engine = build_assertion_engine('orders_1k', self.metrics, assertions)
 
-        results, exceptions = engine.evaluate_all(self.metrics)
+        results, exceptions = engine.evaluate_all()
         self.assertEqual([], exceptions)
 
         for result in results:
@@ -143,9 +140,9 @@ class BuiltinAssertionsTests(TestCase):
                 tags:
                 - OPTIONAL
         """
-        engine = build_assertion_engine('orders_1k', assertions)
+        engine = build_assertion_engine('orders_1k', self.metrics, assertions)
 
-        results, exceptions = engine.evaluate_all(self.metrics)
+        results, exceptions = engine.evaluate_all()
         self.assertEqual([], exceptions)
 
         for result in results:
@@ -164,9 +161,9 @@ class BuiltinAssertionsTests(TestCase):
                 tags:
                 - OPTIONAL
         """
-        engine = build_assertion_engine('orders_1k', assertions)
+        engine = build_assertion_engine('orders_1k', self.metrics, assertions)
 
-        results, exceptions = engine.evaluate_all(self.metrics)
+        results, exceptions = engine.evaluate_all()
         self.assertEqual([], exceptions)
 
         for result in results:
@@ -185,9 +182,9 @@ class BuiltinAssertionsTests(TestCase):
                 tags:
                 - OPTIONAL
         """
-        engine = build_assertion_engine('orders_1k', assertions)
+        engine = build_assertion_engine('orders_1k', self.metrics, assertions)
 
-        results, exceptions = engine.evaluate_all(self.metrics)
+        results, exceptions = engine.evaluate_all()
         self.assertEqual([], exceptions)
 
         for result in results:
@@ -206,9 +203,9 @@ class BuiltinAssertionsTests(TestCase):
                 tags:
                 - OPTIONAL
         """
-        engine = build_assertion_engine('orders_1k', assertions)
+        engine = build_assertion_engine('orders_1k', self.metrics, assertions)
 
-        results, exceptions = engine.evaluate_all(self.metrics)
+        results, exceptions = engine.evaluate_all()
         self.assertEqual([], exceptions)
 
         for result in results:
@@ -229,9 +226,8 @@ class BuiltinAssertionsTests(TestCase):
                 tags:
                 - OPTIONAL
         """
-        engine = build_assertion_engine('orders_1k', assertions)
-
-        results, exceptions = engine.evaluate_all(self.metrics)
+        engine = build_assertion_engine('orders_1k', self.metrics, assertions)
+        results, exceptions = engine.evaluate_all()
         self.assertEqual([], exceptions)
 
         assertion_result = results[0].result

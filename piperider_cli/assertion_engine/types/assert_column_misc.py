@@ -10,8 +10,8 @@ class AssertColumnNotNull(BaseAssertionType):
     def name(self):
         return "assert_column_not_null"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
-        return assert_column_not_null(context, table, column, metrics)
+    def execute(self, context: AssertionContext):
+        return assert_column_not_null(context)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         return ValidationResult(context).keep_no_args()
@@ -21,8 +21,8 @@ class AssertColumnNull(BaseAssertionType):
     def name(self):
         return "assert_column_null"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
-        return assert_column_null(context, table, column, metrics)
+    def execute(self, context: AssertionContext):
+        return assert_column_null(context)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         return ValidationResult(context).keep_no_args()
@@ -32,8 +32,8 @@ class AssertColumnUnique(BaseAssertionType):
     def name(self):
         return "assert_column_unique"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
-        return assert_column_unique(context, table, column, metrics)
+    def execute(self, context: AssertionContext):
+        return assert_column_unique(context)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         return ValidationResult(context).keep_no_args()
@@ -43,8 +43,8 @@ class AssertColumnExist(BaseAssertionType):
     def name(self):
         return "assert_column_exist"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
-        return assert_column_exist(context, table, column, metrics)
+    def execute(self, context: AssertionContext):
+        return assert_column_exist(context)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         return ValidationResult(context).keep_no_args()
@@ -54,7 +54,11 @@ class AssertColumnValue(BaseAssertionType):
     def name(self):
         return "assert_column_value"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
+    def execute(self, context: AssertionContext):
+        table = context.table
+        column = context.column
+        metrics = context.profiler_result
+
         target_metrics = metrics.get('tables', {}).get(table)
         if column:
             target_metrics = target_metrics.get('columns', {}).get(column)
@@ -130,7 +134,11 @@ class AssertColumnValue(BaseAssertionType):
             results.errors.append('The number of operator should be 1 or 2.')
 
 
-def assert_column_not_null(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+def assert_column_not_null(context: AssertionContext) -> AssertionResult:
+    table = context.table
+    column = context.column
+    metrics = context.profiler_result
+
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
         return context.result.fail_with_metric_not_found_error(context.table, context.column)
@@ -150,7 +158,11 @@ def assert_column_not_null(context: AssertionContext, table: str, column: str, m
     return context.result.fail()
 
 
-def assert_column_null(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+def assert_column_null(context: AssertionContext) -> AssertionResult:
+    table = context.table
+    column = context.column
+    metrics = context.profiler_result
+
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
         # cannot find the column in the metrics
@@ -170,7 +182,11 @@ def assert_column_null(context: AssertionContext, table: str, column: str, metri
     return context.result.fail()
 
 
-def assert_column_unique(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+def assert_column_unique(context: AssertionContext) -> AssertionResult:
+    table = context.table
+    column = context.column
+    metrics = context.profiler_result
+
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
         # cannot find the column in the metrics
@@ -191,7 +207,11 @@ def assert_column_unique(context: AssertionContext, table: str, column: str, met
     return context.result.fail()
 
 
-def assert_column_exist(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+def assert_column_exist(context: AssertionContext) -> AssertionResult:
+    table = context.table
+    column = context.column
+    metrics = context.profiler_result
+
     table_metrics = metrics.get('tables', {}).get(table)
     if not table_metrics:
         # cannot find the table in the metrics

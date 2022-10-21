@@ -9,8 +9,8 @@ class AssertColumnMinInRange(BaseAssertionType):
     def name(self):
         return "assert_column_min_in_range"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
-        return assert_column_min_in_range(context, table, column, metrics)
+    def execute(self, context: AssertionContext):
+        return assert_column_min_in_range(context)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         result = ValidationResult(context).require('min')
@@ -24,8 +24,8 @@ class AssertColumnMaxInRange(BaseAssertionType):
     def name(self):
         return "assert_column_max_in_range"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
-        return assert_column_max_in_range(context, table, column, metrics)
+    def execute(self, context: AssertionContext):
+        return assert_column_max_in_range(context)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         result = ValidationResult(context).require('max')
@@ -39,8 +39,8 @@ class AssertColumnInRange(BaseAssertionType):
     def name(self):
         return "assert_column_in_range"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
-        return assert_column_in_range(context, table, column, metrics)
+    def execute(self, context: AssertionContext):
+        return assert_column_in_range(context)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         result = ValidationResult(context).require('range')
@@ -50,20 +50,23 @@ class AssertColumnInRange(BaseAssertionType):
         return result.require_range_pair('range').require_same_types('range')
 
 
-def assert_column_min_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
-    return _assert_column_in_range(context, table, column, metrics, target_metric='min')
+def assert_column_min_in_range(context: AssertionContext) -> AssertionResult:
+    return _assert_column_in_range(context, target_metric='min')
 
 
-def assert_column_max_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
-    return _assert_column_in_range(context, table, column, metrics, target_metric='max')
+def assert_column_max_in_range(context: AssertionContext) -> AssertionResult:
+    return _assert_column_in_range(context, target_metric='max')
 
 
-def assert_column_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
-    return _assert_column_in_range(context, table, column, metrics, target_metric='range')
+def assert_column_in_range(context: AssertionContext) -> AssertionResult:
+    return _assert_column_in_range(context, target_metric='range')
 
 
-def _assert_column_in_range(context: AssertionContext, table: str, column: str, metrics: dict,
-                            **kwargs) -> AssertionResult:
+def _assert_column_in_range(context: AssertionContext, **kwargs) -> AssertionResult:
+    table = context.table
+    column = context.column
+    metrics = context.profiler_result
+
     table_metrics = metrics.get('tables', {}).get(table)
     if table_metrics is None:
         return context.result.fail_with_metric_not_found_error(context.table, None)

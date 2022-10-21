@@ -55,7 +55,7 @@ class AssertionGenerator():
 
         # Generate recommended assertions
         assertion_engine = AssertionEngine(None)
-        assertion_engine.load_assertions(profiling_result=profiling_result)
+        assertion_engine.load_assertions(profiler_result=profiling_result)
         assertion_exist = True if assertion_engine.assertions_content else False
         console.rule('Generating Recommended Assertions')
         recommended_assertions = assertion_engine.generate_recommended_assertions(profiling_result,
