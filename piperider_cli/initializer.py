@@ -174,7 +174,7 @@ class Initializer():
             ]
             answers = inquirer.prompt(questions)
         else:
-            console.print(f'[[yellow]?[/yellow]] Which datasource do you want to delete?')
+            console.print('[[yellow]?[/yellow]] Which datasource do you want to delete?')
             idx = 0
             for ds in config.dataSources:
                 console.print(f'    [[green]{idx}[/green]] {ds.name}')
