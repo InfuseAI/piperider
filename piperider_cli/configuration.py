@@ -285,6 +285,11 @@ tables:
             answers = inquirer.prompt(questions, raise_keyboard_interrupt=True)
             return answers['datasource']
 
+    def delete_datasource(self, datasource):
+        if datasource in self.dataSources:
+            self.dataSources.remove(datasource)
+            self.dump(PIPERIDER_CONFIG_PATH)
+
 
 def _load_dbt_profile(path):
     from jinja2 import Environment, FileSystemLoader

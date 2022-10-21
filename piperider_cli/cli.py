@@ -11,7 +11,7 @@ from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
-from piperider_cli.event.track import TrackCommand
+from piperider_cli.event.track import TrackCommand, BetaGroup
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.feedback import Feedback
 from piperider_cli.generate_report import GenerateReport
@@ -230,6 +230,33 @@ def compare_reports(**kwargs):
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
                        report_dir=kwargs.get('report_dir'), output=kwargs.get('output'),
                        debug=kwargs.get('debug', False))
+
+
+@cli.group('config', help='Manage the Pipeline configurations.', cls=BetaGroup)
+def config(**kwargs):
+    pass
+
+
+@config.command(short_help='List PipeRider current configurations.', cls=TrackCommand, beta=True)
+@add_options(debug_option)
+def list(**kwargs):
+    'List PipeRider current configurations.'
+    Initializer.list()
+
+
+@config.command(short_help='Add a new DataSource to current PipeRider project.', cls=TrackCommand, beta=True)
+@add_options(debug_option)
+def add(**kwargs):
+    Initializer.add()
+    pass
+
+
+@config.command(short_help='Delete a DataSource from current PipeRider project.', cls=TrackCommand, beta=True)
+@add_options(debug_option)
+def delete(**kwargs):
+    Initializer.list()
+    Initializer.delete()
+    pass
 
 
 @cli.group('cloud', short_help='Manage PipeRider Cloud')
