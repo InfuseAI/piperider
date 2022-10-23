@@ -207,7 +207,15 @@ const _getSingleAssertionMetadata = (
       failed: 0,
     },
   );
-const getTaColumnbleAssertionsOnly = (rawData: ComparableReport) => {
+//FIXME: Legacy -- assertions[] will need to be flatly joined+enriched(@ComparisonSource) across comparison base/target
+/**
+ * Case_1: (happy) - base/target: matching assertions
+ * Case_2: (sad) - target: schema change
+ * Case_3: (sad) - target: name change
+ * Case_4: (sad) - target: missing
+ * Case_UI: (happy+sad) Target fallback is Base when falsey (as schema change target should be expected)
+ */
+const getTableColumnAssertionsOnly = (rawData: ComparableReport) => {
   const comparableTables = transformAsNestedBaseTargetRecord<
     SaferSRSchema['tables'],
     SaferTableSchema
@@ -254,8 +262,7 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
       /** Tables */
       const tableColumnsOnly = getTableColumnsOnly(rawData);
       /** Table-level Assertions (flattened) */
-
-      const tableColumnAssertionsOnly = getTaColumnbleAssertionsOnly(rawData);
+      const tableColumnAssertionsOnly = getTableColumnAssertionsOnly(rawData);
 
       const resultState: ReportState = {
         rawData,
