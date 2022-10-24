@@ -24,35 +24,36 @@ import {
   tableListMaxWidth,
 } from '../../../../utils/layout';
 import { ColumnSchemaDeltaSummary } from './ColumnSchemaDeltaSummary';
-import { CompTableColEntryItem } from '../../../../utils/store';
+import { CompTableColEntryItem, ReportState } from '../../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../constant';
 
 interface Props extends Selectable, Comparable {
   isExpanded: boolean;
   combinedTableEntry?: CompTableColEntryItem;
+  combinedAssertions?: ReportState['assertionsOnly'];
 }
 
 export function TableListItem({
   isExpanded,
+  combinedAssertions,
   combinedTableEntry,
   onSelect,
   singleOnly,
 }: Props) {
   const [tableName, tableValue, tableMetadata] = combinedTableEntry || [];
+  const filteredBaseTableTests = combinedAssertions?.base?.filter(
+    (v) => v.table === tableName,
+  );
+  const filteredTargetTableTests = combinedAssertions?.target?.filter(
+    (v) => v.table === tableName,
+  );
+  const { failed: baseFailed, total: baseTotal } =
+    getAssertionStatusCountsFromList(filteredBaseTableTests || []);
+  const { failed: targetFailed, total: targetTotal } =
+    getAssertionStatusCountsFromList(filteredTargetTableTests || []);
 
   const fallbackTable = tableValue?.base || tableValue?.target;
   const description = fallbackTable?.description || NO_DESCRIPTION_MSG;
-
-  //FIXME: LEGACY.3 - no data access
-  // const { failed: baseFailed, total: baseTotal } =
-  //   getAssertionStatusCountsFromList([
-  //     data?.base?.te,
-  //   ]);
-  // const { failed: targetFailed, total: targetTotal } =
-  //   getAssertionStatusCountsFromList([
-  //     tableValue?.target?.piperider_assertion_result,
-  //     tableValue?.target?.dbt_assertion_result,
-  //   ]);
 
   if (!combinedTableEntry) {
     return <NoData />;
@@ -90,7 +91,7 @@ export function TableListItem({
         </GridItem>
         <GridItem>
           <Flex gap={2}>
-            {/* {singleOnly && (
+            {singleOnly && (
               <AssertionPassFailCountLabel
                 total={baseTotal}
                 failed={baseFailed}
@@ -103,7 +104,7 @@ export function TableListItem({
                 targetAssertionFailed={targetFailed}
                 targetAssertionTotal={targetTotal}
               />
-            )} */}
+            )}
             <Icon
               position={'absolute'}
               right={0}

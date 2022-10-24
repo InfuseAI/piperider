@@ -102,7 +102,7 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
           base: { ...base, columns: compColEntries },
           target: { ...target, columns: compColEntries },
         },
-        columnsMetadata,
+        columnsMetadata, //FIXME: add assertion data?
       ];
       return entry as CompTableColEntryItem;
     },

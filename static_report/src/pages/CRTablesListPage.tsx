@@ -35,7 +35,8 @@ export function CRTablesListPage({ data }: Props) {
   const [, setLocation] = useLocation();
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data.base, input: data.input });
-  const { tableColumnsOnly: tableColEntries = [] } = useReportStore.getState();
+  const { tableColumnsOnly: tableColEntries = [], assertionsOnly } =
+    useReportStore.getState();
 
   return (
     <Main isSingleReport={false}>
@@ -55,6 +56,7 @@ export function CRTablesListPage({ data }: Props) {
                   {({ isExpanded }) => (
                     <>
                       <TableListItem
+                        combinedAssertions={assertionsOnly}
                         isExpanded={isExpanded}
                         combinedTableEntry={tableColEntry}
                         onSelect={() =>
