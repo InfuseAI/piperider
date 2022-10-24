@@ -1,6 +1,5 @@
 import { FlexProps } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { ZColSchema, zReport } from '../../../../types';
 import { colorMap } from '../../../../utils/theme';
 import {
   MetricNameMetakeyList,
@@ -16,8 +15,6 @@ interface Props {
  * Shows metric stats for column.type: positives/zero/negatives, (non)zero-lengths
  */
 export function TypedStats({ columnDatum, ...props }: Props & FlexProps) {
-  zReport(ZColSchema.safeParse(columnDatum));
-
   const numeralMetakeyList: MetricNameMetakeyList = [
     ['positives', 'Positives'],
     ['zeros', 'Zeros'],

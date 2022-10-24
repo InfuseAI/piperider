@@ -91,7 +91,7 @@
   "scripts": {
     "analyze": "npx cra-bundle-analyzer",
     "extract:metadata": "node src/sdlc/extract-schema-metadata",
-    "setup": "run-s typing:dts typing:zts extract:metadata embed:html lint:fix",
+    "setup": "run-s typing:dts extract:metadata embed:html lint:fix",
     "serve:single": "dotenv -e ./build-env/.env.single craco start",
     "serve:comparison": "dotenv -e ./build-env/.env.comparison craco start",
     "start:single": "run-s setup serve:single",

@@ -1,6 +1,5 @@
 import { FlexProps, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { ZColSchema, zReport } from '../../../../types';
 import { NO_VALUE } from '../constants';
 import {
   containsAvgSDSummary,
@@ -18,7 +17,6 @@ interface Props {
  * Shows metric stats for Avg, Stddev, Min/Max, Distinct, Duplicates
  */
 export function SummaryStats({ columnDatum, ...props }: Props & FlexProps) {
-  zReport(ZColSchema.safeParse(columnDatum));
   const isColTypeString = columnDatum?.type === 'string';
   const isColTypeDatetime = columnDatum?.type === 'datetime';
   const affix = isColTypeString ? ` Length` : '';

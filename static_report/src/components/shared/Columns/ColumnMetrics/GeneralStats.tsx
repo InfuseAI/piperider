@@ -1,6 +1,5 @@
 import { FlexProps } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { ZColSchema, zReport } from '../../../../types';
 import { colorMap } from '../../../../utils/theme';
 import { MetricNameMetakeyList, transformSRMetricsInfoList } from '../utils';
 import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
@@ -12,8 +11,6 @@ interface Props {
  * Shows metric stats for Invalids, Missing(nulls)
  */
 export function GeneralStats({ columnDatum, ...props }: Props & FlexProps) {
-  zReport(ZColSchema.safeParse(columnDatum));
-
   const metakeyEntries: MetricNameMetakeyList = [
     ['invalids', 'Invalid'],
     ['nulls', 'Missing'],

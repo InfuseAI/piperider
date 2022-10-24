@@ -9,6 +9,7 @@ export interface SingleReportSchema {
   tables: {
     [k: string]: TableSchema;
   };
+  tests?: AssertionTest[];
   id: string;
   project_id?: string;
   user_id?: string;
@@ -67,8 +68,6 @@ export interface TableSchema {
   columns: {
     [k: string]: ColumnSchema;
   };
-  piperider_assertion_result: null | PipeRiderAssertionResult;
-  dbt_assertion_result?: null | DbtAssertionResult;
 }
 /**
  * This interface was referenced by `undefined`'s JSON-Schema definition
@@ -296,35 +295,19 @@ export interface Topk {
   values: (string | number)[];
   counts: number[];
 }
-export interface PipeRiderAssertionResult {
-  tests: AssertionTest[];
-  columns: {
-    /**
-     * This interface was referenced by `undefined`'s JSON-Schema definition
-     * via the `patternProperty` ".+".
-     */
-    [k: string]: AssertionTest[];
-  };
-}
 export interface AssertionTest {
+  id: string;
   name: string;
+  metric: string | null;
+  table: string | null;
+  column: string | null;
+  tags: string[];
   status: 'passed' | 'failed';
-  parameters?: {
-    [k: string]: unknown;
-  };
-  tags?: string[];
-  expected?: unknown;
-  actual?: unknown;
-}
-export interface DbtAssertionResult {
-  tests: AssertionTest[];
-  columns: {
-    /**
-     * This interface was referenced by `undefined`'s JSON-Schema definition
-     * via the `patternProperty` ".+".
-     */
-    [k: string]: AssertionTest[];
-  };
+  expected: unknown;
+  actual: unknown;
+  message: string | null;
+  display_name: string;
+  source: string;
 }
 export interface DataSource {
   name: string;
