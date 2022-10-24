@@ -42,7 +42,6 @@ import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader
 import { useReportStore } from '../utils/store';
 import { getBreadcrumbPaths } from '../utils/routes';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
-import { getAssertionStatusCountsFromList } from '../components/shared/Tables/utils';
 import { TableListAssertionSummary } from '../components/shared/Tables/TableList/TableListAssertions';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
@@ -101,11 +100,10 @@ export default function CRColumnDetailsPage({
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
 
-  //FIXME: LEGACY.2
   const { failed: baseFailed, total: baseTotal } =
-    getAssertionStatusCountsFromList([...(data?.base.tests ?? [])]);
+    assertionsOnly?.metadata?.base || {};
   const { failed: targetFailed, total: targetTotal } =
-    getAssertionStatusCountsFromList([...(data?.input.tests ?? [])]);
+    assertionsOnly?.metadata?.target || {};
 
   const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
     tableName,
@@ -157,7 +155,7 @@ export default function CRColumnDetailsPage({
                   </Grid>
                 </TabPanel>
                 <TabPanel>
-                  {baseTotal > 0 && (
+                  {Number(baseTotal) > 0 && (
                     <Flex mb={5}>
                       <TableListAssertionSummary
                         baseAssertionFailed={baseFailed}

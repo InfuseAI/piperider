@@ -1,7 +1,6 @@
-import { NONDUPLICATE_ROWS } from './../Columns/constants';
+import { NO_VALUE, NONDUPLICATE_ROWS } from './../Columns/constants';
 import { TableMetaKeys } from './../Columns/ColumnMetrics/MetricsInfo';
 import { FlatStackedBarChartProps } from './../Charts/FlatStackedBarChart';
-import { NO_VALUE } from '../Columns/constants';
 import {
   AssertionTest,
   ReportAssertionStatusCounts,

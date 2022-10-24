@@ -36,7 +36,6 @@ import {
   AssertionListWidget,
   BreadcrumbMetaItem,
   BreadcrumbNav,
-  getAssertionStatusCountsFromList,
   SR_TYPE_LABEL,
   TableColumnSchemaList,
   useAmplitudeOnMount,
@@ -79,6 +78,8 @@ export default function SRColumnDetailsPage({
   const dataColumns = dataTable.columns;
   const columnDatum = dataColumns[columnName];
 
+  const { failed: baseFailed, total: baseTotal } =
+    assertionsOnly?.metadata?.base || {};
   const { type, histogram } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
 
@@ -89,10 +90,6 @@ export default function SRColumnDetailsPage({
       </Main>
     );
   }
-
-  //FIXME: Legacy.2
-  const { failed: baseFailed, total: baseTotal } =
-    getAssertionStatusCountsFromList([...(data?.tests ?? [])]);
 
   const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
     tableName,
@@ -141,7 +138,7 @@ export default function SRColumnDetailsPage({
                   </Grid>
                 </TabPanel>
                 <TabPanel>
-                  {baseTotal > 0 && (
+                  {Number(baseTotal) > 0 && (
                     <Flex mb={5}>
                       <AssertionPassFailCountLabel
                         total={baseTotal}
