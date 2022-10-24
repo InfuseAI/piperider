@@ -19,16 +19,14 @@ import { INFO_VAL_COLOR, NULL_VAL_COLOR } from '../../../utils/theme';
  * Get the accumulated summed assertion status counts (passed, failed, total) from list of assertion-tests
  */
 export function getAssertionStatusCountsFromList(assertions: AssertionTest[]) {
-  const result = assertions.reduce<
-    ReportAssertionStatusCounts & { total: string | number }
-  >(
+  const result = assertions.reduce<ReportAssertionStatusCounts>(
     (accum, curr) => {
       const passed = curr.status === 'passed' ? 1 : 0;
       const failed = curr.status === 'failed' ? 1 : 0;
 
       // if source is string, curr-total should not include it later
-      const passValue = resolveStatusCountSumValues(passed, accum.passed);
-      const failValue = resolveStatusCountSumValues(failed, accum.failed);
+      const passValue = resolveStatusCountSumValues(passed, accum?.passed);
+      const failValue = resolveStatusCountSumValues(failed, accum?.failed);
       //to exclude accumulating existing, escape to 0 when NO_VALUE
       const currTotal = resolveStatusCountSumValues(
         passValue !== NO_VALUE ? passValue : 0,
@@ -54,8 +52,8 @@ export function getAssertionStatusCountsFromList(assertions: AssertionTest[]) {
  * where string is typically a NO_VALUE
  */
 function resolveStatusCountSumValues(
-  source: string | number,
-  target: string | number,
+  source?: string | number,
+  target?: string | number,
 ) {
   if (typeof source === 'number') {
     if (typeof target === 'number') {

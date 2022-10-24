@@ -9,6 +9,7 @@ import {
 import create from 'zustand';
 import { transformAsNestedBaseTargetRecord } from './transformers';
 import { formatReportTime } from './formatters';
+import { getAssertionStatusCountsFromList } from '../components/shared/Tables/utils';
 type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
 type ComparableMetadata = {
   added?: number;
@@ -112,23 +113,6 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
 };
 
 /**
- * Returns a compared and flatteded table/column list of assertions, enriched with each member's belonging table names and column names
- */
-const _getSingleAssertionMetadata = (assertions: AssertionTest[] | undefined) =>
-  assertions?.reduce(
-    (accum, { status }) => ({
-      total: accum.total + 1,
-      passed: accum.passed + (status === 'passed' ? 1 : 0),
-      failed: accum.failed + (status === 'failed' ? 1 : 0),
-    }),
-    {
-      total: 0,
-      passed: 0,
-      failed: 0,
-    },
-  );
-
-/**
  * Case_1: (happy) - base/target: matching assertions
  * Case_2: (sad) - target: schema change
  * Case_3: (sad) - target: name change
@@ -142,8 +126,8 @@ const getAssertionsOnly = (rawData: ComparableReport) => {
     base: baseTests,
     target: targetTests,
   };
-  const baseMetadata = _getSingleAssertionMetadata(baseTests);
-  const targetMetadata = _getSingleAssertionMetadata(targetTests);
+  const baseMetadata = getAssertionStatusCountsFromList(baseTests || []);
+  const targetMetadata = getAssertionStatusCountsFromList(targetTests || []);
   comparableAssertionTests.metadata = {
     base: baseMetadata,
     target: targetMetadata,
@@ -152,7 +136,7 @@ const getAssertionsOnly = (rawData: ComparableReport) => {
   return comparableAssertionTests;
 };
 
-//NOTE: `this` will not work in setter functions
+//NOTE: `this` will not work in setter functions (self-invoking)
 export const useReportStore = create<ReportState & ReportSetters>()(function (
   set,
 ) {
