@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from sqlalchemy import select, MetaData, Table
+
 from piperider_cli.assertion_engine import AssertionContext, AssertionResult
 from piperider_cli.assertion_engine.assertion import ValidationResult
 from piperider_cli.assertion_engine.types.base import BaseAssertionType
@@ -51,6 +53,10 @@ class AssertColumnExist(BaseAssertionType):
 
 
 class AssertColumnValue(BaseAssertionType):
+    def __init__(self):
+        self.set_ops = ['in']
+        self.range_ops = ['gte', 'lte', 'gt', 'lt']
+
     def name(self):
         return "assert_column_value"
 
@@ -66,44 +72,35 @@ class AssertColumnValue(BaseAssertionType):
         if not target_metrics:
             return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
-        context.result.expected = AssertMetric.to_interval_notation(context.asserts)
-        has_fail = False
+        assert_ops = list(context.asserts.keys())
+        if assert_ops[0] in self.range_ops:
+            return self._assert_column_value_range(context, target_metrics)
+        elif assert_ops[0] in self.set_ops:
+            return self._assert_column_value_set(context, target_metrics)
 
-        if target_metrics.get('min') is not None:
-            if not AssertMetric.assert_metric_boundary(target_metrics.get('min'), context.asserts):
-                has_fail = True
-        else:
-            return context.result.fail()
-
-        if target_metrics.get('max') is not None:
-            if not AssertMetric.assert_metric_boundary(target_metrics.get('max'), context.asserts):
-                has_fail = True
-        else:
-            return context.result.fail()
-
-        context.result.actual = AssertMetric.to_interval_notation({
-            'gte': target_metrics.get('min'),
-            'lte': target_metrics.get('max')
-        })
-
-        if has_fail:
-            return context.result.fail()
-        return context.result.success()
+        return context.result.fail()
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         results = ValidationResult(context)
 
-        names = ['gte', 'lte', 'gt', 'lt']
-        results = results.allow_only(*names) \
-            .require_metric_consistency(*names)
+        ops = self.set_ops + self.range_ops
 
+        results = results.allow_only(*ops)
         if context.asserts is None:
-            results.errors.append(f'At least one of {names} is needed.')
+            results.errors.append(f'At least one of {ops} is needed.')
 
         if results.errors:
             return results
 
-        self._assert_value_validation(context.asserts, results)
+        assert_ops = list(context.asserts.keys())
+        if assert_ops[0] in self.range_ops:
+            results = results.require_metric_consistency(*self.range_ops)
+            if results.errors:
+                return results
+
+            self._assert_value_validation(context.asserts, results)
+        elif assert_ops[0] in self.set_ops:
+            results = results.require_same_types(*self.set_ops)
 
         return results
 
@@ -132,6 +129,83 @@ class AssertColumnValue(BaseAssertionType):
                                       "the 'gt' or 'gte' value.")
         else:
             results.errors.append('The number of operator should be 1 or 2.')
+
+    @staticmethod
+    def _assert_column_value_range(context, target_metrics):
+        context.result.expected = AssertMetric.to_interval_notation(context.asserts)
+        has_fail = False
+
+        if target_metrics.get('min') is not None:
+            if not AssertMetric.assert_metric_boundary(target_metrics.get('min'), context.asserts):
+                has_fail = True
+        else:
+            return context.result.fail()
+
+        if target_metrics.get('max') is not None:
+            if not AssertMetric.assert_metric_boundary(target_metrics.get('max'), context.asserts):
+                has_fail = True
+        else:
+            return context.result.fail()
+
+        context.result.actual = AssertMetric.to_interval_notation({
+            'gte': target_metrics.get('min'),
+            'lte': target_metrics.get('max')
+        })
+
+        if has_fail:
+            return context.result.fail()
+
+        return context.result.success()
+
+    @staticmethod
+    def _assert_column_value_set(context, target_metrics):
+        table = context.table
+        column = context.column
+
+        assert_set = list(context.asserts.values())[0]
+        context.result.expected = assert_set
+        assert_set = set(assert_set)
+        distinct = target_metrics.get('distinct')
+        topk = []
+        if target_metrics.get('topk'):
+            topk = target_metrics.get('topk').get('values', [])
+
+        if len(assert_set) < distinct:
+            return context.result.fail()
+
+        # TODO: define topk default max length
+        if len(topk) < 50:
+            if len(assert_set) < len(topk):
+                return context.result.fail()
+
+            for k in topk:
+                if k not in assert_set:
+                    return context.result.fail()
+        else:
+            metadata = MetaData()
+            Table(table, metadata, autoload_with=context.engine)
+            t = metadata.tables[table]
+            c = t.columns[column]
+            with context.engine.connect() as conn:
+                stmt = select([
+                    c
+                ]).select_from(
+                    t
+                ).where(
+                    c.isnot(None)
+                ).group_by(
+                    c
+                )
+                result = conn.execute(stmt).fetchmany(size=len(assert_set) + 1)
+
+                if len(result) > len(assert_set):
+                    return context.result.fail()
+
+                for row, in result:
+                    if row not in assert_set:
+                        return context.result.fail()
+
+        return context.result.success()
 
 
 def assert_column_not_null(context: AssertionContext) -> AssertionResult:

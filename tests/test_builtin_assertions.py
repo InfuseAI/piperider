@@ -213,7 +213,7 @@ class BuiltinAssertionsTests(TestCase):
             self.assertEqual(dict(success=True, exceptions=None),
                              dict(success=assertion_result._success, exceptions=assertion_result._exception))
 
-    def test_assert_column_value(self):
+    def test_assert_column_value_range(self):
         assertions = """
         orders_1k:  # Table Name
           columns:
@@ -223,6 +223,26 @@ class BuiltinAssertionsTests(TestCase):
                 assert:
                   lte: 440269.51
                   gte: 1106.99
+                tags:
+                - OPTIONAL
+        """
+        engine = build_assertion_engine('orders_1k', self.metrics, assertions)
+        results, exceptions = engine.evaluate_all()
+        self.assertEqual([], exceptions)
+
+        assertion_result = results[0].result
+        self.assertEqual(dict(success=True, exceptions=None),
+                         dict(success=assertion_result._success, exceptions=assertion_result._exception))
+
+    def test_assert_column_value_set(self):
+        assertions = """
+        orders_1k:  # Table Name
+          columns:
+            o_orderstatus:
+              tests:
+              - name: assert_column_value
+                assert:
+                  in: ['O', 'F', 'P']
                 tags:
                 - OPTIONAL
         """
