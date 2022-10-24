@@ -54,7 +54,7 @@ class AssertColumnExist(BaseAssertionType):
 
 class AssertColumnValue(BaseAssertionType):
     def __init__(self):
-        self.set_ops = ['in']
+        self.set_op = 'in'
         self.range_ops = ['gte', 'lte', 'gt', 'lt']
 
     def name(self):
@@ -65,17 +65,19 @@ class AssertColumnValue(BaseAssertionType):
         column = context.column
         metrics = context.profiler_result
 
-        target_metrics = metrics.get('tables', {}).get(table)
-        if column:
-            target_metrics = target_metrics.get('columns', {}).get(column)
+        target_metrics = None
+        if metrics:
+            target_metrics = metrics.get('tables', {}).get(table)
+            if column:
+                target_metrics = target_metrics.get('columns', {}).get(column)
 
-        if not target_metrics:
-            return context.result.fail_with_metric_not_found_error(context.table, context.column)
+            if not target_metrics:
+                return context.result.fail_with_metric_not_found_error(context.table, context.column)
 
         assert_ops = list(context.asserts.keys())
         if assert_ops[0] in self.range_ops:
             return self._assert_column_value_range(context, target_metrics)
-        elif assert_ops[0] in self.set_ops:
+        elif assert_ops[0] == self.set_op:
             return self._assert_column_value_set(context, target_metrics)
 
         return context.result.fail()
@@ -83,12 +85,17 @@ class AssertColumnValue(BaseAssertionType):
     def validate(self, context: AssertionContext) -> ValidationResult:
         results = ValidationResult(context)
 
-        ops = self.set_ops + self.range_ops
+        ops = [self.set_op] + self.range_ops
+
+        if not context.asserts:
+            results.errors.append(f'At least one of {ops} is needed.')
+            return results
+
+        if not isinstance(context.asserts, dict):
+            results.errors.append('assert should be an associative array')
+            return results
 
         results = results.allow_only(*ops)
-        if context.asserts is None:
-            results.errors.append(f'At least one of {ops} is needed.')
-
         if results.errors:
             return results
 
@@ -99,8 +106,11 @@ class AssertColumnValue(BaseAssertionType):
                 return results
 
             self._assert_value_validation(context.asserts, results)
-        elif assert_ops[0] in self.set_ops:
-            results = results.require_same_types(*self.set_ops)
+        elif assert_ops[0] == self.set_op:
+            if not isinstance(context.asserts.get(self.set_op), list):
+                results.errors.append(f"'{self.set_op}' should specify a list")
+                return results
+            results = results.require_same_types(self.set_op)
 
         return results
 
@@ -159,53 +169,79 @@ class AssertColumnValue(BaseAssertionType):
 
     @staticmethod
     def _assert_column_value_set(context, target_metrics):
-        table = context.table
-        column = context.column
-
         assert_set = list(context.asserts.values())[0]
         context.result.expected = assert_set
         assert_set = set(assert_set)
-        distinct = target_metrics.get('distinct')
-        topk = []
-        if target_metrics.get('topk'):
-            topk = target_metrics.get('topk').get('values', [])
 
-        if len(assert_set) < distinct:
-            return context.result.fail()
+        if target_metrics:
+            distinct = target_metrics.get('distinct')
+            topk = []
+            if target_metrics.get('topk'):
+                topk = target_metrics.get('topk').get('values', [])
 
-        # TODO: define topk default max length
-        if len(topk) < 50:
-            if len(assert_set) < len(topk):
+            if distinct and distinct > len(assert_set):
                 return context.result.fail()
 
-            for k in topk:
-                if k not in assert_set:
+            # TODO: define topk default max length
+            if len(topk) < 5:
+                if len(assert_set) < len(topk):
                     return context.result.fail()
-        else:
-            metadata = MetaData()
-            Table(table, metadata, autoload_with=context.engine)
-            t = metadata.tables[table]
-            c = t.columns[column]
-            with context.engine.connect() as conn:
-                stmt = select([
-                    c
-                ]).select_from(
-                    t
-                ).where(
-                    c.isnot(None)
-                ).group_by(
-                    c
-                )
-                result = conn.execute(stmt).fetchmany(size=len(assert_set) + 1)
 
+                for k in topk:
+                    if k not in assert_set:
+                        return context.result.fail()
+            else:
+                samples = target_metrics['samples']
+                result = AssertColumnValue._query_column_category(context, samples, len(assert_set) + 1)
                 if len(result) > len(assert_set):
                     return context.result.fail()
 
                 for row, in result:
                     if row not in assert_set:
                         return context.result.fail()
+        else:
+            result = AssertColumnValue._query_column_category(context, None, len(assert_set) + 1)
+            if len(result) > len(assert_set):
+                return context.result.fail()
+
+            for row, in result:
+                if row not in assert_set:
+                    return context.result.fail()
 
         return context.result.success()
+
+    @staticmethod
+    def _query_column_category(context, samples, size):
+        table = context.table
+        column = context.column
+
+        metadata = MetaData()
+        Table(table, metadata, autoload_with=context.engine)
+        t = metadata.tables[table]
+        c = t.columns[column]
+        """
+        select count(c)
+            from cue
+            where c not in ('foo') and c is not null;
+        """
+
+        with context.engine.connect() as conn:
+            base = select([c.label('c')]).select_from(t)
+            if samples:
+                base = base.limit(samples)
+            cte = base.cte()
+            stmt = select([
+                cte.c.c
+            ]).select_from(
+                cte
+            ).where(
+                cte.c.c.isnot(None)
+            ).group_by(
+                cte.c.c
+            )
+            result = conn.execute(stmt).fetchmany(size=size)
+
+        return result
 
 
 def assert_column_not_null(context: AssertionContext) -> AssertionResult:

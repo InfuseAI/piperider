@@ -620,7 +620,7 @@ class Runner():
         except Exception as e:
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
-        # TODO stop here if tests was not needed.
+        # TODO: refactor input unused arguments
         assertion_results, assertion_exceptions = _execute_assertions(console, engine, ds.name, interaction, output,
                                                                       profiler_result, created_at, skip_recommend)
 

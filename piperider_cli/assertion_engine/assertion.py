@@ -149,15 +149,14 @@ class ValidationResult:
     def require_range_pair(self, name):
         return self._require_numeric_pair(name, {int, float, datetime, date, time})
 
-    def require_same_types(self, *names):
-        for name in names:
-            values = self.context.asserts.get(name)
+    def require_same_types(self, name):
+        values = self.context.asserts.get(name)
 
-            base_type = type(values[0])
-            for v in values:
-                if type(v) != base_type:
-                    self.errors.append(f'{name} parameter should be the same types')
-                    return self
+        base_type = type(values[0])
+        for v in values:
+            if type(v) != base_type:
+                self.errors.append(f'{name} parameter should be the same types')
+                return self
 
         return self
 
