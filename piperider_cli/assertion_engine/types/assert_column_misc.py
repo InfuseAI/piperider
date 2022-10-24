@@ -173,6 +173,7 @@ class AssertColumnValue(BaseAssertionType):
         context.result.expected = assert_set
         assert_set = set(assert_set)
 
+        samples = None
         if target_metrics:
             distinct = target_metrics.get('distinct')
             topk = []
@@ -183,30 +184,25 @@ class AssertColumnValue(BaseAssertionType):
                 return context.result.fail()
 
             # TODO: define topk default max length
-            if len(topk) < 5:
+            if len(topk) < 50:
                 if len(assert_set) < len(topk):
                     return context.result.fail()
 
                 for k in topk:
                     if k not in assert_set:
                         return context.result.fail()
+
+                return context.result.success()
             else:
-                samples = target_metrics['samples']
-                result = AssertColumnValue._query_column_category(context, samples, len(assert_set) + 1)
-                if len(result) > len(assert_set):
-                    return context.result.fail()
+                samples = target_metrics.get('samples')
 
-                for row, in result:
-                    if row not in assert_set:
-                        return context.result.fail()
-        else:
-            result = AssertColumnValue._query_column_category(context, None, len(assert_set) + 1)
-            if len(result) > len(assert_set):
+        result = AssertColumnValue._query_column_category(context, samples, len(assert_set) + 1)
+        if len(result) > len(assert_set):
+            return context.result.fail()
+
+        for row, in result:
+            if row not in assert_set:
                 return context.result.fail()
-
-            for row, in result:
-                if row not in assert_set:
-                    return context.result.fail()
 
         return context.result.success()
 
