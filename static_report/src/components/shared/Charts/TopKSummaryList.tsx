@@ -22,7 +22,7 @@ interface Props {
 }
 /**
  * A list of each topk summary item (categorical)
- * Last list item will show 'others', which is the count difference of valids and displayed topk items
+ * Last list item will show 'others' when there are leftover values, which is the count difference of valids and displayed topk items
  */
 export function TopKSummaryList({ topk, valids }: Props) {
   const [isDisplayTopTen, setIsDisplayTopTen] = useState<boolean>(true);
@@ -36,41 +36,63 @@ export function TopKSummaryList({ topk, valids }: Props) {
       {displayList.concat([remainingSumCount]).map((v, index) => {
         const isLastItemOthers = index === displayList.length;
         const topkCount = isLastItemOthers ? remainingSumCount : v;
-        const topkLabel = isLastItemOthers ? 'Others' : topk.values[index];
+        const catName = String(topk.values[index]);
+        const topkLabel = isLastItemOthers ? '(others)' : catName || '(empty)';
         const displayTopkCount = formatAsAbbreviatedNumber(topkCount);
         const displayTopkRatio = formatIntervalMinMax(topkCount / valids);
         return (
           <Fragment key={index}>
-            <Flex
-              alignItems={'center'}
-              width={'100%'}
-              _hover={{ bg: 'blackAlpha.300' }}
-              px={3}
-            >
-              <Tooltip label={topkLabel} placement="start">
-                <Text noOfLines={1} width={'14em'} fontSize={'sm'}>
-                  {topkLabel}
-                </Text>
-              </Tooltip>
-              <Flex height={'2em'} width={'10em'}>
-                <CategoricalBarChart
-                  topkCount={topkCount}
-                  topkLabel={topkLabel}
-                  valids={valids}
-                />
-              </Flex>
-              <Tooltip label={displayTopkCount} placement="start">
-                <Text ml={5} mr={2} fontSize={'sm'} width={'4em'} noOfLines={1}>
-                  {displayTopkCount}
-                </Text>
-              </Tooltip>
-              <Tooltip label={displayTopkRatio} placement="start">
-                <Text color={'gray.400'} fontSize={'sm'} width={'4em'}>
-                  {displayTopkRatio}
-                </Text>
-              </Tooltip>
-            </Flex>
-            <Divider />
+            {!isLastItemOthers || (isLastItemOthers && topkCount > 0) ? (
+              <>
+                <Flex
+                  alignItems={'center'}
+                  width={'100%'}
+                  _hover={{ bg: 'blackAlpha.300' }}
+                  px={3}
+                >
+                  <Tooltip label={topkLabel} placement="start">
+                    <Text
+                      noOfLines={1}
+                      width={'14em'}
+                      fontSize={'sm'}
+                      color={
+                        isLastItemOthers || catName.length === 0
+                          ? 'gray.400'
+                          : 'inherit'
+                      }
+                    >
+                      {topkLabel}
+                    </Text>
+                  </Tooltip>
+                  <Flex height={'2em'} width={'10em'}>
+                    <CategoricalBarChart
+                      topkCount={topkCount}
+                      topkLabel={topkLabel}
+                      valids={valids}
+                    />
+                  </Flex>
+                  <Tooltip label={displayTopkCount} placement="start">
+                    <Text
+                      ml={5}
+                      mr={2}
+                      fontSize={'sm'}
+                      width={'4em'}
+                      noOfLines={1}
+                    >
+                      {displayTopkCount}
+                    </Text>
+                  </Tooltip>
+                  <Tooltip label={displayTopkRatio} placement="start">
+                    <Text color={'gray.400'} fontSize={'sm'} width={'4em'}>
+                      {displayTopkRatio}
+                    </Text>
+                  </Tooltip>
+                </Flex>
+                <Divider />
+              </>
+            ) : (
+              <></>
+            )}
           </Fragment>
         );
       })}

@@ -1,7 +1,7 @@
 import { FlexProps, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
 import { ZColSchema, zReport } from '../../../../types';
-import { NO_VALUE, TEXTLENGTH } from '../constants';
+import { NO_VALUE } from '../constants';
 import {
   containsAvgSDSummary,
   containsDistinctDuplicateSummary,
@@ -20,12 +20,13 @@ interface Props {
 export function SummaryStats({ columnDatum, ...props }: Props & FlexProps) {
   zReport(ZColSchema.safeParse(columnDatum));
   const isColTypeString = columnDatum?.type === 'string';
-  const subtitle = isColTypeString ? ` (${TEXTLENGTH})` : '';
+  const isColTypeDatetime = columnDatum?.type === 'datetime';
+  const affix = isColTypeString ? ` Length` : '';
 
   // Each list below are separated to render differently
   const avgSDMetakeyList: MetricNameMetakeyList = [
-    [isColTypeString ? 'avg_length' : 'avg', `Average`],
-    [isColTypeString ? 'stddev_length' : 'stddev', `SD`],
+    [isColTypeString ? 'avg_length' : 'avg', `Average ${affix}`],
+    [isColTypeString ? 'stddev_length' : 'stddev', `SD ${affix}`],
   ];
   const avgSDMetricsList = transformSRMetricsInfoList(
     avgSDMetakeyList,
@@ -33,10 +34,12 @@ export function SummaryStats({ columnDatum, ...props }: Props & FlexProps) {
   );
 
   const minMaxMetakeyList: MetricNameMetakeyList = [
-    [isColTypeString ? 'min_length' : 'min', `Min`],
-    [isColTypeString ? 'max_length' : 'max', `Max`],
+    [isColTypeString ? 'min_length' : 'min', `Min ${affix}`],
+    [isColTypeString ? 'max_length' : 'max', `Max ${affix}`],
   ];
-  !isColTypeString && minMaxMetakeyList.push(['sum', `Sum`]); //text-length has no sum
+  !isColTypeString &&
+    !isColTypeDatetime &&
+    minMaxMetakeyList.push(['sum', `Sum`]); //text-length has no sum
 
   const minMaxMetricsList = transformSRMetricsInfoList(
     minMaxMetakeyList,
@@ -65,7 +68,6 @@ export function SummaryStats({ columnDatum, ...props }: Props & FlexProps) {
                 <MetricsInfo
                   key={index}
                   name={name}
-                  subtitle={subtitle}
                   metakey={metakey}
                   firstSlot={NO_VALUE}
                   secondSlot={secondSlot}
@@ -88,7 +90,6 @@ export function SummaryStats({ columnDatum, ...props }: Props & FlexProps) {
                 <MetricsInfo
                   key={index}
                   name={name}
-                  subtitle={subtitle}
                   metakey={metakey}
                   firstSlot={NO_VALUE}
                   secondSlot={secondSlot}

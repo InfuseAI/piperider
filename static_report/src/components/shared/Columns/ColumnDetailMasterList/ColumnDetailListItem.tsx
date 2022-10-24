@@ -47,6 +47,7 @@ export function ColumnDetailListItem({
     targetValidRatio,
     formatIntervalMinMax,
   );
+  console.log(baseColumnDatum, targetValidRatio);
 
   return (
     <>
