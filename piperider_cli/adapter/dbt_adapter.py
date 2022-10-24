@@ -280,12 +280,9 @@ class DbtAdapter:
             output.append(dict(
                 id=unique_id,
                 name=unique_id,
-                metric=None,
                 table=parent_table,
                 column=column if column != resource['name'] else None,
                 status='passed' if unique_tests[unique_id]['status'] == 'pass' else 'failed',
-                expected=None,
-                actual=None,
                 tags=[],
                 message=unique_tests[unique_id]['message'],
                 display_name=resource['name'],
