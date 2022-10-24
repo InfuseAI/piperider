@@ -24,8 +24,8 @@ export function SRAssertionListPage({ data }: Props) {
   const [filterString, setFilterString] = useState<string>('');
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base: data });
-  const { tableColumnAssertionsOnly } = useReportStore.getState();
-  const { metadata } = tableColumnAssertionsOnly || {};
+  const { assertionsOnly } = useReportStore.getState();
+  const { metadata } = assertionsOnly || {};
 
   return (
     <Main isSingleReport>
@@ -46,7 +46,7 @@ export function SRAssertionListPage({ data }: Props) {
         w={'100%'}
         singleOnly
         filterString={filterString}
-        comparableAssertions={tableColumnAssertionsOnly}
+        comparableAssertions={assertionsOnly}
       />
     </Main>
   );

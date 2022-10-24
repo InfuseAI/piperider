@@ -68,8 +68,7 @@ export default function SRColumnDetailsPage({
 
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
-  const { tableColumnsOnly = [], tableColumnAssertionsOnly } =
-    useReportStore.getState();
+  const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
   const currentTableEntry = tableColumnsOnly.find(
     ([tableKey]) => tableKey === tableName,
   );
@@ -91,12 +90,9 @@ export default function SRColumnDetailsPage({
     );
   }
 
-  //FIXME: Legacy
+  //FIXME: Legacy.2
   const { failed: baseFailed, total: baseTotal } =
-    getAssertionStatusCountsFromList([
-      dataTable?.piperider_assertion_result,
-      dataTable?.dbt_assertion_result,
-    ]);
+    getAssertionStatusCountsFromList([...(data?.tests ?? [])]);
 
   const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
     tableName,
@@ -155,7 +151,7 @@ export default function SRColumnDetailsPage({
                   )}
                   <AssertionListWidget
                     filterString={dataTable.name}
-                    comparableAssertions={tableColumnAssertionsOnly}
+                    comparableAssertions={assertionsOnly}
                     singleOnly
                     tableSize={'sm'}
                   />

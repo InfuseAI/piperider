@@ -25,13 +25,7 @@ export interface ComparisonReportSchema {
 }
 
 export type ComparsionSource = 'base' | 'target';
-//FIXME: LEGACY
 export type AssertionSource = 'piperider' | 'dbt';
-
-//FIXME: LEGACY
-export type AssertionValue =
-  | TableSchema['piperider_assertion_result']
-  | TableSchema['dbt_assertion_result'];
 
 export type ReportAssertionStatusCounts = {
   passed: string | number;

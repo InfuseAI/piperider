@@ -76,8 +76,7 @@ export default function CRColumnDetailsPage({
   const setReportData = useReportStore((s) => s.setReportRawData);
 
   setReportData({ base: data.base, input: data.input });
-  const { tableColumnsOnly = [], tableColumnAssertionsOnly } =
-    useReportStore.getState();
+  const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
   const currentTableEntry = tableColumnsOnly.find(
     ([tableKey]) => tableKey === tableName,
   );
@@ -102,17 +101,11 @@ export default function CRColumnDetailsPage({
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
 
-  //FIXME: LEGACY
+  //FIXME: LEGACY.2
   const { failed: baseFailed, total: baseTotal } =
-    getAssertionStatusCountsFromList([
-      baseDataTable?.piperider_assertion_result,
-      baseDataTable?.dbt_assertion_result,
-    ]);
+    getAssertionStatusCountsFromList([...(data?.base.tests ?? [])]);
   const { failed: targetFailed, total: targetTotal } =
-    getAssertionStatusCountsFromList([
-      targetDataTable?.piperider_assertion_result,
-      targetDataTable?.dbt_assertion_result,
-    ]);
+    getAssertionStatusCountsFromList([...(data?.input.tests ?? [])]);
 
   const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
     tableName,
@@ -177,7 +170,7 @@ export default function CRColumnDetailsPage({
                   <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
                     <AssertionListWidget
                       filterString={tableName}
-                      comparableAssertions={tableColumnAssertionsOnly}
+                      comparableAssertions={assertionsOnly}
                       tableSize={'sm'}
                     />
                   </Grid>

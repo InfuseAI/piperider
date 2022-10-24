@@ -43,17 +43,16 @@ export function TableListItem({
   const fallbackTable = tableValue?.base || tableValue?.target;
   const description = fallbackTable?.description || NO_DESCRIPTION_MSG;
 
-  //FIXME: LEGACY
-  const { failed: baseFailed, total: baseTotal } =
-    getAssertionStatusCountsFromList([
-      tableValue?.base?.piperider_assertion_result,
-      tableValue?.base?.dbt_assertion_result,
-    ]);
-  const { failed: targetFailed, total: targetTotal } =
-    getAssertionStatusCountsFromList([
-      tableValue?.target?.piperider_assertion_result,
-      tableValue?.target?.dbt_assertion_result,
-    ]);
+  //FIXME: LEGACY.3 - no data access
+  // const { failed: baseFailed, total: baseTotal } =
+  //   getAssertionStatusCountsFromList([
+  //     data?.base?.te,
+  //   ]);
+  // const { failed: targetFailed, total: targetTotal } =
+  //   getAssertionStatusCountsFromList([
+  //     tableValue?.target?.piperider_assertion_result,
+  //     tableValue?.target?.dbt_assertion_result,
+  //   ]);
 
   if (!combinedTableEntry) {
     return <NoData />;
@@ -91,7 +90,7 @@ export function TableListItem({
         </GridItem>
         <GridItem>
           <Flex gap={2}>
-            {singleOnly && (
+            {/* {singleOnly && (
               <AssertionPassFailCountLabel
                 total={baseTotal}
                 failed={baseFailed}
@@ -104,7 +103,7 @@ export function TableListItem({
                 targetAssertionFailed={targetFailed}
                 targetAssertionTotal={targetTotal}
               />
-            )}
+            )} */}
             <Icon
               position={'absolute'}
               right={0}

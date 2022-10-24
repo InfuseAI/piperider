@@ -3,7 +3,7 @@ import { TableMetaKeys } from './../Columns/ColumnMetrics/MetricsInfo';
 import { FlatStackedBarChartProps } from './../Charts/FlatStackedBarChart';
 import { NO_VALUE } from '../Columns/constants';
 import {
-  AssertionValue,
+  AssertionTest,
   ReportAssertionStatusCounts,
   SaferTableSchema,
 } from '../../../types';
@@ -16,67 +16,27 @@ import {
 } from '../../../utils/formatters';
 import { INFO_VAL_COLOR, NULL_VAL_COLOR } from '../../../utils/theme';
 
-export function getSingleAssertionStatusCounts(
-  assertion: AssertionValue,
-): ReportAssertionStatusCounts {
-  if (!assertion) {
-    return { passed: NO_VALUE, failed: NO_VALUE };
-  }
-
-  const tableStatus = assertion.tests.reduce(
-    (acc, curr) => {
-      if (curr.status === 'passed') {
-        acc.passed += 1;
-      } else if (curr.status === 'failed') {
-        acc.failed += 1;
-      }
-
-      return acc;
-    },
-    { passed: 0, failed: 0 },
-  );
-
-  const columnStatus = Object.keys(assertion.columns).reduce(
-    (acc, current) => {
-      assertion.columns[current].forEach((item) => {
-        if (item.status === 'passed') {
-          acc.passed += 1;
-        } else if (item.status === 'failed') {
-          acc.failed += 1;
-        }
-      });
-
-      return acc;
-    },
-    { passed: 0, failed: 0 },
-  );
-
-  return {
-    passed: tableStatus.passed + columnStatus.passed,
-    failed: tableStatus.failed + columnStatus.failed,
-  };
-}
-
 /**
- * Get the accumulated summed assertion status counts (passed, failed, total) from list of assertion-values
+ * Get the accumulated summed assertion status counts (passed, failed, total) from list of assertion-tests
  */
-export function getAssertionStatusCountsFromList(assertions: AssertionValue[]) {
+export function getAssertionStatusCountsFromList(assertions: AssertionTest[]) {
   const result = assertions.reduce<
     ReportAssertionStatusCounts & { total: string | number }
   >(
     (accum, curr) => {
-      const { passed, failed } = getSingleAssertionStatusCounts(curr);
+      const passed = curr.status === 'passed' ? 1 : 0;
+      const failed = curr.status === 'failed' ? 1 : 0;
 
       // if source is string, curr-total should not include it later
-      const passValue = resolveStatusCountValues(passed, accum.passed);
-      const failValue = resolveStatusCountValues(failed, accum.failed);
+      const passValue = resolveStatusCountSumValues(passed, accum.passed);
+      const failValue = resolveStatusCountSumValues(failed, accum.failed);
       //to exclude accumulating existing, escape to 0 when NO_VALUE
-      const currTotal = resolveStatusCountValues(
-        passed !== NO_VALUE ? passValue : 0,
-        failed !== NO_VALUE ? failValue : 0,
+      const currTotal = resolveStatusCountSumValues(
+        passValue !== NO_VALUE ? passValue : 0,
+        failValue !== NO_VALUE ? failValue : 0,
       );
 
-      const totalValue = resolveStatusCountValues(currTotal, accum.total);
+      const totalValue = resolveStatusCountSumValues(currTotal, accum.total);
 
       return {
         passed: passValue,
@@ -94,7 +54,7 @@ export function getAssertionStatusCountsFromList(assertions: AssertionValue[]) {
  * where number types will always prevail
  * where string is typically a NO_VALUE
  */
-function resolveStatusCountValues(
+function resolveStatusCountSumValues(
   source: string | number,
   target: string | number,
 ) {
