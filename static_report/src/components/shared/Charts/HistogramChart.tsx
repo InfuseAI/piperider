@@ -21,6 +21,7 @@ import { DATE_RANGE, TEXTLENGTH, VALUE_RANGE } from '../Columns/constants';
 
 import 'chartjs-adapter-date-fns';
 import { DeepPartial } from 'chart.js/types/utils';
+import { INFO_VAL_COLOR } from '../../../utils/theme';
 
 /**
  * Histogram Chart that can display generic data types such as Numeric, Datetime, Integer
@@ -37,7 +38,8 @@ type HistogramChartProps = {
   data: Pick<
     ColumnSchema,
     'samples' | 'type' | 'histogram' | 'min' | 'max' | 'total'
-  >;
+  > &
+    Partial<Pick<ColumnSchema, 'histogram_length'>>;
   animation?: AnimationOptions<'bar'>['animation'];
   hideAxis?: boolean;
 };
@@ -93,7 +95,7 @@ export function getHistogramChartData(
       {
         label: 'counts',
         data: newData as any, //infer `any` to allow datestring
-        backgroundColor: '#63B3ED',
+        backgroundColor: INFO_VAL_COLOR,
         borderColor: '#4299E1',
         hoverBackgroundColor: '#002A53',
         borderWidth: 1,
@@ -110,7 +112,7 @@ export function getHistogramChartOptions(
   hideAxis = false,
   { ...configOverrides }: ChartOptions<'bar'> = {},
 ): ChartOptions<'bar'> {
-  const { histogram, type, samples, total } = data;
+  const { histogram, type, samples = 0 } = data;
   const { counts = [], bin_edges: binEdges = [] } =
     histogram || ({} as Histogram);
   const isDatetime = type === 'datetime';
@@ -127,7 +129,7 @@ export function getHistogramChartOptions(
             const result = formatDisplayedBinItem(binEdges, dataIndex);
 
             const percentOfTotal = formatIntervalMinMax(
-              counts[dataIndex] / Number(samples || total), //total is always given (schema should make required)
+              counts[dataIndex] / samples,
             );
 
             const prefix = isDatetime

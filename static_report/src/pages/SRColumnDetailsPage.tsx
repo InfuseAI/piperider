@@ -32,7 +32,7 @@ import {
 } from '../components/shared/Tables/TableOverview';
 import {
   AMPLITUDE_EVENTS,
-  AssertionLabel,
+  AssertionPassFailCountLabel,
   AssertionListWidget,
   BreadcrumbMetaItem,
   BreadcrumbNav,
@@ -91,6 +91,7 @@ export default function SRColumnDetailsPage({
     );
   }
 
+  //FIXME: Legacy
   const { failed: baseFailed, total: baseTotal } =
     getAssertionStatusCountsFromList([
       dataTable?.piperider_assertion_result,
@@ -101,7 +102,7 @@ export default function SRColumnDetailsPage({
     tableName,
     columnName,
   );
-
+  const hasQuantile = containsColumnQuantile(type);
   return (
     <Main isSingleReport maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
@@ -146,7 +147,10 @@ export default function SRColumnDetailsPage({
                 <TabPanel>
                   {baseTotal > 0 && (
                     <Flex mb={5}>
-                      <AssertionLabel total={baseTotal} failed={baseFailed} />
+                      <AssertionPassFailCountLabel
+                        total={baseTotal}
+                        failed={baseFailed}
+                      />
                     </Flex>
                   )}
                   <AssertionListWidget
@@ -169,14 +173,16 @@ export default function SRColumnDetailsPage({
         ) : (
           // {/* Detail Area - Columns */}
           <Grid
-            templateColumns={'500px 1fr'}
-            templateRows={'7em 1fr 1fr'}
+            templateColumns={'1fr 1fr'}
+            templateRows={`8em 1fr 1fr ${hasQuantile ? '1fr' : ''}`}
+            gridAutoFlow={'column'}
             width={'100%'}
+            pb={5}
             maxHeight={mainContentAreaHeight}
             overflowY={'auto'}
           >
             {/* Label Block */}
-            <GridItem colSpan={2} rowSpan={1} p={9}>
+            <GridItem colSpan={2} p={6}>
               <TableColumnHeader
                 title={columnName}
                 subtitle={'Column'}
@@ -187,21 +193,18 @@ export default function SRColumnDetailsPage({
               />
             </GridItem>
             {/* Data Composition Block */}
-            <GridItem p={10} bg={'gray.50'} borderRight={borderVal}>
+            <GridItem
+              colSpan={1}
+              px={10}
+              bg={'gray.50'}
+              borderRight={borderVal}
+            >
               <DataCompositionWidget columnDatum={columnDatum} hasAnimation />
             </GridItem>
-            {/* Chart Block - toggleable tabs */}
-            <GridItem gridRow={'span 1'} minWidth={0} p={9} bg={'gray.50'}>
-              <ChartTabsWidget
-                baseColumnDatum={columnDatum}
-                hasAnimation
-                tabIndex={tabIndex}
-                onSelectTab={(i) => setTabIndex(i)}
-              />
-            </GridItem>
+            {/** */}
             <GridItem
-              gridRow={'span 1'}
-              p={9}
+              gridRow={'auto'}
+              px={10}
               bg={'gray.50'}
               borderRight={borderVal}
             >
@@ -212,16 +215,26 @@ export default function SRColumnDetailsPage({
               )}
             </GridItem>
             {/* Quantiles Block */}
-            {containsColumnQuantile(type) && histogram && (
-              <GridItem
-                gridRow={'span 1'}
-                p={9}
-                bg={'gray.50'}
-                minWidth={'1px'}
-              >
+            {hasQuantile && histogram && (
+              <GridItem bg={'gray.50'} minWidth={'1px'} borderRight={borderVal}>
                 <QuantilesWidget columnDatum={columnDatum} />
               </GridItem>
             )}
+            {/* Chart Block - toggleable tabs */}
+            <GridItem
+              colSpan={1}
+              rowSpan={hasQuantile ? 3 : 2}
+              minWidth={0}
+              px={10}
+              bg={'gray.50'}
+            >
+              <ChartTabsWidget
+                baseColumnDatum={columnDatum}
+                hasAnimation
+                tabIndex={tabIndex}
+                onSelectTab={(i) => setTabIndex(i)}
+              />
+            </GridItem>
           </Grid>
         )}
       </Grid>

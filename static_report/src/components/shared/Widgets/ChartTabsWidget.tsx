@@ -8,6 +8,7 @@ import {
   Text,
   Grid,
   GridItem,
+  Divider,
 } from '@chakra-ui/react';
 import isNumber from 'lodash/isNumber';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
@@ -67,8 +68,11 @@ export function ChartTabsWidget({
   const histogramLabel = isText ? TEXTLENGTH : 'Histogram';
 
   return (
-    <Box height={'100%'}>
-      <Text fontSize={'xl'}>Visualizations</Text>
+    <Box pb={10}>
+      <Text fontSize={'xl'} mb={3}>
+        Visualizations
+      </Text>
+      <Divider mb={3} />
       {hasAny ? (
         <Tabs isLazy index={tabIndex} onChange={(i) => onSelectTab(i)}>
           <TabList>
@@ -151,7 +155,7 @@ function _renderGridSplitView(
     <Grid templateColumns={hasSplitView ? '1fr 1fr' : '1fr'}>
       <GridItem minWidth={0}>
         {
-          <ChartContainer p={0} title={baseColumnDatum?.name}>
+          <ChartContainer px={0} title={baseColumnDatum?.name}>
             {getDataChart(
               baseColumnDatum,
               targetColumnDatum,

@@ -17,7 +17,7 @@ import {
 import { ColumnBadge } from './ColumnBadge';
 import { getIconForColumnType } from '../../Columns/utils';
 import { NoData } from '../../Layouts';
-import { AssertionLabel } from '../../Assertions/AssertionLabel';
+import { AssertionPassFailCountLabel } from '../../Assertions/AssertionPassFailCountLabel';
 import { getAssertionStatusCountsFromList } from '../utils';
 import {
   tableListGridTempCols,
@@ -43,7 +43,7 @@ export function TableListItem({
   const fallbackTable = tableValue?.base || tableValue?.target;
   const description = fallbackTable?.description || NO_DESCRIPTION_MSG;
 
-  //TODO: move to store after assertions schema-change
+  //FIXME: LEGACY
   const { failed: baseFailed, total: baseTotal } =
     getAssertionStatusCountsFromList([
       tableValue?.base?.piperider_assertion_result,
@@ -92,7 +92,10 @@ export function TableListItem({
         <GridItem>
           <Flex gap={2}>
             {singleOnly && (
-              <AssertionLabel total={baseTotal} failed={baseFailed} />
+              <AssertionPassFailCountLabel
+                total={baseTotal}
+                failed={baseFailed}
+              />
             )}
             {!singleOnly && (
               <TableListAssertionSummary

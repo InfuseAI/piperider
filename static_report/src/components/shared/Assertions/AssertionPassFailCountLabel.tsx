@@ -7,14 +7,16 @@ import type { Comparable } from '../../../types';
 import { NO_VALUE } from '../Columns';
 import { NO_ASSERTIONS } from '../Tables/constant';
 
-export interface AssertionLabelProps extends Comparable {
+interface AssertionLabelProps extends Comparable {
   total?: number | string;
   failed?: number | string;
   icon?: ReactNode;
   comparisonDelta?: ReactNode;
 }
-
-export function AssertionLabel({
+/* 
+  Assertion UI Label (single+comparison) that shows the pass/fail count(s)
+*/
+export function AssertionPassFailCountLabel({
   total,
   failed,
   singleOnly,

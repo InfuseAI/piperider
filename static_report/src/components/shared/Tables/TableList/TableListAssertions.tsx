@@ -1,4 +1,4 @@
-import { Text, Center, Icon, Grid } from '@chakra-ui/react';
+import { Text, Center, Icon, Grid, IconProps } from '@chakra-ui/react';
 import {
   FiCheck,
   FiX,
@@ -6,7 +6,7 @@ import {
   FiArrowDownCircle,
   FiArrowRight,
 } from 'react-icons/fi';
-import { AssertionLabel, AssertionsLabelIcon } from '../../Assertions';
+import { AssertionPassFailCountLabel } from '../../Assertions';
 import {
   formatColumnValueWith,
   formatNumber,
@@ -32,11 +32,14 @@ export function TableListAssertionSummary({
       alignItems={'center'}
       color="gray.500"
     >
-      <AssertionLabel total={baseAssertionTotal} failed={baseAssertionFailed} />
+      <AssertionPassFailCountLabel
+        total={baseAssertionTotal}
+        failed={baseAssertionFailed}
+      />
 
       <Icon as={FiArrowRight} />
 
-      <AssertionLabel
+      <AssertionPassFailCountLabel
         total={targetAssertionTotal}
         failed={targetAssertionFailed}
       />
@@ -71,7 +74,7 @@ export function TargetTableAssertionsSummary({
   }
 
   return (
-    <AssertionLabel
+    <AssertionPassFailCountLabel
       singleOnly={false}
       total={total}
       failed={failed}
@@ -102,5 +105,22 @@ function ComparisonDelta({ delta, total }: { delta: number; total: number }) {
         {formatColumnValueWith(total, formatNumber)}
       </Text>
     </Center>
+  );
+}
+
+interface AssertionsLabelIconProps {
+  delta: number;
+}
+function AssertionsLabelIcon({
+  delta,
+  ...props
+}: AssertionsLabelIconProps & IconProps) {
+  return (
+    <Icon
+      as={delta > 0 ? FiArrowUpCircle : FiArrowDownCircle}
+      color="black"
+      boxSize={5}
+      {...props}
+    />
   );
 }

@@ -102,7 +102,7 @@ export default function CRColumnDetailsPage({
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
 
-  //TODO: move to store after assertions schema-change
+  //FIXME: LEGACY
   const { failed: baseFailed, total: baseTotal } =
     getAssertionStatusCountsFromList([
       baseDataTable?.piperider_assertion_result,
@@ -226,12 +226,38 @@ export default function CRColumnDetailsPage({
               <ComparableGridHeader />
             </GridItem>
             {/* Data Composition Block */}
-            <GridItem colSpan={2} p={9} bg={'gray.50'}>
+            <GridItem colSpan={2} px={9} py={2} bg={'gray.50'}>
               <Grid templateColumns={'1fr 1fr'} gap={8} minWidth={0}>
                 <DataCompositionWidget columnDatum={baseColumnDatum} />
                 <DataCompositionWidget columnDatum={targetColumnDatum} />
               </Grid>
             </GridItem>
+            {/* Data Summary Block (avg, stddev, ...) */}
+            {(containsDataSummary(baseType) ||
+              containsDataSummary(targetType)) && (
+              <GridItem
+                colSpan={2}
+                gridRow={'span 1'}
+                px={9}
+                py={2}
+                bg={'gray.50'}
+              >
+                <Grid templateColumns={'1fr 1fr'} gap={8}>
+                  {<DataSummaryWidget columnDatum={baseColumnDatum} />}
+                  {<DataSummaryWidget columnDatum={targetColumnDatum} />}
+                </Grid>
+              </GridItem>
+            )}
+            {/* Quantiles Block */}
+            {(containsColumnQuantile(baseType) ||
+              containsColumnQuantile(targetType)) && (
+              <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
+                <Grid templateColumns={'1fr 1fr'} gap={8}>
+                  <QuantilesWidget columnDatum={baseColumnDatum} />
+                  <QuantilesWidget columnDatum={targetColumnDatum} />
+                </Grid>
+              </GridItem>
+            )}
             {/* Chart Block - toggleable tabs */}
             <GridItem
               colSpan={2}
@@ -249,26 +275,6 @@ export default function CRColumnDetailsPage({
                 onSelectTab={(i) => setTabIndex(i)}
               />
             </GridItem>
-            {/* Data Summary Block (avg, stddev, ...) */}
-            {(containsDataSummary(baseType) ||
-              containsDataSummary(targetType)) && (
-              <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
-                <Grid templateColumns={'1fr 1fr'} gap={8}>
-                  {<DataSummaryWidget columnDatum={baseColumnDatum} />}
-                  {<DataSummaryWidget columnDatum={targetColumnDatum} />}
-                </Grid>
-              </GridItem>
-            )}
-            {/* Quantiles Block */}
-            {(containsColumnQuantile(baseType) ||
-              containsColumnQuantile(targetType)) && (
-              <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
-                <Grid templateColumns={'1fr 1fr'} gap={8}>
-                  <QuantilesWidget columnDatum={baseColumnDatum} />
-                  <QuantilesWidget columnDatum={targetColumnDatum} />
-                </Grid>
-              </GridItem>
-            )}
           </Grid>
         )}
       </Grid>
