@@ -27,12 +27,8 @@ export function DataCompositionWidget({ columnDatum, hasAnimation }: Props) {
           />
         </Box>
         <Box mt={3}>
-          <GeneralStats
-            baseColumnDatum={columnDatum}
-            singleOnly
-            width={'100%'}
-          />
-          <TypedStats baseColumnDatum={columnDatum} singleOnly width={'100%'} />
+          <GeneralStats columnDatum={columnDatum} width={'100%'} />
+          <TypedStats columnDatum={columnDatum} width={'100%'} />
         </Box>
       </Box>
     );

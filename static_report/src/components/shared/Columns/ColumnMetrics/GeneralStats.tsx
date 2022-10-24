@@ -1,46 +1,28 @@
 import { FlexProps } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { Comparable, ZColSchema, zReport } from '../../../../types';
+import { ZColSchema, zReport } from '../../../../types';
 import { colorMap } from '../../../../utils/theme';
-import {
-  MetricNameMetakeyList,
-  transformSRMetricsInfoList,
-  transformCRMetricsInfoList,
-} from '../utils';
+import { MetricNameMetakeyList, transformSRMetricsInfoList } from '../utils';
 import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
 
-interface Props extends Comparable {
-  baseColumnDatum?: ColumnSchema;
-  targetColumnDatum?: ColumnSchema;
+interface Props {
+  columnDatum?: ColumnSchema;
 }
 /**
  * Shows metric stats for Invalids, Missing(nulls)
  */
-export function GeneralStats({
-  baseColumnDatum,
-  targetColumnDatum,
-  singleOnly,
-  ...props
-}: Props & FlexProps) {
-  zReport(ZColSchema.safeParse(baseColumnDatum));
-  zReport(ZColSchema.safeParse(targetColumnDatum));
+export function GeneralStats({ columnDatum, ...props }: Props & FlexProps) {
+  zReport(ZColSchema.safeParse(columnDatum));
 
   const metakeyEntries: MetricNameMetakeyList = [
     ['invalids', 'Invalid'],
     ['nulls', 'Missing'],
   ];
   // metric info list defaults to display as percentage
-  const metricsList = singleOnly
-    ? transformSRMetricsInfoList(metakeyEntries, baseColumnDatum)
-    : transformCRMetricsInfoList(
-        metakeyEntries,
-        baseColumnDatum,
-        targetColumnDatum,
-      );
+  const metricsList = transformSRMetricsInfoList(metakeyEntries, columnDatum);
 
   return (
     <>
-      {/* Others - (1): % + n (2): % + % */}
       {metricsList.map(
         ({ firstSlot, secondSlot, metakey, name, tooltipValues }, index) => (
           <MetricsInfo

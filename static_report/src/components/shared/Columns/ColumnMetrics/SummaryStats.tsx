@@ -1,32 +1,25 @@
 import { FlexProps, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { Comparable, ZColSchema, zReport } from '../../../../types';
+import { ZColSchema, zReport } from '../../../../types';
 import { NO_VALUE, TEXTLENGTH } from '../constants';
 import {
   containsAvgSDSummary,
   containsDistinctDuplicateSummary,
   containsMinMaxSummary,
   MetricNameMetakeyList,
-  transformCRMetricsInfoList,
   transformSRMetricsInfoList,
 } from '../utils';
 import { MetricsInfo } from './MetricsInfo';
 
-interface Props extends Comparable {
-  baseColumnDatum?: ColumnSchema;
-  targetColumnDatum?: ColumnSchema;
+interface Props {
+  columnDatum?: ColumnSchema;
 }
 /**
  * Shows metric stats for Avg, Stddev, Min/Max, Distinct, Duplicates
  */
-export function SummaryStats({
-  baseColumnDatum,
-  targetColumnDatum,
-  singleOnly,
-  ...props
-}: Props & FlexProps) {
-  zReport(ZColSchema.safeParse(baseColumnDatum));
-  const isColTypeString = baseColumnDatum?.type === 'string';
+export function SummaryStats({ columnDatum, ...props }: Props & FlexProps) {
+  zReport(ZColSchema.safeParse(columnDatum));
+  const isColTypeString = columnDatum?.type === 'string';
   const subtitle = isColTypeString ? ` (${TEXTLENGTH})` : '';
 
   // Each list below are separated to render differently
@@ -34,14 +27,10 @@ export function SummaryStats({
     [isColTypeString ? 'avg_length' : 'avg', `Average`],
     [isColTypeString ? 'stddev_length' : 'stddev', `SD`],
   ];
-  const avgSDMetricsList = singleOnly
-    ? transformSRMetricsInfoList(avgSDMetakeyList, baseColumnDatum)
-    : transformCRMetricsInfoList(
-        avgSDMetakeyList,
-        baseColumnDatum,
-        targetColumnDatum,
-        'count',
-      );
+  const avgSDMetricsList = transformSRMetricsInfoList(
+    avgSDMetakeyList,
+    columnDatum,
+  );
 
   const minMaxMetakeyList: MetricNameMetakeyList = [
     [isColTypeString ? 'min_length' : 'min', `Min`],
@@ -49,31 +38,23 @@ export function SummaryStats({
   ];
   !isColTypeString && minMaxMetakeyList.push(['sum', `Sum`]); //text-length has no sum
 
-  const minMaxMetricsList = singleOnly
-    ? transformSRMetricsInfoList(minMaxMetakeyList, baseColumnDatum)
-    : transformCRMetricsInfoList(
-        minMaxMetakeyList,
-        baseColumnDatum,
-        targetColumnDatum,
-        'count',
-      );
+  const minMaxMetricsList = transformSRMetricsInfoList(
+    minMaxMetakeyList,
+    columnDatum,
+  );
 
   const distinctDuplicateMetakeyList: MetricNameMetakeyList = [
     ['distinct', `Distincts`],
     ['duplicates', `Duplicates`],
   ];
-  const distinctDuplicateMetricsList = singleOnly
-    ? transformSRMetricsInfoList(distinctDuplicateMetakeyList, baseColumnDatum)
-    : transformCRMetricsInfoList(
-        distinctDuplicateMetakeyList,
-        baseColumnDatum,
-        targetColumnDatum,
-      );
+  const distinctDuplicateMetricsList = transformSRMetricsInfoList(
+    distinctDuplicateMetakeyList,
+    columnDatum,
+  );
 
   return (
     <>
-      {(containsAvgSDSummary(baseColumnDatum?.type) ||
-        containsAvgSDSummary(targetColumnDatum?.type)) && (
+      {containsAvgSDSummary(columnDatum?.type) && (
         <Flex direction="column">
           {avgSDMetricsList &&
             avgSDMetricsList.map(
@@ -86,7 +67,7 @@ export function SummaryStats({
                   name={name}
                   subtitle={subtitle}
                   metakey={metakey}
-                  firstSlot={singleOnly ? NO_VALUE : firstSlot}
+                  firstSlot={NO_VALUE}
                   secondSlot={secondSlot}
                   tooltipValues={tooltipValues}
                   width={'100%'}
@@ -96,8 +77,7 @@ export function SummaryStats({
             )}
         </Flex>
       )}
-      {(containsMinMaxSummary(baseColumnDatum?.type) ||
-        containsMinMaxSummary(targetColumnDatum?.type)) && (
+      {containsMinMaxSummary(columnDatum?.type) && (
         <Flex direction="column">
           {minMaxMetricsList &&
             minMaxMetricsList.map(
@@ -110,7 +90,7 @@ export function SummaryStats({
                   name={name}
                   subtitle={subtitle}
                   metakey={metakey}
-                  firstSlot={singleOnly ? NO_VALUE : firstSlot}
+                  firstSlot={NO_VALUE}
                   secondSlot={secondSlot}
                   tooltipValues={tooltipValues}
                   width={'100%'}
@@ -120,8 +100,7 @@ export function SummaryStats({
             )}
         </Flex>
       )}
-      {(containsDistinctDuplicateSummary(baseColumnDatum?.type) ||
-        containsDistinctDuplicateSummary(targetColumnDatum?.type)) && (
+      {containsDistinctDuplicateSummary(columnDatum?.type) && (
         <Flex direction={'column'} mt={3}>
           {distinctDuplicateMetricsList &&
             distinctDuplicateMetricsList.map(

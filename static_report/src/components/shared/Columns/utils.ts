@@ -164,70 +164,34 @@ export type MetricNameMetakeyList = [MetricMetaKeys, string][];
   3. base||target (count || count)
   
  * gets the list of metrics to display, based on metakey
- * will prioritize `<metric>_p` percentage values and fallback on UI logic calculations when undefined
+ * will use `<metric>_p` percentage values and fallback on UI logic calculations when undefined
  */
 export function transformSRMetricsInfoList(
   metricsList: MetricNameMetakeyList,
   columnDatum?: ColumnSchema,
 ): MetricsInfoProps[] {
   if (!columnDatum) return [];
+
   return metricsList.map(([metakey, name]) => {
     const value = columnDatum[metakey];
-    const pValue = columnDatum[metakey + '_p'];
 
-    const count = Number(value);
-    const percent = pValue >= 0 ? pValue : count / (columnDatum.samples || 0);
+    const pValue = columnDatum[metakey + '_p'] ?? NO_VALUE;
+
+    //if non-number, percent should be NO_VALUE
+    //if non-number, count should show value || NO_VALUE (e.g. datetime)
+    const isNumType = typeof value === 'number';
+    const notNumValue = value ?? NO_VALUE;
 
     return {
       name,
       metakey,
-      firstSlot: isNaN(count) ? NO_VALUE : formatIntervalMinMax(percent),
-      secondSlot: isNaN(count)
-        ? value || NO_VALUE
-        : formatAsAbbreviatedNumber(count),
+      firstSlot: isNumType ? formatIntervalMinMax(pValue) : NO_VALUE,
+      secondSlot: isNumType ? formatAsAbbreviatedNumber(value) : notNumValue,
       tooltipValues: {
-        secondSlot: isNaN(count) ? value || NO_VALUE : formatNumber(count),
+        secondSlot: isNumType ? formatNumber(value) : notNumValue,
       },
     };
   });
-}
-/**
-  Conditional scenarios:
-  
-  1. base-only (% + count)
-  2. base+target (count + count) <<<
-  3. base||target (count || count) <<<
-  
- * gets the list of metrics to display, based on metakey.
- */
-export function transformCRMetricsInfoList(
-  metricsList: MetricNameMetakeyList,
-  baseColumnDatum?: ColumnSchema,
-  targetColumnDatum?: ColumnSchema,
-  valueFormat: 'count' | 'percent' = 'percent',
-): MetricsInfoProps[] {
-  if (!baseColumnDatum && !targetColumnDatum) return [];
-
-  const base = transformSRMetricsInfoList(metricsList, baseColumnDatum);
-  const target = transformSRMetricsInfoList(metricsList, targetColumnDatum);
-
-  const result = base.map((baseMetricItem, index) => {
-    const { firstSlot: targetPercent, secondSlot: targetCount } =
-      target[index] || {};
-    const targetValue = valueFormat === 'percent' ? targetPercent : targetCount;
-
-    const { firstSlot: basePercent, secondSlot: baseCount } =
-      baseMetricItem || {};
-    const baseValue = valueFormat === 'percent' ? basePercent : baseCount;
-
-    return {
-      ...baseMetricItem,
-      firstSlot: baseValue || NO_VALUE,
-      secondSlot: targetValue || NO_VALUE,
-      tooltipValues: {},
-    };
-  });
-  return result;
 }
 
 /**
