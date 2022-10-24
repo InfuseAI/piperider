@@ -26,12 +26,8 @@ import { ComparableData } from '../../../types';
 
 export type CRAssertionModalData = {
   assertionName?: string;
-  assertionKind?: 'piperider' | 'dbt';
-} & ComparableData<
-  Partial<AssertionTest> & {
-    message?: string;
-  }
->;
+  assertionSource?: string;
+} & ComparableData<AssertionTest>;
 export type TestDetail = {
   data?: CRAssertionModalData;
 };
@@ -75,7 +71,7 @@ type DetailProps = { data?: CRAssertionModalData };
 function AssertionTestDetail({ data }: DetailProps) {
   if (!data) return <NoData />;
 
-  const isDbtKind = data.assertionKind === 'dbt';
+  const isDbtKind = data.assertionSource === 'dbt';
   return (
     <TableContainer>
       <Table variant="simple">

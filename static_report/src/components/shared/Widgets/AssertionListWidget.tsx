@@ -65,6 +65,7 @@ export function AssertionListWidget({
   >();
   const columnHelper = createColumnHelper<JoinedAssertionTest>();
   useEffect(() => {
+    //FIXME: for target -> base (asymmetric case)
     const joinedByIndexAssertions =
       comparableAssertions?.base
         ?.map((baseDatum, index) => {
@@ -74,10 +75,11 @@ export function AssertionListWidget({
           };
         })
         .sort((v) => (v.status === 'failed' ? -1 : 1)) || [];
+    // console.log(joinedByIndexAssertions);
+
     setReactTableData(joinedByIndexAssertions);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  console.log(comparableAssertions);
 
   const statusColHelperItem = singleOnly
     ? [
@@ -140,6 +142,7 @@ export function AssertionListWidget({
   );
 
   //NOTE: comparison will still reference target's assertions directly
+  //FIXME: for target -> base (asymmetric case)
   const { target: targetFlatAssertions } = comparableAssertions || {};
 
   const table = useReactTable<JoinedAssertionTest>({
@@ -298,13 +301,13 @@ export function AssertionListWidget({
                       <Td
                         textAlign={'center'}
                         onClick={() => {
-                          // setTestDetail({
-                          //   assertionsource: source,
-                          //   assertionName: name,
-                          //   base: row.original,
-                          //   target: targetRef,
-                          // });
-                          // modal.onOpen();
+                          setTestDetail({
+                            assertionSource: source,
+                            assertionName: name,
+                            base: row.original,
+                            target: targetRef,
+                          });
+                          modal.onOpen();
                         }}
                       >
                         <Text as="span" cursor="pointer">

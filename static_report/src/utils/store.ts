@@ -7,7 +7,6 @@ import {
   SaferTableSchema,
 } from '../types/index';
 import create from 'zustand';
-// import { devtools, persist } from 'zustand/middleware';
 import { transformAsNestedBaseTargetRecord } from './transformers';
 import { formatReportTime } from './formatters';
 type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
@@ -115,22 +114,19 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
 /**
  * Returns a compared and flatteded table/column list of assertions, enriched with each member's belonging table names and column names
  */
-//FIXME: reuse
-// const _getSingleAssertionMetadata = (
-//   assertions: EnrichedTableOrColumnAssertionTest[] | undefined,
-// ) =>
-//   assertions?.reduce(
-//     (accum, { status }) => ({
-//       total: accum.total + 1,
-//       passed: accum.passed + (status === 'passed' ? 1 : 0),
-//       failed: accum.failed + (status === 'failed' ? 1 : 0),
-//     }),
-//     {
-//       total: 0,
-//       passed: 0,
-//       failed: 0,
-//     },
-//   );
+const _getSingleAssertionMetadata = (assertions: AssertionTest[] | undefined) =>
+  assertions?.reduce(
+    (accum, { status }) => ({
+      total: accum.total + 1,
+      passed: accum.passed + (status === 'passed' ? 1 : 0),
+      failed: accum.failed + (status === 'failed' ? 1 : 0),
+    }),
+    {
+      total: 0,
+      passed: 0,
+      failed: 0,
+    },
+  );
 
 /**
  * Case_1: (happy) - base/target: matching assertions
@@ -140,15 +136,19 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
  * Case_UI: (happy+sad) Target fallback is Base when falsey (as schema change target should be expected)
  */
 const getAssertionsOnly = (rawData: ComparableReport) => {
-  const comparableAssertionTests = transformAsNestedBaseTargetRecord<
-    SaferSRSchema['tests'],
-    AssertionTest
-  >(rawData?.base?.tests, rawData?.input?.tests);
-  // const baseMetadata = _getSingleAssertionMetadata(compTableAssertions.base);
-  // const targetMetadata = _getSingleAssertionMetadata(
-  //   compTableAssertions.target,
-  // );
-  // compTableAssertions.metadata = { base: baseMetadata, target: targetMetadata };
+  const baseTests = rawData?.base?.tests;
+  const targetTests = rawData?.input?.tests;
+  const comparableAssertionTests: ReportState['assertionsOnly'] = {
+    base: baseTests,
+    target: targetTests,
+  };
+  const baseMetadata = _getSingleAssertionMetadata(baseTests);
+  const targetMetadata = _getSingleAssertionMetadata(targetTests);
+  comparableAssertionTests.metadata = {
+    base: baseMetadata,
+    target: targetMetadata,
+  };
+
   return comparableAssertionTests;
 };
 
