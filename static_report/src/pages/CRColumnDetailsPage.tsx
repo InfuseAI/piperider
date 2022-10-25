@@ -45,6 +45,7 @@ import { AssertionListWidget } from '../components/shared/Widgets/AssertionListW
 import { TableListAssertionSummary } from '../components/shared/Tables/TableList/TableListAssertions';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
+import { getAssertionStatusCountsFromList } from '../lib';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -101,9 +102,13 @@ export default function CRColumnDetailsPage({
   const { type: targetType } = targetColumnDatum || {};
 
   const { failed: baseFailed, total: baseTotal } =
-    assertionsOnly?.metadata?.base || {};
+    getAssertionStatusCountsFromList(
+      assertionsOnly?.base?.filter((v) => v?.table === tableName) || [],
+    );
   const { failed: targetFailed, total: targetTotal } =
-    assertionsOnly?.metadata?.target || {};
+    getAssertionStatusCountsFromList(
+      assertionsOnly?.target?.filter((v) => v?.table === tableName) || [],
+    );
 
   const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
     tableName,

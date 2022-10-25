@@ -40,6 +40,7 @@ import {
   TableColumnSchemaList,
   useAmplitudeOnMount,
   useDocumentTitle,
+  getAssertionStatusCountsFromList,
 } from '../lib';
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
@@ -79,7 +80,9 @@ export default function SRColumnDetailsPage({
   const columnDatum = dataColumns[columnName];
 
   const { failed: baseFailed, total: baseTotal } =
-    assertionsOnly?.metadata?.base || {};
+    getAssertionStatusCountsFromList(
+      assertionsOnly?.base?.filter((v) => v?.table === tableName) || [],
+    );
   const { type, histogram } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
 

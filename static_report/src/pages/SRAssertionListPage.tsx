@@ -36,10 +36,12 @@ export function SRAssertionListPage({ data }: Props) {
         />
       </Flex>
       <Flex justify={'start'} maxW={assertionListWidth - 50} w={'100%'} my={5}>
-        <AssertionPassFailCountLabel
-          total={metadata?.base?.total}
-          failed={metadata?.base?.failed}
-        />
+        {Number(metadata?.base?.total) > 0 && (
+          <AssertionPassFailCountLabel
+            total={metadata?.base?.total}
+            failed={metadata?.base?.failed}
+          />
+        )}
       </Flex>
       <AssertionListWidget
         maxW={assertionListWidth - 25}

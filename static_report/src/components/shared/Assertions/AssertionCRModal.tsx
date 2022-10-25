@@ -71,8 +71,6 @@ type DetailProps = { data?: CRAssertionModalData };
 function AssertionTestDetail({ data }: DetailProps) {
   if (!data) return <NoData />;
 
-  console.log(data);
-
   const isDbtKind = data.assertionSource === 'dbt';
   return (
     <TableContainer>
