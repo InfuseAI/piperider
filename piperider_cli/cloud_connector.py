@@ -10,7 +10,7 @@ from rich.table import Table
 
 from piperider_cli import datetime_to_str, str_to_datetime
 from piperider_cli.cloud import PipeRiderCloud
-from piperider_cli.compare_report import CompareReport, ProfilerOutput
+from piperider_cli.compare_report import CompareReport, RunOutput
 from piperider_cli.datasource import FANCY_USER_INPUT
 from piperider_cli.filesystem import FileSystem
 
@@ -107,14 +107,14 @@ def check_default_config(options: dict):
     piperider_cloud.update_config({'auto_upload': auto_upload_flag})
 
 
-def select_reports(report_dir=None, datasource=None) -> List[ProfilerOutput]:
+def select_reports(report_dir=None, datasource=None) -> List[RunOutput]:
     filesystem = FileSystem(report_dir=report_dir)
     selector = CompareReport(filesystem.get_output_dir(), None, None, datasource=datasource)
     console.rule('Select Reports to Upload')
     return selector.select_multiple_reports(action='upload')
 
 
-def upload_to_cloud(report: ProfilerOutput, debug=False) -> dict:
+def upload_to_cloud(report: RunOutput, debug=False) -> dict:
     response = piperider_cloud.upload_report(report.path)
     # TODO refine the output when API is ready
 
@@ -211,7 +211,7 @@ class CloudConnector():
                 results.append(response)
         else:
             console.rule('Uploading Report')
-            report = ProfilerOutput(report_path)
+            report = RunOutput(report_path)
             response = upload_to_cloud(report, debug)
             if response.get('success') is False:
                 rc = 1

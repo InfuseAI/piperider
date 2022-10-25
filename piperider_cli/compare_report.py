@@ -14,7 +14,7 @@ from piperider_cli.filesystem import FileSystem
 from piperider_cli.generate_report import setup_report_variables
 
 
-class ProfilerOutput(object):
+class RunOutput(object):
     def __init__(self, path):
         self.path = path
         self.name = None
@@ -26,25 +26,18 @@ class ProfilerOutput(object):
 
         try:
             with open(path, 'r') as f:
-                profile = json.load(f)
-                self.name = profile['datasource']['name']
-                self.created_at = profile['created_at']
+                run_result = json.load(f)
+                self.name = run_result['datasource']['name']
+                self.created_at = run_result['created_at']
 
-                tables = profile.get('tables', {})
+                tables = run_result.get('tables', {})
                 self.table_count = len(tables.keys())
-                for table in tables.values():
-                    if table.get('assertion_results'):
-                        for t in table['assertion_results'].get('tests', []):
-                            if t.get('status') == 'passed':
-                                self.pass_count += 1
-                            else:
-                                self.fail_count += 1
-                        for col in table['assertion_results'].get('columns', {}).keys():
-                            for t in table['assertion_results']['columns'][col]:
-                                if t.get('status') == 'passed':
-                                    self.pass_count += 1
-                                else:
-                                    self.fail_count += 1
+
+                for test in run_result.get('tests', []):
+                    if test.get('status') == 'passed':
+                        self.pass_count += 1
+                    else:
+                        self.fail_count += 1
         except Exception as e:
             if isinstance(e, json.decoder.JSONDecodeError):
                 raise json.decoder.JSONDecodeError(
@@ -114,8 +107,8 @@ class CompareReport(object):
     def __init__(self, profiler_output_path, a=None, b=None, datasource=None):
         self.profiler_output_path = profiler_output_path
         self.console = Console()
-        self.a: ProfilerOutput = ProfilerOutput(a) if a else None
-        self.b: ProfilerOutput = ProfilerOutput(b) if b else None
+        self.a: RunOutput = RunOutput(a) if a else None
+        self.b: RunOutput = RunOutput(b) if b else None
         self.datasource = datasource
 
     def list_existing_outputs(self, output_search_path=None):
@@ -132,7 +125,7 @@ class CompareReport(object):
                     run_json = os.path.join(root, dir, 'run.json')
                     if not os.path.exists(run_json):
                         continue
-                    output = ProfilerOutput(run_json)
+                    output = RunOutput(run_json)
                     if self.datasource and output.name != self.datasource:
                         continue
                     outputs.append(output)
@@ -215,14 +208,14 @@ class CompareReport(object):
             return answers['profiler_output']
         return None
 
-    def select_one_report(self, action='compare') -> ProfilerOutput:
+    def select_one_report(self, action='compare') -> RunOutput:
         answers = self.select_multiple_reports(action=action, limit=1)
         if answers:
             return answers[0]
         else:
             return None
 
-    def select_two_reports(self, action='compare') -> (ProfilerOutput, ProfilerOutput):
+    def select_two_reports(self, action='compare') -> (RunOutput, RunOutput):
         """
         Select multiple files from a list of files.
         """
