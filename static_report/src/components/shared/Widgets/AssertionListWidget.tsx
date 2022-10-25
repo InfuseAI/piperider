@@ -83,7 +83,7 @@ export function AssertionListWidget({
           //keep status fixed as those are always specifically shown
           return {
             ...(targetDatum || baseAssertionFields || {}),
-            status: targetDatum?.status,
+            status: singleOnly ? baseRef?.status : targetDatum?.status,
             baseStatus: baseRef?.status,
             baseRef,
           };
@@ -136,7 +136,7 @@ export function AssertionListWidget({
     () => [
       ...statusColHelperItem,
       {
-        accessorFn: (row) => `${row.table}.${row.column}`,
+        accessorFn: (row) => `${row.id}`,
         id: 'testSubject',
         header: 'Test Subject',
       },
@@ -226,8 +226,7 @@ export function AssertionListWidget({
               })
               .map((row, index) => {
                 const {
-                  table,
-                  column,
+                  id,
                   name,
                   expected,
                   actual,
@@ -242,10 +241,6 @@ export function AssertionListWidget({
                   source === 'piperider' ? actual : message,
                 );
                 const expectedColValue = formatTestExpectedOrActual(expected);
-
-                const testSubjectName = column
-                  ? `${table}.${column}`
-                  : `${table}`;
 
                 return (
                   <Tr key={row.id}>
@@ -262,9 +257,13 @@ export function AssertionListWidget({
                       </Td>
                     )}
                     <Td maxWidth={'16em'} px={2}>
-                      <Tooltip label={testSubjectName}>
-                        <Text noOfLines={1} textOverflow={'ellipsis'}>
-                          {testSubjectName}
+                      <Tooltip label={id}>
+                        <Text
+                          fontSize={'sm'}
+                          noOfLines={1}
+                          textOverflow={'ellipsis'}
+                        >
+                          {id}
                         </Text>
                       </Tooltip>
                     </Td>

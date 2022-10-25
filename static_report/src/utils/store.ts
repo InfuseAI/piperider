@@ -102,7 +102,9 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
         tableName,
         {
           base: { ...base, columns: compColEntries },
-          target: { ...target, columns: compColEntries },
+          target: target.name
+            ? { ...target, columns: compColEntries }
+            : undefined,
         },
         columnsMetadata,
       ];

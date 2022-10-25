@@ -53,6 +53,7 @@ export function TableListItem({
     getAssertionStatusCountsFromList(filteredTargetTableTests || []);
 
   const fallbackTable = tableValue?.base || tableValue?.target;
+
   const description = fallbackTable?.description || NO_DESCRIPTION_MSG;
 
   if (!combinedTableEntry) {

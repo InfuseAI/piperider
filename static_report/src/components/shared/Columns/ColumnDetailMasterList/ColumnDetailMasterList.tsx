@@ -45,6 +45,7 @@ export function ColumnDetailMasterList({
   const quickFilters = Array.from(filterState.keys());
   const [, { base: baseTable, target: targetTable }] = tableColEntry;
   // target is placed before fallback as it represents the target of change
+
   const fallbackTable = targetTable || baseTable;
   const fallbackColumns = fallbackTable?.columns || [];
 
