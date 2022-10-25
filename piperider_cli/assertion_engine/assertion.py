@@ -354,7 +354,6 @@ class AssertionContext:
         self.metric: str = payload.get('metric')
         self.table: str = table_name
         self.column: str = column_name
-        self.parameters: dict = {}
         self.asserts: dict = {}
         self.tags: list = []
         self.is_builtin = False
@@ -366,7 +365,6 @@ class AssertionContext:
         self._load(payload)
 
     def _load(self, payload):
-        self.parameters = payload.get('parameters', {})
         self.asserts = payload.get('assert', {})
         self.tags = payload.get('tags', [])
         self.result.expected = payload.get('assert')
@@ -374,14 +372,40 @@ class AssertionContext:
     def __repr__(self):
         return str(self.__dict__)
 
+    def _get_assertion_id(self):
+        assertion_id = f'piperider.{self.table}'
+        if self.column:
+            assertion_id = f'{assertion_id}.{self.column}'
+
+        if self.name:
+            assertion_id = f'{assertion_id}.{self.name}'
+        elif self.metric:
+            assertion_id = f'{assertion_id}.{self.metric}'
+        else:
+            assert False
+
+        return assertion_id
+
+    def _get_assertion_message(self):
+        if self.result.expected is not None and self.result.actual is not None:
+            if not self.result._success:
+                return f'expected {self.result.expected} but got {self.result.actual}'
+        return None
+
     def to_result_entry(self):
         return dict(
+            id=self._get_assertion_id(),
             name=self.result.name,
+            metric=self.metric,
+            table=self.table,
+            column=self.column,
             status='passed' if self.result._success is True else 'failed',
-            parameters=self.parameters,
             expected=self.result.expected,
             actual=self.result.actual,
             tags=self.tags,
+            message=self._get_assertion_message(),
+            display_name=self.result.name,
+            source='piperider'
         )
 
 

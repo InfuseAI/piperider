@@ -13,7 +13,7 @@ import {
   formatIntervalMinMax,
 } from '../../../../utils/formatters';
 import { ColumnName } from '../../Tables';
-import { getColumnMetricRatio, getIconForColumnType } from '../utils';
+import { getIconForColumnType } from '../utils';
 
 interface Props extends Comparable, Selectable {
   tableName: string;
@@ -35,18 +35,19 @@ export function ColumnDetailListItem({
 }: Props & FlexProps) {
   const fallbackColumnDatum = baseColumnDatum || targetColumnDatum;
   const { icon, backgroundColor } = getIconForColumnType(fallbackColumnDatum);
-  const baseValidsOfTotal = getColumnMetricRatio('valids', baseColumnDatum);
-  const targetValidsOfTotal = getColumnMetricRatio('valids', targetColumnDatum);
-  const baseValidsPercentValue = Number(baseValidsOfTotal) * 100;
-  const targetValidsPercentValue = Number(targetValidsOfTotal) * 100;
+  const { valids_p: baseValidRatio } = baseColumnDatum || {};
+  const baseValidsPercentValue = Number(baseValidRatio) * 100;
   const baseValidsPercentLabel = formatColumnValueWith(
-    baseValidsOfTotal,
+    baseValidRatio,
     formatIntervalMinMax,
   );
+  const { valids_p: targetValidRatio } = baseColumnDatum || {};
+  const targetValidsPercentValue = Number(targetValidRatio) * 100;
   const targetValidsPercentLabel = formatColumnValueWith(
-    targetValidsOfTotal,
+    targetValidRatio,
     formatIntervalMinMax,
   );
+  console.log(baseColumnDatum, targetValidRatio);
 
   return (
     <>

@@ -1,6 +1,6 @@
 import { Flex } from '@chakra-ui/react';
 import { useState } from 'react';
-import { AssertionLabel } from '../components/shared/Assertions/AssertionLabel';
+import { AssertionPassFailCountLabel } from '../components/shared/Assertions/AssertionPassFailCountLabel';
 import { Main } from '../components/shared/Layouts/Main';
 import { SearchTextInput } from '../components/shared/Layouts/SearchTextInput';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
@@ -36,7 +36,7 @@ export function SRAssertionListPage({ data }: Props) {
         />
       </Flex>
       <Flex justify={'start'} maxW={assertionListWidth - 50} w={'100%'} my={5}>
-        <AssertionLabel
+        <AssertionPassFailCountLabel
           total={metadata?.base?.total}
           failed={metadata?.base?.failed}
         />

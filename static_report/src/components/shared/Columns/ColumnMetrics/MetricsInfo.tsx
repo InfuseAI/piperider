@@ -1,4 +1,4 @@
-import { FlexProps, Flex, Text, Tooltip } from '@chakra-ui/react';
+import { FlexProps, Flex, Text, Tooltip, Square } from '@chakra-ui/react';
 import { schemaMetaDescriptions } from '../../../../sdlc/schema-meta';
 import {
   ColumnSchema,
@@ -20,9 +20,13 @@ export type MetricMetaKeys =
       | 'non_zero_length'
       | 'zero_length'
       | 'avg'
+      | 'avg_length'
       | 'stddev'
+      | 'stddev_length'
       | 'min'
+      | 'min_length'
       | 'max'
+      | 'max_length'
       | 'distinct'
       | 'duplicates'
       | 'sum'
@@ -50,6 +54,8 @@ export interface MetricsInfoProps {
   metakey?: keyof ColumnSchema | keyof TableSchema;
   reverse?: boolean;
   tooltipValues?: { firstSlot?: number | string; secondSlot?: number | string };
+  showColorSquare?: boolean;
+  squareColor?: string;
 }
 export function MetricsInfo({
   name,
@@ -60,15 +66,22 @@ export function MetricsInfo({
   secondSlotWidth = '100px',
   metakey,
   reverse,
+  showColorSquare,
+  squareColor = 'red',
   tooltipValues,
   ...props
 }: MetricsInfoProps & FlexProps) {
   const metaDescription = schemaMetaDescriptions[metakey || ''];
   const { width, ...restProps } = props;
   const isTargetNull = secondSlot === null;
+  const isDateInfo =
+    metakey === 'created' ||
+    metakey === 'freshness' ||
+    metakey === 'last_altered';
 
   return (
-    <Flex {...restProps}>
+    <Flex {...restProps} alignItems={'center'}>
+      {showColorSquare && <Square size={'10px'} bg={squareColor} mr={2} />}
       <Tooltip
         label={metaDescription}
         isDisabled={!Boolean(metaDescription)}
@@ -100,7 +113,7 @@ export function MetricsInfo({
             textAlign="right"
             fontSize={'sm'}
             width={firstSlotWidth}
-            noOfLines={2}
+            noOfLines={isDateInfo ? 2 : 1}
           >
             {firstSlot || NO_VALUE}
           </Text>

@@ -1307,7 +1307,7 @@ class BooleanColumnProfiler(BaseColumnProfiler):
             return result
 
 
-def profile_topk(conn, expr, k=20) -> dict:
+def profile_topk(conn, expr, k=50) -> dict:
     stmt = select([
         expr,
         func.count().label("_count")

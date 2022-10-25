@@ -169,7 +169,10 @@ class CloudAccountChecker(AbstractChecker):
             self.console.print(f'  [bold red]{msg}[/bold red]')
             return False, msg
         else:
-            self.console.print(f"  Run as user: [bold green]{piperider_cloud.me().get('email')}[/bold green]")
+            self.console.print(f"  Run as user: [bold green]{piperider_cloud.me.get('email')}[/bold green]")
+            self.console.print(f"    User Name: [bold green]{piperider_cloud.me.get('username', 'N/A')}[/bold green]")
+            self.console.print(f"    Full Name: [bold green]{piperider_cloud.me.get('fullname', 'N/A')}[/bold green]")
+            self.console.print(f"  Auto Upload: {piperider_cloud.config.get('auto_upload', False)}")
             return True, ""
 
 

@@ -10,6 +10,12 @@ import {
 } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 import { formatIntervalMinMax } from '../../../utils/formatters';
+import {
+  INFO_VAL_COLOR,
+  INVALID_VAL_COLOR,
+  NULL_VAL_COLOR,
+  ZERO_VAL_COLOR,
+} from '../../../utils/theme';
 
 /**
  * Props for creating a BooleanPieChart Component
@@ -57,7 +63,12 @@ export function getBooleanPieChartData(
     datasets: [
       {
         borderWidth: 0,
-        backgroundColor: ['#63B3ED', '#D9D9D9', '#FF0861', '#FFCF36'],
+        backgroundColor: [
+          INFO_VAL_COLOR,
+          ZERO_VAL_COLOR,
+          NULL_VAL_COLOR,
+          INVALID_VAL_COLOR,
+        ], // trues, falses, nulls, invalids
         hoverOffset: 4,
         ...dataset,
       },
@@ -65,7 +76,7 @@ export function getBooleanPieChartData(
   };
 }
 /**
- * @param ratios list of {v} / total ratio metric
+ * @param ratios list of {v} / sample ratio metric
  * @param param1  chart option overrides
  * @returns merged Chart.js option object for 'pie'
  */

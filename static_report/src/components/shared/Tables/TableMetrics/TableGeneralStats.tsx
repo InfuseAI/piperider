@@ -6,7 +6,12 @@ import {
 } from '../../Columns/ColumnMetrics/MetricsInfo';
 import { TableMetakeyList, transformSRTableMetricsInfoList } from '../utils';
 import { formatDuration, intervalToDuration, subSeconds } from 'date-fns';
-import { formatBytes, formatNumber, formatReportTime } from '../../../../utils';
+import {
+  formatBytes,
+  formatIntervalMinMax,
+  formatNumber,
+  formatReportTime,
+} from '../../../../utils';
 
 interface Props {
   tableDatum?: SaferTableSchema;
@@ -62,6 +67,8 @@ export function TableGeneralStats({ tableDatum, ...props }: Props & BoxProps) {
       v.tooltipValues = {
         secondSlot: tableDatum?.freshness,
       };
+    } else if (v.metakey === 'samples') {
+      v.firstSlot = formatIntervalMinMax(tableDatum?.samples_p || 0);
     }
     return v;
   });
@@ -76,7 +83,7 @@ export function TableGeneralStats({ tableDatum, ...props }: Props & BoxProps) {
             name={name}
             metakey={metakey}
             firstSlot={firstSlot}
-            firstSlotWidth={'1em'}
+            firstSlotWidth={'5em'}
             secondSlot={secondSlot}
             secondSlotWidth={'15em'}
             tooltipValues={tooltipValues}

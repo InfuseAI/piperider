@@ -1,5 +1,12 @@
+import {
+  NEGATIVE_VAL_COLOR,
+  ZERO_VAL_COLOR,
+  NON_ZERO_VAL_COLOR,
+  INVALID_VAL_COLOR,
+  NULL_VAL_COLOR,
+  INFO_VAL_COLOR,
+} from './../../../utils/theme';
 import { ColorProps } from '@chakra-ui/styled-system';
-import isNumber from 'lodash/isNumber';
 import { AiOutlineFileText } from 'react-icons/ai';
 import { BiText, BiQuestionMark } from 'react-icons/bi';
 import { BsCalendarDate } from 'react-icons/bs';
@@ -28,23 +35,6 @@ import {
 } from './constants';
 
 /**
- * @param metakey metric properties on the column-schema
- * @param columnData
- * @returns the metrics of the column data. will return null when properties have missing operands
- */
-export function getColumnMetricRatio(
-  metakey: MetricMetaKeys,
-  columnData?: Partial<ColumnSchema>,
-) {
-  const { [metakey]: metavalue, total, samples } = columnData || {};
-
-  const result =
-    isNumber(metavalue) && total ? metavalue / (samples || total) : null;
-
-  return result;
-}
-
-/**
  * @param columnDatum
  * @returns a boolean indicating whether a column is categorical (e.g. topk)
  */
@@ -64,56 +54,73 @@ export function checkColumnCategorical(columnDatum?: ColumnSchema): boolean {
  */
 export function transformCompositionAsFlatStackInput(
   columnDatum?: ColumnSchema,
-  compType: 'static' | 'dynamic' = 'static',
 ): FlatStackedBarChartProps['data'] | undefined {
   if (!columnDatum) return;
   const {
     nulls,
+    nulls_p,
     invalids,
+    invalids_p,
     valids,
+    valids_p,
     negatives,
+    negatives_p,
     zeros,
+    zeros_p,
     positives,
+    positives_p,
     non_zero_length,
+    non_zero_length_p,
     zero_length,
-    samples,
+    zero_length_p,
     type,
-    total,
   } = columnDatum;
 
-  if (compType === 'static') {
-    const nullsOfTotal = getColumnMetricRatio('nulls', columnDatum);
-    const invalidsOfTotal = getColumnMetricRatio('invalids', columnDatum);
-    const validsOfTotal = getColumnMetricRatio('valids', columnDatum);
+  const invalidNullLabels = [INVALIDS, NULLS];
+  const invalidNullCounts = [invalids, nulls];
+  const invalidNullColors = [INVALID_VAL_COLOR, NULL_VAL_COLOR];
+  const invalidNullRatios = [invalids_p, nulls_p];
 
+  // Text Compositions
+  if (type === 'string') {
     return {
-      labels: [VALIDS, INVALIDS, NULLS].map(zeroAsFallbackHandler),
-      counts: [valids, invalids, nulls].map(zeroAsFallbackHandler),
-      ratios: [validsOfTotal, invalidsOfTotal, nullsOfTotal].map(
+      labels: [ZEROLENGTH, NONZEROLENGTH, ...invalidNullLabels],
+      counts: [zero_length, non_zero_length, ...invalidNullCounts].map(
         zeroAsFallbackHandler,
       ),
-      colors: ['#63B3ED', '#FF0861', '#D9D9D9'],
+      ratios: [zero_length_p, non_zero_length_p, invalids_p, nulls_p].map(
+        zeroAsFallbackHandler,
+      ),
+      colors: [ZERO_VAL_COLOR, NON_ZERO_VAL_COLOR, ...invalidNullColors],
     };
   }
 
-  if (type === 'string') {
-    const newCounts = [zero_length, non_zero_length].map(zeroAsFallbackHandler);
-    return {
-      labels: [ZEROLENGTH, NONZEROLENGTH],
-      counts: newCounts,
-      ratios: newCounts.map((v) => v / (samples || total || 0)),
-      colors: ['#FFCF36', '#5EC23A'],
-    };
-  }
+  // Numeric/Integer Compositions
   if (containsColumnQuantile(type)) {
-    const newCounts = [negatives, zeros, positives].map(zeroAsFallbackHandler);
+    const newCounts = [negatives, zeros, positives, ...invalidNullCounts].map(
+      zeroAsFallbackHandler,
+    );
     return {
-      labels: [NEGATIVES, ZEROS, POSITIVES],
+      labels: [NEGATIVES, ZEROS, POSITIVES, ...invalidNullLabels],
       counts: newCounts,
-      ratios: newCounts.map((v) => v / (samples || total || 0)),
-      colors: ['#FF0861', '#D9D9D9', '#5EC23A'],
+      ratios: [negatives_p, zeros_p, positives_p, ...invalidNullRatios].map(
+        zeroAsFallbackHandler,
+      ),
+      colors: [
+        NEGATIVE_VAL_COLOR,
+        ZERO_VAL_COLOR,
+        NON_ZERO_VAL_COLOR,
+        ...invalidNullColors,
+      ],
     };
   }
+  //default compositions will show 'valids instead
+  return {
+    labels: [VALIDS, ...invalidNullLabels].map(zeroAsFallbackHandler),
+    counts: [valids, ...invalidNullCounts].map(zeroAsFallbackHandler),
+    ratios: [valids_p, ...invalidNullRatios].map(zeroAsFallbackHandler),
+    colors: [INFO_VAL_COLOR, ...invalidNullColors],
+  };
 }
 
 /**
@@ -157,67 +164,34 @@ export type MetricNameMetakeyList = [MetricMetaKeys, string][];
   3. base||target (count || count)
   
  * gets the list of metrics to display, based on metakey
+ * will use `<metric>_p` percentage values and fallback on UI logic calculations when undefined
  */
 export function transformSRMetricsInfoList(
   metricsList: MetricNameMetakeyList,
   columnDatum?: ColumnSchema,
 ): MetricsInfoProps[] {
   if (!columnDatum) return [];
+
   return metricsList.map(([metakey, name]) => {
     const value = columnDatum[metakey];
-    const count = Number(value);
-    const percent = count / (columnDatum.samples || Number(columnDatum.total));
+
+    const pValue = columnDatum[metakey + '_p'] ?? NO_VALUE;
+
+    //if non-number, percent should be NO_VALUE
+    //if non-number, count should show value || NO_VALUE (e.g. datetime)
+    const isNumType = typeof value === 'number';
+    const notNumValue = value ?? NO_VALUE;
 
     return {
       name,
       metakey,
-      firstSlot: isNaN(count) ? NO_VALUE : formatIntervalMinMax(percent),
-      secondSlot: isNaN(count)
-        ? value || NO_VALUE
-        : formatAsAbbreviatedNumber(count),
+      firstSlot: isNumType ? formatIntervalMinMax(pValue) : NO_VALUE,
+      secondSlot: isNumType ? formatAsAbbreviatedNumber(value) : notNumValue,
       tooltipValues: {
-        secondSlot: isNaN(count) ? value || NO_VALUE : formatNumber(count),
+        secondSlot: isNumType ? formatNumber(value) : notNumValue,
       },
     };
   });
-}
-/**
-  Conditional scenarios:
-  
-  1. base-only (% + count)
-  2. base+target (count + count) <<<
-  3. base||target (count || count) <<<
-  
- * gets the list of metrics to display, based on metakey
- */
-export function transformCRMetricsInfoList(
-  metricsList: MetricNameMetakeyList,
-  baseColumnDatum?: ColumnSchema,
-  targetColumnDatum?: ColumnSchema,
-  valueFormat: 'count' | 'percent' = 'percent',
-): MetricsInfoProps[] {
-  if (!baseColumnDatum && !targetColumnDatum) return [];
-
-  const base = transformSRMetricsInfoList(metricsList, baseColumnDatum);
-  const target = transformSRMetricsInfoList(metricsList, targetColumnDatum);
-
-  const result = base.map((baseMetricItem, index) => {
-    const { firstSlot: targetPercent, secondSlot: targetCount } =
-      target[index] || {};
-    const targetValue = valueFormat === 'percent' ? targetPercent : targetCount;
-
-    const { firstSlot: basePercent, secondSlot: baseCount } =
-      baseMetricItem || {};
-    const baseValue = valueFormat === 'percent' ? basePercent : baseCount;
-
-    return {
-      ...baseMetricItem,
-      firstSlot: baseValue || NO_VALUE,
-      secondSlot: targetValue || NO_VALUE,
-      tooltipValues: {},
-    };
-  });
-  return result;
 }
 
 /**

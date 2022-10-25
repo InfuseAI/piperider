@@ -31,9 +31,12 @@ import {
   formatTestExpectedOrActual,
   ReportState,
 } from '../../../utils';
-import { AssertionStatus } from '../Assertions';
+import { AssertionStatusIcon } from '../Assertions';
+import {
+  CRAssertionModal,
+  CRAssertionModalData,
+} from '../Assertions/AssertionCRModal';
 import { NoData } from '../Layouts/NoData';
-import { CRModal, CRModalData } from '../Modals/CRModal/CRModal';
 
 type TargetStatus = { targetStatus?: 'passed' | 'failed' };
 interface Props extends Comparable {
@@ -60,7 +63,9 @@ export function AssertionListWidget({
     (EnrichedTableOrColumnAssertionTest & TargetStatus)[]
   >([]);
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [testDetail, setTestDetail] = useState<CRModalData | undefined>();
+  const [testDetail, setTestDetail] = useState<
+    CRAssertionModalData | undefined
+  >();
   const columnHelper = createColumnHelper<
     EnrichedTableOrColumnAssertionTest & TargetStatus
   >();
@@ -244,13 +249,13 @@ export function AssertionListWidget({
                   <Tr key={row.id}>
                     <Td>
                       <Flex justifyContent={'center'}>
-                        <AssertionStatus status={status} />
+                        <AssertionStatusIcon status={status} />
                       </Flex>
                     </Td>
                     {!singleOnly && (
                       <Td>
                         <Flex justifyContent={'center'}>
-                          <AssertionStatus status={targetStatus} />
+                          <AssertionStatusIcon status={targetStatus} />
                         </Flex>
                       </Td>
                     )}
@@ -321,7 +326,7 @@ export function AssertionListWidget({
           </Tbody>
         </Table>
       </TableContainer>
-      <CRModal
+      <CRAssertionModal
         {...modal}
         data={testDetail}
         onClose={() => {

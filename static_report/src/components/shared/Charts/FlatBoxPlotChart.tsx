@@ -18,9 +18,9 @@ import { Chart } from 'react-chartjs-2';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { formatAsAbbreviatedNumber } from '../../../utils/formatters';
 import { getBoxPlotKeyData } from './utils';
+import { INVALID_VAL_COLOR, NULL_VAL_COLOR } from '../../../utils/theme';
 
 const meanBackgroundColor = '#4780A8';
-const backgroundColor = '#D9D9D9';
 
 /**
  * Props for creating a FlatBoxPlotChart Component
@@ -73,7 +73,7 @@ export function getBoxPlotChartOptions(
     q3: newQ3,
   } = getBoxPlotKeyData(quantileData);
   const legendItems: LegendItem[] = [
-    { text: 'box region', fillStyle: backgroundColor },
+    { text: 'box region', fillStyle: NULL_VAL_COLOR },
     { text: 'p50', fillStyle: meanBackgroundColor },
   ];
   return {
@@ -93,7 +93,6 @@ export function getBoxPlotChartOptions(
         labels: {
           boxHeight: 10,
           boxWidth: 10,
-          usePointStyle: true,
           padding: 15,
           generateLabels() {
             return legendItems.map(({ text, fillStyle }) => ({
@@ -155,8 +154,8 @@ export function getBoxPlotChartData(
         itemRadius: 1,
         medianColor: meanBackgroundColor,
         meanBackgroundColor,
-        backgroundColor,
-        borderColor: '#FF0861',
+        backgroundColor: NULL_VAL_COLOR,
+        borderColor: INVALID_VAL_COLOR,
         hitPadding: 10,
       },
     ],

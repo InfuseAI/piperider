@@ -2,7 +2,6 @@ import { Flex, Text } from '@chakra-ui/react';
 import isNumber from 'lodash/isNumber';
 
 import { BooleanPieChart } from './BooleanPieChart';
-import { CategoricalBarChart } from './CategoricalBarChart';
 import { HistogramChart } from './HistogramChart';
 import { FlatBoxPlotChartProps } from './FlatBoxPlotChart';
 
@@ -10,6 +9,7 @@ import { TRUES, FALSES, NULLS, INVALIDS } from '../Columns/constants';
 import { checkColumnCategorical, containsDataSummary } from '../Columns/utils';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ReactNode } from 'react';
+import { TopKSummaryList } from './TopKSummaryList';
 
 /**
  * Handles logic for rendering the right charts
@@ -25,7 +25,7 @@ export function getDataChart(
   hasAnimation?: boolean,
 ) {
   const {
-    samples,
+    samples = 0,
     name,
     type,
     schema_type,
@@ -38,7 +38,6 @@ export function getDataChart(
     valids,
     min,
     max,
-    total,
   } = columnDatum || {};
 
   const hasSameTypeName =
@@ -50,18 +49,21 @@ export function getDataChart(
 
   //TopK dataset
   if (chartKind === 'topk' && topk) {
-    return (
-      <CategoricalBarChart
-        data={topk}
-        total={samples || total || 0}
-        animation={hasAnimation ? {} : false}
-      />
-    );
+    return <TopKSummaryList topk={topk} valids={valids || 0} />;
   }
+
   //histogram dataset
   if (chartKind === 'histogram' && histogram && type) {
+    const dynamicHistogramData =
+      type !== 'string'
+        ? columnDatum?.histogram
+        : columnDatum?.histogram_length;
     //BUG: race-condition when time-series is used /w animation here
-    return <HistogramChart data={{ histogram, min, max, type, samples }} />;
+    return (
+      <HistogramChart
+        data={{ histogram: dynamicHistogramData, min, max, type, samples }}
+      />
+    );
   }
   //pie dataset
   if (
@@ -75,7 +77,7 @@ export function getDataChart(
     const labels = [TRUES, FALSES, NULLS, INVALIDS].map(
       (v) => v.charAt(0) + v.slice(1).toLowerCase(),
     );
-    const ratios = counts.map((v) => v / Number(samples || total));
+    const ratios = counts.map((v) => v / samples);
     return (
       <BooleanPieChart
         data={{ counts, labels, ratios }}

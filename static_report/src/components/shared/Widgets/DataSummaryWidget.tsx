@@ -20,7 +20,7 @@ export function DataSummaryWidget({ columnDatum }: Props) {
           {formatTitleCase(columnDatum?.type || NO_VALUE)} Statistics
         </Text>
         <Divider my={3} />
-        <SummaryStats baseColumnDatum={columnDatum} singleOnly width={'100%'} />
+        <SummaryStats columnDatum={columnDatum} width={'100%'} />
       </Box>
     );
   }

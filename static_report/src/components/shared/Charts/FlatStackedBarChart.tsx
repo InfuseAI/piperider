@@ -6,15 +6,11 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
-  Legend,
   ChartDataset,
   AnimationOptions,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import {
-  formatIntervalMinMax,
-  formatTitleCase,
-} from '../../../utils/formatters';
+import { formatIntervalMinMax } from '../../../utils/formatters';
 
 /**
  * Props to create FlatStackedBarChart Component
@@ -41,7 +37,7 @@ export function FlatStackedBarChart({
 
   const chartOptions = getFlatSackedBarChartOptions(data, { animation });
   const chartData = getFlatSackedBarChartData(data);
-  return <Bar data={chartData} options={chartOptions} plugins={[Legend]} />;
+  return <Bar data={chartData} options={chartOptions} plugins={[]} />;
 }
 /**
  * @param param0 chart data
@@ -52,13 +48,25 @@ export function getFlatSackedBarChartOptions(
   { counts, labels, ratios }: FlatStackedBarChartProps['data'],
   { ...configOverrides }: ChartOptions<'bar'> = {},
 ): ChartOptions<'bar'> {
+  const max = counts.reduce((accum, v) => accum + v, 0);
   return {
     responsive: true,
     maintainAspectRatio: false,
     indexAxis: 'y', //makes chart horizontal
     scales: {
-      x: { stacked: true, display: false, grid: { display: false } },
-      y: { stacked: true, display: false, grid: { display: false } },
+      x: {
+        max,
+        stacked: true,
+        display: false,
+        grid: { display: false },
+      },
+      y: {
+        stacked: true,
+        display: false,
+        grid: {
+          display: false,
+        },
+      },
     },
     plugins: {
       tooltip: {
@@ -72,29 +80,6 @@ export function getFlatSackedBarChartOptions(
             const count = counts[datasetIndex];
             const label = `${ratio}\n${count}`;
             return label;
-          },
-        },
-      },
-      legend: {
-        position: 'bottom',
-        align: 'end',
-        labels: {
-          padding: 15,
-          textAlign: 'left',
-          boxHeight: 10,
-          boxWidth: 10,
-          usePointStyle: true,
-          generateLabels({ data: { datasets } }) {
-            return datasets.map(({ backgroundColor }, index) => {
-              const ratio = formatIntervalMinMax(ratios[index]);
-              const label = formatTitleCase(labels[index]);
-              return {
-                lineWidth: 0,
-                text: `${label}  (${ratio})`,
-                fontColor: 'rgba(0,0,0,0.7)',
-                fillStyle: backgroundColor as string,
-              };
-            });
           },
         },
       },
@@ -116,6 +101,8 @@ export function getFlatSackedBarChartData({
       label,
       data: [counts[idx]], //one-slot only per dataset (flat)
       borderWidth: 0,
+      barThickness: 16,
+      barPercentage: 1.0,
       backgroundColor: colors[idx],
     };
   });

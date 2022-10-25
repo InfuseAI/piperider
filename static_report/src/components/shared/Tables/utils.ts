@@ -14,6 +14,7 @@ import {
   formatIntervalMinMax,
   formatNumber,
 } from '../../../utils/formatters';
+import { INFO_VAL_COLOR, NULL_VAL_COLOR } from '../../../utils/theme';
 
 export function getSingleAssertionStatusCounts(
   assertion: AssertionValue,
@@ -117,19 +118,21 @@ export function transformTableAsFlatStackInput(
 ): FlatStackedBarChartProps['data'] | undefined {
   if (typeof tableDatum?.duplicate_rows !== 'number') return;
 
-  const { duplicate_rows = 0, row_count = 0, samples } = tableDatum || {};
-  const total = samples || row_count; //fallback to row_count for unsampled rows
-  const nonDuplicateRatio = (total - duplicate_rows) / total;
-  const duplicateRowRatio = duplicate_rows / total;
+  const {
+    duplicate_rows = 0,
+    samples = 0,
+    samples_p = 0,
+    duplicate_rows_p = 0,
+  } = tableDatum || {};
 
+  const nonDuplicateRatio = samples_p - duplicate_rows_p;
   return {
-    labels: [NONDUPLICATE_ROWS, DUPLICATE_ROWS],
-    counts: [total, duplicate_rows],
-    ratios: [nonDuplicateRatio, duplicateRowRatio],
-    colors: ['#63B3ED', '#FF0861'],
+    labels: [DUPLICATE_ROWS, NONDUPLICATE_ROWS],
+    counts: [duplicate_rows, samples],
+    ratios: [duplicate_rows_p, nonDuplicateRatio],
+    colors: [INFO_VAL_COLOR, NULL_VAL_COLOR],
   };
 }
-
 export type TableMetakeyList = [TableMetaKeys, string][];
 /**
   Conditional scenarios:
