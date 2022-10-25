@@ -70,7 +70,7 @@ def show_user_info():
     ascii_table = Table(show_header=True, show_edge=True, header_style="bold magenta",
                         box=box.SIMPLE, title='User Profile')
     ascii_table.add_column('Email', justify='left', style='cyan')
-    ascii_table.add_column('User Name', justify='left')
+    ascii_table.add_column('Username', justify='left')
     ascii_table.add_column('Full Name', justify='left')
     ascii_table.add_column('Storage Location', justify='left')
     ascii_table.add_column('Timezone', justify='left')
