@@ -25,8 +25,12 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
-import { AssertionTest, Comparable } from '../../../types';
-import { formatTestExpectedOrActual, ReportState } from '../../../utils';
+import { Comparable } from '../../../types';
+import {
+  ComparedAssertionTestValue,
+  formatTestExpectedOrActual,
+  ReportState,
+} from '../../../utils';
 import { AssertionStatusIcon } from '../Assertions';
 import {
   CRAssertionModal,
@@ -34,8 +38,11 @@ import {
 } from '../Assertions/AssertionCRModal';
 import { NoData } from '../Layouts/NoData';
 
-type TargetStatus = { targetStatus?: 'passed' | 'failed' };
-type JoinedAssertionTest = AssertionTest & TargetStatus;
+type BaseStatus = {
+  baseStatus?: 'passed' | 'failed';
+  baseRef?: ComparedAssertionTestValue;
+};
+type JoinedAssertionTest = ComparedAssertionTestValue & BaseStatus;
 interface Props extends Comparable {
   comparableAssertions: ReportState['assertionsOnly'];
   filterString?: string;
@@ -56,6 +63,7 @@ export function AssertionListWidget({
   ...props
 }: Props & TableContainerProps) {
   const modal = useDisclosure();
+  const columnHelper = createColumnHelper<JoinedAssertionTest>();
   const [reactTableData, setReactTableData] = useState<JoinedAssertionTest[]>(
     [],
   );
@@ -63,19 +71,25 @@ export function AssertionListWidget({
   const [testDetail, setTestDetail] = useState<
     CRAssertionModalData | undefined
   >();
-  const columnHelper = createColumnHelper<JoinedAssertionTest>();
+  //NOTE: Assumes target > base fallback; Assumes pre-aligned-filled comparable-assertions
   useEffect(() => {
-    //FIXME: for target -> base (asymmetric case)
     const joinedByIndexAssertions =
-      comparableAssertions?.base
-        ?.map((baseDatum, index) => {
+      comparableAssertions?.target
+        ?.map((targetDatum, index) => {
+          const { status, ...baseAssertionFields } =
+            comparableAssertions?.base?.[index] || {};
+          const baseRef = comparableAssertions?.base?.[index];
+          //target fields first, then base fields as fallback;
+          //keep status fixed as those are always specifically shown
           return {
-            ...baseDatum,
-            targetStatus: comparableAssertions?.target?.[index]?.status,
+            ...(targetDatum || baseAssertionFields || {}),
+            status: targetDatum?.status,
+            baseStatus: baseRef?.status,
+            baseRef,
           };
         })
-        .sort((v) => (v.status === 'failed' ? -1 : 1)) || [];
-    // console.log(joinedByIndexAssertions);
+        .sort((targetDatum) => (targetDatum.status === 'failed' ? -1 : 1)) ||
+      [];
 
     setReactTableData(joinedByIndexAssertions);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -90,12 +104,12 @@ export function AssertionListWidget({
         }),
       ]
     : [
-        columnHelper.accessor('status', {
+        columnHelper.accessor('baseStatus', {
           cell: (info) => info.getValue(),
           header: 'Base Status',
           enableGlobalFilter: false,
         }),
-        columnHelper.accessor('targetStatus', {
+        columnHelper.accessor('status', {
           cell: (info) => info.getValue(),
           header: 'Target Status',
           enableGlobalFilter: false,
@@ -140,10 +154,6 @@ export function AssertionListWidget({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
-
-  //NOTE: comparison will still reference target's assertions directly
-  //FIXME: for target -> base (asymmetric case)
-  const { target: targetFlatAssertions } = comparableAssertions || {};
 
   const table = useReactTable<JoinedAssertionTest>({
     columns,
@@ -206,15 +216,15 @@ export function AssertionListWidget({
           <Tbody>
             {table
               .getSortedRowModel()
-              .rows.filter(({ original: v }) =>
-                filterString
-                  ? v.name.search(new RegExp(filterString, 'gi')) > -1 ||
-                    (v.table || '').search(new RegExp(filterString, 'gi')) >
-                      -1 ||
-                    (v.column || '').search(new RegExp(filterString, 'gi')) > -1
-                  : true,
-              )
-              .map((row) => {
+              .rows.filter(({ original: v }) => {
+                const filterRegEx = new RegExp(filterString, 'gi');
+                return filterString
+                  ? (v?.name || '').search(filterRegEx) > -1 ||
+                      (v.table || '').search(filterRegEx) > -1 ||
+                      (v.column || '').search(filterRegEx) > -1
+                  : true;
+              })
+              .map((row, index) => {
                 const {
                   table,
                   column,
@@ -222,29 +232,26 @@ export function AssertionListWidget({
                   expected,
                   actual,
                   source,
-                  status,
-                  targetStatus,
+                  status: targetStatus,
+                  baseStatus,
+                  baseRef,
                   message,
                 } = row.original;
+
                 const actualColValue = formatTestExpectedOrActual(
                   source === 'piperider' ? actual : message,
                 );
                 const expectedColValue = formatTestExpectedOrActual(expected);
 
-                //Temporary: guard for assuring it's matching assertion pairs
-                const targetRef =
-                  targetFlatAssertions?.[row.index]?.table === table
-                    ? targetFlatAssertions?.[row.index]
-                    : undefined;
-
                 const testSubjectName = column
                   ? `${table}.${column}`
                   : `${table}`;
+
                 return (
                   <Tr key={row.id}>
                     <Td>
                       <Flex justifyContent={'center'}>
-                        <AssertionStatusIcon status={status} />
+                        <AssertionStatusIcon status={baseStatus} />
                       </Flex>
                     </Td>
                     {!singleOnly && (
@@ -287,7 +294,9 @@ export function AssertionListWidget({
                               maxWidth={'14em'}
                               noOfLines={1}
                               color={
-                                status === 'failed' ? 'red.500' : 'gray.700'
+                                targetStatus === 'failed'
+                                  ? 'red.500'
+                                  : 'gray.700'
                               }
                             >
                               {actualColValue}
@@ -302,10 +311,10 @@ export function AssertionListWidget({
                         textAlign={'center'}
                         onClick={() => {
                           setTestDetail({
-                            assertionSource: source,
-                            assertionName: name,
-                            base: row.original,
-                            target: targetRef,
+                            assertionSource: source || baseRef?.source,
+                            assertionName: name || baseRef?.name,
+                            base: baseRef,
+                            target: row.original,
                           });
                           modal.onOpen();
                         }}

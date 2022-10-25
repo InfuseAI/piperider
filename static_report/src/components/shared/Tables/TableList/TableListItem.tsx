@@ -42,10 +42,10 @@ export function TableListItem({
 }: Props) {
   const [tableName, tableValue, tableMetadata] = combinedTableEntry || [];
   const filteredBaseTableTests = combinedAssertions?.base?.filter(
-    (v) => v.table === tableName,
+    (v) => v?.table === tableName,
   );
   const filteredTargetTableTests = combinedAssertions?.target?.filter(
-    (v) => v.table === tableName,
+    (v) => v?.table === tableName,
   );
   const { failed: baseFailed, total: baseTotal } =
     getAssertionStatusCountsFromList(filteredBaseTableTests || []);

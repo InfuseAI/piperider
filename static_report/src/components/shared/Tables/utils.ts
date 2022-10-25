@@ -1,11 +1,7 @@
 import { NO_VALUE, NONDUPLICATE_ROWS } from './../Columns/constants';
 import { TableMetaKeys } from './../Columns/ColumnMetrics/MetricsInfo';
 import { FlatStackedBarChartProps } from './../Charts/FlatStackedBarChart';
-import {
-  AssertionTest,
-  ReportAssertionStatusCounts,
-  SaferTableSchema,
-} from '../../../types';
+import { ReportAssertionStatusCounts, SaferTableSchema } from '../../../types';
 import { DUPLICATE_ROWS } from './constant';
 import { MetricsInfoProps } from '../Columns';
 import {
@@ -14,13 +10,17 @@ import {
   formatNumber,
 } from '../../../utils/formatters';
 import { INFO_VAL_COLOR, NULL_VAL_COLOR } from '../../../utils/theme';
+import { ComparedAssertionTestValue } from '../../../utils';
 
 /**
  * Get the accumulated summed assertion status counts (passed, failed, total) from list of assertion-tests
  */
-export function getAssertionStatusCountsFromList(assertions: AssertionTest[]) {
+export function getAssertionStatusCountsFromList(
+  assertions: ComparedAssertionTestValue[],
+) {
   const result = assertions.reduce<ReportAssertionStatusCounts>(
     (accum, curr) => {
+      if (!curr) return accum;
       const passed = curr.status === 'passed' ? 1 : 0;
       const failed = curr.status === 'failed' ? 1 : 0;
 

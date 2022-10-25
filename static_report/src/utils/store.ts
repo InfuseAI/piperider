@@ -28,12 +28,13 @@ export type CompTableWithColEntryOverwrite = Omit<
 export type CompTableColEntryItem = EntryItem<
   ComparableData<CompTableWithColEntryOverwrite>
 >;
+export type ComparedAssertionTestValue = Partial<AssertionTest> | null;
 export interface ReportState {
   rawData: ComparableReport;
   reportTime?: string;
   reportOnly?: ComparableData<Omit<SaferSRSchema, 'tables'>>;
   tableColumnsOnly?: CompTableColEntryItem[];
-  assertionsOnly?: ComparableData<AssertionTest[]>;
+  assertionsOnly?: ComparableData<ComparedAssertionTestValue[]>;
 }
 
 interface ReportSetters {
@@ -103,7 +104,7 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
           base: { ...base, columns: compColEntries },
           target: { ...target, columns: compColEntries },
         },
-        columnsMetadata, //FIXME: add assertion data?
+        columnsMetadata,
       ];
       return entry as CompTableColEntryItem;
     },
@@ -112,20 +113,48 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
   return tableColumnsResult;
 };
 
-/**
- * Case_1: (happy) - base/target: matching assertions
- * Case_2: (sad) - target: schema change
- * Case_3: (sad) - target: name change
- * Case_4: (sad) - target: missing
- * Case_UI: (happy+sad) Target fallback is Base when falsey (as schema change target should be expected)
- */
 const getAssertionsOnly = (rawData: ComparableReport) => {
+  // Formulate aligned-pairs, even if there is a misalign:
+  // If undefined on either side, align complement as null value
+  // else align pairs as per unique id
+  const comparedAssertionMap = new Map<
+    string,
+    [ComparedAssertionTestValue?, ComparedAssertionTestValue?]
+  >();
   const baseTests = rawData?.base?.tests;
   const targetTests = rawData?.input?.tests;
+
+  //base-pass (init) - set-always (value)
+  baseTests?.forEach((v) => {
+    comparedAssertionMap.set(v.id, [v]);
+  });
+
+  //target-pass (pair) - set (null | value)
+  targetTests?.forEach((v) => {
+    const foundValue = comparedAssertionMap.get(v.id);
+    if (foundValue) {
+      //pair-found, add as second-element
+      foundValue.push(v);
+      comparedAssertionMap.set(v.id, foundValue);
+    } else {
+      //pair-missing, fill first-element as null, then add second-element as value
+      comparedAssertionMap.set(v.id, [null, v]);
+    }
+  });
+
+  // prepare aligned/filled-tests for store
+  const alignedBaseTests: ComparedAssertionTestValue[] = [];
+  const alignedTargetTests: ComparedAssertionTestValue[] = [];
+  for (let [base, target] of comparedAssertionMap.values()) {
+    alignedBaseTests.push(base ?? null);
+    alignedTargetTests.push(target ?? null);
+  }
+
   const comparableAssertionTests: ReportState['assertionsOnly'] = {
-    base: baseTests,
-    target: targetTests,
+    base: alignedBaseTests,
+    target: alignedTargetTests,
   };
+
   const baseMetadata = getAssertionStatusCountsFromList(baseTests || []);
   const targetMetadata = getAssertionStatusCountsFromList(targetTests || []);
   comparableAssertionTests.metadata = {

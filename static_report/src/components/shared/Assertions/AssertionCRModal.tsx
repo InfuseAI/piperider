@@ -27,7 +27,7 @@ import { ComparableData } from '../../../types';
 export type CRAssertionModalData = {
   assertionName?: string;
   assertionSource?: string;
-} & ComparableData<AssertionTest>;
+} & ComparableData<Partial<AssertionTest> | null>;
 export type TestDetail = {
   data?: CRAssertionModalData;
 };
@@ -70,6 +70,8 @@ export function CRAssertionModal({ data, isOpen, onClose, ...props }: Props) {
 type DetailProps = { data?: CRAssertionModalData };
 function AssertionTestDetail({ data }: DetailProps) {
   if (!data) return <NoData />;
+
+  console.log(data);
 
   const isDbtKind = data.assertionSource === 'dbt';
   return (
