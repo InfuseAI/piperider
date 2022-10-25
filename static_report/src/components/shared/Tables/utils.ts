@@ -27,18 +27,11 @@ export function getAssertionStatusCountsFromList(
       // if source is string, curr-total should not include it later
       const passValue = resolveStatusCountSumValues(passed, accum?.passed);
       const failValue = resolveStatusCountSumValues(failed, accum?.failed);
-      //to exclude accumulating existing, escape to 0 when NO_VALUE
-      const currTotal = resolveStatusCountSumValues(
-        passValue !== NO_VALUE ? passValue : 0,
-        failValue !== NO_VALUE ? failValue : 0,
-      );
-
-      const totalValue = resolveStatusCountSumValues(currTotal, accum.total);
 
       return {
         passed: passValue,
         failed: failValue,
-        total: totalValue,
+        total: assertions.length,
       };
     },
     { passed: NO_VALUE, failed: NO_VALUE, total: NO_VALUE },
