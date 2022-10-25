@@ -83,7 +83,7 @@ export default function SRColumnDetailsPage({
     getAssertionStatusCountsFromList(
       assertionsOnly?.base?.filter((v) => v?.table === tableName) || [],
     );
-  const { type, histogram } = columnDatum || {};
+  const { type, histogram, schema_type } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
 
   if (!tableName || !dataTable || !currentTableEntry) {
@@ -181,7 +181,7 @@ export default function SRColumnDetailsPage({
             <GridItem colSpan={2} p={6}>
               <TableColumnHeader
                 title={columnName}
-                subtitle={'Column'}
+                subtitle={schema_type}
                 p={2}
                 borderBottom={borderVal}
                 icon={icon}

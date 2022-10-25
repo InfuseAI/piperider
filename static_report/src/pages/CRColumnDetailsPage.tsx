@@ -98,6 +98,7 @@ export default function CRColumnDetailsPage({
 
   const baseColumnDatum = baseDataColumns[columnName];
   const targetColumnDatum = targetDataColumns[columnName];
+  const fallbackColumnDatum = targetColumnDatum || baseColumnDatum;
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
 
@@ -213,7 +214,7 @@ export default function CRColumnDetailsPage({
             <GridItem colSpan={2} rowSpan={2} p={9}>
               <TableColumnHeader
                 title={columnName}
-                subtitle={'Column'}
+                subtitle={fallbackColumnDatum?.schema_type}
                 mb={5}
                 borderBottom={borderVal}
                 icon={icon}
