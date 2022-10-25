@@ -2,9 +2,10 @@ import json
 import os
 
 import requests
-from rich.progress import open
+from rich import progress
 from ruamel import yaml
 
+from piperider_cli import __version__
 from piperider_cli.event import load_user_profile, update_user_profile
 
 PIPERIDER_CLOUD_SERVICE = 'https://cloud.piperider.io/'
@@ -23,8 +24,13 @@ class CloudServiceHelper:
         self.user_profile = load_user_profile()
         if self.user_profile is None:
             return
-
         self.load_configuration()
+
+    @property
+    def cloud_host(self):
+        if 'localhost' in self.api_service:
+            return 'http://localhost:3000'
+        return self.api_service
 
     def load_configuration(self):
         # load from the configuration file first
@@ -35,7 +41,16 @@ class CloudServiceHelper:
         self.api_token = os.environ.get(SERVICE_ENV_API_KEY,
                                         self.user_profile.get('api_token'))
 
-    def update_configuration(self):
+    def get_config(self) -> dict:
+        config = self.user_profile.get('cloud_config', {})
+        return config if config else {}
+
+    def update_config(self, options: dict):
+        cloud_config = self.get_config()
+        cloud_config.update(options)
+        update_user_profile({'cloud_config': cloud_config})
+
+    def update_api_token(self):
         if self.api_token:
             update_user_profile({'api_token': self.api_token})
         else:
@@ -50,7 +65,10 @@ class CloudServiceHelper:
         return f'{self.api_service}{uri_path}'
 
     def auth_headers(self):
-        return dict(Authorization=f'Bearer {self.api_token}')
+        return {
+            'User-Agent': f'PipeRider CLI/{__version__}',
+            'Authorization': f'Bearer {self.api_token}',
+        }
 
     def http_get(self, uri_path):
         try:
@@ -61,39 +79,46 @@ class CloudServiceHelper:
         except BaseException:
             return None
 
-    def validate(self):
+    def validate(self) -> (bool, dict):
         if not (self.api_token and self.api_service):
-            return False
+            return False, None
 
         json_resp = self.http_get('/api/users/me')
         if json_resp and 'email' in json_resp:
-            return True
-        return False
+            return True, json_resp
+        return False, None
 
 
 class PipeRiderCloud:
 
     def __init__(self):
         self.service = CloudServiceHelper()
+        self.config: dict = self.service.get_config()
         try:
-            self.available = self.service.validate()
+            self.available, self.me = self.service.validate()
         except BaseException:
             self.available = False
+            self.me = None
+
+    def update_config(self, options: dict):
+        self.service.update_config(options)
+        self.config = self.service.get_config()
 
     def validate(self, api_token=None):
         if api_token:
             self.service.api_token = api_token
 
         try:
-            self.available = self.service.validate()
+            self.available, self.me = self.service.validate()
         except BaseException:
             self.available = False
+            self.me = None
 
         return self.available
 
     def logout(self):
         self.service.api_token = None
-        self.service.update_configuration()
+        self.service.update_api_token()
 
     def magic_login(self, email):
         if self.available:
@@ -108,25 +133,18 @@ class PipeRiderCloud:
             return response.json()
         return None
 
-    def me(self):
-        if not self.available:
-            self.raise_error()
-        return self.service.http_get('/api/users/me')
-
-    def upload_report(self, file_path, show_progress=False):
+    def upload_report(self, file_path, show_progress=True):
         # TODO validate project name
         if not self.available:
             self.raise_error()
 
-        with open(file_path, 'rb') as file:
+        with progress.open(file_path, 'rb',
+                           description=f'[bold magenta]{file_path}[/bold magenta]') as file:
             url = self.service.url('/api/reports/upload')
             response = requests.post(
                 url,
                 files={"file": ('run.json', file)}, headers=self.service.auth_headers())
-            if response.status_code == 200:
-                return response.json()
-            else:
-                return response.json()
+            return response.json()
 
     def raise_error(self):
         raise ValueError("Service not available or configuration invalid")

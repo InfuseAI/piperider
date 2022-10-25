@@ -11,7 +11,7 @@ from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
-from piperider_cli.event.track import TrackCommand, BetaGroup
+from piperider_cli.event.track import TrackCommand
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.feedback import Feedback
 from piperider_cli.generate_report import GenerateReport
@@ -157,6 +157,7 @@ def diagnose(**kwargs):
 @click.option('--dbt-test', is_flag=True, help='Run dbt test.')
 @click.option('--dbt-build', is_flag=True, help='Run dbt build.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
+@click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
 @add_options(debug_option)
 def run(**kwargs):
     'Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
@@ -177,8 +178,14 @@ def run(**kwargs):
                       skip_recommend=skip_recommend,
                       dbt_command=dbt_command,
                       report_dir=kwargs.get('report_dir'))
-    if not skip_report and ret in (0, EC_ERR_TEST_FAILED):
-        GenerateReport.exec(None, kwargs.get('report_dir'), output)
+
+    if ret in (0, EC_ERR_TEST_FAILED):
+        force_upload = kwargs.get('upload', False)
+        if CloudConnector.is_login() and (force_upload or CloudConnector.is_auto_upload()):
+            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'))
+
+        if not skip_report:
+            GenerateReport.exec(None, kwargs.get('report_dir'), output)
     if ret != 0:
         sys.exit(ret)
     return ret
@@ -225,13 +232,13 @@ def compare_reports(**kwargs):
                        debug=kwargs.get('debug', False))
 
 
-@cli.group('cloud', short_help='Manage PipeRider Cloud', cls=BetaGroup)
+@cli.group('cloud', short_help='Manage PipeRider Cloud')
 def cloud(**kwargs):
     # Manage PipeRider Cloud.
     pass
 
 
-@cloud.command(short_help='Upload a report to the PipeRider Cloud.', beta=True, cls=TrackCommand)
+@cloud.command(short_help='Upload a report to the PipeRider Cloud.', cls=TrackCommand)
 @click.option('--run', type=click.Path(exists=True), help='Specify the raw result file.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
@@ -249,14 +256,26 @@ def upload_report(**kwargs):
     return ret
 
 
-@cloud.command(short_help='Login to PipeRider Cloud.', beta=True, cls=TrackCommand)
+@cloud.command(short_help='Login to PipeRider Cloud.', cls=TrackCommand)
+@click.option('--token', default=None, type=click.STRING, help='Specify the API token.')
+@click.option('--enable-auto-upload', default=None, is_flag=True, help='Enable auto upload.')
+@click.option('--disable-auto-upload', default=None, is_flag=True, help='Disable auto upload.')
 @add_options(debug_option)
 def login(**kwargs):
-    ret = CloudConnector.login()
+    options = {
+        # True for enable, False for disable, None for not defined
+        'auto_upload': None,
+    }
+    if kwargs.get('enable_auto_upload'):
+        options['auto_upload'] = True
+    elif kwargs.get('disable_auto_upload'):
+        options['auto_upload'] = False
+
+    ret = CloudConnector.login(api_token=kwargs.get('token'), options=options, debug=kwargs.get('debug', False))
     return ret
 
 
-@cloud.command(short_help='Logout from PipeRider Cloud.', beta=True, cls=TrackCommand)
+@cloud.command(short_help='Logout from PipeRider Cloud.', cls=TrackCommand)
 @add_options(debug_option)
 def logout(**kwargs):
     ret = CloudConnector.logout()
