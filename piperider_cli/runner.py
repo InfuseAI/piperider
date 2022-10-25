@@ -166,34 +166,37 @@ def _show_dbt_test_result(dbt_test_results, title=None, failed_only=False):
     ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta',
                         box=box.SIMPLE, title=title)
     ascii_table.add_column('Status', style='bold white')
-    ascii_table.add_column('Target', style='bold')
-    ascii_table.add_column('Test Name', style='bold green')
+    ascii_table.add_column('Test Subject', style='bold')
+    ascii_table.add_column('Assertion', style='bold green')
     ascii_table.add_column('Message', style='bold')
 
-    for table, v in dbt_test_results.items():
-        for column, results in v['columns'].items():
-            for r in results:
-                if failed_only and r.get('status') == 'passed':
-                    continue
-                success = True if r.get('status') == 'passed' else False
-                test_name = r.get('name')
-                target = f'[yellow]{table}[/yellow].[blue]{column}[/blue]' if column else f'[yellow]{table}[/yellow]'
-                message = r.get('message')
+    for r in dbt_test_results:
+        if failed_only and r.get('status') == 'passed':
+            continue
+        success = True if r.get('status') == 'passed' else False
+        test_name = r.get('display_name')
+        table = r.get('table')
+        column = r.get('column')
+        target = f'[yellow]{table}[/yellow]'
+        if column:
+            target = f'{target}.[blue]{column}[/blue]'
+        message = r.get('message')
 
-                if success:
-                    ascii_table.add_row(
-                        '[[bold green]  OK  [/bold green]]',
-                        target,
-                        test_name,
-                        message
-                    )
-                else:
-                    ascii_table.add_row(
-                        '[[bold red]FAILED[/bold red]]',
-                        target,
-                        test_name,
-                        message
-                    )
+        if success:
+            ascii_table.add_row(
+                '[[bold green]  OK  [/bold green]]',
+                target,
+                test_name,
+                message
+            )
+        else:
+            ascii_table.add_row(
+                '[[bold red]FAILED[/bold red]]',
+                target,
+                test_name,
+                message
+            )
+
     if ascii_table.rows:
         console.print(ascii_table)
 
@@ -271,20 +274,24 @@ def _show_dbt_test_result_summary(dbt_test_results, table: str = None):
     ascii_table.add_column('#DBT Tests Executed', style='bold blue', justify='right')
     ascii_table.add_column('#DBT Tests Failed', style='bold red', justify='right')
 
-    for k, v in dbt_test_results.items():
-        if table is None or k == table:
-            num_of_testcases = 0
-            num_of_failed_testcases = 0
+    test_count = {}
+    for r in dbt_test_results:
+        t = r.get('table')
 
-            for results in v['columns'].values():
-                num_of_testcases += len(results)
-                num_of_failed_testcases += sum([1 for r in results if r.get('status') != 'passed'])
+        if table is not None and t != table:
+            continue
+        if t not in test_count:
+            test_count[t] = dict(total=0, failed=0)
 
-            ascii_table.add_row(
-                k,
-                Pretty(num_of_testcases),
-                Pretty(num_of_failed_testcases),
-            )
+        test_count[t]['total'] += 1
+        test_count[t]['failed'] += 1 if r.get('status') != 'passed' else 0
+
+    for t in test_count:
+        ascii_table.add_row(
+            t,
+            Pretty(test_count[t]['total']),
+            Pretty(test_count[t]['failed']),
+        )
 
     return ascii_table
 
@@ -337,25 +344,6 @@ def _show_table_summary(ascii_table: Table, table: str, profiled_result, asserti
         Pretty(num_of_testcases),
         Pretty(num_of_failed_testcases),
     )
-
-
-def _transform_assertion_result(table: str, results):
-    tests = []
-    columns = {}
-    if results is None:
-        return dict(tests=tests, columns=columns)
-
-    for r in results:
-        if r.table == table:
-            entry = r.to_result_entry()
-            if r.column:
-                if r.column not in columns:
-                    columns[r.column] = []
-                columns[r.column].append(entry)
-            else:
-                tests.append(entry)
-
-    return dict(tests=tests, columns=columns)
 
 
 def _validate_assertions(console: Console):
@@ -428,7 +416,7 @@ def _append_descriptions(profile_result):
             column_v['description'] = 'Description: N/A'
 
 
-def _clean_up_null_properties(table_results):
+def _clean_up_profile_null_properties(table_results):
     removed = []
     for t_metric, t_metric_val in table_results.items():
         if t_metric_val is None:
@@ -494,13 +482,11 @@ def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_resu
 
     # Count dbt-test cases
     if dbt_test_results:
-        for table_name, table in dbt_test_results.items():
-            for results in table['columns'].values():
-                for r in results:
-                    if r.get('status') == 'passed':
-                        event_payload.passed_dbt_testcases += 1
-                    else:
-                        event_payload.failed_dbt_testcases += 1
+        for r in dbt_test_results:
+            if r.get('status') == 'passed':
+                event_payload.passed_dbt_testcases += 1
+            else:
+                event_payload.failed_dbt_testcases += 1
 
     event_payload.dbt_command = dbt_command
     event.log_event(event_payload.to_dict(), 'run')
@@ -529,11 +515,9 @@ def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results
                 return False
 
     if dbt_test_results:
-        for table, v in dbt_test_results.items():
-            for column, results in v['columns'].items():
-                for r in results:
-                    if r.get('status') == 'failed':
-                        return False
+        for r in dbt_test_results:
+            if r.get('status') == 'failed':
+                return False
 
     return True
 
@@ -627,8 +611,7 @@ class Runner():
 
         profiler = Profiler(engine, RichProfilerEventHandler(tables if tables else available_tables), configuration)
         try:
-            profile_result = profiler.profile(tables)
-            decorate_with_metadata(profile_result)
+            run_result = profiler.profile(tables)
         except NoSuchTableError as e:
             console.print(f"[bold red]Error:[/bold red] No such table '{str(e)}'")
             return 1
@@ -637,45 +620,42 @@ class Runner():
 
         # TODO stop here if tests was not needed.
         assertion_results, assertion_exceptions = _execute_assertions(console, profiler, ds, interaction, output,
-                                                                      profile_result, created_at, skip_recommend)
+                                                                      run_result, created_at, skip_recommend)
+
+        run_result['tests'] = []
         if assertion_results or dbt_test_results:
             console.rule('Assertion Results')
             if dbt_test_results:
                 console.rule('dbt')
                 _show_dbt_test_result(dbt_test_results)
+                run_result['tests'].extend(dbt_test_results)
                 if assertion_results:
                     console.rule('PipeRider')
             if assertion_results:
                 _show_assertion_result(assertion_results, assertion_exceptions)
+                run_result['tests'].extend([r.to_result_entry() for r in assertion_results])
 
         console.rule('Summary')
 
-        profile_result['id'] = run_id
-        profile_result['created_at'] = datetime_to_str(created_at)
-        profile_result['datasource'] = dict(name=ds.name, type=ds.type_name)
-
-        # Include dbt test results
-        if dbt_test_results:
-            for k, v in dbt_test_results.items():
-                if k not in profile_result['tables']:
-                    continue
-                profile_result['tables'][k]['dbt_assertion_result'] = v
-
-        output_path = prepare_default_output_path(filesystem, created_at, ds)
-        output_file = os.path.join(output_path, 'run.json')
-        for t in profile_result['tables']:
-            profile_result['tables'][t]['piperider_assertion_result'] = _transform_assertion_result(t,
-                                                                                                    assertion_results)
-            _clean_up_null_properties(profile_result['tables'][t])
-        _show_summary(profile_result, assertion_results, assertion_exceptions, dbt_test_results)
+        for t in run_result['tables']:
+            _clean_up_profile_null_properties(run_result['tables'][t])
+        _show_summary(run_result, assertion_results, assertion_exceptions, dbt_test_results)
         _show_recommended_assertion_notice_message(console, assertion_results)
 
         if dbt_adapter.is_ready():
-            dbt_adapter.append_descriptions(profile_result, default_schema)
-        _append_descriptions_from_assertion(profile_result)
+            dbt_adapter.append_descriptions(run_result, default_schema)
+        _append_descriptions_from_assertion(run_result)
+
+        run_result['id'] = run_id
+        run_result['created_at'] = datetime_to_str(created_at)
+        run_result['datasource'] = dict(name=ds.name, type=ds.type_name)
+        decorate_with_metadata(run_result)
+
+        output_path = prepare_default_output_path(filesystem, created_at, ds)
+        output_file = os.path.join(output_path, 'run.json')
 
         with open(output_file, 'w') as f:
-            f.write(json.dumps(profile_result, separators=(',', ':')))
+            f.write(json.dumps(run_result, separators=(',', ':')))
 
         if output:
             clone_directory(output_path, output)
@@ -683,7 +663,7 @@ class Runner():
         if skip_report:
             console.print(f'Results saved to {output if output else output_path}')
 
-        _analyse_and_log_run_event(profile_result, assertion_results, dbt_test_results, dbt_command)
+        _analyse_and_log_run_event(run_result, assertion_results, dbt_test_results, dbt_command)
 
         if not _check_test_status(assertion_results, assertion_exceptions, dbt_test_results):
             return EC_ERR_TEST_FAILED
