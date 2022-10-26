@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import select, MetaData, Table
+from sqlalchemy import select, MetaData, Table, func
 
 from piperider_cli.assertion_engine import AssertionContext, AssertionResult
 from piperider_cli.assertion_engine.assertion import ValidationResult
@@ -175,33 +175,45 @@ class AssertColumnValue(BaseAssertionType):
 
         samples = None
         if target_metrics:
+            samples = target_metrics.get('samples')
             distinct = target_metrics.get('distinct')
             topk = []
             if target_metrics.get('topk'):
                 topk = target_metrics.get('topk').get('values', [])
 
             if distinct and distinct > len(assert_set):
+                subtraction = AssertColumnValue._column_value_set_subtraction(context, target_metrics, None)
+                context.result.actual = AssertColumnValue._get_column_value_set_actual_msg(subtraction)
                 return context.result.fail()
 
             # TODO: define topk default max length
-            if len(topk) < 50:
+            if distinct and distinct <= 50 and topk:
                 if len(assert_set) < len(topk):
+                    subtraction = AssertColumnValue._column_value_set_subtraction(context, None, topk)
+                    context.result.actual = AssertColumnValue._get_column_value_set_actual_msg(subtraction)
                     return context.result.fail()
 
                 for k in topk:
                     if k not in assert_set:
+                        subtraction = AssertColumnValue._column_value_set_subtraction(context, None, topk)
+                        context.result.actual = AssertColumnValue._get_column_value_set_actual_msg(subtraction)
                         return context.result.fail()
 
                 return context.result.success()
-            else:
-                samples = target_metrics.get('samples')
 
-        result = AssertColumnValue._query_column_category(context, samples, len(assert_set) + 1)
+        # try to query 4 additional categories
+        # if there's additional categories, it means the dataset has more data category than assertion
+        # also we show up to 3 items in the category subtraction
+        result = AssertColumnValue._query_column_category(context, samples, len(assert_set) + 4)
         if len(result) > len(assert_set):
+            subtraction = AssertColumnValue._column_value_set_subtraction(context, None, result)
+            context.result.actual = AssertColumnValue._get_column_value_set_actual_msg(subtraction)
             return context.result.fail()
 
-        for row, in result:
+        for row in result:
             if row not in assert_set:
+                subtraction = AssertColumnValue._column_value_set_subtraction(context, None, result)
+                context.result.actual = AssertColumnValue._get_column_value_set_actual_msg(subtraction)
                 return context.result.fail()
 
         return context.result.success()
@@ -215,11 +227,6 @@ class AssertColumnValue(BaseAssertionType):
         Table(table, metadata, autoload_with=context.engine)
         t = metadata.tables[table]
         c = t.columns[column]
-        """
-        select count(c)
-            from cue
-            where c not in ('foo') and c is not null;
-        """
 
         with context.engine.connect() as conn:
             base = select([c.label('c')]).select_from(t)
@@ -227,17 +234,51 @@ class AssertColumnValue(BaseAssertionType):
                 base = base.limit(samples)
             cte = base.cte()
             stmt = select([
-                cte.c.c
+                func.distinct(cte.c.c)
             ]).select_from(
                 cte
             ).where(
                 cte.c.c.isnot(None)
-            ).group_by(
-                cte.c.c
             )
-            result = conn.execute(stmt).fetchmany(size=size)
+            results = conn.execute(stmt).fetchmany(size=size)
 
-        return result
+        return [r[0] for r in results]
+
+    @staticmethod
+    def _column_value_set_subtraction(context, target_metrics, actual_set):
+        assert_set = set(list(context.asserts.values())[0])
+        samples = None
+        if target_metrics:
+            samples = target_metrics.get('samples')
+            distinct = target_metrics.get('distinct')
+            topk = []
+            if target_metrics.get('topk'):
+                topk = target_metrics.get('topk').get('values', [])
+
+            if distinct and distinct <= 50 and topk:
+                actual_set = topk
+
+        if actual_set:
+            return set(actual_set) - assert_set
+
+        # try to query 4 additional categories
+        # if there's additional categories, it means the dataset has more data category than assertion
+        # also we show up to 3 items in the category subtraction
+        result = AssertColumnValue._query_column_category(context, samples, len(assert_set) + 4)
+
+        return set(result) - assert_set
+
+    @staticmethod
+    def _get_column_value_set_actual_msg(subtraction):
+        subtraction = list(subtraction)
+        if len(subtraction) == 1:
+            actual_msg = f'{subtraction} is in the set'
+        elif len(subtraction) <= 3:
+            actual_msg = f'{subtraction} are in the set'
+        else:
+            actual_msg = f'{subtraction[0:3]} and more are in the set'
+
+        return actual_msg
 
 
 def assert_column_not_null(context: AssertionContext) -> AssertionResult:
