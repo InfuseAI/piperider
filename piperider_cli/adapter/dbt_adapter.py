@@ -237,6 +237,7 @@ class DbtAdapter:
         run_results = self.adaptee.get_run_results()
 
         output = []
+        compatible_output = {}
         unique_tests = {}
 
         for result in run_results.get('results', []):
@@ -277,6 +278,23 @@ class DbtAdapter:
 
             parent_table = f'{schema}.{table_name}' if schema and schema != default_schema else table_name
 
+            if parent_table not in compatible_output:
+                compatible_output[parent_table] = dict(columns={}, tests=[])
+
+            if column not in compatible_output[parent_table]['columns']:
+                compatible_output[parent_table]['columns'][column] = []
+            compatible_output[parent_table]['columns'][column].append(dict(
+                id=unique_id,
+                name=unique_id,
+                table=parent_table,
+                column=column if column != resource['name'] else None,
+                status='passed' if unique_tests[unique_id]['status'] == 'pass' else 'failed',
+                tags=[],
+                message=unique_tests[unique_id]['message'],
+                display_name=resource['name'],
+                source='dbt'
+            ))
+
             output.append(dict(
                 id=unique_id,
                 name=unique_id,
@@ -289,7 +307,7 @@ class DbtAdapter:
                 source='dbt'
             ))
 
-        return output
+        return output, compatible_output
 
     def append_descriptions(self, profile_result, default_schema):
         out = self.adaptee.list_resources(['model', 'source'], 'resource_type,description,name,columns,source_name')
