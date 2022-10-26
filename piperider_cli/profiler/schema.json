@@ -336,7 +336,7 @@
                     "tests": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/definitions/assertion_test"
+                        "$ref": "#/definitions/legacy_assertion_test"
                       }
                     },
                     "columns": {
@@ -345,7 +345,7 @@
                         ".+": {
                           "type": "array",
                           "items": {
-                            "$ref": "#/definitions/assertion_test"
+                            "$ref": "#/definitions/legacy_assertion_test"
                           }
                         }
                       }
@@ -371,7 +371,7 @@
                     "tests": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/definitions/assertion_test"
+                        "$ref": "#/definitions/legacy_assertion_test"
                       }
                     },
                     "columns": {
@@ -380,7 +380,7 @@
                         ".+": {
                           "type": "array",
                           "items": {
-                            "$ref": "#/definitions/assertion_test"
+                            "$ref": "#/definitions/legacy_assertion_test"
                           }
                         }
                       }
@@ -646,6 +646,37 @@
         "source": {
           "type": "string"
         }
+      }
+    },
+    "legacy_assertion_test": {
+      "title": "AssertionTest",
+      "type": "object",
+      "required": [
+        "name",
+        "status"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
+        "parameters": {
+          "type": "object"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "expected": {},
+        "actual": {}
       }
     }
   }
