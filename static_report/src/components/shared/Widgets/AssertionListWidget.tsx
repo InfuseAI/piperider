@@ -253,7 +253,9 @@ export function AssertionListWidget({
                   message,
                   display_name,
                 } = row.original;
-                const testSubject = `${table ?? ''}.${column ?? ''}`;
+                const testSubject = `${table ?? ''}${
+                  column ? '.' + column : ''
+                }`;
 
                 //In dbt, only message exists. So show the failed result in the actual
                 const expectedColValue = formatTestExpectedOrActual(expected);
