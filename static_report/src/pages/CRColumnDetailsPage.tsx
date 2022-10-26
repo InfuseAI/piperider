@@ -174,6 +174,7 @@ export default function CRColumnDetailsPage({
                   <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
                     <AssertionListWidget
                       filterString={tableName}
+                      caseSensitiveFilter
                       comparableAssertions={assertionsOnly}
                       tableSize={'sm'}
                     />

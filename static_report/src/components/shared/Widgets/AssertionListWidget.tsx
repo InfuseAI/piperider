@@ -49,6 +49,7 @@ interface Props extends Comparable {
   comparableAssertions: ReportState['assertionsOnly'];
   filterString?: string;
   setFilterString?: (input: string) => void;
+  caseSensitiveFilter?: boolean;
   tableSize?: TableProps['size'];
 }
 /*
@@ -60,6 +61,7 @@ export function AssertionListWidget({
   comparableAssertions,
   filterString = '',
   setFilterString,
+  caseSensitiveFilter,
   singleOnly,
   tableSize,
   ...props
@@ -140,7 +142,7 @@ export function AssertionListWidget({
     () => [
       ...statusColHelperItem,
       {
-        accessorFn: (row) => `${row.table}.${row.column}`,
+        accessorFn: (row) => `${row.table ?? ''}.${row.column ?? ''}`,
         id: 'testSubject',
         header: 'Test Subject',
       },
@@ -225,7 +227,10 @@ export function AssertionListWidget({
             {table
               .getSortedRowModel()
               .rows.filter(({ original: v }) => {
-                const filterRegEx = new RegExp(filterString, 'gi');
+                const filterRegEx = new RegExp(
+                  filterString,
+                  `g${caseSensitiveFilter ? '' : 'i'}`,
+                );
                 return filterString
                   ? (v?.name || '').search(filterRegEx) > -1 ||
                       (v.table || '').search(filterRegEx) > -1 ||
@@ -248,7 +253,7 @@ export function AssertionListWidget({
                   message,
                   display_name,
                 } = row.original;
-                const testSubject = `${table}.${column}`;
+                const testSubject = `${table ?? ''}.${column ?? ''}`;
 
                 //In dbt, only message exists. So show the failed result in the actual
                 const expectedColValue = formatTestExpectedOrActual(expected);
@@ -308,7 +313,11 @@ export function AssertionListWidget({
                               maxWidth={'14em'}
                               noOfLines={1}
                               color={
-                                targetStatus === 'failed'
+                                (
+                                  singleOnly
+                                    ? baseStatus === 'failed'
+                                    : targetStatus === 'failed'
+                                )
                                   ? 'red.500'
                                   : 'gray.700'
                               }

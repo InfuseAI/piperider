@@ -151,6 +151,7 @@ export default function SRColumnDetailsPage({
                   )}
                   <AssertionListWidget
                     filterString={dataTable.name}
+                    caseSensitiveFilter
                     comparableAssertions={assertionsOnly}
                     singleOnly
                     tableSize={'sm'}
