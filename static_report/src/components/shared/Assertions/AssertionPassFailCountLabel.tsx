@@ -28,7 +28,7 @@ export function AssertionPassFailCountLabel({
   const hasBothStatusCounts =
     typeof total === 'number' && typeof failed === 'number';
   return (
-    <Flex alignItems="center" justifyContent="end">
+    <Flex alignItems="center" justifyContent="end" minW={'5em'}>
       {hasBothStatusCounts && !hasNoAssertions ? (
         <Flex gap={2}>
           <Flex
@@ -58,7 +58,7 @@ export function AssertionPassFailCountLabel({
           )}
         </Flex>
       ) : (
-        <Text color="gray.500">
+        <Text color="gray.500" w={'100%'} textAlign={'center'}>
           {hasNoAssertions ? NO_ASSERTIONS : NO_VALUE}
         </Text>
       )}

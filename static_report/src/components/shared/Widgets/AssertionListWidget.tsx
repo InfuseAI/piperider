@@ -38,11 +38,13 @@ import {
 } from '../Assertions/AssertionCRModal';
 import { NoData } from '../Layouts/NoData';
 
-type BaseStatus = {
+type JoinFields = {
   baseStatus?: 'passed' | 'failed';
   baseRef?: ComparedAssertionTestValue;
+  targetStatus?: 'passed' | 'failed';
+  targetRef?: ComparedAssertionTestValue;
 };
-type JoinedAssertionTest = ComparedAssertionTestValue & BaseStatus;
+type JoinedAssertionTest = ComparedAssertionTestValue & JoinFields;
 interface Props extends Comparable {
   comparableAssertions: ReportState['assertionsOnly'];
   filterString?: string;
@@ -86,6 +88,8 @@ export function AssertionListWidget({
             status: singleOnly ? baseRef?.status : targetDatum?.status,
             baseStatus: baseRef?.status,
             baseRef,
+            targetStatus: targetDatum?.status,
+            targetRef: targetDatum,
           };
         })
         .sort((targetDatum) => (targetDatum.status === 'failed' ? -1 : 1)) ||
@@ -109,7 +113,7 @@ export function AssertionListWidget({
           header: 'Base Status',
           enableGlobalFilter: false,
         }),
-        columnHelper.accessor('status', {
+        columnHelper.accessor('targetStatus', {
           cell: (info) => info.getValue(),
           header: 'Target Status',
           enableGlobalFilter: false,
@@ -136,12 +140,16 @@ export function AssertionListWidget({
     () => [
       ...statusColHelperItem,
       {
-        accessorFn: (row) => `${row.id}`,
+        accessorFn: (row) => `${row.table}.${row.column}`,
         id: 'testSubject',
         header: 'Test Subject',
       },
       columnHelper.accessor('name', {
-        cell: (info) => info.getValue(),
+        // display_name > name > id
+        cell: (info) =>
+          info.row.original.display_name ??
+          info.getValue() ??
+          info.row.original.id,
         header: 'Assertion',
       }),
       ...resultValueColHelperItem,
@@ -224,23 +232,30 @@ export function AssertionListWidget({
                       (v.column || '').search(filterRegEx) > -1
                   : true;
               })
-              .map((row, index) => {
+              .map((row) => {
                 const {
                   id,
+                  table,
+                  column,
                   name,
                   expected,
                   actual,
                   source,
-                  status: targetStatus,
+                  targetStatus,
                   baseStatus,
                   baseRef,
+                  targetRef,
                   message,
+                  display_name,
                 } = row.original;
+                const testSubject = `${table}.${column}`;
 
+                //In dbt, only message exists. So show the failed result in the actual
+                const expectedColValue = formatTestExpectedOrActual(expected);
                 const actualColValue = formatTestExpectedOrActual(
                   source === 'piperider' ? actual : message,
                 );
-                const expectedColValue = formatTestExpectedOrActual(expected);
+                const dynamicName = display_name ?? name ?? id;
 
                 return (
                   <Tr key={row.id}>
@@ -257,20 +272,20 @@ export function AssertionListWidget({
                       </Td>
                     )}
                     <Td maxWidth={'16em'} px={2}>
-                      <Tooltip label={id}>
+                      <Tooltip label={testSubject}>
                         <Text
                           fontSize={'sm'}
                           noOfLines={1}
                           textOverflow={'ellipsis'}
                         >
-                          {id}
+                          {testSubject}
                         </Text>
                       </Tooltip>
                     </Td>
                     <Td maxWidth={'16em'} px={2}>
-                      <Tooltip label={name}>
+                      <Tooltip label={dynamicName}>
                         <Text noOfLines={1} textOverflow={'ellipsis'}>
-                          {name}
+                          {dynamicName}
                         </Text>
                       </Tooltip>
                     </Td>
@@ -313,7 +328,7 @@ export function AssertionListWidget({
                             assertionSource: source || baseRef?.source,
                             assertionName: name || baseRef?.name,
                             base: baseRef,
-                            target: row.original,
+                            target: targetRef,
                           });
                           modal.onOpen();
                         }}

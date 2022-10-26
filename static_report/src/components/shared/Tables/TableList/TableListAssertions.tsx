@@ -27,7 +27,7 @@ export function TableListAssertionSummary({
 }: Props) {
   return (
     <Grid
-      gap={3}
+      gap={6}
       templateColumns={'1fr 1em 1fr'}
       alignItems={'center'}
       color="gray.500"
