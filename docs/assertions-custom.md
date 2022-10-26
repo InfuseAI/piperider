@@ -57,7 +57,11 @@ class AssertNothingTableExample(BaseAssertionType):
   def name(self):
     return 'assert_nothing_table_example'
 
-  def execute(self, context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+  def execute(self, context: AssertionContext) -> AssertionResult:
+    table = context.table
+    column = context.column
+    metrics = context.profiler_result
+
     table_metrics = metrics.get('tables', {}).get(table)
     if table_metrics is None:
       # cannot find the table in the metrics
@@ -93,18 +97,18 @@ class AssertNothingTableExample(BaseAssertionType):
 register_assertion_function(AssertNothingTableExample)
 ```
 
-* name method provides the function name that will be used in the assertion yaml.
-* execute method is your implementation to give the result of the assertion function.
-* validate method could help you check `assert` parameters before PipeRider is profiling.
+* `name` method provides the function name that will be used in the assertion yaml.
+* `execute` method is your implementation to give the result of the assertion function.
+* `validate` method could help you check `assert` parameters before PipeRider is profiling.
 
-#### execute details
+#### Execute details
 
-When the assertion has been called, PipeRider will put all arguments to `execute` method for you:
+When the assertion has been called, PipeRider will put assertion context to `execute` method for you:
 
-* context: helper object for assembling result entry to the report.
-* table: the table name you are asserting.
-* column: the column name you are checking, but it could be null when the assertion is put on the table level assertion.
-* metrics: the profiling output could be asserted.
+* `context`: helper object for assembling result entry to the report.
+* `context.table`: the table name you are asserting.
+* `context.column`: the column name you are checking, but it could be `null` when the assertion is put on the table level assertion.
+* `context.profiler_result`: the profiler output could be asserted.
 
 ### Assertion process
 
