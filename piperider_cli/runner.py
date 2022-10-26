@@ -136,6 +136,7 @@ def _execute_assertions(console: Console, engine, ds_name: str, interaction: boo
     assertion_engine.load_assertions(profiler_result)
     assertion_exist = True if assertion_engine.assertions_content else False
 
+    results = exceptions = []
     if not assertion_exist:
         console.print('[bold yellow]No assertion found[/]')
         if _agreed_to_generate_recommended_assertions(console, interaction, skip_recommend):
@@ -157,7 +158,9 @@ def _execute_assertions(console: Console, engine, ds_name: str, interaction: boo
                 console.print(f'[bold green]Template Assertion[/bold green]: {f}')
 
     # Execute assertions
-    results, exceptions = assertion_engine.evaluate_all()
+    if len(assertion_engine.assertions):
+        console.rule('Testing')
+        results, exceptions = assertion_engine.evaluate_all()
     return results, exceptions
 
 

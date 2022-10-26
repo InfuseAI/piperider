@@ -11,6 +11,7 @@ from ruamel.yaml.comments import CommentedMap
 from sqlalchemy import inspect
 from sqlalchemy.engine import Engine
 
+from .event import AssertionEventHandler, DefaultAssertionEventHandler
 from .recommender import AssertionRecommender
 from .recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.error import \
@@ -423,12 +424,14 @@ class AssertionEngine:
     PIPERIDER_ASSERTION_PLUGIN_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'plugins')
     PIPERIDER_ASSERTION_SUPPORT_METRICS = ['distribution', 'range', 'missing_value']
 
-    def __init__(self, engine: Engine, assertion_search_path=PIPERIDER_ASSERTION_SEARCH_PATH):
+    def __init__(self, engine: Engine, assertion_search_path=PIPERIDER_ASSERTION_SEARCH_PATH,
+                 event_handler: AssertionEventHandler = DefaultAssertionEventHandler()):
         self.engine = engine
         self.assertion_search_path = assertion_search_path
         self.assertions_content: Dict = {}
         self.assertions: List[AssertionContext] = []
         self.recommender: AssertionRecommender = AssertionRecommender()
+        self.event_handler: AssertionEventHandler = event_handler
 
         self.default_plugins_dir = AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH
         if not os.path.isdir(self.default_plugins_dir):
@@ -662,20 +665,24 @@ class AssertionEngine:
         results = []
         exceptions = []
 
+        self.event_handler.handle_assertion_start(self.assertions)
         self.load_plugins()
         for assertion in self.assertions:
             try:
+                self.event_handler.handle_execution_start(assertion)
                 assertion_result: AssertionContext = self.evaluate(assertion)
                 results.append(assertion_result)
 
                 if assertion_result.result.get_internal_error():
                     raise assertion_result.result.get_internal_error()
+                self.event_handler.handle_execution_end(assertion_result)
             except AssertionError as e:
                 exceptions.append((assertion, e))
             except IllegalStateAssertionError as e:
                 exceptions.append((assertion, e))
             except BaseException as e:
                 exceptions.append((assertion, e))
+        self.event_handler.handle_assertion_end(results, exceptions)
         return results, exceptions
 
     def validate_assertions(self):
