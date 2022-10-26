@@ -346,6 +346,25 @@ def _show_table_summary(ascii_table: Table, table: str, profiled_result, asserti
     )
 
 
+def _transform_assertion_result(table: str, results):
+    tests = []
+    columns = {}
+    if results is None:
+        return dict(tests=tests, columns=columns)
+
+    for r in results:
+        if r.table == table:
+            entry = r.to_result_entry()
+            if r.column:
+                if r.column not in columns:
+                    columns[r.column] = []
+                columns[r.column].append(entry)
+            else:
+                tests.append(entry)
+
+    return dict(tests=tests, columns=columns)
+
+
 def _validate_assertions(console: Console):
     assertion_engine = AssertionEngine(None)
     assertion_engine.load_all_assertions_for_validation()
@@ -595,9 +614,10 @@ class Runner():
             return 1
 
         dbt_test_results = None
+        dbt_test_results_compatible = None
         if dbt_command in ['build', 'test'] and dbt_adapter.is_ready():
             dbt_adapter.set_dbt_command(dbt_command)
-            dbt_test_results = dbt_adapter.run_dbt_command(table, default_schema)
+            dbt_test_results, dbt_test_results_compatible = dbt_adapter.run_dbt_command(table, default_schema)
 
         console.rule('Profiling')
         run_id = uuid.uuid4().hex
@@ -637,7 +657,14 @@ class Runner():
 
         console.rule('Summary')
 
+        if dbt_test_results_compatible:
+            for k, v in dbt_test_results_compatible.items():
+                if k not in run_result['tables']:
+                    continue
+                run_result['tables'][k]['dbt_assertion_result'] = v
+
         for t in run_result['tables']:
+            run_result['tables'][t]['piperider_assertion_result'] = _transform_assertion_result(t, assertion_results)
             _clean_up_profile_null_properties(run_result['tables'][t])
         _show_summary(run_result, assertion_results, assertion_exceptions, dbt_test_results)
         _show_recommended_assertion_notice_message(console, assertion_results)

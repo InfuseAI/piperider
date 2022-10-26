@@ -16,7 +16,8 @@
           "type": "object",
           "required": [
             "name",
-            "columns"
+            "columns",
+            "piperider_assertion_result"
           ],
           "additionalProperties": false,
           "properties": {
@@ -318,6 +319,76 @@
                 }
               }
             },
+            "piperider_assertion_result": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "title": "PipeRiderAssertionResult",
+                  "type": "object",
+                  "required": [
+                    "tests",
+                    "columns"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "tests": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/assertion_test"
+                      }
+                    },
+                    "columns": {
+                      "type": "object",
+                      "patternProperties": {
+                        ".+": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/assertion_test"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "dbt_assertion_result": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "title": "DbtAssertionResult",
+                  "type": "object",
+                  "required": [
+                    "tests",
+                    "columns"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "tests": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/assertion_test"
+                      }
+                    },
+                    "columns": {
+                      "type": "object",
+                      "patternProperties": {
+                        ".+": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/assertion_test"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
             "profile_duration": {
               "type": "string"
             },
@@ -499,13 +570,10 @@
       "required": [
         "id",
         "name",
-        "metric",
         "table",
         "column",
         "tags",
         "status",
-        "expected",
-        "actual",
         "message",
         "display_name",
         "source"

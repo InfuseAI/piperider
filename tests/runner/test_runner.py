@@ -71,7 +71,11 @@ class TestRunner(TestCase):
         self.assertEqual('PRICE,PRICE_20210128,symbol_all', ','.join(tables))
 
     def test_dbt_run_results(self):
-        results = self.dbt_adapter.run_dbt_command(None, 'PUBLIC')
+        results, results_compatible = self.dbt_adapter.run_dbt_command(None, 'PUBLIC')
+
+        self.assertIn('PRICE_20210128', results_compatible)
+        self.assertIn('ma60', results_compatible['PRICE_20210128']['columns'])
+        self.assertEqual('failed', results_compatible['PRICE_20210128']['columns']['ma60'][0]['status'])
 
         table_names = [r.get('table') for r in results]
         column_names = [r.get('column') for r in results]
