@@ -128,20 +128,27 @@ class Initializer():
                 list_table = Table(show_header=True, show_edge=True, box=box.SIMPLE_HEAVY)
                 list_table.add_column("Datasource", style="cyan", no_wrap=True)
                 list_table.add_column("Name", style="magenta", no_wrap=True)
+                list_table.add_column("Source Type", style="blue", no_wrap=True)
                 list_table.add_column("Source", style="green", no_wrap=True)
                 for ds in config.dataSources:
+                    source_type = 'N/A'
                     source = 'N/A'
                     if ds.type_name in ['csv', 'parquet']:
                         source = ds.credential['path']
+                        source_type = 'File Path'
                     elif ds.type_name in ['sqlite']:
                         source = ds.credential['dbpath']
+                        source_type = 'File Path'
                     elif ds.type_name in ['redshift', 'postgres']:
                         source = ds.credential['dbname']
+                        source_type = 'Database'
                     elif ds.type_name in ['snowflake']:
                         source = ds.credential['database']
+                        source_type = 'Database'
                     elif ds.type_name in ['bigquery']:
                         source = ds.credential['dataset']
-                    list_table.add_row(ds.type_name, ds.name, source)
+                        source_type = 'Dataset'
+                    list_table.add_row(ds.type_name, ds.name, source_type, source)
 
                 layout_table = Table(
                     title='PipeRider Configuration',

@@ -11,6 +11,7 @@ from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
+from piperider_cli.event import UserProfileConnector
 from piperider_cli.event.track import TrackCommand, BetaGroup
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.feedback import Feedback
@@ -237,26 +238,54 @@ def config(**kwargs):
     pass
 
 
-@config.command(short_help='List PipeRider current configurations.', cls=TrackCommand, beta=True)
+@config.command(name='list-datasource', short_help='List DataSources in current PipeRider project',
+                cls=TrackCommand,
+                beta=True)
 @add_options(debug_option)
 def list(**kwargs):
     'List PipeRider current configurations.'
     Initializer.list()
 
 
-@config.command(short_help='Add a new DataSource to current PipeRider project.', cls=TrackCommand, beta=True)
+@config.command(name='add-datasource', short_help='Add a DataSource to current PipeRider project.',
+                cls=TrackCommand, beta=True)
 @add_options(debug_option)
 def add(**kwargs):
     Initializer.add()
     pass
 
 
-@config.command(short_help='Delete a DataSource from current PipeRider project.', cls=TrackCommand, beta=True)
+@config.command(name='delete-datasource', short_help='Delete a DataSource from current PipeRider project.',
+                cls=TrackCommand, beta=True)
 @add_options(debug_option)
 def delete(**kwargs):
     Initializer.list()
     Initializer.delete()
     pass
+
+
+@config.command(name='enable-auto-upload', short_help='Enable auto upload to PipeRider Cloud.', cls=TrackCommand,
+                beta=True)
+def enable_auto_upload(**kwargs):
+    CloudConnector.config_auto_upload(True)
+    pass
+
+
+@config.command(name='disable-auto-upload', short_help='Disable auto upload to PipeRider Cloud.', cls=TrackCommand,
+                beta=True)
+def disable_auto_upload(**kwargs):
+    CloudConnector.config_auto_upload(False)
+    pass
+
+
+@config.command(name='enable-user-tracking', short_help='Enable user tracking.', cls=TrackCommand, beta=True)
+def enable_user_tracking(**kwargs):
+    UserProfileConnector.update('anonymous_tracking', True, name='user tracking')
+
+
+@config.command(name='disable-user-tracking', short_help='Disable user tracking.', cls=TrackCommand, beta=True)
+def disable_user_tracking(**kwargs):
+    UserProfileConnector.update('anonymous_tracking', False, name='user tracking')
 
 
 @cli.group('cloud', short_help='Manage PipeRider Cloud')

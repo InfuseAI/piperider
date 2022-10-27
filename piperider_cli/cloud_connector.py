@@ -153,6 +153,11 @@ class CloudConnector():
         return piperider_cloud.config.get('auto_upload', False)
 
     @staticmethod
+    def config_auto_upload(flag: bool):
+        console.print(f'[[bold green]Config[/bold green]] Default auto upload behavior is set to {flag}')
+        piperider_cloud.update_config({'auto_upload': flag})
+
+    @staticmethod
     def login(api_token=None, options: dict = None, debug=False):
 
         if piperider_cloud.available:

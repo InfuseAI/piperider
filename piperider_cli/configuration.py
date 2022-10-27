@@ -177,7 +177,7 @@ class Configuration(object):
                 try:
                     with open(PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
                         credentials = yaml.safe_load(fd)
-                        credential.update(credentials.get(ds.get('name')))
+                        credential.update(credentials.get(ds.get('name'), {}))
                 except FileNotFoundError:
                     pass
                 except Exception:
@@ -341,5 +341,4 @@ def _load_credential_from_dbt_profile(dbt_profile, profile_name, target_name):
         port = credential.get('port')
         dbname = credential.get('dbname')
         credential['endpoint'] = f'{host}:{port}/{dbname}'
-
     return credential
