@@ -569,7 +569,6 @@
       "type": "object",
       "required": [
         "id",
-        "name",
         "table",
         "column",
         "tags",
@@ -652,7 +651,6 @@
       "title": "AssertionTest1",
       "type": "object",
       "required": [
-        "name",
         "status"
       ],
       "additionalProperties": true,
