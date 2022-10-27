@@ -1,6 +1,6 @@
 import { Text, Grid, GridItem, BoxProps } from '@chakra-ui/react';
 
-import { SaferTableSchema, zReport, ZTableSchema } from '../../../types';
+import { SaferTableSchema } from '../../../types';
 import { DupedTableRowsWidget } from '../Widgets/DupedTableRowsWidget';
 import { NO_DESCRIPTION_MSG } from './constant';
 import { TableGeneralStats } from './TableMetrics/TableGeneralStats';
@@ -10,8 +10,6 @@ interface Props {
 }
 
 export function TableOverview({ tableDatum, ...props }: Props & BoxProps) {
-  zReport(ZTableSchema.safeParse(tableDatum));
-
   return (
     <Grid mb={8} gap={8}>
       <GridItem colSpan={1}>

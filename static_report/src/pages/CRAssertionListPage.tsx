@@ -2,9 +2,9 @@ import { Flex } from '@chakra-ui/react';
 import { useState } from 'react';
 import { Main } from '../components/shared/Layouts/Main';
 import { SearchTextInput } from '../components/shared/Layouts/SearchTextInput';
+import { TableListAssertionSummary } from '../components/shared/Tables/TableList/TableListAssertions';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
-import { TableListAssertionSummary } from '../lib';
 import { ComparisonReportSchema } from '../types';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
 import { assertionListWidth } from '../utils/layout';
@@ -25,8 +25,8 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
   const [filterString, setFilterString] = useState<string>('');
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base, input });
-  const { tableColumnAssertionsOnly } = useReportStore.getState();
-  const { metadata } = tableColumnAssertionsOnly || {};
+  const { assertionsOnly } = useReportStore.getState();
+  const { metadata } = assertionsOnly || {};
 
   return (
     <Main isSingleReport={false}>
@@ -46,7 +46,7 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
       </Flex>
       <AssertionListWidget
         w={assertionListWidth}
-        comparableAssertions={tableColumnAssertionsOnly}
+        comparableAssertions={assertionsOnly}
         filterString={filterString}
         setFilterString={setFilterString}
       />

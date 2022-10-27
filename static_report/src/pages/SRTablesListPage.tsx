@@ -26,7 +26,7 @@ type Props = { data: SaferSRSchema };
 export function SRTablesListPage({ data }: Props) {
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
-  const { tableColumnsOnly = [] } = useReportStore.getState();
+  const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
 
   const [, setLocation] = useLocation();
 
@@ -57,6 +57,7 @@ export function SRTablesListPage({ data }: Props) {
                   {({ isExpanded }) => (
                     <>
                       <TableListItem
+                        combinedAssertions={assertionsOnly}
                         combinedTableEntry={tableColsEntry}
                         isExpanded={isExpanded}
                         singleOnly

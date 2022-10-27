@@ -26,12 +26,8 @@ import { ComparableData } from '../../../types';
 
 export type CRAssertionModalData = {
   assertionName?: string;
-  assertionKind?: 'piperider' | 'dbt';
-} & ComparableData<
-  Partial<AssertionTest> & {
-    message?: string;
-  }
->;
+  assertionSource?: string;
+} & ComparableData<Partial<AssertionTest> | null>;
 export type TestDetail = {
   data?: CRAssertionModalData;
 };
@@ -74,8 +70,9 @@ export function CRAssertionModal({ data, isOpen, onClose, ...props }: Props) {
 type DetailProps = { data?: CRAssertionModalData };
 function AssertionTestDetail({ data }: DetailProps) {
   if (!data) return <NoData />;
+  console.log(data); // asym side should be empty...
 
-  const isDbtKind = data.assertionKind === 'dbt';
+  const isDbtKind = data.assertionSource === 'dbt';
   return (
     <TableContainer>
       <Table variant="simple">

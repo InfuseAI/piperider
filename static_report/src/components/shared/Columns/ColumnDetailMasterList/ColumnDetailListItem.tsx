@@ -33,7 +33,7 @@ export function ColumnDetailListItem({
   singleOnly,
   ...props
 }: Props & FlexProps) {
-  const fallbackColumnDatum = baseColumnDatum || targetColumnDatum;
+  const fallbackColumnDatum = targetColumnDatum || baseColumnDatum;
   const { icon, backgroundColor } = getIconForColumnType(fallbackColumnDatum);
   const { valids_p: baseValidRatio } = baseColumnDatum || {};
   const baseValidsPercentValue = Number(baseValidRatio) * 100;
@@ -41,13 +41,12 @@ export function ColumnDetailListItem({
     baseValidRatio,
     formatIntervalMinMax,
   );
-  const { valids_p: targetValidRatio } = baseColumnDatum || {};
+  const { valids_p: targetValidRatio } = targetColumnDatum || {};
   const targetValidsPercentValue = Number(targetValidRatio) * 100;
   const targetValidsPercentLabel = formatColumnValueWith(
     targetValidRatio,
     formatIntervalMinMax,
   );
-  console.log(baseColumnDatum, targetValidRatio);
 
   return (
     <>

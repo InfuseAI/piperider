@@ -24,8 +24,8 @@ export function SRAssertionListPage({ data }: Props) {
   const [filterString, setFilterString] = useState<string>('');
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base: data });
-  const { tableColumnAssertionsOnly } = useReportStore.getState();
-  const { metadata } = tableColumnAssertionsOnly || {};
+  const { assertionsOnly } = useReportStore.getState();
+  const { metadata } = assertionsOnly || {};
 
   return (
     <Main isSingleReport>
@@ -36,17 +36,19 @@ export function SRAssertionListPage({ data }: Props) {
         />
       </Flex>
       <Flex justify={'start'} maxW={assertionListWidth - 50} w={'100%'} my={5}>
-        <AssertionPassFailCountLabel
-          total={metadata?.base?.total}
-          failed={metadata?.base?.failed}
-        />
+        {Number(metadata?.base?.total) > 0 && (
+          <AssertionPassFailCountLabel
+            total={metadata?.base?.total}
+            failed={metadata?.base?.failed}
+          />
+        )}
       </Flex>
       <AssertionListWidget
         maxW={assertionListWidth - 25}
         w={'100%'}
         singleOnly
         filterString={filterString}
-        comparableAssertions={tableColumnAssertionsOnly}
+        comparableAssertions={assertionsOnly}
       />
     </Main>
   );

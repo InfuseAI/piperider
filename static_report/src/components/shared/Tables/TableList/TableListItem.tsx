@@ -24,36 +24,37 @@ import {
   tableListMaxWidth,
 } from '../../../../utils/layout';
 import { ColumnSchemaDeltaSummary } from './ColumnSchemaDeltaSummary';
-import { CompTableColEntryItem } from '../../../../utils/store';
+import { CompTableColEntryItem, ReportState } from '../../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../constant';
 
 interface Props extends Selectable, Comparable {
   isExpanded: boolean;
   combinedTableEntry?: CompTableColEntryItem;
+  combinedAssertions?: ReportState['assertionsOnly'];
 }
 
 export function TableListItem({
   isExpanded,
+  combinedAssertions,
   combinedTableEntry,
   onSelect,
   singleOnly,
 }: Props) {
   const [tableName, tableValue, tableMetadata] = combinedTableEntry || [];
+  const filteredBaseTableTests = combinedAssertions?.base?.filter(
+    (v) => v?.table === tableName,
+  );
+  const filteredTargetTableTests = combinedAssertions?.target?.filter(
+    (v) => v?.table === tableName,
+  );
+  const { failed: baseFailed, total: baseTotal } =
+    getAssertionStatusCountsFromList(filteredBaseTableTests || []);
+  const { failed: targetFailed, total: targetTotal } =
+    getAssertionStatusCountsFromList(filteredTargetTableTests || []);
 
   const fallbackTable = tableValue?.base || tableValue?.target;
-  const description = fallbackTable?.description || NO_DESCRIPTION_MSG;
 
-  //FIXME: LEGACY
-  const { failed: baseFailed, total: baseTotal } =
-    getAssertionStatusCountsFromList([
-      tableValue?.base?.piperider_assertion_result,
-      tableValue?.base?.dbt_assertion_result,
-    ]);
-  const { failed: targetFailed, total: targetTotal } =
-    getAssertionStatusCountsFromList([
-      tableValue?.target?.piperider_assertion_result,
-      tableValue?.target?.dbt_assertion_result,
-    ]);
+  const description = fallbackTable?.description || NO_DESCRIPTION_MSG;
 
   if (!combinedTableEntry) {
     return <NoData />;

@@ -36,11 +36,11 @@ import {
   AssertionListWidget,
   BreadcrumbMetaItem,
   BreadcrumbNav,
-  getAssertionStatusCountsFromList,
   SR_TYPE_LABEL,
   TableColumnSchemaList,
   useAmplitudeOnMount,
   useDocumentTitle,
+  getAssertionStatusCountsFromList,
 } from '../lib';
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
@@ -68,8 +68,7 @@ export default function SRColumnDetailsPage({
 
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
-  const { tableColumnsOnly = [], tableColumnAssertionsOnly } =
-    useReportStore.getState();
+  const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
   const currentTableEntry = tableColumnsOnly.find(
     ([tableKey]) => tableKey === tableName,
   );
@@ -80,7 +79,11 @@ export default function SRColumnDetailsPage({
   const dataColumns = dataTable.columns;
   const columnDatum = dataColumns[columnName];
 
-  const { type, histogram } = columnDatum || {};
+  const { failed: baseFailed, total: baseTotal } =
+    getAssertionStatusCountsFromList(
+      assertionsOnly?.base?.filter((v) => v?.table === tableName) || [],
+    );
+  const { type, histogram, schema_type } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
 
   if (!tableName || !dataTable || !currentTableEntry) {
@@ -90,13 +93,6 @@ export default function SRColumnDetailsPage({
       </Main>
     );
   }
-
-  //FIXME: Legacy
-  const { failed: baseFailed, total: baseTotal } =
-    getAssertionStatusCountsFromList([
-      dataTable?.piperider_assertion_result,
-      dataTable?.dbt_assertion_result,
-    ]);
 
   const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
     tableName,
@@ -145,7 +141,7 @@ export default function SRColumnDetailsPage({
                   </Grid>
                 </TabPanel>
                 <TabPanel>
-                  {baseTotal > 0 && (
+                  {Number(baseTotal) > 0 && (
                     <Flex mb={5}>
                       <AssertionPassFailCountLabel
                         total={baseTotal}
@@ -155,7 +151,8 @@ export default function SRColumnDetailsPage({
                   )}
                   <AssertionListWidget
                     filterString={dataTable.name}
-                    comparableAssertions={tableColumnAssertionsOnly}
+                    caseSensitiveFilter
+                    comparableAssertions={assertionsOnly}
                     singleOnly
                     tableSize={'sm'}
                   />
@@ -185,7 +182,7 @@ export default function SRColumnDetailsPage({
             <GridItem colSpan={2} p={6}>
               <TableColumnHeader
                 title={columnName}
-                subtitle={'Column'}
+                subtitle={schema_type}
                 p={2}
                 borderBottom={borderVal}
                 icon={icon}

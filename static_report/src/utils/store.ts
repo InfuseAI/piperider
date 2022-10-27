@@ -1,5 +1,4 @@
 import {
-  AssertionSource,
   AssertionTest,
   ColumnSchema,
   ComparableData,
@@ -8,9 +7,9 @@ import {
   SaferTableSchema,
 } from '../types/index';
 import create from 'zustand';
-// import { devtools, persist } from 'zustand/middleware';
 import { transformAsNestedBaseTargetRecord } from './transformers';
 import { formatReportTime } from './formatters';
+import { getAssertionStatusCountsFromList } from '../components/shared/Tables/utils';
 type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
 type ComparableMetadata = {
   added?: number;
@@ -29,14 +28,13 @@ export type CompTableWithColEntryOverwrite = Omit<
 export type CompTableColEntryItem = EntryItem<
   ComparableData<CompTableWithColEntryOverwrite>
 >;
+export type ComparedAssertionTestValue = Partial<AssertionTest> | null;
 export interface ReportState {
   rawData: ComparableReport;
   reportTime?: string;
   reportOnly?: ComparableData<Omit<SaferSRSchema, 'tables'>>;
   tableColumnsOnly?: CompTableColEntryItem[];
-  tableColumnAssertionsOnly?: ComparableData<
-    EnrichedTableOrColumnAssertionTest[]
-  >;
+  assertionsOnly?: ComparableData<ComparedAssertionTestValue[]>;
 }
 
 interface ReportSetters {
@@ -104,7 +102,9 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
         tableName,
         {
           base: { ...base, columns: compColEntries },
-          target: { ...target, columns: compColEntries },
+          target: target.name
+            ? { ...target, columns: compColEntries }
+            : undefined,
         },
         columnsMetadata,
       ];
@@ -115,131 +115,59 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
   return tableColumnsResult;
 };
 
-/**
- * Returns a compared and flatteded table/column list of assertions, enriched with each member's belonging table names and column names
- */
-type EnrichedAssertionTest = AssertionTest & {
-  kind: AssertionSource;
-  message?: string; //for dbt
-};
-export type EnrichedTableOrColumnAssertionTest = EnrichedAssertionTest & {
-  isTableAssertion: boolean;
-  tableName?: string;
-  columnName?: string;
-};
-const _getKindMapper = (kind: AssertionSource) => (v) => ({ ...v, kind });
-//FIXME: LEGACY
-const _getFlattenedTestEntries = (table?: SaferTableSchema) => {
-  //Flatten table assertions
-  const enrichedPipeAssertionTests: EnrichedAssertionTest[] = (
-    table?.piperider_assertion_result?.tests || []
-  ).map(_getKindMapper('piperider'));
+const getAssertionsOnly = (rawData: ComparableReport) => {
+  // Formulate aligned-pairs, even if there is a misalign:
+  // If undefined on either side, align complement as null value
+  // else align pairs as per unique id
+  const comparedAssertionMap = new Map<
+    string,
+    [ComparedAssertionTestValue?, ComparedAssertionTestValue?]
+  >();
+  const baseTests = rawData?.base?.tests;
+  const targetTests = rawData?.input?.tests;
 
-  const enrichedDbtAssertionTests: EnrichedAssertionTest[] = (
-    table?.dbt_assertion_result?.tests || []
-  ).map(_getKindMapper('dbt'));
+  //base-pass (init) - set-always (value)
+  baseTests?.forEach((v) => {
+    comparedAssertionMap.set(v.id, [v]);
+  });
 
-  const flatTableAssertionTests: EnrichedTableOrColumnAssertionTest[] =
-    enrichedPipeAssertionTests
-      .concat(enrichedDbtAssertionTests)
-      .map((v) => ({ isTableAssertion: true, tableName: table?.name, ...v }));
+  //target-pass (pair) - set (null | value)
+  targetTests?.forEach((v) => {
+    const foundValue = comparedAssertionMap.get(v.id);
+    if (foundValue) {
+      //pair-found, add as second-element
+      foundValue.push(v);
+      comparedAssertionMap.set(v.id, foundValue);
+    } else {
+      //pair-missing, fill first-element as null, then add second-element as value
+      comparedAssertionMap.set(v.id, [null, v]);
+    }
+  });
 
-  //Flatten and join w/ column assertions
-  const flatColumnPipeAssertions = Object.entries(
-    table?.piperider_assertion_result?.columns || {},
-  )
-    .map(
-      ([colKey, tests]) =>
-        [colKey, tests.map(_getKindMapper('piperider'))] as [
-          string,
-          EnrichedAssertionTest[],
-        ],
-    )
-    .reduce<EnrichedTableOrColumnAssertionTest[]>((accum, [colKey, tests]) => {
-      const result = tests.map((v) => ({
-        ...v,
-        tableName: table?.name || '',
-        columnName: colKey,
-        isTableAssertion: false,
-      }));
-      return [...accum, ...result];
-    }, []);
+  // prepare aligned/filled-tests for store
+  const alignedBaseTests: ComparedAssertionTestValue[] = [];
+  const alignedTargetTests: ComparedAssertionTestValue[] = [];
+  for (let [base, target] of comparedAssertionMap.values()) {
+    alignedBaseTests.push(base ?? null);
+    alignedTargetTests.push(target ?? null);
+  }
 
-  const flatColumnDbtAssertions = Object.entries(
-    table?.dbt_assertion_result?.columns || {},
-  )
-    .map(
-      ([colKey, tests]) =>
-        [colKey, tests.map(_getKindMapper('dbt'))] as [
-          string,
-          EnrichedAssertionTest[],
-        ],
-    )
-    .reduce<EnrichedTableOrColumnAssertionTest[]>((accum, [colKey, tests]) => {
-      const result = tests.map((v) => ({
-        ...v,
-        tableName: table?.name || '',
-        columnName: colKey,
-        isTableAssertion: false,
-      }));
-      return [...accum, ...result];
-    }, []);
+  const comparableAssertionTests: ReportState['assertionsOnly'] = {
+    base: alignedBaseTests,
+    target: alignedTargetTests,
+  };
 
-  const flatTableColAssertionEntries = [
-    ...flatTableAssertionTests,
-    ...flatColumnPipeAssertions,
-    ...flatColumnDbtAssertions,
-  ];
-  return flatTableColAssertionEntries;
-};
-const _getSingleAssertionMetadata = (
-  assertions: EnrichedTableOrColumnAssertionTest[] | undefined,
-) =>
-  assertions?.reduce(
-    (accum, { status }) => ({
-      total: accum.total + 1,
-      passed: accum.passed + (status === 'passed' ? 1 : 0),
-      failed: accum.failed + (status === 'failed' ? 1 : 0),
-    }),
-    {
-      total: 0,
-      passed: 0,
-      failed: 0,
-    },
-  );
-const getTaColumnbleAssertionsOnly = (rawData: ComparableReport) => {
-  const comparableTables = transformAsNestedBaseTargetRecord<
-    SaferSRSchema['tables'],
-    SaferTableSchema
-  >(rawData?.base?.tables, rawData?.input?.tables);
-  const comparableTableEntries = Object.entries(comparableTables);
+  const baseMetadata = getAssertionStatusCountsFromList(baseTests || []);
+  const targetMetadata = getAssertionStatusCountsFromList(targetTests || []);
+  comparableAssertionTests.metadata = {
+    base: baseMetadata,
+    target: targetMetadata,
+  };
 
-  //this needs to be reduce, if you want flatten
-  const compTableAssertions = comparableTableEntries.reduce(
-    (accum, [, { base, target }]) => {
-      const flatBaseTests = _getFlattenedTestEntries(base);
-      const flatTargetTests = _getFlattenedTestEntries(target);
-
-      const tableAssertions = {
-        base: accum.base?.concat(flatBaseTests),
-        target: accum.target?.concat(flatTargetTests),
-      };
-
-      return tableAssertions;
-    },
-    { base: [], target: [] } as ComparableData<
-      EnrichedTableOrColumnAssertionTest[]
-    >,
-  );
-  const baseMetadata = _getSingleAssertionMetadata(compTableAssertions.base);
-  const targetMetadata = _getSingleAssertionMetadata(
-    compTableAssertions.target,
-  );
-  compTableAssertions.metadata = { base: baseMetadata, target: targetMetadata };
-  return compTableAssertions;
+  return comparableAssertionTests;
 };
 
-//NOTE: `this` will not work in setter functions
+//NOTE: `this` will not work in setter functions (self-invoking)
 export const useReportStore = create<ReportState & ReportSetters>()(function (
   set,
 ) {
@@ -254,15 +182,14 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
       /** Tables */
       const tableColumnsOnly = getTableColumnsOnly(rawData);
       /** Table-level Assertions (flattened) */
-
-      const tableColumnAssertionsOnly = getTaColumnbleAssertionsOnly(rawData);
+      const assertionsOnly = getAssertionsOnly(rawData);
 
       const resultState: ReportState = {
         rawData,
         reportOnly,
         reportTime,
         tableColumnsOnly,
-        tableColumnAssertionsOnly,
+        assertionsOnly,
       };
 
       // final setter

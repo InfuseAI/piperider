@@ -42,10 +42,10 @@ import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader
 import { useReportStore } from '../utils/store';
 import { getBreadcrumbPaths } from '../utils/routes';
 import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
-import { getAssertionStatusCountsFromList } from '../components/shared/Tables/utils';
 import { TableListAssertionSummary } from '../components/shared/Tables/TableList/TableListAssertions';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
+import { getAssertionStatusCountsFromList } from '../lib';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -76,8 +76,7 @@ export default function CRColumnDetailsPage({
   const setReportData = useReportStore((s) => s.setReportRawData);
 
   setReportData({ base: data.base, input: data.input });
-  const { tableColumnsOnly = [], tableColumnAssertionsOnly } =
-    useReportStore.getState();
+  const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
   const currentTableEntry = tableColumnsOnly.find(
     ([tableKey]) => tableKey === tableName,
   );
@@ -99,20 +98,18 @@ export default function CRColumnDetailsPage({
 
   const baseColumnDatum = baseDataColumns[columnName];
   const targetColumnDatum = targetDataColumns[columnName];
+  const fallbackColumnDatum = targetColumnDatum || baseColumnDatum;
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
 
-  //FIXME: LEGACY
   const { failed: baseFailed, total: baseTotal } =
-    getAssertionStatusCountsFromList([
-      baseDataTable?.piperider_assertion_result,
-      baseDataTable?.dbt_assertion_result,
-    ]);
+    getAssertionStatusCountsFromList(
+      assertionsOnly?.base?.filter((v) => v?.table === tableName) || [],
+    );
   const { failed: targetFailed, total: targetTotal } =
-    getAssertionStatusCountsFromList([
-      targetDataTable?.piperider_assertion_result,
-      targetDataTable?.dbt_assertion_result,
-    ]);
+    getAssertionStatusCountsFromList(
+      assertionsOnly?.target?.filter((v) => v?.table === tableName) || [],
+    );
 
   const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
     tableName,
@@ -164,7 +161,7 @@ export default function CRColumnDetailsPage({
                   </Grid>
                 </TabPanel>
                 <TabPanel>
-                  {baseTotal > 0 && (
+                  {Number(baseTotal) > 0 && (
                     <Flex mb={5}>
                       <TableListAssertionSummary
                         baseAssertionFailed={baseFailed}
@@ -177,7 +174,8 @@ export default function CRColumnDetailsPage({
                   <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
                     <AssertionListWidget
                       filterString={tableName}
-                      comparableAssertions={tableColumnAssertionsOnly}
+                      caseSensitiveFilter
+                      comparableAssertions={assertionsOnly}
                       tableSize={'sm'}
                     />
                   </Grid>
@@ -217,7 +215,7 @@ export default function CRColumnDetailsPage({
             <GridItem colSpan={2} rowSpan={2} p={9}>
               <TableColumnHeader
                 title={columnName}
-                subtitle={'Column'}
+                subtitle={fallbackColumnDatum?.schema_type}
                 mb={5}
                 borderBottom={borderVal}
                 icon={icon}

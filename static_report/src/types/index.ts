@@ -25,18 +25,6 @@ export interface ComparisonReportSchema {
 }
 
 export type ComparsionSource = 'base' | 'target';
-//FIXME: LEGACY
-export type AssertionSource = 'piperider' | 'dbt';
-
-//FIXME: LEGACY
-export type AssertionValue =
-  | TableSchema['piperider_assertion_result']
-  | TableSchema['dbt_assertion_result'];
-
-export type ReportAssertionStatusCounts = {
-  passed: string | number;
-  failed: string | number;
-};
 
 export type Selectable = {
   onSelect: ({
@@ -52,6 +40,13 @@ export type Comparable = {
   singleOnly?: boolean;
 };
 
+export type AssertionSource = 'piperider' | 'dbt';
+
+export type ReportAssertionStatusCounts = {
+  passed?: string | number;
+  failed?: string | number;
+  total?: string | number;
+};
 export interface ComparableData<T> {
   base?: T;
   target?: T;
@@ -59,7 +54,7 @@ export interface ComparableData<T> {
     added?: number;
     deleted?: number;
     changed?: number;
-  } & ComparableData<{ passed?: number; failed?: number; total?: number }>;
+  } & ComparableData<ReportAssertionStatusCounts>;
 }
 
 /**
