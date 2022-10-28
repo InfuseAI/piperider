@@ -132,7 +132,6 @@ def upload_to_cloud(report: RunOutput, debug=False) -> dict:
             'file_path': report.path
         }
 
-    # console.print(f'[[bold yellow]Skipped[/bold yellow]] Reason: {response.get("message")}')
     if debug:
         console.print(response)
     return {

@@ -2,7 +2,8 @@ import json
 import os
 
 import requests
-from rich import progress
+from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
+from rich.progress import Progress, TextColumn, BarColumn, DownloadColumn, TimeElapsedColumn
 from ruamel import yaml
 
 from piperider_cli import __version__
@@ -138,12 +139,38 @@ class PipeRiderCloud:
         if not self.available:
             self.raise_error()
 
-        with progress.open(file_path, 'rb',
-                           description=f'[bold magenta]{file_path}[/bold magenta]') as file:
+        upload_progress = None
+        task_id = None
+
+        def _upload_callback(monitor):
+            if show_progress and upload_progress:
+                upload_progress.update(task_id, completed=monitor.bytes_read)
+
+        with open(file_path, 'rb') as file:
+            encoder = MultipartEncoder(
+                fields={'file': ('run.json', file)},
+            )
+            m = MultipartEncoderMonitor(encoder, _upload_callback)
+
             url = self.service.url('/api/reports/upload')
-            response = requests.post(
-                url,
-                files={"file": ('run.json', file)}, headers=self.service.auth_headers())
+            headers = self.service.auth_headers()
+            headers['Content-Type'] = m.content_type
+
+            if show_progress:
+                upload_progress = Progress(
+                    TextColumn("[bold magenta]{task.description}[/bold magenta]"),
+                    BarColumn(bar_width=80),
+                    DownloadColumn(binary_units=True),
+                    TimeElapsedColumn(),
+                )
+                task_id = upload_progress.add_task(description=file_path, total=encoder.len)
+                upload_progress.start()
+
+            response = requests.post(url, data=m, headers=headers)
+
+            if show_progress:
+                upload_progress.stop()
+
             return response.json()
 
     def raise_error(self):
