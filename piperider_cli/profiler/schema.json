@@ -649,7 +649,7 @@
       }
     },
     "legacy_assertion_test": {
-      "title": "AssertionTest",
+      "title": "AssertionTest1",
       "type": "object",
       "required": [
         "name",

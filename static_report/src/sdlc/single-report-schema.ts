@@ -68,6 +68,10 @@ export interface TableSchema {
   columns: {
     [k: string]: ColumnSchema;
   };
+  piperider_assertion_result: null | PipeRiderAssertionResult;
+  dbt_assertion_result?: null | DbtAssertionResult;
+  profile_duration?: string;
+  elapsed_milli?: number;
 }
 /**
  * This interface was referenced by `undefined`'s JSON-Schema definition
@@ -295,16 +299,47 @@ export interface Topk {
   values: (string | number)[];
   counts: number[];
 }
+export interface PipeRiderAssertionResult {
+  tests: AssertionTest1[];
+  columns: {
+    /**
+     * This interface was referenced by `undefined`'s JSON-Schema definition
+     * via the `patternProperty` ".+".
+     */
+    [k: string]: AssertionTest1[];
+  };
+}
+export interface AssertionTest1 {
+  name: string;
+  status: 'passed' | 'failed';
+  parameters?: {
+    [k: string]: unknown;
+  };
+  tags?: string[];
+  expected?: unknown;
+  actual?: unknown;
+  [k: string]: unknown;
+}
+export interface DbtAssertionResult {
+  tests: AssertionTest1[];
+  columns: {
+    /**
+     * This interface was referenced by `undefined`'s JSON-Schema definition
+     * via the `patternProperty` ".+".
+     */
+    [k: string]: AssertionTest1[];
+  };
+}
 export interface AssertionTest {
   id: string;
   name: string;
-  metric: string | null;
+  metric?: string | null;
   table: string | null;
   column: string | null;
   tags: string[];
   status: 'passed' | 'failed';
-  expected: unknown;
-  actual: unknown;
+  expected?: unknown;
+  actual?: unknown;
   message: string | null;
   display_name: string;
   source: string;
