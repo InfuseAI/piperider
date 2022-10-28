@@ -11,7 +11,7 @@ export function QuantilesWidget({ columnDatum }: Props) {
   const { p50, max, min, p25, p75 } = columnDatum || {};
   if (columnDatum) {
     return (
-      <Box p={9} bg={'gray.50'} minWidth={'0px'}>
+      <Box bg={'gray.50'} minWidth={'0px'}>
         <Text fontSize={'xl'}>Quantile Data</Text>
         <Divider my={3} />
         <Box my={5}>
