@@ -30,7 +30,7 @@ class _NotFoundAssertion(BaseAssertionType):
     def name(self):
         return self.assertion_name
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    def execute(self, context: AssertionContext) -> AssertionResult:
         raise BaseException('this is not-found-assertion, cannot be used')
 
     def validate(self, context: AssertionContext) -> ValidationResult:

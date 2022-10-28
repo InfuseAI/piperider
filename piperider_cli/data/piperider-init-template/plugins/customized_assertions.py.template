@@ -6,7 +6,11 @@ class AssertNothingTableExample(BaseAssertionType):
     def name(self):
         return 'assert_nothing_table_example'
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    def execute(self, context: AssertionContext) -> AssertionResult:
+        table = context.table
+        column = context.column
+        metrics = context.profiler_result
+
         table_metrics = metrics.get('tables', {}).get(table)
         if table_metrics is None:
             # cannot find the table in the metrics
@@ -42,7 +46,11 @@ class AssertNothingColumnExample(BaseAssertionType):
     def name(self):
         return "assert_nothing_column_example"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    def execute(self, context: AssertionContext) -> AssertionResult:
+        table = context.table
+        column = context.column
+        metrics = context.profiler_result
+
         column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
         if column_metrics is None:
             # cannot find the column in the metrics

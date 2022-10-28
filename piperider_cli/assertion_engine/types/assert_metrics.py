@@ -13,7 +13,11 @@ class AssertMetric(BaseAssertionType):
     def name(self):
         return ''
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
+    def execute(self, context: AssertionContext):
+        table = context.table
+        column = context.column
+        metrics = context.profiler_result
+
         target_metrics = metrics.get('tables', {}).get(table)
         if column:
             target_metrics = target_metrics.get('columns', {}).get(column)

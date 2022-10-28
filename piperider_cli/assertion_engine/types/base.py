@@ -14,7 +14,7 @@ class BaseAssertionType(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    def execute(self, context: AssertionContext) -> AssertionResult:
         pass
 
     @abc.abstractmethod

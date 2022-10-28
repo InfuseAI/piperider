@@ -98,6 +98,7 @@ def recommended_column_value_assertion(table, column, profiling_result) -> Optio
 
     column_metric = profiling_result['tables'][table]['columns'][column]
     column_type = column_metric['type']
+    assert_name = 'assert_column_value'
     if column_type == 'numeric':
         valids = column_metric['valids']
         if not valids:
@@ -116,15 +117,27 @@ def recommended_column_value_assertion(table, column, profiling_result) -> Optio
         count_first_half = sum(histogram_counts[0:len(histogram_counts) // 2])
         count_second_half = sum(histogram_counts[math.ceil(len(histogram_counts) / 2):])
 
-        assert_name = 'assert_column_value'
         if count_first_half / valids > 0.95:
+            boundary = column_max * 1.1 if column_max > 0 else column_max * 0.9
             assertion_values = {
-                'lte': round(column_max * 1.1, 4)
+                'lte': round(boundary, 4)
             }
             return RecommendedAssertion(assert_name, None, assertion_values)
         elif count_second_half / valids > 0.95:
+            boundary = column_min * 0.9 if column_min > 0 else column_min * 1.1
             assertion_values = {
-                'gte': round(column_min * 0.9, 4)
+                'gte': round(boundary, 4)
+            }
+            return RecommendedAssertion(assert_name, None, assertion_values)
+    elif column_type == 'string':
+        distinct = column_metric.get('distinct')
+        topk = []
+        if column_metric.get('topk'):
+            topk = column_metric.get('topk').get('values', [])
+
+        if distinct and distinct <= 50 and topk:
+            assertion_values = {
+                'in': topk
             }
             return RecommendedAssertion(assert_name, None, assertion_values)
     else:

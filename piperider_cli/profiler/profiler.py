@@ -564,7 +564,6 @@ class StringColumnProfiler(BaseColumnProfiler):
                 func.count(cte.c.c).label("_valids"),
                 func.count(cte.c.zero_length).label("_zero_length"),
                 func.count(distinct(cte.c.c)).label("_distinct"),
-                func.sum(func.cast(cte.c.len, Float)).label("_sum"),
                 func.avg(cte.c.len).label("_avg"),
                 func.min(cte.c.len).label("_min"),
                 func.max(cte.c.len).label("_max"),
@@ -576,7 +575,7 @@ class StringColumnProfiler(BaseColumnProfiler):
                     cte.c.len)) / ((func.count(cte.c.len) - 1) * func.count(cte.c.len)).label('_variance'))
                 stmt = select(columns)
                 result = conn.execute(stmt).fetchone()
-                _total, _non_nulls, _valids, _zero_length, _distinct, _sum, _avg, _min, _max, _variance = result
+                _total, _non_nulls, _valids, _zero_length, _distinct, _avg, _min, _max, _variance = result
                 _stddev = None
                 if _variance is not None:
                     _stddev = math.sqrt(_variance)
@@ -584,12 +583,11 @@ class StringColumnProfiler(BaseColumnProfiler):
                 columns.append(func.stddev(cte.c.len).label("_stddev"))
                 stmt = select(columns)
                 result = conn.execute(stmt).fetchone()
-                _total, _non_nulls, _valids, _zero_length, _distinct, _sum, _avg, _min, _max, _stddev = result
+                _total, _non_nulls, _valids, _zero_length, _distinct, _avg, _min, _max, _stddev = result
 
             _nulls = _total - _non_nulls
             _invalids = _non_nulls - _valids
             _non_zero_length = _valids - _zero_length
-            _sum = dtof(_sum)
             _min = dtof(_min)
             _max = dtof(_max)
             _avg = dtof(_avg)
@@ -618,7 +616,6 @@ class StringColumnProfiler(BaseColumnProfiler):
                 'min_length': _min,
                 'max': _max,
                 'max_length': _max,
-                'sum': _sum,
                 'avg': _avg,
                 'avg_length': _avg,
                 'stddev': _stddev,

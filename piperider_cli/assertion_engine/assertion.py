@@ -8,7 +8,10 @@ from typing import List, Dict
 from deepmerge import always_merger
 from ruamel import yaml
 from ruamel.yaml.comments import CommentedMap
+from sqlalchemy import inspect
+from sqlalchemy.engine import Engine
 
+from .event import AssertionEventHandler, DefaultAssertionEventHandler
 from .recommender import AssertionRecommender
 from .recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.error import \
@@ -349,7 +352,7 @@ class AssertionResult:
 
 
 class AssertionContext:
-    def __init__(self, table_name: str, column_name: str, payload: dict):
+    def __init__(self, table_name: str, column_name: str, payload: dict, profiler_result=None, engine=None):
         self.name: str = payload.get('name')
         self.metric: str = payload.get('metric')
         self.table: str = table_name
@@ -357,6 +360,8 @@ class AssertionContext:
         self.asserts: dict = {}
         self.tags: list = []
         self.is_builtin = False
+        self.profiler_result = profiler_result
+        self.engine = engine
 
         # result
         self.result: AssertionResult = AssertionResult()
@@ -419,12 +424,14 @@ class AssertionEngine:
     PIPERIDER_ASSERTION_PLUGIN_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'plugins')
     PIPERIDER_ASSERTION_SUPPORT_METRICS = ['distribution', 'range', 'missing_value']
 
-    def __init__(self, profiler, assertion_search_path=PIPERIDER_ASSERTION_SEARCH_PATH):
-        self.profiler = profiler
+    def __init__(self, engine: Engine, assertion_search_path=PIPERIDER_ASSERTION_SEARCH_PATH,
+                 event_handler: AssertionEventHandler = DefaultAssertionEventHandler()):
+        self.engine = engine
         self.assertion_search_path = assertion_search_path
         self.assertions_content: Dict = {}
         self.assertions: List[AssertionContext] = []
         self.recommender: AssertionRecommender = AssertionRecommender()
+        self.event_handler: AssertionEventHandler = event_handler
 
         self.default_plugins_dir = AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH
         if not os.path.isdir(self.default_plugins_dir):
@@ -439,7 +446,7 @@ class AssertionEngine:
         """
         return load_yaml_configs(assertion_search_path)
 
-    def load_assertions(self, profiling_result=None, config_path=PIPERIDER_CONFIG_PATH):
+    def load_assertions(self, profiler_result=None, config_path=PIPERIDER_CONFIG_PATH):
         """
         This method is used to load assertions from the specific path.
         :param assertion_search_path:
@@ -452,11 +459,11 @@ class AssertionEngine:
         self.assertions = []
         self.load_assertion_content(config_path)
 
-        # Load assertio
-        if profiling_result:
-            selected_tables = profiling_result.get('tables').keys()
+        # Load assertion context
+        if profiler_result:
+            selected_tables = profiler_result.get('tables').keys()
         else:
-            selected_tables = list(self.profiler.metadata.tables)
+            selected_tables = inspect(self.engine).get_table_names()
         for t in self.assertions_content:
             # only append specified table's assertions
             if t in selected_tables:
@@ -465,7 +472,7 @@ class AssertionEngine:
                 table_assertions = self.assertions_content[t].get('tests') \
                     if self.assertions_content[t].get('tests') else []
                 for ta in table_assertions:
-                    self.assertions.append(AssertionContext(t, None, ta))
+                    self.assertions.append(AssertionContext(t, None, ta, profiler_result, self.engine))
 
                 columns_content = self.assertions_content[t].get('columns') \
                     if self.assertions_content[t].get('columns') else {}
@@ -474,7 +481,7 @@ class AssertionEngine:
                         continue
                     column_assertions = columns_content[c].get('tests') if columns_content[c].get('tests') else []
                     for ca in column_assertions:
-                        self.assertions.append(AssertionContext(t, c, ca))
+                        self.assertions.append(AssertionContext(t, c, ca, profiler_result, self.engine))
 
     def load_all_assertions_for_validation(self) -> (List[str], List[str]):
         passed_assertion_files, failed_assertion_files = self.load_assertion_content()
@@ -514,7 +521,7 @@ class AssertionEngine:
     def generate_recommended_assertions(self, profiling_result, assertion_exist=False):
         # Load existing assertions
         if not self.assertions_content:
-            self.load_assertions(profiling_result=profiling_result)
+            self.load_assertions(profiler_result=profiling_result)
 
         # Generate recommended assertions based on the profiling result
         self.recommender.prepare_assertion_template(profiling_result)
@@ -620,7 +627,7 @@ class AssertionEngine:
                 paths.append(file_path)
         return paths
 
-    def evaluate(self, assertion: AssertionContext, metrics_result):
+    def evaluate(self, assertion: AssertionContext):
         """
         This method is used to evaluate the assertion.
         :param assertion:
@@ -644,7 +651,7 @@ class AssertionEngine:
             assertion_instance = get_assertion(assertion.name, assertion.metric)
 
             try:
-                result = assertion_instance.execute(assertion, assertion.table, assertion.column, metrics_result)
+                result = assertion_instance.execute(assertion)
                 assertion.is_builtin = assertion_instance.__class__.__module__.startswith(get_assertion.__module__)
                 result.validate()
             except Exception as e:
@@ -654,24 +661,28 @@ class AssertionEngine:
             assertion.result.fail_with_exception(AssertionError(f'Cannot find the assertion: {assertion.name}', e))
             return assertion
 
-    def evaluate_all(self, metrics_result):
+    def evaluate_all(self):
         results = []
         exceptions = []
 
+        self.event_handler.handle_assertion_start(self.assertions)
         self.load_plugins()
         for assertion in self.assertions:
             try:
-                assertion_result: AssertionContext = self.evaluate(assertion, metrics_result)
+                self.event_handler.handle_execution_start(assertion)
+                assertion_result: AssertionContext = self.evaluate(assertion)
                 results.append(assertion_result)
 
                 if assertion_result.result.get_internal_error():
                     raise assertion_result.result.get_internal_error()
+                self.event_handler.handle_execution_end(assertion_result)
             except AssertionError as e:
                 exceptions.append((assertion, e))
             except IllegalStateAssertionError as e:
                 exceptions.append((assertion, e))
             except BaseException as e:
                 exceptions.append((assertion, e))
+        self.event_handler.handle_assertion_end(results, exceptions)
         return results, exceptions
 
     def validate_assertions(self):

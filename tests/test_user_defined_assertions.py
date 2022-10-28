@@ -1,4 +1,3 @@
-import json
 import os
 import shutil
 import tempfile
@@ -7,8 +6,7 @@ from unittest import TestCase
 
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer
 
-from piperider_cli.assertion_engine import AssertionContext, AssertionResult, AssertionEngine
-from piperider_cli.profiler import Profiler
+from piperider_cli.assertion_engine import AssertionEngine
 
 
 def prepare_project_structure():
@@ -40,13 +38,11 @@ def build_assertion_engine(project_dir, table, assertions):
         fh.write(assertions)
 
     db_engine = create_engine('sqlite://')
-    profiler = Profiler(db_engine)
-    profiler.metadata = MetaData()
-    Table(table, profiler.metadata, Column('misc', Integer))
-    profiler.metadata.create_all(db_engine)
-    profiler.profile([table])
+    metadata = MetaData()
+    Table(table, metadata, Column('misc', Integer))
+    metadata.create_all(db_engine)
 
-    engine = AssertionEngine(profiler, project_dir)
+    engine = AssertionEngine(db_engine, project_dir)
     engine.load_assertions(config_path=None)
     return engine
 
@@ -81,7 +77,7 @@ class UserDefinedTestAssertionsTests(TestCase):
         engine = build_assertion_engine(self.project_dir, 'foobarbar', assertions)
 
         # invoke customized assertion
-        results, exceptions = engine.evaluate_all({})
+        results, exceptions = engine.evaluate_all()
 
         # check no exceptions
         self.assertEqual([], exceptions)
@@ -114,7 +110,7 @@ class UserDefinedTestAssertionsTests(TestCase):
         engine = build_assertion_engine(self.project_dir, 'foobarbar', assertions)
 
         # invoke customized assertion
-        results, exceptions = engine.evaluate_all({})
+        results, exceptions = engine.evaluate_all()
         self.assertEqual([], exceptions)
 
         assertion_result = results[0].result

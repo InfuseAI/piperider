@@ -6,7 +6,7 @@ class UserDefinedTests(BaseAssertionType):
     def name(self):
         return 'user-defined-test-test'
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+    def execute(self, context: AssertionContext) -> AssertionResult:
         context.result.actual = 'I see you'
         context.result._expected = dict(magic_number=5566)
         return context.result.success()

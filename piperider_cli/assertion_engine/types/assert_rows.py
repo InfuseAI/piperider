@@ -8,8 +8,8 @@ class AssertRowCountInRange(BaseAssertionType):
     def name(self):
         return "assert_row_count_in_range"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
-        return assert_row_count_in_range(context, table, column, metrics)
+    def execute(self, context: AssertionContext):
+        return assert_row_count_in_range(context)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         return ValidationResult(context).require('count').require_int_pair('count')
@@ -19,8 +19,8 @@ class AssertRowCount(BaseAssertionType):
     def name(self):
         return "assert_row_count"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
-        return assert_row_count(context, table, column, metrics)
+    def execute(self, context: AssertionContext):
+        return assert_row_count(context)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         results = ValidationResult(context) \
@@ -38,10 +38,14 @@ class AssertRowCount(BaseAssertionType):
         return results
 
 
-def assert_row_count(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+def assert_row_count(context: AssertionContext) -> AssertionResult:
+    table = context.table
+    column = context.column
+    metrics = context.profiler_result
+
     table_metrics = metrics.get('tables', {}).get(table)
     if not table_metrics:
-        return context.result.fail_with_metric_not_found_error(context.table, context.column)
+        return context.result.fail_with_metric_not_found_error(table, column)
 
     # Get the metric for the current table
     row_count = table_metrics.get('row_count')
@@ -72,10 +76,14 @@ def assert_row_count(context: AssertionContext, table: str, column: str, metrics
     return context.result.fail()
 
 
-def assert_row_count_in_range(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+def assert_row_count_in_range(context: AssertionContext) -> AssertionResult:
+    table = context.table
+    column = context.column
+    metrics = context.profiler_result
+
     table_metrics = metrics.get('tables', {}).get(table)
     if not table_metrics:
-        return context.result.fail_with_metric_not_found_error(context.table, context.column)
+        return context.result.fail_with_metric_not_found_error(table, column)
 
     # Get the metric for the current table
     row_count = table_metrics.get('row_count')

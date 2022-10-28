@@ -9,8 +9,8 @@ class AssertColumnSchemaType(BaseAssertionType):
     def name(self):
         return "assert_column_schema_type"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
-        return assert_column_schema_type(context, table, column, metrics)
+    def execute(self, context: AssertionContext):
+        return assert_column_schema_type(context)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         # type list: https://docs.sqlalchemy.org/en/14/core/type_basics.html#sql-standard-and-multiple-vendor-types
@@ -21,8 +21,8 @@ class AssertColumnType(BaseAssertionType):
     def name(self):
         return "assert_column_type"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
-        return assert_column_type(context, table, column, metrics)
+    def execute(self, context: AssertionContext):
+        return assert_column_type(context)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         result = ValidationResult(context).require('type', str)
@@ -39,8 +39,8 @@ class AssertColumnInTypes(BaseAssertionType):
     def name(self):
         return "assert_column_in_types"
 
-    def execute(self, context: AssertionContext, table: str, column: str, metrics: dict):
-        return assert_column_in_types(context, table, column, metrics)
+    def execute(self, context: AssertionContext):
+        return assert_column_in_types(context)
 
     def validate(self, context: AssertionContext) -> ValidationResult:
         result = ValidationResult(context).require('types', list)
@@ -54,7 +54,11 @@ class AssertColumnInTypes(BaseAssertionType):
         return result
 
 
-def assert_column_schema_type(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+def assert_column_schema_type(context: AssertionContext) -> AssertionResult:
+    table = context.table
+    column = context.column
+    metrics = context.profiler_result
+
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
         return context.result.fail_with_metric_not_found_error(context.table, context.column)
@@ -74,7 +78,11 @@ def assert_column_schema_type(context: AssertionContext, table: str, column: str
     return context.result.fail()
 
 
-def assert_column_type(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+def assert_column_type(context: AssertionContext) -> AssertionResult:
+    table = context.table
+    column = context.column
+    metrics = context.profiler_result
+
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
         return context.result.fail_with_metric_not_found_error(context.table, context.column)
@@ -99,7 +107,11 @@ def assert_column_type(context: AssertionContext, table: str, column: str, metri
     return context.result.fail()
 
 
-def assert_column_in_types(context: AssertionContext, table: str, column: str, metrics: dict) -> AssertionResult:
+def assert_column_in_types(context: AssertionContext) -> AssertionResult:
+    table = context.table
+    column = context.column
+    metrics = context.profiler_result
+
     column_metrics = metrics.get('tables', {}).get(table, {}).get('columns', {}).get(column)
     if not column_metrics:
         return context.result.fail_with_metric_not_found_error(context.table, context.column)
