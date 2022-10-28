@@ -37,7 +37,9 @@ your_table_name:
 
 ## assert_column_value
 
-- Description: Assert the column value should be in the range.
+- Description: The column value should pass the given assertion.
+
+### range
 - Assert:
     - `gte`:  the value should be greater than or equal to
     - `gt`:  the value should be greater than
@@ -69,6 +71,24 @@ world_city:
       - name: assert_column_value
         assert:
           gte: '2022-01-01;
+```
+</details>
+
+### set
+- Assert:
+    - `in`:  the value should one element of the given set
+
+<details>
+  <summary>YAML Example: The value should be one of following values ['US', 'Japan', 'India'] </summary>
+
+```
+world_city:
+  columns:
+    country:
+      tests:
+      - name: assert_column_value
+        assert:
+            in: ['US', 'Japan', 'India']
 ```
 </details>
 
