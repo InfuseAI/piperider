@@ -42,6 +42,7 @@ setup(name='piperider',
           'jinja2',
           'portalocker',
           'requests>=2.28.1',
+          'requests_toolbelt>=0.9.1',
           'deepmerge',
       ],
       extras_require={
