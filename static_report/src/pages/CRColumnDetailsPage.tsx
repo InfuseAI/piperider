@@ -148,9 +148,9 @@ export default function CRColumnDetailsPage({
                 <TabPanel>
                   <ComparableGridHeader />
                   <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
-                    <TableOverview tableDatum={baseDataTable} />
+                    <TableOverview tableDatum={baseDataTable} w={'20em'} />
                     <Divider orientation="vertical" />
-                    <TableOverview tableDatum={targetDataTable} />
+                    <TableOverview tableDatum={targetDataTable} w={'20em'} />
                     <TableDescription
                       description={baseDataTable?.description}
                     />
