@@ -14,7 +14,7 @@ export function DupedTableRowsWidget({ tableDatum, hasAnimation }: Props) {
   const animationOptions = hasAnimation ? {} : false;
 
   return (
-    <Box mb={6}>
+    <Box mb={6} w={'100%'}>
       <Text fontSize={'xl'}>Duplicate Rows</Text>
       <Divider my={3} />
       {dataCompInput ? (
@@ -26,7 +26,7 @@ export function DupedTableRowsWidget({ tableDatum, hasAnimation }: Props) {
             />
           </Box>
           <Box mt={6}>
-            <DupedTableRowStats tableDatum={tableDatum} width={'100%'} />
+            <DupedTableRowStats tableDatum={tableDatum} />
           </Box>
         </>
       ) : (
