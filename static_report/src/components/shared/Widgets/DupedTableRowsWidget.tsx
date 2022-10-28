@@ -14,12 +14,12 @@ export function DupedTableRowsWidget({ tableDatum, hasAnimation }: Props) {
   const animationOptions = hasAnimation ? {} : false;
 
   return (
-    <Box mb={6}>
+    <Box mb={6} w={'100%'}>
       <Text fontSize={'xl'}>Duplicate Rows</Text>
       <Divider my={3} />
       {dataCompInput ? (
         <>
-          <Box height={'55px'} w={'400px'}>
+          <Box height={'55px'}>
             <FlatStackedBarChart
               data={dataCompInput}
               animation={animationOptions}

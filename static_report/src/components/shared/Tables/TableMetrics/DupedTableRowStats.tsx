@@ -28,6 +28,7 @@ export function DupedTableRowStats({ tableDatum, ...props }: Props & BoxProps) {
             firstSlot={firstSlot}
             secondSlot={secondSlot}
             tooltipValues={tooltipValues}
+            width={'100%'}
             {...props}
           />
         ),
