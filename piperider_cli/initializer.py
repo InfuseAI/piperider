@@ -195,6 +195,7 @@ class Initializer():
             return
 
         config.delete_datasource(answers['datasource'])
+        config.flush_datasource(PIPERIDER_CONFIG_PATH)
         console.rule('Datasource deleted')
 
     @staticmethod
@@ -207,7 +208,7 @@ class Initializer():
         config.dataSources.append(ds)
         if _ask_user_update_credentials(ds):
             _generate_piperider_workspace()
-            config.dump(PIPERIDER_CONFIG_PATH)
+            config.flush_datasource(PIPERIDER_CONFIG_PATH)
             config.dump_credentials(PIPERIDER_CREDENTIALS_PATH, after_init_config=True)
             console.rule('Datasource added')
         else:

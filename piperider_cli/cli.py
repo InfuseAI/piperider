@@ -11,7 +11,7 @@ from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
-from piperider_cli.event import UserProfileConnector
+from piperider_cli.event import UserProfileConfigurator
 from piperider_cli.event.track import TrackCommand, BetaGroup
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.feedback import Feedback
@@ -233,7 +233,7 @@ def compare_reports(**kwargs):
                        debug=kwargs.get('debug', False))
 
 
-@cli.group('config', help='Manage the Pipeline configurations.', cls=BetaGroup)
+@cli.group('config', help='Manage the PipeRider configurations.', cls=BetaGroup)
 def config(**kwargs):
     pass
 
@@ -280,12 +280,12 @@ def disable_auto_upload(**kwargs):
 
 @config.command(name='enable-user-tracking', short_help='Enable user tracking.', cls=TrackCommand, beta=True)
 def enable_user_tracking(**kwargs):
-    UserProfileConnector.update('anonymous_tracking', True, name='user tracking')
+    UserProfileConfigurator.update('anonymous_tracking', True, name='user tracking')
 
 
 @config.command(name='disable-user-tracking', short_help='Disable user tracking.', cls=TrackCommand, beta=True)
 def disable_user_tracking(**kwargs):
-    UserProfileConnector.update('anonymous_tracking', False, name='user tracking')
+    UserProfileConfigurator.update('anonymous_tracking', False, name='user tracking')
 
 
 @cli.group('cloud', short_help='Manage PipeRider Cloud')

@@ -134,3 +134,23 @@ def raise_exception_when_directory_not_writable(output):
     if output:
         if not ensure_directory_writable(output):
             raise Exception(f'The path "{output}" is not writable')
+
+
+def safe_load_yaml(file_path):
+    with open(file_path, 'r') as f:
+        try:
+            payload = yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            print(e)
+            return None
+    return payload
+
+
+def round_trip_load_yaml(file_path):
+    with open(file_path, 'r') as f:
+        try:
+            payload = yaml.round_trip_load(f)
+        except yaml.YAMLError as e:
+            print(e)
+            return None
+    return payload

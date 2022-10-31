@@ -1,12 +1,12 @@
-import errno
 import os
 import uuid
 from typing import List
 
 import inquirer
 from ruamel import yaml
-from ruamel.yaml import CommentedMap
+from ruamel.yaml import CommentedMap, CommentedSeq
 
+from piperider_cli import round_trip_load_yaml, safe_load_yaml
 from piperider_cli.datasource import DATASOURCE_PROVIDERS, DataSource
 from piperider_cli.error import \
     PipeRiderConfigError, \
@@ -35,7 +35,7 @@ class Configuration(object):
 
     def __init__(self, dataSources: List[DataSource], **kwargs):
         self.dataSources: List[DataSource] = dataSources
-        self.profiler_config = kwargs.get('profiler', {})
+        self.profiler_config = kwargs.get('profiler', {}) or {}
         self.includes = kwargs.get('includes', None)
         self.excludes = kwargs.get('excludes', None)
         self.tables = kwargs.get('tables', {})
@@ -137,13 +137,9 @@ class Configuration(object):
         """
         credentials = None
 
-        try:
-            with open(piperider_config_path, 'r') as fd:
-                config = yaml.safe_load(fd)
-                if config is None:
-                    raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), piperider_config_path)
-        except FileNotFoundError as e:
-            raise PipeRiderConfigError(e.filename)
+        config = safe_load_yaml(piperider_config_path)
+        if config is None:
+            raise PipeRiderConfigError(piperider_config_path)
 
         data_sources: List[DataSource] = []
         ds_basic_config = ['name', 'type', 'dbt']
@@ -195,6 +191,54 @@ class Configuration(object):
             report_dir=config.get('report_dir', '.')
         )
 
+    def flush_datasource(self, path):
+        """
+        flush the configuration to the file
+
+        :param path:
+        :return:
+        """
+
+        config = round_trip_load_yaml(path)
+        if config is None:
+            raise PipeRiderConfigError(path)
+
+        def _get_exist_datasource(d, config):
+            for ds in config.get('dataSources', []):
+                if ds.get('name') == d.name:
+                    return ds
+            return None
+
+        def _generate_datasource_config(d):
+            datasource = dict(name=d.name, type=d.type_name)
+            if d.args.get('dbt'):
+                # dbt project
+                datasource['dbt'] = d.args.get('dbt')
+            else:
+                # non-dbt project
+                if d.credential_source == 'config':
+                    datasource.update(**d.credential)
+            return CommentedMap(datasource)
+
+        flush_data_sources = CommentedSeq()
+
+        for ds in self.dataSources:
+            exist_ds = _get_exist_datasource(ds, config)
+            if exist_ds:
+                flush_data_sources.append(exist_ds)
+            else:
+                new_ds = _generate_datasource_config(ds)
+                flush_data_sources.append(new_ds)
+        config['dataSources'] = flush_data_sources
+
+        if config['dataSources'][-1].ca.items == {}:
+            # Only append a new line if the last datasource has no comment
+            config.yaml_set_comment_before_after_key('profiler', before='\n')
+
+        with open(path, 'w') as fd:
+            yaml.YAML().dump(config, fd)
+        pass
+
     def dump(self, path):
         """
         dump the configuration to the given path
@@ -207,6 +251,7 @@ class Configuration(object):
 
         config = dict(
             dataSources=[],
+            profiler=None,
             telemetry=dict(id=self.telemetry_id)
         )
 
@@ -222,9 +267,7 @@ class Configuration(object):
 
             config['dataSources'].append(datasource)
 
-        template = '''
-profiler:
-  table:
+        template = '''  table:
     # the maximum row count to profile. (Default unlimited)
     limit: 1000000
     duplicateRows: false
@@ -244,6 +287,7 @@ tables:
 '''
 
         config_yaml = CommentedMap(config)
+        config_yaml.yaml_set_comment_before_after_key('profiler', before='\n')
         config_yaml.yaml_set_comment_before_after_key('telemetry', before=template)
 
         with open(path, 'w') as fd:
@@ -288,7 +332,6 @@ tables:
     def delete_datasource(self, datasource):
         if datasource in self.dataSources:
             self.dataSources.remove(datasource)
-            self.dump(PIPERIDER_CONFIG_PATH)
 
 
 def _load_dbt_profile(path):
