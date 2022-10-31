@@ -225,7 +225,7 @@ class CloudConnector():
         ascii_table.add_column('Status', justify='left', style='cyan')
         ascii_table.add_column('Name', justify='left')
         ascii_table.add_column('Created At', justify='left')
-        ascii_table.add_column('Report URL', justify='left')
+        ascii_table.add_column('Report URL', justify='left', no_wrap=True)
         ascii_table.add_column('Message', justify='left')
 
         for response in results:
