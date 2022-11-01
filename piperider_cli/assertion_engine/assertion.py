@@ -398,20 +398,26 @@ class AssertionContext:
         return None
 
     def to_result_entry(self):
-        return dict(
-            id=self._get_assertion_id(),
-            name=self.result.name,
-            metric=self.metric,
-            table=self.table,
-            column=self.column,
-            status='passed' if self.result._success is True else 'failed',
-            expected=self.result.expected,
-            actual=self.result.actual,
-            tags=self.tags,
-            message=self._get_assertion_message(),
-            display_name=self.result.name,
-            source='piperider'
+        entry = dict(id=self._get_assertion_id())
+        if self.metric:
+            entry['metric'] = self.metric
+        else:
+            entry['name'] = self.name
+        entry.update(
+            dict(
+                table=self.table,
+                column=self.column,
+                status='passed' if self.result._success is True else 'failed',
+                expected=self.result.expected,
+                actual=self.result.actual,
+                tags=self.tags,
+                message=self._get_assertion_message(),
+                display_name=self.result.name,
+                source='piperider'
+            )
         )
+
+        return entry
 
 
 class AssertionEngine:
