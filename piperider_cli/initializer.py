@@ -203,7 +203,7 @@ class Initializer():
         console = Console()
         config = Configuration.load()
         console.rule('Add datasource')
-        cls, name = DataSource.ask()
+        cls, name = DataSource.ask(exist_datasource=[ds.name for ds in config.dataSources])
         ds: DataSource = cls(name=name)
         config.dataSources.append(ds)
         if _ask_user_update_credentials(ds):
