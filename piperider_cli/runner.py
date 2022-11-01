@@ -611,10 +611,9 @@ class Runner():
         if dbt_config and not dbt_adapter.is_ready():
             raise dbt_adapter.get_error()
 
-        tables, err_msg = _get_table_list(table, default_schema, dbt_adapter)
-        if err_msg:
-            console.print(f'[bold red]Error:[/bold red] {err_msg}')
-            return 1
+        tables = None
+        if table:
+            tables = [table]
 
         dbt_test_results = None
         dbt_test_results_compatible = None

@@ -220,13 +220,14 @@ class DbtAdapter:
                 schema, name = default_schema, table
 
             for resource in self.resources:
-                if resource.get('name') != name:
+                dbt_resource_name = resource.get('name', '')
+                if dbt_resource_name.upper() != name.upper():
                     continue
                 if resource['resource_type'] == 'model':
                     select = name
                     break
-                if resource['resource_type'] == 'source' and resource['source_name'] == schema:
-                    select = f'source:{schema}.{name}'
+                if resource['resource_type'] == 'source':
+                    select = f"source:{resource['source_name']}.{dbt_resource_name}"
                     break
             full_cmd_arr.append('-s')
             full_cmd_arr.append(select)
