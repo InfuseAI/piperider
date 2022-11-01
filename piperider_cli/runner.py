@@ -611,7 +611,9 @@ class Runner():
         if dbt_config and not dbt_adapter.is_ready():
             raise dbt_adapter.get_error()
 
-        tables = [table] if table else available_tables
+        tables = None
+        if table:
+            tables = [table]
 
         dbt_test_results = None
         dbt_test_results_compatible = None
@@ -630,7 +632,7 @@ class Runner():
             configuration.excludes = None
 
         run_result = {}
-        profiler = Profiler(engine, RichProfilerEventHandler(tables), configuration)
+        profiler = Profiler(engine, RichProfilerEventHandler(tables if tables else available_tables), configuration)
         try:
             profiler_result = profiler.profile(tables)
             run_result.update(profiler_result)
