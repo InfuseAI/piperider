@@ -195,8 +195,8 @@ class DataSource(metaclass=ABCMeta):
         questions = [
             inquirer.Text('datasource_name',
                           message='What is your data source name? (alphanumeric and underscore are allowed)',
-                          validate=lambda ans, x: re.match(DATASOURCE_NAME_REGEX, x) is not None
-                                                  and x not in exist_datasource),
+                          validate=lambda ans, x: re.match(DATASOURCE_NAME_REGEX,
+                                                           x) is not None and x not in exist_datasource),
             inquirer.List('type',
                           message='Which data source would you like to connect to?',
                           choices=source_choices,
