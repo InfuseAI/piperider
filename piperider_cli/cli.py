@@ -288,13 +288,13 @@ def disable_user_tracking(**kwargs):
     UserProfileConfigurator.update('anonymous_tracking', False, name='user tracking')
 
 
-@cli.group('cloud', short_help='Manage PipeRider Cloud')
+@cli.group('cloud', short_help='Manage PipeRider Cloud', cls=BetaGroup)
 def cloud(**kwargs):
     # Manage PipeRider Cloud.
     pass
 
 
-@cloud.command(short_help='Upload a report to the PipeRider Cloud.', cls=TrackCommand)
+@cloud.command(short_help='Upload a report to the PipeRider Cloud.', cls=TrackCommand, beta=True)
 @click.option('--run', type=click.Path(exists=True), help='Specify the raw result file.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
@@ -312,7 +312,7 @@ def upload_report(**kwargs):
     return ret
 
 
-@cloud.command(short_help='Login to PipeRider Cloud.', cls=TrackCommand)
+@cloud.command(short_help='Login to PipeRider Cloud.', cls=TrackCommand, beta=True)
 @click.option('--token', default=None, type=click.STRING, help='Specify the API token.')
 @click.option('--enable-auto-upload', default=None, is_flag=True, help='Enable auto upload.')
 @click.option('--disable-auto-upload', default=None, is_flag=True, help='Disable auto upload.')
@@ -331,7 +331,7 @@ def login(**kwargs):
     return ret
 
 
-@cloud.command(short_help='Logout from PipeRider Cloud.', cls=TrackCommand)
+@cloud.command(short_help='Logout from PipeRider Cloud.', cls=TrackCommand, beta=True)
 @add_options(debug_option)
 def logout(**kwargs):
     ret = CloudConnector.logout()
