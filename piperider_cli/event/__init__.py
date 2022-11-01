@@ -1,6 +1,8 @@
 import os
 import uuid
+from typing import Union
 
+from rich.console import Console
 from ruamel import yaml
 
 from piperider_cli.configuration import Configuration
@@ -127,3 +129,12 @@ def log_event(prop, event_type, **kwargs):
         **prop,
     )
     _collector.log_event(payload, event_type)
+
+
+class UserProfileConfigurator(object):
+    @staticmethod
+    def update(key: str, val: Union[str, bool], name: str = None):
+        console = Console()
+        display_name = name or key.replace('_', ' ').title()
+        console.print(f'[[bold green]Config[/bold green]] Default {display_name} behavior is set to {val}')
+        update_user_profile({key: val})

@@ -142,21 +142,23 @@ class DataSource(metaclass=ABCMeta):
         return self.credential
 
     @staticmethod
-    def ask():
+    def ask(exist_datasource: List[str] = None):
         if FANCY_USER_INPUT:
-            return DataSource.ask_by_inquirer()
+            return DataSource.ask_by_inquirer(exist_datasource=exist_datasource)
         else:
-            return DataSource.ask_by_rich()
+            return DataSource.ask_by_rich(exist_datasource=exist_datasource)
 
     @staticmethod
-    def ask_by_rich():
+    def ask_by_rich(exist_datasource: List[str] = None):
+        if exist_datasource is None:
+            exist_datasource = []
         console = Console()
         source_choices = [(k, v) for k, v in DATASOURCE_PROVIDERS.items()]
 
         while True:
             datasource_name = Prompt.ask(
                 "[[yellow]?[/yellow]] What is your data source name? (alphanumeric and underscore are allowed)")
-            if re.match(DATASOURCE_NAME_REGEX, datasource_name):
+            if re.match(DATASOURCE_NAME_REGEX, datasource_name) and datasource_name not in exist_datasource:
                 break
             else:
                 console.print('    [[red]Error[/red]] Input is not a valid datasource name. Please try again.')
@@ -181,7 +183,9 @@ class DataSource(metaclass=ABCMeta):
         return cls, name
 
     @staticmethod
-    def ask_by_inquirer():
+    def ask_by_inquirer(exist_datasource: List[str] = None):
+        if exist_datasource is None:
+            exist_datasource = []
         source_choices = [(k, v) for k, v in DATASOURCE_PROVIDERS.items()]
 
         if sys.platform == "darwin" or sys.platform == "linux":
@@ -191,7 +195,8 @@ class DataSource(metaclass=ABCMeta):
         questions = [
             inquirer.Text('datasource_name',
                           message='What is your data source name? (alphanumeric and underscore are allowed)',
-                          validate=lambda ans, x: re.match(DATASOURCE_NAME_REGEX, x) is not None),
+                          validate=lambda ans, x: re.match(DATASOURCE_NAME_REGEX,
+                                                           x) is not None and x not in exist_datasource),
             inquirer.List('type',
                           message='Which data source would you like to connect to?',
                           choices=source_choices,

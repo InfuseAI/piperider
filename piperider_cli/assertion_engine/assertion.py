@@ -11,33 +11,13 @@ from ruamel.yaml.comments import CommentedMap
 from sqlalchemy import inspect
 from sqlalchemy.engine import Engine
 
-from .event import AssertionEventHandler, DefaultAssertionEventHandler
-from .recommender import AssertionRecommender
-from .recommender import RECOMMENDED_ASSERTION_TAG
+from piperider_cli import safe_load_yaml, round_trip_load_yaml
 from piperider_cli.error import \
     AssertionError, \
     IllegalStateAssertionError
-
-
-def safe_load_yaml(file_path):
-    payload = None
-    with open(file_path, 'r') as f:
-        try:
-            payload = yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            print(e)
-            return None
-    return payload
-
-
-def round_trip_load_yaml(file_path):
-    with open(file_path, 'r') as f:
-        try:
-            payload = yaml.round_trip_load(f)
-        except yaml.YAMLError as e:
-            print(e)
-            return None
-    return payload
+from .event import AssertionEventHandler, DefaultAssertionEventHandler
+from .recommender import AssertionRecommender
+from .recommender import RECOMMENDED_ASSERTION_TAG
 
 
 def load_yaml_configs(path, config_path):
