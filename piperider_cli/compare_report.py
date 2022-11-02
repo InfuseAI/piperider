@@ -1,3 +1,4 @@
+import io
 import json
 import os
 import sys
@@ -64,6 +65,31 @@ class RunOutput(object):
                f'{created_at_str}'
 
 
+def join(base, target):
+    '''
+    Join base and target to a dict which
+
+    keys = (base keys) +  (target keys)
+    result[keys] = {base: {...}, target: {...}
+
+    :param base:
+    :param target:
+    :return:
+    '''
+    if not base:
+        base = dict()
+    if not target:
+        target = dict()
+    result = dict()
+
+    for key in (base | target).keys():
+        value = dict()
+        value['base'] = base.get(key)
+        value['target'] = target.get(key)
+        result[key] = value
+    return result
+
+
 class ComparisonData(object):
     def __init__(self, base, target):
         self._id = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -81,6 +107,42 @@ class ComparisonData(object):
             input=self._target,
         )
         return json.dumps(output, separators=(',', ':'))
+
+    def to_summary_markdown(self):
+        out = io.StringIO()
+
+        base = self._base.get('tables')
+        target = self._target.get('tables')
+
+        print("Table | Base | Target ", file=out)
+        print("--- | --- | ---", file=out)
+
+        joined = join(base, target)
+
+        for tableName in joined.keys():
+            joinedTable = joined[tableName]
+            b = joinedTable.get('base')
+            t = joinedTable.get('target')
+
+            rows_b, cols_b = (b.get('row_count', 0), b.get('col_count', 0)) if b else (0, 0)
+            rows_t, cols_t = (t.get('row_count', 0), t.get('col_count', 0)) if t else (0, 0)
+
+            rows_delta = ''
+
+            if b and t:
+                rows_delta = f" ({'+' if rows_t >= rows_b else ''}{rows_t - rows_b})"
+
+            summary_b = f"rows={rows_b}<br/>columns={cols_b}" if b else ''
+            summary_t = f"rows={rows_t}{rows_delta}<br/>columns={cols_t}" if t else ''
+
+            print(f"{tableName} | {summary_b} | {summary_t}", file=out)
+
+        return f"""<details>
+  <summary>Comparison Summary</summary>
+
+  {out.getvalue()}
+
+  </details>"""
 
 
 def prepare_default_output_path(filesystem: FileSystem, created_at):
@@ -255,9 +317,15 @@ class CompareReport(object):
                 html = setup_report_variables(report_template_html, False, comparison_data.to_json())
                 f.write(html)
 
+        def output_summary(directory):
+            filename = os.path.join(directory, 'summary.md')
+            with open(filename, 'w') as f:
+                f.write(comparison_data.to_summary_markdown())
+
         data_id = comparison_data.id()
         default_report_directory = prepare_default_output_path(filesystem, data_id)
         output_report(default_report_directory)
+        output_summary(default_report_directory)
         report_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'index.html')
 
         if output:
