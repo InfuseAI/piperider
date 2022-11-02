@@ -109,20 +109,39 @@ class ComparisonData(object):
         return json.dumps(output, separators=(',', ':'))
 
     def to_summary_markdown(self):
-        out = io.StringIO()
-
         base = self._base.get('tables')
         target = self._target.get('tables')
 
-        print("Table | Base | Target ", file=out)
-        print("--- | --- | ---", file=out)
+        out = io.StringIO()
 
+        # Comparison summary
+        out.write(self._render_compare_markdown(base, target))
+
+        # Per-table summary
+        out.write("<details>\n")
+        out.write("<summary>Tables Summary</summary>\n")
+        out.write("<blockquote>\n")
+        out.write("\n")
         joined = join(base, target)
-
         for tableName in joined.keys():
             joinedTable = joined[tableName]
-            b = joinedTable.get('base')
-            t = joinedTable.get('target')
+
+            columns_b = joinedTable['base']['columns'] if joinedTable.get('base') else None
+            columns_t = joinedTable['target']['columns'] if joinedTable.get('target') else None
+
+            out.write(self._render_table_summary_markdown(tableName, columns_b, columns_t))
+        out.write("</blockquote></details>")
+        return out.getvalue()
+
+    def _render_compare_markdown(self, base, target):
+        out = io.StringIO()
+        joined = join(base, target)
+        print("Table | Base | Target ", file=out)
+        print("--- | --- | ---", file=out)
+        for table_name in joined.keys():
+            joined_table = joined[table_name]
+            b = joined_table.get('base')
+            t = joined_table.get('target')
 
             rows_b, cols_b = (b.get('row_count', 0), b.get('col_count', 0)) if b else (0, 0)
             rows_t, cols_t = (t.get('row_count', 0), t.get('col_count', 0)) if t else (0, 0)
@@ -135,14 +154,35 @@ class ComparisonData(object):
             summary_b = f"rows={rows_b}<br/>columns={cols_b}" if b else ''
             summary_t = f"rows={rows_t}{rows_delta}<br/>columns={cols_t}" if t else ''
 
-            print(f"{tableName} | {summary_b} | {summary_t}", file=out)
+            print(f"{table_name} | {summary_b} | {summary_t}", file=out)
 
         return f"""<details>
-  <summary>Comparison Summary</summary>
+<summary>Comparison Summary</summary>
 
-  {out.getvalue()}
+{out.getvalue()}
+</details>
+"""
 
-  </details>"""
+    def _render_table_summary_markdown(self, table_name, base, target):
+        out = io.StringIO()
+        joined = join(base, target)
+        print("Column | Base Type | Target Type | Count", file=out)
+        print("--- | --- | --- | ---", file=out)
+        for column_name in joined.keys():
+            joined_column = joined[column_name]
+            b = joined_column.get('base')
+            t = joined_column.get('target')
+
+            schema_type_b, count_b = (b.get('schema_type', ''), b.get('samples', 0)) if b else (None, 0)
+            schema_type_t, count_t = (t.get('schema_type', ''), t.get('samples', 0)) if t else (None, 0)
+            print(f"{column_name} | {schema_type_b} | {schema_type_t} | {count_t}({count_t - count_b}) ", file=out)
+
+        return f"""<details>
+<summary>{table_name}</summary>
+
+{out.getvalue()}
+</details>
+"""
 
 
 def prepare_default_output_path(filesystem: FileSystem, created_at):
