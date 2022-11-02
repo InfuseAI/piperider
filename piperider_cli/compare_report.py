@@ -90,6 +90,13 @@ def join(base, target):
     return result
 
 
+def values_with_delta(base, target, percentage=False):
+    delta = ''
+    if base is not None and target is not None:
+        delta = f" ({'+' if target >= base else ''}{target - base})"
+    return f"{target}{delta}"
+
+
 class ComparisonData(object):
     def __init__(self, base, target):
         self._id = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -143,16 +150,10 @@ class ComparisonData(object):
             b = joined_table.get('base')
             t = joined_table.get('target')
 
-            rows_b, cols_b = (b.get('row_count', 0), b.get('col_count', 0)) if b else (0, 0)
-            rows_t, cols_t = (t.get('row_count', 0), t.get('col_count', 0)) if t else (0, 0)
-
-            rows_delta = ''
-
-            if b and t:
-                rows_delta = f" ({'+' if rows_t >= rows_b else ''}{rows_t - rows_b})"
-
+            rows_b, cols_b = (b.get('row_count', 0), b.get('col_count', 0)) if b else (None, None)
+            rows_t, cols_t = (t.get('row_count', 0), t.get('col_count', 0)) if t else (None, None)
             summary_b = f"rows={rows_b}<br/>columns={cols_b}" if b else ''
-            summary_t = f"rows={rows_t}{rows_delta}<br/>columns={cols_t}" if t else ''
+            summary_t = f"rows={values_with_delta(rows_b, rows_t)}<br/>columns={cols_t}" if t else ''
 
             print(f"{table_name} | {summary_b} | {summary_t}", file=out)
 
@@ -175,7 +176,8 @@ class ComparisonData(object):
 
             schema_type_b, count_b = (b.get('schema_type', ''), b.get('samples', 0)) if b else (None, 0)
             schema_type_t, count_t = (t.get('schema_type', ''), t.get('samples', 0)) if t else (None, 0)
-            print(f"{column_name} | {schema_type_b} | {schema_type_t} | {count_t}({count_t - count_b}) ", file=out)
+            print(f"{column_name} | {schema_type_b} | {schema_type_t} | {values_with_delta(count_b, count_t)} ",
+                  file=out)
 
         return f"""<details>
 <summary>{table_name}</summary>
