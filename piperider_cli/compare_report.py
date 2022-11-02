@@ -82,7 +82,7 @@ def join(base, target):
         target = dict()
     result = dict()
 
-    for key in (base | target).keys():
+    for key in (target | base).keys():
         value = dict()
         value['base'] = base.get(key)
         value['target'] = target.get(key)
@@ -90,7 +90,26 @@ def join(base, target):
     return result
 
 
-def values_with_delta(base, target, percentage=False):
+def value_with_annotation(key, annotation=None):
+    annotation_str = f" ({annotation})" if annotation else ''
+    return f"{key}{annotation_str}"
+
+
+def value_with_change(base, target):
+    if target is None:
+        return ''
+    elif base is None:
+        return target
+    elif base != target:
+        return f"~~{base}~~<br/>{target}"
+    else:
+        return target
+
+
+def value_with_delta(base, target, percentage=False):
+    if target is None:
+        return ''
+
     delta = ''
     if base is not None and target is not None:
         delta = f" ({'+' if target >= base else ''}{target - base})"
@@ -143,19 +162,25 @@ class ComparisonData(object):
     def _render_compare_markdown(self, base, target):
         out = io.StringIO()
         joined = join(base, target)
-        print("Table | Base | Target ", file=out)
+        print("Table | Rows | Columns ", file=out)
         print("--- | --- | ---", file=out)
         for table_name in joined.keys():
             joined_table = joined[table_name]
             b = joined_table.get('base')
             t = joined_table.get('target')
 
+            annotation = None
+            if b is None:
+                annotation = '+'
+            elif t is None:
+                annotation = '-'
+
             rows_b, cols_b = (b.get('row_count', 0), b.get('col_count', 0)) if b else (None, None)
             rows_t, cols_t = (t.get('row_count', 0), t.get('col_count', 0)) if t else (None, None)
-            summary_b = f"rows={rows_b}<br/>columns={cols_b}" if b else ''
-            summary_t = f"rows={values_with_delta(rows_b, rows_t)}<br/>columns={cols_t}" if t else ''
 
-            print(f"{table_name} | {summary_b} | {summary_t}", file=out)
+            out.write(f"{value_with_annotation(table_name, annotation)} | ")
+            out.write(f"{value_with_delta(rows_b, rows_t)} | ")
+            out.write(f"{value_with_delta(cols_b, cols_t)} \n")
 
         return f"""<details>
 <summary>Comparison Summary</summary>
@@ -167,17 +192,27 @@ class ComparisonData(object):
     def _render_table_summary_markdown(self, table_name, base, target):
         out = io.StringIO()
         joined = join(base, target)
-        print("Column | Base Type | Target Type | Count", file=out)
-        print("--- | --- | --- | ---", file=out)
+        print("Column | Type | Count", file=out)
+        print("--- | --- | --- ", file=out)
         for column_name in joined.keys():
             joined_column = joined[column_name]
             b = joined_column.get('base')
             t = joined_column.get('target')
 
-            schema_type_b, count_b = (b.get('schema_type', ''), b.get('samples', 0)) if b else (None, 0)
-            schema_type_t, count_t = (t.get('schema_type', ''), t.get('samples', 0)) if t else (None, 0)
-            print(f"{column_name} | {schema_type_b} | {schema_type_t} | {values_with_delta(count_b, count_t)} ",
-                  file=out)
+            schema_type_b, count_b = (b.get('schema_type', ''), b.get('samples', 0)) if b else (None, None)
+            schema_type_t, count_t = (t.get('schema_type', ''), t.get('samples', 0)) if t else (None, None)
+
+            annotation = None
+            if b is None:
+                annotation = '+'
+            elif t is None:
+                annotation = '-'
+            elif schema_type_b != schema_type_t:
+                annotation = '!'
+
+            out.write(f"{value_with_annotation(column_name, annotation)} | ")
+            out.write(f"{value_with_change(schema_type_b, schema_type_t)} | ")
+            out.write(f"{value_with_delta(count_b, count_t)} \n")
 
         return f"""<details>
 <summary>{table_name}</summary>
