@@ -82,7 +82,10 @@ def join(base, target):
         target = dict()
     result = dict()
 
-    for key in (target | base).keys():
+    joined = target.copy()
+    joined.update(base)
+
+    for key in joined.keys():
         value = dict()
         value['base'] = base.get(key)
         value['target'] = target.get(key)
@@ -149,13 +152,13 @@ class ComparisonData(object):
         out.write("<blockquote>\n")
         out.write("\n")
         joined = join(base, target)
-        for tableName in joined.keys():
-            joinedTable = joined[tableName]
+        for table_name in joined.keys():
+            joined_table = joined[table_name]
 
-            columns_b = joinedTable['base']['columns'] if joinedTable.get('base') else None
-            columns_t = joinedTable['target']['columns'] if joinedTable.get('target') else None
+            columns_b = joined_table.get('base').get('columns') if joined_table.get('base') else None
+            columns_t = joined_table.get('target').get('columns') if joined_table.get('target') else None
 
-            out.write(self._render_table_summary_markdown(tableName, columns_b, columns_t))
+            out.write(self._render_table_summary_markdown(table_name, columns_b, columns_t))
         out.write("</blockquote></details>")
         return out.getvalue()
 
