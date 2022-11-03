@@ -1,3 +1,4 @@
+import io
 import json
 import os
 import sys
@@ -64,6 +65,60 @@ class RunOutput(object):
                f'{created_at_str}'
 
 
+def join(base, target):
+    '''
+    Join base and target to a dict which
+
+    keys = (base keys) +  (target keys)
+    result[keys] = {base: {...}, target: {...}
+
+    :param base:
+    :param target:
+    :return:
+    '''
+    if not base:
+        base = dict()
+    if not target:
+        target = dict()
+    result = dict()
+
+    joined = target.copy()
+    joined.update(base)
+
+    for key in joined.keys():
+        value = dict()
+        value['base'] = base.get(key)
+        value['target'] = target.get(key)
+        result[key] = value
+    return result
+
+
+def value_with_annotation(key, annotation=None):
+    annotation_str = f" ({annotation})" if annotation else ''
+    return f"{key}{annotation_str}"
+
+
+def value_with_change(base, target):
+    if target is None:
+        return ''
+    elif base is None:
+        return target
+    elif base != target:
+        return f"~~{base}~~<br/>{target}"
+    else:
+        return target
+
+
+def value_with_delta(base, target, percentage=False):
+    if target is None:
+        return ''
+
+    delta = ''
+    if base is not None and target is not None:
+        delta = f" ({'+' if target >= base else ''}{target - base})"
+    return f"{target}{delta}"
+
+
 class ComparisonData(object):
     def __init__(self, base, target):
         self._id = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -81,6 +136,93 @@ class ComparisonData(object):
             input=self._target,
         )
         return json.dumps(output, separators=(',', ':'))
+
+    def to_summary_markdown(self):
+        base = self._base.get('tables')
+        target = self._target.get('tables')
+
+        out = io.StringIO()
+
+        # Comparison summary
+        out.write(self._render_compare_markdown(base, target))
+
+        # Per-table summary
+        out.write("<details>\n")
+        out.write("<summary>Tables Summary</summary>\n")
+        out.write("<blockquote>\n")
+        out.write("\n")
+        joined = join(base, target)
+        for table_name in joined.keys():
+            joined_table = joined[table_name]
+
+            columns_b = joined_table.get('base').get('columns') if joined_table.get('base') else None
+            columns_t = joined_table.get('target').get('columns') if joined_table.get('target') else None
+
+            out.write(self._render_table_summary_markdown(table_name, columns_b, columns_t))
+        out.write("</blockquote></details>")
+        return out.getvalue()
+
+    def _render_compare_markdown(self, base, target):
+        out = io.StringIO()
+        joined = join(base, target)
+        print("Table | Rows | Columns ", file=out)
+        print("--- | --- | ---", file=out)
+        for table_name in joined.keys():
+            joined_table = joined[table_name]
+            b = joined_table.get('base')
+            t = joined_table.get('target')
+
+            annotation = None
+            if b is None:
+                annotation = '+'
+            elif t is None:
+                annotation = '-'
+
+            rows_b, cols_b = (b.get('row_count', 0), b.get('col_count', 0)) if b else (None, None)
+            rows_t, cols_t = (t.get('row_count', 0), t.get('col_count', 0)) if t else (None, None)
+
+            out.write(f"{value_with_annotation(table_name, annotation)} | ")
+            out.write(f"{value_with_delta(rows_b, rows_t)} | ")
+            out.write(f"{value_with_delta(cols_b, cols_t)} \n")
+
+        return f"""<details>
+<summary>Comparison Summary</summary>
+
+{out.getvalue()}
+</details>
+"""
+
+    def _render_table_summary_markdown(self, table_name, base, target):
+        out = io.StringIO()
+        joined = join(base, target)
+        print("Column | Type | Count", file=out)
+        print("--- | --- | --- ", file=out)
+        for column_name in joined.keys():
+            joined_column = joined[column_name]
+            b = joined_column.get('base')
+            t = joined_column.get('target')
+
+            schema_type_b, count_b = (b.get('schema_type', ''), b.get('samples', 0)) if b else (None, None)
+            schema_type_t, count_t = (t.get('schema_type', ''), t.get('samples', 0)) if t else (None, None)
+
+            annotation = None
+            if b is None:
+                annotation = '+'
+            elif t is None:
+                annotation = '-'
+            elif schema_type_b != schema_type_t:
+                annotation = '!'
+
+            out.write(f"{value_with_annotation(column_name, annotation)} | ")
+            out.write(f"{value_with_change(schema_type_b, schema_type_t)} | ")
+            out.write(f"{value_with_delta(count_b, count_t)} \n")
+
+        return f"""<details>
+<summary>{table_name}</summary>
+
+{out.getvalue()}
+</details>
+"""
 
 
 def prepare_default_output_path(filesystem: FileSystem, created_at):
@@ -255,9 +397,15 @@ class CompareReport(object):
                 html = setup_report_variables(report_template_html, False, comparison_data.to_json())
                 f.write(html)
 
+        def output_summary(directory):
+            filename = os.path.join(directory, 'summary.md')
+            with open(filename, 'w') as f:
+                f.write(comparison_data.to_summary_markdown())
+
         data_id = comparison_data.id()
         default_report_directory = prepare_default_output_path(filesystem, data_id)
         output_report(default_report_directory)
+        output_summary(default_report_directory)
         report_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'index.html')
 
         if output:
