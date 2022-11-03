@@ -137,12 +137,14 @@ def raise_exception_when_directory_not_writable(output):
 
 
 def safe_load_yaml(file_path):
-    with open(file_path, 'r') as f:
-        try:
+    try:
+        with open(file_path, 'r') as f:
             payload = yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            print(e)
-            return None
+    except yaml.YAMLError as e:
+        print(e)
+        return None
+    except FileNotFoundError:
+        return None
     return payload
 
 
