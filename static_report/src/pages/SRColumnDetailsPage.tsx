@@ -213,7 +213,12 @@ export default function SRColumnDetailsPage({
             </GridItem>
             {/* Quantiles Block */}
             {hasQuantile && histogram && (
-              <GridItem bg={'gray.50'} minWidth={'1px'} borderRight={borderVal}>
+              <GridItem
+                bg={'gray.50'}
+                minWidth={'1px'}
+                borderRight={borderVal}
+                p={10}
+              >
                 <QuantilesWidget columnDatum={columnDatum} />
               </GridItem>
             )}

@@ -152,7 +152,7 @@ function _renderGridSplitView(
   hasAnimation?: boolean,
 ) {
   return (
-    <Grid templateColumns={hasSplitView ? '1fr 1fr' : '1fr'}>
+    <Grid templateColumns={hasSplitView ? '1fr 1fr' : '1fr'} gap={10}>
       <GridItem minWidth={0}>
         {
           <ChartContainer px={0} title={baseColumnDatum?.name}>

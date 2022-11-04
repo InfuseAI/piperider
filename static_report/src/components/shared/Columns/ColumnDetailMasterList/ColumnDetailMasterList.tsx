@@ -148,7 +148,7 @@ export function ColumnDetailMasterList({
             <Box key={colKey}>
               {/* LIST - Columns */}
               <ColumnDetailListItem
-                isActive={base?.name === currentColumn}
+                isActive={(target || base)?.name === currentColumn}
                 tableName={currentTable}
                 baseColumnDatum={base}
                 targetColumnDatum={target}

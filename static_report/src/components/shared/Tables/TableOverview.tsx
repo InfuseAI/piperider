@@ -11,7 +11,7 @@ interface Props {
 
 export function TableOverview({ tableDatum, ...props }: Props & BoxProps) {
   return (
-    <Grid mb={8} gap={8} {...props}>
+    <Grid mb={8} gap={8} templateRows={'250px 1fr'} {...props}>
       <GridItem colSpan={1}>
         <TableGeneralStats tableDatum={tableDatum} />
       </GridItem>

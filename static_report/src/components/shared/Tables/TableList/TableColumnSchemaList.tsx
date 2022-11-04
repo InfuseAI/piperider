@@ -28,7 +28,7 @@ export function TableColumnSchemaList({
   visibleDetail = false,
   onSelect,
 }: Props) {
-  const fallbackTable = baseTableEntryDatum || targetTableEntryDatum;
+  const fallbackTable = targetTableEntryDatum || baseTableEntryDatum;
 
   const isNotSingle = !singleOnly;
 
@@ -54,7 +54,8 @@ export function TableColumnSchemaList({
           <Tbody>
             {fallbackTable?.columns.map(
               ([key, { base: baseColumn, target: targetColumn }, metadata]) => {
-                const fallbackColumn = baseColumn || targetColumn;
+                //FIXME: issue with fallack logic? (target[i] > base[i])
+                const fallbackColumn = targetColumn || baseColumn;
                 return (
                   <Tr
                     key={key}

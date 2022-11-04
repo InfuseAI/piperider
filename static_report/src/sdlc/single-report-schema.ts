@@ -310,7 +310,7 @@ export interface PipeRiderAssertionResult {
   };
 }
 export interface AssertionTest1 {
-  name: string;
+  name?: string;
   status: 'passed' | 'failed';
   parameters?: {
     [k: string]: unknown;
@@ -332,7 +332,7 @@ export interface DbtAssertionResult {
 }
 export interface AssertionTest {
   id: string;
-  name: string;
+  name?: string;
   metric?: string | null;
   table: string | null;
   column: string | null;

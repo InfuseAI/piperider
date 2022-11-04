@@ -115,7 +115,7 @@ export default function CRColumnDetailsPage({
     tableName,
     columnName,
   );
-  const { backgroundColor, icon } = getIconForColumnType(baseColumnDatum);
+  const { backgroundColor, icon } = getIconForColumnType(fallbackColumnDatum);
   return (
     <Main isSingleReport={false} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
