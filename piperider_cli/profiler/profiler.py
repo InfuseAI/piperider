@@ -673,7 +673,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 ).label("c"),
                 c.label("orig")
             ]).select_from(t).cte(name="T")
-        elif self._get_database_backend() == 'postgresql' or self._get_database_backend() == 'duckdb':
+        elif self._get_database_backend() == 'postgresql' and not self.is_integer:
             cte = select([
                 case(
                     [(c == 'NaN', None),
@@ -683,7 +683,17 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 ).label("c"),
                 c.label("orig")
             ]).select_from(t).cte()
-        elif self._get_database_backend() == 'snowflake':
+        elif self._get_database_backend() == 'duckdb' and not self.is_integer:
+            cte = select([
+                case(
+                    [(c == 'NaN', None),
+                     (c == 'Infinity', None),
+                     (c == '-Infinity', None)],
+                    else_=c
+                ).label("c"),
+                c.label("orig")
+            ]).select_from(t).cte()
+        elif self._get_database_backend() == 'snowflake' and not self.is_integer:
             cte = select([
                 case(
                     [(c == 'NaN', None),
@@ -693,7 +703,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 ).label("c"),
                 c.label("orig")
             ]).select_from(t).cte()
-        elif self._get_database_backend() == 'bigquery':
+        elif self._get_database_backend() == 'bigquery' and not self.is_integer:
             cte = select([
                 case(
                     [(func.is_nan(c), None),
