@@ -664,12 +664,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
 
     def _get_table_cte(self) -> CTE:
         t, c = self._get_limited_table_cte()
-        if self._get_database_backend() != 'sqlite':
-            cte = select([
-                c.label("c"),
-                c.label("orig")
-            ]).select_from(t).cte()
-        else:
+        if self._get_database_backend() == 'sqlite':
             cte = select([
                 case(
                     [(func.typeof(c) == 'text', None),
@@ -678,6 +673,40 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 ).label("c"),
                 c.label("orig")
             ]).select_from(t).cte(name="T")
+        elif self._get_database_backend() == 'postgresql' or self._get_database_backend() == 'duckdb':
+            cte = select([
+                case(
+                    [(c == 'NaN', None),
+                     (c == 'Infinity', None),
+                     (c == '-Infinity', None)],
+                    else_=c
+                ).label("c"),
+                c.label("orig")
+            ]).select_from(t).cte()
+        elif self._get_database_backend() == 'snowflake':
+            cte = select([
+                case(
+                    [(c == 'NaN', None),
+                     (c == 'inf', None),
+                     (c == '-inf', None)],
+                    else_=c
+                ).label("c"),
+                c.label("orig")
+            ]).select_from(t).cte()
+        elif self._get_database_backend() == 'bigquery':
+            cte = select([
+                case(
+                    [(func.is_nan(c), None),
+                     (func.is_inf(c), None)],
+                    else_=c
+                ).label("c"),
+                c.label("orig")
+            ]).select_from(t).cte()
+        else:
+            cte = select([
+                c.label("c"),
+                c.label("orig")
+            ]).select_from(t).cte()
         cte = select([
             cte.c.c,
             case([(cte.c.c == 0, 1)], else_=None).label("zero"),
