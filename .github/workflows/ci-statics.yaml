@@ -79,6 +79,8 @@ jobs:
         wait-on: 'http://localhost:3000, http://localhost:3001, http://localhost:4000, http://localhost:4001'
 
     - name: Zip bundles (from E2E)
+      with: 
+        working-directory: ./static_report
       run: |
         zip -r SR-regular.zip ./build/single-report`
         zip -r CR-regular.zip ./build/comparison-report`
@@ -87,7 +89,8 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: comparison-report-artifact
+        working-directory: ./static_report
+        name: report-artifacts
         path: |
           SR-regular.zip
           CR-regular.zip
