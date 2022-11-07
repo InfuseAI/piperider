@@ -78,5 +78,22 @@ jobs:
           npm run serve:e2e:case:comparison-asymmetric
         wait-on: 'http://localhost:3000, http://localhost:3001, http://localhost:4000, http://localhost:4001'
 
+    - name: Zip bundles (from E2E)
+      run: |
+        zip -r SR-regular.zip ./build/single-report`
+        zip -r CR-regular.zip ./build/comparison-report`
+        zip -r SR-asymmetric.zip ./build/single-edge-report`
+        zip -r CR-asymmetric.zip ./build/comparison-asymmetric-report`
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: comparison-report-artifact
+        path: |
+          SR-regular.zip
+          CR-regular.zip
+          SR-asymmetric.zip
+          CR-asymmetric.zip
+
     - name: Build Apps
       run: npm run build
+    
