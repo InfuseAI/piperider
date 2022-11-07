@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import re
 import sys
@@ -443,6 +444,8 @@ def _clean_up_profile_null_properties(table_results):
     for t_metric, t_metric_val in table_results.items():
         if t_metric_val is None:
             removed.append(t_metric)
+        elif isinstance(t_metric_val, float) and not math.isfinite(t_metric_val):
+            removed.append(t_metric)
 
     for r in removed:
         del table_results[r]
@@ -451,6 +454,8 @@ def _clean_up_profile_null_properties(table_results):
     for col_name, props in table_results.get('columns', {}).items():
         for k, v in props.items():
             if v is None:
+                removed.append(dict(col=col_name, key=k))
+            elif isinstance(v, float) and not math.isfinite(v):
                 removed.append(dict(col=col_name, key=k))
 
     for r in removed:

@@ -664,19 +664,12 @@ class NumericColumnProfiler(BaseColumnProfiler):
 
     def _get_table_cte(self) -> CTE:
         t, c = self._get_limited_table_cte()
-
-        def _support_ieee_754(col: Column):
-            if self.is_integer:
-                return False
-            elif col.type.python_type.__name__ == 'float':
-                return True
-            elif self._get_database_backend() == 'postgresql' and isinstance(col.type, Numeric) and \
-                    col.type.precision is None:
-                return True
-
-            return False
-
-        if self._get_database_backend() == 'sqlite':
+        if self._get_database_backend() != 'sqlite':
+            cte = select([
+                c.label("c"),
+                c.label("orig")
+            ]).select_from(t).cte()
+        else:
             cte = select([
                 case(
                     [(func.typeof(c) == 'text', None),
@@ -685,50 +678,6 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 ).label("c"),
                 c.label("orig")
             ]).select_from(t).cte(name="T")
-        elif self._get_database_backend() == 'postgresql' and _support_ieee_754(c):
-            cte = select([
-                case(
-                    [(c == 'NaN', None),
-                     (c == 'Infinity', None),
-                     (c == '-Infinity', None)],
-                    else_=c
-                ).label("c"),
-                c.label("orig")
-            ]).select_from(t).cte()
-        elif self._get_database_backend() == 'duckdb' and _support_ieee_754(c):
-            cte = select([
-                case(
-                    [(c == 'NaN', None),
-                     (c == 'Infinity', None),
-                     (c == '-Infinity', None)],
-                    else_=c
-                ).label("c"),
-                c.label("orig")
-            ]).select_from(t).cte()
-        elif self._get_database_backend() == 'snowflake' and _support_ieee_754(c):
-            cte = select([
-                case(
-                    [(c == 'NaN', None),
-                     (c == 'inf', None),
-                     (c == '-inf', None)],
-                    else_=c
-                ).label("c"),
-                c.label("orig")
-            ]).select_from(t).cte()
-        elif self._get_database_backend() == 'bigquery' and _support_ieee_754(c):
-            cte = select([
-                case(
-                    [(func.is_nan(c), None),
-                     (func.is_inf(c), None)],
-                    else_=c
-                ).label("c"),
-                c.label("orig")
-            ]).select_from(t).cte()
-        else:
-            cte = select([
-                c.label("c"),
-                c.label("orig")
-            ]).select_from(t).cte()
         cte = select([
             cte.c.c,
             case([(cte.c.c == 0, 1)], else_=None).label("zero"),
