@@ -83,10 +83,19 @@ class Configuration(object):
         :param dbt_profiles_dir:
         :return:
         """
+
+        # Precedence reference
+        # https://docs.getdbt.com/docs/get-started/connection-profiles#advanced-customizing-a-profile-directory
         if dbt_profiles_dir:
-            dbt_profile_path = os.path.join(dbt_profiles_dir, DBT_PROFILE_FILE)
+            profile_dir = dbt_profiles_dir
+        elif os.getenv('DBT_PROFILES_DIR'):
+            profile_dir = os.getenv('DBT_PROFILES_DIR')
+        elif os.path.exists(os.path.join(os.getcwd(), DBT_PROFILE_FILE)):
+            profile_dir = os.getcwd()
         else:
-            dbt_profile_path = os.path.join(DBT_PROFILES_DIR_DEFAULT, DBT_PROFILE_FILE)
+            profile_dir = DBT_PROFILES_DIR_DEFAULT
+
+        dbt_profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
 
         if not os.path.exists(dbt_project_path):
             raise DbtProjectNotFoundError(dbt_project_path)
@@ -157,7 +166,16 @@ class Configuration(object):
 
             dbt = ds.get('dbt')
             if dbt:
-                profile_dir = dbt.get('profilesDir', os.getenv('DBT_PROFILES_DIR', DBT_PROFILES_DIR_DEFAULT))
+                # Precedence reference
+                # https://docs.getdbt.com/docs/get-started/connection-profiles#advanced-customizing-a-profile-directory
+                if dbt.get('profilesDir'):
+                    profile_dir = dbt.get('profilesDir')
+                elif os.getenv('DBT_PROFILES_DIR'):
+                    profile_dir = os.getenv('DBT_PROFILES_DIR')
+                elif os.path.exists(os.path.join(os.getcwd(), DBT_PROFILE_FILE)):
+                    profile_dir = os.getcwd()
+                else:
+                    profile_dir = DBT_PROFILES_DIR_DEFAULT
                 profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
                 if '~' in profile_path:
                     profile_path = os.path.expanduser(profile_path)
