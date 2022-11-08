@@ -89,6 +89,7 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         coft = f'[{padding}{self.table_completed}/{self.table_total}]'
         task_id = self.progress.add_task(table_name, total=None, **dict(coft=coft))
         self.tasks[table_name] = task_id
+        self.progress.start()
 
     def handle_table_progress(self, table_result, total, completed):
         if completed == 0:
@@ -97,7 +98,10 @@ class RichProfilerEventHandler(ProfilerEventHandler):
             self.progress.update(task_id, total=total)
 
     def handle_table_end(self, table_result):
-        pass
+        self.progress.stop()
+        table_name = table_result['name']
+        task_id = self.tasks[table_name]
+        self.progress.remove_task(task_id)
 
     def handle_column_start(self, table_name, column_result):
         pass
