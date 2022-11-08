@@ -7,7 +7,7 @@ class PostgresDataSource(DataSource):
     def __init__(self, name, **kwargs):
         super().__init__(name, 'postgres', **kwargs)
         self.fields = [
-            TextField('host', description='Host URL'),
+            TextField('host', description='Host'),
             NumberField('port', default=5432, description='Port'),
             TextField('user', description='Username'),
             PasswordField('password', description='Password'),
@@ -30,7 +30,9 @@ class PostgresDataSource(DataSource):
         return f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
 
     def engine_args(self):
-        return dict(connect_args={'connect_timeout': 5})
+        credential = self.credential
+        schema = credential.get('schema')
+        return dict(connect_args={'connect_timeout': 5, 'options': '-csearch_path={}'.format(schema)})
 
     def verify_connector(self):
         try:
