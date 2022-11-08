@@ -63,6 +63,8 @@ jobs:
         npm run bundle:e2e:case
         cd ..
 
+        zip -r reports.zip ./static_report/build
+
     - name: Cypress run (E2E)
     # Parallelization only for cypress dashboard https://www.cypress.io/pricing/
       uses: cypress-io/github-action@v2
@@ -78,5 +80,12 @@ jobs:
           npm run serve:e2e:case:comparison-asymmetric
         wait-on: 'http://localhost:3000, http://localhost:3001, http://localhost:4000, http://localhost:4001'
 
+    - uses: actions/upload-artifact@v3
+      with:
+        working-directory: ./static_report
+        name: report-artifacts
+        path: reports.zip
+
     - name: Build Apps
       run: npm run build
+    

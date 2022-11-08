@@ -47,6 +47,7 @@ export function ColumnDetailListItem({
     targetValidRatio,
     formatIntervalMinMax,
   );
+  console.log(baseValidsPercentValue);
 
   return (
     <>
@@ -74,11 +75,11 @@ export function ColumnDetailListItem({
             </Text>
           )}
           {baseValidsPercentLabel && (
-            <Progress value={baseValidsPercentValue} />
+            <Progress value={baseValidsPercentValue || 0} />
           )}
           <Flex justifyContent={'space-between'}>
             <Text fontSize={'xs'} mr={2}>
-              {baseValidsPercentLabel || 'N/A'}
+              {baseValidsPercentLabel}
             </Text>
             <Text fontSize={'xs'} color={'gray.600'}>
               Valid
@@ -90,11 +91,11 @@ export function ColumnDetailListItem({
                 Target
               </Text>
               {targetValidsPercentLabel && (
-                <Progress value={targetValidsPercentValue} />
+                <Progress value={targetValidsPercentValue || 0} />
               )}
               <Flex justifyContent={'space-between'}>
                 <Text fontSize={'xs'} mr={2}>
-                  {targetValidsPercentLabel || 'N/A'}
+                  {targetValidsPercentLabel}
                 </Text>
                 <Text fontSize={'xs'} color={'gray.600'}>
                   Valid

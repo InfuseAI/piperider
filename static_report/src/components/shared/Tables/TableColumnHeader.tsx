@@ -26,7 +26,7 @@ export function TableColumnHeader({
   return (
     <Box {...props}>
       <Text color="gray.500">{subtitle}</Text>
-      <Flex alignItems="center">
+      <Flex alignItems="center" mb={2}>
         <Icon
           mt={1}
           mr={2}
