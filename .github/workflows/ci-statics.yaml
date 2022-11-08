@@ -63,7 +63,7 @@ jobs:
         npm run bundle:e2e:case
         cd ..
 
-        zip -r reports.zip ./static_report/build`
+        zip -r reports.zip ./static_report/build
 
     - name: Cypress run (E2E)
     # Parallelization only for cypress dashboard https://www.cypress.io/pricing/
