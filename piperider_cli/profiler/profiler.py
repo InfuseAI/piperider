@@ -85,6 +85,15 @@ class Profiler:
         self.event_handler = event_handler
         self.config = config
 
+    def _fetch_table_metadata(self, table_name):
+        metadata = MetaData()
+        if len(table_name.split('.')) == 2:
+            schema, table_name = table_name.split('.')
+            table = Table(table_name, metadata, autoload_with=self.engine, schema=schema)
+        else:
+            table = Table(table_name, metadata, autoload_with=self.engine)
+        return table
+
     def profile(self, table_names: List[str] = None) -> dict:
         """
         profile all tables or specific table. With different column types, it would profile different metrics.
@@ -124,16 +133,25 @@ class Profiler:
             table_names = self._apply_incl_excl_tables(table_names)
             completed = 0
             self.event_handler.handle_fetch_metadata_progress(None, len(table_names), completed)
-            for table_name in table_names:
-                metadata = MetaData()
-                if len(table_name.split('.')) == 2:
-                    schema, table = table_name.split('.')
-                    table = Table(table_name, metadata, autoload_with=self.engine, schema=schema)
-                else:
-                    table = Table(table_name, metadata, autoload_with=self.engine)
-                tables.append(table)
-                completed = completed + 1
-                self.event_handler.handle_fetch_metadata_progress(table_name, len(table_names), completed)
+
+            if isinstance(self.engine.pool, SingletonThreadPool):
+                for table_name in table_names:
+                    table = self._fetch_table_metadata(table_name)
+                    tables.append(table)
+                    completed = completed + 1
+                    self.event_handler.handle_fetch_metadata_progress(table_name, len(table_names), completed)
+            else:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                    future_to_table = {executor.submit(self._fetch_table_metadata, table_name): table_name for
+                                       table_name in table_names}
+
+                    for future in concurrent.futures.as_completed(future_to_table):
+                        table_name = future_to_table[future]
+                        table = future.result()
+                        tables.append(table)
+                        completed = completed + 1
+                        self.event_handler.handle_fetch_metadata_progress(table_name, len(table_names), completed)
+
         self.event_handler.handle_fetch_metadata_end()
 
         table_count = len(table_names)
