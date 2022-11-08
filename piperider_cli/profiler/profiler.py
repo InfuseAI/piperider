@@ -77,18 +77,15 @@ class Profiler:
     Profiler profile tables and columns by a sqlalchemy engine.
     """
     engine: Engine = None
-    metadata: MetaData = None
-    inspector: Inspector = None
     event_handler: ProfilerEventHandler
 
     def __init__(self, engine: Engine, event_handler: ProfilerEventHandler = DefaultProfilerEventHandler(),
                  config: Configuration = None):
         self.engine = engine
-        self.inspector = inspect(self.engine) if self.engine else None
         self.event_handler = event_handler
         self.config = config
 
-    def profile(self, tables: List[str] = None) -> dict:
+    def profile(self, table_names: List[str] = None) -> dict:
         """
         profile all tables or specific table. With different column types, it would profile different metrics.
 
@@ -100,7 +97,7 @@ class Profiler:
         - boolean
         - Other
 
-        :param tables: optional, the tables to profile
+        :param table_names: optional, the tables to profile
         :return: the profile results
         """
 
@@ -110,31 +107,42 @@ class Profiler:
         }
         self.event_handler.handle_run_start(result)
 
-        metadata = self.metadata
-        if not metadata:
-            self.metadata = metadata = MetaData()
-            if not tables:
-                self.event_handler.handle_fetch_metadata_all_start()
-                metadata.reflect(bind=self.engine)
-                tables = list(self.metadata.tables.keys())
-                tables = self._apply_incl_excl_tables(tables)
-            else:
-                tables = self._apply_incl_excl_tables(tables)
-                for table in tables:
-                    self.event_handler.handle_fetch_metadata_table_start(table)
-                    if len(table.split('.')) == 2:
-                        schema, table = table.split('.')
-                        metadata.schema = schema
-                    Table(table, metadata, autoload_with=self.engine)
+        metadata = MetaData()
+        tables = []
 
-        table_count = len(tables)
+        self.event_handler.handle_fetch_metadata_start()
+        if self.engine.url.get_backend_name() == 'postgresql' and not table_names:
+            table_names = inspect(self.engine).get_table_names()
+
+        if not table_names:
+            metadata.reflect(bind=self.engine)
+            table_names = list(metadata.tables.keys())
+            table_names = self._apply_incl_excl_tables(table_names)
+            tables = [metadata.tables[table_name] for table_name in table_names]
+            self.event_handler.handle_fetch_metadata_progress(None, len(tables), len(tables))
+        else:
+            table_names = self._apply_incl_excl_tables(table_names)
+            completed = 0
+            self.event_handler.handle_fetch_metadata_progress(None, len(table_names), completed)
+            for table_name in table_names:
+                metadata = MetaData()
+                if len(table_name.split('.')) == 2:
+                    schema, table = table_name.split('.')
+                    table = Table(table_name, metadata, autoload_with=self.engine, schema=schema)
+                else:
+                    table = Table(table_name, metadata, autoload_with=self.engine)
+                tables.append(table)
+                completed = completed + 1
+                self.event_handler.handle_fetch_metadata_progress(table_name, len(table_names), completed)
+        self.event_handler.handle_fetch_metadata_end()
+
+        table_count = len(table_names)
         table_index = 0
         self.event_handler.handle_run_progress(result, table_count, table_index)
 
-        for table_name in tables:
-            t = self.metadata.tables[table_name]
-            tresult = self._profile_table(t)
-            profiled_tables[table_name] = tresult
+        for table in tables:
+            tresult = self._profile_table(table)
+            profiled_tables[str(table.name)] = tresult
             table_index = table_index + 1
             self.event_handler.handle_run_progress(result, table_count, table_index)
 
@@ -180,7 +188,8 @@ class Profiler:
         with self.engine.connect() as conn:
             try:
                 if self.engine.url.get_backend_name() == 'snowflake':
-                    default_schema = self.inspector.default_schema_name
+                    inspector = inspect(self.engine) if self.engine else None
+                    default_schema = inspector.default_schema_name
                     metadata_table = table_clause('TABLES', column_clause("row_count"), column_clause("created"),
                                                   column_clause("last_altered"), column_clause("bytes"),
                                                   column_clause('table_schema'), column_clause('table_name'),

@@ -64,11 +64,18 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         self.table_total = 0
         self.table_completed = 0
 
+        title = "Fetch metadata"
+        text_column = TextColumn("{task.description}", table_column=Column(width=len(title)))
+        bar_column = BarColumn(bar_width=80, pulse_style=Style.from_color(Color.from_rgb(244, 164, 96)))
+        mofn_column = MofNCompleteColumn(table_column=Column(width=5, justify="right"))
+        time_elapsed_column = TimeElapsedColumn()
+        self.progress_metadata = Progress(text_column, bar_column, mofn_column, time_elapsed_column)
+
     def _get_width(self, tables):
         return max([len(x) for x in tables]), len(str(len(tables))) * 2 + 2
 
     def handle_run_start(self, run_result):
-        self.progress.start()
+        self.progress_metadata.start()
 
     def handle_run_progress(self, run_result, total, completed):
         self.table_total = total
@@ -76,18 +83,26 @@ class RichProfilerEventHandler(ProfilerEventHandler):
     def handle_run_end(self, run_result):
         self.progress.stop()
 
-    def handle_fetch_metadata_all_start(self):
-        print("fetching metadata")
+    def handle_fetch_metadata_start(self):
+        task_id = self.progress_metadata.add_task("Fetch metadata", total=None)
+        self.tasks["__metadata__"] = task_id
 
-    def handle_fetch_metadata_table_start(self, table_name):
-        print(f"fetching metadata for table '{table_name}'")
+    def handle_fetch_metadata_progress(self, table_name, total, completed):
+        task_id = self.tasks["__metadata__"]
+        self.progress_metadata.update(task_id, total=total, completed=completed)
+
+    def handle_fetch_metadata_end(self):
+        self.progress_metadata.stop()
+        print("")
+        self.progress.start()
+        pass
 
     def handle_table_start(self, table_result):
         self.table_completed += 1
         table_name = table_result['name']
         padding = ' ' * (len(str(self.table_total)) - len(str(self.table_completed)))
         coft = f'[{padding}{self.table_completed}/{self.table_total}]'
-        task_id = self.progress.add_task(table_name, total=None, **dict(coft=coft))
+        task_id = self.progress.add_task(table_name, total=None, coft=coft)
         self.tasks[table_name] = task_id
         self.progress.start()
 
@@ -587,7 +602,8 @@ class Runner():
             console.print(f"[bold red]Error:[/bold red] The credential of '{ds.name}' is not configured.")
             for reason in reasons:
                 console.print(f'    {reason}')
-            console.print("[bold yellow]Hint:[/bold yellow]\n  Please execute command 'piperider init' to move forward.")
+            console.print(
+                "[bold yellow]Hint:[/bold yellow]\n  Please execute command 'piperider init' to move forward.")
             return 1
 
         if not datasource and len(datasource_names) > 1:

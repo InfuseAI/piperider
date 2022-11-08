@@ -72,7 +72,7 @@ class TestProfiler:
         assert "test2" in result["tables"]
 
         profiler = Profiler(engine)
-        result = profiler.profile(tables=["test1"])
+        result = profiler.profile(table_names=["test1"])
         assert "test1" in result["tables"]
         assert "test2" not in result["tables"]
 
