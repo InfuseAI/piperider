@@ -113,18 +113,21 @@ def value_with_delta(base, target, percentage=False):
     if target is None:
         return ''
 
+    if target == '-':
+        return '-'
+
+    annotation = '%' if percentage else ''
     delta = ''
     if base is not None:
+        diff = target - base
         if percentage:
-            delta = f" ({'+' if target >= base else ''}{(target - base) * 100}%)"
-        else:
-            delta = f" ({'+' if target >= base else ''}{target - base})"
+            diff *= 100
+        delta = f" ({'+' if target >= base else ''}{round(diff, 2)}{annotation})"
 
     if percentage:
-        target *= 100
-        return f"{target}%{delta}"
-    else:
-        return f"{target}{delta}"
+        target = round(target * 100, 2)
+
+    return f"{target}{annotation}{delta}"
 
 
 class ComparisonData(object):
@@ -231,16 +234,21 @@ class ComparisonData(object):
     def _render_table_summary_markdown(self, table_name, base, target):
         out = io.StringIO()
         joined = join(base, target)
-        print("Column | Type | Valid %", file=out)
-        print("--- | --- | --- ", file=out)
+        print("Column | Type | Valid % | Distinct %", file=out)
+        print("--- | --- | --- | ---", file=out)
         table_modified = False
         for column_name in joined.keys():
             joined_column = joined[column_name]
             b = joined_column.get('base')
             t = joined_column.get('target')
 
-            schema_type_b, valids_p_b = (b.get('schema_type', ''), b.get('valids_p', 0)) if b else (None, None)
-            schema_type_t, valids_p_t = (t.get('schema_type', ''), t.get('valids_p', 0)) if t else (None, None)
+            schema_type_b = self._get_metric_from_report(b, 'schema_type', '')
+            valids_p_b = self._get_metric_from_report(b, 'valids_p', 0)
+            distinct_p_b = self._get_metric_from_report(b, 'distinct_p', 0)
+
+            schema_type_t = self._get_metric_from_report(t, 'schema_type', '')
+            valids_p_t = self._get_metric_from_report(t, 'valids_p', '-')
+            distinct_p_t = self._get_metric_from_report(t, 'distinct_p', '-')
 
             annotation = None
             if b is None:
@@ -255,7 +263,8 @@ class ComparisonData(object):
 
             out.write(f"{value_with_annotation(column_name, annotation)} | ")
             out.write(f"{value_with_change(schema_type_b, schema_type_t)} | ")
-            out.write(f"{value_with_delta(valids_p_b, valids_p_t, percentage=True)} \n")
+            out.write(f"{value_with_delta(valids_p_b, valids_p_t, percentage=True)} | ")
+            out.write(f"{value_with_delta(distinct_p_b, distinct_p_t, percentage=True)} \n")
 
         annotation = ''
         state = None
@@ -275,6 +284,10 @@ class ComparisonData(object):
 {out.getvalue()}
 </details>
 """
+
+    @staticmethod
+    def _get_metric_from_report(report, metric, default):
+        return report.get(metric, default) if report else default
 
 
 def prepare_default_output_path(filesystem: FileSystem, created_at):
