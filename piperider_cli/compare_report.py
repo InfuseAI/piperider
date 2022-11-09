@@ -3,6 +3,7 @@ import json
 import os
 import sys
 from datetime import datetime
+from typing import List
 
 import inquirer
 import readchar
@@ -65,7 +66,15 @@ class RunOutput(object):
                f'{created_at_str}'
 
 
-def join_set(base, target):
+def _merge_keys(base: List[str], target: List[str]):
+    '''
+    Merge keys from base, target tables. Unlike default union, it preserves the order for column rename, added, removed.
+
+    :param base: keys for base table
+    :param target: keys for base table
+    :return: merged keys
+    '''
+
     result = []
     while base and target:
         if base[0] == target[0]:
@@ -111,7 +120,7 @@ def join(base, target):
     if not target:
         target = dict()
 
-    keys = join_set(list(base.keys()), list(target.keys()))
+    keys = _merge_keys(list(base.keys()), list(target.keys()))
     result = dict()
     for key in keys:
         value = dict()
@@ -273,7 +282,7 @@ class ComparisonData(object):
             elif t is None:
                 annotation = '-'
             else:
-                column_changed = ComparisonData._get_column_changed(b, t)
+                column_changed = self._get_column_changed(b, t)
                 messages = []
 
                 if column_changed['added'] > 0:

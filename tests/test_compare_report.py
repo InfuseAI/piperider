@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from piperider_cli.compare_report import join, ComparisonData, join_set
+from piperider_cli.compare_report import join, ComparisonData, _merge_keys
 
 
 class CompareReportTests(TestCase):
@@ -95,11 +95,11 @@ class CompareReportTests(TestCase):
         self.assertEqual(samples_t, 15)
         self.assertEqual(ComparisonData._value_with_delta(samples_b, samples_t), '15')
 
-    def test_join_set(self):
-        self.assertEqual(['a', 'b', 'c', 'd', 'e'], join_set(['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'e']))
-        self.assertEqual(['a', 'b', 'c', 'd', 'e'], join_set(['a', 'b', 'c', 'e'], ['a', 'b', 'd', 'e']))
-        self.assertEqual(['a', 'z', 'b', 'c', 'd'], join_set(['a', 'b', 'c', 'd'], ['z', 'b', 'c', 'd']))
-        self.assertEqual(['a', 'b', 'c', 'd', 'e'], join_set(['a', 'b', 'c', 'd'], ['a', 'd', 'e']))
-        self.assertEqual(['a', 'b', 'z', 'c', 'd'], join_set(['a', 'b', 'c', 'd'], ['a', 'b', 'z', 'c', 'd']))
-        self.assertEqual(['z', 'a', 'b', 'c', 'd'], join_set(['a', 'b', 'c', 'd'], ['z', 'a', 'b', 'c', 'd']))
-        self.assertEqual(['a', 'b', 'c', 'd'], join_set(['a', 'b'], ['c', 'd']))
+    def test_merge_keys(self):
+        self.assertEqual(['a', 'b', 'c', 'd', 'e'], _merge_keys(['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'e']))
+        self.assertEqual(['a', 'b', 'c', 'd', 'e'], _merge_keys(['a', 'b', 'c', 'e'], ['a', 'b', 'd', 'e']))
+        self.assertEqual(['a', 'z', 'b', 'c', 'd'], _merge_keys(['a', 'b', 'c', 'd'], ['z', 'b', 'c', 'd']))
+        self.assertEqual(['a', 'b', 'c', 'd', 'e'], _merge_keys(['a', 'b', 'c', 'd'], ['a', 'd', 'e']))
+        self.assertEqual(['a', 'b', 'z', 'c', 'd'], _merge_keys(['a', 'b', 'c', 'd'], ['a', 'b', 'z', 'c', 'd']))
+        self.assertEqual(['z', 'a', 'b', 'c', 'd'], _merge_keys(['a', 'b', 'c', 'd'], ['z', 'a', 'b', 'c', 'd']))
+        self.assertEqual(['a', 'b', 'c', 'd'], _merge_keys(['a', 'b'], ['c', 'd']))
