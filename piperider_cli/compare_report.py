@@ -114,12 +114,24 @@ def value_with_delta(base, target, percentage=False):
         return ''
 
     delta = ''
-    if base is not None and target is not None:
-        delta = f" ({'+' if target >= base else ''}{target - base})"
-    return f"{target}{delta}"
+    if base is not None:
+        if percentage:
+            delta = f" ({'+' if target >= base else ''}{(target - base) * 100}%)"
+        else:
+            delta = f" ({'+' if target >= base else ''}{target - base})"
+
+    if percentage:
+        target *= 100
+        return f"{target}%{delta}"
+    else:
+        return f"{target}{delta}"
 
 
 class ComparisonData(object):
+    STATE_ADD = 0
+    STATE_DEL = 1
+    STATE_MOD = 2
+
     def __init__(self, base, target):
         self._id = datetime.now().strftime("%Y%m%d%H%M%S")
         self._base = base
@@ -146,11 +158,9 @@ class ComparisonData(object):
         # Comparison summary
         out.write(self._render_compare_markdown(base, target))
 
-        # Per-table summary
-        out.write("<details>\n")
-        out.write("<summary>Tables Summary</summary>\n")
-        out.write("<blockquote>\n")
-        out.write("\n")
+        # Per-table Comparison
+        states = {}
+        per_table_out = io.StringIO()
         joined = join(base, target)
         for table_name in joined.keys():
             joined_table = joined[table_name]
@@ -158,11 +168,37 @@ class ComparisonData(object):
             columns_b = joined_table.get('base').get('columns') if joined_table.get('base') else None
             columns_t = joined_table.get('target').get('columns') if joined_table.get('target') else None
 
-            out.write(self._render_table_summary_markdown(table_name, columns_b, columns_t))
+            state, result = self._render_table_summary_markdown(table_name, columns_b, columns_t)
+            if state == self.STATE_ADD:
+                if states.get('added') is None:
+                    states['added'] = 0
+                states['added'] += 1
+            elif state == self.STATE_DEL:
+                if states.get('deleted') is None:
+                    states['deleted'] = 0
+                states['deleted'] += 1
+            elif state == self.STATE_MOD:
+                if states.get('schema changed') is None:
+                    states['schema changed'] = 0
+                states['schema changed'] += 1
+            per_table_out.write(result)
+
+        # Per-table summary
+        states = sorted(states.items())
+        table_summary_hint = ', '.join([f'{state}={num}' for state, num in states])
+        if table_summary_hint:
+            table_summary_hint = f' ({table_summary_hint})'
+
+        out.write("<details>\n")
+        out.write(f"<summary>Tables Summary{table_summary_hint}</summary>\n")
+        out.write("<blockquote>\n")
+        out.write("\n")
+        out.write(per_table_out.getvalue())
         out.write("</blockquote></details>")
         return out.getvalue()
 
-    def _render_compare_markdown(self, base, target):
+    @staticmethod
+    def _render_compare_markdown(base, target):
         out = io.StringIO()
         joined = join(base, target)
         print("Table | Rows | Columns ", file=out)
@@ -195,30 +231,46 @@ class ComparisonData(object):
     def _render_table_summary_markdown(self, table_name, base, target):
         out = io.StringIO()
         joined = join(base, target)
-        print("Column | Type | Count", file=out)
+        print("Column | Type | Valid %", file=out)
         print("--- | --- | --- ", file=out)
+        table_modified = False
         for column_name in joined.keys():
             joined_column = joined[column_name]
             b = joined_column.get('base')
             t = joined_column.get('target')
 
-            schema_type_b, count_b = (b.get('schema_type', ''), b.get('samples', 0)) if b else (None, None)
-            schema_type_t, count_t = (t.get('schema_type', ''), t.get('samples', 0)) if t else (None, None)
+            schema_type_b, valids_p_b = (b.get('schema_type', ''), b.get('valids_p', 0)) if b else (None, None)
+            schema_type_t, valids_p_t = (t.get('schema_type', ''), t.get('valids_p', 0)) if t else (None, None)
 
             annotation = None
             if b is None:
                 annotation = '+'
+                table_modified = True
             elif t is None:
                 annotation = '-'
+                table_modified = True
             elif schema_type_b != schema_type_t:
                 annotation = '!'
+                table_modified = True
 
             out.write(f"{value_with_annotation(column_name, annotation)} | ")
             out.write(f"{value_with_change(schema_type_b, schema_type_t)} | ")
-            out.write(f"{value_with_delta(count_b, count_t)} \n")
+            out.write(f"{value_with_delta(valids_p_b, valids_p_t, percentage=True)} \n")
 
-        return f"""<details>
-<summary>{table_name}</summary>
+        annotation = ''
+        state = None
+        if base is None:
+            annotation = ' (+)'
+            state = self.STATE_ADD
+        elif target is None:
+            annotation = ' (-)'
+            state = self.STATE_DEL
+        elif table_modified:
+            annotation = ' (!)'
+            state = self.STATE_MOD
+
+        return state, f"""<details>
+<summary>{table_name}{annotation}</summary>
 
 {out.getvalue()}
 </details>
