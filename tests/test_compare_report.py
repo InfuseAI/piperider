@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from piperider_cli.compare_report import join, value_with_delta, join_set
+from piperider_cli.compare_report import join, ComparisonData, join_set
 
 
 class CompareReportTests(TestCase):
@@ -77,7 +77,7 @@ class CompareReportTests(TestCase):
 
         self.assertEqual(samples_b, 10)
         self.assertEqual(samples_t, 5)
-        self.assertEqual(value_with_delta(samples_b, samples_t), '5 (-5)')
+        self.assertEqual(ComparisonData._value_with_delta(samples_b, samples_t), '5 (-5)')
 
         joined_table = result['table_c']
         columns_b = joined_table.get('base', {}).get('columns') if joined_table.get('base') else None
@@ -93,7 +93,7 @@ class CompareReportTests(TestCase):
 
         self.assertEqual(samples_b, None)
         self.assertEqual(samples_t, 15)
-        self.assertEqual(value_with_delta(samples_b, samples_t), '15')
+        self.assertEqual(ComparisonData._value_with_delta(samples_b, samples_t), '15')
 
     def test_join_set(self):
         self.assertEqual(['a', 'b', 'c', 'd', 'e'], join_set(['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'e']))
