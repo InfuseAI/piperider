@@ -128,7 +128,7 @@ def value_with_annotation(key, annotation=None):
 
 def value_with_change(base, target):
     if target is None:
-        return ''
+        return f"~~{base}~~"
     elif base is None:
         return target
     elif base != target:
@@ -270,11 +270,11 @@ class ComparisonData(object):
             b = joined_column.get('base')
             t = joined_column.get('target')
 
-            schema_type_b = self._get_metric_from_report(b, 'schema_type', '')
+            schema_type_b = self._get_metric_from_report(b, 'schema_type', None)
             valids_p_b = self._get_metric_from_report(b, 'valids_p', 0)
             distinct_p_b = self._get_metric_from_report(b, 'distinct_p', 0)
 
-            schema_type_t = self._get_metric_from_report(t, 'schema_type', '')
+            schema_type_t = self._get_metric_from_report(t, 'schema_type', None)
             valids_p_t = self._get_metric_from_report(t, 'valids_p', '-')
             distinct_p_t = self._get_metric_from_report(t, 'distinct_p', '-')
 
