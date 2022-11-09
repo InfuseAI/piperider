@@ -65,6 +65,36 @@ class RunOutput(object):
                f'{created_at_str}'
 
 
+def join_set(base, target):
+    result = []
+    while base and target:
+        if base[0] == target[0]:
+            result.append(base[0])
+            base.pop(0)
+            target.pop(0)
+        elif base[0] in target:
+            idx = target.index(base[0])
+            for i in target[0:idx]:
+                if i not in result:
+                    result.append(i)
+            result.append(base[0])
+            base.pop(0)
+            target = target[idx + 1:]
+        else:
+            result.append(base[0])
+            base.pop(0)
+
+    for c in base:
+        if c not in result:
+            result.append(c)
+
+    for c in target:
+        if c not in result:
+            result.append(c)
+
+    return result
+
+
 def join(base, target):
     '''
     Join base and target to a dict which
@@ -80,12 +110,10 @@ def join(base, target):
         base = dict()
     if not target:
         target = dict()
+
+    keys = join_set(list(base.keys()), list(target.keys()))
     result = dict()
-
-    joined = target.copy()
-    joined.update(base)
-
-    for key in joined.keys():
+    for key in keys:
         value = dict()
         value['base'] = base.get(key)
         value['target'] = target.get(key)
