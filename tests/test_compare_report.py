@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from piperider_cli.compare_report import join, value_with_delta
+from piperider_cli.compare_report import join, ComparisonData, _merge_keys
 
 
 class CompareReportTests(TestCase):
@@ -77,7 +77,7 @@ class CompareReportTests(TestCase):
 
         self.assertEqual(samples_b, 10)
         self.assertEqual(samples_t, 5)
-        self.assertEqual(value_with_delta(samples_b, samples_t), '5 (-5)')
+        self.assertEqual(ComparisonData._value_with_delta(samples_b, samples_t), '5 (-5)')
 
         joined_table = result['table_c']
         columns_b = joined_table.get('base', {}).get('columns') if joined_table.get('base') else None
@@ -93,6 +93,13 @@ class CompareReportTests(TestCase):
 
         self.assertEqual(samples_b, None)
         self.assertEqual(samples_t, 15)
-        self.assertEqual(value_with_delta(samples_b, samples_t), '15')
+        self.assertEqual(ComparisonData._value_with_delta(samples_b, samples_t), '15')
 
-
+    def test_merge_keys(self):
+        self.assertEqual(['a', 'b', 'c', 'd', 'e'], _merge_keys(['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'e']))
+        self.assertEqual(['a', 'b', 'c', 'd', 'e'], _merge_keys(['a', 'b', 'c', 'e'], ['a', 'b', 'd', 'e']))
+        self.assertEqual(['a', 'z', 'b', 'c', 'd'], _merge_keys(['a', 'b', 'c', 'd'], ['z', 'b', 'c', 'd']))
+        self.assertEqual(['a', 'b', 'c', 'd', 'e'], _merge_keys(['a', 'b', 'c', 'd'], ['a', 'd', 'e']))
+        self.assertEqual(['a', 'b', 'z', 'c', 'd'], _merge_keys(['a', 'b', 'c', 'd'], ['a', 'b', 'z', 'c', 'd']))
+        self.assertEqual(['z', 'a', 'b', 'c', 'd'], _merge_keys(['a', 'b', 'c', 'd'], ['z', 'a', 'b', 'c', 'd']))
+        self.assertEqual(['a', 'b', 'c', 'd'], _merge_keys(['a', 'b'], ['c', 'd']))

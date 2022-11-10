@@ -3,6 +3,7 @@ import json
 import os
 import sys
 from datetime import datetime
+from typing import List
 
 import inquirer
 import readchar
@@ -65,6 +66,44 @@ class RunOutput(object):
                f'{created_at_str}'
 
 
+def _merge_keys(base: List[str], target: List[str]):
+    '''
+    Merge keys from base, target tables. Unlike default union, it preserves the order for column rename, added, removed.
+
+    :param base: keys for base table
+    :param target: keys for base table
+    :return: merged keys
+    '''
+
+    result = []
+    while base and target:
+        if base[0] == target[0]:
+            result.append(base[0])
+            base.pop(0)
+            target.pop(0)
+        elif base[0] in target:
+            idx = target.index(base[0])
+            for i in target[0:idx]:
+                if i not in result:
+                    result.append(i)
+            result.append(base[0])
+            base.pop(0)
+            target = target[idx + 1:]
+        else:
+            result.append(base[0])
+            base.pop(0)
+
+    for c in base:
+        if c not in result:
+            result.append(c)
+
+    for c in target:
+        if c not in result:
+            result.append(c)
+
+    return result
+
+
 def join(base, target):
     '''
     Join base and target to a dict which
@@ -80,12 +119,10 @@ def join(base, target):
         base = dict()
     if not target:
         target = dict()
+
+    keys = _merge_keys(list(base.keys()), list(target.keys()))
     result = dict()
-
-    joined = target.copy()
-    joined.update(base)
-
-    for key in joined.keys():
+    for key in keys:
         value = dict()
         value['base'] = base.get(key)
         value['target'] = target.get(key)
@@ -93,33 +130,11 @@ def join(base, target):
     return result
 
 
-def value_with_annotation(key, annotation=None):
-    annotation_str = f" ({annotation})" if annotation else ''
-    return f"{key}{annotation_str}"
-
-
-def value_with_change(base, target):
-    if target is None:
-        return ''
-    elif base is None:
-        return target
-    elif base != target:
-        return f"~~{base}~~<br/>{target}"
-    else:
-        return target
-
-
-def value_with_delta(base, target, percentage=False):
-    if target is None:
-        return ''
-
-    delta = ''
-    if base is not None and target is not None:
-        delta = f" ({'+' if target >= base else ''}{target - base})"
-    return f"{target}{delta}"
-
-
 class ComparisonData(object):
+    STATE_ADD = 0
+    STATE_DEL = 1
+    STATE_MOD = 2
+
     def __init__(self, base, target):
         self._id = datetime.now().strftime("%Y%m%d%H%M%S")
         self._base = base
@@ -146,11 +161,9 @@ class ComparisonData(object):
         # Comparison summary
         out.write(self._render_compare_markdown(base, target))
 
-        # Per-table summary
-        out.write("<details>\n")
-        out.write("<summary>Tables Summary</summary>\n")
-        out.write("<blockquote>\n")
-        out.write("\n")
+        # Per-table Comparison
+        states = {}
+        per_table_out = io.StringIO()
         joined = join(base, target)
         for table_name in joined.keys():
             joined_table = joined[table_name]
@@ -158,9 +171,98 @@ class ComparisonData(object):
             columns_b = joined_table.get('base').get('columns') if joined_table.get('base') else None
             columns_t = joined_table.get('target').get('columns') if joined_table.get('target') else None
 
-            out.write(self._render_table_summary_markdown(table_name, columns_b, columns_t))
+            state, result = self._render_table_summary_markdown(table_name, columns_b, columns_t)
+            if state == self.STATE_ADD:
+                if states.get('added') is None:
+                    states['added'] = 0
+                states['added'] += 1
+            elif state == self.STATE_DEL:
+                if states.get('deleted') is None:
+                    states['deleted'] = 0
+                states['deleted'] += 1
+            elif state == self.STATE_MOD:
+                if states.get('schema changed') is None:
+                    states['schema changed'] = 0
+                states['schema changed'] += 1
+            per_table_out.write(result)
+
+        # Per-table summary
+        states = sorted(states.items())
+        table_summary_hint = ', '.join([f'{state}={num}' for state, num in states])
+        if table_summary_hint:
+            table_summary_hint = f' ({table_summary_hint})'
+
+        out.write("<details>\n")
+        out.write(f"<summary>Tables Summary{table_summary_hint}</summary>\n")
+        out.write("<blockquote>\n")
+        out.write("\n")
+        out.write(per_table_out.getvalue())
         out.write("</blockquote></details>")
         return out.getvalue()
+
+    @staticmethod
+    def _value_with_annotation(key, annotation=None):
+        annotation_str = f" ({annotation})" if annotation else ''
+        return f"{key}{annotation_str}"
+
+    @staticmethod
+    def _value_with_change(base, target):
+        if target is None:
+            return f"~~{base}~~"
+        elif base is None:
+            return target
+        elif base != target:
+            return f"~~{base}~~<br/>{target}"
+        else:
+            return target
+
+    @staticmethod
+    def _value_with_delta(base, target, percentage=False):
+        if target is None:
+            return '-'
+
+        annotation = '%' if percentage else ''
+        delta = ''
+        if base is not None:
+            diff = target - base
+            if percentage:
+                diff *= 100
+            delta = f" ({'+' if target >= base else ''}{round(diff, 2)}{annotation})"
+
+        if percentage:
+            target = round(target * 100, 2)
+
+        return f"{target}{annotation}{delta}"
+
+    @staticmethod
+    def _get_column_changed(base, target):
+        columns_b = base.get('columns') if base else None
+        columns_t = target.get('columns') if target else None
+        joined = join(columns_b, columns_t)
+        added = 0
+        deleted = 0
+        changed = 0
+
+        for column_name in joined.keys():
+            joined_column = joined[column_name]
+            b = joined_column.get('base')
+            t = joined_column.get('target')
+
+            schema_type_b = b.get('schema_type') if b else None
+            schema_type_t = t.get('schema_type') if t else None
+
+            if b is None:
+                added += 1
+            elif t is None:
+                deleted += 1
+            elif schema_type_b != schema_type_t:
+                changed += 1
+
+        return {
+            'added': added,
+            'deleted': deleted,
+            'changed': changed,
+        }
 
     def _render_compare_markdown(self, base, target):
         out = io.StringIO()
@@ -173,17 +275,36 @@ class ComparisonData(object):
             t = joined_table.get('target')
 
             annotation = None
+            change_message_str = ''
+
             if b is None:
                 annotation = '+'
             elif t is None:
                 annotation = '-'
+            else:
+                column_changed = self._get_column_changed(b, t)
+                messages = []
+
+                if column_changed['added'] > 0:
+                    annotation = '!'
+                    messages.append(f"added={column_changed['added']}")
+                if column_changed['deleted'] > 0:
+                    annotation = '!'
+                    messages.append(f"deleted={column_changed['deleted']}")
+                if column_changed['changed'] > 0:
+                    annotation = '!'
+                    messages.append(f"changed={column_changed['changed']}")
+
+                if messages:
+                    change_message_str = ', '.join(messages)
+                    change_message_str = f"<br/>({change_message_str})"
 
             rows_b, cols_b = (b.get('row_count', 0), b.get('col_count', 0)) if b else (None, None)
             rows_t, cols_t = (t.get('row_count', 0), t.get('col_count', 0)) if t else (None, None)
 
-            out.write(f"{value_with_annotation(table_name, annotation)} | ")
-            out.write(f"{value_with_delta(rows_b, rows_t)} | ")
-            out.write(f"{value_with_delta(cols_b, cols_t)} \n")
+            out.write(f"{self._value_with_annotation(table_name, annotation)} | ")
+            out.write(f"{self._value_with_delta(rows_b, rows_t)} | ")
+            out.write(f"{self._value_with_delta(cols_b, cols_t)}{change_message_str} \n")
 
         return f"""<details>
 <summary>Comparison Summary</summary>
@@ -195,34 +316,60 @@ class ComparisonData(object):
     def _render_table_summary_markdown(self, table_name, base, target):
         out = io.StringIO()
         joined = join(base, target)
-        print("Column | Type | Count", file=out)
-        print("--- | --- | --- ", file=out)
+        print("Column | Type | Valid % | Distinct %", file=out)
+        print("--- | --- | --- | ---", file=out)
+        table_modified = False
         for column_name in joined.keys():
             joined_column = joined[column_name]
             b = joined_column.get('base')
             t = joined_column.get('target')
 
-            schema_type_b, count_b = (b.get('schema_type', ''), b.get('samples', 0)) if b else (None, None)
-            schema_type_t, count_t = (t.get('schema_type', ''), t.get('samples', 0)) if t else (None, None)
+            schema_type_b = self._get_metric_from_report(b, 'schema_type', None)
+            valids_p_b = self._get_metric_from_report(b, 'valids_p', None)
+            distinct_p_b = self._get_metric_from_report(b, 'distinct_p', None)
+
+            schema_type_t = self._get_metric_from_report(t, 'schema_type', None)
+            valids_p_t = self._get_metric_from_report(t, 'valids_p', None)
+            distinct_p_t = self._get_metric_from_report(t, 'distinct_p', None)
 
             annotation = None
             if b is None:
                 annotation = '+'
+                table_modified = True
             elif t is None:
                 annotation = '-'
+                table_modified = True
             elif schema_type_b != schema_type_t:
                 annotation = '!'
+                table_modified = True
 
-            out.write(f"{value_with_annotation(column_name, annotation)} | ")
-            out.write(f"{value_with_change(schema_type_b, schema_type_t)} | ")
-            out.write(f"{value_with_delta(count_b, count_t)} \n")
+            out.write(f"{self._value_with_annotation(column_name, annotation)} | ")
+            out.write(f"{self._value_with_change(schema_type_b, schema_type_t)} | ")
+            out.write(f"{self._value_with_delta(valids_p_b, valids_p_t, percentage=True)} | ")
+            out.write(f"{self._value_with_delta(distinct_p_b, distinct_p_t, percentage=True)} \n")
 
-        return f"""<details>
-<summary>{table_name}</summary>
+        annotation = ''
+        state = None
+        if base is None:
+            annotation = ' (+)'
+            state = self.STATE_ADD
+        elif target is None:
+            annotation = ' (-)'
+            state = self.STATE_DEL
+        elif table_modified:
+            annotation = ' (!)'
+            state = self.STATE_MOD
+
+        return state, f"""<details>
+<summary>{table_name}{annotation}</summary>
 
 {out.getvalue()}
 </details>
 """
+
+    @staticmethod
+    def _get_metric_from_report(report, metric, default):
+        return report.get(metric, default) if report else default
 
 
 def prepare_default_output_path(filesystem: FileSystem, created_at):
