@@ -126,31 +126,7 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         self.progress.update(task_id, advance=1)
 
 
-def _agreed_to_run_recommended_assertions(console: Console, interactive: bool):
-    if interactive:
-        console.print('Please press enter to continue ...',
-                      end=' ')
-        confirm = input('').strip().lower()
-        return confirm == 'yes' or confirm == 'y' or confirm == ''  # default yes
-    else:
-        return True
-
-
-def _agreed_to_generate_recommended_assertions(console: Console, interactive: bool, skip_recommend: bool):
-    if skip_recommend:
-        return False
-
-    if interactive:
-        console.print('Do you want to auto generate recommended assertions for this datasource \[Yes/no]?',
-                      end=' ')
-        confirm = input('').strip().lower()
-        return confirm == 'yes' or confirm == 'y' or confirm == ''  # default yes
-    else:
-        return True
-
-
-def _execute_assertions(console: Console, engine, ds_name: str, interaction: bool,
-                        output, profiler_result, created_at):
+def _execute_assertions(console: Console, engine, ds_name: str, output, profiler_result, created_at):
     # TODO: Implement running test cases based on profiling result
     assertion_engine = AssertionEngine(engine)
     assertion_engine.load_assertions(profiler_result)
@@ -549,7 +525,7 @@ def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results
 
 class Runner():
     @staticmethod
-    def exec(datasource=None, table=None, output=None, interaction=True, skip_report=False, dbt_command='',
+    def exec(datasource=None, table=None, output=None, skip_report=False, dbt_command='',
              report_dir: str = None):
         console = Console()
 
@@ -647,7 +623,7 @@ class Runner():
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
         # TODO: refactor input unused arguments
-        assertion_results, assertion_exceptions = _execute_assertions(console, engine, ds.name, interaction, output,
+        assertion_results, assertion_exceptions = _execute_assertions(console, engine, ds.name, output,
                                                                       profiler_result, created_at)
 
         run_result['tests'] = []

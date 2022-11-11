@@ -152,7 +152,6 @@ def diagnose(**kwargs):
 @click.option('--datasource', default=None, type=click.STRING, help='Datasource to use.', metavar='DATASOURCE_NAME')
 @click.option('--table', default=None, type=click.STRING, help='Table to use.', metavar='TABLE_NAME')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
-@click.option('--no-interaction', is_flag=True, help='Disable interactive mode.')
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
 @click.option('--dbt-test', is_flag=True, help='Run dbt test.')
 @click.option('--dbt-build', is_flag=True, help='Run dbt build.')
@@ -172,7 +171,6 @@ def run(**kwargs):
     ret = Runner.exec(datasource=datasource,
                       table=table,
                       output=output,
-                      interaction=not kwargs.get('no_interaction'),
                       skip_report=skip_report,
                       dbt_command=dbt_command,
                       report_dir=kwargs.get('report_dir'))
