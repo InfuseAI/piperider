@@ -150,33 +150,12 @@ def _agreed_to_generate_recommended_assertions(console: Console, interactive: bo
 
 
 def _execute_assertions(console: Console, engine, ds_name: str, interaction: bool,
-                        output, profiler_result, created_at, skip_recommend: bool):
+                        output, profiler_result, created_at):
     # TODO: Implement running test cases based on profiling result
     assertion_engine = AssertionEngine(engine)
     assertion_engine.load_assertions(profiler_result)
-    assertion_exist = True if assertion_engine.assertions_content else False
 
     results = exceptions = []
-    if not assertion_exist:
-        console.print('[bold yellow]No assertion found[/]')
-        if _agreed_to_generate_recommended_assertions(console, interaction, skip_recommend):
-            # Generate recommended assertions
-            console.rule('Generating Recommended Assertions')
-            recommended_assertions = assertion_engine.generate_recommended_assertions(profiler_result)
-            for f in recommended_assertions:
-                console.print(f'[bold green]Recommended Assertion[/bold green]: {f}')
-            if _agreed_to_run_recommended_assertions(console, interaction):
-                assertion_engine.load_assertions(profiler_result)
-            else:
-                console.print(f'[[bold yellow]Skip[/bold yellow]] Executing assertion for datasource [ {ds_name} ]')
-                return [], []
-        else:
-            # Generate assertion templates
-            console.rule('Generating Assertion Templates')
-            template_assertions = assertion_engine.generate_template_assertions(profiler_result)
-            for f in template_assertions:
-                console.print(f'[bold green]Template Assertion[/bold green]: {f}')
-
     # Execute assertions
     if len(assertion_engine.assertions):
         console.rule('Testing')
@@ -571,7 +550,7 @@ def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results
 class Runner():
     @staticmethod
     def exec(datasource=None, table=None, output=None, interaction=True, skip_report=False, dbt_command='',
-             skip_recommend=False, report_dir: str = None):
+             report_dir: str = None):
         console = Console()
 
         raise_exception_when_directory_not_writable(output)
@@ -669,7 +648,7 @@ class Runner():
 
         # TODO: refactor input unused arguments
         assertion_results, assertion_exceptions = _execute_assertions(console, engine, ds.name, interaction, output,
-                                                                      profiler_result, created_at, skip_recommend)
+                                                                      profiler_result, created_at)
 
         run_result['tests'] = []
         if assertion_results or dbt_test_results:

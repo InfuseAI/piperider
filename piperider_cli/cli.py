@@ -154,7 +154,6 @@ def diagnose(**kwargs):
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--no-interaction', is_flag=True, help='Disable interactive mode.')
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
-@click.option('--skip-recommend', is_flag=True, help='Skip recommending assertions.')
 @click.option('--dbt-test', is_flag=True, help='Run dbt test.')
 @click.option('--dbt-build', is_flag=True, help='Run dbt build.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
@@ -167,7 +166,6 @@ def run(**kwargs):
     table = kwargs.get('table')
     output = kwargs.get('output')
     skip_report = kwargs.get('skip_report')
-    skip_recommend = kwargs.get('skip_recommend')
     run_dbt_test = kwargs.get('dbt_test')
     run_dbt_build = kwargs.get('dbt_build')
     dbt_command = 'build' if run_dbt_build else 'test' if run_dbt_test else ''
@@ -176,7 +174,6 @@ def run(**kwargs):
                       output=output,
                       interaction=not kwargs.get('no_interaction'),
                       skip_report=skip_report,
-                      skip_recommend=skip_recommend,
                       dbt_command=dbt_command,
                       report_dir=kwargs.get('report_dir'))
 
