@@ -50,12 +50,15 @@ class AssertionGenerator():
             profiling_result = json.loads(f.read())
         if not _validate_input_result(profiling_result):
             console.print(f'[bold red]Error: {run_json_path} is invalid[/bold red]')
-            return
+            return 1
         console.print(f'[bold dark_orange]Generating recommended assertions from:[/bold dark_orange] {run_json_path}')
 
         if table:
             # only keep the profiling result of the specified table
             profiling_result['tables'] = {k: v for k, v in profiling_result['tables'].items() if k == table}
+            if not profiling_result['tables']:
+                console.print(f'[bold red]Error: {table} is not found from {run_json_path}[/bold red]')
+                return 1
 
         assertion_engine = AssertionEngine(None)
         if no_recommend:

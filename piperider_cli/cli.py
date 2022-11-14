@@ -199,7 +199,10 @@ def generate_assertions(**kwargs):
     report_dir = kwargs.get('report_dir')
     no_recommend = kwargs.get('no_recommend')
     table = kwargs.get('table')
-    AssertionGenerator.exec(input_path=input_path, report_dir=report_dir, no_recommend=no_recommend, table=table)
+    ret = AssertionGenerator.exec(input_path=input_path, report_dir=report_dir, no_recommend=no_recommend, table=table)
+    if ret != 0:
+        sys.exit(ret)
+    return ret
 
 
 @cli.command(short_help='Generate a report.', cls=TrackCommand)
