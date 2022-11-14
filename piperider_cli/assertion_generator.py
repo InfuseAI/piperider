@@ -61,34 +61,14 @@ class AssertionGenerator():
         if no_recommend:
             template_assertions = assertion_engine.generate_template_assertions(profiling_result)
 
-            # Show the recommended assertions files
+            # Show the assertion template files
             console.rule('Generated Assertions Templates')
             for f in template_assertions:
                 console.print(f'[bold green]Assertion Templates[/bold green]: {f}')
         else:
             # Generate recommended assertions
             assertion_engine.load_assertions(profiler_result=profiling_result)
-            assertion_exist = True if assertion_engine.assertions_content else False
-            console.rule('Generating Recommended Assertions')
-            recommended_assertions = assertion_engine.generate_recommended_assertions(profiling_result,
-                                                                                      assertion_exist=assertion_exist)
-            # Show the generated recommended assertions
-            ascii_table = Table(show_header=True, header_style="bold magenta")
-            ascii_table.add_column('Table', style="bold yellow")
-            ascii_table.add_column('Column', style="bold blue")
-            ascii_table.add_column('Test Subject', style="bold green")
-            ascii_table.add_column('Assertion', style="bold")
-
-            for assertion in assertion_engine.recommender.generated_assertions:
-                assert_values = str(assertion.asserts) if assertion.asserts else ''
-                ascii_table.add_row(
-                    assertion.table,
-                    assertion.column,
-                    assertion.name,
-                    assert_values,
-                )
-
-            console.print(ascii_table)
+            recommended_assertions = assertion_engine.generate_recommended_assertions(profiling_result)
 
             # Show the recommended assertions files
             console.rule('Generated Recommended Assertions')
