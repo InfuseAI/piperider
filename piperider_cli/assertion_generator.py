@@ -38,7 +38,7 @@ def _validate_input_result(result):
 
 class AssertionGenerator():
     @staticmethod
-    def exec(input_path=None, report_dir: str = None, no_recommend: bool = False):
+    def exec(input_path=None, report_dir: str = None, no_recommend: bool = False, table: str = None):
         filesystem = FileSystem(report_dir=report_dir)
         raise_exception_when_directory_not_writable(report_dir)
 
@@ -52,6 +52,10 @@ class AssertionGenerator():
             console.print(f'[bold red]Error: {run_json_path} is invalid[/bold red]')
             return
         console.print(f'[bold dark_orange]Generating recommended assertions from:[/bold dark_orange] {run_json_path}')
+
+        if table:
+            # only keep the profiling result of the specified table
+            profiling_result['tables'] = {k: v for k, v in profiling_result['tables'].items() if k == table}
 
         assertion_engine = AssertionEngine(None)
         if no_recommend:
