@@ -16,12 +16,12 @@ if [ $1 = "first" ]; then
 	# Fetch data sqlite - First run.json #1
 	curl -o data/sp500.db https://piperider-data.s3.ap-northeast-1.amazonaws.com/getting-started/sp500_20220401.db
 
-	piperider run --no-interaction --debug #first run
+	piperider run --debug #first run
 
 	# Fetch data sqlite - Second run.json #2
 	curl -o data/sp500.db https://piperider-data.s3.ap-northeast-1.amazonaws.com/getting-started/sp500_20220527.db
 
-	piperider run --no-interaction --debug #second run
+	piperider run --debug #second run
 fi
 
 # edge-cases (another run.json)
@@ -31,7 +31,7 @@ if [ "$1" = "second" ]; then
 	# Fetch data sqlite - Third run.json #3 (diff table)
 	curl -o data/sp500.db https://piperider-data.s3.ap-northeast-1.amazonaws.com/integration-test-sqlite/profiler-e2e.db
 
-	piperider run --no-interaction --debug # third run
+	piperider run --debug # third run
 fi
 
 # Gather single run base/target refs for comparison-report
