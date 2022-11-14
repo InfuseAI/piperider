@@ -190,11 +190,14 @@ def run(**kwargs):
 @cli.command(short_help='Generate recommended assertions.', cls=TrackCommand)
 @click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
+@click.option('--no-recommend', is_flag=True, help='Generating assertions templates only.')
 @add_options(debug_option)
 def generate_assertions(**kwargs):
     'Generate recommended assertions based on the latest result. By default, the profiling result will be loaded from ".piperider/outputs".'
-    input = kwargs.get('input')
-    AssertionGenerator.exec(input=input, report_dir=kwargs.get('report_dir'))
+    input_path = kwargs.get('input')
+    report_dir = kwargs.get('report_dir')
+    no_recommend = kwargs.get('no_recommend')
+    AssertionGenerator.exec(input_path=input_path, report_dir=report_dir, no_recommend=no_recommend)
 
 
 @cli.command(short_help='Generate a report.', cls=TrackCommand)
