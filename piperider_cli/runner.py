@@ -386,6 +386,102 @@ def _get_table_list(table, default_schema, dbt_adapter):
     return tables, None
 
 
+def _get_dbt_state_candidate(dbt_state_dir: str, default_schema: str):
+    candidate = []
+    path = os.path.join(dbt_state_dir, 'run_results.json')
+    with open(path) as f:
+        run_results = json.load(f)
+
+    path = os.path.join(dbt_state_dir, 'manifest.json')
+    with open(path) as f:
+        manifest = json.load(f)
+
+    for result in run_results.get('results'):
+        if result.get('status') != 'success':
+            continue
+        nodes = manifest.get('nodes')
+        node = nodes.get(result.get('unique_id'))
+        if node.get('resource_type') != 'model' and node.get('resource_type') != 'seed':
+            continue
+        if node.get('schema') != default_schema:
+            continue
+        candidate.append(node.get('alias'))
+
+    return candidate
+
+
+def _get_dbt_state_tests_result(dbt_state_dir: str, default_schema: str):
+    output = []
+    compatible_output = {}
+    unique_tests = {}
+
+    path = os.path.join(dbt_state_dir, 'run_results.json')
+    with open(path) as f:
+        run_results = json.load(f)
+
+    path = os.path.join(dbt_state_dir, 'manifest.json')
+    with open(path) as f:
+        manifest = json.load(f)
+
+    for result in run_results.get('results', []):
+        unique_id = result.get('unique_id')
+
+        nodes = manifest.get('nodes')
+        node = nodes.get(unique_id)
+        if node.get('resource_type') != 'test':
+            continue
+
+        unique_tests[unique_id] = dict(
+            status=result.get('status'),
+            failures=result.get('failures'),
+            message=result.get('message'),
+        )
+
+        test_node = node
+        table = None
+        depends_on_nodes = test_node.get('depends_on', {}).get('nodes', [])
+        for depends_on_node_id in depends_on_nodes:
+            depends_on_node = nodes.get(depends_on_node_id)
+            if depends_on_node.get('resource_type') != 'model' and depends_on_node.get('resource_type') != 'seed':
+                continue
+            if depends_on_node.get('schema') != default_schema:
+                continue
+            table = depends_on_node.get('alias')
+            break
+        column = test_node.get('column_name')
+
+        if table not in compatible_output:
+            compatible_output[table] = dict(columns={}, tests=[])
+
+        if column not in compatible_output[table]['columns']:
+            compatible_output[table]['columns'][column] = []
+        compatible_output[table]['columns'][column].append(dict(
+            id=unique_id,
+            name=unique_id,
+            table=table,
+            column=column if column != test_node['name'] else None,
+            status='passed' if unique_tests[unique_id]['status'] == 'pass' else 'failed',
+            tags=[],
+            message=unique_tests[unique_id]['message'],
+            display_name=test_node['name'],
+            source='dbt'
+        ))
+
+        output.append(dict(
+            id=unique_id,
+            name=unique_id,
+            table=table,
+            column=column if column != test_node['name'] else None,
+            status='passed' if unique_tests[unique_id]['status'] == 'pass' else 'failed',
+            tags=[],
+            message=unique_tests[unique_id]['message'],
+            display_name=test_node['name'],
+            source='dbt'
+        ))
+
+    return output, compatible_output
+
+
 def prepare_default_output_path(filesystem: FileSystem, created_at, ds):
     latest_symlink_path = os.path.join(filesystem.get_output_dir(), 'latest')
     latest_source = f"{ds.name}-{convert_to_tzlocal(created_at).strftime('%Y%m%d%H%M%S')}"
@@ -525,7 +621,7 @@ def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results
 
 class Runner():
     @staticmethod
-    def exec(datasource=None, table=None, output=None, skip_report=False, dbt_command='',
+    def exec(datasource=None, table=None, output=None, skip_report=False, dbt_command='', dbt_state_dir: str = None,
              report_dir: str = None):
         console = Console()
 
@@ -591,22 +687,31 @@ class Runner():
         if dbt_config and not dbt_adapter.is_ready():
             raise dbt_adapter.get_error()
 
-        tables = None
-        if table:
-            tables = [table]
-
-        dbt_test_results = None
-        dbt_test_results_compatible = None
-        if dbt_command in ['build', 'test'] and dbt_adapter.is_ready():
-            dbt_adapter.set_dbt_command(dbt_command)
-            dbt_test_results, dbt_test_results_compatible = dbt_adapter.run_dbt_command(table, default_schema)
-
         console.rule('Profiling')
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
         engine = ds.create_engine()
 
+        tables = None
+        dbt_test_results = None
+        dbt_test_results_compatible = None
+        if dbt_state_dir:
+            dbt_state_dir = os.path.abspath(dbt_state_dir)
+            run_results_path = os.path.join(dbt_state_dir, 'run_results.json')
+            manifest_path = os.path.join(dbt_state_dir, 'manifest.json')
+            if not os.path.exists(run_results_path) or not os.path.exists(manifest_path):
+                console.print(f"[bold red]Error:[/bold red] No available {run_results_path} or {manifest_path}")
+                return 1
+            state_candidate = _get_dbt_state_candidate(dbt_state_dir, default_schema)
+            if not state_candidate:
+                console.print("[bold red]Error:[/bold red] No available tables / views")
+                return 1
+            tables = state_candidate
+
+            dbt_test_results, dbt_test_results_compatible = _get_dbt_state_tests_result(dbt_state_dir, default_schema)
+
         if table:
+            tables = [table]
             # cli --table is specified, no inclusion and exclusion applied
             configuration.includes = None
             configuration.excludes = None
