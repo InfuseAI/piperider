@@ -152,9 +152,7 @@ def diagnose(**kwargs):
 @click.option('--datasource', default=None, type=click.STRING, help='Datasource to use.', metavar='DATASOURCE_NAME')
 @click.option('--table', default=None, type=click.STRING, help='Table to use.', metavar='TABLE_NAME')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
-@click.option('--no-interaction', is_flag=True, help='Disable interactive mode.')
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
-@click.option('--skip-recommend', is_flag=True, help='Skip recommending assertions.')
 @click.option('--dbt-test', is_flag=True, help='Run dbt test.')
 @click.option('--dbt-build', is_flag=True, help='Run dbt build.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
@@ -167,16 +165,13 @@ def run(**kwargs):
     table = kwargs.get('table')
     output = kwargs.get('output')
     skip_report = kwargs.get('skip_report')
-    skip_recommend = kwargs.get('skip_recommend')
     run_dbt_test = kwargs.get('dbt_test')
     run_dbt_build = kwargs.get('dbt_build')
     dbt_command = 'build' if run_dbt_build else 'test' if run_dbt_test else ''
     ret = Runner.exec(datasource=datasource,
                       table=table,
                       output=output,
-                      interaction=not kwargs.get('no_interaction'),
                       skip_report=skip_report,
-                      skip_recommend=skip_recommend,
                       dbt_command=dbt_command,
                       report_dir=kwargs.get('report_dir'))
 
@@ -194,12 +189,20 @@ def run(**kwargs):
 
 @cli.command(short_help='Generate recommended assertions.', cls=TrackCommand)
 @click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
+@click.option('--no-recommend', is_flag=True, help='Generate assertions templates only.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
+@click.option('--table', default=None, type=click.STRING, help='Generate assertions for the given table')
 @add_options(debug_option)
 def generate_assertions(**kwargs):
     'Generate recommended assertions based on the latest result. By default, the profiling result will be loaded from ".piperider/outputs".'
-    input = kwargs.get('input')
-    AssertionGenerator.exec(input=input, report_dir=kwargs.get('report_dir'))
+    input_path = kwargs.get('input')
+    report_dir = kwargs.get('report_dir')
+    no_recommend = kwargs.get('no_recommend')
+    table = kwargs.get('table')
+    ret = AssertionGenerator.exec(input_path=input_path, report_dir=report_dir, no_recommend=no_recommend, table=table)
+    if ret != 0:
+        sys.exit(ret)
+    return ret
 
 
 @cli.command(short_help='Generate a report.', cls=TrackCommand)

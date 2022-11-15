@@ -504,7 +504,7 @@ class AssertionEngine:
         template_assertions = self.recommender.assertions
         return self._dump_assertions_files(template_assertions)
 
-    def generate_recommended_assertions(self, profiling_result, assertion_exist=False):
+    def generate_recommended_assertions(self, profiling_result):
         # Load existing assertions
         if not self.assertions_content:
             self.load_assertions(profiler_result=profiling_result)
@@ -514,11 +514,6 @@ class AssertionEngine:
         self.recommender.run(profiling_result)
 
         recommended_assertions = self.recommender.assertions
-
-        # Update existing recommended assertions
-        if assertion_exist:
-            self._update_existing_recommended_assertions(recommended_assertions)
-            self._backup_assertion_file(recommended_assertions, prefix='recommended')
 
         # Dump recommended assertions
         return self._dump_assertions_files(recommended_assertions, prefix='recommended')
