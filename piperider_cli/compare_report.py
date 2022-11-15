@@ -554,13 +554,16 @@ class CompareReport(object):
         output_report(default_report_directory)
         output_summary(default_report_directory)
         report_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'index.html')
+        summary_md_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'summary.md')
 
         if output:
             clone_directory(default_report_directory, output)
             report_path = os.path.join(output, 'index.html')
+            summary_md_path = os.path.join(output, 'summary.md')
 
         console.print()
         console.print(f"Comparison report: {report_path}")
+        console.print(f"Comparison summary: {summary_md_path}")
 
         if debug:
             # Write comparison data to file
