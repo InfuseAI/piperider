@@ -4,11 +4,10 @@ from typing import List
 from rich.console import Console
 from rich.markup import escape
 
-from piperider_cli.adapter import DbtAdapter
 from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
 from piperider_cli.cloud import PipeRiderCloud
 from piperider_cli.configuration import Configuration, PIPERIDER_CONFIG_PATH
-from piperider_cli.error import DbtAdapterCommandNotFoundError, DbtCommandNotFoundError, PipeRiderError
+from piperider_cli.error import PipeRiderError
 
 CONSOLE_MSG_PASS = '[bold green]✅ PASS[/bold green]\n'
 CONSOLE_MSG_FAIL = '[bold red]😱 FAILED[/bold red]\n'
@@ -98,14 +97,7 @@ class CheckConnections(AbstractChecker):
 
             if dbt:  # dbt provider
                 self.console.print(f'  DBT: {ds.type_name} > {dbt["profile"]} > {dbt["target"]} ', end='')
-                err = DbtAdapter.check_dbt_command(dbt)
-                if err and isinstance(err, DbtCommandNotFoundError):
-                    self.console.print(f'[[bold red]FAILED[/bold red]] reason: {err}')
-                    all_passed = False
-                    reason = err
-                    self.console.print(f"\n{DbtAdapterCommandNotFoundError(type).hint}\n")
-                else:
-                    self.console.print('[[bold green]OK[/bold green]]')
+                self.console.print('[[bold green]OK[/bold green]]')
 
             self.console.print(f'  Name: {name}')
             self.console.print(f'  Type: {type}')

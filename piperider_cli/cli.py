@@ -7,7 +7,7 @@ from rich.console import Console
 from rich.syntax import Syntax
 
 from piperider_cli import __version__, sentry_dns, sentry_env, event
-from piperider_cli.adapter import DbtAdapter
+from piperider_cli.dbt_util import DbtUtility
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
@@ -114,7 +114,7 @@ def init(**kwargs):
         if dbt_project_dir:
             dbt_project_path = os.path.join(dbt_project_dir, "dbt_project.yml")
         else:
-            dbt_project_path = DbtAdapter.search_dbt_project_path()
+            dbt_project_path = DbtUtility.search_dbt_project_path()
 
     if dbt_project_path:
         console.print(f'[[bold green] DBT [/bold green]] Use the existing dbt project file: {dbt_project_path}')

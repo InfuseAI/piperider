@@ -1,0 +1,131 @@
+{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/run-results/v4.json",
+    "dbt_version": "1.1.0",
+    "generated_at": "2022-11-16T06:12:10.998913Z",
+    "invocation_id": "e6059bdc-96ac-425d-bed6-bc9d5321bc43",
+    "env": {
+
+    }
+  },
+  "results": [
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2022-11-16T06:12:03.635775Z",
+          "completed_at": "2022-11-16T06:12:03.657964Z"
+        },
+        {
+          "name": "execute",
+          "started_at": "2022-11-16T06:12:03.679865Z",
+          "completed_at": "2022-11-16T06:12:07.822764Z"
+        }
+      ],
+      "thread_id": "Thread-2",
+      "execution_time": 4.590263843536377,
+      "adapter_response": {
+
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.infuse_finance.action_split_greater_than_zero"
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2022-11-16T06:12:03.635960Z",
+          "completed_at": "2022-11-16T06:12:03.658353Z"
+        },
+        {
+          "name": "execute",
+          "started_at": "2022-11-16T06:12:03.689045Z",
+          "completed_at": "2022-11-16T06:12:07.886919Z"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 4.636851787567139,
+      "adapter_response": {
+
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.infuse_finance.source_not_null_PUBLIC_ACTION_splits.c4db714d12"
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2022-11-16T06:12:03.635578Z",
+          "completed_at": "2022-11-16T06:12:03.657775Z"
+        },
+        {
+          "name": "execute",
+          "started_at": "2022-11-16T06:12:03.658682Z",
+          "completed_at": "2022-11-16T06:12:08.734635Z"
+        }
+      ],
+      "thread_id": "Thread-1",
+      "execution_time": 5.507591009140015,
+      "adapter_response": {
+        "_message": "SUCCESS 1",
+        "code": "SUCCESS",
+        "rows_affected": 1,
+        "query_id": "01a85774-0000-c9be-0001-40ae007b5a16"
+      },
+      "message": "SUCCESS 1",
+      "failures": null,
+      "unique_id": "model.infuse_finance.PRICE_PRESENT"
+    },
+    {
+      "status": "fail",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2022-11-16T06:12:09.147196Z",
+          "completed_at": "2022-11-16T06:12:09.161482Z"
+        },
+        {
+          "name": "execute",
+          "started_at": "2022-11-16T06:12:09.161886Z",
+          "completed_at": "2022-11-16T06:12:10.591031Z"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 1.8459579944610596,
+      "adapter_response": {
+
+      },
+      "message": "Got 204 results, configured to fail if != 0",
+      "failures": 204,
+      "unique_id": "test.infuse_finance.not_null_PRICE_PRESENT_MA60.d1e01fc80f"
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2022-11-16T06:12:09.147400Z",
+          "completed_at": "2022-11-16T06:12:09.157774Z"
+        },
+        {
+          "name": "execute",
+          "started_at": "2022-11-16T06:12:09.158163Z",
+          "completed_at": "2022-11-16T06:12:10.593403Z"
+        }
+      ],
+      "thread_id": "Thread-2",
+      "execution_time": 1.8460972309112549,
+      "adapter_response": {
+
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.infuse_finance.not_null_PRICE_PRESENT_symbol.4f1efc5b3e"
+    }
+  ]
+}
