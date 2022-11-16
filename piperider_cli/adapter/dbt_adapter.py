@@ -310,28 +310,34 @@ class DbtAdapter:
 
         return output, compatible_output
 
-    def append_descriptions(self, profile_result, default_schema):
-        out = self.adaptee.list_resources(['model', 'source'], 'resource_type,description,name,columns,source_name')
-        lines = out.split('\n')[:-1]
-        # Skip lines not starts with '{', which are not message in JSON format
-        resources = [json.loads(x) for x in lines if x.startswith('{')]
-        for resource in resources:
-            schema = resource.get('source_name')
-            table_name = resource.get('name')
-            table_desc = resource.get('description', '')
+    def append_descriptions(self, profile_result, dbt_state_dir, default_schema):
+        path = os.path.join(dbt_state_dir, 'run_results.json')
+        with open(path) as f:
+            run_results = json.load(f)
 
-            schema = f'{schema}.' if schema and schema != default_schema else ''
-            table_name = f'{schema}{table_name}'
+        path = os.path.join(dbt_state_dir, 'manifest.json')
+        with open(path) as f:
+            manifest = json.load(f)
 
-            if table_name not in profile_result['tables']:
+        nodes = manifest.get('nodes')
+        for result in run_results.get('results'):
+            node = nodes.get(result.get('unique_id'))
+            if node.get('resource_type') != 'model' and node.get('resource_type') != 'seed':
+                continue
+            if node.get('schema') != default_schema:
+                continue
+
+            table = node.get('alias')
+            table_desc = node.get('description')
+            if table not in profile_result['tables']:
                 continue
             if table_desc:
-                profile_result['tables'][table_name]['description'] = f"{table_desc} - via DBT"
+                profile_result['tables'][table]['description'] = f"{table_desc} - via DBT"
 
-            columns = resource.get('columns', {})
-            for column_name, v in columns.items():
-                if column_name not in profile_result['tables'][table_name]['columns']:
+            columns = node.get('columns', {})
+            for column, v in columns.items():
+                if column not in profile_result['tables'][table]['columns']:
                     continue
-                column_desc = v.get('description', '')
+                column_desc = v.get('description')
                 if column_desc:
-                    profile_result['tables'][table_name]['columns'][column_name]['description'] = f"{column_desc} - via DBT"
+                    profile_result['tables'][table]['columns'][column]['description'] = f"{column_desc} - via DBT"

@@ -396,10 +396,10 @@ def _get_dbt_state_candidate(dbt_state_dir: str, default_schema: str):
     with open(path) as f:
         manifest = json.load(f)
 
+    nodes = manifest.get('nodes')
     for result in run_results.get('results'):
         if result.get('status') != 'success':
             continue
-        nodes = manifest.get('nodes')
         node = nodes.get(result.get('unique_id'))
         if node.get('resource_type') != 'model' and node.get('resource_type') != 'seed':
             continue
@@ -759,7 +759,7 @@ class Runner():
         _show_recommended_assertion_notice_message(console, assertion_results)
 
         if dbt_adapter.is_ready():
-            dbt_adapter.append_descriptions(run_result, default_schema)
+            dbt_adapter.append_descriptions(run_result, dbt_state_dir, default_schema)
         _append_descriptions_from_assertion(run_result)
 
         run_result['id'] = run_id
