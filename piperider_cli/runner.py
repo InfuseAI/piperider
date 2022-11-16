@@ -456,7 +456,7 @@ def _append_descriptions_from_assertion(profile_result):
                     'description'] = f'{column_desc} - via PipeRider'
 
 
-def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_results, dbt_command):
+def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_results):
     tables = profiled_result.get('tables', [])
     event_payload = RunEventPayload()
     event_payload.tables = len(tables)
@@ -489,7 +489,6 @@ def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_resu
             else:
                 event_payload.failed_dbt_testcases += 1
 
-    event_payload.dbt_command = dbt_command
     event.log_event(event_payload.to_dict(), 'run')
 
 
@@ -525,7 +524,7 @@ def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results
 
 class Runner():
     @staticmethod
-    def exec(datasource=None, table=None, output=None, skip_report=False, dbt_command='', dbt_state_dir: str = None,
+    def exec(datasource=None, table=None, output=None, skip_report=False, dbt_state_dir: str = None,
              report_dir: str = None):
         console = Console()
 
@@ -684,7 +683,7 @@ class Runner():
         if skip_report:
             console.print(f'Results saved to {output if output else output_path}')
 
-        _analyse_and_log_run_event(run_result, assertion_results, dbt_test_results, dbt_command)
+        _analyse_and_log_run_event(run_result, assertion_results, dbt_test_results)
 
         if not _check_test_status(assertion_results, assertion_exceptions, dbt_test_results):
             return EC_ERR_TEST_FAILED

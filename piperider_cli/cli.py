@@ -153,8 +153,6 @@ def diagnose(**kwargs):
 @click.option('--table', default=None, type=click.STRING, help='Table to use.', metavar='TABLE_NAME')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
-@click.option('--dbt-test', is_flag=True, help='Run dbt test.')
-@click.option('--dbt-build', is_flag=True, help='Run dbt build.')
 @click.option('--dbt-state', default=None, help='Run with dbt state of modification.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
@@ -166,15 +164,11 @@ def run(**kwargs):
     table = kwargs.get('table')
     output = kwargs.get('output')
     skip_report = kwargs.get('skip_report')
-    run_dbt_test = kwargs.get('dbt_test')
-    run_dbt_build = kwargs.get('dbt_build')
     dbt_state_dir = kwargs.get('dbt_state')
-    dbt_command = 'build' if run_dbt_build else 'test' if run_dbt_test else ''
     ret = Runner.exec(datasource=datasource,
                       table=table,
                       output=output,
                       skip_report=skip_report,
-                      dbt_command=dbt_command,
                       dbt_state_dir=dbt_state_dir,
                       report_dir=kwargs.get('report_dir'))
 
