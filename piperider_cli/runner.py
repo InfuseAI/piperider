@@ -604,11 +604,7 @@ class Runner():
                 console.print(
                     f"[bold red]Error:[/bold red] No available 'manifest.json' or 'run_results.json' under '{dbt_state_dir}'")
                 return 1
-            state_candidate = dbtutil.get_dbt_state_candidate(dbt_state_dir, default_schema)
-            if not state_candidate:
-                console.print("[bold red]Error:[/bold red] No available tables / views")
-                return 1
-            tables = state_candidate
+            tables = dbtutil.get_dbt_state_candidate(dbt_state_dir, default_schema)
 
             dbt_test_results, dbt_test_results_compatible = dbtutil.get_dbt_state_tests_result(dbt_state_dir,
                                                                                                default_schema)
