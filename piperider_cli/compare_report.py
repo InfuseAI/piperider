@@ -135,8 +135,22 @@ class ComparisonData(object):
     STATE_DEL = 1
     STATE_MOD = 2
 
-    def __init__(self, base, target):
+    def __init__(self, base, target, tables_from):
         self._id = datetime.now().strftime("%Y%m%d%H%M%S")
+
+        if tables_from == 'target-only':
+            target_run_tables = target.get('tables', {}).keys()
+            target_run_tests = {test.get('id') for test in target.get('tests', [])}
+
+            base['tables'] = {table_name: base['tables'][table_name] for table_name in base['tables'] if table_name in target_run_tables}
+            base['tests'] = [test for test in base['tests'] if test.get('id') in target_run_tests]
+        elif tables_from == 'base-only':
+            base_run_tables = base.get('tables', {}).keys()
+            base_run_tests = {test.get('id') for test in base.get('tests', [])}
+
+            target['tables'] = {table_name: target['tables'][table_name] for table_name in target['tables'] if table_name in base_run_tables}
+            target['tests'] = [test for test in target['tests'] if test.get('id') in base_run_tests]
+
         self._base = base
         self._target = target
 
@@ -514,14 +528,14 @@ class CompareReport(object):
             return answers[0], answers[1]
         return None, None
 
-    def generate_data(self) -> ComparisonData:
+    def generate_data(self, tables_from: str) -> ComparisonData:
         if self.a is None or self.b is None:
             raise Exception("Please select reports to compare first.")
 
-        return ComparisonData(self.a.load(), self.b.load())
+        return ComparisonData(self.a.load(), self.b.load(), tables_from)
 
     @staticmethod
-    def exec(*, a=None, b=None, last=None, datasource=None, report_dir=None, output=None, debug=False):
+    def exec(*, a=None, b=None, last=None, datasource=None, report_dir=None, output=None, tables_from='all', debug=False):
         console = Console()
 
         filesystem = FileSystem(report_dir=report_dir)
@@ -530,7 +544,7 @@ class CompareReport(object):
         report = CompareReport(filesystem.get_output_dir(), a, b, datasource=datasource)
         if not report.select_reports(use_last_two=last):
             raise Exception('No valid reports found')
-        comparison_data = report.generate_data()
+        comparison_data = report.generate_data(tables_from)
 
         from piperider_cli import data
         report_template_dir = os.path.join(os.path.dirname(data.__file__), 'report', 'comparison-report')

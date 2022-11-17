@@ -220,6 +220,9 @@ def generate_report(**kwargs):
               help='Specify the datasource.')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
+@click.option('--tables-from', default='all',
+              type=click.Choice(['all', 'target-only', 'base-only'], case_sensitive=False),
+              help='Show table comparison from base or target.')
 @add_options(debug_option)
 def compare_reports(**kwargs):
     'Compare two existing reports selected in interactive mode or by option.'
@@ -228,8 +231,9 @@ def compare_reports(**kwargs):
     b = kwargs.get('target')
     last = kwargs.get('last')
     datasource = kwargs.get('datasource')
+    tables_from = kwargs.get('tables_from')
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
-                       report_dir=kwargs.get('report_dir'), output=kwargs.get('output'),
+                       report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), tables_from=tables_from,
                        debug=kwargs.get('debug', False))
 
 
