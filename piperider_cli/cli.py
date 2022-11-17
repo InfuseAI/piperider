@@ -153,7 +153,7 @@ def diagnose(**kwargs):
 @click.option('--table', default=None, type=click.STRING, help='Table to use.', metavar='TABLE_NAME')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
-@click.option('--dbt-state', default=None, help='Run with dbt state of modification.')
+@click.option('--dbt-state', default=None, help='Directory of the the dbt state.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
 @add_options(debug_option)
