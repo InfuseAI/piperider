@@ -1,7 +1,7 @@
 import os
 
 from piperider_cli.profiler import Profiler
-from piperider_cli.dbt_util import DbtUtility
+import piperider_cli.dbtutil as dbtutil
 from tests.common import MockDatabase
 from unittest import TestCase
 
@@ -28,12 +28,12 @@ class TestRunner(TestCase):
         self.dbt_state_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mock_dbt_data")
 
     def test_get_dbt_state_candidate(self):
-        tables = DbtUtility.get_dbt_state_candidate(self.dbt_state_dir, 'PUBLIC')
+        tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, 'PUBLIC')
 
         self.assertListEqual(['PRICE_PRESENT'], tables)
 
     def test_get_dbt_state_tests_result(self):
-        results, results_compatible = DbtUtility.get_dbt_state_tests_result(self.dbt_state_dir, 'PUBLIC')
+        results, results_compatible = dbtutil.get_dbt_state_tests_result(self.dbt_state_dir, 'PUBLIC')
 
         self.assertIn('PRICE_PRESENT', results_compatible)
         self.assertIn('MA60', results_compatible['PRICE_PRESENT']['columns'])
@@ -53,8 +53,9 @@ class TestRunner(TestCase):
         self.assertEqual('failed', status)
 
     def test_dbt_append_descriptions(self):
-        DbtUtility.append_descriptions(self.profile_results, self.dbt_state_dir, 'PUBLIC')
+        dbtutil.append_descriptions(self.profile_results, self.dbt_state_dir, 'PUBLIC')
 
-        self.assertEqual('The price data to today - via DBT', self.profile_results['tables']['PRICE_PRESENT']['description'])
+        self.assertEqual('The price data to today - via DBT',
+                         self.profile_results['tables']['PRICE_PRESENT']['description'])
         self.assertEqual('The symbol name - via DBT',
                          self.profile_results['tables']['PRICE_PRESENT']['columns']['symbol']['description'])
