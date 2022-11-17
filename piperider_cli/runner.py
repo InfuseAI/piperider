@@ -18,7 +18,7 @@ from sqlalchemy.exc import NoSuchTableError
 from piperider_cli import convert_to_tzlocal, datetime_to_str, clone_directory, \
     raise_exception_when_directory_not_writable
 from piperider_cli import event
-from piperider_cli.adapter import DbtAdapter
+import piperider_cli.dbtutil as dbtutil
 from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration
@@ -456,7 +456,7 @@ def _append_descriptions_from_assertion(profile_result):
                     'description'] = f'{column_desc} - via PipeRider'
 
 
-def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_results, dbt_command):
+def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_results):
     tables = profiled_result.get('tables', [])
     event_payload = RunEventPayload()
     event_payload.tables = len(tables)
@@ -489,7 +489,6 @@ def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_resu
             else:
                 event_payload.failed_dbt_testcases += 1
 
-    event_payload.dbt_command = dbt_command
     event.log_event(event_payload.to_dict(), 'run')
 
 
@@ -525,7 +524,7 @@ def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results
 
 class Runner():
     @staticmethod
-    def exec(datasource=None, table=None, output=None, skip_report=False, dbt_command='',
+    def exec(datasource=None, table=None, output=None, skip_report=False, dbt_state_dir: str = None,
              report_dir: str = None):
         console = Console()
 
@@ -587,26 +586,35 @@ class Runner():
         default_schema = ds.credential.get('schema')
 
         dbt_config = ds.args.get('dbt')
-        dbt_adapter = DbtAdapter(dbt_config)
-        if dbt_config and not dbt_adapter.is_ready():
-            raise dbt_adapter.get_error()
 
-        tables = None
-        if table:
-            tables = [table]
-
-        dbt_test_results = None
-        dbt_test_results_compatible = None
-        if dbt_command in ['build', 'test'] and dbt_adapter.is_ready():
-            dbt_adapter.set_dbt_command(dbt_command)
-            dbt_test_results, dbt_test_results_compatible = dbt_adapter.run_dbt_command(table, default_schema)
+        if dbt_config and not dbtutil.is_ready(dbt_config):
+            console.log('[bold red]ERROR:[/bold red] DBT configuration is not completed, please check the config.yml')
+            return 1
 
         console.rule('Profiling')
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
         engine = ds.create_engine()
 
+        tables = None
+        dbt_test_results = None
+        dbt_test_results_compatible = None
+        if dbt_state_dir:
+            if not dbtutil.is_dbt_state_ready(dbt_state_dir):
+                console.print(
+                    f"[bold red]Error:[/bold red] No available 'manifest.json' or 'run_results.json' under '{dbt_state_dir}'")
+                return 1
+            state_candidate = dbtutil.get_dbt_state_candidate(dbt_state_dir, default_schema)
+            if not state_candidate:
+                console.print("[bold red]Error:[/bold red] No available tables / views")
+                return 1
+            tables = state_candidate
+
+            dbt_test_results, dbt_test_results_compatible = dbtutil.get_dbt_state_tests_result(dbt_state_dir,
+                                                                                               default_schema)
+
         if table:
+            tables = [table]
             # cli --table is specified, no inclusion and exclusion applied
             configuration.includes = None
             configuration.excludes = None
@@ -653,8 +661,12 @@ class Runner():
         _show_summary(run_result, assertion_results, assertion_exceptions, dbt_test_results)
         _show_recommended_assertion_notice_message(console, assertion_results)
 
-        if dbt_adapter.is_ready():
-            dbt_adapter.append_descriptions(run_result, default_schema)
+        if dbt_state_dir:
+            if not dbtutil.is_dbt_state_ready(dbt_state_dir):
+                console.print(
+                    f"[bold red]Error:[/bold red] No available 'manifest.json' or 'run_results.json' under '{dbt_state_dir}'")
+                return 1
+            dbtutil.append_descriptions(run_result, dbt_state_dir, default_schema)
         _append_descriptions_from_assertion(run_result)
 
         run_result['id'] = run_id
@@ -674,7 +686,7 @@ class Runner():
         if skip_report:
             console.print(f'Results saved to {output if output else output_path}')
 
-        _analyse_and_log_run_event(run_result, assertion_results, dbt_test_results, dbt_command)
+        _analyse_and_log_run_event(run_result, assertion_results, dbt_test_results)
 
         if not _check_test_status(assertion_results, assertion_exceptions, dbt_test_results):
             return EC_ERR_TEST_FAILED

@@ -1,0 +1,597 @@
+{
+  "nodes": {
+    "model.infuse_finance.PRICE_PRESENT": {
+      "raw_sql": "{{ config(materialized='table') }}\n\nselect * from {{ source('PUBLIC', 'PRICE') }} where PRICE.DATE >= '2021-01-01'",
+      "resource_type": "model",
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+          "source.infuse_finance.PUBLIC.PRICE"
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": null,
+        "database": null,
+        "tags": [
+        ],
+        "meta": {
+        },
+        "materialized": "table",
+        "persist_docs": {
+        },
+        "quoting": {
+        },
+        "column_types": {
+        },
+        "full_refresh": null,
+        "unique_key": null,
+        "on_schema_change": "ignore",
+        "post-hook": [
+        ],
+        "pre-hook": [
+        ]
+      },
+      "database": "INFUSE_FINANCE",
+      "schema": "PUBLIC",
+      "fqn": [
+        "infuse_finance",
+        "PRICE_PRESENT"
+      ],
+      "unique_id": "model.infuse_finance.PRICE_PRESENT",
+      "package_name": "infuse_finance",
+      "root_path": "",
+      "path": "PRICE_PRESENT.sql",
+      "original_file_path": "models/PRICE_PRESENT.sql",
+      "name": "PRICE_PRESENT",
+      "alias": "PRICE_PRESENT",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "aa8bb21ee2edb1ebfd2d605530c322ad1f96bc95d817ce0129b747818d58916d"
+      },
+      "tags": [
+      ],
+      "refs": [
+      ],
+      "sources": [
+        [
+          "PUBLIC",
+          "PRICE"
+        ]
+      ],
+      "description": "The price data to today",
+      "columns": {
+        "symbol": {
+          "name": "symbol",
+          "description": "The symbol name",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "MA60": {
+          "name": "MA60",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        }
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true
+      },
+      "patch_path": "infuse_finance://models/schema.yml",
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+        "materialized": "table"
+      },
+      "created_at": 1667959592.397158
+    },
+    "test.infuse_finance.action_split_greater_than_zero": {
+      "raw_sql": "select top 100 * from {{ source('PUBLIC', 'ACTION') }} where splits <= 0",
+      "resource_type": "test",
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+          "source.infuse_finance.PUBLIC.ACTION"
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": "dbt_test__audit",
+        "database": null,
+        "tags": [
+        ],
+        "meta": {
+        },
+        "materialized": "test",
+        "severity": "ERROR",
+        "store_failures": null,
+        "where": null,
+        "limit": null,
+        "fail_calc": "count(*)",
+        "warn_if": "!= 0",
+        "error_if": "!= 0"
+      },
+      "database": "INFUSE_FINANCE",
+      "schema": "PUBLIC_dbt_test__audit",
+      "fqn": [
+        "infuse_finance",
+        "action_split_greater_than_zero"
+      ],
+      "unique_id": "test.infuse_finance.action_split_greater_than_zero",
+      "package_name": "infuse_finance",
+      "root_path": "",
+      "path": "action_split_greater_than_zero.sql",
+      "original_file_path": "tests/action_split_greater_than_zero.sql",
+      "name": "action_split_greater_than_zero",
+      "alias": "action_split_greater_than_zero",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "7677c51dde396bf76a3b21a4cc97fb5c992925840fbf343040fc28f2bd56702e"
+      },
+      "tags": [
+      ],
+      "refs": [
+      ],
+      "sources": [
+        [
+          "PUBLIC",
+          "ACTION"
+        ]
+      ],
+      "description": "",
+      "columns": {
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true
+      },
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+      },
+      "created_at": 1667959592.386909
+    },
+    "test.infuse_finance.not_null_PRICE_PRESENT_symbol.4f1efc5b3e": {
+      "raw_sql": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+      "test_metadata": {
+        "name": "not_null",
+        "kwargs": {
+          "column_name": "symbol",
+          "model": "{{ get_where_subquery(ref('PRICE_PRESENT')) }}"
+        },
+        "namespace": null
+      },
+      "resource_type": "test",
+      "depends_on": {
+        "macros": [
+          "macro.dbt.test_not_null"
+        ],
+        "nodes": [
+          "model.infuse_finance.PRICE_PRESENT"
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": "dbt_test__audit",
+        "database": null,
+        "tags": [
+        ],
+        "meta": {
+        },
+        "materialized": "test",
+        "severity": "ERROR",
+        "store_failures": null,
+        "where": null,
+        "limit": null,
+        "fail_calc": "count(*)",
+        "warn_if": "!= 0",
+        "error_if": "!= 0"
+      },
+      "database": "INFUSE_FINANCE",
+      "schema": "PUBLIC_dbt_test__audit",
+      "fqn": [
+        "infuse_finance",
+        "not_null_PRICE_PRESENT_symbol"
+      ],
+      "unique_id": "test.infuse_finance.not_null_PRICE_PRESENT_symbol.4f1efc5b3e",
+      "package_name": "infuse_finance",
+      "root_path": "",
+      "path": "not_null_PRICE_PRESENT_symbol.sql",
+      "original_file_path": "models/schema.yml",
+      "name": "not_null_PRICE_PRESENT_symbol",
+      "alias": "not_null_PRICE_PRESENT_symbol",
+      "checksum": {
+        "name": "none",
+        "checksum": ""
+      },
+      "tags": [
+      ],
+      "refs": [
+        [
+          "PRICE_PRESENT"
+        ]
+      ],
+      "sources": [
+      ],
+      "description": "",
+      "columns": {
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true
+      },
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+      },
+      "created_at": 1667959592.399997,
+      "column_name": "symbol",
+      "file_key_name": "models.PRICE_PRESENT"
+    },
+    "test.infuse_finance.not_null_PRICE_PRESENT_MA60.d1e01fc80f": {
+      "raw_sql": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+      "test_metadata": {
+        "name": "not_null",
+        "kwargs": {
+          "column_name": "MA60",
+          "model": "{{ get_where_subquery(ref('PRICE_PRESENT')) }}"
+        },
+        "namespace": null
+      },
+      "resource_type": "test",
+      "depends_on": {
+        "macros": [
+          "macro.dbt.test_not_null"
+        ],
+        "nodes": [
+          "model.infuse_finance.PRICE_PRESENT"
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": "dbt_test__audit",
+        "database": null,
+        "tags": [
+        ],
+        "meta": {
+        },
+        "materialized": "test",
+        "severity": "ERROR",
+        "store_failures": null,
+        "where": null,
+        "limit": null,
+        "fail_calc": "count(*)",
+        "warn_if": "!= 0",
+        "error_if": "!= 0"
+      },
+      "database": "INFUSE_FINANCE",
+      "schema": "PUBLIC_dbt_test__audit",
+      "fqn": [
+        "infuse_finance",
+        "not_null_PRICE_PRESENT_MA60"
+      ],
+      "unique_id": "test.infuse_finance.not_null_PRICE_PRESENT_MA60.d1e01fc80f",
+      "package_name": "infuse_finance",
+      "root_path": "",
+      "path": "not_null_PRICE_PRESENT_MA60.sql",
+      "original_file_path": "models/schema.yml",
+      "name": "not_null_PRICE_PRESENT_MA60",
+      "alias": "not_null_PRICE_PRESENT_MA60",
+      "checksum": {
+        "name": "none",
+        "checksum": ""
+      },
+      "tags": [
+      ],
+      "refs": [
+        [
+          "PRICE_PRESENT"
+        ]
+      ],
+      "sources": [
+      ],
+      "description": "",
+      "columns": {
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true
+      },
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+      },
+      "created_at": 1667959592.4010549,
+      "column_name": "MA60",
+      "file_key_name": "models.PRICE_PRESENT"
+    },
+    "test.infuse_finance.source_not_null_PUBLIC_ACTION_splits.c4db714d12": {
+      "raw_sql": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+      "test_metadata": {
+        "name": "not_null",
+        "kwargs": {
+          "column_name": "splits",
+          "model": "{{ get_where_subquery(source('PUBLIC', 'ACTION')) }}"
+        },
+        "namespace": null
+      },
+      "resource_type": "test",
+      "depends_on": {
+        "macros": [
+          "macro.dbt.test_not_null"
+        ],
+        "nodes": [
+          "source.infuse_finance.PUBLIC.ACTION"
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": "dbt_test__audit",
+        "database": null,
+        "tags": [
+        ],
+        "meta": {
+        },
+        "materialized": "test",
+        "severity": "ERROR",
+        "store_failures": null,
+        "where": null,
+        "limit": null,
+        "fail_calc": "count(*)",
+        "warn_if": "!= 0",
+        "error_if": "!= 0"
+      },
+      "database": "INFUSE_FINANCE",
+      "schema": "PUBLIC_dbt_test__audit",
+      "fqn": [
+        "infuse_finance",
+        "source_not_null_PUBLIC_ACTION_splits"
+      ],
+      "unique_id": "test.infuse_finance.source_not_null_PUBLIC_ACTION_splits.c4db714d12",
+      "package_name": "infuse_finance",
+      "root_path": "",
+      "path": "source_not_null_PUBLIC_ACTION_splits.sql",
+      "original_file_path": "models/schema.yml",
+      "name": "source_not_null_PUBLIC_ACTION_splits",
+      "alias": "source_not_null_PUBLIC_ACTION_splits",
+      "checksum": {
+        "name": "none",
+        "checksum": ""
+      },
+      "tags": [
+      ],
+      "refs": [
+      ],
+      "sources": [
+        [
+          "PUBLIC",
+          "ACTION"
+        ]
+      ],
+      "description": "",
+      "columns": {
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true
+      },
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+      },
+      "created_at": 1667959592.40849,
+      "column_name": "splits",
+      "file_key_name": "sources.PUBLIC"
+    }
+  },
+  "sources": {
+    "source.infuse_finance.PUBLIC.PRICE": {
+      "fqn": [
+        "infuse_finance",
+        "PUBLIC",
+        "PRICE"
+      ],
+      "database": "INFUSE_FINANCE",
+      "schema": "PUBLIC",
+      "unique_id": "source.infuse_finance.PUBLIC.PRICE",
+      "package_name": "infuse_finance",
+      "root_path": "",
+      "path": "models/schema.yml",
+      "original_file_path": "models/schema.yml",
+      "name": "PRICE",
+      "source_name": "PUBLIC",
+      "source_description": "",
+      "loader": "",
+      "identifier": "PRICE",
+      "resource_type": "source",
+      "quoting": {
+        "database": null,
+        "schema": null,
+        "identifier": null,
+        "column": null
+      },
+      "loaded_at_field": "date::timestamp",
+      "freshness": {
+        "warn_after": {
+          "count": 3,
+          "period": "day"
+        },
+        "error_after": {
+          "count": 7,
+          "period": "day"
+        },
+        "filter": null
+      },
+      "external": null,
+      "description": "",
+      "columns": {
+      },
+      "meta": {
+      },
+      "source_meta": {
+      },
+      "tags": [
+      ],
+      "config": {
+        "enabled": true
+      },
+      "patch_path": null,
+      "unrendered_config": {
+      },
+      "relation_name": "INFUSE_FINANCE.PUBLIC.PRICE",
+      "created_at": 1668579120.975135
+    },
+    "source.infuse_finance.PUBLIC.ACTION": {
+      "fqn": [
+        "infuse_finance",
+        "PUBLIC",
+        "ACTION"
+      ],
+      "database": "INFUSE_FINANCE",
+      "schema": "PUBLIC",
+      "unique_id": "source.infuse_finance.PUBLIC.ACTION",
+      "package_name": "infuse_finance",
+      "root_path": "",
+      "path": "models/schema.yml",
+      "original_file_path": "models/schema.yml",
+      "name": "ACTION",
+      "source_name": "PUBLIC",
+      "source_description": "",
+      "loader": "",
+      "identifier": "ACTION",
+      "resource_type": "source",
+      "quoting": {
+        "database": null,
+        "schema": null,
+        "identifier": null,
+        "column": null
+      },
+      "loaded_at_field": null,
+      "freshness": {
+        "warn_after": {
+          "count": null,
+          "period": null
+        },
+        "error_after": {
+          "count": null,
+          "period": null
+        },
+        "filter": null
+      },
+      "external": null,
+      "description": "",
+      "columns": {
+        "splits": {
+          "name": "splits",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        }
+      },
+      "meta": {
+      },
+      "source_meta": {
+      },
+      "tags": [
+      ],
+      "config": {
+        "enabled": true
+      },
+      "patch_path": null,
+      "unrendered_config": {
+      },
+      "relation_name": "INFUSE_FINANCE.PUBLIC.ACTION",
+      "created_at": 1668579120.9774668
+    },
+    "source.infuse_finance.PUBLIC.SYMBOL": {
+      "fqn": [
+        "infuse_finance",
+        "PUBLIC",
+        "SYMBOL"
+      ],
+      "database": "INFUSE_FINANCE",
+      "schema": "PUBLIC",
+      "unique_id": "source.infuse_finance.PUBLIC.SYMBOL",
+      "package_name": "infuse_finance",
+      "root_path": "",
+      "path": "models/schema.yml",
+      "original_file_path": "models/schema.yml",
+      "name": "SYMBOL",
+      "source_name": "PUBLIC",
+      "source_description": "",
+      "loader": "",
+      "identifier": "SYMBOL",
+      "resource_type": "source",
+      "quoting": {
+        "database": null,
+        "schema": null,
+        "identifier": null,
+        "column": null
+      },
+      "loaded_at_field": null,
+      "freshness": {
+        "warn_after": {
+          "count": null,
+          "period": null
+        },
+        "error_after": {
+          "count": null,
+          "period": null
+        },
+        "filter": null
+      },
+      "external": null,
+      "description": "",
+      "columns": {
+      },
+      "meta": {
+      },
+      "source_meta": {
+      },
+      "tags": [
+      ],
+      "config": {
+        "enabled": true
+      },
+      "patch_path": null,
+      "unrendered_config": {
+      },
+      "relation_name": "INFUSE_FINANCE.PUBLIC.SYMBOL",
+      "created_at": 1668579120.97753
+    }
+  }
+}
