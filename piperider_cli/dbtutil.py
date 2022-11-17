@@ -65,7 +65,7 @@ def is_ready(config):
     if not config.get('profile'):
         return False
 
-    if not config.get('profilesDir'):
+    if not config.get('target'):
         return False
 
     if not config.get('projectDir'):
