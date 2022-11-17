@@ -120,10 +120,10 @@ class Profiler:
         tables = []
 
         self.event_handler.handle_fetch_metadata_start()
-        if self.engine.url.get_backend_name() == 'postgresql' and not table_names:
+        if self.engine.url.get_backend_name() == 'postgresql' and table_names is None:
             table_names = inspect(self.engine).get_table_names()
 
-        if not table_names:
+        if table_names is None:
             metadata.reflect(bind=self.engine)
             table_names = list(metadata.tables.keys())
             table_names = self._apply_incl_excl_tables(table_names)
