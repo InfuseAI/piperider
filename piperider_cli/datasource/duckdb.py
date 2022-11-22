@@ -1,5 +1,6 @@
 import configparser
 import os
+import warnings
 from os.path import basename, splitext
 from urllib.parse import urlparse
 
@@ -70,6 +71,8 @@ class DuckDBDataSource(DataSource):
             PathField('path', description='Path of database file'),
             TextField('schema', description='Name of the schema', optional=True, default='main'),
         ]
+
+        warnings.filterwarnings('ignore', message="duckdb-engine doesn't yet support reflection on indices")
 
     def validate(self):
         return self._validate_required_fields()
