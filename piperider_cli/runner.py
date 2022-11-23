@@ -13,6 +13,7 @@ from rich.pretty import Pretty
 from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedColumn, MofNCompleteColumn
 from rich.style import Style
 from rich.table import Table
+from sqlalchemy import inspect
 from sqlalchemy.exc import NoSuchTableError
 
 from piperider_cli import convert_to_tzlocal, datetime_to_str, clone_directory, \
@@ -583,8 +584,6 @@ class Runner():
             console.print('\n\n[bold red]ERROR:[/bold red] Stop profiling, please fix the syntax errors above.')
             return 1
 
-        default_schema = ds.credential.get('schema')
-
         dbt_config = ds.args.get('dbt')
 
         if dbt_config and not dbtutil.is_ready(dbt_config):
@@ -595,6 +594,11 @@ class Runner():
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
         engine = ds.create_engine()
+        default_schema = ds.credential.get('schema')
+
+        if default_schema is None:
+            inspector = inspect(engine)
+            default_schema = inspector.default_schema_name
 
         tables = None
         dbt_test_results = None
