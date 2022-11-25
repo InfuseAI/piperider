@@ -102,7 +102,9 @@ class Configuration(object):
 
         with open(dbt_project_path, 'r') as fd:
             try:
-                dbt_project = yaml.safe_load(fd)
+                yml = yaml.YAML()
+                yml.allow_duplicate_keys = True
+                dbt_project = yml.load(fd)
             except Exception as e:
                 raise DbtProjectInvalidError(dbt_project_path, e)
 
@@ -376,7 +378,9 @@ def _load_dbt_profile(path):
     env.filters['as_text'] = as_text
     template = env.get_template(os.path.basename(path))
     try:
-        return yaml.safe_load(template.render())
+        yml = yaml.YAML()
+        yml.allow_duplicate_keys = True
+        return yml.load(template.render())
     except Exception as e:
         raise DbtProfileInvalidError(path, e)
 
