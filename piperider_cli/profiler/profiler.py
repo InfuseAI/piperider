@@ -8,6 +8,7 @@ from typing import Union, List, Tuple
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, ARRAY, select, func, \
     distinct, case, text, literal_column, inspect
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.engine import Engine, Connection
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.pool import SingletonThreadPool
@@ -428,6 +429,9 @@ class Profiler:
             # BOOLEAN
             generic_type = "boolean"
             profiler = BooleanColumnProfiler(self.engine, profiler_config, table, column)
+        elif isinstance(column.type, UUID):
+            generic_type = "other"
+            profiler = UUIDColumnProfiler(self.engine, profiler_config, table, column)
         else:
             generic_type = "other"
             profiler = BaseColumnProfiler(self.engine, profiler_config, table, column)
@@ -1327,6 +1331,74 @@ class BooleanColumnProfiler(BaseColumnProfiler):
                     'counts': [_falses, _trues]
                 }
             }
+
+            return result
+
+
+class UUIDColumnProfiler(BaseColumnProfiler):
+    def __init__(self, engine: Engine, config: dict, table: Table, column: Column):
+        super().__init__(engine, config, table, column)
+
+    def _get_table_cte(self) -> CTE:
+        t, c = self._get_limited_table_cte()
+        return select([c.label("c")]).select_from(t).cte()
+
+    def profile(self):
+        with self.engine.connect() as conn:
+            cte = self._get_table_cte()
+
+            columns = [
+                func.count().label("_total"),
+                func.count(cte.c.c).label("_non_nulls"),
+                func.count(distinct(cte.c.c)).label("_distinct"),
+            ]
+
+            stmt = select(columns)
+            result = conn.execute(stmt).fetchone()
+            _total, _non_nulls, _distinct = result
+
+            _nulls = _total - _non_nulls
+            _valids = _non_nulls
+            _invalids = _non_nulls - _valids
+
+            result = {
+                'total': None,
+                'samples': _total,
+                'samples_p': None,
+                'non_nulls': _non_nulls,
+                'non_nulls_p': percentage(_non_nulls, _total),
+                'nulls': _nulls,
+                'nulls_p': percentage(_nulls, _total),
+                'valids': _valids,
+                'valids_p': percentage(_valids, _total),
+                'invalids': _invalids,
+                'invalids_p': percentage(_invalids, _total),
+                'distinct': _distinct,
+                'distinct_p': percentage(_distinct, _valids),
+            }
+
+            # uniqueness
+            _non_duplicates = profile_non_duplicate(conn, cte, cte.c.c)
+            _duplicates = _valids - _non_duplicates
+            result.update({
+                "duplicates": _duplicates,
+                "duplicates_p": percentage(_duplicates, _valids),
+                "non_duplicates": _non_duplicates,
+                "non_duplicates_p": percentage(_non_duplicates, _valids),
+            })
+
+            # top k
+            topk = None
+            if _valids > 0:
+                topk = profile_topk(conn, func.cast(cte.c.c, String))
+            result['topk'] = topk
+
+            # deprecated
+            result['distribution'] = {
+                "type": "topk",
+                "labels": topk["values"],
+                "counts": topk["counts"],
+            } if topk else None
 
             return result
 
