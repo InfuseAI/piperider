@@ -70,7 +70,6 @@ export function CRAssertionModal({ data, isOpen, onClose, ...props }: Props) {
 type DetailProps = { data?: CRAssertionModalData };
 function AssertionTestDetail({ data }: DetailProps) {
   if (!data) return <NoData />;
-  console.log(data); // asym side should be empty...
 
   const isDbtKind = data.assertionSource === 'dbt';
   return (
