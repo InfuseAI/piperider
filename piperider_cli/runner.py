@@ -602,7 +602,6 @@ class Runner():
 
         tables = None
         dbt_test_results = None
-        dbt_test_results_compatible = None
         if dbt_state_dir:
             if not dbtutil.is_dbt_state_ready(dbt_state_dir):
                 console.print(
@@ -617,8 +616,7 @@ class Runner():
 
             configuration.includes = includes
 
-            dbt_test_results, dbt_test_results_compatible = dbtutil.get_dbt_state_tests_result(dbt_state_dir,
-                                                                                               default_schema)
+            dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir, default_schema)
 
         if table:
             tables = [table]
@@ -656,14 +654,7 @@ class Runner():
 
         console.rule('Summary')
 
-        if dbt_test_results_compatible:
-            for k, v in dbt_test_results_compatible.items():
-                if k not in run_result['tables']:
-                    continue
-                run_result['tables'][k]['dbt_assertion_result'] = v
-
         for t in run_result['tables']:
-            run_result['tables'][t]['piperider_assertion_result'] = _transform_assertion_result(t, assertion_results)
             _clean_up_profile_null_properties(run_result['tables'][t])
         _show_summary(run_result, assertion_results, assertion_exceptions, dbt_test_results)
         _show_recommended_assertion_notice_message(console, assertion_results)
