@@ -47,7 +47,6 @@ export function ColumnDetailListItem({
     targetValidRatio,
     formatIntervalMinMax,
   );
-  console.log(baseValidsPercentValue);
 
   return (
     <>
