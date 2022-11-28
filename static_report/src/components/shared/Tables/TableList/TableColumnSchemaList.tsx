@@ -54,7 +54,6 @@ export function TableColumnSchemaList({
           <Tbody>
             {fallbackTable?.columns.map(
               ([key, { base: baseColumn, target: targetColumn }, metadata]) => {
-                //FIXME: issue with fallack logic? (target[i] > base[i])
                 const fallbackColumn = targetColumn || baseColumn;
                 return (
                   <Tr
@@ -83,10 +82,10 @@ export function TableColumnSchemaList({
                       <Text
                         as="span"
                         noOfLines={1}
-                        maxWidth="250px"
+                        maxWidth="500px"
                         title={baseColumn?.name ?? NO_VALUE}
                       >
-                        {baseColumn?.name ?? NO_VALUE}
+                        {baseColumn?.name + '' ?? NO_VALUE}
                       </Text>
                     </Td>
                     <Td

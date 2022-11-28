@@ -72,7 +72,7 @@ export function TableListItem({
         rowGap={3}
       >
         {/* 1st Row */}
-        <GridItem>
+        <GridItem w={'100%'} maxW={'240px'}>
           <TableItemName name={tableName || ''} description={description} />
         </GridItem>
         <GridItem>

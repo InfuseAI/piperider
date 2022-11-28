@@ -40,7 +40,7 @@ export type TableItemNameProps = {
 
 export function TableItemName({ name, description }: TableItemNameProps) {
   return (
-    <Flex alignItems="center" justifyContent="flex-start" width={'10em'}>
+    <Flex alignItems="center" maxW={'100%'}>
       <Icon as={FiGrid} color="piperider.500" />
       <Tooltip label={name} placement={'top'}>
         <Text noOfLines={1} mx={1}>
