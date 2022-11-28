@@ -151,7 +151,6 @@ def get_dbt_state_candidate(dbt_state_dir: str, default_schema: str):
 
 def get_dbt_state_tests_result(dbt_state_dir: str, default_schema: str):
     output = []
-    compatible_output = {}
     unique_tests = {}
 
     run_results = _get_state_run_results(dbt_state_dir)
