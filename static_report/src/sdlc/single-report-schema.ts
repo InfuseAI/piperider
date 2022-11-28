@@ -68,8 +68,6 @@ export interface TableSchema {
   columns: {
     [k: string]: ColumnSchema;
   };
-  piperider_assertion_result: null | PipeRiderAssertionResult;
-  dbt_assertion_result?: null | DbtAssertionResult;
   profile_duration?: string;
   elapsed_milli?: number;
 }
@@ -130,7 +128,6 @@ export interface ColumnSchema {
    * The percentage of values that are non-recurring (e.g. [a,b,c,c] => [a,b])
    */
   non_duplicates_p?: number;
-  distribution?: Distribution;
   histogram?: Histogram;
   histogram_length?: Histogram;
   topk?: Topk;
@@ -281,12 +278,6 @@ export interface ColumnSchema {
    */
   p95?: number;
 }
-export interface Distribution {
-  type: string;
-  labels: (string | null)[];
-  counts: number[];
-  bin_edges?: (number | string)[];
-}
 export interface Histogram {
   labels: (string | null)[];
   counts: number[];
@@ -298,37 +289,6 @@ export interface Histogram {
 export interface Topk {
   values: (string | number)[];
   counts: number[];
-}
-export interface PipeRiderAssertionResult {
-  tests: AssertionTest1[];
-  columns: {
-    /**
-     * This interface was referenced by `undefined`'s JSON-Schema definition
-     * via the `patternProperty` ".+".
-     */
-    [k: string]: AssertionTest1[];
-  };
-}
-export interface AssertionTest1 {
-  name?: string;
-  status: 'passed' | 'failed';
-  parameters?: {
-    [k: string]: unknown;
-  };
-  tags?: string[];
-  expected?: unknown;
-  actual?: unknown;
-  [k: string]: unknown;
-}
-export interface DbtAssertionResult {
-  tests: AssertionTest1[];
-  columns: {
-    /**
-     * This interface was referenced by `undefined`'s JSON-Schema definition
-     * via the `patternProperty` ".+".
-     */
-    [k: string]: AssertionTest1[];
-  };
 }
 export interface AssertionTest {
   id: string;
