@@ -596,6 +596,9 @@ class Runner():
         engine = ds.create_engine()
         default_schema = ds.credential.get('schema')
 
+        if default_schema is None and ds.type_name == 'bigquery':
+            default_schema = ds.credential.get('dataset')
+
         if default_schema is None:
             inspector = inspect(engine)
             default_schema = inspector.default_schema_name
