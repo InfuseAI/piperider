@@ -28,10 +28,7 @@ import {
   containsColumnQuantile,
   getIconForColumnType,
 } from '../components/shared/Columns/utils';
-import {
-  TableDescription,
-  TableOverview,
-} from '../components/shared/Tables/TableOverview';
+import { TableOverview } from '../components/shared/Tables/TableOverview';
 import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 import {
   BreadcrumbMetaItem,
@@ -46,6 +43,7 @@ import { TableListAssertionSummary } from '../components/shared/Tables/TableList
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
 import { getAssertionStatusCountsFromList } from '../lib';
+import { DescriptionBlock } from '../components/shared/Layouts/DescriptionBlock';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -138,6 +136,10 @@ export default function CRColumnDetailsPage({
         {isTableDetailsView ? (
           <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
             <TableColumnHeader title={tableName} subtitle={'Table'} mb={5} />
+            <Grid templateColumns={'1fr 1fr'} gap={6} mb={3}>
+              <DescriptionBlock description={baseDataTable?.description} />
+              <DescriptionBlock description={targetDataTable?.description} />
+            </Grid>
             <Tabs defaultIndex={0}>
               <TabList>
                 <Tab>Overview</Tab>
@@ -151,13 +153,6 @@ export default function CRColumnDetailsPage({
                     <TableOverview tableDatum={baseDataTable} />
                     <Divider orientation="vertical" />
                     <TableOverview tableDatum={targetDataTable} />
-                    <TableDescription
-                      description={baseDataTable?.description}
-                    />
-                    <Divider orientation="vertical" />
-                    <TableDescription
-                      description={targetDataTable?.description}
-                    />
                   </Grid>
                 </TabPanel>
                 <TabPanel>
@@ -206,7 +201,6 @@ export default function CRColumnDetailsPage({
           // {/* Detail Area */}
           <Grid
             templateColumns={'1fr 1fr'}
-            templateRows={'5em 5em 1fr 1fr'}
             width={'100%'}
             maxHeight={mainContentAreaHeight}
             overflowY={'auto'}
@@ -222,6 +216,12 @@ export default function CRColumnDetailsPage({
                 iconColor={backgroundColor}
               />
               <ComparableGridHeader />
+              <Grid templateColumns={'1fr 1fr'} gap={6}>
+                <DescriptionBlock description={baseColumnDatum?.description} />
+                <DescriptionBlock
+                  description={targetColumnDatum?.description}
+                />
+              </Grid>
             </GridItem>
             {/* Data Composition Block */}
             <GridItem colSpan={2} px={9} py={2} bg={'gray.50'}>

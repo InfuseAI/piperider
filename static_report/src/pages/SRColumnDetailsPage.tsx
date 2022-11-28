@@ -1,5 +1,4 @@
 import {
-  Divider,
   Flex,
   Grid,
   GridItem,
@@ -26,10 +25,7 @@ import {
   containsColumnQuantile,
   getIconForColumnType,
 } from '../components/shared/Columns/utils';
-import {
-  TableDescription,
-  TableOverview,
-} from '../components/shared/Tables/TableOverview';
+import { TableOverview } from '../components/shared/Tables/TableOverview';
 import {
   AMPLITUDE_EVENTS,
   AssertionPassFailCountLabel,
@@ -45,6 +41,7 @@ import {
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { getBreadcrumbPaths } from '../utils/routes';
+import { DescriptionBlock } from '../components/shared/Layouts/DescriptionBlock';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
@@ -126,7 +123,8 @@ export default function SRColumnDetailsPage({
               subtitle={'Table'}
               mb={5}
             />
-            <Tabs defaultIndex={0}>
+            <DescriptionBlock description={dataTable.description} />
+            <Tabs mt={3} defaultIndex={0}>
               <TabList>
                 <Tab>Overview</Tab>
                 <Tab>Assertions</Tab>
@@ -134,10 +132,15 @@ export default function SRColumnDetailsPage({
               </TabList>
               <TabPanels>
                 <TabPanel>
-                  <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
+                  {/* FIXME: <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
                     <TableOverview tableDatum={dataTable} />
                     <Divider orientation="vertical" />
-                    <TableDescription description={dataTable.description} />
+                    <DescriptionBlock description={dataTable.description} />
+                  </Grid> */}
+                  <Grid templateColumns={'1fr 1fr'} gap={3}>
+                    <TableOverview tableDatum={dataTable} />
+                    {/* <Divider orientation="vertical" />
+                    <DescriptionBlock description={dataTable.description} /> */}
                   </Grid>
                 </TabPanel>
                 <TabPanel>
@@ -171,7 +174,7 @@ export default function SRColumnDetailsPage({
           // {/* Detail Area - Columns */}
           <Grid
             templateColumns={'1fr 1fr'}
-            templateRows={`8em 1fr 1fr ${hasQuantile ? '1fr' : ''}`}
+            templateRows={`1fr 1fr 1fr ${hasQuantile ? '1fr' : ''}`}
             gridAutoFlow={'column'}
             width={'100%'}
             pb={5}
@@ -179,15 +182,15 @@ export default function SRColumnDetailsPage({
             overflowY={'auto'}
           >
             {/* Label Block */}
-            <GridItem colSpan={2} p={6}>
+            <GridItem colSpan={2} p={9}>
               <TableColumnHeader
                 title={columnName}
                 subtitle={schema_type}
-                p={2}
-                borderBottom={borderVal}
                 icon={icon}
                 iconColor={backgroundColor}
+                mb={5}
               />
+              <DescriptionBlock description={columnDatum.description} />
             </GridItem>
             {/* Data Composition Block */}
             <GridItem
