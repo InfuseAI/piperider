@@ -210,18 +210,15 @@ export default function CRColumnDetailsPage({
               <TableColumnHeader
                 title={columnName}
                 subtitle={fallbackColumnDatum?.schema_type}
+                infoTip={
+                  targetColumnDatum?.description || baseColumnDatum?.description
+                }
                 mb={5}
                 borderBottom={borderVal}
                 icon={icon}
                 iconColor={backgroundColor}
               />
               <ComparableGridHeader />
-              <Grid templateColumns={'1fr 1fr'} gap={6}>
-                <DescriptionBlock description={baseColumnDatum?.description} />
-                <DescriptionBlock
-                  description={targetColumnDatum?.description}
-                />
-              </Grid>
             </GridItem>
             {/* Data Composition Block */}
             <GridItem colSpan={2} px={9} py={2} bg={'gray.50'}>

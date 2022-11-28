@@ -132,15 +132,8 @@ export default function SRColumnDetailsPage({
               </TabList>
               <TabPanels>
                 <TabPanel>
-                  {/* FIXME: <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
-                    <TableOverview tableDatum={dataTable} />
-                    <Divider orientation="vertical" />
-                    <DescriptionBlock description={dataTable.description} />
-                  </Grid> */}
                   <Grid templateColumns={'1fr 1fr'} gap={3}>
                     <TableOverview tableDatum={dataTable} />
-                    {/* <Divider orientation="vertical" />
-                    <DescriptionBlock description={dataTable.description} /> */}
                   </Grid>
                 </TabPanel>
                 <TabPanel>
@@ -174,7 +167,7 @@ export default function SRColumnDetailsPage({
           // {/* Detail Area - Columns */}
           <Grid
             templateColumns={'1fr 1fr'}
-            templateRows={`1fr 1fr 1fr ${hasQuantile ? '1fr' : ''}`}
+            templateRows={`8em 1fr 1fr ${hasQuantile ? '1fr' : ''}`}
             gridAutoFlow={'column'}
             width={'100%'}
             pb={5}
@@ -186,11 +179,11 @@ export default function SRColumnDetailsPage({
               <TableColumnHeader
                 title={columnName}
                 subtitle={schema_type}
+                infoTip={columnDatum.description}
                 icon={icon}
                 iconColor={backgroundColor}
                 mb={5}
               />
-              <DescriptionBlock description={columnDatum.description} />
             </GridItem>
             {/* Data Composition Block */}
             <GridItem
