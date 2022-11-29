@@ -41,7 +41,6 @@ import {
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { getBreadcrumbPaths } from '../utils/routes';
-import { DescriptionBlock } from '../components/shared/Layouts/DescriptionBlock';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
@@ -98,7 +97,7 @@ export default function SRColumnDetailsPage({
   const hasQuantile = containsColumnQuantile(type);
   return (
     <Main isSingleReport maxHeight={mainContentAreaHeight}>
-      <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
+      <Grid width={'inherit'} templateColumns={{ base: '1fr 2fr' }}>
         <GridItem colSpan={3}>
           <BreadcrumbNav breadcrumbList={breadcrumbList} />
         </GridItem>
@@ -121,9 +120,9 @@ export default function SRColumnDetailsPage({
             <TableColumnHeader
               title={dataTable.name}
               subtitle={'Table'}
+              infoTip={dataTable.description}
               mb={5}
             />
-            <DescriptionBlock description={dataTable.description} />
             <Tabs mt={3} defaultIndex={0}>
               <TabList>
                 <Tab>Overview</Tab>

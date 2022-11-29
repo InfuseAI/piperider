@@ -43,7 +43,6 @@ import { TableListAssertionSummary } from '../components/shared/Tables/TableList
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
 import { getAssertionStatusCountsFromList } from '../lib';
-import { DescriptionBlock } from '../components/shared/Layouts/DescriptionBlock';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -135,11 +134,12 @@ export default function CRColumnDetailsPage({
         {/* Detail Area - Table Detail */}
         {isTableDetailsView ? (
           <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
-            <TableColumnHeader title={tableName} subtitle={'Table'} mb={5} />
-            <Grid templateColumns={'1fr 1fr'} gap={6} mb={3}>
-              <DescriptionBlock description={baseDataTable?.description} />
-              <DescriptionBlock description={targetDataTable?.description} />
-            </Grid>
+            <TableColumnHeader
+              title={tableName}
+              subtitle={'Table'}
+              mb={5}
+              infoTip={(targetDataTable || baseDataTable)?.description}
+            />
             <Tabs defaultIndex={0}>
               <TabList>
                 <Tab>Overview</Tab>
@@ -185,7 +185,6 @@ export default function CRColumnDetailsPage({
                       changed={metadata.changed}
                     />
                   </Flex>
-                  <ComparableGridHeader />
                   <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
                     <TableColumnSchemaList
                       baseTableEntryDatum={baseTableColEntry}

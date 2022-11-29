@@ -51,6 +51,7 @@ export function ColumnDetailListItem({
   return (
     <>
       <Flex
+        fontSize={'sm'}
         justifyContent={'space-between'}
         alignItems={'center'}
         cursor={'pointer'}
@@ -67,7 +68,11 @@ export function ColumnDetailListItem({
           icon={icon}
           name={fallbackColumnDatum?.name}
         />
-        <Box w={'12em'}>
+        <Box
+          w={{ md: 'auto', xl: '10em' }}
+          fontSize={{ md: '2xs', xl: 'sm' }}
+          display={{ base: 'none', lg: 'block' }}
+        >
           {!singleOnly && (
             <Text fontSize={'sm'} color={'gray.600'} fontWeight={'semibold'}>
               Base

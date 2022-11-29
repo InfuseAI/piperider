@@ -21,6 +21,10 @@ interface Props extends Selectable, Comparable {
 }
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of all tables and columns from datasource. Belongs in the profiling column details page to view in-depth metrics and visualizations
+ * 
+ *  1. Don't crop the text is the space is enough
+    2. If the width is less than n (e.g. 400), shrink the bar first
+    3. Should reference the MBP screen size
  */
 export function ColumnDetailMasterList({
   tableColEntry,
