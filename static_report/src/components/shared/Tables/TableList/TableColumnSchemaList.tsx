@@ -15,6 +15,7 @@ import { FiChevronRight } from 'react-icons/fi';
 import { Comparable, Selectable } from '../../../../types';
 import { NO_VALUE } from '../../Columns/constants';
 import { CompTableWithColEntryOverwrite } from '../../../../utils/store';
+import { NO_DESCRIPTION_MSG } from '../../Layouts/constant';
 
 interface Props extends Selectable, Comparable {
   baseTableEntryDatum?: CompTableWithColEntryOverwrite;
@@ -48,6 +49,7 @@ export function TableColumnSchemaList({
                   <Th>{`${isNotSingle ? 'Target' : ''} Column`}</Th>
                 </>
               )}
+              <Th>Description</Th>
               {visibleDetail && <Th />}
             </Tr>
           </Thead>
@@ -81,6 +83,7 @@ export function TableColumnSchemaList({
                     >
                       <Text
                         as="span"
+                        fontSize={'xs'}
                         noOfLines={1}
                         maxWidth="500px"
                         title={baseColumn?.name ?? NO_VALUE}
@@ -96,7 +99,9 @@ export function TableColumnSchemaList({
                       }
                       borderRight={isNotSingle ? '1px solid lightgray' : ''}
                     >
-                      {baseColumn?.schema_type ?? NO_VALUE}
+                      <Text as={'span'} fontSize={'xs'}>
+                        {baseColumn?.schema_type ?? NO_VALUE}
+                      </Text>
                     </Td>
                     {isNotSingle && (
                       <>
@@ -105,6 +110,7 @@ export function TableColumnSchemaList({
                           whiteSpace="normal"
                         >
                           <Text
+                            fontSize={'xs'}
                             as="span"
                             noOfLines={1}
                             maxWidth="250px"
@@ -116,10 +122,23 @@ export function TableColumnSchemaList({
                         <Td
                           color={metadata?.mismatched ? 'red.500' : 'inherit'}
                         >
-                          {targetColumn?.schema_type ?? NO_VALUE}
+                          <Text as={'span'} fontSize={'xs'}>
+                            {targetColumn?.schema_type ?? NO_VALUE}
+                          </Text>
                         </Td>
                       </>
                     )}
+                    <Td borderLeft={isNotSingle ? '1px solid lightgray' : ''}>
+                      <Text
+                        as={'p'}
+                        fontSize={'xs'}
+                        noOfLines={1}
+                        w={'200px'}
+                        textOverflow={'ellipsis'}
+                      >
+                        {fallbackColumn?.description ?? NO_DESCRIPTION_MSG}
+                      </Text>
+                    </Td>
                     {visibleDetail && (
                       <Td>
                         <Icon

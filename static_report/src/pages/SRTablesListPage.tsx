@@ -3,8 +3,6 @@ import {
   AccordionItem,
   AccordionPanel,
   Flex,
-  Grid,
-  Text,
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 import { useLocation } from 'wouter';
@@ -15,7 +13,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 import { SaferSRSchema } from '../types';
 import { TableListItem } from '../components/shared/Tables/TableList/TableListItem';
-import { tableListGridTempCols, tableListWidth } from '../utils/layout';
+import { tableListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
 import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 import { useAmplitudeOnMount } from '../hooks/useAmplitudeOnMount';
@@ -43,12 +41,7 @@ export function SRTablesListPage({ data }: Props) {
     <Main isSingleReport>
       <TableActionBar />
 
-      <Flex direction="column" width={tableListWidth} minHeight="650px">
-        <Grid templateColumns={tableListGridTempCols} px={4} my={6}>
-          <Text>Name</Text>
-          <Text>Summary</Text>
-          <Text>Assertions</Text>
-        </Grid>
+      <Flex direction="column" width={tableListWidth} minHeight="650px" pt={9}>
         <Accordion allowToggle reduceMotion>
           {tableColumnsOnly.map((tableColsEntry) => {
             return (
