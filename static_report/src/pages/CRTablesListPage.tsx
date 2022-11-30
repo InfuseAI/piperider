@@ -46,7 +46,7 @@ export function CRTablesListPage({ data }: Props) {
         <Grid templateColumns={tableListGridTempCols} px={4} my={6}>
           <Text>Name</Text>
           <Text>Summary</Text>
-          <Text>Assertions</Text>
+          <Text ml={'5em'}>Assertions</Text>
         </Grid>
         <Accordion allowToggle reduceMotion>
           {tableColEntries.map((tableColEntry) => {

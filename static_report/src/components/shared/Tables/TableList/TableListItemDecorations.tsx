@@ -8,6 +8,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { FiAlertCircle, FiGrid } from 'react-icons/fi';
+import { tableListWidth } from '../../../../utils/layout';
 
 export interface TableAccordionWrapperProps extends AccordionButtonProps {
   isExpanded: boolean;
@@ -40,10 +41,19 @@ export type TableItemNameProps = {
 
 export function TableItemName({ name, description }: TableItemNameProps) {
   return (
-    <Flex alignItems="center" maxW={'100%'}>
+    <Flex alignItems="center">
       <Icon as={FiGrid} color="piperider.500" />
       <Tooltip label={name} placement={'top'}>
-        <Text noOfLines={1} mx={1}>
+        <Text
+          maxW={tableListWidth / 2.75}
+          textOverflow={'ellipsis'}
+          as="span"
+          textAlign={'start'}
+          fontSize={'sm'}
+          whiteSpace={'normal'}
+          noOfLines={1}
+          mx={1}
+        >
           {name}
         </Text>
       </Tooltip>
