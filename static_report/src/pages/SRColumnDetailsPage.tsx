@@ -1,5 +1,4 @@
 import {
-  Divider,
   Flex,
   Grid,
   GridItem,
@@ -26,10 +25,7 @@ import {
   containsColumnQuantile,
   getIconForColumnType,
 } from '../components/shared/Columns/utils';
-import {
-  TableDescription,
-  TableOverview,
-} from '../components/shared/Tables/TableOverview';
+import { TableOverview } from '../components/shared/Tables/TableOverview';
 import {
   AMPLITUDE_EVENTS,
   AssertionPassFailCountLabel,
@@ -101,7 +97,7 @@ export default function SRColumnDetailsPage({
   const hasQuantile = containsColumnQuantile(type);
   return (
     <Main isSingleReport maxHeight={mainContentAreaHeight}>
-      <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
+      <Grid width={'inherit'} templateColumns={{ base: '1fr 2fr' }}>
         <GridItem colSpan={3}>
           <BreadcrumbNav breadcrumbList={breadcrumbList} />
         </GridItem>
@@ -124,9 +120,10 @@ export default function SRColumnDetailsPage({
             <TableColumnHeader
               title={dataTable.name}
               subtitle={'Table'}
+              infoTip={dataTable.description}
               mb={5}
             />
-            <Tabs defaultIndex={0}>
+            <Tabs mt={3} defaultIndex={0}>
               <TabList>
                 <Tab>Overview</Tab>
                 <Tab>Assertions</Tab>
@@ -134,10 +131,8 @@ export default function SRColumnDetailsPage({
               </TabList>
               <TabPanels>
                 <TabPanel>
-                  <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
+                  <Grid templateColumns={'1fr 1fr'} gap={3}>
                     <TableOverview tableDatum={dataTable} />
-                    <Divider orientation="vertical" />
-                    <TableDescription description={dataTable.description} />
                   </Grid>
                 </TabPanel>
                 <TabPanel>
@@ -179,14 +174,14 @@ export default function SRColumnDetailsPage({
             overflowY={'auto'}
           >
             {/* Label Block */}
-            <GridItem colSpan={2} p={6}>
+            <GridItem colSpan={2} p={9}>
               <TableColumnHeader
                 title={columnName}
                 subtitle={schema_type}
-                p={2}
-                borderBottom={borderVal}
+                infoTip={columnDatum.description}
                 icon={icon}
                 iconColor={backgroundColor}
+                mb={5}
               />
             </GridItem>
             {/* Data Composition Block */}

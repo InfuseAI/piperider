@@ -1,4 +1,11 @@
-import { ColorProps, Flex, Icon, Text, Tooltip } from '@chakra-ui/react';
+import {
+  ColorProps,
+  Flex,
+  FlexProps,
+  Icon,
+  Text,
+  Tooltip,
+} from '@chakra-ui/react';
 import { FiCornerDownRight } from 'react-icons/fi';
 import { NO_VALUE } from '../../Columns';
 
@@ -7,9 +14,14 @@ interface Props {
   icon: any;
   iconColor?: ColorProps['color'];
 }
-export function ColumnName({ name, icon, iconColor = 'piperider.500' }: Props) {
+export function ColumnName({
+  name,
+  icon,
+  iconColor = 'piperider.500',
+  ...props
+}: Props & FlexProps) {
   return (
-    <Flex alignItems="center" maxW={'14em'}>
+    <Flex alignItems="center" {...props}>
       <Icon as={FiCornerDownRight} color="gray.300" boxSize={5} />
       <Icon as={icon} color={iconColor} mx={2} boxSize={5} />
       <Tooltip label={name}>

@@ -9,8 +9,8 @@ import {
   AccordionItem,
   AccordionPanel,
   Flex,
-  Grid,
   Text,
+  Grid,
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 import { useLocation } from 'wouter';
@@ -42,11 +42,11 @@ export function CRTablesListPage({ data }: Props) {
     <Main isSingleReport={false}>
       <TableActionBar />
 
-      <Flex direction="column" width={tableListWidth} minHeight="650px">
+      <Flex direction="column" width={tableListWidth} minHeight="650px" pt={9}>
         <Grid templateColumns={tableListGridTempCols} px={4} my={6}>
           <Text>Name</Text>
           <Text>Summary</Text>
-          <Text>Assertions</Text>
+          <Text ml={'5em'}>Assertions</Text>
         </Grid>
         <Accordion allowToggle reduceMotion>
           {tableColEntries.map((tableColEntry) => {

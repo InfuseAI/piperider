@@ -21,6 +21,10 @@ interface Props extends Selectable, Comparable {
 }
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of all tables and columns from datasource. Belongs in the profiling column details page to view in-depth metrics and visualizations
+ * 
+ *  1. Don't crop the text is the space is enough
+    2. If the width is less than n (e.g. 400), shrink the bar first
+    3. Should reference the MBP screen size
  */
 export function ColumnDetailMasterList({
   tableColEntry,
@@ -125,11 +129,11 @@ export function ColumnDetailMasterList({
             onSelect({ tableName: currentTable, columnName: '' });
           }}
         >
-          <Flex alignItems={'center'} gap={2}>
+          <Flex alignItems={'center'} gap={2} fontSize={'sm'}>
             <Icon as={FiGrid} color="piperider.500" />
             <Text noOfLines={1}>{currentTable}</Text>
           </Flex>
-          <Flex color="gray.500">
+          <Flex color="gray.500" fontSize={'sm'}>
             <Text mr={4}>Rows</Text>
             {singleOnly ? (
               <Text>

@@ -1,4 +1,4 @@
-import { Flex, Grid, Text, GridItem, Icon, Link } from '@chakra-ui/react';
+import { Flex, Text, Icon, Link, Grid, GridItem } from '@chakra-ui/react';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
 import {
@@ -14,18 +14,19 @@ import {
   formatColumnValueWith,
   formatNumber,
 } from '../../../../utils/formatters';
-import { ColumnBadge } from './ColumnBadge';
-import { getIconForColumnType } from '../../Columns/utils';
 import { NoData } from '../../Layouts';
 import { AssertionPassFailCountLabel } from '../../Assertions/AssertionPassFailCountLabel';
 import { getAssertionStatusCountsFromList } from '../utils';
 import {
   tableListGridTempCols,
   tableListMaxWidth,
+  tableListWidth,
 } from '../../../../utils/layout';
 import { ColumnSchemaDeltaSummary } from './ColumnSchemaDeltaSummary';
 import { CompTableColEntryItem, ReportState } from '../../../../utils/store';
-import { NO_DESCRIPTION_MSG } from '../constant';
+import { NO_DESCRIPTION_MSG } from '../../Layouts/constant';
+import { getIconForColumnType } from '../../Columns';
+import { ColumnBadge } from './ColumnBadge';
 
 interface Props extends Selectable, Comparable {
   isExpanded: boolean;
@@ -137,7 +138,7 @@ export function TableListItem({
           </Link>
         </GridItem>
         <GridItem colSpan={2}>
-          <Flex color="gray.500" maxWidth="650px">
+          <Flex color="gray.500" maxWidth={tableListWidth * 0.5}>
             <Text as="span" mr={4}>
               Columns:
             </Text>

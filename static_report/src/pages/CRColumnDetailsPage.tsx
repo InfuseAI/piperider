@@ -28,10 +28,7 @@ import {
   containsColumnQuantile,
   getIconForColumnType,
 } from '../components/shared/Columns/utils';
-import {
-  TableDescription,
-  TableOverview,
-} from '../components/shared/Tables/TableOverview';
+import { TableOverview } from '../components/shared/Tables/TableOverview';
 import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 import {
   BreadcrumbMetaItem,
@@ -137,7 +134,12 @@ export default function CRColumnDetailsPage({
         {/* Detail Area - Table Detail */}
         {isTableDetailsView ? (
           <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
-            <TableColumnHeader title={tableName} subtitle={'Table'} mb={5} />
+            <TableColumnHeader
+              title={tableName}
+              subtitle={'Table'}
+              mb={5}
+              infoTip={(targetDataTable || baseDataTable)?.description}
+            />
             <Tabs defaultIndex={0}>
               <TabList>
                 <Tab>Overview</Tab>
@@ -151,13 +153,6 @@ export default function CRColumnDetailsPage({
                     <TableOverview tableDatum={baseDataTable} />
                     <Divider orientation="vertical" />
                     <TableOverview tableDatum={targetDataTable} />
-                    <TableDescription
-                      description={baseDataTable?.description}
-                    />
-                    <Divider orientation="vertical" />
-                    <TableDescription
-                      description={targetDataTable?.description}
-                    />
                   </Grid>
                 </TabPanel>
                 <TabPanel>
@@ -190,7 +185,6 @@ export default function CRColumnDetailsPage({
                       changed={metadata.changed}
                     />
                   </Flex>
-                  <ComparableGridHeader />
                   <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
                     <TableColumnSchemaList
                       baseTableEntryDatum={baseTableColEntry}
@@ -206,7 +200,6 @@ export default function CRColumnDetailsPage({
           // {/* Detail Area */}
           <Grid
             templateColumns={'1fr 1fr'}
-            templateRows={'5em 5em 1fr 1fr'}
             width={'100%'}
             maxHeight={mainContentAreaHeight}
             overflowY={'auto'}
@@ -216,6 +209,9 @@ export default function CRColumnDetailsPage({
               <TableColumnHeader
                 title={columnName}
                 subtitle={fallbackColumnDatum?.schema_type}
+                infoTip={
+                  targetColumnDatum?.description || baseColumnDatum?.description
+                }
                 mb={5}
                 borderBottom={borderVal}
                 icon={icon}
