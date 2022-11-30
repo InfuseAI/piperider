@@ -9,11 +9,13 @@ import {
   AccordionItem,
   AccordionPanel,
   Flex,
+  Text,
+  Grid,
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
 import { useLocation } from 'wouter';
 
-import { tableListWidth } from '../utils/layout';
+import { tableListGridTempCols, tableListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
 import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
 import { useAmplitudeOnMount } from '../hooks';
@@ -41,6 +43,11 @@ export function CRTablesListPage({ data }: Props) {
       <TableActionBar />
 
       <Flex direction="column" width={tableListWidth} minHeight="650px" pt={9}>
+        <Grid templateColumns={tableListGridTempCols} px={4} my={6}>
+          <Text>Name</Text>
+          <Text>Summary</Text>
+          <Text>Assertions</Text>
+        </Grid>
         <Accordion allowToggle reduceMotion>
           {tableColEntries.map((tableColEntry) => {
             return (

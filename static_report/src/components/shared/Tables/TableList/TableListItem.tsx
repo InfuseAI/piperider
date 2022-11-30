@@ -1,4 +1,4 @@
-import { Flex, Text, Icon, Link, Box } from '@chakra-ui/react';
+import { Flex, Text, Icon, Link, Grid, GridItem } from '@chakra-ui/react';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
 import {
@@ -17,10 +17,16 @@ import {
 import { NoData } from '../../Layouts';
 import { AssertionPassFailCountLabel } from '../../Assertions/AssertionPassFailCountLabel';
 import { getAssertionStatusCountsFromList } from '../utils';
-import { tableListMaxWidth } from '../../../../utils/layout';
+import {
+  tableListGridTempCols,
+  tableListMaxWidth,
+  tableListWidth,
+} from '../../../../utils/layout';
 import { ColumnSchemaDeltaSummary } from './ColumnSchemaDeltaSummary';
 import { CompTableColEntryItem, ReportState } from '../../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../../Layouts/constant';
+import { getIconForColumnType } from '../../Columns';
+import { ColumnBadge } from './ColumnBadge';
 
 interface Props extends Selectable, Comparable {
   isExpanded: boolean;
@@ -59,14 +65,60 @@ export function TableListItem({
       isExpanded={isExpanded}
       data-cy="table-list-accordion-btn"
     >
-      <Box width={tableListMaxWidth} position={'relative'}>
+      <Grid
+        templateColumns={tableListGridTempCols}
+        width={tableListMaxWidth}
+        justifyItems="flex-start"
+        position={'relative'}
+        rowGap={3}
+      >
         {/* 1st Row */}
-        <Flex grow={1} mb={2}>
+        <GridItem>
           <TableItemName name={tableName || ''} description={description} />
-        </Flex>
-
+        </GridItem>
+        <GridItem>
+          <Flex color="gray.500">
+            <Text mr={4}>Rows:</Text>
+            {singleOnly ? (
+              <Text>
+                {formatColumnValueWith(fallbackTable?.row_count, formatNumber)}
+              </Text>
+            ) : (
+              <TableRowColDeltaSummary
+                baseCount={tableValue?.base?.row_count}
+                targetCount={tableValue?.target?.row_count}
+              />
+            )}
+          </Flex>
+        </GridItem>
+        <GridItem>
+          <Flex gap={2}>
+            {singleOnly && (
+              <AssertionPassFailCountLabel
+                total={baseTotal}
+                failed={baseFailed}
+              />
+            )}
+            {!singleOnly && (
+              <TableListAssertionSummary
+                baseAssertionFailed={baseFailed}
+                baseAssertionTotal={baseTotal}
+                targetAssertionFailed={targetFailed}
+                targetAssertionTotal={targetTotal}
+              />
+            )}
+            <Icon
+              position={'absolute'}
+              right={0}
+              ml={5}
+              as={isExpanded ? FiChevronUp : FiChevronDown}
+              color="piperider.500"
+              boxSize={6}
+            />
+          </Flex>
+        </GridItem>
         {/* 2nd Row */}
-        <Flex gap={singleOnly ? 12 : 5} alignItems={'center'}>
+        <GridItem>
           <Link
             data-cy="navigate-report-detail"
             onClick={(event) => {
@@ -84,81 +136,66 @@ export function TableListItem({
               Table Details
             </Text>
           </Link>
-          {singleOnly && (
-            <Flex color="gray.500" maxWidth="650px" fontSize={'sm'}>
-              <Text as="span" mr={2}>
-                Columns:
-              </Text>
-              <Text>
-                {formatColumnValueWith(fallbackTable?.col_count, formatNumber)}
-              </Text>
-            </Flex>
-          )}
-          {singleOnly && (
-            <Flex color="gray.500" fontSize={'sm'}>
-              <Text mr={2}>Rows:</Text>
-              <Text>
-                {formatColumnValueWith(fallbackTable?.row_count, formatNumber)}
-              </Text>
-            </Flex>
-          )}
-          {!singleOnly && (
-            <Flex
-              color={'gray.500'}
-              fontSize={'sm'}
-              alignItems={'center'}
-              justifyContent={'space-evenly'}
-              grow={1}
-            >
-              <Box>
-                <Flex>
-                  <Text as="span" mr={2}>
-                    Rows:
-                  </Text>
-                  <TableRowColDeltaSummary
-                    baseCount={tableValue?.base?.row_count}
-                    targetCount={tableValue?.target?.row_count}
-                  />
-                </Flex>
-                <Flex>
-                  <Text as="span" mr={2}>
-                    Columns:
-                  </Text>
-                  <ColumnSchemaDeltaSummary
-                    added={tableMetadata?.added}
-                    deleted={tableMetadata?.deleted}
-                    changed={tableMetadata?.changed}
-                  />
-                </Flex>
-              </Box>
-              <Box>
-                <TableListAssertionSummary
-                  baseAssertionFailed={baseFailed}
-                  baseAssertionTotal={baseTotal}
-                  targetAssertionFailed={targetFailed}
-                  targetAssertionTotal={targetTotal}
+        </GridItem>
+        <GridItem colSpan={2}>
+          <Flex color="gray.500" maxWidth={tableListWidth * 0.5}>
+            <Text as="span" mr={4}>
+              Columns:
+            </Text>
+            {isExpanded &&
+              (singleOnly ? (
+                <Text>
+                  {formatColumnValueWith(
+                    fallbackTable?.col_count,
+                    formatNumber,
+                  )}
+                </Text>
+              ) : (
+                <ColumnSchemaDeltaSummary
+                  added={tableMetadata?.added}
+                  deleted={tableMetadata?.deleted}
+                  changed={tableMetadata?.changed}
                 />
-              </Box>
-            </Flex>
-          )}
-          {singleOnly && (
-            <Flex>
-              <AssertionPassFailCountLabel
-                total={baseTotal}
-                failed={baseFailed}
-              />
-            </Flex>
-          )}
-          <Icon
-            position={'absolute'}
-            right={0}
-            ml={5}
-            as={isExpanded ? FiChevronUp : FiChevronDown}
-            color="piperider.500"
-            boxSize={6}
-          />
-        </Flex>
-      </Box>
+              ))}
+            {!isExpanded &&
+              (singleOnly ? (
+                <Flex
+                  __css={{
+                    display: 'flex',
+                    gap: 3,
+                    alignItems: 'center',
+                    maxWidth: '100%',
+                    overflowX: 'scroll',
+                    scrollbarWidth: 'none',
+                    '&::-webkit-scrollbar': {
+                      display: 'none',
+                    },
+                  }}
+                >
+                  {fallbackTable &&
+                    fallbackTable.columns?.length > 0 &&
+                    fallbackTable.columns.map(([colName, { base }]) => {
+                      const { backgroundColor, icon } =
+                        getIconForColumnType(base);
+                      return (
+                        <ColumnBadge
+                          key={colName}
+                          name={colName}
+                          icon={icon}
+                          iconColor={backgroundColor}
+                        />
+                      );
+                    })}
+                </Flex>
+              ) : (
+                <TableRowColDeltaSummary
+                  baseCount={tableValue?.base?.col_count}
+                  targetCount={tableValue?.target?.col_count}
+                />
+              ))}
+          </Flex>
+        </GridItem>
+      </Grid>
     </TableAccordionWrapper>
   );
 }
