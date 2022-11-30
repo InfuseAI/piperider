@@ -129,11 +129,11 @@ export function ColumnDetailMasterList({
             onSelect({ tableName: currentTable, columnName: '' });
           }}
         >
-          <Flex alignItems={'center'} gap={2}>
+          <Flex alignItems={'center'} gap={2} fontSize={'sm'}>
             <Icon as={FiGrid} color="piperider.500" />
             <Text noOfLines={1}>{currentTable}</Text>
           </Flex>
-          <Flex color="gray.500">
+          <Flex color="gray.500" fontSize={'sm'}>
             <Text mr={4}>Rows</Text>
             {singleOnly ? (
               <Text>

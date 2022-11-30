@@ -40,7 +40,6 @@ export function SRTablesListPage({ data }: Props) {
   return (
     <Main isSingleReport>
       <TableActionBar />
-
       <Flex direction="column" width={tableListWidth} minHeight="650px" pt={9}>
         <Accordion allowToggle reduceMotion>
           {tableColumnsOnly.map((tableColsEntry) => {
@@ -59,7 +58,7 @@ export function SRTablesListPage({ data }: Props) {
                         }
                       />
                       {/* Accordion Children */}
-                      <AccordionPanel bgColor="white">
+                      <AccordionPanel bgColor="white" p={0}>
                         {isExpanded && (
                           <TableColumnSchemaList
                             singleOnly
