@@ -36,7 +36,7 @@ export function TableColumnSchemaList({
   const isNotSingle = !singleOnly;
 
   return (
-    <Flex direction="column" width={tableListWidth}>
+    <Flex direction="column" width={visibleDetail ? tableListWidth : '100%'}>
       <TableContainer width="100%">
         <Table variant="simple">
           <Thead>
@@ -45,13 +45,14 @@ export function TableColumnSchemaList({
               <Th borderRight={isNotSingle ? '1px solid lightgray' : ''}>{`${
                 isNotSingle ? 'Base' : ''
               } Type`}</Th>
-              {isNotSingle && (
+              {isNotSingle ? (
                 <>
                   <Th>{`${isNotSingle ? 'Target' : ''} Column`}</Th>
-                  <Th>{`${isNotSingle ? 'Target' : ''} Column`}</Th>
+                  <Th>{`${isNotSingle ? 'Target' : ''} Type`}</Th>
                 </>
+              ) : (
+                <Th>Description</Th>
               )}
-              <Th>Description</Th>
               {visibleDetail && <Th />}
             </Tr>
           </Thead>
@@ -107,7 +108,7 @@ export function TableColumnSchemaList({
                         {baseColumn?.schema_type ?? NO_VALUE}
                       </Text>
                     </Td>
-                    {isNotSingle && (
+                    {isNotSingle ? (
                       <>
                         <Td
                           color={metadata?.mismatched ? 'red.500' : 'inherit'}
@@ -131,30 +132,31 @@ export function TableColumnSchemaList({
                           </Text>
                         </Td>
                       </>
-                    )}
-                    <Td
-                      borderLeft={isNotSingle ? '1px solid lightgray' : ''}
-                      pr={0}
-                      maxW={'300px'}
-                    >
-                      <Tooltip
-                        label={
-                          fallbackColumn?.description ?? NO_DESCRIPTION_MSG
-                        }
+                    ) : (
+                      <Td
+                        borderLeft={isNotSingle ? '1px solid lightgray' : ''}
+                        pr={0}
+                        maxW={'300px'}
                       >
-                        <Text
-                          as={'p'}
-                          fontSize={'xs'}
-                          noOfLines={1}
-                          textOverflow={'ellipsis'}
-                          whiteSpace={'normal'}
+                        <Tooltip
+                          label={
+                            fallbackColumn?.description ?? NO_DESCRIPTION_MSG
+                          }
                         >
-                          {fallbackColumn?.description ??
-                            NO_VALUE +
-                              'lorem ips sfefsf sefsef sefeloremlorem ips sfefsf sefsef sefe'}
-                        </Text>
-                      </Tooltip>
-                    </Td>
+                          <Text
+                            as={'p'}
+                            fontSize={'xs'}
+                            noOfLines={1}
+                            textOverflow={'ellipsis'}
+                            whiteSpace={'normal'}
+                          >
+                            {fallbackColumn?.description ??
+                              NO_VALUE +
+                                'lorem ips sfefsf sefsef sefeloremlorem ipsips sfefsf sefsef sefeips sfefsf sefsef sefe sfefsf sefsef sefe'}
+                          </Text>
+                        </Tooltip>
+                      </Td>
+                    )}
                     {visibleDetail && (
                       <Td p={0}>
                         <Icon

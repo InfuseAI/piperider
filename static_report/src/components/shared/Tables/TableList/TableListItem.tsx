@@ -61,7 +61,7 @@ export function TableListItem({
     >
       <Box width={tableListMaxWidth} position={'relative'}>
         {/* 1st Row */}
-        <Flex grow={1} mb={5}>
+        <Flex grow={1} mb={2}>
           <TableItemName name={tableName || ''} description={description} />
         </Flex>
 
@@ -84,50 +84,71 @@ export function TableListItem({
               Table Details
             </Text>
           </Link>
-          <Flex color="gray.500" maxWidth="650px" fontSize={'sm'}>
-            <Text as="span" mr={2}>
-              Columns:
-            </Text>
-            {singleOnly ? (
+          {singleOnly && (
+            <Flex color="gray.500" maxWidth="650px" fontSize={'sm'}>
+              <Text as="span" mr={2}>
+                Columns:
+              </Text>
               <Text>
                 {formatColumnValueWith(fallbackTable?.col_count, formatNumber)}
               </Text>
-            ) : (
-              <ColumnSchemaDeltaSummary
-                added={tableMetadata?.added}
-                deleted={tableMetadata?.deleted}
-                changed={tableMetadata?.changed}
-              />
-            )}
-          </Flex>
-          <Flex color="gray.500" fontSize={'sm'}>
-            <Text mr={2}>Rows:</Text>
-            {singleOnly ? (
+            </Flex>
+          )}
+          {singleOnly && (
+            <Flex color="gray.500" fontSize={'sm'}>
+              <Text mr={2}>Rows:</Text>
               <Text>
                 {formatColumnValueWith(fallbackTable?.row_count, formatNumber)}
               </Text>
-            ) : (
-              <TableRowColDeltaSummary
-                baseCount={tableValue?.base?.row_count}
-                targetCount={tableValue?.target?.row_count}
-              />
-            )}
-          </Flex>
-          <Flex>
-            {singleOnly ? (
+            </Flex>
+          )}
+          {!singleOnly && (
+            <Flex
+              color={'gray.500'}
+              fontSize={'sm'}
+              alignItems={'center'}
+              justifyContent={'space-evenly'}
+              grow={1}
+            >
+              <Box>
+                <Flex>
+                  <Text as="span" mr={2}>
+                    Rows:
+                  </Text>
+                  <TableRowColDeltaSummary
+                    baseCount={tableValue?.base?.row_count}
+                    targetCount={tableValue?.target?.row_count}
+                  />
+                </Flex>
+                <Flex>
+                  <Text as="span" mr={2}>
+                    Columns:
+                  </Text>
+                  <ColumnSchemaDeltaSummary
+                    added={tableMetadata?.added}
+                    deleted={tableMetadata?.deleted}
+                    changed={tableMetadata?.changed}
+                  />
+                </Flex>
+              </Box>
+              <Box>
+                <TableListAssertionSummary
+                  baseAssertionFailed={baseFailed}
+                  baseAssertionTotal={baseTotal}
+                  targetAssertionFailed={targetFailed}
+                  targetAssertionTotal={targetTotal}
+                />
+              </Box>
+            </Flex>
+          )}
+          {singleOnly && (
+            <Flex>
               <AssertionPassFailCountLabel
                 total={baseTotal}
                 failed={baseFailed}
               />
-            ) : (
-              <TableListAssertionSummary
-                baseAssertionFailed={baseFailed}
-                baseAssertionTotal={baseTotal}
-                targetAssertionFailed={targetFailed}
-                targetAssertionTotal={targetTotal}
-              />
-            )}
-          </Flex>
+            </Flex>
+          )}
           <Icon
             position={'absolute'}
             right={0}
