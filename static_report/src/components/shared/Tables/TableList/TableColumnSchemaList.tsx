@@ -91,9 +91,7 @@ export function TableColumnSchemaList({
                         whiteSpace="normal"
                         title={baseColumn?.name ?? NO_VALUE}
                       >
-                        {baseColumn?.name +
-                          'aa;woeijfweofijweofijweofjweoifa;woeijfweofijweofijweofjweoif;woeijfweofijweofijweofjweoif' ??
-                          NO_VALUE}
+                        {baseColumn?.name + '' ?? NO_VALUE}
                       </Text>
                     </Td>
                     <Td
@@ -150,9 +148,7 @@ export function TableColumnSchemaList({
                             textOverflow={'ellipsis'}
                             whiteSpace={'normal'}
                           >
-                            {fallbackColumn?.description ??
-                              NO_VALUE +
-                                'lorem ips sfefsf sefsef sefeloremlorem ipsips sfefsf sefsef sefeips sfefsf sefsef sefe sfefsf sefsef sefe'}
+                            {fallbackColumn?.description ?? NO_VALUE}
                           </Text>
                         </Tooltip>
                       </Td>
