@@ -30,8 +30,6 @@ import {
   AMPLITUDE_EVENTS,
   AssertionPassFailCountLabel,
   AssertionListWidget,
-  BreadcrumbMetaItem,
-  BreadcrumbNav,
   SR_TYPE_LABEL,
   TableColumnSchemaList,
   useAmplitudeOnMount,
@@ -41,6 +39,10 @@ import {
 import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { getBreadcrumbPaths } from '../utils/routes';
+import {
+  BreadcrumbMetaItem,
+  BreadcrumbNav,
+} from '../components/shared/Layouts/BreadcrumbNav';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
