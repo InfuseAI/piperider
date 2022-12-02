@@ -1,6 +1,6 @@
-import { Flex, Spinner } from '@chakra-ui/react';
+import { Flex, Spinner, FlexProps } from '@chakra-ui/react';
 
-export function Loading() {
+export function Loading(props: FlexProps) {
   return (
     <Flex
       bgColor="gray.50"
@@ -8,6 +8,7 @@ export function Loading() {
       height="100vh"
       justifyContent="center"
       alignItems="center"
+      {...props}
     >
       <Spinner />
     </Flex>
