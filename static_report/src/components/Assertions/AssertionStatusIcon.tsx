@@ -1,5 +1,5 @@
 import { Text } from '@chakra-ui/react';
-import { AssertionTest } from '../../../sdlc';
+import { AssertionTest } from '../../sdlc';
 
 export function AssertionStatusIcon({
   status,

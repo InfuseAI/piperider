@@ -2,8 +2,8 @@ import { Flex, Text, Icon } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { FiCheck, FiX } from 'react-icons/fi';
 
-import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
-import type { Comparable } from '../../../types';
+import { formatColumnValueWith, formatNumber } from '../../utils/formatters';
+import type { Comparable } from '../../types';
 import { NO_VALUE } from '../Columns';
 import { NO_ASSERTIONS } from '../Tables/constant';
 

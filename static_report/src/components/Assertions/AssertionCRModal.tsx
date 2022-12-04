@@ -17,12 +17,12 @@ import {
   Tbody,
   Td,
 } from '@chakra-ui/react';
-import { formatTestExpectedOrActual } from '../../../utils/formatters';
+import { formatTestExpectedOrActual } from '../../utils/formatters';
 import { AssertionStatusIcon } from './AssertionStatusIcon';
 import { NO_VALUE } from '../Columns/constants';
 import { NoData } from '../Layouts';
-import { AssertionTest } from '../../../sdlc/single-report-schema';
-import { ComparableData } from '../../../types';
+import { AssertionTest } from '../../sdlc/single-report-schema';
+import { ComparableData } from '../../types';
 
 export type CRAssertionModalData = {
   assertionName?: string;
