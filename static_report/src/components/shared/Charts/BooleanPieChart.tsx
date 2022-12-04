@@ -98,11 +98,12 @@ export function getBooleanPieChartOptions(
           boxHeight: 15,
           boxWidth: 15,
           generateLabels({ data: { datasets, labels } }) {
+            const bgColor = datasets?.[0]?.backgroundColor;
             return datasets[0].data.map((data, i) => ({
               text: `${labels?.[i]} \n ${formatIntervalMinMax(
                 ratios[i],
               )} / ${data}`,
-              fillStyle: datasets?.[0]?.backgroundColor?.[i],
+              fillStyle: Array.isArray(bgColor) ? bgColor?.[i] : bgColor,
             }));
           },
         },
