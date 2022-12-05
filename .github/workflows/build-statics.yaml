@@ -29,14 +29,16 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16
-        cache: 'yarn'
-        cache-dependency-path: static_report/yarn.lock
+        cache: 'pnpm'
+        cache-dependency-path: static_report/pnpm-lock.yaml
 
-    - name: Install Dependencies
-      run: yarn install --immutable
+    - uses: bahmutov/npm-install@v1
+      with:
+        working-directory: ./static_report
+        install-command: pnpm --frozen-lockfile
 
     - name: Build Apps
-      run: npm run build
+      run: pnpm run build
 
     - name: Pull Remote Changes (before AC)
       run: git pull origin main
