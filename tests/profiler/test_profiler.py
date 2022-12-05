@@ -122,7 +122,7 @@ class TestProfiler:
         self.create_table("test", data)
         profiler = Profiler(engine)
 
-        result = profiler.profile()["tables"]["test"]['columns']["col"]["distribution"]
+        result = profiler.profile()["tables"]["test"]['columns']["col"]["histogram"]
         assert result["labels"][0] == '0'
         assert result["counts"][0] == 1
         assert result["labels"][50] == '50'
@@ -196,7 +196,8 @@ class TestProfiler:
         assert result['p75'] is None
         assert result['p95'] is None
         assert result['max'] is None
-        assert result['distribution'] is None
+        assert result['histogram'] is None
+        assert result['topk'] is None
 
     def test_numeric_metrics(self):
         engine = self.engine = create_engine('sqlite://')
@@ -314,7 +315,7 @@ class TestProfiler:
         assert result['p75'] is None
         assert result['p95'] is None
         assert result['max'] is None
-        assert result['distribution'] is None
+        assert result['histogram'] is None
 
     def test_numeric_invalid(self):
         engine = self.engine = create_engine('sqlite://')

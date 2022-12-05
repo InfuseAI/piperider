@@ -548,8 +548,7 @@ class BaseColumnProfiler:
                 'valids': _valid,
                 'valids_p': percentage(_valid, _total),
                 'invalids': 0,
-                'invalids_p': 0,
-                'distribution': None,
+                'invalids_p': 0
             }
 
 
@@ -675,13 +674,6 @@ class StringColumnProfiler(BaseColumnProfiler):
                 histogram = profile_histogram(conn, cte, cte.c.len, _min, _max, True)
             result['histogram'] = histogram
             result['histogram_length'] = histogram
-
-            # deprecated
-            result['distribution'] = {
-                "type": "topk",
-                "labels": topk["values"],
-                "counts": topk["counts"],
-            } if topk else None
 
             return result
 
@@ -821,14 +813,6 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 if _valids > 0:
                     topk = profile_topk(conn, cte.c.c)
                 result["topk"] = topk
-
-            # deprecated
-            result["distribution"] = {
-                "type": "histogram",
-                "labels": histogram["labels"],
-                "counts": histogram["counts"],
-                "bin_edges": histogram["bin_edges"],
-            } if histogram else None
 
             return result
 
@@ -1139,14 +1123,6 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
                 histogram, _type = self._profile_histogram(conn, cte, cte.c.c, _min, _max)
             result['histogram'] = histogram
 
-            # deprecated
-            result["distribution"] = {
-                "type": _type,
-                "labels": histogram["labels"],
-                "counts": histogram["counts"],
-                "bin_edges": histogram["bin_edges"],
-            } if histogram else None
-
             return result
 
     def _profile_histogram(
@@ -1323,13 +1299,6 @@ class BooleanColumnProfiler(BaseColumnProfiler):
                 'falses_p': percentage(_falses, _total),
                 'distinct': _distinct,
                 'distinct_p': percentage(_distinct, _valids),
-
-                # deprecated
-                'distribution': {
-                    'type': "topk",
-                    'labels': ["False", "True"],
-                    'counts': [_falses, _trues]
-                }
             }
 
             return result
@@ -1392,13 +1361,6 @@ class UUIDColumnProfiler(BaseColumnProfiler):
             if _valids > 0:
                 topk = profile_topk(conn, func.cast(cte.c.c, String))
             result['topk'] = topk
-
-            # deprecated
-            result['distribution'] = {
-                "type": "topk",
-                "labels": topk["values"],
-                "counts": topk["counts"],
-            } if topk else None
 
             return result
 

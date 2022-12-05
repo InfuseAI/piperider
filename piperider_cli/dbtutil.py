@@ -151,7 +151,6 @@ def get_dbt_state_candidate(dbt_state_dir: str, default_schema: str):
 
 def get_dbt_state_tests_result(dbt_state_dir: str, default_schema: str):
     output = []
-    compatible_output = {}
     unique_tests = {}
 
     run_results = _get_state_run_results(dbt_state_dir)
@@ -196,23 +195,6 @@ def get_dbt_state_tests_result(dbt_state_dir: str, default_schema: str):
         if table is None:
             continue
 
-        if table not in compatible_output:
-            compatible_output[table] = dict(columns={}, tests=[])
-
-        if column not in compatible_output[table]['columns']:
-            compatible_output[table]['columns'][column] = []
-        compatible_output[table]['columns'][column].append(dict(
-            id=unique_id,
-            name=unique_id,
-            table=table,
-            column=column if column != test_node['name'] else None,
-            status='passed' if unique_tests[unique_id]['status'] == 'pass' else 'failed',
-            tags=[],
-            message=unique_tests[unique_id]['message'],
-            display_name=test_node['name'],
-            source='dbt'
-        ))
-
         output.append(dict(
             id=unique_id,
             name=unique_id,
@@ -225,4 +207,4 @@ def get_dbt_state_tests_result(dbt_state_dir: str, default_schema: str):
             source='dbt'
         ))
 
-    return output, compatible_output
+    return output

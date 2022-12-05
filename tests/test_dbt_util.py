@@ -33,11 +33,7 @@ class TestRunner(TestCase):
         self.assertListEqual(['PRICE_PRESENT'], tables)
 
     def test_get_dbt_state_tests_result(self):
-        results, results_compatible = dbtutil.get_dbt_state_tests_result(self.dbt_state_dir, 'PUBLIC')
-
-        self.assertIn('PRICE_PRESENT', results_compatible)
-        self.assertIn('MA60', results_compatible['PRICE_PRESENT']['columns'])
-        self.assertEqual('failed', results_compatible['PRICE_PRESENT']['columns']['MA60'][0]['status'])
+        results = dbtutil.get_dbt_state_tests_result(self.dbt_state_dir, 'PUBLIC')
 
         table_names = [r.get('table') for r in results]
         column_names = [r.get('column') for r in results]
