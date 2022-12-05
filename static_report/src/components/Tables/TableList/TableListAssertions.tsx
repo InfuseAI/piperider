@@ -1,13 +1,6 @@
-import { Text, Center, Icon, Grid, IconProps } from '@chakra-ui/react';
-import {
-  FiCheck,
-  FiX,
-  FiArrowUpCircle,
-  FiArrowDownCircle,
-  FiArrowRight,
-} from 'react-icons/fi';
+import { Icon, Grid } from '@chakra-ui/react';
+import { FiArrowRight } from 'react-icons/fi';
 import { AssertionPassFailCountLabel } from '../../Assertions';
-import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
 
 interface Props {
   baseAssertionTotal?: number | string;
