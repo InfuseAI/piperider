@@ -10,7 +10,7 @@ import {
   AnimationOptions,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { formatIntervalMinMax } from '../../../utils/formatters';
+import { formatIntervalMinMax } from '../../utils/formatters';
 
 /**
  * Props to create FlatStackedBarChart Component

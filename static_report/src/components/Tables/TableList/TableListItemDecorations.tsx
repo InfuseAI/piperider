@@ -8,7 +8,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { FiAlertCircle, FiGrid } from 'react-icons/fi';
-import { tableListWidth } from '../../../../utils/layout';
+import { tableListWidth } from '../../../utils/layout';
 
 export interface TableAccordionWrapperProps extends AccordionButtonProps {
   isExpanded: boolean;

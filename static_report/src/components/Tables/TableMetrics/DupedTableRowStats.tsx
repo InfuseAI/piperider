@@ -1,5 +1,5 @@
 import { BoxProps } from '@chakra-ui/react';
-import { SaferTableSchema } from '../../../../types';
+import { SaferTableSchema } from '../../../types';
 import { MetricsInfo } from '../../Columns/ColumnMetrics/MetricsInfo';
 import { TableMetakeyList, transformSRTableMetricsInfoList } from '../utils';
 

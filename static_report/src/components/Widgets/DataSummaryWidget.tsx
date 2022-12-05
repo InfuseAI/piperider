@@ -1,7 +1,7 @@
 import { Box, Divider, Text } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { renderChartUnavailableMsg } from '../Charts/utils';
-import { formatTitleCase } from '../../../utils/formatters';
+import { formatTitleCase } from '../../utils/formatters';
 import { SummaryStats } from '../Columns/ColumnMetrics/SummaryStats';
 
 interface Props {

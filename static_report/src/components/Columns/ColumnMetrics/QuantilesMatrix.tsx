@@ -9,13 +9,13 @@ import {
   Tr,
 } from '@chakra-ui/react';
 import { nanoid } from 'nanoid';
-import { schemaMetaDescriptions } from '../../../../sdlc/schema-meta';
-import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { ZColSchema } from '../../../../types';
+import { schemaMetaDescriptions } from '../../../sdlc/schema-meta';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { ZColSchema } from '../../../types';
 import {
   formatAsAbbreviatedNumber,
   formatColumnValueWith,
-} from '../../../../utils/formatters';
+} from '../../../utils/formatters';
 
 type Props = {
   columnDatum?: ColumnSchema;

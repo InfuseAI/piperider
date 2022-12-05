@@ -1,5 +1,5 @@
 import { formatInTimeZone } from 'date-fns-tz';
-import { NO_VALUE } from '../components/shared/Columns/constants';
+import { NO_VALUE } from '../components/Columns/constants';
 import type { ColumnSchema } from '../sdlc/single-report-schema';
 
 /**

@@ -27,7 +27,7 @@ import {
 import { FiDatabase, FiMessageSquare } from 'react-icons/fi';
 import { GoChecklist } from 'react-icons/go';
 import { ReactNode, useState } from 'react';
-import { mainContentAreaHeight } from '../../../utils/layout';
+import { mainContentAreaHeight } from '../../utils/layout';
 import { useLocation } from 'wouter';
 
 type Feedback = {

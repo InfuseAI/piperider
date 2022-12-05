@@ -7,7 +7,7 @@ import { FlatBoxPlotChartProps } from './FlatBoxPlotChart';
 
 import { TRUES, FALSES, NULLS, INVALIDS } from '../Columns/constants';
 import { checkColumnCategorical, containsDataSummary } from '../Columns/utils';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ReactNode } from 'react';
 import { TopKSummaryList } from './TopKSummaryList';
 

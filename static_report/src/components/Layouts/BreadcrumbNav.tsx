@@ -7,7 +7,7 @@ import {
   FlexProps,
 } from '@chakra-ui/react';
 import { Link, useLocation } from 'wouter';
-import { breadcrumbHeight } from '../../../utils/layout';
+import { breadcrumbHeight } from '../../utils/layout';
 
 export interface BreadcrumbMetaItem {
   path: string;

@@ -13,33 +13,33 @@ import {
 import { useLocation } from 'wouter';
 import { useState } from 'react';
 
-import { Main } from '../components/shared/Layouts/Main';
-import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
-import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
-import { ColumnDetailMasterList } from '../components/shared/Columns/ColumnDetailMasterList/ColumnDetailMasterList';
+import { Main } from '../components/Layouts/Main';
+import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
+import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
+import { ColumnDetailMasterList } from '../components/Columns/ColumnDetailMasterList/ColumnDetailMasterList';
 import { borderVal, mainContentAreaHeight } from '../utils/layout';
-import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
-import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
+import { DataSummaryWidget } from '../components/Widgets/DataSummaryWidget';
+import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
 
 import type { ComparisonReportSchema } from '../types';
-import { NoData } from '../components/shared/Layouts/NoData';
+import { NoData } from '../components/Layouts/NoData';
 import {
   containsDataSummary,
   containsColumnQuantile,
   getIconForColumnType,
-} from '../components/shared/Columns/utils';
-import { TableOverview } from '../components/shared/Tables/TableOverview';
-import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
+} from '../components/Columns/utils';
+import { TableOverview } from '../components/Tables/TableOverview';
+import { TableColumnSchemaList } from '../components/Tables/TableList/TableColumnSchemaList';
 import {
   BreadcrumbMetaItem,
   BreadcrumbNav,
-} from '../components/shared/Layouts/BreadcrumbNav';
-import { ColumnSchemaDeltaSummary } from '../components/shared/Tables/TableList/ColumnSchemaDeltaSummary';
-import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
+} from '../components/Layouts/BreadcrumbNav';
+import { ColumnSchemaDeltaSummary } from '../components/Tables/TableList/ColumnSchemaDeltaSummary';
+import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { getBreadcrumbPaths } from '../utils/routes';
-import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
-import { TableListAssertionSummary } from '../components/shared/Tables/TableList/TableListAssertions';
+import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
+import { TableListAssertionSummary } from '../components/Tables/TableList/TableListAssertions';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
 import { getAssertionStatusCountsFromList } from '../lib';

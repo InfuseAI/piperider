@@ -6,12 +6,12 @@ import {
   Progress,
   Text,
 } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { Comparable, Selectable } from '../../../../types';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { Comparable, Selectable } from '../../../types';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
-} from '../../../../utils/formatters';
+} from '../../../utils/formatters';
 import { ColumnName } from '../../Tables';
 import { getIconForColumnType } from '../utils';
 

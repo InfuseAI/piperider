@@ -25,12 +25,12 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
-import { Comparable } from '../../../types';
+import { Comparable } from '../../types';
 import {
   ComparedAssertionTestValue,
   formatTestExpectedOrActual,
   ReportState,
-} from '../../../utils';
+} from '../../utils';
 import { AssertionStatusIcon } from '../Assertions';
 import {
   CRAssertionModal,

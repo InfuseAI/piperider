@@ -1,5 +1,5 @@
 import { Divider, Text, Box, Link } from '@chakra-ui/react';
-import { SaferTableSchema } from '../../../types';
+import { SaferTableSchema } from '../../types';
 import { renderChartUnavailableMsg } from '../Charts/utils';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
 import { transformTableAsFlatStackInput } from '../Tables/utils';

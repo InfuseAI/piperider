@@ -15,10 +15,10 @@ import {
 } from '@sgratzl/chartjs-chart-boxplot';
 
 import { Chart } from 'react-chartjs-2';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { formatAsAbbreviatedNumber } from '../../../utils/formatters';
+import { ColumnSchema } from '../../sdlc/single-report-schema';
+import { formatAsAbbreviatedNumber } from '../../utils/formatters';
 import { getBoxPlotKeyData } from './utils';
-import { INVALID_VAL_COLOR, NULL_VAL_COLOR } from '../../../utils/theme';
+import { INVALID_VAL_COLOR, NULL_VAL_COLOR } from '../../utils/theme';
 
 const meanBackgroundColor = '#4780A8';
 

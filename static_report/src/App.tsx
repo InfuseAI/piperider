@@ -3,8 +3,8 @@ import { Suspense, lazy } from 'react';
 import { Switch, Route, Router, BaseLocationHook } from 'wouter';
 import { BrowserTracing } from '@sentry/tracing';
 
-import { Loading } from './components/shared/Layouts/Loading';
-import { NotFound } from './components/shared/Layouts/NotFound';
+import { Loading } from './components/Layouts/Loading';
+import { NotFound } from './components/Layouts/NotFound';
 import { SRTablesListPage } from './pages/SRTablesListPage';
 import { CRTablesListPage } from './pages/CRTablesListPage';
 import { useHashLocation } from './hooks/useHashLcocation';

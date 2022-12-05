@@ -5,7 +5,7 @@ import {
   INVALID_VAL_COLOR,
   NULL_VAL_COLOR,
   INFO_VAL_COLOR,
-} from './../../../utils/theme';
+} from './../../utils/theme';
 import { ColorProps } from '@chakra-ui/styled-system';
 import { AiOutlineFileText } from 'react-icons/ai';
 import { BiText, BiQuestionMark } from 'react-icons/bi';
@@ -13,13 +13,13 @@ import { BsCalendarDate } from 'react-icons/bs';
 import { TbCircleHalf } from 'react-icons/tb';
 import { TiSortNumerically } from 'react-icons/ti';
 import { VscSymbolOperator } from 'react-icons/vsc';
-import { ColumnSchema } from '../../../sdlc';
+import { ColumnSchema } from '../../sdlc';
 import {
   formatAsAbbreviatedNumber,
   formatIntervalMinMax,
   formatNumber,
-} from '../../../utils/formatters';
-import { zeroAsFallbackHandler } from '../../../utils/transformers';
+} from '../../utils/formatters';
+import { zeroAsFallbackHandler } from '../../utils/transformers';
 import { FlatStackedBarChartProps } from '../Charts/FlatStackedBarChart';
 import { MetricMetaKeys, MetricsInfoProps } from './ColumnMetrics';
 import {

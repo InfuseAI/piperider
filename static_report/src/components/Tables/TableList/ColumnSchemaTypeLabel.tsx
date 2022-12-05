@@ -1,6 +1,6 @@
 import { Badge, Flex, FlexProps, Icon, Text, Tooltip } from '@chakra-ui/react';
 import { FiArrowRight } from 'react-icons/fi';
-import { ColumnSchema, Comparable } from '../../../../types';
+import { ColumnSchema, Comparable } from '../../../types';
 import { NO_VALUE } from '../../Columns';
 
 interface Props extends Comparable {

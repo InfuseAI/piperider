@@ -1,6 +1,6 @@
 import { FlexProps } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { colorMap } from '../../../../utils/theme';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { colorMap } from '../../../utils/theme';
 import { MetricNameMetakeyList, transformSRMetricsInfoList } from '../utils';
 import { MetricMetaKeys, MetricsInfo } from './MetricsInfo';
 

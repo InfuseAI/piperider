@@ -2,13 +2,10 @@ import { Flex, Tag, TagLabel, Text, Box, Icon } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FiGrid } from 'react-icons/fi';
 
-import { ColumnSchema } from '../../../../sdlc/single-report-schema';
-import { Comparable, Selectable } from '../../../../types';
-import {
-  formatColumnValueWith,
-  formatNumber,
-} from '../../../../utils/formatters';
-import { CompTableColEntryItem } from '../../../../utils/store';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { Comparable, Selectable } from '../../../types';
+import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
+import { CompTableColEntryItem } from '../../../utils/store';
 import { SearchTextInput } from '../../Layouts/SearchTextInput';
 import { TableRowColDeltaSummary } from '../../Tables/TableList/TableRowColDeltaSummary';
 import { ColumnDetailListItem } from './ColumnDetailListItem';

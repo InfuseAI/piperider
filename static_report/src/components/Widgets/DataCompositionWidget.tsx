@@ -1,5 +1,5 @@
 import { Divider, Text, Box, Flex } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { renderChartUnavailableMsg } from '../Charts/utils';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
 import { GeneralStats } from '../Columns/ColumnMetrics/GeneralStats';

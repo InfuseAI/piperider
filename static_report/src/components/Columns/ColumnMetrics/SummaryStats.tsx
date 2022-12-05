@@ -1,5 +1,5 @@
 import { FlexProps, Flex } from '@chakra-ui/react';
-import { ColumnSchema } from '../../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { NO_VALUE } from '../constants';
 import {
   containsAvgSDSummary,

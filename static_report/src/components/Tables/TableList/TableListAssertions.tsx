@@ -7,10 +7,7 @@ import {
   FiArrowRight,
 } from 'react-icons/fi';
 import { AssertionPassFailCountLabel } from '../../Assertions';
-import {
-  formatColumnValueWith,
-  formatNumber,
-} from '../../../../utils/formatters';
+import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
 
 interface Props {
   baseAssertionTotal?: number | string;

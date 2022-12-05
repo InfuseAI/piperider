@@ -9,15 +9,15 @@ import {
 import { nanoid } from 'nanoid';
 import { useLocation } from 'wouter';
 
-import { Main } from '../components/shared/Layouts/Main';
-import { TableActionBar } from '../components/shared/Tables/TableActionBar';
+import { Main } from '../components/Layouts/Main';
+import { TableActionBar } from '../components/Tables/TableActionBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 import { SaferSRSchema } from '../types';
-import { TableListItem } from '../components/shared/Tables/TableList/TableListItem';
+import { TableListItem } from '../components/Tables/TableList/TableListItem';
 import { tableListGridTempCols, tableListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
-import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
+import { TableColumnSchemaList } from '../components/Tables/TableList/TableColumnSchemaList';
 import { useAmplitudeOnMount } from '../hooks/useAmplitudeOnMount';
 import { AMPLITUDE_EVENTS, SR_TYPE_LABEL } from '../utils/amplitudeEvents';
 

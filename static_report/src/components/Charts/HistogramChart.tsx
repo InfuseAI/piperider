@@ -12,16 +12,16 @@ import {
   AnimationOptions,
 } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
-import { ColumnSchema, Histogram } from '../../../sdlc/single-report-schema';
+import { ColumnSchema, Histogram } from '../../sdlc/single-report-schema';
 import {
   formatAsAbbreviatedNumber,
   formatIntervalMinMax,
-} from '../../../utils/formatters';
+} from '../../utils/formatters';
 import { DATE_RANGE, TEXTLENGTH, VALUE_RANGE } from '../Columns/constants';
 
 import 'chartjs-adapter-date-fns';
 import { DeepPartial } from 'chart.js/types/utils';
-import { INFO_VAL_COLOR } from '../../../utils/theme';
+import { INFO_VAL_COLOR } from '../../utils/theme';
 
 /**
  * Histogram Chart that can display generic data types such as Numeric, Datetime, Integer

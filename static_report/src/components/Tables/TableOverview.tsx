@@ -1,6 +1,6 @@
 import { Grid, GridItem, BoxProps } from '@chakra-ui/react';
 
-import { SaferTableSchema } from '../../../types';
+import { SaferTableSchema } from '../../types';
 import { DupedTableRowsWidget } from '../Widgets/DupedTableRowsWidget';
 import { TableGeneralStats } from './TableMetrics/TableGeneralStats';
 

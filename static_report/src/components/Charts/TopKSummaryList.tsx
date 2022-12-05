@@ -9,12 +9,12 @@ import {
 } from 'chart.js';
 import { Fragment, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
-import { Topk } from '../../../sdlc';
+import { Topk } from '../../sdlc';
 import {
   formatAsAbbreviatedNumber,
   formatIntervalMinMax,
-} from '../../../utils/formatters';
-import { INFO_VAL_COLOR } from '../../../utils/theme';
+} from '../../utils/formatters';
+import { INFO_VAL_COLOR } from '../../utils/theme';
 
 interface Props {
   topk: Topk;

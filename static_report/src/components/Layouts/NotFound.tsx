@@ -1,7 +1,7 @@
 import { Flex, Heading, Button } from '@chakra-ui/react';
 import { Link } from 'wouter';
 
-import { useDocumentTitle } from '../../../hooks/useDocumentTitle';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 export function NotFound() {
   useDocumentTitle('404 Not Found!');

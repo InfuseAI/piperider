@@ -1,9 +1,6 @@
 import { FlexProps, Flex, Text, Tooltip, Square } from '@chakra-ui/react';
-import { schemaMetaDescriptions } from '../../../../sdlc/schema-meta';
-import {
-  ColumnSchema,
-  TableSchema,
-} from '../../../../sdlc/single-report-schema';
+import { schemaMetaDescriptions } from '../../../sdlc/schema-meta';
+import { ColumnSchema, TableSchema } from '../../../sdlc/single-report-schema';
 import { NO_VALUE } from '../constants';
 
 export type MetricMetaKeys =

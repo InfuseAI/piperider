@@ -9,13 +9,13 @@ import {
   ChartDataset,
 } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
-import { formatIntervalMinMax } from '../../../utils/formatters';
+import { formatIntervalMinMax } from '../../utils/formatters';
 import {
   INFO_VAL_COLOR,
   INVALID_VAL_COLOR,
   NULL_VAL_COLOR,
   ZERO_VAL_COLOR,
-} from '../../../utils/theme';
+} from '../../utils/theme';
 
 /**
  * Props for creating a BooleanPieChart Component

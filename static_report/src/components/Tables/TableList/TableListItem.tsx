@@ -9,11 +9,8 @@ import { TableRowColDeltaSummary } from './TableRowColDeltaSummary';
 
 import { TableListAssertionSummary } from './TableListAssertions';
 
-import { Comparable, Selectable } from '../../../../types';
-import {
-  formatColumnValueWith,
-  formatNumber,
-} from '../../../../utils/formatters';
+import { Comparable, Selectable } from '../../../types';
+import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
 import { NoData } from '../../Layouts';
 import { AssertionPassFailCountLabel } from '../../Assertions/AssertionPassFailCountLabel';
 import { getAssertionStatusCountsFromList } from '../utils';
@@ -21,9 +18,9 @@ import {
   tableListGridTempCols,
   tableListMaxWidth,
   tableListWidth,
-} from '../../../../utils/layout';
+} from '../../../utils/layout';
 import { ColumnSchemaDeltaSummary } from './ColumnSchemaDeltaSummary';
-import { CompTableColEntryItem, ReportState } from '../../../../utils/store';
+import { CompTableColEntryItem, ReportState } from '../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../../Layouts/constant';
 import { getIconForColumnType } from '../../Columns';
 import { ColumnBadge } from './ColumnBadge';

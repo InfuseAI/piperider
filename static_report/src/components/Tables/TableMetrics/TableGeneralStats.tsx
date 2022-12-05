@@ -1,5 +1,5 @@
 import { BoxProps } from '@chakra-ui/react';
-import { SaferTableSchema } from '../../../../types';
+import { SaferTableSchema } from '../../../types';
 import {
   MetricsInfo,
   TableMetaKeys,
@@ -11,7 +11,7 @@ import {
   formatIntervalMinMax,
   formatNumber,
   formatReportTime,
-} from '../../../../utils';
+} from '../../../utils';
 
 interface Props {
   tableDatum?: SaferTableSchema;

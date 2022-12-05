@@ -1,16 +1,16 @@
 import { NO_VALUE, NONDUPLICATE_ROWS } from './../Columns/constants';
 import { TableMetaKeys } from './../Columns/ColumnMetrics/MetricsInfo';
 import { FlatStackedBarChartProps } from './../Charts/FlatStackedBarChart';
-import { ReportAssertionStatusCounts, SaferTableSchema } from '../../../types';
+import { ReportAssertionStatusCounts, SaferTableSchema } from '../../types';
 import { DUPLICATE_ROWS } from './constant';
 import { MetricsInfoProps } from '../Columns';
 import {
   formatAsAbbreviatedNumber,
   formatIntervalMinMax,
   formatNumber,
-} from '../../../utils/formatters';
-import { INFO_VAL_COLOR, NULL_VAL_COLOR } from '../../../utils/theme';
-import { ComparedAssertionTestValue } from '../../../utils';
+} from '../../utils/formatters';
+import { INFO_VAL_COLOR, NULL_VAL_COLOR } from '../../utils/theme';
+import { ComparedAssertionTestValue } from '../../utils';
 
 /**
  * Get the accumulated summed assertion status counts (passed, failed, total) from list of assertion-tests

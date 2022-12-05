@@ -9,7 +9,7 @@ import {
 import create from 'zustand';
 import { transformAsNestedBaseTargetRecord } from './transformers';
 import { formatReportTime } from './formatters';
-import { getAssertionStatusCountsFromList } from '../components/shared/Tables';
+import { getAssertionStatusCountsFromList } from '../components/Tables';
 type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
 type ComparableMetadata = {
   added?: number;

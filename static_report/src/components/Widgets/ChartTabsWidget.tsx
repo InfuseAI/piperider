@@ -11,7 +11,7 @@ import {
   Divider,
 } from '@chakra-ui/react';
 import isNumber from 'lodash/isNumber';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
+import { ColumnSchema } from '../../sdlc/single-report-schema';
 import {
   ChartKind,
   getDataChart,

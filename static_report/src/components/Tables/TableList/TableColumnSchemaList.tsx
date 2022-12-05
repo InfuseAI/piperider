@@ -13,11 +13,11 @@ import {
 } from '@chakra-ui/react';
 import { FiChevronRight } from 'react-icons/fi';
 
-import { Comparable, Selectable } from '../../../../types';
+import { Comparable, Selectable } from '../../../types';
 import { NO_VALUE } from '../../Columns/constants';
-import { CompTableWithColEntryOverwrite } from '../../../../utils/store';
+import { CompTableWithColEntryOverwrite } from '../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../../Layouts/constant';
-import { tableListWidth } from '../../../../utils/layout';
+import { tableListWidth } from '../../../utils/layout';
 
 interface Props extends Selectable, Comparable {
   baseTableEntryDatum?: CompTableWithColEntryOverwrite;
