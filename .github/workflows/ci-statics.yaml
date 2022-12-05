@@ -30,10 +30,11 @@ jobs:
 
     - uses: pnpm/action-setup@v2.2.2
       with:
-        working-directory: ./static_report
         version: 7
-        run_install: |
-          - args: [--frozen-lockfile]
+
+    - name: Install dependencies
+      working-directory: ./static_report
+      run: pnpm install --frozen-lockfile
 
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
