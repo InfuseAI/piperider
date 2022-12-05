@@ -27,23 +27,23 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16
-        cache: 'yarn'
-        cache-dependency-path: static_report/yarn.lock
+
+    - uses: pnpm/action-setup@v2.2.2
+      with:
+        version: 7
+
+    - name: Install dependencies
+      working-directory: ./static_report
+      run: pnpm install --frozen-lockfile
 
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
 
-    - uses: bahmutov/npm-install@v1
-      with:
-        working-directory: ./static_report
-        install-command: yarn --immutable --silent
-
     - name: Prepare Piperider Data & E2E Builds (2+1 runs; 1+1 comparison)
       working-directory: .
       run: |
-        pwd
         pip install -r requirements.txt
 
         which piperider
@@ -52,15 +52,15 @@ jobs:
         bash static_report/src/sdlc/generate-e2e-data.sh first
 
         cd static_report
-        npm run embed:html -- e2e
-        npm run bundle:e2e
+        pnpm run embed:html e2e
+        pnpm run bundle:e2e
         cd ..
 
         bash static_report/src/sdlc/generate-e2e-data.sh second
 
         cd static_report
-        npm run embed:html -- e2e
-        npm run bundle:e2e:case
+        pnpm run embed:html e2e
+        pnpm run bundle:e2e:case
         cd ..
 
         zip -r reports.zip ./static_report/build
@@ -74,10 +74,10 @@ jobs:
         working-directory: ./static_report
         config-file: cypress.config.ts
         start: |
-          npm run serve:e2e:norm:single
-          npm run serve:e2e:norm:comparison
-          npm run serve:e2e:case:single-edge
-          npm run serve:e2e:case:comparison-asymmetric
+          pnpm run serve:e2e:norm:single
+          pnpm run serve:e2e:norm:comparison
+          pnpm run serve:e2e:case:single-edge
+          pnpm run serve:e2e:case:comparison-asymmetric
         wait-on: 'http://localhost:3000, http://localhost:3001, http://localhost:4000, http://localhost:4001'
 
     - uses: actions/upload-artifact@v3
@@ -87,5 +87,5 @@ jobs:
         path: reports.zip
 
     - name: Build Apps
-      run: npm run build
+      run: pnpm run build
     

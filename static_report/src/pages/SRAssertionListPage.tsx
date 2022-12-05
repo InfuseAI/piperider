@@ -1,9 +1,9 @@
 import { Flex } from '@chakra-ui/react';
 import { useState } from 'react';
-import { AssertionPassFailCountLabel } from '../components/shared/Assertions/AssertionPassFailCountLabel';
-import { Main } from '../components/shared/Layouts/Main';
-import { SearchTextInput } from '../components/shared/Layouts/SearchTextInput';
-import { AssertionListWidget } from '../components/shared/Widgets/AssertionListWidget';
+import { AssertionPassFailCountLabel } from '../components/Assertions/AssertionPassFailCountLabel';
+import { Main } from '../components/Layouts/Main';
+import { SearchTextInput } from '../components/Layouts/SearchTextInput';
+import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { SaferSRSchema } from '../types';
 import { AMPLITUDE_EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';

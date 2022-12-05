@@ -29,14 +29,18 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16
-        cache: 'yarn'
-        cache-dependency-path: static_report/yarn.lock
 
-    - name: Install Dependencies
-      run: yarn install --immutable
+    - uses: pnpm/action-setup@v2.2.2
+      with:
+        version: 7
+
+    - name: Install dependencies
+      working-directory: ./static_report
+      run: pnpm install --frozen-lockfile
+
 
     - name: Build Apps
-      run: npm run build
+      run: pnpm run build
 
     - name: Pull Remote Changes (before AC)
       run: git pull origin main

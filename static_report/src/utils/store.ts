@@ -9,7 +9,7 @@ import {
 import create from 'zustand';
 import { transformAsNestedBaseTargetRecord } from './transformers';
 import { formatReportTime } from './formatters';
-import { getAssertionStatusCountsFromList } from '../components/shared/Tables/utils';
+import { getAssertionStatusCountsFromList } from '../components/Tables';
 type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
 type ComparableMetadata = {
   added?: number;
@@ -31,7 +31,9 @@ export type CompTableColEntryItem = EntryItem<
 export type ComparedAssertionTestValue = Partial<AssertionTest> | null;
 export interface ReportState {
   rawData: ComparableReport;
+  reportTitle?: string;
   reportTime?: string;
+  reportDisplayTime?: string;
   reportOnly?: ComparableData<Omit<SaferSRSchema, 'tables'>>;
   tableColumnsOnly?: CompTableColEntryItem[];
   assertionsOnly?: ComparableData<ComparedAssertionTestValue[]>;
@@ -56,11 +58,28 @@ const getReportOnly = (rawData: ComparableReport) => {
   }
   return resultObj;
 };
-const getReportTime = (rawData: ComparableReport) => {
+const getReportDisplayTime = (rawData: ComparableReport) => {
   const baseTime = formatReportTime(rawData.base?.created_at);
   const targetTime = formatReportTime(rawData.input?.created_at);
-  const result = targetTime ? `${baseTime} -> ${targetTime}` : baseTime;
+  const result = targetTime ? `${baseTime} ➡️ ${targetTime}` : baseTime;
   return result;
+};
+const getReportTime = (rawData: ComparableReport) => {
+  const baseTime = rawData.base?.created_at ?? undefined;
+  const targetTime = rawData.input?.created_at ?? undefined;
+
+  const result = targetTime ?? baseTime;
+
+  if (!result) return undefined;
+
+  return result;
+};
+const getReportTitle = (rawData: ComparableReport) => {
+  const baseName = rawData.base?.datasource.name;
+  const targetName = rawData.input?.datasource.name;
+  const title = targetName ?? baseName;
+
+  return title;
 };
 
 /**
@@ -68,7 +87,7 @@ const getReportTime = (rawData: ComparableReport) => {
  * Currently Assertions is not added to metadata yet.
  */
 const getTableColumnsOnly = (rawData: ComparableReport) => {
-  let isComparison = Boolean(rawData.base && rawData.input);
+  const isComparison = Boolean(rawData.base && rawData.input);
   const { __meta__: tablesMetadata, ...comparableTables } =
     transformAsNestedBaseTargetRecord<
       SaferSRSchema['tables'],
@@ -98,7 +117,7 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
       );
 
       // table's columns are mirror
-      const entry = [
+      const entry: CompTableColEntryItem = [
         tableName,
         {
           base: { ...base, columns: compColEntries },
@@ -108,7 +127,7 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
         },
         columnsMetadata,
       ];
-      return entry as CompTableColEntryItem;
+      return entry;
     },
   );
 
@@ -147,7 +166,7 @@ const getAssertionsOnly = (rawData: ComparableReport) => {
   // prepare aligned/filled-tests for store
   const alignedBaseTests: ComparedAssertionTestValue[] = [];
   const alignedTargetTests: ComparedAssertionTestValue[] = [];
-  for (let [base, target] of comparedAssertionMap.values()) {
+  for (const [base, target] of Array.from(comparedAssertionMap.values())) {
     alignedBaseTests.push(base ?? null);
     alignedTargetTests.push(target ?? null);
   }
@@ -177,8 +196,12 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
     setReportRawData(rawData) {
       /** Report */
       const reportOnly = getReportOnly(rawData);
+      /** Report Display Time */
+      const reportDisplayTime = getReportDisplayTime(rawData);
       /** Report Time */
       const reportTime = getReportTime(rawData);
+      /** Report Title */
+      const reportTitle = getReportTitle(rawData);
       /** Tables */
       const tableColumnsOnly = getTableColumnsOnly(rawData);
       /** Table-level Assertions (flattened) */
@@ -188,6 +211,8 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
         rawData,
         reportOnly,
         reportTime,
+        reportTitle,
+        reportDisplayTime,
         tableColumnsOnly,
         assertionsOnly,
       };

@@ -1,7 +1,7 @@
-import { Main } from '../components/shared/Layouts/Main';
-import { TableActionBar } from '../components/shared/Tables/TableActionBar';
+import { Main } from '../components/Layouts/Main';
+import { TableActionBar } from '../components/Tables/TableActionBar';
 
-import { TableListItem } from '../components/shared/Tables/TableList/TableListItem';
+import { TableListItem } from '../components/Tables/TableList/TableListItem';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { type ComparisonReportSchema } from '../types';
 import {
@@ -17,7 +17,7 @@ import { useLocation } from 'wouter';
 
 import { tableListGridTempCols, tableListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
-import { TableColumnSchemaList } from '../components/shared/Tables/TableList/TableColumnSchemaList';
+import { TableColumnSchemaList } from '../components/Tables/TableList/TableColumnSchemaList';
 import { useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils/amplitudeEvents';
 

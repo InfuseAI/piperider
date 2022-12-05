@@ -10,37 +10,39 @@ import {
 } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
-import { Main } from '../components/shared/Layouts/Main';
-import { DataCompositionWidget } from '../components/shared/Widgets/DataCompositionWidget';
-import { ChartTabsWidget } from '../components/shared/Widgets/ChartTabsWidget';
+import { Main } from '../components/Layouts/Main';
+import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
+import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
 import { borderVal, mainContentAreaHeight } from '../utils/layout';
-import { QuantilesWidget } from '../components/shared/Widgets/QuantilesWidget';
-import { ColumnDetailMasterList } from '../components/shared/Columns/ColumnDetailMasterList';
+import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
+import { ColumnDetailMasterList } from '../components/Columns/ColumnDetailMasterList';
 
 import type { SingleReportSchema } from '../sdlc/single-report-schema';
-import { DataSummaryWidget } from '../components/shared/Widgets/DataSummaryWidget';
-import { NoData } from '../components/shared/Layouts/NoData';
+import { DataSummaryWidget } from '../components/Widgets/DataSummaryWidget';
+import { NoData } from '../components/Layouts/NoData';
 import {
   containsDataSummary,
   containsColumnQuantile,
   getIconForColumnType,
-} from '../components/shared/Columns/utils';
-import { TableOverview } from '../components/shared/Tables/TableOverview';
+} from '../components/Columns/utils';
+import { TableOverview } from '../components/Tables/TableOverview';
 import {
   AMPLITUDE_EVENTS,
   AssertionPassFailCountLabel,
   AssertionListWidget,
-  BreadcrumbMetaItem,
-  BreadcrumbNav,
   SR_TYPE_LABEL,
   TableColumnSchemaList,
   useAmplitudeOnMount,
   useDocumentTitle,
   getAssertionStatusCountsFromList,
 } from '../lib';
-import { TableColumnHeader } from '../components/shared/Tables/TableColumnHeader';
+import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { getBreadcrumbPaths } from '../utils/routes';
+import {
+  BreadcrumbMetaItem,
+  BreadcrumbNav,
+} from '../components/Layouts/BreadcrumbNav';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
