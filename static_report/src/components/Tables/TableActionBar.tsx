@@ -35,8 +35,9 @@ export function TableActionBar({ children }: Props) {
             <Icon as={FiAlertCircle} />
           </Flex>
         </Tooltip>
-        {children}
       </Flex>
+
+      {children}
     </Flex>
   );
 }
