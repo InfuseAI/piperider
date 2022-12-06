@@ -1,4 +1,4 @@
-import { Main } from '../components/Layouts/Main';
+import { Main } from '../components/Common/Main';
 import { TableActionBar } from '../components/Tables/TableActionBar';
 
 import { TableListItem } from '../components/Tables/TableList/TableListItem';

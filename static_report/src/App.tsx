@@ -4,7 +4,7 @@ import { Switch, Route, Router, BaseLocationHook } from 'wouter';
 import { BrowserTracing } from '@sentry/tracing';
 
 import { Loading } from './components/Layouts/Loading';
-import { NotFound } from './components/Layouts/NotFound';
+import { NotFound } from './components/Common/NotFound';
 import { SRTablesListPage } from './pages/SRTablesListPage';
 import { CRTablesListPage } from './pages/CRTablesListPage';
 import { useHashLocation } from './hooks/useHashLcocation';

@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
-import { Main } from '../components/Layouts/Main';
+import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
 import { borderVal, mainContentAreaHeight } from '../utils/layout';
@@ -42,7 +42,7 @@ import { getBreadcrumbPaths } from '../utils/routes';
 import {
   BreadcrumbMetaItem,
   BreadcrumbNav,
-} from '../components/Layouts/BreadcrumbNav';
+} from '../components/Common/BreadcrumbNav';
 interface Props {
   data: SingleReportSchema;
   columnName: string;

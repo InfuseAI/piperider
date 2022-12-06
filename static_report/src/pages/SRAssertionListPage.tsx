@@ -1,7 +1,7 @@
 import { Flex } from '@chakra-ui/react';
 import { useState } from 'react';
 import { AssertionPassFailCountLabel } from '../components/Assertions/AssertionPassFailCountLabel';
-import { Main } from '../components/Layouts/Main';
+import { Main } from '../components/Common/Main';
 import { SearchTextInput } from '../components/Layouts/SearchTextInput';
 import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';

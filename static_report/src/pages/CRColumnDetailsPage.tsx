@@ -13,7 +13,7 @@ import {
 import { useLocation } from 'wouter';
 import { useState } from 'react';
 
-import { Main } from '../components/Layouts/Main';
+import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
 import { ColumnDetailMasterList } from '../components/Columns/ColumnDetailMasterList/ColumnDetailMasterList';
@@ -33,7 +33,7 @@ import { TableColumnSchemaList } from '../components/Tables/TableList/TableColum
 import {
   BreadcrumbMetaItem,
   BreadcrumbNav,
-} from '../components/Layouts/BreadcrumbNav';
+} from '../components/Common/BreadcrumbNav';
 import { ColumnSchemaDeltaSummary } from '../components/Tables/TableList/ColumnSchemaDeltaSummary';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';

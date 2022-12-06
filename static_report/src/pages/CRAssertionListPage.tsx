@@ -1,6 +1,6 @@
 import { Flex } from '@chakra-ui/react';
 import { useState } from 'react';
-import { Main } from '../components/Layouts/Main';
+import { Main } from '../components/Common/Main';
 import { SearchTextInput } from '../components/Layouts/SearchTextInput';
 import { TableListAssertionSummary } from '../components/Tables/TableList/TableListAssertions';
 import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
