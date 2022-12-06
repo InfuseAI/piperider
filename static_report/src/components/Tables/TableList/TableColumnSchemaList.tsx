@@ -91,7 +91,7 @@ export function TableColumnSchemaList({
                         whiteSpace="normal"
                         title={baseColumn?.name ?? NO_VALUE}
                       >
-                        {baseColumn?.name + '' ?? NO_VALUE}
+                        {baseColumn?.name ?? NO_VALUE}
                       </Text>
                     </Td>
                     <Td
