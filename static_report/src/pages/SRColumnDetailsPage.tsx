@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
-import { Main } from '../components/Layouts/Main';
+import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
 import { borderVal, mainContentAreaHeight } from '../utils/layout';

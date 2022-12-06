@@ -9,7 +9,7 @@ import {
 import { nanoid } from 'nanoid';
 import { useLocation } from 'wouter';
 
-import { Main } from '../components/Layouts/Main';
+import { Main } from '../components/Common/Main';
 import { TableActionBar } from '../components/Tables/TableActionBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 

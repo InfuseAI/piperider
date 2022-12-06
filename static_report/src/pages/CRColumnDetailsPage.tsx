@@ -13,7 +13,7 @@ import {
 import { useLocation } from 'wouter';
 import { useState } from 'react';
 
-import { Main } from '../components/Layouts/Main';
+import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
 import { ColumnDetailMasterList } from '../components/Columns/ColumnDetailMasterList/ColumnDetailMasterList';
