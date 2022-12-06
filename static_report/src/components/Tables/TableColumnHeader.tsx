@@ -11,7 +11,7 @@ import {
 import { FiGrid, FiInfo } from 'react-icons/fi';
 import { IconType } from 'react-icons/lib';
 import { NO_VALUE } from '../Columns';
-import { NO_DESCRIPTION_MSG } from '../Layouts/constant';
+import { NO_DESCRIPTION_MSG } from '../Common/constant';
 interface Props {
   title?: string;
   subtitle?: string;

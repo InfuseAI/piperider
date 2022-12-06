@@ -33,7 +33,7 @@ import { TableColumnSchemaList } from '../components/Tables/TableList/TableColum
 import {
   BreadcrumbMetaItem,
   BreadcrumbNav,
-} from '../components/Layouts/BreadcrumbNav';
+} from '../components/Common/BreadcrumbNav';
 import { ColumnSchemaDeltaSummary } from '../components/Tables/TableList/ColumnSchemaDeltaSummary';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';

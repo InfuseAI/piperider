@@ -42,7 +42,7 @@ import { getBreadcrumbPaths } from '../utils/routes';
 import {
   BreadcrumbMetaItem,
   BreadcrumbNav,
-} from '../components/Layouts/BreadcrumbNav';
+} from '../components/Common/BreadcrumbNav';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
