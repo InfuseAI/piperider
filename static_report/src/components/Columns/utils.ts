@@ -6,7 +6,6 @@ import {
   NULL_VAL_COLOR,
   INFO_VAL_COLOR,
 } from './../../utils/theme';
-import { ColorProps } from '@chakra-ui/styled-system';
 import { AiOutlineFileText } from 'react-icons/ai';
 import { BiText, BiQuestionMark } from 'react-icons/bi';
 import { BsCalendarDate } from 'react-icons/bs';
@@ -129,7 +128,7 @@ export function transformCompositionAsFlatStackInput(
  * @returns
  */
 export function getIconForColumnType(columnDatum?: Partial<ColumnSchema>): {
-  backgroundColor: ColorProps['color'];
+  backgroundColor: string;
   icon: any; //IconType not provided
 } {
   const { type } = columnDatum || {};
