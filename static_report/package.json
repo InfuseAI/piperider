@@ -110,7 +110,7 @@
     "rollup:lib": "rimraf dist && rollup -c",
     "link:lib": "cp ./package.json dist && cd dist && pnpm link && cd ..",
     "lint": "eslint src/",
-    "lint:fix": "pnpm run lint -- --fix"
+    "lint:fix": "pnpm run lint --fix"
   },
   "resolutions": {
     "nth-check": "2.0.1"
