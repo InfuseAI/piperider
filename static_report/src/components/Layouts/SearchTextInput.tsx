@@ -16,7 +16,7 @@ export function SearchTextInput({ onChange, filterString }: Props) {
         bg={'white'}
         color={'black'}
         type={'text'}
-        placeholder="Find By Column Name"
+        placeholder="Search Column"
         value={filterString}
         onChange={({ target }) => onChange(target.value)}
       />

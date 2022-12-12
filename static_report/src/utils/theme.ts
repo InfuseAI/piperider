@@ -9,12 +9,12 @@ const breakpoints = {
   lg: '64em',
   xl: '80em',
 };
-
 const theme = extendTheme({
   fonts,
   breakpoints,
   colors: {
     piperider: {
+      25: '#F4F1F0',
       50: '#FBE8E6',
       100: '#FFC9BA',
       200: '#FEA78E',

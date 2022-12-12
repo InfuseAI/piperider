@@ -1,13 +1,21 @@
-import { Flex, Tag, TagLabel, Text, Box, Icon } from '@chakra-ui/react';
+import { Flex, Tag, TagLabel, Text, Box, Icon, Grid } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FiGrid } from 'react-icons/fi';
+import {
+  IoFilterCircle,
+  IoFilterCircleOutline,
+  IoSearchCircle,
+  IoSearchCircleOutline,
+} from 'react-icons/io5';
 
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { Comparable, Selectable } from '../../../types';
+import { MASTER_LIST_DISPLAY_MODE } from '../../../utils';
 import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
 import { CompTableColEntryItem } from '../../../utils/store';
 import { SearchTextInput } from '../../Layouts/SearchTextInput';
 import { TableRowColDeltaSummary } from '../../Tables/TableList/TableRowColDeltaSummary';
+import { getIconForColumnType } from '../utils';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
@@ -30,6 +38,9 @@ export function ColumnDetailMasterList({
   singleOnly,
   onSelect,
 }: Props) {
+  const [displayMode, setDisplayMode] = useState<string | null>(
+    localStorage.getItem(MASTER_LIST_DISPLAY_MODE) ?? null,
+  );
   const [filterString, setFilterString] = useState<string>('');
   const [filterState, setFilterState] = useState<
     Map<ProfilerGenericTypes | undefined, boolean>
@@ -59,57 +70,93 @@ export function ColumnDetailMasterList({
       filterString ? key.search(new RegExp(filterString, 'gi')) > -1 : true,
     );
 
+  const SEARCH_KEY = 'search';
+  const SearchIcon =
+    displayMode === SEARCH_KEY ? (
+      <IoSearchCircle size={'1.5rem'} />
+    ) : (
+      <IoSearchCircleOutline size={'1.5rem'} />
+    );
+
+  const SCHEMA_FILTER_KEY = 'schema-filter';
+  const FilterIcon =
+    displayMode === SCHEMA_FILTER_KEY ? (
+      <IoFilterCircle size={'1.5rem'} />
+    ) : (
+      <IoFilterCircleOutline size={'1.5rem'} />
+    );
+
   return (
-    <Flex direction={'column'} position={'relative'}>
+    <Flex direction={'column'} position={'relative'} bg={'piperider.25'}>
       <Box
         position={'sticky'}
         top={0}
         w={'100%'}
         p={4}
         zIndex={150}
-        bg={'blue.800'}
-        color={'white'}
         borderBottom={'1px solid lightgray'}
       >
-        <Flex justify={'space-between'} alignItems={'center'} mb={3}>
-          <Text as={'h3'} fontWeight={'bold'} textAlign={'right'}>
-            Columns ({filteredTableColumnEntries.length})
+        <Flex justifyContent={'space-between'} alignItems={'center'}>
+          <Text fontSize={'md'} color={'gray.500'}>
+            {filteredTableColumnEntries.length} Columns
           </Text>
+          <Flex gap={2}>
+            <Box
+              onClick={() => {
+                //FIXME: set localstorage
+                setDisplayMode((prev) =>
+                  prev === SEARCH_KEY ? null : SEARCH_KEY,
+                );
+              }}
+            >
+              {SearchIcon}
+            </Box>
+            <Box
+              onClick={() => {
+                //FIXME: set localstorage
+                setDisplayMode((prev) =>
+                  prev === SCHEMA_FILTER_KEY ? null : SCHEMA_FILTER_KEY,
+                );
+              }}
+            >
+              {FilterIcon}
+            </Box>
+          </Flex>
         </Flex>
-
-        <SearchTextInput
-          onChange={setFilterString}
-          filterString={filterString}
-        />
+        {/* <TableSelector /> */}
+        {displayMode === 'search' && (
+          <SearchTextInput
+            onChange={setFilterString}
+            filterString={filterString}
+          />
+        )}
 
         {/* Tag Toggle Filters */}
-        <Box>
-          <Text as={'small'}>View Types:</Text>
-          <Flex alignItems={'center'}>
-            {quickFilters.map((v) => {
-              const itemValue = filterState.get(v);
-              return (
-                <Tag
-                  key={v}
-                  m={1}
-                  backgroundColor={itemValue ? 'piperider.300' : ''}
-                  onClick={() => {
-                    const newState = new Map(filterState).set(v, !itemValue);
-                    setFilterState(newState);
-                  }}
-                  cursor={'pointer'}
-                >
-                  <TagLabel
-                    color={itemValue ? 'white' : 'lightgray'}
-                    fontSize={'sm'}
+        {displayMode === 'schema-filter' && (
+          <Box mt={3} p={3}>
+            <Grid templateColumns={'1fr 1fr'} gap={3}>
+              {quickFilters.map((v) => {
+                const itemValue = filterState.get(v);
+                return (
+                  <Tag
+                    borderRadius={'xl'}
+                    key={v}
+                    py={3}
+                    size={'lg'}
+                    backgroundColor={itemValue ? 'piperider.100' : ''}
+                    onClick={() => {
+                      const newState = new Map(filterState).set(v, !itemValue);
+                      setFilterState(newState);
+                    }}
+                    cursor={'pointer'}
                   >
-                    {v}
-                  </TagLabel>
-                </Tag>
-              );
-            })}
-          </Flex>
-        </Box>
+                    <TagLabel fontSize={'lg'}>{v}</TagLabel>
+                  </Tag>
+                );
+              })}
+            </Grid>
+          </Box>
+        )}
       </Box>
 
       <Box minHeight={'70vh'} bg={'white'}>
