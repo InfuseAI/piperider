@@ -19,7 +19,7 @@ const theme = extendTheme({
       100: '#FFC9BA',
       200: '#FEA78E',
       300: '#FD8361',
-      400: '#FD673E',
+      400: '#FD6A3E',
       500: '#FC4b1C',
       600: '#F24518',
       700: '#E43E12',

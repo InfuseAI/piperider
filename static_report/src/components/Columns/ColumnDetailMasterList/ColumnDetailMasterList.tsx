@@ -2,6 +2,8 @@ import { Flex, Tag, TagLabel, Text, Box, Icon, Grid } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FiGrid } from 'react-icons/fi';
 import {
+  IoEye,
+  IoEyeOutline,
   IoFilterCircle,
   IoFilterCircleOutline,
   IoSearchCircle,
@@ -10,7 +12,10 @@ import {
 
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { Comparable, Selectable } from '../../../types';
-import { MASTER_LIST_DISPLAY_MODE } from '../../../utils';
+import {
+  MASTER_LIST_DISPLAY_MODE,
+  MASTER_LIST_SHOW_EXTRA,
+} from '../../../utils';
 import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
 import { CompTableColEntryItem } from '../../../utils/store';
 import { SearchTextInput } from '../../Layouts/SearchTextInput';
@@ -38,6 +43,10 @@ export function ColumnDetailMasterList({
   singleOnly,
   onSelect,
 }: Props) {
+  //FIXME: localStorage read
+  const [showExtra, setShowExtra] = useState<string | null>(
+    localStorage.getItem(MASTER_LIST_SHOW_EXTRA) ?? null,
+  );
   const [displayMode, setDisplayMode] = useState<string | null>(
     localStorage.getItem(MASTER_LIST_DISPLAY_MODE) ?? null,
   );
@@ -86,16 +95,73 @@ export function ColumnDetailMasterList({
       <IoFilterCircleOutline size={'1.5rem'} />
     );
 
+  const ShowExtraIcon = showExtra ? (
+    <IoEye size={'1.5rem'} />
+  ) : (
+    <IoEyeOutline size={'1.5rem'} />
+  );
+  const hasShowExtra = showExtra === 'show-extra';
+
+  const isActive = currentColumn === '' && currentTable;
+
   return (
     <Flex direction={'column'} position={'relative'} bg={'piperider.25'}>
-      <Box
-        position={'sticky'}
-        top={0}
-        w={'100%'}
-        p={4}
-        zIndex={150}
-        borderBottom={'1px solid lightgray'}
-      >
+      <Box position={'sticky'} top={0} w={'100%'} p={4} zIndex={150}>
+        {/* Selector - Tables List */}
+
+        {/* HEADER - Table */}
+        <Flex mt={5} justifyContent={'space-between'}>
+          <Text color={'gray.500'} size={'md'}>
+            Table
+          </Text>
+          <Box
+            onClick={() => {
+              setShowExtra((prev) => (prev ? null : 'show-extra'));
+            }}
+          >
+            {ShowExtraIcon}
+          </Box>
+        </Flex>
+        <Flex
+          top={0}
+          py={3}
+          mb={5}
+          borderRadius={'lg'}
+          cursor={'pointer'}
+          justify={'space-between'}
+          bg={isActive ? 'piperider.400' : 'inherit'}
+          color={isActive ? 'white' : 'inherit'}
+          _hover={{ bgColor: isActive ? 'piperider.500' : 'blackAlpha.50' }}
+          onClick={() => {
+            onSelect({ tableName: currentTable, columnName: '' });
+          }}
+        >
+          <Flex alignItems={'center'} gap={2} fontSize={'sm'}>
+            <Icon as={FiGrid} color={isActive ? 'white' : 'inherit'} />
+            <Text noOfLines={1}>{currentTable}</Text>
+          </Flex>
+          {hasShowExtra && (
+            <Flex
+              color={isActive ? 'piperider.50' : 'gray.500'}
+              fontSize={'sm'}
+            >
+              <Text mr={4}>Rows</Text>
+              {singleOnly ? (
+                <Text>
+                  {formatColumnValueWith(
+                    fallbackTable?.row_count,
+                    formatNumber,
+                  )}
+                </Text>
+              ) : (
+                <TableRowColDeltaSummary
+                  baseCount={baseTable?.row_count}
+                  targetCount={targetTable?.row_count}
+                />
+              )}
+            </Flex>
+          )}
+        </Flex>
         <Flex justifyContent={'space-between'} alignItems={'center'}>
           <Text fontSize={'md'} color={'gray.500'}>
             {filteredTableColumnEntries.length} Columns
@@ -159,38 +225,8 @@ export function ColumnDetailMasterList({
         )}
       </Box>
 
-      <Box minHeight={'70vh'} bg={'white'}>
+      <Box minHeight={'70vh'}>
         {/* QueryList */}
-        {/* HEADER - Table */}
-        <Flex
-          top={0}
-          p={5}
-          cursor={'pointer'}
-          justify={'space-between'}
-          bg={currentColumn === '' && currentTable ? 'blue.100' : 'white'}
-          _hover={{ bgColor: 'blackAlpha.50' }}
-          onClick={() => {
-            onSelect({ tableName: currentTable, columnName: '' });
-          }}
-        >
-          <Flex alignItems={'center'} gap={2} fontSize={'sm'}>
-            <Icon as={FiGrid} color="piperider.500" />
-            <Text noOfLines={1}>{currentTable}</Text>
-          </Flex>
-          <Flex color="gray.500" fontSize={'sm'}>
-            <Text mr={4}>Rows</Text>
-            {singleOnly ? (
-              <Text>
-                {formatColumnValueWith(fallbackTable?.row_count, formatNumber)}
-              </Text>
-            ) : (
-              <TableRowColDeltaSummary
-                baseCount={baseTable?.row_count}
-                targetCount={targetTable?.row_count}
-              />
-            )}
-          </Flex>
-        </Flex>
         {filteredTableColumnEntries.map(([colKey, { base, target }]) => {
           return (
             <Box key={colKey}>
@@ -204,6 +240,7 @@ export function ColumnDetailMasterList({
                   onSelect(data);
                 }}
                 singleOnly={singleOnly}
+                showExtra={hasShowExtra}
                 p={3}
               />
             </Box>
