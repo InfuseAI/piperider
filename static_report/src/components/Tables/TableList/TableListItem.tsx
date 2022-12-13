@@ -103,13 +103,13 @@ export function TableListItem({
               />
             )}
             <Link
-              data-cy="navigate-report-detail"
               onClick={(event) => {
                 event.stopPropagation();
                 onSelect({ tableName });
               }}
             >
               <Icon
+                data-cy="navigate-report-detail"
                 position={'absolute'}
                 right={0}
                 ml={5}
