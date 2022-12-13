@@ -10,7 +10,6 @@ from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, 
     distinct, case, text, literal_column, inspect
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.engine import Engine, Connection
-from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy.sql import FromClause
 from sqlalchemy.sql.elements import ColumnClause
@@ -21,6 +20,13 @@ from .event import ProfilerEventHandler, DefaultProfilerEventHandler
 from ..configuration import Configuration
 
 HISTOGRAM_NUM_BUCKET = 50
+
+
+class ProfileSubject:
+    def __init__(self, name: str, schema: str = None, model: str = None):
+        self.table = name
+        self.schema = schema
+        self.alias = model
 
 
 def dtof(value: Union[int, float, decimal.Decimal]) -> Union[int, float]:
@@ -86,16 +92,11 @@ class Profiler:
         self.event_handler = event_handler
         self.config = config
 
-    def _fetch_table_metadata(self, table_name):
+    def _fetch_table_metadata(self, subject: ProfileSubject):
         metadata = MetaData()
-        if len(table_name.split('.')) == 2:
-            schema, table_name = table_name.split('.')
-            table = Table(table_name, metadata, autoload_with=self.engine, schema=schema)
-        else:
-            table = Table(table_name, metadata, autoload_with=self.engine)
-        return table
+        return Table(subject.table, metadata, autoload_with=self.engine, schema=subject.schema)
 
-    def profile(self, table_names: List[str] = None) -> dict:
+    def profile(self, subjects: List[ProfileSubject] = None) -> dict:
         """
         profile all tables or specific table. With different column types, it would profile different metrics.
 
@@ -107,7 +108,7 @@ class Profiler:
         - boolean
         - Other
 
-        :param table_names: optional, the tables to profile
+        :param subjects: optional, the tables to profile
         :return: the profile results
         """
 
@@ -118,50 +119,55 @@ class Profiler:
         self.event_handler.handle_run_start(result)
 
         metadata = MetaData()
-        tables = []
+        default_schema = inspect(self.engine).default_schema_name
 
         self.event_handler.handle_fetch_metadata_start()
-        if self.engine.url.get_backend_name() == 'postgresql' and table_names is None:
+        if subjects is None:
+            subjects = []
             table_names = inspect(self.engine).get_table_names()
+            table_names = self._apply_incl_excl_tables(table_names)
+            for table_name in table_names:
+                subject = ProfileSubject(table_name, default_schema, table_name)
+                subjects.append(subject)
 
-        if table_names is None:
+        subjects_to_metadata = {}
+
+        # Optimization: Reflecting at Once
+        if self.engine.url.get_backend_name() != 'postgresql' and len(subjects) > 1:
             metadata.reflect(bind=self.engine)
-            table_names = list(metadata.tables.keys())
-            table_names = self._apply_incl_excl_tables(table_names)
-            tables = [metadata.tables[table_name] for table_name in table_names]
-            self.event_handler.handle_fetch_metadata_progress(None, len(tables), len(tables))
-        else:
-            table_names = self._apply_incl_excl_tables(table_names)
-            completed = 0
-            self.event_handler.handle_fetch_metadata_progress(None, len(table_names), completed)
+            for subject in subjects:
+                subjects_to_metadata[subject] = metadata.tables[subject.table]
+            self.event_handler.handle_fetch_metadata_progress(None, len(subjects), len(subjects))
 
+        if not subjects_to_metadata:
+            completed = 0
+            self.event_handler.handle_fetch_metadata_progress(None, len(subjects), completed)
             if isinstance(self.engine.pool, SingletonThreadPool):
-                for table_name in table_names:
-                    table = self._fetch_table_metadata(table_name)
-                    tables.append(table)
+                for subject in subjects:
+                    table_metadata = self._fetch_table_metadata(subject)
+                    subjects_to_metadata[subject] = table_metadata
                     completed = completed + 1
-                    self.event_handler.handle_fetch_metadata_progress(table_name, len(table_names), completed)
+                    self.event_handler.handle_fetch_metadata_progress(subject.table, len(subjects), completed)
             else:
                 with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                    future_to_table = {executor.submit(self._fetch_table_metadata, table_name): table_name for
-                                       table_name in table_names}
-
-                    for future in concurrent.futures.as_completed(future_to_table):
-                        table_name = future_to_table[future]
-                        table = future.result()
-                        tables.append(table)
+                    future_to_subject = {executor.submit(self._fetch_table_metadata, subject): subject for
+                                         subject in subjects}
+                    for future in concurrent.futures.as_completed(future_to_subject):
+                        subject = future_to_subject[future]
+                        table_metadata = future.result()
+                        subjects_to_metadata[subject] = table_metadata
                         completed = completed + 1
-                        self.event_handler.handle_fetch_metadata_progress(table_name, len(table_names), completed)
+                        self.event_handler.handle_fetch_metadata_progress(subject.table, len(subjects), completed)
 
         self.event_handler.handle_fetch_metadata_end()
 
-        table_count = len(table_names)
+        table_count = len(subjects)
         table_index = 0
         self.event_handler.handle_run_progress(result, table_count, table_index)
 
-        for table in tables:
-            tresult = self._profile_table(table)
-            profiled_tables[str(table.name)] = tresult
+        for subject, subject_metadata in subjects_to_metadata.items():
+            tresult = self._profile_table(subject_metadata)
+            profiled_tables[subject.alias] = tresult
             table_index = table_index + 1
             self.event_handler.handle_run_progress(result, table_count, table_index)
 

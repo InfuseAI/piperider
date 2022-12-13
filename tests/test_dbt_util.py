@@ -1,9 +1,9 @@
 import os
-
-from piperider_cli.profiler import Profiler
-import piperider_cli.dbtutil as dbtutil
-from tests.common import MockDatabase
 from unittest import TestCase
+
+import piperider_cli.dbtutil as dbtutil
+from piperider_cli.profiler import Profiler
+from tests.common import MockDatabase
 
 
 class TestRunner(TestCase):
@@ -29,8 +29,9 @@ class TestRunner(TestCase):
 
     def test_get_dbt_state_candidate(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, 'PUBLIC')
-
-        self.assertListEqual(['PRICE_PRESENT'], tables)
+        self.assertEqual(tables[0].table, 'PRICE_PRESENT')
+        self.assertEqual(tables[0].schema, 'PUBLIC')
+        self.assertEqual(tables[0].alias, 'PRICE_PRESENT')
 
     def test_get_dbt_state_tests_result(self):
         results = dbtutil.get_dbt_state_tests_result(self.dbt_state_dir, 'PUBLIC')

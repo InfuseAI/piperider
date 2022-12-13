@@ -7,6 +7,8 @@ import inquirer
 from rich.console import Console
 from rich.table import Table
 
+from piperider_cli.profiler import ProfileSubject
+
 console = Console()
 
 
@@ -142,9 +144,7 @@ def get_dbt_state_candidate(dbt_state_dir: str, default_schema: str):
         node = nodes.get(result.get('unique_id'))
         if node.get('resource_type') not in ['model', 'seed', 'source']:
             continue
-        if node.get('schema') != default_schema:
-            continue
-        candidate.append(node.get('alias'))
+        candidate.append(ProfileSubject(node.get('alias'), node.get('schema'), node.get('name')))
 
     return candidate
 

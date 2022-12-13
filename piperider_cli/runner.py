@@ -16,17 +16,16 @@ from rich.table import Table
 from sqlalchemy import inspect
 from sqlalchemy.exc import NoSuchTableError
 
+import piperider_cli.dbtutil as dbtutil
 from piperider_cli import convert_to_tzlocal, datetime_to_str, clone_directory, \
     raise_exception_when_directory_not_writable
 from piperider_cli import event
-import piperider_cli.dbtutil as dbtutil
 from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration
-from piperider_cli.datasource import DataSource
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.filesystem import FileSystem
-from piperider_cli.profiler import Profiler, ProfilerEventHandler
+from piperider_cli.profiler import Profiler, ProfilerEventHandler, ProfileSubject
 
 
 class RunEventPayload:
@@ -611,24 +610,22 @@ class Runner():
                     f"[bold red]Error:[/bold red] No available 'manifest.json' or 'run_results.json' under '{dbt_state_dir}'")
                 return 1
 
-            includes = dbtutil.get_dbt_state_candidate(dbt_state_dir, default_schema)
-
-            if configuration.includes is not None:
-                # intersect 'includes' and 'configuration.includes'
-                includes = [include for include in includes if include in configuration.includes]
-
-            configuration.includes = includes
-
+            tables = dbtutil.get_dbt_state_candidate(dbt_state_dir, default_schema)
             dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir, default_schema)
 
         if table:
-            tables = [table]
+            if len(table.split('.')) == 2:
+                schema, table_name = table.split('.')
+                tables = [ProfileSubject(table_name, schema, table_name)]
+            else:
+                tables = [ProfileSubject(table, default_schema, table)]
             # cli --table is specified, no inclusion and exclusion applied
             configuration.includes = None
             configuration.excludes = None
 
         run_result = {}
-        profiler = Profiler(engine, RichProfilerEventHandler(tables if tables else available_tables), configuration)
+        available_tables = [t.table for t in tables] if tables else available_tables
+        profiler = Profiler(engine, RichProfilerEventHandler(available_tables), configuration)
         try:
             profiler_result = profiler.profile(tables)
             run_result.update(profiler_result)

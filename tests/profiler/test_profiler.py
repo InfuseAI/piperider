@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
 from piperider_cli.configuration import Configuration
-from piperider_cli.profiler import Profiler
+from piperider_cli.profiler import Profiler, ProfileSubject
 from sqlalchemy import *
 from typing import List
 
@@ -72,7 +72,7 @@ class TestProfiler:
         assert "test2" in result["tables"]
 
         profiler = Profiler(engine)
-        result = profiler.profile(table_names=["test1"])
+        result = profiler.profile([ProfileSubject('test1', inspect(engine).default_schema_name, 'test1')])
         assert "test1" in result["tables"]
         assert "test2" not in result["tables"]
 
