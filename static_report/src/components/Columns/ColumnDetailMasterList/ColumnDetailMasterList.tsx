@@ -272,7 +272,7 @@ export function ColumnDetailMasterList({
         )}
       </Box>
 
-      <Box minHeight={'70vh'}>
+      <Box minHeight={'70vh'} mt={3}>
         {/* QueryList */}
         {filteredTableColumnEntries.map(([colKey, { base, target }]) => {
           return (
