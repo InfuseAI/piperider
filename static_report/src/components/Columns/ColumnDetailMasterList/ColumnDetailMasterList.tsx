@@ -18,10 +18,12 @@ import {
   IoSearchCircle,
   IoSearchCircleOutline,
 } from 'react-icons/io5';
+import { useLocalStorage } from 'react-use';
 
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { Comparable, Selectable } from '../../../types';
 import {
+  borderVal,
   MASTER_LIST_DISPLAY_MODE,
   MASTER_LIST_SHOW_EXTRA,
 } from '../../../utils';
@@ -54,13 +56,12 @@ export function ColumnDetailMasterList({
   onNavBack,
   onNavToTableDetail,
 }: Props) {
-  //FIXME: use custom hook?
-  const [showExtra, setShowExtra] = useState<string | null>(
-    localStorage.getItem(MASTER_LIST_SHOW_EXTRA) ?? null,
+  const [showExtra, setShowExtra] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
+  const [displayMode, setDisplayMode] = useLocalStorage(
+    MASTER_LIST_DISPLAY_MODE,
+    '',
   );
-  const [displayMode, setDisplayMode] = useState<string | null>(
-    localStorage.getItem(MASTER_LIST_DISPLAY_MODE) ?? null,
-  );
+
   const [filterString, setFilterString] = useState<string>('');
   const [filterState, setFilterState] = useState<
     Map<ProfilerGenericTypes | undefined, boolean>
@@ -125,10 +126,11 @@ export function ColumnDetailMasterList({
         p={4}
         zIndex={150}
         bg={'inherit'}
+        borderBottom={borderVal}
       >
         {/* Selector - Tables List */}
         <Select
-          mb={3}
+          mb={5}
           defaultValue={currentTable}
           onChange={(evt) => {
             if (evt.target.value === 'table-list' && onNavBack) {
@@ -147,17 +149,15 @@ export function ColumnDetailMasterList({
         </Select>
 
         {/* HEADER - Table */}
-        <Flex my={3} justifyContent={'space-between'}>
+        <Flex justifyContent={'space-between'}>
           <Text color={'gray.500'} size={'md'}>
             Table
           </Text>
           <Box
+            _hover={{ cursor: 'pointer' }}
             onClick={() => {
-              setShowExtra((prev) => {
-                const result = prev === SHOW_EXTRA_KEY ? null : SHOW_EXTRA_KEY;
-                localStorage.setItem(MASTER_LIST_SHOW_EXTRA, result ?? '');
-                return result;
-              });
+              const result = showExtra === SHOW_EXTRA_KEY ? '' : SHOW_EXTRA_KEY;
+              setShowExtra(result);
             }}
           >
             {ShowExtraIcon}
@@ -166,7 +166,7 @@ export function ColumnDetailMasterList({
         <Flex
           top={0}
           p={3}
-          mb={10}
+          mb={3}
           borderRadius={'lg'}
           cursor={'pointer'}
           justify={'space-between'}
@@ -210,24 +210,20 @@ export function ColumnDetailMasterList({
           </Text>
           <Flex gap={2}>
             <Box
+              _hover={{ cursor: 'pointer' }}
               onClick={() => {
-                setDisplayMode((prev) => {
-                  const result = prev === SEARCH_KEY ? null : SEARCH_KEY;
-                  localStorage.setItem(MASTER_LIST_DISPLAY_MODE, result ?? '');
-                  return result;
-                });
+                const result = displayMode === SEARCH_KEY ? '' : SEARCH_KEY;
+                setDisplayMode(result);
               }}
             >
               {SearchIcon}
             </Box>
             <Box
+              _hover={{ cursor: 'pointer' }}
               onClick={() => {
-                setDisplayMode((prev) => {
-                  const result =
-                    prev === SCHEMA_FILTER_KEY ? null : SCHEMA_FILTER_KEY;
-                  localStorage.setItem(MASTER_LIST_DISPLAY_MODE, result ?? '');
-                  return result;
-                });
+                const result =
+                  displayMode === SCHEMA_FILTER_KEY ? '' : SCHEMA_FILTER_KEY;
+                setDisplayMode(result);
               }}
             >
               {FilterIcon}
@@ -246,7 +242,9 @@ export function ColumnDetailMasterList({
           <Box mt={3} p={3}>
             <Grid templateColumns={'1fr 1fr'} gap={3}>
               {quickFilters.map((v) => {
+                const { icon } = getIconForColumnType({ type: v });
                 const itemValue = filterState.get(v);
+
                 return (
                   <Tag
                     borderRadius={'xl'}
@@ -260,7 +258,12 @@ export function ColumnDetailMasterList({
                     }}
                     cursor={'pointer'}
                   >
-                    <TagLabel fontSize={'lg'}>{v}</TagLabel>
+                    <TagLabel fontSize={'lg'}>
+                      <Flex alignItems={'center'} gap={2}>
+                        <Icon as={icon} />
+                        {v}
+                      </Flex>
+                    </TagLabel>
                   </Tag>
                 );
               })}
