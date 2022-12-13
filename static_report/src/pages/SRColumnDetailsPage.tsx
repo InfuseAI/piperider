@@ -38,11 +38,6 @@ import {
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { getBreadcrumbPaths } from '../utils/routes';
-import {
-  BreadcrumbMetaItem,
-  BreadcrumbNav,
-} from '../components/Common/BreadcrumbNav';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
@@ -92,17 +87,10 @@ export default function SRColumnDetailsPage({
     );
   }
 
-  const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
-    tableName,
-    columnName,
-  );
   const hasQuantile = containsColumnQuantile(type);
   return (
     <Main isSingleReport maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={{ base: '1fr 2fr' }}>
-        <GridItem colSpan={3}>
-          <BreadcrumbNav breadcrumbList={breadcrumbList} />
-        </GridItem>
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList

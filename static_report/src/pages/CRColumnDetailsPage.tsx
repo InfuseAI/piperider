@@ -30,14 +30,9 @@ import {
 } from '../components/Columns/utils';
 import { TableOverview } from '../components/Tables/TableOverview';
 import { TableColumnSchemaList } from '../components/Tables/TableList/TableColumnSchemaList';
-import {
-  BreadcrumbMetaItem,
-  BreadcrumbNav,
-} from '../components/Common/BreadcrumbNav';
 import { ColumnSchemaDeltaSummary } from '../components/Tables/TableList/ColumnSchemaDeltaSummary';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { getBreadcrumbPaths } from '../utils/routes';
 import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { TableListAssertionSummary } from '../components/Tables/TableList/TableListAssertions';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
@@ -108,17 +103,10 @@ export default function CRColumnDetailsPage({
       assertionsOnly?.target?.filter((v) => v?.table === tableName) || [],
     );
 
-  const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
-    tableName,
-    columnName,
-  );
   const { backgroundColor, icon } = getIconForColumnType(fallbackColumnDatum);
   return (
     <Main isSingleReport={false} maxHeight={mainContentAreaHeight}>
       <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
-        <GridItem colSpan={3}>
-          <BreadcrumbNav breadcrumbList={breadcrumbList} />
-        </GridItem>
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
