@@ -106,11 +106,18 @@ export default function SRColumnDetailsPage({
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
+            tableColEntryList={tableColumnsOnly}
             tableColEntry={currentTableEntry}
             currentTable={tableName}
             currentColumn={columnName}
             onSelect={({ tableName, columnName }) => {
               setTabIndex(0); //resets tabs
+              setLocation(`/tables/${tableName}/columns/${columnName}`);
+            }}
+            onNavBack={() => {
+              setLocation('/');
+            }}
+            onNavToTableDetail={(tableName) => {
               setLocation(`/tables/${tableName}/columns/${columnName}`);
             }}
             singleOnly

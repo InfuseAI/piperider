@@ -122,11 +122,18 @@ export default function CRColumnDetailsPage({
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
+            tableColEntryList={tableColumnsOnly}
             tableColEntry={currentTableEntry}
             currentTable={tableName}
             currentColumn={columnName}
             onSelect={({ tableName, columnName }) => {
               setTabIndex(0); //reset tabs
+              setLocation(`/tables/${tableName}/columns/${columnName}`);
+            }}
+            onNavBack={() => {
+              setLocation('/');
+            }}
+            onNavToTableDetail={(tableName) => {
               setLocation(`/tables/${tableName}/columns/${columnName}`);
             }}
           />
