@@ -118,7 +118,7 @@ export function ColumnDetailMasterList({
   const isActive = currentColumn === '' && currentTable;
 
   return (
-    <Flex direction={'column'} position={'relative'} bg={'piperider.25'}>
+    <Flex direction={'column'} position={'relative'} bg={'gray.50'}>
       <Box
         position={'sticky'}
         top={0}
