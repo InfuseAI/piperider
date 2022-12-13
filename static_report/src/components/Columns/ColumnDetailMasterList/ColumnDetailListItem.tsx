@@ -44,66 +44,66 @@ export function ColumnDetailListItem({
   );
 
   return (
-    <>
-      <Flex
-        fontSize={'sm'}
-        justifyContent={'space-between'}
-        alignItems={'center'}
-        cursor={'pointer'}
-        onClick={() =>
-          onSelect({ tableName, columnName: fallbackColumnDatum?.name || '' })
-        }
-        color={isActive ? 'white' : 'inherit'}
-        bg={isActive ? 'piperider.400' : 'inherit'}
-        _hover={{ bgColor: isActive ? 'piperider.500' : 'blackAlpha.50' }}
-        data-cy="column-detail-list-item"
-        {...props}
-      >
-        <ColumnName
-          iconColor={isActive ? 'white' : 'gray.500'}
-          icon={icon}
-          name={fallbackColumnDatum?.name}
-        />
-        {showExtra && (
-          <Box
-            w={{ md: 'auto', xl: '10em' }}
-            fontSize={{ md: '2xs', xl: 'sm' }}
-            display={{ base: 'none', lg: 'block' }}
-            color={isActive ? 'white' : 'gray.600'}
-          >
-            {!singleOnly && (
-              <Text fontSize={'sm'} color={'gray.600'} fontWeight={'semibold'}>
-                Base
+    <Flex
+      mx={3}
+      fontSize={'sm'}
+      borderRadius={'lg'}
+      justifyContent={'space-between'}
+      alignItems={'center'}
+      cursor={'pointer'}
+      onClick={() =>
+        onSelect({ tableName, columnName: fallbackColumnDatum?.name || '' })
+      }
+      color={isActive ? 'white' : 'inherit'}
+      bg={isActive ? 'piperider.400' : 'inherit'}
+      _hover={{ bgColor: isActive ? 'piperider.500' : 'blackAlpha.50' }}
+      data-cy="column-detail-list-item"
+      {...props}
+    >
+      <ColumnName
+        iconColor={isActive ? 'white' : 'gray.500'}
+        icon={icon}
+        name={fallbackColumnDatum?.name}
+      />
+      {showExtra && (
+        <Box
+          w={{ md: 'auto', xl: '10em' }}
+          fontSize={{ md: '2xs', xl: 'sm' }}
+          display={{ base: 'none', lg: 'block' }}
+          color={isActive ? 'white' : 'gray.600'}
+        >
+          {!singleOnly && (
+            <Text fontSize={'sm'} color={'gray.600'} fontWeight={'semibold'}>
+              Base
+            </Text>
+          )}
+          {baseValidsPercentLabel && (
+            <Progress value={baseValidsPercentValue || 0} />
+          )}
+          <Flex justifyContent={'space-between'}>
+            <Text fontSize={'xs'} mr={2}>
+              {baseValidsPercentLabel}
+            </Text>
+            <Text fontSize={'xs'}>Valid</Text>
+          </Flex>
+          {!singleOnly && (
+            <Box mt={3}>
+              <Text fontSize={'sm'} fontWeight={'semibold'}>
+                Target
               </Text>
-            )}
-            {baseValidsPercentLabel && (
-              <Progress value={baseValidsPercentValue || 0} />
-            )}
-            <Flex justifyContent={'space-between'}>
-              <Text fontSize={'xs'} mr={2}>
-                {baseValidsPercentLabel}
-              </Text>
-              <Text fontSize={'xs'}>Valid</Text>
-            </Flex>
-            {!singleOnly && (
-              <Box mt={3}>
-                <Text fontSize={'sm'} fontWeight={'semibold'}>
-                  Target
+              {targetValidsPercentLabel && (
+                <Progress value={targetValidsPercentValue || 0} />
+              )}
+              <Flex justifyContent={'space-between'}>
+                <Text fontSize={'xs'} mr={2}>
+                  {targetValidsPercentLabel}
                 </Text>
-                {targetValidsPercentLabel && (
-                  <Progress value={targetValidsPercentValue || 0} />
-                )}
-                <Flex justifyContent={'space-between'}>
-                  <Text fontSize={'xs'} mr={2}>
-                    {targetValidsPercentLabel}
-                  </Text>
-                  <Text fontSize={'xs'}>Valid</Text>
-                </Flex>
-              </Box>
-            )}
-          </Box>
-        )}
-      </Flex>
-    </>
+                <Text fontSize={'xs'}>Valid</Text>
+              </Flex>
+            </Box>
+          )}
+        </Box>
+      )}
+    </Flex>
   );
 }

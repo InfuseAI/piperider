@@ -1,4 +1,3 @@
-import { ArrowBackIcon } from '@chakra-ui/icons';
 import {
   Flex,
   Tag,
@@ -10,7 +9,7 @@ import {
   Select,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { FiArrowLeft, FiGrid } from 'react-icons/fi';
+import { FiGrid } from 'react-icons/fi';
 import {
   IoEye,
   IoEyeOutline,
@@ -34,7 +33,6 @@ import { getIconForColumnType } from '../utils';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
-//FIXME: props change to list
 interface Props extends Selectable, Comparable {
   currentTable: string;
   currentColumn: string;
@@ -56,7 +54,7 @@ export function ColumnDetailMasterList({
   onNavBack,
   onNavToTableDetail,
 }: Props) {
-  //FIXME: localStorage read
+  //FIXME: use custom hook?
   const [showExtra, setShowExtra] = useState<string | null>(
     localStorage.getItem(MASTER_LIST_SHOW_EXTRA) ?? null,
   );
@@ -108,20 +106,29 @@ export function ColumnDetailMasterList({
       <IoFilterCircleOutline size={'1.5rem'} />
     );
 
+  const SHOW_EXTRA_KEY = 'show-extra';
   const ShowExtraIcon = showExtra ? (
     <IoEye size={'1.5rem'} />
   ) : (
     <IoEyeOutline size={'1.5rem'} />
   );
-  const hasShowExtra = showExtra === 'show-extra';
+  const hasShowExtra = showExtra === SHOW_EXTRA_KEY;
 
   const isActive = currentColumn === '' && currentTable;
 
   return (
     <Flex direction={'column'} position={'relative'} bg={'piperider.25'}>
-      <Box position={'sticky'} top={0} w={'100%'} p={4} zIndex={150}>
+      <Box
+        position={'sticky'}
+        top={0}
+        w={'100%'}
+        p={4}
+        zIndex={150}
+        bg={'inherit'}
+      >
         {/* Selector - Tables List */}
         <Select
+          mb={3}
           defaultValue={currentTable}
           onChange={(evt) => {
             if (evt.target.value === 'table-list' && onNavBack) {
@@ -131,11 +138,7 @@ export function ColumnDetailMasterList({
             }
           }}
         >
-          <option value={'table-list'}>
-            <span>
-              <Text>← Show All Tables</Text>
-            </span>
-          </option>
+          <option value={'table-list'}>← Show All Tables</option>
           {tableColEntryList.map(([key, val], index) => (
             <option value={key} key={index}>
               {key}
@@ -144,13 +147,17 @@ export function ColumnDetailMasterList({
         </Select>
 
         {/* HEADER - Table */}
-        <Flex mt={5} justifyContent={'space-between'}>
+        <Flex my={3} justifyContent={'space-between'}>
           <Text color={'gray.500'} size={'md'}>
             Table
           </Text>
           <Box
             onClick={() => {
-              setShowExtra((prev) => (prev ? null : 'show-extra'));
+              setShowExtra((prev) => {
+                const result = prev === SHOW_EXTRA_KEY ? null : SHOW_EXTRA_KEY;
+                localStorage.setItem(MASTER_LIST_SHOW_EXTRA, result ?? '');
+                return result;
+              });
             }}
           >
             {ShowExtraIcon}
@@ -158,8 +165,8 @@ export function ColumnDetailMasterList({
         </Flex>
         <Flex
           top={0}
-          py={3}
-          mb={5}
+          p={3}
+          mb={10}
           borderRadius={'lg'}
           cursor={'pointer'}
           justify={'space-between'}
@@ -196,6 +203,7 @@ export function ColumnDetailMasterList({
             </Flex>
           )}
         </Flex>
+        {/* Columns Header */}
         <Flex justifyContent={'space-between'} alignItems={'center'}>
           <Text fontSize={'md'} color={'gray.500'}>
             {filteredTableColumnEntries.length} Columns
@@ -203,20 +211,23 @@ export function ColumnDetailMasterList({
           <Flex gap={2}>
             <Box
               onClick={() => {
-                //FIXME: set localstorage
-                setDisplayMode((prev) =>
-                  prev === SEARCH_KEY ? null : SEARCH_KEY,
-                );
+                setDisplayMode((prev) => {
+                  const result = prev === SEARCH_KEY ? null : SEARCH_KEY;
+                  localStorage.setItem(MASTER_LIST_DISPLAY_MODE, result ?? '');
+                  return result;
+                });
               }}
             >
               {SearchIcon}
             </Box>
             <Box
               onClick={() => {
-                //FIXME: set localstorage
-                setDisplayMode((prev) =>
-                  prev === SCHEMA_FILTER_KEY ? null : SCHEMA_FILTER_KEY,
-                );
+                setDisplayMode((prev) => {
+                  const result =
+                    prev === SCHEMA_FILTER_KEY ? null : SCHEMA_FILTER_KEY;
+                  localStorage.setItem(MASTER_LIST_DISPLAY_MODE, result ?? '');
+                  return result;
+                });
               }}
             >
               {FilterIcon}
@@ -242,7 +253,7 @@ export function ColumnDetailMasterList({
                     key={v}
                     py={3}
                     size={'lg'}
-                    backgroundColor={itemValue ? 'piperider.100' : ''}
+                    bg={itemValue ? 'piperider.100' : 'gray.200'}
                     onClick={() => {
                       const newState = new Map(filterState).set(v, !itemValue);
                       setFilterState(newState);
