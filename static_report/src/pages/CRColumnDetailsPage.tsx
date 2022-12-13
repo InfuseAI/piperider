@@ -189,7 +189,6 @@ export default function CRColumnDetailsPage({
                     <TableColumnSchemaList
                       baseTableEntryDatum={baseTableColEntry}
                       targetTableEntryDatum={targetTableColEntry}
-                      onSelect={() => {}}
                     />
                   </Grid>
                 </TabPanel>

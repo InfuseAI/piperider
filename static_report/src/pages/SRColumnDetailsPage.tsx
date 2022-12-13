@@ -158,7 +158,6 @@ export default function SRColumnDetailsPage({
                   <TableColumnSchemaList
                     baseTableEntryDatum={currentTableEntry?.[1].base}
                     singleOnly
-                    onSelect={() => {}}
                   />
                 </TabPanel>
               </TabPanels>
