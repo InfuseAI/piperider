@@ -1,13 +1,6 @@
-import {
-  Accordion,
-  AccordionItem,
-  AccordionPanel,
-  Flex,
-  Text,
-  Grid,
-} from '@chakra-ui/react';
-import { nanoid } from 'nanoid';
+import { Flex, Text, Grid, useDisclosure } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
+import { useState } from 'react';
 
 import { Main } from '../components/Common/Main';
 import { TableActionBar } from '../components/Tables/TableActionBar';
@@ -20,10 +13,13 @@ import { useReportStore } from '../utils/store';
 import { TableColumnSchemaList } from '../components/Tables/TableList/TableColumnSchemaList';
 import { useAmplitudeOnMount } from '../hooks/useAmplitudeOnMount';
 import { AMPLITUDE_EVENTS, SR_TYPE_LABEL } from '../utils/amplitudeEvents';
+import { CommonModal } from '../components/Common/CommonModal';
 
 type Props = { data: SaferSRSchema };
 
 export function SRTablesListPage({ data }: Props) {
+  const modal = useDisclosure();
+  const [tableColsEntryId, setTableColsEntryId] = useState(-1);
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
   const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
@@ -48,45 +44,42 @@ export function SRTablesListPage({ data }: Props) {
           <Text>Summary</Text>
           <Text>Assertions</Text>
         </Grid>
-        <Accordion allowToggle reduceMotion>
-          {tableColumnsOnly.map((tableColsEntry) => {
-            return (
-              <Flex key={nanoid()}>
-                <AccordionItem>
-                  {({ isExpanded }) => (
-                    <>
-                      <TableListItem
-                        combinedAssertions={assertionsOnly}
-                        combinedTableEntry={tableColsEntry}
-                        isExpanded={isExpanded}
-                        singleOnly
-                        onSelect={({ tableName }) =>
-                          setLocation(`/tables/${tableName}/columns/`)
-                        }
-                      />
-                      {/* Accordion Children */}
-                      <AccordionPanel bgColor="white" p={0}>
-                        {isExpanded && (
-                          <TableColumnSchemaList
-                            singleOnly
-                            visibleDetail
-                            baseTableEntryDatum={tableColsEntry[1].base}
-                            onSelect={({ tableName, columnName }) =>
-                              setLocation(
-                                `/tables/${tableName}/columns/${columnName}`,
-                              )
-                            }
-                          />
-                        )}
-                      </AccordionPanel>
-                    </>
-                  )}
-                </AccordionItem>
-              </Flex>
-            );
-          })}
-        </Accordion>
+        {tableColumnsOnly.map((tableColsEntry, i) => {
+          return (
+            <Flex key={i}>
+              <TableListItem
+                combinedAssertions={assertionsOnly}
+                combinedTableEntry={tableColsEntry}
+                singleOnly
+                onInfoClick={() => {
+                  setTableColsEntryId(i);
+                  modal.onOpen();
+                }}
+                onSelect={({ tableName }) =>
+                  setLocation(`/tables/${tableName}/columns/`)
+                }
+              />
+            </Flex>
+          );
+        })}
       </Flex>
+
+      <CommonModal
+        {...modal}
+        size="2xl"
+        title={tableColsEntryId !== -1 && tableColumnsOnly[tableColsEntryId][0]}
+        onClose={() => {
+          setTableColsEntryId(-1);
+          modal.onClose();
+        }}
+      >
+        {tableColsEntryId !== -1 && (
+          <TableColumnSchemaList
+            singleOnly
+            baseTableEntryDatum={tableColumnsOnly[tableColsEntryId][1].base}
+          />
+        )}
+      </CommonModal>
     </Main>
   );
 }

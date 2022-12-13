@@ -1,17 +1,7 @@
-import {
-  Button,
-  Flex,
-  FlexProps,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  useDisclosure,
-} from '@chakra-ui/react';
+import { Button, Flex, FlexProps, useDisclosure } from '@chakra-ui/react';
 import { ReactNode } from 'react';
+
+import { CommonModal } from '../Common/CommonModal';
 
 /**
  * Container to display one chart.
@@ -30,7 +20,7 @@ export function ChartContainer({
   height = 300,
   ...props
 }: Props & FlexProps) {
-  const { onOpen, isOpen, onClose } = useDisclosure();
+  const modal = useDisclosure();
   return (
     <>
       <Flex
@@ -38,28 +28,26 @@ export function ChartContainer({
         maxHeight={`${height}px`}
         bg={'whiteAlpha.700'}
         rounded={'md'}
-        onClick={() => allowModalPopup && onOpen()}
+        onClick={() => allowModalPopup && modal.onOpen()}
         {...props}
       >
         {children}
       </Flex>
       {allowModalPopup && (
-        <Modal size={'full'} isOpen={isOpen} onClose={onClose}>
-          <ModalOverlay />
-          <ModalContent p={12}>
-            <ModalHeader>{title}</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>{children}</ModalBody>
-
-            <ModalFooter>
-              <Flex mt={6} w={'100%'} direction={'row'} justify={'center'}>
-                <Button colorScheme="blue" mr={3} onClick={onClose}>
-                  Close
-                </Button>
-              </Flex>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+        <CommonModal
+          {...modal}
+          size={'full'}
+          title={title}
+          footer={
+            <Flex mt={6} w={'100%'} direction={'row'} justify={'center'}>
+              <Button colorScheme="blue" mr={3} onClick={modal.onClose}>
+                Close
+              </Button>
+            </Flex>
+          }
+        >
+          {children}
+        </CommonModal>
       )}
     </>
   );

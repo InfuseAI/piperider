@@ -1,13 +1,6 @@
 import {
   Button,
   Text,
-  Modal,
-  ModalHeader,
-  ModalOverlay,
-  ModalContent,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
   type UseDisclosureReturn,
   TableContainer,
   Table,
@@ -23,6 +16,7 @@ import { NO_VALUE } from '../Columns/constants';
 import { NoData } from '../Layouts';
 import { AssertionTest } from '../../sdlc/single-report-schema';
 import { ComparableData } from '../../types';
+import { CommonModal } from '../Common/CommonModal';
 
 export type CRAssertionModalData = {
   assertionName?: string;
@@ -35,35 +29,26 @@ export type TestDetail = {
 type Props = UseDisclosureReturn & TestDetail;
 export function CRAssertionModal({ data, isOpen, onClose, ...props }: Props) {
   return (
-    <Modal
+    <CommonModal
       {...props}
       isOpen={isOpen}
       size="2xl"
       onClose={() => {
         onClose();
       }}
+      title={
+        <Text
+          title={data?.assertionName}
+          noOfLines={1}
+          maxWidth="calc(100% - 50px)"
+        >
+          {data?.assertionName}
+        </Text>
+      }
+      footer={<Button onClick={onClose}>Close</Button>}
     >
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>
-          <Text
-            title={data?.assertionName}
-            noOfLines={1}
-            maxWidth="calc(100% - 50px)"
-          >
-            {data?.assertionName}
-          </Text>
-        </ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <AssertionTestDetail data={data} />
-        </ModalBody>
-
-        <ModalFooter>
-          <Button onClick={onClose}>Close</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+      <AssertionTestDetail data={data} />
+    </CommonModal>
   );
 }
 

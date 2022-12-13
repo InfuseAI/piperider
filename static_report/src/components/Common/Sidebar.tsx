@@ -5,13 +5,6 @@ import {
   Flex,
   Icon,
   Text,
-  Modal,
-  ModalHeader,
-  ModalOverlay,
-  ModalContent,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
   Textarea,
   Heading,
   UnorderedList,
@@ -29,6 +22,7 @@ import { GoChecklist } from 'react-icons/go';
 import { ReactNode, useState } from 'react';
 import { mainContentAreaHeight } from '../../utils/layout';
 import { useLocation } from 'wouter';
+import { CommonModal } from '../Common/CommonModal';
 
 type Feedback = {
   user_id: string;
@@ -175,88 +169,11 @@ export function Sidebar() {
         </Flex>
       </Box>
 
-      <Modal {...modal} size="2xl" autoFocus={false}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Send feedback to PipeRider</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody data-cy="feedback-modal">
-            <Flex
-              id="feedback-form"
-              as="form"
-              flexDirection="column"
-              gap={6}
-              onSubmit={async (event) => {
-                event.preventDefault();
-                setIsSending(true);
-
-                const isSuccessful = await sendFeedback({
-                  user_id: window.PIPERIDER_METADATA.amplitude_user_id,
-                  version: window.PIPERIDER_METADATA.version,
-                  message: feedback,
-                  email: userEmail !== '' ? userEmail : undefined,
-                });
-
-                if (isSuccessful) {
-                  toast({
-                    status: 'success',
-                    description: 'Sent, Thank you!❤️',
-                    position: 'bottom-right',
-                    duration: 3000,
-                    isClosable: true,
-                  });
-                } else {
-                  toast({
-                    status: 'error',
-                    description:
-                      'Something went wrong, please try again later.😢',
-                    position: 'bottom-right',
-                    duration: 3000,
-                    isClosable: true,
-                  });
-                }
-
-                setIsSending(false);
-                setFeedback('');
-                setUserEmail('');
-                modal.onClose();
-              }}
-            >
-              <FormControl>
-                <Textarea
-                  placeholder="We are always improving and would love to hear your thoughts!"
-                  value={feedback}
-                  onChange={(event) => {
-                    event.preventDefault();
-                    setFeedback(event.target.value);
-                  }}
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Email (optional)</FormLabel>
-                <Input
-                  type="email"
-                  value={userEmail}
-                  placeholder="Email address (optional)"
-                  onChange={(event) => {
-                    setUserEmail(event.target.value);
-                  }}
-                />
-              </FormControl>
-
-              <Flex direction="column" gap={2}>
-                <Heading size="sm">Metadata</Heading>
-                <UnorderedList>
-                  <ListItem>
-                    Version: {window.PIPERIDER_METADATA.version}
-                  </ListItem>
-                </UnorderedList>
-              </Flex>
-            </Flex>
-          </ModalBody>
-
-          <ModalFooter>
+      <CommonModal
+        {...modal}
+        title="Send feedback to PipeRider"
+        footer={
+          <>
             <Button
               data-cy="close-feedback-modal"
               mr={3}
@@ -274,9 +191,81 @@ export function Sidebar() {
             >
               Submit
             </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+          </>
+        }
+      >
+        <Flex
+          id="feedback-form"
+          data-cy="feedback-modal"
+          as="form"
+          flexDirection="column"
+          gap={6}
+          onSubmit={async (event) => {
+            event.preventDefault();
+            setIsSending(true);
+
+            const isSuccessful = await sendFeedback({
+              user_id: window.PIPERIDER_METADATA.amplitude_user_id,
+              version: window.PIPERIDER_METADATA.version,
+              message: feedback,
+              email: userEmail !== '' ? userEmail : undefined,
+            });
+
+            if (isSuccessful) {
+              toast({
+                status: 'success',
+                description: 'Sent, Thank you!❤️',
+                position: 'bottom-right',
+                duration: 3000,
+                isClosable: true,
+              });
+            } else {
+              toast({
+                status: 'error',
+                description: 'Something went wrong, please try again later.😢',
+                position: 'bottom-right',
+                duration: 3000,
+                isClosable: true,
+              });
+            }
+
+            setIsSending(false);
+            setFeedback('');
+            setUserEmail('');
+            modal.onClose();
+          }}
+        >
+          <FormControl>
+            <Textarea
+              placeholder="We are always improving and would love to hear your thoughts!"
+              value={feedback}
+              onChange={(event) => {
+                event.preventDefault();
+                setFeedback(event.target.value);
+              }}
+            />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>Email (optional)</FormLabel>
+            <Input
+              type="email"
+              value={userEmail}
+              placeholder="Email address (optional)"
+              onChange={(event) => {
+                setUserEmail(event.target.value);
+              }}
+            />
+          </FormControl>
+
+          <Flex direction="column" gap={2}>
+            <Heading size="sm">Metadata</Heading>
+            <UnorderedList>
+              <ListItem>Version: {window.PIPERIDER_METADATA.version}</ListItem>
+            </UnorderedList>
+          </Flex>
+        </Flex>
+      </CommonModal>
     </Flex>
   );
 }

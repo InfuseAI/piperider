@@ -4,15 +4,8 @@ import { TableActionBar } from '../components/Tables/TableActionBar';
 import { TableListItem } from '../components/Tables/TableList/TableListItem';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { type ComparisonReportSchema } from '../types';
-import {
-  Accordion,
-  AccordionItem,
-  AccordionPanel,
-  Flex,
-  Text,
-  Grid,
-} from '@chakra-ui/react';
-import { nanoid } from 'nanoid';
+import { Flex, Text, Grid, useDisclosure } from '@chakra-ui/react';
+import { useState } from 'react';
 import { useLocation } from 'wouter';
 
 import { tableListGridTempCols, tableListWidth } from '../utils/layout';
@@ -20,6 +13,7 @@ import { useReportStore } from '../utils/store';
 import { TableColumnSchemaList } from '../components/Tables/TableList/TableColumnSchemaList';
 import { useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils/amplitudeEvents';
+import { CommonModal } from '../components/Common/CommonModal';
 
 type Props = { data: ComparisonReportSchema };
 
@@ -32,6 +26,8 @@ export function CRTablesListPage({ data }: Props) {
       page: 'table-list-page',
     },
   });
+  const modal = useDisclosure();
+  const [tableColsEntryId, setTableColsEntryId] = useState(-1);
   const [, setLocation] = useLocation();
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data.base, input: data.input });
@@ -48,45 +44,42 @@ export function CRTablesListPage({ data }: Props) {
           <Text>Summary</Text>
           <Text ml={'5em'}>Assertions</Text>
         </Grid>
-        <Accordion allowToggle reduceMotion>
-          {tableColEntries.map((tableColEntry) => {
-            return (
-              <Flex key={nanoid()}>
-                <AccordionItem>
-                  {({ isExpanded }) => (
-                    <>
-                      <TableListItem
-                        combinedAssertions={assertionsOnly}
-                        isExpanded={isExpanded}
-                        combinedTableEntry={tableColEntry}
-                        onSelect={() =>
-                          setLocation(`/tables/${tableColEntry[0]}/columns/`)
-                        }
-                      />
 
-                      {/* Accordion Children Types */}
-                      <AccordionPanel bgColor="white">
-                        {isExpanded && (
-                          <TableColumnSchemaList
-                            baseTableEntryDatum={tableColEntry[1].base}
-                            targetTableEntryDatum={tableColEntry[1].target}
-                            visibleDetail
-                            onSelect={({ tableName, columnName }) =>
-                              setLocation(
-                                `/tables/${tableName}/columns/${columnName}`,
-                              )
-                            }
-                          />
-                        )}
-                      </AccordionPanel>
-                    </>
-                  )}
-                </AccordionItem>
-              </Flex>
-            );
-          })}
-        </Accordion>
+        {tableColEntries.map((tableColEntry, i) => {
+          return (
+            <Flex key={i}>
+              <TableListItem
+                combinedAssertions={assertionsOnly}
+                combinedTableEntry={tableColEntry}
+                onSelect={() =>
+                  setLocation(`/tables/${tableColEntry[0]}/columns/`)
+                }
+                onInfoClick={() => {
+                  setTableColsEntryId(i);
+                  modal.onOpen();
+                }}
+              />
+            </Flex>
+          );
+        })}
       </Flex>
+
+      <CommonModal
+        {...modal}
+        size="2xl"
+        title={tableColsEntryId !== -1 && tableColEntries[tableColsEntryId][0]}
+        onClose={() => {
+          setTableColsEntryId(-1);
+          modal.onClose();
+        }}
+      >
+        {tableColsEntryId !== -1 && (
+          <TableColumnSchemaList
+            baseTableEntryDatum={tableColEntries[tableColsEntryId][1].base}
+            targetTableEntryDatum={tableColEntries[tableColsEntryId][1].target}
+          />
+        )}
+      </CommonModal>
     </Main>
   );
 }
