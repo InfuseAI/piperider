@@ -73,6 +73,13 @@ export function SRTablesListPage({ data }: Props) {
           modal.onClose();
         }}
       >
+        <Text fontSize="lg" mb={4}>
+          Description:{' '}
+          {(tableColsEntryId !== -1 &&
+            tableColumnsOnly[tableColsEntryId][1].base?.description) ?? (
+            <Text as="i">No description provided.</Text>
+          )}
+        </Text>
         {tableColsEntryId !== -1 && (
           <TableColumnSchemaList
             singleOnly
