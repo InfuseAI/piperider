@@ -73,6 +73,13 @@ export function CRTablesListPage({ data }: Props) {
           modal.onClose();
         }}
       >
+        <Text fontSize="lg" mb={4}>
+          Description:{' '}
+          {(tableColsEntryId !== -1 &&
+            tableColEntries[tableColsEntryId][1].target?.description) ?? (
+            <Text as="i">No description provided.</Text>
+          )}
+        </Text>
         {tableColsEntryId !== -1 && (
           <TableColumnSchemaList
             baseTableEntryDatum={tableColEntries[tableColsEntryId][1].base}
