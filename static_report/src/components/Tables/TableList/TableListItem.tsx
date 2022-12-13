@@ -53,7 +53,7 @@ export function TableListItem({
     return <NoData />;
   }
   return (
-    <TableWrapper data-cy="table-list-accordion-btn">
+    <TableWrapper>
       <Grid
         templateColumns={tableListGridTempCols}
         width={tableListMaxWidth}
