@@ -29,7 +29,7 @@ export function ColumnDetailListItem({
   ...props
 }: Props & FlexProps) {
   const fallbackColumnDatum = targetColumnDatum || baseColumnDatum;
-  const { icon, backgroundColor } = getIconForColumnType(fallbackColumnDatum);
+  const { icon } = getIconForColumnType(fallbackColumnDatum);
   const { valids_p: baseValidRatio } = baseColumnDatum || {};
   const baseValidsPercentValue = Number(baseValidRatio) * 100;
   const baseValidsPercentLabel = formatColumnValueWith(

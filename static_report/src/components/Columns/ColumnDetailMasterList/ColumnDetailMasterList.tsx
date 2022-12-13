@@ -1,6 +1,16 @@
-import { Flex, Tag, TagLabel, Text, Box, Icon, Grid } from '@chakra-ui/react';
+import { ArrowBackIcon } from '@chakra-ui/icons';
+import {
+  Flex,
+  Tag,
+  TagLabel,
+  Text,
+  Box,
+  Icon,
+  Grid,
+  Select,
+} from '@chakra-ui/react';
 import { useState } from 'react';
-import { FiGrid } from 'react-icons/fi';
+import { FiArrowLeft, FiGrid } from 'react-icons/fi';
 import {
   IoEye,
   IoEyeOutline,
@@ -24,24 +34,27 @@ import { getIconForColumnType } from '../utils';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
+//FIXME: props change to list
 interface Props extends Selectable, Comparable {
-  tableColEntry: CompTableColEntryItem;
   currentTable: string;
   currentColumn: string;
+  tableColEntry: CompTableColEntryItem;
+  tableColEntryList?: CompTableColEntryItem[];
+  onNavBack?: () => void;
+  onNavToTableDetail?: (tableName: string) => void;
 }
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of all tables and columns from datasource. Belongs in the profiling column details page to view in-depth metrics and visualizations
- * 
- *  1. Don't crop the text is the space is enough
-    2. If the width is less than n (e.g. 400), shrink the bar first
-    3. Should reference the MBP screen size
  */
 export function ColumnDetailMasterList({
+  tableColEntryList = [],
   tableColEntry,
   currentTable,
   currentColumn,
   singleOnly,
   onSelect,
+  onNavBack,
+  onNavToTableDetail,
 }: Props) {
   //FIXME: localStorage read
   const [showExtra, setShowExtra] = useState<string | null>(
@@ -108,6 +121,27 @@ export function ColumnDetailMasterList({
     <Flex direction={'column'} position={'relative'} bg={'piperider.25'}>
       <Box position={'sticky'} top={0} w={'100%'} p={4} zIndex={150}>
         {/* Selector - Tables List */}
+        <Select
+          defaultValue={currentTable}
+          onChange={(evt) => {
+            if (evt.target.value === 'table-list' && onNavBack) {
+              onNavBack();
+            } else if (onNavToTableDetail) {
+              onNavToTableDetail(evt.target.value);
+            }
+          }}
+        >
+          <option value={'table-list'}>
+            <span>
+              <Text>← Show All Tables</Text>
+            </span>
+          </option>
+          {tableColEntryList.map(([key, val], index) => (
+            <option value={key} key={index}>
+              {key}
+            </option>
+          ))}
+        </Select>
 
         {/* HEADER - Table */}
         <Flex mt={5} justifyContent={'space-between'}>
@@ -189,7 +223,6 @@ export function ColumnDetailMasterList({
             </Box>
           </Flex>
         </Flex>
-        {/* <TableSelector /> */}
         {displayMode === 'search' && (
           <SearchTextInput
             onChange={setFilterString}
