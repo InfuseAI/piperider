@@ -1180,10 +1180,14 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
         if days_delta > 365 * 4:
             _type = "yearly"
             dmin = date(min.year, 1, 1)
-            dmax = date(max.year, 1, 1) + relativedelta(years=+1)
+            if max.year < 3000:
+                dmax = date(max.year, 1, 1) + relativedelta(years=+1)
+            else:
+                dmax = date(3000, 1, 1)
             interval_years = math.ceil((dmax.year - dmin.year) / 50)
             interval = relativedelta(years=+interval_years)
             num_buckets = math.ceil((dmax.year - dmin.year) / interval.years)
+
             cte = select([date_trunc("YEAR", column).label("d")]).select_from(table).cte()
         elif days_delta > 60:
             _type = "monthly"
