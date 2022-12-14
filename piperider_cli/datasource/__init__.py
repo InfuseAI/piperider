@@ -48,7 +48,7 @@ class DataSource(metaclass=ABCMeta):
         for f in self.fields:
             if isinstance(f.ignore, Callable) and f.ignore(self.credential):
                 continue
-            if f.name not in self.credential and f.optional is False:
+            if f.name not in self.credential and f.optional is False and not f.name.startswith("_"):
                 reasons.append(f"{f.name} is required")
 
         # check if got duplicate keys: pass & password
@@ -128,17 +128,21 @@ class DataSource(metaclass=ABCMeta):
         answers = datasource_prompt.prompt(next_question(self.fields), raise_keyboard_interrupt=True)
         if answers:
             for f in self.fields:
-                self.credential[f.name] = answers[f.name].strip() if answers[f.name] else None
+                if answers[f.name]:
+                    self.credential[f.name] = answers[f.name].strip()
+            self.credential = {k: v for (k, v) in self.credential.items() if not k.startswith('_')}
         return self.credential
 
     def ask_credential_by_rich(self):
-
         for f in self.fields:
             if hasattr(f, 'callback') and getattr(f, 'callback') is not None:
                 answer = f.callback(self.credential)
             else:
                 answer = f.question_by_rich(self.credential)
-            self.credential[f.name] = answer.strip() if answer else None
+            if answer:
+                self.credential[f.name] = answer.strip()
+
+        self.credential = {k: v for (k, v) in self.credential.items() if not k.startswith('_')}
         return self.credential
 
     @staticmethod
