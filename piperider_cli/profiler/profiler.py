@@ -28,6 +28,9 @@ class ProfileSubject:
         self.schema = schema
         self.alias = model
 
+    def get_lower_schema(self):
+        return self.schema.lower() if self.schema else None
+
 
 def dtof(value: Union[int, float, decimal.Decimal]) -> Union[int, float]:
     """
@@ -93,11 +96,11 @@ class Profiler:
         self.config = config
 
     def _fetch_table_metadata(self, subject: ProfileSubject, reflecting_cache):
-        result = reflecting_cache.get((subject.schema.lower(), subject.table))
+        result = reflecting_cache.get((subject.get_lower_schema(), subject.table))
         if result is not None:
             return result
         else:
-            return Table(subject.table, MetaData(), autoload_with=self.engine, schema=subject.schema.lower())
+            return Table(subject.table, MetaData(), autoload_with=self.engine, schema=subject.get_lower_schema())
 
     def profile(self, subjects: List[ProfileSubject] = None) -> dict:
         """
@@ -139,14 +142,15 @@ class Profiler:
         if self.engine.url.get_backend_name() != 'postgresql' and len(subjects) > 1:
             metadata.reflect(bind=self.engine)
             for table_name, table in metadata.tables.items():
-                reflecting_cache[(default_schema.lower(), table_name)] = table
+                schema = default_schema.lower() if default_schema else None
+                reflecting_cache[(schema, table_name)] = table
 
         completed = 0
         self.event_handler.handle_fetch_metadata_progress(None, len(subjects), completed)
         if isinstance(self.engine.pool, SingletonThreadPool):
             for subject in subjects:
                 table_metadata = self._fetch_table_metadata(subject, reflecting_cache)
-                reflecting_cache[(subject.schema.lower(), subject.table)] = table_metadata
+                reflecting_cache[(subject.get_lower_schema(), subject.table)] = table_metadata
                 completed = completed + 1
                 self.event_handler.handle_fetch_metadata_progress(subject.table, len(subjects), completed)
         else:
@@ -156,7 +160,7 @@ class Profiler:
                 for future in concurrent.futures.as_completed(future_to_subject):
                     subject = future_to_subject[future]
                     table_metadata = future.result()
-                    reflecting_cache[(subject.schema.lower(), subject.table)] = table_metadata
+                    reflecting_cache[(subject.get_lower_schema(), subject.table)] = table_metadata
                     completed = completed + 1
                     self.event_handler.handle_fetch_metadata_progress(subject.table, len(subjects), completed)
 
@@ -167,7 +171,7 @@ class Profiler:
         self.event_handler.handle_run_progress(result, table_count, table_index)
 
         for subject in subjects:
-            table = reflecting_cache[(subject.schema.lower(), subject.table)]
+            table = reflecting_cache[(subject.get_lower_schema(), subject.table)]
             tresult = self._profile_table(subject.alias, table)
             profiled_tables[subject.alias] = tresult
             table_index = table_index + 1
