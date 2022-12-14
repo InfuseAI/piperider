@@ -1,4 +1,5 @@
-export const topNavAndFooterHeightOffset = 65;
+export const allContentGridTempCols = '1fr 3fr';
+export const topNavAndFooterHeightOffset = 70;
 export const mainContentAreaHeight = `calc(100vh - ${topNavAndFooterHeightOffset}px)`;
 export const tableListGridTempCols = '2fr 1fr 1.5fr';
 export const tableListWidth = 1150;

@@ -4,6 +4,7 @@ import * as amplitude from '@amplitude/analytics-browser';
 
 import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
+import { topNavAndFooterHeightOffset } from '../../utils';
 
 interface Props extends FlexProps {
   children: ReactNode;
@@ -37,8 +38,8 @@ export function Main({ children, isSingleReport, ...props }: Props) {
           justifyContent="flex-start"
           bg={bgColor[colorMode]}
           color={color[colorMode]}
+          minHeight={`calc(100vh - ${topNavAndFooterHeightOffset}px)`}
           width="100%"
-          minHeight="calc(100vh - 64px)"
           {...props}
         >
           {children}
