@@ -6,7 +6,6 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { FiCornerDownRight } from 'react-icons/fi';
 import { NO_VALUE } from '../../Columns';
 
 interface Props {
@@ -22,7 +21,6 @@ export function ColumnName({
 }: Props & FlexProps) {
   return (
     <Flex alignItems="center" {...props}>
-      <Icon as={FiCornerDownRight} color="gray.300" boxSize={5} />
       <Icon as={icon} color={iconColor} mx={2} boxSize={5} />
       <Tooltip label={name}>
         <Text noOfLines={1} mr={1}>

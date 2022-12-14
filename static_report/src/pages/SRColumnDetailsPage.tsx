@@ -10,10 +10,17 @@ import {
 } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
+import { useLocalStorage } from 'react-use';
+
 import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
-import { borderVal, mainContentAreaHeight } from '../utils/layout';
+import {
+  allContentGridTempCols,
+  borderVal,
+  extraSpaceAllContentGridTempCols,
+  mainContentAreaHeight,
+} from '../utils/layout';
 import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
 import { ColumnDetailMasterList } from '../components/Columns/ColumnDetailMasterList';
 
@@ -35,14 +42,10 @@ import {
   useAmplitudeOnMount,
   useDocumentTitle,
   getAssertionStatusCountsFromList,
+  MASTER_LIST_SHOW_EXTRA,
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { getBreadcrumbPaths } from '../utils/routes';
-import {
-  BreadcrumbMetaItem,
-  BreadcrumbNav,
-} from '../components/Common/BreadcrumbNav';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
@@ -63,6 +66,8 @@ export default function SRColumnDetailsPage({
   });
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
+  const [showExtra] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
+  const [extraSpace, setExtraSpace] = useState<boolean>(Boolean(showExtra));
 
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
@@ -92,20 +97,19 @@ export default function SRColumnDetailsPage({
     );
   }
 
-  const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
-    tableName,
-    columnName,
-  );
   const hasQuantile = containsColumnQuantile(type);
   return (
     <Main isSingleReport maxHeight={mainContentAreaHeight}>
-      <Grid width={'inherit'} templateColumns={{ base: '1fr 2fr' }}>
-        <GridItem colSpan={3}>
-          <BreadcrumbNav breadcrumbList={breadcrumbList} />
-        </GridItem>
+      <Grid
+        width={'inherit'}
+        templateColumns={
+          extraSpace ? extraSpaceAllContentGridTempCols : allContentGridTempCols
+        }
+      >
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
+            tableColEntryList={tableColumnsOnly}
             tableColEntry={currentTableEntry}
             currentTable={tableName}
             currentColumn={columnName}
@@ -113,6 +117,13 @@ export default function SRColumnDetailsPage({
               setTabIndex(0); //resets tabs
               setLocation(`/tables/${tableName}/columns/${columnName}`);
             }}
+            onNavBack={() => {
+              setLocation('/');
+            }}
+            onNavToTableDetail={(tableName) => {
+              setLocation(`/tables/${tableName}/columns/${columnName}`);
+            }}
+            onToggleShowExtra={() => setExtraSpace((v) => !v)}
             singleOnly
           />
         </GridItem>

@@ -12,12 +12,18 @@ import {
 } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
+import { useLocalStorage } from 'react-use';
 
 import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
 import { ColumnDetailMasterList } from '../components/Columns/ColumnDetailMasterList/ColumnDetailMasterList';
-import { borderVal, mainContentAreaHeight } from '../utils/layout';
+import {
+  allContentGridTempCols,
+  borderVal,
+  extraSpaceAllContentGridTempCols,
+  mainContentAreaHeight,
+} from '../utils/layout';
 import { DataSummaryWidget } from '../components/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
 
@@ -30,18 +36,17 @@ import {
 } from '../components/Columns/utils';
 import { TableOverview } from '../components/Tables/TableOverview';
 import { TableColumnSchemaList } from '../components/Tables/TableList/TableColumnSchemaList';
-import {
-  BreadcrumbMetaItem,
-  BreadcrumbNav,
-} from '../components/Common/BreadcrumbNav';
 import { ColumnSchemaDeltaSummary } from '../components/Tables/TableList/ColumnSchemaDeltaSummary';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { getBreadcrumbPaths } from '../utils/routes';
 import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { TableListAssertionSummary } from '../components/Tables/TableList/TableListAssertions';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
-import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
+import {
+  AMPLITUDE_EVENTS,
+  CR_TYPE_LABEL,
+  MASTER_LIST_SHOW_EXTRA,
+} from '../utils';
 import { getAssertionStatusCountsFromList } from '../lib';
 
 interface Props {
@@ -71,6 +76,8 @@ export default function CRColumnDetailsPage({
   const [tabIndex, setTabIndex] = useState<number>(0);
   const isTableDetailsView = columnName.length === 0;
   const setReportData = useReportStore((s) => s.setReportRawData);
+  const [showExtra] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
+  const [extraSpace, setExtraSpace] = useState<boolean>(Boolean(showExtra));
 
   setReportData({ base: data.base, input: data.input });
   const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
@@ -108,20 +115,19 @@ export default function CRColumnDetailsPage({
       assertionsOnly?.target?.filter((v) => v?.table === tableName) || [],
     );
 
-  const breadcrumbList: BreadcrumbMetaItem[] = getBreadcrumbPaths(
-    tableName,
-    columnName,
-  );
   const { backgroundColor, icon } = getIconForColumnType(fallbackColumnDatum);
   return (
     <Main isSingleReport={false} maxHeight={mainContentAreaHeight}>
-      <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
-        <GridItem colSpan={3}>
-          <BreadcrumbNav breadcrumbList={breadcrumbList} />
-        </GridItem>
+      <Grid
+        width={'inherit'}
+        templateColumns={
+          extraSpace ? extraSpaceAllContentGridTempCols : allContentGridTempCols
+        }
+      >
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
+            tableColEntryList={tableColumnsOnly}
             tableColEntry={currentTableEntry}
             currentTable={tableName}
             currentColumn={columnName}
@@ -129,6 +135,13 @@ export default function CRColumnDetailsPage({
               setTabIndex(0); //reset tabs
               setLocation(`/tables/${tableName}/columns/${columnName}`);
             }}
+            onNavBack={() => {
+              setLocation('/');
+            }}
+            onNavToTableDetail={(tableName) => {
+              setLocation(`/tables/${tableName}/columns/${columnName}`);
+            }}
+            onToggleShowExtra={() => setExtraSpace((v) => !v)}
           />
         </GridItem>
         {/* Detail Area - Table Detail */}
