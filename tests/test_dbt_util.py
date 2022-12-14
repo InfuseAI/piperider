@@ -28,7 +28,7 @@ class TestRunner(TestCase):
         self.dbt_state_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mock_dbt_data")
 
     def test_get_dbt_state_candidate(self):
-        tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, 'PUBLIC')
+        tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir)
         self.assertEqual(tables[0].table, 'PRICE_PRESENT')
         self.assertEqual(tables[0].schema, 'PUBLIC')
         self.assertEqual(tables[0].alias, 'PRICE_PRESENT')

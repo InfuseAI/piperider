@@ -130,7 +130,7 @@ def append_descriptions(profile_result, dbt_state_dir):
                 profile_result['tables'][model]['columns'][column]['description'] = f"{column_desc} - via DBT"
 
 
-def get_dbt_state_candidate(dbt_state_dir: str, default_schema: str):
+def get_dbt_state_candidate(dbt_state_dir: str):
     candidate = []
     run_results = _get_state_run_results(dbt_state_dir)
     manifest = _get_state_manifest(dbt_state_dir)
@@ -142,7 +142,9 @@ def get_dbt_state_candidate(dbt_state_dir: str, default_schema: str):
         node = nodes.get(result.get('unique_id'))
         if node.get('resource_type') not in ['model', 'seed', 'source']:
             continue
-        candidate.append(ProfileSubject(node.get('alias'), node.get('schema'), node.get('name')))
+        config_material = node.get('config').get('materialized')
+        if config_material in ['seed', 'table', 'incremental']:
+            candidate.append(ProfileSubject(node.get('alias'), node.get('schema'), node.get('name')))
 
     return candidate
 
