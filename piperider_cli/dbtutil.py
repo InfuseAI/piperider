@@ -104,7 +104,7 @@ def _get_state_manifest(dbt_state_dir: str):
     return manifest
 
 
-def append_descriptions(profile_result, dbt_state_dir, default_schema):
+def append_descriptions(profile_result, dbt_state_dir):
     run_results = _get_state_run_results(dbt_state_dir)
     manifest = _get_state_manifest(dbt_state_dir)
 
@@ -113,23 +113,21 @@ def append_descriptions(profile_result, dbt_state_dir, default_schema):
         node = nodes.get(result.get('unique_id'))
         if node.get('resource_type') != 'model' and node.get('resource_type') != 'seed':
             continue
-        if node.get('schema') != default_schema:
-            continue
 
-        table = node.get('alias')
-        table_desc = node.get('description')
-        if table not in profile_result['tables']:
+        model = node.get('name')
+        model_desc = node.get('description')
+        if model not in profile_result['tables']:
             continue
-        if table_desc:
-            profile_result['tables'][table]['description'] = f"{table_desc} - via DBT"
+        if model_desc:
+            profile_result['tables'][model]['description'] = f"{model_desc} - via DBT"
 
         columns = node.get('columns', {})
         for column, v in columns.items():
-            if column not in profile_result['tables'][table]['columns']:
+            if column not in profile_result['tables'][model]['columns']:
                 continue
             column_desc = v.get('description')
             if column_desc:
-                profile_result['tables'][table]['columns'][column]['description'] = f"{column_desc} - via DBT"
+                profile_result['tables'][model]['columns'][column]['description'] = f"{column_desc} - via DBT"
 
 
 def get_dbt_state_candidate(dbt_state_dir: str, default_schema: str):
@@ -149,7 +147,7 @@ def get_dbt_state_candidate(dbt_state_dir: str, default_schema: str):
     return candidate
 
 
-def get_dbt_state_tests_result(dbt_state_dir: str, default_schema: str):
+def get_dbt_state_tests_result(dbt_state_dir: str):
     output = []
     unique_tests = {}
 
@@ -183,8 +181,6 @@ def get_dbt_state_tests_result(dbt_state_dir: str, default_schema: str):
                     continue
 
             if depends_on_node.get('resource_type') not in ['model', 'seed', 'source']:
-                continue
-            if depends_on_node.get('schema') != default_schema:
                 continue
             # 'alias' for model node and 'identifier' for source
             table = depends_on_node.get('alias') if depends_on_node.get('alias') else depends_on_node.get(

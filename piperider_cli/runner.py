@@ -611,7 +611,7 @@ class Runner():
                 return 1
 
             tables = dbtutil.get_dbt_state_candidate(dbt_state_dir, default_schema)
-            dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir, default_schema)
+            dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir)
 
         if table:
             if len(table.split('.')) == 2:
@@ -664,7 +664,7 @@ class Runner():
                 console.print(
                     f"[bold red]Error:[/bold red] No available 'manifest.json' or 'run_results.json' under '{dbt_state_dir}'")
                 return 1
-            dbtutil.append_descriptions(run_result, dbt_state_dir, default_schema)
+            dbtutil.append_descriptions(run_result, dbt_state_dir)
         _append_descriptions_from_assertion(run_result)
 
         run_result['id'] = run_id

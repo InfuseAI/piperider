@@ -34,7 +34,7 @@ class TestRunner(TestCase):
         self.assertEqual(tables[0].alias, 'PRICE_PRESENT')
 
     def test_get_dbt_state_tests_result(self):
-        results = dbtutil.get_dbt_state_tests_result(self.dbt_state_dir, 'PUBLIC')
+        results = dbtutil.get_dbt_state_tests_result(self.dbt_state_dir)
 
         table_names = [r.get('table') for r in results]
         column_names = [r.get('column') for r in results]
@@ -50,7 +50,7 @@ class TestRunner(TestCase):
         self.assertEqual('failed', status)
 
     def test_dbt_append_descriptions(self):
-        dbtutil.append_descriptions(self.profile_results, self.dbt_state_dir, 'PUBLIC')
+        dbtutil.append_descriptions(self.profile_results, self.dbt_state_dir)
 
         self.assertEqual('The price data to today - via DBT',
                          self.profile_results['tables']['PRICE_PRESENT']['description'])
