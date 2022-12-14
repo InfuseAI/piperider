@@ -17,7 +17,12 @@ import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
 import { ColumnDetailMasterList } from '../components/Columns/ColumnDetailMasterList/ColumnDetailMasterList';
-import { borderVal, mainContentAreaHeight } from '../utils/layout';
+import {
+  allContentGridTempCols,
+  borderVal,
+  extraSpaceAllContentGridTempCols,
+  mainContentAreaHeight,
+} from '../utils/layout';
 import { DataSummaryWidget } from '../components/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
 
@@ -66,6 +71,7 @@ export default function CRColumnDetailsPage({
   const [tabIndex, setTabIndex] = useState<number>(0);
   const isTableDetailsView = columnName.length === 0;
   const setReportData = useReportStore((s) => s.setReportRawData);
+  const [extraSpace, setExtraSpace] = useState<boolean>(false);
 
   setReportData({ base: data.base, input: data.input });
   const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
@@ -106,7 +112,12 @@ export default function CRColumnDetailsPage({
   const { backgroundColor, icon } = getIconForColumnType(fallbackColumnDatum);
   return (
     <Main isSingleReport={false} maxHeight={mainContentAreaHeight}>
-      <Grid width={'inherit'} templateColumns={'1fr 2fr'}>
+      <Grid
+        width={'inherit'}
+        templateColumns={
+          extraSpace ? extraSpaceAllContentGridTempCols : allContentGridTempCols
+        }
+      >
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
@@ -124,6 +135,7 @@ export default function CRColumnDetailsPage({
             onNavToTableDetail={(tableName) => {
               setLocation(`/tables/${tableName}/columns/${columnName}`);
             }}
+            onToggleShowExtra={() => setExtraSpace((v) => !v)}
           />
         </GridItem>
         {/* Detail Area - Table Detail */}

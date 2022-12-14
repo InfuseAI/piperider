@@ -42,6 +42,7 @@ interface Props extends Selectable, Comparable {
   tableColEntryList?: CompTableColEntryItem[];
   onNavBack?: () => void;
   onNavToTableDetail?: (tableName: string) => void;
+  onToggleShowExtra?: () => void;
 }
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of all tables and columns from datasource. Belongs in the profiling column details page to view in-depth metrics and visualizations
@@ -55,6 +56,7 @@ export function ColumnDetailMasterList({
   onSelect,
   onNavBack,
   onNavToTableDetail,
+  onToggleShowExtra,
 }: Props) {
   const [showExtra, setShowExtra] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
   const [displayMode, setDisplayMode] = useLocalStorage(
@@ -123,14 +125,14 @@ export function ColumnDetailMasterList({
         position={'sticky'}
         top={0}
         w={'100%'}
-        p={4}
+        p={3}
+        pb={0}
         zIndex={150}
         bg={'inherit'}
-        borderBottom={borderVal}
       >
         {/* Selector - Tables List */}
         <Select
-          mb={5}
+          mb={9}
           defaultValue={currentTable}
           onChange={(evt) => {
             if (evt.target.value === 'table-list' && onNavBack) {
@@ -149,7 +151,7 @@ export function ColumnDetailMasterList({
         </Select>
 
         {/* HEADER - Table */}
-        <Flex justifyContent={'space-between'}>
+        <Flex justifyContent={'space-between'} mb={2}>
           <Text color={'gray.500'} size={'md'}>
             Table
           </Text>
@@ -158,6 +160,7 @@ export function ColumnDetailMasterList({
             onClick={() => {
               const result = showExtra === SHOW_EXTRA_KEY ? '' : SHOW_EXTRA_KEY;
               setShowExtra(result);
+              onToggleShowExtra && onToggleShowExtra(); // to inform parent about layout changes e.g. change grid-templates
             }}
           >
             {ShowExtraIcon}
@@ -166,7 +169,7 @@ export function ColumnDetailMasterList({
         <Flex
           top={0}
           p={3}
-          mb={3}
+          mb={9}
           borderRadius={'lg'}
           cursor={'pointer'}
           justify={'space-between'}
@@ -239,7 +242,7 @@ export function ColumnDetailMasterList({
 
         {/* Tag Toggle Filters */}
         {displayMode === 'schema-filter' && (
-          <Box mt={3} p={3}>
+          <Box p={3}>
             <Grid templateColumns={'1fr 1fr'} gap={3}>
               {quickFilters.map((v) => {
                 const { icon } = getIconForColumnType({ type: v });
@@ -272,7 +275,7 @@ export function ColumnDetailMasterList({
         )}
       </Box>
 
-      <Box minHeight={'70vh'} mt={3}>
+      <Box minHeight={'65vh'} mt={2}>
         {/* QueryList */}
         {filteredTableColumnEntries.map(([colKey, { base, target }]) => {
           return (

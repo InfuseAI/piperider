@@ -13,7 +13,12 @@ import { useState } from 'react';
 import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
-import { borderVal, mainContentAreaHeight } from '../utils/layout';
+import {
+  allContentGridTempCols,
+  borderVal,
+  extraSpaceAllContentGridTempCols,
+  mainContentAreaHeight,
+} from '../utils/layout';
 import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
 import { ColumnDetailMasterList } from '../components/Columns/ColumnDetailMasterList';
 
@@ -58,6 +63,7 @@ export default function SRColumnDetailsPage({
   });
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
+  const [extraSpace, setExtraSpace] = useState<boolean>(false);
 
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
@@ -90,7 +96,12 @@ export default function SRColumnDetailsPage({
   const hasQuantile = containsColumnQuantile(type);
   return (
     <Main isSingleReport maxHeight={mainContentAreaHeight}>
-      <Grid width={'inherit'} templateColumns={{ base: '1fr 2fr' }}>
+      <Grid
+        width={'inherit'}
+        templateColumns={
+          extraSpace ? extraSpaceAllContentGridTempCols : allContentGridTempCols
+        }
+      >
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <ColumnDetailMasterList
@@ -108,6 +119,7 @@ export default function SRColumnDetailsPage({
             onNavToTableDetail={(tableName) => {
               setLocation(`/tables/${tableName}/columns/${columnName}`);
             }}
+            onToggleShowExtra={() => setExtraSpace((v) => !v)}
             singleOnly
           />
         </GridItem>
