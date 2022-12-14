@@ -10,6 +10,8 @@ import {
 } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
+import { useLocalStorage } from 'react-use';
+
 import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
@@ -40,6 +42,7 @@ import {
   useAmplitudeOnMount,
   useDocumentTitle,
   getAssertionStatusCountsFromList,
+  MASTER_LIST_SHOW_EXTRA,
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
@@ -63,7 +66,8 @@ export default function SRColumnDetailsPage({
   });
   const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
-  const [extraSpace, setExtraSpace] = useState<boolean>(false);
+  const [showExtra] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
+  const [extraSpace, setExtraSpace] = useState<boolean>(Boolean(showExtra));
 
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });

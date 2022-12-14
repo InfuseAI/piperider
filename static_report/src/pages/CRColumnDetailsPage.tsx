@@ -12,6 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
+import { useLocalStorage } from 'react-use';
 
 import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
@@ -41,7 +42,11 @@ import { useReportStore } from '../utils/store';
 import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { TableListAssertionSummary } from '../components/Tables/TableList/TableListAssertions';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
-import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
+import {
+  AMPLITUDE_EVENTS,
+  CR_TYPE_LABEL,
+  MASTER_LIST_SHOW_EXTRA,
+} from '../utils';
 import { getAssertionStatusCountsFromList } from '../lib';
 
 interface Props {
@@ -71,7 +76,8 @@ export default function CRColumnDetailsPage({
   const [tabIndex, setTabIndex] = useState<number>(0);
   const isTableDetailsView = columnName.length === 0;
   const setReportData = useReportStore((s) => s.setReportRawData);
-  const [extraSpace, setExtraSpace] = useState<boolean>(false);
+  const [showExtra] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
+  const [extraSpace, setExtraSpace] = useState<boolean>(Boolean(showExtra));
 
   setReportData({ base: data.base, input: data.input });
   const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
