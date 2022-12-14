@@ -92,9 +92,12 @@ class Profiler:
         self.event_handler = event_handler
         self.config = config
 
-    def _fetch_table_metadata(self, subject: ProfileSubject):
-        metadata = MetaData()
-        return Table(subject.table, metadata, autoload_with=self.engine, schema=subject.schema)
+    def _fetch_table_metadata(self, subject: ProfileSubject, subjects_to_metadata):
+        result = subjects_to_metadata.get((subject.schema.lower(), subject.table))
+        if result is not None:
+            return result
+        else:
+            return Table(subject.table, MetaData(), autoload_with=self.engine, schema=subject.schema.lower())
 
     def profile(self, subjects: List[ProfileSubject] = None) -> dict:
         """
@@ -135,29 +138,31 @@ class Profiler:
         # Optimization: Reflecting at Once
         if self.engine.url.get_backend_name() != 'postgresql' and len(subjects) > 1:
             metadata.reflect(bind=self.engine)
-            for subject in subjects:
-                subjects_to_metadata[subject] = metadata.tables[subject.table]
-            self.event_handler.handle_fetch_metadata_progress(None, len(subjects), len(subjects))
+            # for subject in subjects:
+            #     subjects_to_metadata[subject] = metadata.tables[subject.table]
+            for (table_name, table) in metadata.tables.items():
+                subjects_to_metadata[(default_schema.lower(), table.name)] = table
+            # self.event_handler.handle_fetch_metadata_progress(None, len(subjects), len(subjects))
 
-        if not subjects_to_metadata:
-            completed = 0
-            self.event_handler.handle_fetch_metadata_progress(None, len(subjects), completed)
-            if isinstance(self.engine.pool, SingletonThreadPool):
-                for subject in subjects:
-                    table_metadata = self._fetch_table_metadata(subject)
-                    subjects_to_metadata[subject] = table_metadata
+        completed = 0
+        self.event_handler.handle_fetch_metadata_progress(None, len(subjects), completed)
+        if isinstance(self.engine.pool, SingletonThreadPool):
+            for subject in subjects:
+                table_metadata = self._fetch_table_metadata(subject)
+                subjects_to_metadata[(subject.schema.lower(), subject.table)] = table_metadata
+                completed = completed + 1
+                self.event_handler.handle_fetch_metadata_progress(subject.table, len(subjects), completed)
+        else:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                future_to_subject = {executor.submit(self._fetch_table_metadata, subject, subjects_to_metadata): subject
+                                     for
+                                     subject in subjects}
+                for future in concurrent.futures.as_completed(future_to_subject):
+                    subject = future_to_subject[future]
+                    table_metadata = future.result()
+                    subjects_to_metadata[(subject.schema.lower(), subject.table)] = table_metadata
                     completed = completed + 1
                     self.event_handler.handle_fetch_metadata_progress(subject.table, len(subjects), completed)
-            else:
-                with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                    future_to_subject = {executor.submit(self._fetch_table_metadata, subject): subject for
-                                         subject in subjects}
-                    for future in concurrent.futures.as_completed(future_to_subject):
-                        subject = future_to_subject[future]
-                        table_metadata = future.result()
-                        subjects_to_metadata[subject] = table_metadata
-                        completed = completed + 1
-                        self.event_handler.handle_fetch_metadata_progress(subject.table, len(subjects), completed)
 
         self.event_handler.handle_fetch_metadata_end()
 
@@ -165,8 +170,9 @@ class Profiler:
         table_index = 0
         self.event_handler.handle_run_progress(result, table_count, table_index)
 
-        for subject, subject_metadata in subjects_to_metadata.items():
-            tresult = self._profile_table(subject_metadata)
+        for subject in subjects:
+            table = subjects_to_metadata[(subject.schema.lower(), subject.table)]
+            tresult = self._profile_table(subject.alias, table)
             profiled_tables[subject.alias] = tresult
             table_index = table_index + 1
             self.event_handler.handle_run_progress(result, table_count, table_index)
@@ -331,7 +337,7 @@ class Profiler:
             result['duplicate_rows'] = duplicate_rows
             result['duplicate_rows_p'] = percentage(duplicate_rows, samples)
 
-    def _profile_table(self, table: Table) -> dict:
+    def _profile_table(self, name: str, table: Table) -> dict:
         candidate_columns = self._drop_unsupported_columns(table)
         col_index = 0
         col_count = len(candidate_columns)
