@@ -47,6 +47,7 @@ type JoinFields = {
 type JoinedAssertionTest = ComparedAssertionTestValue & JoinFields;
 interface Props extends Comparable {
   comparableAssertions: ReportState['assertionsOnly'];
+  filterByTableOnly?: boolean;
   filterString?: string;
   setFilterString?: (input: string) => void;
   caseSensitiveFilter?: boolean;
@@ -59,6 +60,7 @@ interface Props extends Comparable {
 */
 export function AssertionListWidget({
   comparableAssertions,
+  filterByTableOnly,
   filterString = '',
   setFilterString,
   caseSensitiveFilter,
@@ -231,10 +233,13 @@ export function AssertionListWidget({
                   filterString,
                   `g${caseSensitiveFilter ? '' : 'i'}`,
                 );
-                return filterString
+                // return either the hard-override filter or default to the provided filterString;
+                return filterByTableOnly
+                  ? (v.table || '') === filterString
+                  : filterString
                   ? (v?.name || '').search(filterRegEx) > -1 ||
-                      (v.table || '').search(filterRegEx) > -1 ||
-                      (v.column || '').search(filterRegEx) > -1
+                    (v.table || '').search(filterRegEx) > -1 ||
+                    (v.column || '').search(filterRegEx) > -1
                   : true;
               })
               .map((row) => {
