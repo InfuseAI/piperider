@@ -92,8 +92,8 @@ class Profiler:
         self.event_handler = event_handler
         self.config = config
 
-    def _fetch_table_metadata(self, subject: ProfileSubject, subjects_to_metadata):
-        result = subjects_to_metadata.get((subject.schema.lower(), subject.table))
+    def _fetch_table_metadata(self, subject: ProfileSubject, reflecting_cache):
+        result = reflecting_cache.get((subject.schema.lower(), subject.table))
         if result is not None:
             return result
         else:
@@ -133,34 +133,30 @@ class Profiler:
                 subject = ProfileSubject(table_name, default_schema, table_name)
                 subjects.append(subject)
 
-        subjects_to_metadata = {}
+        reflecting_cache = {}
 
-        # Optimization: Reflecting at Once
+        # Optimization: Reflecting at Once as cache
         if self.engine.url.get_backend_name() != 'postgresql' and len(subjects) > 1:
             metadata.reflect(bind=self.engine)
-            # for subject in subjects:
-            #     subjects_to_metadata[subject] = metadata.tables[subject.table]
-            for (table_name, table) in metadata.tables.items():
-                subjects_to_metadata[(default_schema.lower(), table.name)] = table
-            # self.event_handler.handle_fetch_metadata_progress(None, len(subjects), len(subjects))
+            for table_name, table in metadata.tables.items():
+                reflecting_cache[(default_schema.lower(), table_name)] = table
 
         completed = 0
         self.event_handler.handle_fetch_metadata_progress(None, len(subjects), completed)
         if isinstance(self.engine.pool, SingletonThreadPool):
             for subject in subjects:
-                table_metadata = self._fetch_table_metadata(subject)
-                subjects_to_metadata[(subject.schema.lower(), subject.table)] = table_metadata
+                table_metadata = self._fetch_table_metadata(subject, reflecting_cache)
+                reflecting_cache[(subject.schema.lower(), subject.table)] = table_metadata
                 completed = completed + 1
                 self.event_handler.handle_fetch_metadata_progress(subject.table, len(subjects), completed)
         else:
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                future_to_subject = {executor.submit(self._fetch_table_metadata, subject, subjects_to_metadata): subject
-                                     for
-                                     subject in subjects}
+                future_to_subject = {executor.submit(self._fetch_table_metadata, subject, reflecting_cache): subject
+                                     for subject in subjects}
                 for future in concurrent.futures.as_completed(future_to_subject):
                     subject = future_to_subject[future]
                     table_metadata = future.result()
-                    subjects_to_metadata[(subject.schema.lower(), subject.table)] = table_metadata
+                    reflecting_cache[(subject.schema.lower(), subject.table)] = table_metadata
                     completed = completed + 1
                     self.event_handler.handle_fetch_metadata_progress(subject.table, len(subjects), completed)
 
@@ -171,7 +167,7 @@ class Profiler:
         self.event_handler.handle_run_progress(result, table_count, table_index)
 
         for subject in subjects:
-            table = subjects_to_metadata[(subject.schema.lower(), subject.table)]
+            table = reflecting_cache[(subject.schema.lower(), subject.table)]
             tresult = self._profile_table(subject.alias, table)
             profiled_tables[subject.alias] = tresult
             table_index = table_index + 1
@@ -343,7 +339,7 @@ class Profiler:
         col_count = len(candidate_columns)
         columns = {}
         result = {
-            "name": table.name,
+            "name": name,
             "row_count": 0,
             "samples": 0,
             "samples_p": None,
@@ -369,7 +365,7 @@ class Profiler:
         samples_p = result['samples_p']
         if isinstance(self.engine.pool, SingletonThreadPool):
             for column in candidate_columns:
-                columns[column.name] = self._profile_column(table, column)
+                columns[column.name] = self._profile_column(name, table, column)
                 columns[column.name]['total'] = result['row_count']
                 columns[column.name]['samples_p'] = samples_p
                 col_index = col_index + 1
@@ -384,7 +380,7 @@ class Profiler:
             for column in candidate_columns:
                 columns[column.name] = None
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                future_to_profile = {executor.submit(self._profile_column, table, column): column for column in
+                future_to_profile = {executor.submit(self._profile_column, name, table, column): column for column in
                                      candidate_columns}
                 try:
                     for future in concurrent.futures.as_completed(future_to_profile):
@@ -409,7 +405,7 @@ class Profiler:
 
         return result
 
-    def _profile_column(self, table: Table, column: Column) -> dict:
+    def _profile_column(self, table_name, table: Table, column: Column) -> dict:
         profiler_config = self.config.profiler_config if self.config else {}
         if isinstance(column.type, String):
             # VARCHAR
@@ -465,7 +461,7 @@ class Profiler:
         result["profile_duration"] = f"{duration:.2f}"
         result["elapsed_milli"] = int(duration * 1000)
 
-        self.event_handler.handle_column_end(table.name, result)
+        self.event_handler.handle_column_end(table_name, result)
 
         return result
 
