@@ -191,12 +191,19 @@ def get_dbt_state_tests_result(dbt_state_dir: str):
         if table is None:
             continue
 
+        if unique_tests[unique_id]['status'] == 'pass':
+            status = 'passed'
+        elif unique_tests[unique_id]['status'] == 'fail':
+            status = 'failed'
+        else:
+            status = unique_tests[unique_id]['status']
+
         output.append(dict(
             id=unique_id,
             name=unique_id,
             table=table,
             column=column if column != test_node['name'] else None,
-            status='passed' if unique_tests[unique_id]['status'] == 'pass' else 'failed',
+            status=status,
             tags=[],
             message=unique_tests[unique_id]['message'],
             display_name=test_node['name'],
