@@ -176,18 +176,13 @@ def get_dbt_state_tests_result(dbt_state_dir: str):
         depends_on_nodes = test_node.get('depends_on', {}).get('nodes', [])
         for depends_on_node_id in depends_on_nodes:
             depends_on_node = nodes.get(depends_on_node_id)
-            if depends_on_node is None:
-                if depends_on_node_id.startswith('source'):
-                    depends_on_node = sources.get(depends_on_node_id)
-                else:
-                    continue
-
-            if depends_on_node.get('resource_type') not in ['model', 'seed', 'source']:
-                continue
-            # 'alias' for model node and 'identifier' for source
-            table = depends_on_node.get('alias') if depends_on_node.get('alias') else depends_on_node.get(
-                'identifier')
-            break
+            if depends_on_node_id.startswith('source'):
+                source = sources.get(depends_on_node_id)
+                table = f"{source.get('source_name')}.{source.get('name')}"
+                break
+            elif depends_on_node.get('resource_type') in ['model', 'seed']:
+                table = depends_on_node.get('name')
+                break
         column = test_node.get('column_name')
 
         if table is None:
