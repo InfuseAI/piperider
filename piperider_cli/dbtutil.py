@@ -7,6 +7,8 @@ import inquirer
 from rich.console import Console
 from rich.table import Table
 
+from piperider_cli.profiler import ProfileSubject
+
 console = Console()
 
 
@@ -102,7 +104,7 @@ def _get_state_manifest(dbt_state_dir: str):
     return manifest
 
 
-def append_descriptions(profile_result, dbt_state_dir, default_schema):
+def append_descriptions(profile_result, dbt_state_dir):
     run_results = _get_state_run_results(dbt_state_dir)
     manifest = _get_state_manifest(dbt_state_dir)
 
@@ -111,26 +113,24 @@ def append_descriptions(profile_result, dbt_state_dir, default_schema):
         node = nodes.get(result.get('unique_id'))
         if node.get('resource_type') != 'model' and node.get('resource_type') != 'seed':
             continue
-        if node.get('schema') != default_schema:
-            continue
 
-        table = node.get('alias')
-        table_desc = node.get('description')
-        if table not in profile_result['tables']:
+        model = node.get('name')
+        model_desc = node.get('description')
+        if model not in profile_result['tables']:
             continue
-        if table_desc:
-            profile_result['tables'][table]['description'] = f"{table_desc} - via DBT"
+        if model_desc:
+            profile_result['tables'][model]['description'] = f"{model_desc} - via DBT"
 
         columns = node.get('columns', {})
         for column, v in columns.items():
-            if column not in profile_result['tables'][table]['columns']:
+            if column not in profile_result['tables'][model]['columns']:
                 continue
             column_desc = v.get('description')
             if column_desc:
-                profile_result['tables'][table]['columns'][column]['description'] = f"{column_desc} - via DBT"
+                profile_result['tables'][model]['columns'][column]['description'] = f"{column_desc} - via DBT"
 
 
-def get_dbt_state_candidate(dbt_state_dir: str, default_schema: str):
+def get_dbt_state_candidate(dbt_state_dir: str):
     candidate = []
     run_results = _get_state_run_results(dbt_state_dir)
     manifest = _get_state_manifest(dbt_state_dir)
@@ -142,14 +142,14 @@ def get_dbt_state_candidate(dbt_state_dir: str, default_schema: str):
         node = nodes.get(result.get('unique_id'))
         if node.get('resource_type') not in ['model', 'seed', 'source']:
             continue
-        if node.get('schema') != default_schema:
-            continue
-        candidate.append(node.get('alias'))
+        config_material = node.get('config').get('materialized')
+        if config_material in ['seed', 'table', 'incremental']:
+            candidate.append(ProfileSubject(node.get('alias'), node.get('schema'), node.get('name')))
 
     return candidate
 
 
-def get_dbt_state_tests_result(dbt_state_dir: str, default_schema: str):
+def get_dbt_state_tests_result(dbt_state_dir: str):
     output = []
     unique_tests = {}
 
@@ -176,20 +176,13 @@ def get_dbt_state_tests_result(dbt_state_dir: str, default_schema: str):
         depends_on_nodes = test_node.get('depends_on', {}).get('nodes', [])
         for depends_on_node_id in depends_on_nodes:
             depends_on_node = nodes.get(depends_on_node_id)
-            if depends_on_node is None:
-                if depends_on_node_id.startswith('source'):
-                    depends_on_node = sources.get(depends_on_node_id)
-                else:
-                    continue
-
-            if depends_on_node.get('resource_type') not in ['model', 'seed', 'source']:
-                continue
-            if depends_on_node.get('schema') != default_schema:
-                continue
-            # 'alias' for model node and 'identifier' for source
-            table = depends_on_node.get('alias') if depends_on_node.get('alias') else depends_on_node.get(
-                'identifier')
-            break
+            if depends_on_node_id.startswith('source'):
+                source = sources.get(depends_on_node_id)
+                table = f"{source.get('source_name')}.{source.get('name')}"
+                break
+            elif depends_on_node.get('resource_type') in ['model', 'seed']:
+                table = depends_on_node.get('name')
+                break
         column = test_node.get('column_name')
 
         if table is None:
@@ -200,7 +193,7 @@ def get_dbt_state_tests_result(dbt_state_dir: str, default_schema: str):
             name=unique_id,
             table=table,
             column=column if column != test_node['name'] else None,
-            status='passed' if unique_tests[unique_id]['status'] == 'pass' else 'failed',
+            status='failed' if unique_tests[unique_id]['status'] == 'fail' else 'passed',
             tags=[],
             message=unique_tests[unique_id]['message'],
             display_name=test_node['name'],

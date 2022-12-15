@@ -1,2 +1,2 @@
-from .profiler import Profiler
+from .profiler import Profiler, ProfileSubject
 from .event import ProfilerEventHandler, DefaultProfilerEventHandler
