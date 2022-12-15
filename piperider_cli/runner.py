@@ -151,6 +151,7 @@ def _show_dbt_test_result(dbt_test_results, title=None, failed_only=False):
     for r in dbt_test_results:
         if failed_only and r.get('status') == 'passed':
             continue
+        success = True if r.get('status') == 'passed' else False
         test_name = r.get('display_name')
         table = r.get('table')
         column = r.get('column')
@@ -159,23 +160,16 @@ def _show_dbt_test_result(dbt_test_results, title=None, failed_only=False):
             target = f'{target}.[blue]{column}[/blue]'
         message = r.get('message')
 
-        if r.get('status') == 'passed':
+        if success:
             ascii_table.add_row(
                 '[[bold green]  OK  [/bold green]]',
                 target,
                 test_name,
                 message
             )
-        elif r.get('status') == 'failed':
+        else:
             ascii_table.add_row(
                 '[[bold red]FAILED[/bold red]]',
-                target,
-                test_name,
-                message
-            )
-        elif r.get('status') == 'warn':
-            ascii_table.add_row(
-                '[[bold yellow] WARN [/bold yellow]]',
                 target,
                 test_name,
                 message
@@ -299,7 +293,7 @@ def _show_summary(profiled_result, assertion_results, assertion_exceptions, dbt_
         # Display DBT Tests Summary
         console.rule('dbt')
         console.print(ascii_dbt_table)
-        _show_dbt_test_result(dbt_test_results, failed_only=True, title="Warned and Failed DBT Tests")
+        _show_dbt_test_result(dbt_test_results, failed_only=True, title="Failed DBT Tests")
         if ascii_table.rows:
             console.rule('PipeRider')
 
