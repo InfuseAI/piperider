@@ -74,6 +74,8 @@ class DataSourceField(metaclass=ABCMeta):
         ignore = self.ignore
         if isinstance(ignore, bool) and ignore is True or isinstance(ignore, Callable) and ignore(answers):
             return None
+        if isinstance(default, Callable):
+            default = default(answers)
 
         if self.type == 'password':
             password = True
