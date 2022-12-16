@@ -121,7 +121,7 @@ export default function SRColumnDetailsPage({
               setLocation('/');
             }}
             onNavToTableDetail={(tableName) => {
-              setLocation(`/tables/${tableName}/columns/${columnName}`);
+              setLocation(`/tables/${tableName}/columns/`);
             }}
             onToggleShowExtra={() => setExtraSpace((v) => !v)}
             singleOnly
@@ -191,7 +191,7 @@ export default function SRColumnDetailsPage({
               <TableColumnHeader
                 title={columnName}
                 subtitle={schema_type}
-                infoTip={columnDatum.description}
+                infoTip={columnDatum?.description}
                 icon={icon}
                 iconColor={backgroundColor}
                 mb={5}
