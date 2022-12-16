@@ -139,7 +139,7 @@ export default function CRColumnDetailsPage({
               setLocation('/');
             }}
             onNavToTableDetail={(tableName) => {
-              setLocation(`/tables/${tableName}/columns/${columnName}`);
+              setLocation(`/tables/${tableName}/columns/`);
             }}
             onToggleShowExtra={() => setExtraSpace((v) => !v)}
           />
