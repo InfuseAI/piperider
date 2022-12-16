@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
 
-from piperider_cli import datetime_to_str, str_to_datetime
+from piperider_cli import datetime_to_str, open_report_in_browser, str_to_datetime
 from piperider_cli.cloud import PipeRiderCloud
 from piperider_cli.compare_report import CompareReport, RunOutput
 from piperider_cli.datasource import FANCY_USER_INPUT
@@ -190,13 +190,13 @@ class CloudConnector():
         return 0
 
     @staticmethod
-    def upload_latest_report(report_dir=None, debug=False, open_report=False) -> int:
+    def upload_latest_report(report_dir=None, debug=False, open_report=False, force_upload=False, auto_upload=False) -> int:
         filesystem = FileSystem(report_dir=report_dir)
         latest_report_path = os.path.join(filesystem.get_output_dir(), 'latest', 'run.json')
-        return CloudConnector.upload_report(latest_report_path, debug=debug, open_report=open_report)
+        return CloudConnector.upload_report(latest_report_path, debug=debug, open_report=open_report, force_upload=force_upload, auto_upload=auto_upload)
 
     @staticmethod
-    def upload_report(report_path=None, report_dir=None, datasource=None, debug=False, open_report=False) -> int:
+    def upload_report(report_path=None, report_dir=None, datasource=None, debug=False, open_report=False, force_upload=False, auto_upload=False) -> int:
         if piperider_cloud.available is False:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
@@ -240,10 +240,11 @@ class CloudConnector():
             created_at = datetime_to_str(str_to_datetime(response.get('created_at')), to_tzlocal=True)
             ascii_table.add_row(status, response.get('name'), created_at, url, message)
         
-        # TODO: impl browser open here.
-        # if open_report or force_upload:
-        #    url = response.get('report_url') 
-        #    console.print(url)
+        # TODO: first, get local to work with manual upload, then auto upload
+        if open_report and (force_upload or auto_upload):
+           url = response.get('report_url') 
+           open_report_in_browser(url, True)
+           
 
         console.print(ascii_table)
         return rc

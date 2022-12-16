@@ -158,9 +158,8 @@ def round_trip_load_yaml(file_path):
             return None
     return payload
 
-def open_report_in_browser(report_path :str, is_cloud_path: bool):
-    print(f"Opening browser for {report_path}...")
-    protocol_prefix = "https://" if is_cloud_path else "file://"
+def open_report_in_browser(report_path :str, is_cloud_path=False):
+    protocol_prefix = "" if is_cloud_path else "file://"
     try:
         webbrowser.open(f"{protocol_prefix}{report_path}")
     except yaml.YAMLError as e:

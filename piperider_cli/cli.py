@@ -176,11 +176,12 @@ def run(**kwargs):
 
     if ret in (0, EC_ERR_TEST_FAILED):
         force_upload = kwargs.get('upload', False)
-        if CloudConnector.is_login() and (force_upload or CloudConnector.is_auto_upload()):
-            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'), open_report=open_report)
+        auto_upload = CloudConnector.is_auto_upload()
+        if CloudConnector.is_login() and (force_upload or auto_upload):
+            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'), open_report=open_report, force_upload=force_upload, auto_upload=auto_upload)
 
         if not skip_report:
-            GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report, CloudConnector.is_auto_upload())
+            GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report, auto_upload)
     if ret != 0:
         sys.exit(ret)
     return ret
