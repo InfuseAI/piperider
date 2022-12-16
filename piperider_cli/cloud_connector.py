@@ -239,11 +239,10 @@ class CloudConnector():
             message = response.get('message')
             created_at = datetime_to_str(str_to_datetime(response.get('created_at')), to_tzlocal=True)
             ascii_table.add_row(status, response.get('name'), created_at, url, message)
-        
+
         if open_report:
-           url = response.get('report_url') 
-           open_report_in_browser(url, True)
-           
+            url = response.get('report_url') 
+            open_report_in_browser(url, True)
 
         console.print(ascii_table)
         return rc

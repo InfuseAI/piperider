@@ -158,7 +158,8 @@ def round_trip_load_yaml(file_path):
             return None
     return payload
 
-def open_report_in_browser(report_path :str, is_cloud_path=False):
+
+def open_report_in_browser(report_path='', is_cloud_path=False):
     protocol_prefix = "" if is_cloud_path else "file://"
     try:
         webbrowser.open(f"{protocol_prefix}{report_path}")
