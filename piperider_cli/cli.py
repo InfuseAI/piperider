@@ -156,6 +156,7 @@ def diagnose(**kwargs):
 @click.option('--dbt-state', default=None, help='Directory of the the dbt state.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
+@click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
 @add_options(debug_option)
 def run(**kwargs):
     'Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
@@ -163,6 +164,7 @@ def run(**kwargs):
     datasource = kwargs.get('datasource')
     table = kwargs.get('table')
     output = kwargs.get('output')
+    open_report = kwargs.get('open')
     skip_report = kwargs.get('skip_report')
     dbt_state_dir = kwargs.get('dbt_state')
     ret = Runner.exec(datasource=datasource,
@@ -178,7 +180,7 @@ def run(**kwargs):
             CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'))
 
         if not skip_report:
-            GenerateReport.exec(None, kwargs.get('report_dir'), output)
+            GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report)
     if ret != 0:
         sys.exit(ret)
     return ret

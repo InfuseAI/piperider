@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import sys
+import webbrowser
 from datetime import datetime
 
 from dateutil import tz
@@ -156,3 +157,11 @@ def round_trip_load_yaml(file_path):
             print(e)
             return None
     return payload
+
+def open_report_in_browser(report_path :str):
+    print(f"Opening browser for {report_path} ???")
+    try:
+        webbrowser.open(f"file://{report_path}")
+    except yaml.YAMLError as e:
+        print(e)
+        return None
