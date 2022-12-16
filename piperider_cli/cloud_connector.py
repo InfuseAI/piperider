@@ -241,7 +241,7 @@ class CloudConnector():
             ascii_table.add_row(status, response.get('name'), created_at, url, message)
 
         if open_report:
-            url = response.get('report_url') 
+            url = response.get('report_url')
             open_report_in_browser(url, True)
 
         console.print(ascii_table)
