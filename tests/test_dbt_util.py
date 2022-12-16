@@ -56,3 +56,13 @@ class TestRunner(TestCase):
                          self.profile_results['tables']['PRICE_PRESENT']['description'])
         self.assertEqual('The symbol name - via DBT',
                          self.profile_results['tables']['PRICE_PRESENT']['columns']['symbol']['description'])
+
+    def test_apply_incl_excl_filter(self):
+        self.assertFalse(dbtutil._is_filtered_out('a', None, None))
+        self.assertFalse(dbtutil._is_filtered_out('a', ['a', 'b'], None))
+        self.assertTrue(dbtutil._is_filtered_out('a', [], None))
+        self.assertTrue(dbtutil._is_filtered_out('a', None, ['a', 'b']))
+        self.assertFalse(dbtutil._is_filtered_out('a', None, []))
+        self.assertTrue(dbtutil._is_filtered_out('a', ['a'], ['a']))
+        self.assertFalse(dbtutil._is_filtered_out('a', ['a'], ['b']))
+        self.assertFalse(dbtutil._is_filtered_out('a', ['A'], ['B']))

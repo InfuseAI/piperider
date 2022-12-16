@@ -610,7 +610,8 @@ class Runner():
                     f"[bold red]Error:[/bold red] No available 'manifest.json' or 'run_results.json' under '{dbt_state_dir}'")
                 return 1
 
-            tables = dbtutil.get_dbt_state_candidate(dbt_state_dir, configuration.views_to_be_designed)
+            tables = dbtutil.get_dbt_state_candidate(dbt_state_dir, configuration.views_to_be_designed,
+                                                     configuration.includes, configuration.excludes)
             dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir)
 
         if table:
