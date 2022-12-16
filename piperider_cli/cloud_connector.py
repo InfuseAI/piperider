@@ -190,13 +190,13 @@ class CloudConnector():
         return 0
 
     @staticmethod
-    def upload_latest_report(report_dir=None, debug=False) -> int:
+    def upload_latest_report(report_dir=None, debug=False, open_report=False) -> int:
         filesystem = FileSystem(report_dir=report_dir)
         latest_report_path = os.path.join(filesystem.get_output_dir(), 'latest', 'run.json')
-        return CloudConnector.upload_report(latest_report_path, debug=debug)
+        return CloudConnector.upload_report(latest_report_path, debug=debug, open_report=open_report)
 
     @staticmethod
-    def upload_report(report_path=None, report_dir=None, datasource=None, debug=False) -> int:
+    def upload_report(report_path=None, report_dir=None, datasource=None, debug=False, open_report=False) -> int:
         if piperider_cloud.available is False:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
@@ -239,6 +239,11 @@ class CloudConnector():
             message = response.get('message')
             created_at = datetime_to_str(str_to_datetime(response.get('created_at')), to_tzlocal=True)
             ascii_table.add_row(status, response.get('name'), created_at, url, message)
+        
+        # TODO: impl browser open here.
+        # if open_report or force_upload:
+        #    url = response.get('report_url') 
+        #    console.print(url)
 
         console.print(ascii_table)
         return rc
