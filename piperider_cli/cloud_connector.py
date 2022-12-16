@@ -240,8 +240,7 @@ class CloudConnector():
             created_at = datetime_to_str(str_to_datetime(response.get('created_at')), to_tzlocal=True)
             ascii_table.add_row(status, response.get('name'), created_at, url, message)
         
-        # TODO: first, get local to work with manual upload, then auto upload
-        if open_report and (force_upload or auto_upload):
+        if open_report:
            url = response.get('report_url') 
            open_report_in_browser(url, True)
            
