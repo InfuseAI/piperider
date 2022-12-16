@@ -136,6 +136,14 @@ class Profiler:
                 subject = ProfileSubject(table_name, default_schema, table_name)
                 subjects.append(subject)
 
+            # --dbt-state not specified implicitly
+            if self.config and self.config.views_to_be_designed:
+                view_names = inspect(self.engine).get_view_names()
+                view_names = self._apply_incl_excl_tables(view_names)
+                for view_name in view_names:
+                    subject = ProfileSubject(view_name, default_schema, view_name)
+                    subjects.append(subject)
+
         reflecting_cache = {}
 
         # Optimization: Reflecting at Once as cache
