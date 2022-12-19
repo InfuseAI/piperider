@@ -125,5 +125,5 @@ class GenerateReport:
 
         # only open the local file report if auto-upload is OFF
         if open_report and not open_in_cloud:
-            result_output = f"{output if output else default_output_directory}/index.html"
+            result_output = f"{os.path.abspath(output) if output else default_output_directory}/index.html"
             open_report_in_browser(result_output)
