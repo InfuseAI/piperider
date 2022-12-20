@@ -104,6 +104,23 @@ def _get_state_manifest(dbt_state_dir: str):
     return manifest
 
 
+def _is_filtered_out(subject, whitelist, blacklist):
+    if whitelist is None and blacklist is None:
+        return False
+
+    if whitelist is not None:
+        upper_includes = [s.upper() for s in whitelist]
+        if subject.upper() not in upper_includes:
+            return True
+
+    if blacklist is not None:
+        upper_excludes = [s.upper() for s in blacklist]
+        if subject.upper() in upper_excludes:
+            return True
+
+    return False
+
+
 def append_descriptions(profile_result, dbt_state_dir):
     run_results = _get_state_run_results(dbt_state_dir)
     manifest = _get_state_manifest(dbt_state_dir)
@@ -130,8 +147,12 @@ def append_descriptions(profile_result, dbt_state_dir):
                 profile_result['tables'][model]['columns'][column]['description'] = f"{column_desc} - via DBT"
 
 
-def get_dbt_state_candidate(dbt_state_dir: str):
+def get_dbt_state_candidate(dbt_state_dir: str, view_profile: bool = False,
+                            whitelist: list = None, blacklist: list = None):
     candidate = []
+    material_whitelist = ['seed', 'table', 'incremental']
+    if view_profile:
+        material_whitelist.append('view')
     run_results = _get_state_run_results(dbt_state_dir)
     manifest = _get_state_manifest(dbt_state_dir)
 
@@ -143,7 +164,7 @@ def get_dbt_state_candidate(dbt_state_dir: str):
         if node.get('resource_type') not in ['model', 'seed', 'source']:
             continue
         config_material = node.get('config').get('materialized')
-        if config_material in ['seed', 'table', 'incremental']:
+        if config_material in material_whitelist and not _is_filtered_out(node.get('name'), whitelist, blacklist):
             candidate.append(ProfileSubject(node.get('alias'), node.get('schema'), node.get('name')))
 
     return candidate

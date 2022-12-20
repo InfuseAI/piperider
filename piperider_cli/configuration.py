@@ -38,6 +38,7 @@ class Configuration(object):
         self.profiler_config = kwargs.get('profiler', {}) or {}
         self.includes = kwargs.get('includes', None)
         self.excludes = kwargs.get('excludes', None)
+        self.include_views = kwargs.get('include_views', False)
         self.tables = kwargs.get('tables', {})
         self.telemetry_id = kwargs.get('telemetry_id', None)
         self.report_dir = self._to_report_dir(kwargs.get('report_dir', '.'))
@@ -207,6 +208,7 @@ class Configuration(object):
             tables=config.get('tables', {}),
             includes=config.get('includes', None),
             excludes=config.get('excludes', None),
+            include_views=config.get('include_views', False),
             telemetry_id=config.get('telemetry', {}).get('id'),
             report_dir=config.get('report_dir', '.')
         )
@@ -295,6 +297,8 @@ class Configuration(object):
 The tables to include/exclude
 includes: []
 excludes: []
+Include views or not
+include_views: true
 
 tables:
   my-table-name:
