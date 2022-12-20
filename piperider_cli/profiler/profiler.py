@@ -131,18 +131,13 @@ class Profiler:
         if subjects is None:
             subjects = []
             table_names = inspect(self.engine).get_table_names()
+            if self.config and self.config.include_views:
+                view_names = inspect(self.engine).get_view_names()
+                table_names += view_names
             table_names = self._apply_incl_excl_tables(table_names)
             for table_name in table_names:
                 subject = ProfileSubject(table_name, default_schema, table_name)
                 subjects.append(subject)
-
-            # --dbt-state not specified implicitly
-            if self.config and self.config.views_to_be_designed:
-                view_names = inspect(self.engine).get_view_names()
-                view_names = self._apply_incl_excl_tables(view_names)
-                for view_name in view_names:
-                    subject = ProfileSubject(view_name, default_schema, view_name)
-                    subjects.append(subject)
 
         reflecting_cache = {}
 

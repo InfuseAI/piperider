@@ -38,7 +38,7 @@ class Configuration(object):
         self.profiler_config = kwargs.get('profiler', {}) or {}
         self.includes = kwargs.get('includes', None)
         self.excludes = kwargs.get('excludes', None)
-        self.views_to_be_designed = kwargs.get('views_to_be_designed', False)
+        self.include_views = kwargs.get('include_views', False)
         self.tables = kwargs.get('tables', {})
         self.telemetry_id = kwargs.get('telemetry_id', None)
         self.report_dir = self._to_report_dir(kwargs.get('report_dir', '.'))
@@ -208,7 +208,7 @@ class Configuration(object):
             tables=config.get('tables', {}),
             includes=config.get('includes', None),
             excludes=config.get('excludes', None),
-            views_to_be_designed=config.get('views_to_be_designed', False),
+            include_views=config.get('include_views', False),
             telemetry_id=config.get('telemetry', {}).get('id'),
             report_dir=config.get('report_dir', '.')
         )
@@ -297,7 +297,8 @@ class Configuration(object):
 The tables to include/exclude
 includes: []
 excludes: []
-views_to_be_designed: false
+Include views or not
+include_views: true
 
 tables:
   my-table-name:
