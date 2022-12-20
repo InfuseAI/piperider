@@ -84,7 +84,7 @@ def _get_run_json_path(filesystem: FileSystem, input=None):
 
 class GenerateReport:
     @staticmethod
-    def exec(input=None, report_dir=None, output=None, open_report=None, open_in_cloud=False):
+    def exec(input=None, report_dir=None, output=None, open_report=None, open_in_cloud=None):
         filesystem = FileSystem(report_dir=report_dir)
         raise_exception_when_directory_not_writable(output)
 
