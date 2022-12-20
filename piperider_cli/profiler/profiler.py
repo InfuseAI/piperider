@@ -126,14 +126,14 @@ class Profiler:
 
         metadata = MetaData()
         default_schema = inspect(self.engine).default_schema_name
+        include_views = self.config.include_views if self.config else False
 
         self.event_handler.handle_fetch_metadata_start()
         if subjects is None:
             subjects = []
             table_names = inspect(self.engine).get_table_names()
-            if self.config and self.config.include_views:
-                view_names = inspect(self.engine).get_view_names()
-                table_names += view_names
+            if include_views:
+                table_names += inspect(self.engine).get_view_names()
             table_names = self._apply_incl_excl_tables(table_names)
             for table_name in table_names:
                 subject = ProfileSubject(table_name, default_schema, table_name)
@@ -143,7 +143,7 @@ class Profiler:
 
         # Optimization: Reflecting at Once as cache
         if self.engine.url.get_backend_name() != 'postgresql' and len(subjects) > 1:
-            metadata.reflect(bind=self.engine)
+            metadata.reflect(bind=self.engine, views=include_views)
             for table_name, table in metadata.tables.items():
                 schema = default_schema.lower() if default_schema else None
                 reflecting_cache[(schema, table_name)] = table
