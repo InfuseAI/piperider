@@ -156,6 +156,7 @@ def diagnose(**kwargs):
 @click.option('--dbt-state', default=None, help='Directory of the the dbt state.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
+@click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
 @add_options(debug_option)
 def run(**kwargs):
     'Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
@@ -163,22 +164,25 @@ def run(**kwargs):
     datasource = kwargs.get('datasource')
     table = kwargs.get('table')
     output = kwargs.get('output')
+    open_report = kwargs.get('open')
     skip_report = kwargs.get('skip_report')
     dbt_state_dir = kwargs.get('dbt_state')
+    force_upload = kwargs.get('upload')
     ret = Runner.exec(datasource=datasource,
                       table=table,
                       output=output,
                       skip_report=skip_report,
                       dbt_state_dir=dbt_state_dir,
                       report_dir=kwargs.get('report_dir'))
-
     if ret in (0, EC_ERR_TEST_FAILED):
-        force_upload = kwargs.get('upload', False)
-        if CloudConnector.is_login() and (force_upload or CloudConnector.is_auto_upload()):
-            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'))
+        auto_upload = CloudConnector.is_auto_upload()
+        is_cloud_view = (force_upload or auto_upload)
+
+        if CloudConnector.is_login() and is_cloud_view:
+            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'), open_report=open_report, force_upload=force_upload, auto_upload=auto_upload)
 
         if not skip_report:
-            GenerateReport.exec(None, kwargs.get('report_dir'), output)
+            GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report, is_cloud_view)
     if ret != 0:
         sys.exit(ret)
     return ret

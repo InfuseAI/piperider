@@ -6,7 +6,7 @@ from base64 import b64encode
 
 from rich.console import Console
 
-from piperider_cli import __version__, sentry_dns, sentry_env, event
+from piperider_cli import __version__, open_report_in_browser, sentry_dns, sentry_env, event
 from piperider_cli import clone_directory, raise_exception_when_directory_not_writable
 from piperider_cli.configuration import Configuration
 from piperider_cli.error import PipeRiderNoProfilingResultError
@@ -84,7 +84,7 @@ def _get_run_json_path(filesystem: FileSystem, input=None):
 
 class GenerateReport:
     @staticmethod
-    def exec(input=None, report_dir=None, output=None):
+    def exec(input=None, report_dir=None, output=None, open_report=None, open_in_cloud=None):
         filesystem = FileSystem(report_dir=report_dir)
         raise_exception_when_directory_not_writable(output)
 
@@ -122,3 +122,8 @@ class GenerateReport:
             console.print(f"Report generated in {output}/index.html")
         else:
             console.print(f"Report generated in {default_output_directory}/index.html")
+
+        # only open the local file report if auto-upload is OFF
+        if open_report and not open_in_cloud:
+            result_output = f"{os.path.abspath(output) if output else default_output_directory}/index.html"
+            open_report_in_browser(result_output)
