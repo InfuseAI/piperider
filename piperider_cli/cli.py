@@ -320,6 +320,25 @@ def upload_report(**kwargs):
     return ret
 
 
+@cloud.command(short_help='Generate comparison report on PipeRider Cloud.', cls=TrackCommand, beta=True)
+@click.option('--base', default=None, type=click.INT, help='Specify the base report id.')
+@click.option('--target', default=None, type=click.INT, help='Specify the target report id.')
+@click.option('--file', default=None, type=click.STRING, help='Download the command response in a json file.')
+@click.option('--summary-file', default=None, type=click.STRING, help='Download the comparison summary markdown file.')
+@add_options(debug_option)
+def compare_reports(**kwargs):
+    """
+    Generate comparison report on PipeRider Cloud
+    """
+    base = kwargs.get('base')
+    target = kwargs.get('target')
+    response_file = kwargs.get('file')
+    summary_file = kwargs.get('summary_file')
+    ret = CloudConnector.compare_reports(base=base, target=target, response_file=response_file,
+                                         summary_file=summary_file, debug=kwargs.get('debug', False))
+    return ret
+
+
 @cloud.command(short_help='Login to PipeRider Cloud.', cls=TrackCommand, beta=True)
 @click.option('--token', default=None, type=click.STRING, help='Specify the API token.')
 @click.option('--enable-auto-upload', default=None, is_flag=True, help='Enable auto upload.')

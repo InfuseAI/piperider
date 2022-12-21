@@ -1,13 +1,16 @@
 import os
+import sys
 import webbrowser
 from typing import List
 
 import inquirer
+import readchar
 from rich import box
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
 
+import piperider_cli.hack.inquirer as inquirer_hack
 from piperider_cli import datetime_to_str, open_report_in_browser, str_to_datetime
 from piperider_cli.cloud import PipeRiderCloud
 from piperider_cli.compare_report import CompareReport, RunOutput
@@ -16,6 +19,26 @@ from piperider_cli.filesystem import FileSystem
 
 console = Console()
 piperider_cloud = PipeRiderCloud()
+
+
+class CloudReportEntry(object):
+    def __init__(self, report_id, datasource, table_count, pass_count, fail_count, created_at):
+        self.id = report_id
+        self.datasource = datasource
+
+        self.table_count = table_count
+        self.pass_count = pass_count
+        self.fail_count = fail_count
+
+        self.created_at = created_at
+
+    def __str__(self):
+        return f'id={self.id:<5} ' \
+               f'datasource={self.datasource:20} ' \
+               f'#table={self.table_count:<6} ' \
+               f'#pass={self.pass_count:<5} ' \
+               f'#fail={self.fail_count:<5} ' \
+               f'{self.created_at}'
 
 
 def ask_login_info() -> str:
@@ -142,7 +165,52 @@ def upload_to_cloud(report: RunOutput, debug=False) -> dict:
     }
 
 
-class CloudConnector():
+def get_cloud_report_entries() -> List[CloudReportEntry]:
+    response = piperider_cloud.list_reports()
+    report_entries = []
+    for report in response:
+        entry = CloudReportEntry(report.get('id'), report.get('datasource_name'), report.get('tables'),
+                                 report.get('passed'), report.get('failed'), report.get('created_at'))
+        report_entries.append(entry)
+
+    return report_entries
+
+
+def select_cloud_reports(limit):
+    def _report_validater(answers, current) -> bool:
+        if limit is None:
+            return len(current) > 0
+        else:
+            return len(current) == limit
+
+    reports = get_cloud_report_entries()
+    arrow_alias_msg = ''
+    if sys.platform == "win32" or sys.platform == "cygwin":
+        # change readchar key UP & DOWN by 'w' and 's'
+        readchar.key.UP = 'w'
+        readchar.key.DOWN = 's'
+        arrow_alias_msg = " 'w' to Up, 's' to Down,"
+
+    if len(reports) < limit:
+        raise Exception("Not enough reports to compare. Please check you have more than two reports first.")
+    report_msg = 'a report' if limit == 1 else f'the {limit} reports'
+    questions = [
+        inquirer_hack.LimitedCheckboxQuestion('reports',
+                                              message=f"Please select {report_msg} to compare ({arrow_alias_msg} SPACE to select, and ENTER to confirm )",
+                                              choices=reports,
+                                              carousel=True,
+                                              validate=_report_validater,
+                                              limited=limit,
+                                              )
+    ]
+
+    answers = inquirer_hack.prompt_ex(questions, raise_keyboard_interrupt=True)
+    if answers:
+        return answers['reports']
+    return None
+
+
+class CloudConnector:
     @staticmethod
     def is_login() -> bool:
         return piperider_cloud.available
@@ -246,3 +314,17 @@ class CloudConnector():
 
         console.print(ascii_table)
         return rc
+
+    @staticmethod
+    def compare_reports(base=None, target=None, response_file=None, summary_file=None, debug=False) -> int:
+        if piperider_cloud.available is False:
+            console.rule('Please login PipeRider Cloud first', style='red')
+            return 1
+
+        result = []
+        if base is None and target is None:
+            result = select_cloud_reports(2)
+        elif base is None:
+            result = select_cloud_reports(1)
+        elif target is None:
+            result = select_cloud_reports(1)

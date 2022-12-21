@@ -134,6 +134,36 @@ class PipeRiderCloud:
             return response.json()
         return None
 
+    def get_default_project(self):
+        if not self.available:
+            self.raise_error()
+
+        url = self.service.url('/api/projects')
+        headers = self.service.auth_headers()
+        response = requests.get(url, headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        for project in response.json():
+            if project.get('is_default'):
+                return project.get('id')
+
+    def list_reports(self):
+        if not self.available:
+            self.raise_error()
+
+        default_project = self.get_default_project()
+
+        url = self.service.url(f'/api/projects/{default_project}/reports')
+        headers = self.service.auth_headers()
+        response = requests.get(url, headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        return response.json()
+
     def upload_report(self, file_path, show_progress=True):
         # TODO validate project name
         if not self.available:
