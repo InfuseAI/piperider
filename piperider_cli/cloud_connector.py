@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import webbrowser
@@ -321,10 +322,23 @@ class CloudConnector:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
 
-        result = []
         if base is None and target is None:
             result = select_cloud_reports(2)
+            base = result[0].id
+            target = result[1].id
         elif base is None:
             result = select_cloud_reports(1)
+            base = result[0].id
         elif target is None:
             result = select_cloud_reports(1)
+            target = result[0].id
+
+        response = piperider_cloud.compare_reports(base, target)
+
+        if response_file:
+            response_file = os.path.abspath(response_file)
+            response_dir = os.path.dirname(response_file)
+            if response_dir:
+                os.makedirs(response_dir, exist_ok=True)
+            with open(response_file, 'w') as f:
+                f.write(json.dumps(response))

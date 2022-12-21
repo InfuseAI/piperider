@@ -203,6 +203,21 @@ class PipeRiderCloud:
 
             return response.json()
 
+    def compare_reports(self, base_id: int, target_id: int):
+        if not self.available:
+            self.raise_error()
+
+        default_project = self.get_default_project()
+
+        url = self.service.url(f'/api/projects/{default_project}/reports/{base_id}/compare/{target_id}')
+        headers = self.service.auth_headers()
+        response = requests.post(url, headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        return response.json()
+
     def raise_error(self):
         raise ValueError("Service not available or configuration invalid")
 
