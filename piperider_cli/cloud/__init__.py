@@ -204,13 +204,13 @@ class PipeRiderCloud:
 
             return response.json()
 
-    def compare_reports(self, project_id, base_id: int, target_id: int, table_from):
+    def compare_reports(self, project_id, base_id: int, target_id: int, tables_from):
         if not self.available:
             self.raise_error()
 
         url = self.service.url(f'/api/projects/{project_id}/reports/{base_id}/compare/{target_id}')
         headers = self.service.auth_headers()
-        response = requests.post(url, headers=headers)
+        response = requests.post(url, data=json.dumps({'tables_from': tables_from}), headers=headers)
 
         if response.status_code != 200:
             return None

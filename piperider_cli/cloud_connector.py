@@ -159,9 +159,9 @@ def get_run_report_id(report_key: str) -> Optional[int]:
     return None
 
 
-def create_compare_reports(base_id: int, target_id: int, table_from) -> dict:
+def create_compare_reports(base_id: int, target_id: int, tables_from) -> dict:
     project_id = piperider_cloud.get_default_project()
-    return piperider_cloud.compare_reports(project_id, base_id, target_id, table_from)
+    return piperider_cloud.compare_reports(project_id, base_id, target_id, tables_from)
 
 
 class CloudConnector:

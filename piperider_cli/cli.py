@@ -339,6 +339,9 @@ def cloud_compare_reports(**kwargs):
 
     ret = CloudConnector.compare_reports(base=base, target=target, tables_from=tables_from, summary_file=summary_file,
                                          debug=kwargs.get('debug', False))
+
+    if ret != 0:
+        sys.exit(ret)
     return ret
 
 
