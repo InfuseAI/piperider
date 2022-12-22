@@ -149,13 +149,14 @@ class PipeRiderCloud:
             if project.get('is_default'):
                 return project.get('id')
 
-    def list_reports(self):
+    def list_reports(self, project_id, datasource=None):
         if not self.available:
             self.raise_error()
 
-        default_project = self.get_default_project()
+        url = self.service.url(f'/api/projects/{project_id}/reports')
+        if datasource:
+            url = self.service.url(f'/api/projects/{project_id}/reports?datasource={datasource}')
 
-        url = self.service.url(f'/api/projects/{default_project}/reports')
         headers = self.service.auth_headers()
         response = requests.get(url, headers=headers)
 
@@ -203,13 +204,11 @@ class PipeRiderCloud:
 
             return response.json()
 
-    def compare_reports(self, base_id: int, target_id: int):
+    def compare_reports(self, project_id, base_id: int, target_id: int, table_from):
         if not self.available:
             self.raise_error()
 
-        default_project = self.get_default_project()
-
-        url = self.service.url(f'/api/projects/{default_project}/reports/{base_id}/compare/{target_id}')
+        url = self.service.url(f'/api/projects/{project_id}/reports/{base_id}/compare/{target_id}')
         headers = self.service.auth_headers()
         response = requests.post(url, headers=headers)
 

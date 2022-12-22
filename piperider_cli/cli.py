@@ -320,22 +320,25 @@ def upload_report(**kwargs):
     return ret
 
 
-@cloud.command(short_help='Generate comparison report on PipeRider Cloud.', cls=TrackCommand, beta=True)
-@click.option('--base', default=None, type=click.INT, help='Specify the base report id.')
-@click.option('--target', default=None, type=click.INT, help='Specify the target report id.')
-@click.option('--file', default=None, type=click.STRING, help='Download the command response in a json file.')
+@cloud.command(name='compare-reports', short_help='Generate comparison report on PipeRider Cloud.', cls=TrackCommand, beta=True)
+@click.option('--base', default=None, required=True, type=click.STRING, help='Specify the base report.')
+@click.option('--target', default=None, required=True, type=click.STRING, help='Specify the target report.')
+@click.option('--tables-from', default='all',
+              type=click.Choice(['all', 'target-only', 'base-only'], case_sensitive=False),
+              help='Show table comparison from base or target.')
 @click.option('--summary-file', default=None, type=click.STRING, help='Download the comparison summary markdown file.')
 @add_options(debug_option)
-def compare_reports(**kwargs):
+def cloud_compare_reports(**kwargs):
     """
     Generate comparison report on PipeRider Cloud
     """
     base = kwargs.get('base')
     target = kwargs.get('target')
-    response_file = kwargs.get('file')
+    tables_from = kwargs.get('tables_from')
     summary_file = kwargs.get('summary_file')
-    ret = CloudConnector.compare_reports(base=base, target=target, response_file=response_file,
-                                         summary_file=summary_file, debug=kwargs.get('debug', False))
+
+    ret = CloudConnector.compare_reports(base=base, target=target, tables_from=tables_from, summary_file=summary_file,
+                                         debug=kwargs.get('debug', False))
     return ret
 
 
