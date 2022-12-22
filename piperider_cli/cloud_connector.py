@@ -154,7 +154,7 @@ def get_run_report_id(report_key: str) -> Optional[int]:
         reports = piperider_cloud.list_reports(project_id, datasource=datasource)
 
         if reports:
-            return reports[-1].get('id')
+            return reports[0].get('id')
 
     return None
 
