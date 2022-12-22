@@ -257,7 +257,6 @@ class Profiler:
                 ).cte("t_" + cte_name)
                 cte_map[cte_name] = stmt
             else:
-                # add cte to ctep map
                 yield selectable, literal_column(f"{selectable.name}.{name}", column.type).label(column.name)
 
     def _profile_table_metadata(self, result: dict, table: Table):
@@ -484,8 +483,8 @@ class Profiler:
             # FLOAT
             generic_type = "numeric"
             profiler = NumericColumnProfiler(self.engine, profiler_config, table, column, is_integer=False)
-        elif isinstance(column_type, Date) or isinstance(column.type, DateTime) or \
-            (self.engine.url.get_backend_name() == 'snowflake' and str(column.type).startswith('TIMESTAMP')):
+        elif isinstance(column_type, Date) or isinstance(column_type, DateTime) or \
+            (self.engine.url.get_backend_name() == 'snowflake' and str(column_type).startswith('TIMESTAMP')):
             # DATE
             # DATETIME
             # TIMEZONE_NTZ
