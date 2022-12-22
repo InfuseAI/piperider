@@ -1,4 +1,6 @@
 import { extendTheme } from '@chakra-ui/react';
+import { defineStyle, defineStyleConfig } from '@chakra-ui/react';
+
 import { MetricMetaKeys } from '../lib';
 
 const fonts = { heading: `'Inter'`, body: `'Inter'` };
@@ -27,6 +29,26 @@ const theme = extendTheme({
       900: '#BD2905',
     },
     black: '#16161D',
+  },
+  components: {
+    Button: defineStyleConfig({
+      variants: {
+        piperider: defineStyle({
+          color: 'white',
+          bgColor: 'piperider.500',
+          _hover: {
+            border: '1px solid',
+            borderColor: 'piperider.500',
+            color: 'piperider.500',
+            bgColor: 'white',
+          },
+          _active: {
+            color: 'white',
+            bgColor: 'piperider.700',
+          },
+        }),
+      },
+    }),
   },
 });
 
