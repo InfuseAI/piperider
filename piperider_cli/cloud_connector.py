@@ -1,6 +1,6 @@
 import os
 import webbrowser
-from typing import List
+from typing import List, Optional
 
 import inquirer
 from rich import box
@@ -142,7 +142,29 @@ def upload_to_cloud(report: RunOutput, debug=False) -> dict:
     }
 
 
-class CloudConnector():
+def get_run_report_id(report_key: str) -> Optional[int]:
+    if report_key.isdecimal():
+        if int(report_key) < 1:
+            return None
+        return int(report_key)
+
+    if report_key.startswith('datasource:'):
+        datasource = report_key.split(':')[-1]
+        project_id = piperider_cloud.get_default_project()
+        reports = piperider_cloud.list_reports(project_id, datasource=datasource)
+
+        if reports:
+            return reports[0].get('id')
+
+    return None
+
+
+def create_compare_reports(base_id: int, target_id: int, tables_from) -> dict:
+    project_id = piperider_cloud.get_default_project()
+    return piperider_cloud.compare_reports(project_id, base_id, target_id, tables_from)
+
+
+class CloudConnector:
     @staticmethod
     def is_login() -> bool:
         return piperider_cloud.available
@@ -246,3 +268,30 @@ class CloudConnector():
 
         console.print(ascii_table)
         return rc
+
+    @staticmethod
+    def compare_reports(base=None, target=None, tables_from='all', summary_file=None, debug=False) -> int:
+        if piperider_cloud.available is False:
+            console.rule('Please login PipeRider Cloud first', style='red')
+            return 1
+
+        base_id = get_run_report_id(base)
+        target_id = get_run_report_id(target)
+
+        if base_id is None or target_id is None:
+            console.print('No report found.')
+            return 1
+
+        console.print(f"Creating comparison reports id={base_id} ... id={target_id}")
+        response = create_compare_reports(base_id, target_id, tables_from)
+
+        if debug:
+            console.print(response)
+
+        if summary_file:
+            summary_file = os.path.abspath(summary_file)
+            summary_dir = os.path.dirname(summary_file)
+            if summary_dir:
+                os.makedirs(summary_dir, exist_ok=True)
+            with open(summary_file, 'w') as f:
+                f.write(response.get('summary'))

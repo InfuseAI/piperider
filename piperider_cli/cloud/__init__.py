@@ -134,6 +134,37 @@ class PipeRiderCloud:
             return response.json()
         return None
 
+    def get_default_project(self):
+        if not self.available:
+            self.raise_error()
+
+        url = self.service.url('/api/projects')
+        headers = self.service.auth_headers()
+        response = requests.get(url, headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        for project in response.json():
+            if project.get('is_default'):
+                return project.get('id')
+
+    def list_reports(self, project_id, datasource=None):
+        if not self.available:
+            self.raise_error()
+
+        url = self.service.url(f'/api/projects/{project_id}/reports')
+        if datasource:
+            url = self.service.url(f'/api/projects/{project_id}/reports?datasource={datasource}')
+
+        headers = self.service.auth_headers()
+        response = requests.get(url, headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        return response.json()
+
     def upload_report(self, file_path, show_progress=True):
         # TODO validate project name
         if not self.available:
@@ -172,6 +203,19 @@ class PipeRiderCloud:
                 upload_progress.stop()
 
             return response.json()
+
+    def compare_reports(self, project_id, base_id: int, target_id: int, tables_from):
+        if not self.available:
+            self.raise_error()
+
+        url = self.service.url(f'/api/projects/{project_id}/reports/{base_id}/compare/{target_id}')
+        headers = self.service.auth_headers()
+        response = requests.post(url, data=json.dumps({'tables_from': tables_from}), headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        return response.json()
 
     def raise_error(self):
         raise ValueError("Service not available or configuration invalid")
