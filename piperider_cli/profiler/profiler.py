@@ -7,11 +7,11 @@ from typing import Union, List, Tuple
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, ARRAY, select, func, \
-    distinct, case, text, literal_column, inspect
+    distinct, case, text, literal_column, inspect, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.engine import Engine, Connection
 from sqlalchemy.pool import SingletonThreadPool
-from sqlalchemy.sql import FromClause
+from sqlalchemy.sql import FromClause, Selectable
 from sqlalchemy.sql.elements import ColumnClause
 from sqlalchemy.sql.expression import CTE, false, true, table as table_clause, column as column_clause
 from sqlalchemy.types import Float
@@ -204,18 +204,63 @@ class Profiler:
 
         return final_list
 
-    def _drop_unsupported_columns(self, table: Table):
-        array_columns = []
-        candidate_columns = []
+    def _get_candidate_columns(self, table: Table) -> Tuple[Selectable, ColumnClause]:
+        if self.engine.url.get_backend_name() == 'bigquery':
+            yield from self._get_candidate_columns_bigquery(table)
+        else:
+            for column in table.columns:
+                yield table, column
+
+    def _get_candidate_columns_bigquery(self, table: Table) -> Tuple[Selectable, ColumnClause]:
+        cte_map = dict()
+
+        cte_map[None] = select(
+            text('*')
+        ).select_from(
+            table
+        ).cte('t_')
 
         for column in table.columns:
+            comps = column.name.split('.')
+            name = comps[-1]
+            prefix = '__'.join(comps[:-1]) if len(comps) > 1 else None
+            selectable = cte_map.get(prefix)
+
             if isinstance(column.type, ARRAY):
-                array_columns.append(column.name + '.')
-            if any(column.name.startswith(bypass_column) for bypass_column in array_columns):
-                # Skip columns under an array
-                continue
-            candidate_columns.append(column)
-        return candidate_columns
+                if isinstance(column.type.item_type, JSON):
+                    # add array cte to cte map
+                    cte_name = '__'.join(comps)
+                    stmt = select(
+                        [literal_column(f"{name}.*", column.type)]
+                    ).select_from(
+                        selectable
+                    ).select_from(
+                        text(f"unnest({selectable.name}.{name}) as {name}")
+                    ).cte("t_" + cte_name)
+                    cte_map[cte_name] = stmt
+                else:
+                    # array cte
+                    cte_name = '__'.join(comps)
+                    selectable = select(
+                        [literal_column(f"{name}", column.type.item_type)]
+                    ).select_from(
+                        selectable
+                    ).select_from(
+                        text(f"unnest({selectable.name}.{name}) as {name}")
+                    ).cte("t_" + cte_name)
+                    yield selectable, literal_column(f"{selectable.name}.{name}", column.type).label(
+                        column.name)
+            elif isinstance(column.type, JSON):
+                # add cte to ctep map
+                cte_name = '__'.join(comps)
+                stmt = select(
+                    [literal_column(f"{selectable.name}.{name}.*", column.type)]
+                ).select_from(
+                    selectable
+                ).cte("t_" + cte_name)
+                cte_map[cte_name] = stmt
+            else:
+                yield selectable, literal_column(f"{selectable.name}.{name}", column.type).label(column.name)
 
     def _profile_table_metadata(self, result: dict, table: Table):
         row_count = created = last_altered = size_bytes = None
@@ -341,7 +386,7 @@ class Profiler:
             result['duplicate_rows_p'] = percentage(duplicate_rows, samples)
 
     def _profile_table(self, name: str, table: Table) -> dict:
-        candidate_columns = self._drop_unsupported_columns(table)
+        candidate_columns = list(self._get_candidate_columns(table))
         col_index = 0
         col_count = len(candidate_columns)
         columns = {}
@@ -371,8 +416,8 @@ class Profiler:
         # Profile columns
         samples_p = result['samples_p']
         if isinstance(self.engine.pool, SingletonThreadPool):
-            for column in candidate_columns:
-                columns[column.name] = self._profile_column(name, table, column)
+            for selectable, column in candidate_columns:
+                columns[column.name] = self._profile_column(name, selectable, column)
                 columns[column.name]['total'] = result['row_count']
                 columns[column.name]['samples_p'] = samples_p
                 col_index = col_index + 1
@@ -384,11 +429,13 @@ class Profiler:
 
             self.event_handler.handle_table_end(result)
         else:
-            for column in candidate_columns:
+            for selectable, column in candidate_columns:
                 columns[column.name] = None
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                future_to_profile = {executor.submit(self._profile_column, name, table, column): column for column in
-                                     candidate_columns}
+                future_to_profile = {
+                    executor.submit(self._profile_column, name, selectable, column): column
+                    for selectable, column in candidate_columns
+                }
                 try:
                     for future in concurrent.futures.as_completed(future_to_profile):
                         column = future_to_profile[future]
@@ -414,37 +461,43 @@ class Profiler:
 
     def _profile_column(self, table_name, table: Table, column: Column) -> dict:
         profiler_config = self.config.profiler_config if self.config else {}
-        if isinstance(column.type, String):
+        column_type = column.type
+        schema_type = str(column.type)
+        if isinstance(column_type, ARRAY) and column_type.item_type is not None:
+            column_type = column_type.item_type
+            schema_type = f"ARRAY<{column_type}>"
+
+        if isinstance(column_type, String):
             # VARCHAR
             # CHAR
             # TEXT
             # CLOB
             generic_type = "string"
             profiler = StringColumnProfiler(self.engine, profiler_config, table, column)
-        elif isinstance(column.type, Integer):
+        elif isinstance(column_type, Integer):
             # INTEGER
             # BIGINT
             # SMALLINT
             generic_type = "integer"
             profiler = NumericColumnProfiler(self.engine, profiler_config, table, column, is_integer=True)
-        elif isinstance(column.type, Numeric):
+        elif isinstance(column_type, Numeric):
             # NUMERIC
             # DECIMAL
             # FLOAT
             generic_type = "numeric"
             profiler = NumericColumnProfiler(self.engine, profiler_config, table, column, is_integer=False)
-        elif isinstance(column.type, Date) or isinstance(column.type, DateTime) or \
-            (self.engine.url.get_backend_name() == 'snowflake' and str(column.type).startswith('TIMESTAMP')):
+        elif isinstance(column_type, Date) or isinstance(column_type, DateTime) or \
+            (self.engine.url.get_backend_name() == 'snowflake' and str(column_type).startswith('TIMESTAMP')):
             # DATE
             # DATETIME
             # TIMEZONE_NTZ
             generic_type = "datetime"
             profiler = DatetimeColumnProfiler(self.engine, profiler_config, table, column)
-        elif isinstance(column.type, Boolean):
+        elif isinstance(column_type, Boolean):
             # BOOLEAN
             generic_type = "boolean"
             profiler = BooleanColumnProfiler(self.engine, profiler_config, table, column)
-        elif isinstance(column.type, UUID):
+        elif isinstance(column_type, UUID):
             generic_type = "other"
             profiler = UUIDColumnProfiler(self.engine, profiler_config, table, column)
         else:
@@ -454,7 +507,7 @@ class Profiler:
         result = {
             "name": column.name,
             "type": generic_type,
-            "schema_type": str(column.type)
+            "schema_type": schema_type,
         }
 
         self.event_handler.handle_column_start(table.name, result)
