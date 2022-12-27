@@ -128,7 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm,visualstudiocode,vim,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=pycharm,visualstudiocode,vim,macos
 
@@ -140,7 +139,6 @@ dmypy.json
 
 # Icon must end with two \r
 Icon
-
 
 # Thumbnails
 ._*
@@ -273,7 +271,7 @@ fabric.properties
 ### Vim ###
 # Swap
 [._]*.s[a-v][a-z]
-!*.svg  # comment out if you don't need vector files
+!*.svg # comment out if you don't need vector files
 [._]*.sw[a-p]
 [._]s[a-rt-v][a-z]
 [._]ss[a-gi-z]
@@ -321,3 +319,5 @@ pnpm-lock.yaml
 piperider-getting-started
 .piperider
 *.db
+
+.envrc
