@@ -229,22 +229,27 @@ def get_dbt_state_metrics(dbt_state_dir: str):
     manifest = _get_state_manifest(dbt_state_dir)
 
     metrics = []
-    for metric in manifest.get('metrics').values():
-        tags = metric.get('tags')
-        if 'piperider' not in tags:
-            continue
-
-        for depends_on_node in metric.get('depends_on').get('nodes'):
-            if metric.get('calculation_method') == 'derived':
-                node = manifest.get('metrics').get(depends_on_node)
-                depends_on_node = node.get('depends_on').get('nodes')[0]
-
+    metric_map = {}
+    for key, metric in manifest.get('metrics').items():
+        if metric.get('calculation_method') == 'derived':
+            table = None
+            schema = None
+        else:
+            depends_on_node = metric.get('depends_on').get('nodes')[0]
             table = manifest.get('nodes').get(depends_on_node).get('alias')
             schema = manifest.get('nodes').get(depends_on_node).get('schema')
 
-            m = Metric(metric.get('name'), table, schema, metric.get('expression'), metric.get('timestamp'),
-                       metric.get('calculation_method'), metric.get('time_grains'), dimensions=None,
-                       label=metric.get('label'), description=metric.get('description'))
+        m = Metric(metric.get('name'), table, schema, metric.get('expression'), metric.get('timestamp'),
+                   metric.get('calculation_method'), metric.get('time_grains'), dimensions=None,
+                   label=metric.get('label'), description=metric.get('description'))
+
+        metric_map[key] = m
+        if 'piperider' in metric.get('tags'):
             metrics.append(m)
+
+    for key, metric in metric_map.items():
+        if metric.calculation_method == 'derived':
+            for depends_on_metric in manifest.get('metrics').get(key).get('depends_on').get('nodes'):
+                metric.ref_metrics.append(metric_map.get(depends_on_metric))
 
     return metrics
