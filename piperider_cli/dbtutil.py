@@ -8,6 +8,7 @@ from rich.console import Console
 from rich.table import Table
 
 from piperider_cli.profiler import ProfileSubject
+from piperider_cli.metrics_engine import Metric
 
 console = Console()
 
@@ -222,3 +223,28 @@ def get_dbt_state_tests_result(dbt_state_dir: str):
         ))
 
     return output
+
+
+def get_dbt_state_metrics(dbt_state_dir: str):
+    manifest = _get_state_manifest(dbt_state_dir)
+
+    metrics = []
+    for metric in manifest.get('metrics').values():
+        tags = metric.get('tags')
+        if 'piperider' not in tags:
+            continue
+
+        for depends_on_node in metric.get('depends_on').get('nodes'):
+            if metric.get('calculation_method') == 'derived':
+                node = manifest.get('metrics').get(depends_on_node)
+                depends_on_node = node.get('depends_on').get('nodes')[0]
+
+            table = manifest.get('nodes').get(depends_on_node).get('alias')
+            schema = manifest.get('nodes').get(depends_on_node).get('schema')
+
+            m = Metric(metric.get('name'), table, schema, metric.get('expression'), metric.get('timestamp'),
+                       metric.get('calculation_method'), metric.get('time_grains'), dimensions=None,
+                       label=metric.get('label'), description=metric.get('description'))
+            metrics.append(m)
+
+    return metrics

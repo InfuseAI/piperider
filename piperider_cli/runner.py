@@ -25,6 +25,7 @@ from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.filesystem import FileSystem
+from piperider_cli.metrics_engine import MetricEngine
 from piperider_cli.profiler import Profiler, ProfilerEventHandler, ProfileSubject
 
 
@@ -635,6 +636,11 @@ class Runner():
             return 1
         except Exception as e:
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
+
+        if dbt_state_dir:
+            console.rule('DBT metrics')
+            metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir)
+            run_result['metrics'] = MetricEngine(engine, metrics).execute()
 
         # TODO: refactor input unused arguments
         assertion_results, assertion_exceptions = _execute_assertions(console, engine, ds.name, output,
