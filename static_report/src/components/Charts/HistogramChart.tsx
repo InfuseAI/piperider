@@ -4,12 +4,11 @@ import {
   BarElement,
   Tooltip,
   ChartData,
-  ScaleOptionsByType,
-  CartesianScaleTypeRegistry,
   TimeSeriesScale,
   CategoryScale,
   LinearScale,
   AnimationOptions,
+  ScaleOptions,
 } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
 import { ColumnSchema, Histogram } from '../../sdlc/single-report-schema';
@@ -20,8 +19,8 @@ import {
 import { DATE_RANGE, TEXTLENGTH, VALUE_RANGE } from '../Columns/constants';
 
 import 'chartjs-adapter-date-fns';
-import { DeepPartial } from 'chart.js/types/utils';
 import { INFO_VAL_COLOR } from '../../utils/theme';
+import { enUS } from 'date-fns/locale';
 
 /**
  * Histogram Chart that can display generic data types such as Numeric, Datetime, Integer
@@ -29,10 +28,6 @@ import { INFO_VAL_COLOR } from '../../utils/theme';
  * Y: The Min/Max of the counts range is the scaled height of charting area
  * Counts: Abbreviated based on K, Mn, Bn, Tr (see formatters)
  */
-// Note: min/max represents the bin edge min/max
-type ScaleTypeConfig = DeepPartial<
-  ScaleOptionsByType<keyof CartesianScaleTypeRegistry>
->;
 
 type HistogramChartProps = {
   data: Pick<
@@ -151,7 +146,7 @@ export function getHistogramChartOptions(
  * get x, y scales for histogram (dynamic based on datetime or not)
  */
 function getScales(
-  { histogram, min, max, type }: HistogramChartProps['data'],
+  { histogram, min = 0, max = 0, type }: HistogramChartProps['data'],
   hideAxis = false,
 ) {
   const isDatetime = type === 'datetime';
@@ -163,7 +158,7 @@ function getScales(
     .slice(0, -1); // exclude last
 
   //swap x-scale when histogram is datetime
-  const xScaleDate: ScaleTypeConfig = {
+  const xScaleDate: ScaleOptions = {
     display: hideAxis ? false : true,
     type: 'timeseries', // each datum is spread w/ equal distance
     min,
@@ -184,7 +179,7 @@ function getScales(
   /**
    * NOTE: Category doesn't accept (min/max) -- will distort scales!
    */
-  const xScaleCategory: ScaleTypeConfig = {
+  const xScaleCategory: ScaleOptions = {
     display: hideAxis ? false : true,
     type: 'category', //Linear doesn't understand bins!
     grid: { display: false },
@@ -194,17 +189,15 @@ function getScales(
       },
     },
   };
-  const xScaleBase: ScaleTypeConfig = isDatetime ? xScaleDate : xScaleCategory;
+  const xScaleBase = isDatetime ? xScaleDate : xScaleCategory;
 
-  const yScaleBase: DeepPartial<
-    ScaleOptionsByType<keyof CartesianScaleTypeRegistry>
-  > = {
+  const yScaleBase: ScaleOptions = {
     display: hideAxis ? false : true,
     type: 'linear',
     max: Math.max(...counts), //NOTE: do not add `min` since if they are equal nothing gets displayed sometimes
+    border: { dash: [2, 2] },
     grid: {
       color: 'lightgray',
-      borderDash: [2, 2],
     },
     ticks: {
       maxTicksLimit: 8,
