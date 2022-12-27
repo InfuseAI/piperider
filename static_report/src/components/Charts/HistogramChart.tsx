@@ -20,7 +20,6 @@ import { DATE_RANGE, TEXTLENGTH, VALUE_RANGE } from '../Columns/constants';
 
 import 'chartjs-adapter-date-fns';
 import { INFO_VAL_COLOR } from '../../utils/theme';
-import { enUS } from 'date-fns/locale';
 
 /**
  * Histogram Chart that can display generic data types such as Numeric, Datetime, Integer
