@@ -70,7 +70,11 @@ function AppSingle() {
             )}
           </Route>
 
-          <Route path={BM_ROUTE_PATH}>{() => <SRBMPage />}</Route>
+          <Route path={BM_ROUTE_PATH}>
+            {() => (
+              <SRBMPage data={window.PIPERIDER_SINGLE_REPORT_DATA || {}} />
+            )}
+          </Route>
 
           <Route>
             <NotFound />
@@ -113,7 +117,11 @@ function AppComparison() {
             )}
           </Route>
 
-          <Route path={BM_ROUTE_PATH}>{() => <CRBMPage />}</Route>
+          <Route path={BM_ROUTE_PATH}>
+            {() => (
+              <CRBMPage data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}} />
+            )}
+          </Route>
 
           <Route>
             <NotFound />
