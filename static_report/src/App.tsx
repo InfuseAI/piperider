@@ -10,10 +10,13 @@ import { CRTablesListPage } from './pages/CRTablesListPage';
 import { useHashLocation } from './hooks/useHashLcocation';
 import {
   ASSERTIONS_ROUTE_PATH,
+  BM_ROUTE_PATH,
   COLUMN_DETAILS_ROUTE_PATH,
 } from './utils/routes';
 import { SRAssertionListPage } from './pages/SRAssertionListPage';
 import { CRAssertionListPage } from './pages/CRAssertionListPage';
+import { SRBMPage } from './pages/SRBMPage';
+import { CRBMPage } from './pages/CRBMPage';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns && process.env.NODE_ENV !== 'development') {
@@ -67,6 +70,8 @@ function AppSingle() {
             )}
           </Route>
 
+          <Route path={BM_ROUTE_PATH}>{() => <SRBMPage />}</Route>
+
           <Route>
             <NotFound />
           </Route>
@@ -107,6 +112,9 @@ function AppComparison() {
               />
             )}
           </Route>
+
+          <Route path={BM_ROUTE_PATH}>{() => <CRBMPage />}</Route>
+
           <Route>
             <NotFound />
           </Route>

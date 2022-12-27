@@ -23,6 +23,7 @@ import { ReactNode, useState } from 'react';
 import { mainContentAreaHeight } from '../../utils/layout';
 import { useLocation } from 'wouter';
 import { CommonModal } from '../Common/CommonModal';
+import { BsClipboardData } from 'react-icons/bs';
 
 type Feedback = {
   user_id: string;
@@ -103,13 +104,26 @@ export function Sidebar() {
     >
       <Box>
         <RibbonItemWrapper
-          isActive={!location.includes('assertions')}
+          isActive={
+            !location.includes('assertions') &&
+            !location.includes('business-metrics')
+          }
           url="/"
           dataCyLabel="sidebar-ribbon-tables"
         >
           <Icon as={FiDatabase} boxSize={6} />
           <Text fontSize="sm" textAlign={'center'}>
             Data Profile
+          </Text>
+        </RibbonItemWrapper>
+        <RibbonItemWrapper
+          isActive={location.includes('business-metrics')}
+          url="/business-metrics"
+          dataCyLabel="sidebar-ribbon-business-metrics"
+        >
+          <Icon as={BsClipboardData} boxSize={8} />
+          <Text fontSize="sm" textAlign={'center'} noOfLines={2}>
+            Business Metrics
           </Text>
         </RibbonItemWrapper>
         <RibbonItemWrapper
