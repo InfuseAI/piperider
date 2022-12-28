@@ -1,5 +1,6 @@
 import { Flex, Text } from '@chakra-ui/react';
 import isNumber from 'lodash/isNumber';
+import zip from 'lodash/zip';
 
 import { BooleanPieChart } from './BooleanPieChart';
 import { HistogramChart } from './HistogramChart';
@@ -157,4 +158,13 @@ export function getChartKindByColumnType(
   if (isPieKind) return 'pie';
   if (isCategoryKind) return 'topk';
   if (isHistogramKind) return 'histogram';
+}
+
+/**
+ * Transforms 2D-Array rows into another 2D-Array columns
+ * @param dataRowList
+ * @returns 2D array of columns (lodash zip)
+ */
+export function transformDataRowsToChartDatasets(dataRowList: unknown[][]) {
+  return zip(...dataRowList);
 }

@@ -6,10 +6,10 @@
  */
 
 // FIXME: REMOVE ME LATER (AUTO_GENERATE)
-import { DBTBusinessMetricItem } from '../utils';
+import { DBTBusinessMetricGroupItem } from '../utils';
 
 export interface SingleReportSchema {
-  metrics: DBTBusinessMetricItem[];
+  metrics: DBTBusinessMetricGroupItem[];
   tables: {
     [k: string]: TableSchema;
   };
