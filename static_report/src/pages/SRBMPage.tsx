@@ -1,8 +1,15 @@
-import { Grid, GridItem, Text } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, Text } from '@chakra-ui/react';
+import { NO_VALUE } from '../components';
+import { BMLineChart } from '../components/Charts/BMLineChart';
 import { Main } from '../components/Common/Main';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { SaferSRSchema } from '../types';
-import { AMPLITUDE_EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
+import {
+  AMPLITUDE_EVENTS,
+  borderVal,
+  SR_TYPE_LABEL,
+  useReportStore,
+} from '../utils';
 
 const MOCK_BM_LIST = [
   {
@@ -13,10 +20,10 @@ const MOCK_BM_LIST = [
     },
     headers: ['day', 'active_user'],
     data: [
-      ['2012-12-01', 1],
-      ['2012-12-02', 1],
-      ['2012-12-03', 1],
-      ['2012-12-04', 1],
+      ['2012-12-01', 1], // <-- is data[0] always datetime str?
+      ['2012-12-02', 2],
+      ['2012-12-03', 3],
+      ['2012-12-04', 4],
     ],
   },
   {
@@ -27,10 +34,10 @@ const MOCK_BM_LIST = [
     },
     headers: ['day', 'active_user'],
     data: [
-      ['2012-12-01', 1],
-      ['2012-12-08', 2],
+      ['2012-12-01', 0],
+      ['2012-12-08', 5],
       ['2012-12-15', 3],
-      ['2012-12-22', 4],
+      ['2012-12-22', 7],
     ],
   },
   {
@@ -43,8 +50,8 @@ const MOCK_BM_LIST = [
     data: [
       ['2012-12-01', 10],
       ['2013-01-01', 20],
-      ['2013-02-01', 30],
-      ['2013-03-01', 40],
+      ['2013-02-01', 40],
+      ['2013-03-01', 80],
     ],
   },
   {
@@ -55,10 +62,10 @@ const MOCK_BM_LIST = [
     },
     headers: ['day', 'active_user'],
     data: [
-      ['2012-12-01', 10],
-      ['2013-12-01', 20],
-      ['2014-12-01', 30],
-      ['2015-12-01', 40],
+      ['2012-12-01', 0],
+      ['2013-12-01', 10],
+      ['2014-12-01', 100],
+      ['2015-12-01', -40],
     ],
   },
 ];
@@ -76,14 +83,31 @@ export function SRBMPage({ data }: Props) {
   });
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base: data });
-  const { BMOnly } = useReportStore.getState();
-  const BMList = BMOnly?.base || [];
+  const {
+    BMOnly,
+    rawData: { base, input },
+  } = useReportStore.getState();
+  const datasource =
+    input?.datasource.name ?? base?.datasource.name ?? NO_VALUE;
+  const BMList = BMOnly?.base || MOCK_BM_LIST;
   return (
     <Main isSingleReport>
-      <Text fontSize={'xl'}>This is a business metrics page (SR)</Text>
-      <Grid>
+      <Grid templateColumns={'1fr 1fr'} w={'100%'} gap={5} p={5}>
+        <GridItem colSpan={2}>
+          <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
+            Report Business Metrics ({datasource})
+          </Text>
+        </GridItem>
         {BMList.map((v) => (
-          <GridItem>{v.name}</GridItem>
+          // TODO: Convert into Widget later (when adding filters for time-grain + dimensions + other chart visuals)
+          <GridItem key={v.name} border={borderVal}>
+            <Flex className="widget-header">
+              <Text fontWeight={'medium'}>{v.name}</Text>
+            </Flex>
+            <Flex>
+              <BMLineChart data={v} />
+            </Flex>
+          </GridItem>
         ))}
       </Grid>
     </Main>
