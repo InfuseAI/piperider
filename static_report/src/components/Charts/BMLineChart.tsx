@@ -33,7 +33,6 @@ export function BMLineChart({ data }: Props) {
   );
 
   const { results = [] } = data ?? {};
-  console.log(results);
 
   // Should get the list of dataset values list (2D), in indexed order
   // const datasetDataValues = results.reduce<number[][]>(
@@ -56,21 +55,27 @@ export function BMLineChart({ data }: Props) {
   //   data,
   // }));
   // // timestamp per dataset row (all)
-  // const labels = data?.data.map(([dateString]) => dateString);
+
+  //2d datasets list
+  // const datasetsList =
+
+  //2d labels list
+  const labelsList = results.map(({ data: [dateStrings] }) => dateStrings);
+
   // const chartData: ChartData<'line'> = {
   //   datasets,
   //   labels,
   // };
-  // const chartOpts: ChartOptions<'line'> = {
-  //   scales: {
-  //     x: {
-  //       type: 'time',
-  //       time: {
-  //         unit: 'month', //TODO: depends on time grain toggle event
-  //       },
-  //     },
-  //   },
-  // };
+  const chartOpts: ChartOptions<'line'> = {
+    scales: {
+      x: {
+        type: 'time',
+        time: {
+          unit: 'month', //TODO: depends on time grain toggle event
+        },
+      },
+    },
+  };
 
   return null;
   // <Line data={chartData} options={chartOpts} />;

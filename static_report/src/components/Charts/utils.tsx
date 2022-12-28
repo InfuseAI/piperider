@@ -1,6 +1,5 @@
 import { Flex, Text } from '@chakra-ui/react';
 import isNumber from 'lodash/isNumber';
-import zip from 'lodash/zip';
 
 import { BooleanPieChart } from './BooleanPieChart';
 import { HistogramChart } from './HistogramChart';
