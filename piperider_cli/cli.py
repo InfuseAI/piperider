@@ -321,8 +321,10 @@ def upload_report(**kwargs):
 
 
 @cloud.command(name='compare-reports', short_help='Generate comparison report on PipeRider Cloud.', cls=TrackCommand, beta=True)
-@click.option('--base', default=None, required=True, type=click.STRING, help='Specify the base report.')
-@click.option('--target', default=None, required=True, type=click.STRING, help='Specify the target report.')
+@click.option('--base', default=None, required=True, type=click.STRING,
+              help='Specify the base report id or data source name. e.g., 123 or datasource:<name>')
+@click.option('--target', default=None, required=True, type=click.STRING,
+              help='Specify the target report id or data source name. e.g., 123 or datasource:<name>')
 @click.option('--tables-from', default='all',
               type=click.Choice(['all', 'target-only', 'base-only'], case_sensitive=False),
               help='Show table comparison from base or target.')

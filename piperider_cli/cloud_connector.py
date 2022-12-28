@@ -161,7 +161,13 @@ def get_run_report_id(report_key: str) -> Optional[int]:
 
 def create_compare_reports(base_id: int, target_id: int, tables_from) -> dict:
     project_id = piperider_cloud.get_default_project()
-    return piperider_cloud.compare_reports(project_id, base_id, target_id, tables_from)
+    response = piperider_cloud.compare_reports(project_id, base_id, target_id, tables_from)
+    if response is not None:
+        url = f'{piperider_cloud.service.cloud_host}/projects/{project_id}/reports/{base_id}/comparison/{target_id}'
+        console.print(f'Comparison report URL: {url}')
+    else:
+        console.print(f'Failed to create the comparison report')
+    return response
 
 
 class CloudConnector:
@@ -282,7 +288,7 @@ class CloudConnector:
             console.print('No report found.')
             return 1
 
-        console.print(f"Creating comparison reports id={base_id} ... id={target_id}")
+        console.print(f"Creating comparison report id={base_id} ... id={target_id}")
         response = create_compare_reports(base_id, target_id, tables_from)
 
         if debug:
