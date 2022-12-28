@@ -1,3 +1,4 @@
+import zip from 'lodash/zip';
 import {
   AssertionTest,
   ColumnSchema,
@@ -39,6 +40,13 @@ export type DBTBusinessMetricItem = {
   headers: string[];
   data: unknown[][]; //2d-array: rows of table cells
 };
+// FIXME: IMPORT ME FROM REGEN'ED SCHEMA TYPINGS
+export type DBTBusinessMetricGroupItem = {
+  name: string;
+  label: string;
+  description: string;
+  results: DBTBusinessMetricItem[];
+};
 export interface ReportState {
   rawData: ComparableReport;
   reportTitle?: string;
@@ -47,12 +55,90 @@ export interface ReportState {
   reportOnly?: ComparableData<Omit<SaferSRSchema, 'tables'>>;
   tableColumnsOnly?: CompTableColEntryItem[];
   assertionsOnly?: ComparableData<ComparedAssertionTestValue[]>;
-  BMOnly?: ComparableData<DBTBusinessMetricItem[]>;
+  BMOnly?: ComparableData<DBTBusinessMetricGroupItem[]>;
 }
 
 interface ReportSetters {
   setReportRawData: (input: ComparableReport) => void;
 }
+
+//REMOVE: BASE
+const MOCK_BM_LIST = [
+  {
+    name: 'Daily',
+    params: {
+      dimensions: [],
+      grain: 'day',
+    },
+    headers: ['day', 'active_user'],
+    data: [
+      ['2012-12-01', 1], // <-- is data[0] always datetime str?
+      ['2012-12-02', 2],
+      ['2012-12-03', 3],
+      ['2012-12-04', 4],
+    ],
+  },
+  {
+    name: 'Weekly',
+    params: {
+      dimensions: [],
+      grain: 'week',
+    },
+    headers: ['day', 'active_user'],
+    data: [
+      ['2012-12-01', 0],
+      ['2012-12-08', 5],
+      ['2012-12-15', 3],
+      ['2012-12-22', 7],
+    ],
+  },
+  {
+    name: 'Monthly',
+    params: {
+      dimensions: [],
+      grain: 'month',
+    },
+    headers: ['day', 'active_user'],
+    data: [
+      ['2012-12-01', 10],
+      ['2013-01-01', 20],
+      ['2013-02-01', 40],
+      ['2013-03-01', 80],
+    ],
+  },
+  {
+    name: 'Yearly',
+    params: {
+      dimensions: [],
+      grain: 'year',
+    },
+    headers: ['day', 'active_user'],
+    data: [
+      ['2012-12-01', 0],
+      ['2013-12-01', 10],
+      ['2014-12-01', 100],
+      ['2015-12-01', 80],
+    ],
+  },
+];
+const MOCK_BM_GROUP_LIST: DBTBusinessMetricGroupItem[] = [
+  {
+    name: 'active_user',
+    label: 'active user',
+    description: 'This is the active user',
+    results: MOCK_BM_LIST,
+  },
+];
+
+//REMOVE: Target
+const MOCK_BM_LIST_2 = MOCK_BM_LIST.map(({ data, ...rest }) => ({
+  data: data.map(([datetime, val]) => [datetime, Number(val) * Math.random()]),
+  ...rest,
+}));
+const MOCK_BM_GROUP_LIST_2 = MOCK_BM_GROUP_LIST.map(({ results, ...rest }) => ({
+  results: MOCK_BM_LIST_2,
+  ...rest,
+}));
 
 const getReportOnly = (rawData: ComparableReport) => {
   let resultObj = {} as ComparableData<Omit<SaferSRSchema, 'tables'>>;
@@ -199,9 +285,27 @@ const getAssertionsOnly = (rawData: ComparableReport) => {
 
 const getBusinessMetrics = (rawData: ComparableReport) => {
   const { base, input } = rawData;
-  const baseBMValue = base?.metrics;
-  const targetBMValue = input?.metrics;
-  // no metadata
+
+  const baseBMValue = (base?.metrics || MOCK_BM_GROUP_LIST).map((group) => {
+    const results = group.results.map((result) => ({
+      ...result,
+      data: zip(...result.data),
+    }));
+
+    return { ...group, results };
+  });
+
+  const targetBMValue = (input?.metrics || MOCK_BM_GROUP_LIST_2).map(
+    (group) => {
+      const results = group.results.map((result) => ({
+        ...result,
+        data: zip(...result.data),
+      }));
+
+      return { ...group, results };
+    },
+  );
+
   return { base: baseBMValue, input: targetBMValue };
 };
 
@@ -243,3 +347,9 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
     },
   };
 });
+
+/**
+ * Transforms 2D-Array rows into another 2D-Array columns
+ * @param dataRowList
+ * @returns 2D array of columns (lodash zip)
+ */

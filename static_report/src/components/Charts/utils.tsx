@@ -159,12 +159,3 @@ export function getChartKindByColumnType(
   if (isCategoryKind) return 'topk';
   if (isHistogramKind) return 'histogram';
 }
-
-/**
- * Transforms 2D-Array rows into another 2D-Array columns
- * @param dataRowList
- * @returns 2D array of columns (lodash zip)
- */
-export function transformDataRowsToChartDatasets(dataRowList: unknown[][]) {
-  return zip(...dataRowList);
-}
