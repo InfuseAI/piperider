@@ -241,7 +241,7 @@ def get_dbt_state_metrics(dbt_state_dir: str):
 
         m = Metric(metric.get('name'), table, schema, metric.get('expression'), metric.get('timestamp'),
                    metric.get('calculation_method'), metric.get('time_grains'), dimensions=None,
-                   label=metric.get('label'), description=metric.get('description'))
+                   filters=metric.get('filters'), label=metric.get('label'), description=metric.get('description'))
 
         metric_map[key] = m
         if 'piperider' in metric.get('tags'):

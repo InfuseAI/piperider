@@ -21,7 +21,7 @@ def dtof(value: Union[int, float, decimal.Decimal]) -> Union[int, float]:
 
 class Metric:
     def __init__(self, name, table, schema, expression, timestamp, calculation_method, time_grains=None, dimensions=None,
-                 label=None, description=None):
+                 filters=None, label=None, description=None):
         self.name = name
         self.table = table
         self.schema = schema
@@ -30,6 +30,7 @@ class Metric:
         self.calculation_method = calculation_method
         self.time_grains = time_grains
         self.dimensions = dimensions
+        self.filters = filters
         self.label = label
         self.description = description
         self.ref_metrics: List[Metric] = []
@@ -46,8 +47,13 @@ class MetricEngine:
 
     def get_query_statement(self, metric: Metric, grain, dimension):
         if metric.calculation_method != 'derived':
-            selectable = table_clause(metric.table, column_clause(metric.timestamp), column_clause(metric.expression),
-                                      schema=metric.schema)
+            column = [column_clause(metric.timestamp), column_clause(metric.expression)]
+            for f in metric.filters:
+                field = f.get('field')
+                if field == metric.timestamp or field == metric.expression:
+                    continue
+                column.append(column_clause(field))
+            selectable = table_clause(metric.table, *column, schema=metric.schema)
         else:
             selectable = None
             for ref_metric in metric.ref_metrics:
@@ -80,9 +86,11 @@ class MetricEngine:
                 agg_expression.label(metric.name)
             ]).select_from(
                 selectable
-            ).group_by(
-                self.date_trunc(grain, selectable.columns[metric.timestamp])
             )
+            for f in metric.filters:
+                stmt = stmt.where(text(f"{f.get('field')} {f.get('operator')} {f.get('value')}"))
+
+            stmt = stmt.group_by(self.date_trunc(grain, selectable.columns[metric.timestamp]))
         else:
             stmt = select([
                 selectable.left.c[grain],
