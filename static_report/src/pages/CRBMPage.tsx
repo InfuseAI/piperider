@@ -18,8 +18,7 @@ export function CRBMPage({ data: { base, input } }: Props) {
   });
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base, input });
-  // const { assertionsOnly } = useReportStore.getState();
-  // const { metadata } = assertionsOnly || {};
+  const { BMOnly } = useReportStore.getState();
   return (
     <Main isSingleReport={false}>
       <Grid>This is a business metrics page (CR)</Grid>

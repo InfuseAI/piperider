@@ -5,7 +5,11 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
+// FIXME: REMOVE ME LATER (AUTO_GENERATE)
+import { DBTBusinessMetricItem } from '../utils';
+
 export interface SingleReportSchema {
+  metrics: DBTBusinessMetricItem[];
   tables: {
     [k: string]: TableSchema;
   };

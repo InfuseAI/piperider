@@ -29,6 +29,46 @@ export type CompTableColEntryItem = EntryItem<
   ComparableData<CompTableWithColEntryOverwrite>
 >;
 export type ComparedAssertionTestValue = Partial<AssertionTest> | null;
+// FIXME: IMPORT ME FROM REGEN'ED SCHEMA TYPINGS
+/**
+ * YAML/JSON result
+ *   # 1-dim. Time only (o)
+  - name: 'Daily'
+    params:
+      dimensions: [],
+      grain: 'day' 
+    headers: [
+      "day", "active_user"
+    ],
+    data: [
+			["2012-12-01", 1],
+			["2012-12-02", 1],
+			["2012-12-03", 1],
+			["2012-12-04", 1],
+	  ]
+  - name: 'Weekly'
+    params:
+      dimensions: [],
+      grain: 'week' 
+    headers: [
+      "day", "active_user"
+    ],
+    data: [
+			["2012-12-01", 1],
+			["2012-12-08", 2],
+			["2012-12-15", 3],
+			["2012-12-22", 4],
+	  ]
+ */
+export type DBTBusinessMetricItem = {
+  name: string;
+  params: {
+    dimensions: unknown[];
+    grain: string;
+  };
+  headers: string[];
+  data: unknown[][]; //2d-array: rows of table cells
+};
 export interface ReportState {
   rawData: ComparableReport;
   reportTitle?: string;
@@ -37,6 +77,7 @@ export interface ReportState {
   reportOnly?: ComparableData<Omit<SaferSRSchema, 'tables'>>;
   tableColumnsOnly?: CompTableColEntryItem[];
   assertionsOnly?: ComparableData<ComparedAssertionTestValue[]>;
+  BMOnly?: ComparableData<DBTBusinessMetricItem[]>;
 }
 
 interface ReportSetters {
@@ -186,7 +227,14 @@ const getAssertionsOnly = (rawData: ComparableReport) => {
   return comparableAssertionTests;
 };
 
-//NOTE: `this` will not work in setter functions (self-invoking)
+const getBusinessMetrics = (rawData: ComparableReport) => {
+  const { base, input } = rawData;
+  const baseBMValue = base?.metrics;
+  const targetBMValue = input?.metrics;
+  // no metadata
+  return { base: baseBMValue, input: targetBMValue };
+};
+
 export const useReportStore = create<ReportState & ReportSetters>()(function (
   set,
 ) {
@@ -206,6 +254,8 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
       const tableColumnsOnly = getTableColumnsOnly(rawData);
       /** Table-level Assertions (flattened) */
       const assertionsOnly = getAssertionsOnly(rawData);
+      /** Report Business Metrics (BM) */
+      const BMOnly = getBusinessMetrics(rawData);
 
       const resultState: ReportState = {
         rawData,
@@ -215,6 +265,7 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
         reportDisplayTime,
         tableColumnsOnly,
         assertionsOnly,
+        BMOnly,
       };
 
       // final setter
