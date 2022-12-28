@@ -2,8 +2,9 @@ import decimal
 import itertools
 from typing import List, Union
 
-from sqlalchemy import Table, MetaData, select, func, distinct, literal_column, join
+from sqlalchemy import select, func, distinct, literal_column, join
 from sqlalchemy.engine import Engine
+from sqlalchemy.sql.expression import table as table_clause, column as column_clause, text
 
 
 def dtof(value: Union[int, float, decimal.Decimal]) -> Union[int, float]:
@@ -45,7 +46,8 @@ class MetricEngine:
 
     def get_query_statement(self, metric: Metric, grain, dimension):
         if metric.calculation_method != 'derived':
-            selectable = Table(metric.table, MetaData(), autoload_with=self.engine, schema=metric.schema)
+            selectable = table_clause(metric.table, column_clause(metric.timestamp), column_clause(metric.expression),
+                                      schema=metric.schema)
         else:
             selectable = None
             for ref_metric in metric.ref_metrics:
@@ -74,16 +76,16 @@ class MetricEngine:
 
         if metric.calculation_method != 'derived':
             stmt = select([
-                func.date_trunc(grain, selectable.columns[metric.timestamp]).label(grain),
+                self.date_trunc(grain, selectable.columns[metric.timestamp]).label(grain),
                 agg_expression.label(metric.name)
             ]).select_from(
                 selectable
             ).group_by(
-                func.date_trunc(grain, selectable.columns[metric.timestamp])
+                self.date_trunc(grain, selectable.columns[metric.timestamp])
             )
         else:
             stmt = select([
-                cte.c[grain],
+                selectable.left.c[grain],
                 agg_expression.label(metric.name)
             ]).select_from(
                 selectable
@@ -140,3 +142,18 @@ class MetricEngine:
 
                 results.append(metric_result)
         return results
+
+    def date_trunc(self, *args):
+        if self.engine.url.get_backend_name() == 'sqlite':
+            if args[0] == "YEAR":
+                return func.strftime("%Y-01-01", args[1])
+            elif args[0] == "MONTH":
+                return func.strftime("%Y-%m-01", args[1])
+            else:
+                return func.strftime("%Y-%m-%d", args[1])
+        elif self.engine.url.get_backend_name() == 'bigquery':
+            date_expression = args[1]
+            date_part = args[0]
+            return func.date_trunc(date_expression, text(date_part))
+        else:
+            return func.date_trunc(*args)
