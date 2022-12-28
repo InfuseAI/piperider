@@ -2,6 +2,7 @@ import json
 import math
 import os
 import re
+import shutil
 import sys
 import uuid
 from datetime import datetime
@@ -678,6 +679,17 @@ class Runner():
 
         with open(output_file, 'w') as f:
             f.write(json.dumps(run_result, separators=(',', ':')))
+
+        if dbt_state_dir:
+            abs_dir = os.path.abspath(dbt_state_dir)
+            dbt_state_files = ['manifest.json', 'run_results.json', 'index.html', 'catalog.json']
+            dbt_output_dir = os.path.join(output_path, 'dbt')
+            os.makedirs(dbt_output_dir, exist_ok=True)
+            for file in dbt_state_files:
+                abs_file_path = os.path.join(abs_dir, file)
+                if not os.path.exists(abs_file_path):
+                    continue
+                shutil.copy2(abs_file_path, dbt_output_dir)
 
         if output:
             clone_directory(output_path, output)
