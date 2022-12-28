@@ -166,7 +166,7 @@ def create_compare_reports(base_id: int, target_id: int, tables_from) -> dict:
         url = f'{piperider_cloud.service.cloud_host}/projects/{project_id}/reports/{base_id}/comparison/{target_id}'
         console.print(f'Comparison report URL: {url}')
     else:
-        console.print(f'Failed to create the comparison report')
+        console.print('Failed to create the comparison report')
     return response
 
 
