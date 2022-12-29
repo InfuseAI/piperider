@@ -20,13 +20,8 @@ export function SRBMPage({ data }: Props) {
   });
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base: data });
-  const {
-    BMOnly,
-    rawData: { base, input },
-  } = useReportStore.getState();
-  const datasource =
-    input?.datasource.name ?? base?.datasource.name ?? NO_VALUE;
-  const BMList = BMOnly?.base ?? [];
+  const { BMOnly } = useReportStore.getState();
+  const datasource = data?.datasource.name ?? NO_VALUE;
 
   return (
     <Main isSingleReport>
@@ -36,10 +31,9 @@ export function SRBMPage({ data }: Props) {
             Report Business Metrics ({datasource})
           </Text>
         </GridItem>
-        {BMList.map((v) => (
-          // TODO: Convert into Widget later (when adding filters for time-grain + dimensions + other chart visuals)
+        {(BMOnly?.base ?? []).map((v) => (
           <GridItem key={v.name}>
-            <BMWidget data={v} />
+            <BMWidget data={{ base: v }} singleOnly />
           </GridItem>
         ))}
       </Grid>
