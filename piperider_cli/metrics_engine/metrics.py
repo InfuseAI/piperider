@@ -87,6 +87,8 @@ class MetricEngine:
             ]).select_from(
                 selectable
             )
+            stmt = self.set_query_start_date(stmt, selectable.columns[metric.timestamp], grain)
+
             for f in metric.filters:
                 stmt = stmt.where(text(f"{f.get('field')} {f.get('operator')} {f.get('value')}"))
 
@@ -111,6 +113,23 @@ class MetricEngine:
                     for dims in itertools.combinations(metric.dimensions, r):
                         yield grain, list(dims)
 
+    def set_query_start_date(self, stmt, timestamp_column, grain):
+        if grain == 'day':
+            n = -30
+        elif grain == 'week':
+            n = -12
+        elif grain == 'month':
+            n = -12
+        elif grain == 'quarter':
+            n = -10
+        elif grain == 'year':
+            n = -10
+        else:
+            return stmt
+
+        return stmt.where(
+            self.date_trunc(grain, timestamp_column) > func.dateadd(grain, n, self.date_trunc(grain, func.current_date()))
+        )
     def execute(self):
         metrics = self.metrics
         results = []
