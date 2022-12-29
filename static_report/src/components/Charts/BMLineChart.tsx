@@ -10,6 +10,7 @@ import {
   LineController,
   LineElement,
   PointElement,
+  TimeUnit,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { DBTBusinessMetricGroupItem } from '../../lib';
@@ -20,8 +21,9 @@ import 'chartjs-adapter-date-fns';
  */
 type Props = {
   data?: DBTBusinessMetricGroupItem;
+  timeGrain: string;
 };
-export function BMLineChart({ data }: Props) {
+export function BMLineChart({ data, timeGrain }: Props) {
   ChartJS.register(
     LineController,
     LineElement,
@@ -34,49 +36,29 @@ export function BMLineChart({ data }: Props) {
 
   const { results = [] } = data ?? {};
 
-  // Should get the list of dataset values list (2D), in indexed order
-  // const datasetDataValues = results.reduce<number[][]>(
-  //   (accum, [, ...rowVals], i) => {
-  //     //skips first element, which is the date timestamp
-  //     rowVals.forEach((v, k) => {
-  //       const value = Number(v);
-  //       const datasetRow = accum[k];
-  //       // add to existing OR initialize new array
-  //       // ref integrity intact (dealing with array/objects)
-  //       Array.isArray(datasetRow)
-  //         ? datasetRow.push(value)
-  //         : (accum[k] = [value]);
-  //     });
-  //     return accum;
-  //   },
-  //   [],
-  // );
-  // const datasets: ChartDataset<'line'>[] = results.map(({ data }) => ({
-  //   data,
-  // }));
-  // // timestamp per dataset row (all)
+  const { data: [labels, dataValues] = [] } =
+    results.find(
+      (timeGrainGroup) => timeGrainGroup.params.grain === timeGrain,
+    ) ?? {};
+  // console.log(data?.name, timeGrain, { labels, dataValues });
 
-  //2d datasets list
-  // const datasetsList =
+  const numericalDataValues = dataValues.map((v) => Number(v) ?? 0);
+  const datasets: ChartDataset<'line'>[] = [{ data: numericalDataValues }];
 
-  //2d labels list
-  const labelsList = results.map(({ data: [dateStrings] }) => dateStrings);
-
-  // const chartData: ChartData<'line'> = {
-  //   datasets,
-  //   labels,
-  // };
   const chartOpts: ChartOptions<'line'> = {
     scales: {
       x: {
         type: 'time',
         time: {
-          unit: 'month', //TODO: depends on time grain toggle event
+          unit: timeGrain as TimeUnit,
         },
       },
     },
   };
+  const chartData: ChartData<'line'> = {
+    datasets,
+    labels,
+  };
 
-  return null;
-  // <Line data={chartData} options={chartOpts} />;
+  return <Line data={chartData} options={chartOpts} />;
 }

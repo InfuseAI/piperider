@@ -1,7 +1,7 @@
-import { Flex, Grid, GridItem, Text } from '@chakra-ui/react';
+import { Grid, GridItem, Text } from '@chakra-ui/react';
 import { NO_VALUE } from '../components';
-import { BMLineChart } from '../components/Charts/BMLineChart';
 import { Main } from '../components/Common/Main';
+import { BMWidget } from '../components/Widgets/BMWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { SaferSRSchema } from '../types';
 import { AMPLITUDE_EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
@@ -39,17 +39,7 @@ export function SRBMPage({ data }: Props) {
         {BMList.map((v) => (
           // TODO: Convert into Widget later (when adding filters for time-grain + dimensions + other chart visuals)
           <GridItem key={v.name}>
-            <Flex
-              className="widget-header"
-              py={5}
-              justifyContent={'space-between'}
-            >
-              <Text fontWeight={'medium'}>{v.name}</Text>
-            </Flex>
-            <Flex maxH={'300px'} justifyContent={'center'}>
-              {/* TODO: Handle Comparable CR data */}
-              <BMLineChart data={v} />
-            </Flex>
+            <BMWidget data={v} />
           </GridItem>
         ))}
       </Grid>
