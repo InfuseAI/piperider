@@ -130,27 +130,33 @@ class MetricEngine:
         return stmt.where(
             self.date_trunc(grain, timestamp_column) > func.dateadd(grain, n, self.date_trunc(grain, func.current_date()))
         )
+
+    @staticmethod
+    def compose_query_name(grain, dimensions, label=False):
+        if grain == 'day':
+            grain = 'daily'
+        else:
+            grain += 'ly'
+
+        if label:
+            grain = grain.upper()[0] + grain[1:]
+
+        return grain
+
     def execute(self):
         metrics = self.metrics
         results = []
         with self.engine.connect() as conn:
             for metric in metrics:
-                metric_result = dict(
-                    name=metric.name,
-                    label=metric.label,
-                    description=metric.description,
-                    results=[]
-                )
-
                 for grain, dimension in self.get_query_param(metric):
                     headers = [grain] + dimension + [metric.name]
 
                     query_result = {
-                        'name': grain,
-                        'params': {
-                            'dimensions': dimension,
-                            'grain': grain
-                        },
+                        'name': f'{metric.name}_{self.compose_query_name(grain, dimension)}',
+                        'label': f'{metric.label}::{self.compose_query_name(grain, dimension, label=True)}',
+                        'description': metric.description,
+                        'dimensions': dimension,
+                        'grain': grain,
                         'headers': headers,
                         'data': []
                     }
@@ -161,13 +167,11 @@ class MetricEngine:
 
                     for row in result:
                         row = list(row)
-                        row[0] = str(row[0])
+                        row[0] = str(row[0].date())
                         row[-1] = dtof(row[-1])
                         query_result['data'].append(row)
 
-                    metric_result['results'].append(query_result)
-
-                results.append(metric_result)
+                    results.append(query_result)
         return results
 
     def date_trunc(self, *args):
