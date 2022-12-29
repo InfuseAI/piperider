@@ -16,21 +16,21 @@ export function BMWidget({ data: { base, target }, singleOnly }: Props) {
 
   //shared timeGrain selection + options (SR+CR+Dimensions)
   const fallbackBMData = target || base;
-  const fallbackBMResults = fallbackBMData?.results ?? [];
-  const timeGrainOptions = fallbackBMResults.map(
-    (result) => result.params.grain,
-  );
+  // const fallbackBMResults = fallbackBMData?.results ?? [];
+  // const timeGrainOptions = fallbackBMResults.map(
+  //   (result) => result.params.grain,
+  // );
 
   // use first element grain to as initial load (or last for largest grain?)
   const [timeGrain, setTimeGrain] = useState<string>(
-    fallbackBMResults[0].params.grain,
+    fallbackBMData?.grain ?? '',
   );
 
   return (
     <Box>
       <Flex className="widget-header" py={5} justifyContent={'space-between'}>
         <Text fontWeight={'medium'}>{fallbackBMData?.name}</Text>
-        <Select
+        {/* <Select
           w={'initial'}
           onChange={(e) => {
             const grainIndex = Number(e.currentTarget.value);
@@ -44,7 +44,7 @@ export function BMWidget({ data: { base, target }, singleOnly }: Props) {
               {v}
             </option>
           ))}
-        </Select>
+        </Select> */}
       </Flex>
       <Flex maxH={'300px'} justifyContent={'center'}>
         <BMLineChart data={bmGroupList} timeGrain={timeGrain} />

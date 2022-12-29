@@ -39,15 +39,17 @@ export function BMLineChart({ data = [], timeGrain }: Props) {
 
   // for each BMGroup, map its chart dataset
   data.forEach((d) => {
-    const { results = [] } = d ?? {};
+    const { data = [] } = d ?? {};
+    const [labels, dataValues] = data;
 
     // TODO: Figure out how to decide which label to use? (CR: data range desync)
-    const { data: [labels, dataValues] = [] } =
-      results.find(
-        (timeGrainGroup) => timeGrainGroup.params.grain === timeGrain,
-      ) ?? {};
+    // const { data: [labels, dataValues] = [] } =
+    //   results.find(
+    //     (timeGrainGroup) => timeGrainGroup.params.grain === timeGrain,
+    //   ) ?? {};
 
-    labelVal = labelVal ?? labels; //NOTE: narrow dependency (first-val-win)
+    //NOTE: narrow dependency (first-val: target > base)
+    labelVal = labelVal ?? labels;
 
     // TODO: Line Colors (Order-Specific Colors)
     const numericalDataValues = dataValues.map((v) => Number(v) ?? 0);

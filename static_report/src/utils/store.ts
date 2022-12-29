@@ -31,21 +31,14 @@ export type CompTableColEntryItem = EntryItem<
 >;
 export type ComparedAssertionTestValue = Partial<AssertionTest> | null;
 // FIXME: IMPORT ME FROM REGEN'ED SCHEMA TYPINGS
-export type DBTBusinessMetricItem = {
-  name: string;
-  params: {
-    dimensions: unknown[];
-    grain: string;
-  };
-  headers: string[];
-  data: unknown[][]; //2d-array: rows of table cells
-};
-// FIXME: IMPORT ME FROM REGEN'ED SCHEMA TYPINGS
 export type DBTBusinessMetricGroupItem = {
   name: string;
   label: string;
   description: string;
-  results: DBTBusinessMetricItem[];
+  grain: string;
+  headers: string[];
+  data: unknown[][]; //2d-array: rows of table cells
+  dimensions: unknown[];
 };
 export interface ReportState {
   rawData: ComparableReport;
@@ -212,21 +205,13 @@ const getBusinessMetrics = (rawData: ComparableReport) => {
   const { base, input } = rawData;
 
   const baseBMValue = (base?.metrics ?? []).map((group) => {
-    const results = group.results.map((result) => ({
-      ...result,
-      data: zip(...result.data),
-    }));
-
-    return { ...group, results };
+    const zippedDataColumns = zip(...group.data);
+    return { ...group, data: zippedDataColumns };
   });
 
   const targetBMValue = (input?.metrics ?? []).map((group) => {
-    const results = group.results.map((result) => ({
-      ...result,
-      data: zip(...result.data),
-    }));
-
-    return { ...group, results };
+    const zippedDataColumns = zip(...group.data);
+    return { ...group, data: zippedDataColumns };
   });
 
   return { base: baseBMValue, input: targetBMValue };
