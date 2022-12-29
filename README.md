@@ -41,8 +41,8 @@ Piperider is a CLI tool that allows you to build data profiles and write asserti
   - e.g. `missing`, `uniqueness`, `duplicate_rows`, `quantiles`, `histogram`
 - **Test datasets with a mix of custom and built-in assertion definitions**
 - **Auto-generates recommended assertions based on your single-run profiles**
-- **Generates single-run reports** to visualize your data profile and assertion test results ([example](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.15.0/index.html))
-- **Generates comparison reports** to visualize how your data has changed over time ([example](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.15.0/index.html))
+- **Generates single-run reports** to visualize your data profile and assertion test results ([example](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.16.0/index.html))
+- **Generates comparison reports** to visualize how your data has changed over time ([example](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.16.0/index.html))
 - **Supported Datasources**: Snowflake, BigQuery, Redshift, Postgres, SQLite, DuckDB, CSV, Parquet.
 
 # Quickstart
@@ -115,9 +115,9 @@ For more details on the generated report, see the [doc](https://docs.piperider.i
 
 ## Example Report Demo
 
-[See Generated Single-Run Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.15.0/index.html)
+[See Generated Single-Run Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.16.0/index.html)
 
-[See Comparison Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.15.0/index.html)
+[See Comparison Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.16.0/index.html)
 
 # Development
 
