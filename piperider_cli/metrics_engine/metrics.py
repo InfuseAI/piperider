@@ -2,7 +2,7 @@ import decimal
 import itertools
 from typing import List, Union
 
-from sqlalchemy import select, func, distinct, literal_column, join
+from sqlalchemy import select, func, distinct, literal_column, join, Date, outerjoin
 from sqlalchemy.engine import Engine
 from sqlalchemy.sql.expression import table as table_clause, column as column_clause, text
 
@@ -46,6 +46,7 @@ class MetricEngine:
         self.metrics = metrics
 
     def get_query_statement(self, metric: Metric, grain, dimension):
+        date_column_name = f'date_{grain}'
         if metric.calculation_method != 'derived':
             column = [column_clause(metric.timestamp), column_clause(metric.expression)]
             for f in metric.filters:
@@ -61,7 +62,7 @@ class MetricEngine:
                 if selectable is None:
                     selectable = cte
                 else:
-                    selectable = join(selectable, cte, selectable.c[grain] == cte.c[grain])
+                    selectable = join(selectable, cte, selectable.c[date_column_name] == cte.c[date_column_name])
 
         if metric.calculation_method == 'count':
             agg_expression = func.count(selectable.columns[metric.expression])
@@ -82,7 +83,7 @@ class MetricEngine:
 
         if metric.calculation_method != 'derived':
             stmt = select([
-                self.date_trunc(grain, selectable.columns[metric.timestamp]).label(grain),
+                self.date_trunc(grain, selectable.columns[metric.timestamp]).label(date_column_name),
                 agg_expression.label(metric.name)
             ]).select_from(
                 selectable
@@ -93,9 +94,19 @@ class MetricEngine:
                 stmt = stmt.where(text(f"{f.get('field')} {f.get('operator')} {f.get('value')}"))
 
             stmt = stmt.group_by(self.date_trunc(grain, selectable.columns[metric.timestamp]))
+
+            calendar_cte = self.get_calendar_cte(grain)
+            base_cte = stmt.cte()
+
+            stmt = select([
+                calendar_cte.c.date.label(date_column_name),
+                base_cte.c[metric.name]
+            ]).select_from(
+                outerjoin(calendar_cte, base_cte, calendar_cte.c.date == base_cte.c[date_column_name])
+            )
         else:
             stmt = select([
-                selectable.left.c[grain],
+                selectable.left.c[date_column_name],
                 agg_expression.label(metric.name)
             ]).select_from(
                 selectable
@@ -127,8 +138,11 @@ class MetricEngine:
         else:
             return stmt
 
+        end_date = func.dateadd(grain, 1, self.date_trunc(grain, func.current_date()))
+        start_date = func.dateadd(grain, n, end_date)
+
         return stmt.where(
-            self.date_trunc(grain, timestamp_column) > func.dateadd(grain, n, self.date_trunc(grain, func.current_date()))
+            self.date_trunc(grain, timestamp_column) > start_date
         )
 
     @staticmethod
@@ -143,20 +157,52 @@ class MetricEngine:
 
         return grain
 
+    def get_calendar_cte(self, grain):
+        if grain == 'day':
+            n = -30
+        elif grain == 'week':
+            n = -12
+        elif grain == 'month':
+            n = -12
+        elif grain == 'quarter':
+            n = -10
+        elif grain == 'year':
+            n = -10
+
+        end_date = func.dateadd(grain, 1, self.date_trunc(grain, func.current_date()))
+        start_date = func.dateadd(grain, n, end_date)
+
+        calendar_cte = select([
+            func.cast(start_date, Date).label('date'),
+            func.cast(end_date, Date).label('end_date')
+        ]).cte(recursive=True)
+        calendar_cte = calendar_cte.union_all(
+            select([
+                func.dateadd(grain, 1, calendar_cte.c.date),
+                calendar_cte.c.end_date
+            ]).select_from(
+                calendar_cte
+            ).where(
+                func.dateadd(grain, 1, calendar_cte.c.date) < calendar_cte.c.end_date
+            )
+        )
+
+        return calendar_cte
+
     def execute(self):
         metrics = self.metrics
         results = []
         with self.engine.connect() as conn:
             for metric in metrics:
                 for grain, dimension in self.get_query_param(metric):
-                    headers = [grain] + dimension + [metric.name]
+                    headers = [f'date_{grain}'] + dimension + [metric.name]
 
                     query_result = {
                         'name': f'{metric.name}_{self.compose_query_name(grain, dimension)}',
                         'label': f'{metric.label}::{self.compose_query_name(grain, dimension, label=True)}',
                         'description': metric.description,
-                        'dimensions': dimension,
                         'grain': grain,
+                        'dimensions': dimension,
                         'headers': headers,
                         'data': []
                     }
@@ -167,7 +213,7 @@ class MetricEngine:
 
                     for row in result:
                         row = list(row)
-                        row[0] = str(row[0].date())
+                        row[0] = str(row[0])
                         row[-1] = dtof(row[-1])
                         query_result['data'].append(row)
 
