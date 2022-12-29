@@ -3,7 +3,7 @@ import { NO_VALUE } from '../components';
 import { Main } from '../components/Common/Main';
 import { BMWidget } from '../components/Widgets/BMWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
-import { ComparableData, ComparisonReportSchema } from '../types';
+import { ComparisonReportSchema } from '../types';
 import {
   AMPLITUDE_EVENTS,
   CR_TYPE_LABEL,

@@ -13,7 +13,7 @@ import {
   TimeUnit,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { DBTBusinessMetricGroupItem } from '../../lib';
+import { BLACK_COLOR, colorMap, DBTBusinessMetricGroupItem } from '../../lib';
 
 import 'chartjs-adapter-date-fns';
 /**
@@ -21,7 +21,7 @@ import 'chartjs-adapter-date-fns';
  */
 type Props = {
   data?: (DBTBusinessMetricGroupItem | undefined)[]; //treat as multiple datasets
-  timeGrain: string;
+  timeGrain?: TimeUnit;
 };
 export function BMLineChart({ data = [], timeGrain }: Props) {
   ChartJS.register(
@@ -36,33 +36,48 @@ export function BMLineChart({ data = [], timeGrain }: Props) {
 
   let labelVal;
   const datasets: ChartDataset<'line'>[] = [];
+  //NOTE: colorList (max: up to 6)
+  const colorList = [...colorMap.values()];
 
   // for each BMGroup, map its chart dataset
-  data.forEach((d) => {
+  data.forEach((d, i) => {
     const { data = [] } = d ?? {};
     const [labels, dataValues] = data;
-
-    // TODO: Figure out how to decide which label to use? (CR: data range desync)
-    // const { data: [labels, dataValues] = [] } =
-    //   results.find(
-    //     (timeGrainGroup) => timeGrainGroup.params.grain === timeGrain,
-    //   ) ?? {};
 
     //NOTE: narrow dependency (first-val: target > base)
     labelVal = labelVal ?? labels;
 
-    // TODO: Line Colors (Order-Specific Colors)
     const numericalDataValues = dataValues.map((v) => Number(v) ?? 0);
-    datasets.push({ data: numericalDataValues });
+    datasets.push({
+      data: numericalDataValues,
+      borderColor: colorList[i],
+      pointBorderColor: BLACK_COLOR,
+    });
   });
 
-  // TODO: tooltip hover area increase
   const chartOpts: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      tooltip: {
+        mode: 'index',
+        position: 'nearest',
+        intersect: false,
+        callbacks: {
+          labelColor: function ({ datasetIndex }) {
+            return {
+              borderColor: BLACK_COLOR,
+              backgroundColor: colorList[datasetIndex],
+            };
+          },
+        },
+      },
+    },
     scales: {
       x: {
         type: 'time',
         time: {
-          unit: timeGrain as TimeUnit,
+          unit: timeGrain,
         },
       },
     },
