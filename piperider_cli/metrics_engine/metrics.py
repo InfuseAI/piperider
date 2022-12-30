@@ -1,9 +1,11 @@
+import concurrent.futures
 import decimal
 import itertools
 from typing import List, Union
 
 from sqlalchemy import select, func, distinct, literal_column, join, Date, outerjoin, Column
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import Engine, Connection
+from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy.sql.expression import table as table_clause, column as column_clause, text
 from sqlalchemy.sql.selectable import CTE
 
@@ -190,35 +192,59 @@ class MetricEngine:
 
         return calendar_cte
 
+    def get_query_result(self, conn: Connection, metric: Metric, grain: str, dimension: List[str]) -> dict:
+        headers = [f'date_{grain}'] + dimension + [metric.name]
+
+        query_result = {
+            'name': f'{metric.name}_{self.compose_query_name(grain, dimension)}',
+            'label': f'{metric.label}::{self.compose_query_name(grain, dimension, label=True)}',
+            'description': metric.description,
+            'grain': grain,
+            'dimensions': dimension,
+            'headers': headers,
+            'data': []
+        }
+
+        stmt = self.get_query_statement(metric, grain, dimension)
+        stmt.order_by(literal_column(grain))
+        result = conn.execute(stmt)
+
+        for row in result:
+            row = list(row)
+            row[0] = str(row[0])
+            row[-1] = dtof(row[-1])
+            query_result['data'].append(row)
+
+        return query_result
+
     def execute(self) -> List[dict]:
         metrics = self.metrics
         results = []
         with self.engine.connect() as conn:
             for metric in metrics:
-                for grain, dimension in self.get_query_param(metric):
-                    headers = [f'date_{grain}'] + dimension + [metric.name]
 
-                    query_result = {
-                        'name': f'{metric.name}_{self.compose_query_name(grain, dimension)}',
-                        'label': f'{metric.label}::{self.compose_query_name(grain, dimension, label=True)}',
-                        'description': metric.description,
-                        'grain': grain,
-                        'dimensions': dimension,
-                        'headers': headers,
-                        'data': []
-                    }
+                if isinstance(self.engine.pool, SingletonThreadPool):
+                    for grain, dimension in self.get_query_param(metric):
+                        query_result = self.get_query_result(conn, metric, grain, dimension)
 
-                    stmt = self.get_query_statement(metric, grain, dimension)
-                    stmt.order_by(literal_column(grain))
-                    result = conn.execute(stmt)
+                        results.append(query_result)
+                else:
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                        query_results = {}
+                        future_to_query = {}
+                        for grain, dimension in self.get_query_param(metric):
+                            # to keep the order
+                            query_results[self.compose_query_name(grain, dimension)] = None
 
-                    for row in result:
-                        row = list(row)
-                        row[0] = str(row[0])
-                        row[-1] = dtof(row[-1])
-                        query_result['data'].append(row)
+                            future = executor.submit(self.get_query_result, conn, metric, grain, dimension)
+                            future_to_query[future] = self.compose_query_name(grain, dimension)
 
-                    results.append(query_result)
+                        for future in concurrent.futures.as_completed(future_to_query):
+                            query_name = future_to_query[future]
+                            query_results[query_name] = future.result()
+
+                        for query_result in query_results.values():
+                            results.append(query_result)
         return results
 
     def date_trunc(self, *args) -> Column:
