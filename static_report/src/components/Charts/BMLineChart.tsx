@@ -7,13 +7,18 @@ import {
   Tooltip,
   Chart as ChartJS,
   ChartOptions,
-  LineController,
   LineElement,
   PointElement,
   TimeUnit,
+  Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { BLACK_COLOR, colorMap, DBTBusinessMetricGroupItem } from '../../lib';
+import {
+  BLACK_COLOR,
+  colorMap,
+  DBTBusinessMetricGroupItem,
+  skipped,
+} from '../../lib';
 
 import 'chartjs-adapter-date-fns';
 /**
@@ -25,12 +30,12 @@ type Props = {
 };
 export function BMLineChart({ data = [], timeGrain }: Props) {
   ChartJS.register(
-    LineController,
     LineElement,
     PointElement,
     TimeSeriesScale,
     LinearScale,
     CategoryScale,
+    Legend,
     Tooltip,
   );
 
@@ -48,14 +53,21 @@ export function BMLineChart({ data = [], timeGrain }: Props) {
     labelVal = labelVal ?? labels;
 
     //FIXME: Hack for target delta
+    // fallback to undefined for coalescing NaN
     const numericalDataValues = dataValues.map(
-      (v) => Number(i === 0 ? v : Number(v) * 2) ?? 0,
+      (v) => Number(v ?? undefined) * (i === 0 ? 1 : 2),
     );
+
     datasets.push({
       label: i === 0 ? 'Base' : 'Target',
       data: numericalDataValues,
       borderColor: colorList[i],
-      pointBorderColor: BLACK_COLOR,
+      pointBackgroundColor: colorList[i],
+      spanGaps: true,
+      segment: {
+        borderColor: (ctx) => skipped(ctx, 'rgb(0,0,0,0.2)'),
+        borderDash: (ctx) => skipped(ctx, [6, 6]),
+      },
     });
   });
 
@@ -73,6 +85,20 @@ export function BMLineChart({ data = [], timeGrain }: Props) {
               borderColor: BLACK_COLOR,
               backgroundColor: colorList[datasetIndex],
             };
+          },
+        },
+      },
+      legend: {
+        // might have to replace to support deselection?
+        position: 'bottom',
+        labels: {
+          padding: 10,
+          boxWidth: 30,
+          generateLabels({ data: { datasets, labels } }) {
+            return datasets.map((ds, i) => ({
+              fillStyle: colorList[i],
+              text: `${i === 0 ? 'Base' : 'Target'}`,
+            }));
           },
         },
       },

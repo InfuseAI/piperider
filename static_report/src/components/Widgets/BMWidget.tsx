@@ -1,4 +1,5 @@
-import { Box, Flex, Tag, Text } from '@chakra-ui/react';
+import { InfoIcon } from '@chakra-ui/icons';
+import { Box, Flex, Icon, Tag, Text, Tooltip } from '@chakra-ui/react';
 import { TimeUnit } from 'chart.js';
 import {
   Comparable,
@@ -27,10 +28,17 @@ export function BMWidget({ data: { base, target }, singleOnly }: Props) {
   return (
     <Box p={3}>
       <Box pb={3}>
-        <Flex className="widget-header" justifyContent={'space-between'}>
+        <Flex className="widget-header" alignItems={'center'} gap={2} mb={2}>
           <Tag colorScheme={'blue'} variant={'subtle'} fontWeight={'medium'}>
             {fallbackBMData?.label}
           </Tag>
+          <Tooltip
+            shouldWrapChildren
+            label={fallbackBMData?.description}
+            placement={'right'}
+          >
+            <Icon as={InfoIcon} />
+          </Tooltip>
         </Flex>
         <Flex>
           <Text color={'gray.500'} fontSize={'sm'}>
@@ -38,7 +46,7 @@ export function BMWidget({ data: { base, target }, singleOnly }: Props) {
           </Text>
         </Flex>
       </Box>
-      <Flex maxH={'300px'} justifyContent={'center'}>
+      <Flex maxH={'300px'}>
         <BMLineChart
           data={bmGroupList}
           timeGrain={fallbackBMData?.grain as TimeUnit}

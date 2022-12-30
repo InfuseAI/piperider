@@ -158,3 +158,11 @@ export function getChartKindByColumnType(
   if (isCategoryKind) return 'topk';
   if (isHistogramKind) return 'histogram';
 }
+
+/**
+ * Chart.js utility for skipped data points (null | NaN)
+ * @param ctx
+ * @param value
+ */
+export const skipped = (ctx, value) =>
+  ctx.p0.skip || ctx.p1.skip ? value : undefined;
