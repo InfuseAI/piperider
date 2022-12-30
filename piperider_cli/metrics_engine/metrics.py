@@ -9,6 +9,8 @@ from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy.sql.expression import table as table_clause, column as column_clause, text
 from sqlalchemy.sql.selectable import CTE
 
+from piperider_cli.metrics_engine.event import MetricEventHandler, DefaultMetricEventHandler
+
 
 def dtof(value: Union[int, float, decimal.Decimal]) -> Union[int, float]:
     """
@@ -44,9 +46,10 @@ class MetricEngine:
     Profiler profile tables and columns by a sqlalchemy engine.
     """
 
-    def __init__(self, engine: Engine, metrics):
+    def __init__(self, engine: Engine, metrics, event_handler: MetricEventHandler = DefaultMetricEventHandler()):
         self.engine = engine
         self.metrics = metrics
+        self.event_handler = event_handler
 
     @staticmethod
     def get_query_param(metric: Metric) -> (str, List[str]):
@@ -221,30 +224,53 @@ class MetricEngine:
         metrics = self.metrics
         results = []
         with self.engine.connect() as conn:
-            for metric in metrics:
+            self.event_handler.handle_run_start()
+            total_metric = len(metrics)
+            completed_metric = 0
 
+            for metric in metrics:
+                self.event_handler.handle_run_progress(total_metric, completed_metric)
+                self.event_handler.handle_metric_start(metric.label)
+
+                total_param = len(list(self.get_query_param(metric)))
+                completed_param = 0
                 if isinstance(self.engine.pool, SingletonThreadPool):
                     for grain, dimension in self.get_query_param(metric):
+                        self.event_handler.handle_metric_progress(metric.label, total_param, completed_param)
+                        self.event_handler.handle_param_query_start(metric.label, self.compose_query_name(grain, dimension))
                         query_result = self.get_query_result(conn, metric, grain, dimension)
 
                         results.append(query_result)
+
+                        self.event_handler.handle_param_query_end(metric.label)
+                        completed_param += 1
                 else:
                     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
                         query_results = {}
                         future_to_query = {}
                         for grain, dimension in self.get_query_param(metric):
                             # to keep the order
-                            query_results[self.compose_query_name(grain, dimension)] = None
+                            query_param = self.compose_query_name(grain, dimension)
+                            query_results[query_param] = None
 
                             future = executor.submit(self.get_query_result, conn, metric, grain, dimension)
-                            future_to_query[future] = self.compose_query_name(grain, dimension)
+                            future_to_query[future] = query_param
 
                         for future in concurrent.futures.as_completed(future_to_query):
-                            query_name = future_to_query[future]
-                            query_results[query_name] = future.result()
+                            query_param = future_to_query[future]
+                            self.event_handler.handle_metric_progress(metric.label, total_param, completed_param)
+                            self.event_handler.handle_param_query_start(metric.label, query_param)
+                            query_results[query_param] = future.result()
+
+                            self.event_handler.handle_param_query_end(metric.label)
+                            completed_param += 1
 
                         for query_result in query_results.values():
                             results.append(query_result)
+
+                self.event_handler.handle_metric_end(metric.label)
+                completed_metric += 1
+            self.event_handler.handle_run_end()
         return results
 
     def date_trunc(self, *args) -> Column:
