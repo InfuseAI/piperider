@@ -130,9 +130,9 @@ class RichProfilerEventHandler(ProfilerEventHandler):
 class RichMetricEventHandler(MetricEventHandler):
 
     def __init__(self, metrics):
-        table_width, total_width = self._get_width(metrics)
-        total_column = TextColumn("{task.fields[coft]}", table_column=Column(width=total_width))
-        text_column = TextColumn("{task.description}", table_column=Column(width=table_width))
+        max_metric_width, counting_width = self._get_width(metrics)
+        total_column = TextColumn("{task.fields[coft]}", table_column=Column(width=counting_width))
+        text_column = TextColumn("{task.description}", table_column=Column(width=max_metric_width))
         bar_column = BarColumn(bar_width=80, pulse_style=Style.from_color(Color.from_rgb(244, 164, 96)))
         mofn_column = MofNCompleteColumn(table_column=Column(width=5, justify="right"))
         time_elapsed_column = TimeElapsedColumn()
