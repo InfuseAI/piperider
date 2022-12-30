@@ -2,9 +2,10 @@ import decimal
 import itertools
 from typing import List, Union
 
-from sqlalchemy import select, func, distinct, literal_column, join, Date, outerjoin
+from sqlalchemy import select, func, distinct, literal_column, join, Date, outerjoin, Column
 from sqlalchemy.engine import Engine
 from sqlalchemy.sql.expression import table as table_clause, column as column_clause, text
+from sqlalchemy.sql.selectable import CTE
 
 
 def dtof(value: Union[int, float, decimal.Decimal]) -> Union[int, float]:
@@ -45,7 +46,29 @@ class MetricEngine:
         self.engine = engine
         self.metrics = metrics
 
-    def get_query_statement(self, metric: Metric, grain, dimension):
+    @staticmethod
+    def get_query_param(metric: Metric) -> (str, List[str]):
+        for grain in metric.time_grains:
+            if not metric.dimensions:
+                yield grain, []
+            else:
+                for r in range(1, len(metric.dimensions) + 1):
+                    for dims in itertools.combinations(metric.dimensions, r):
+                        yield grain, list(dims)
+
+    @staticmethod
+    def compose_query_name(grain: str, dimensions: List[str], label=False) -> str:
+        if grain == 'day':
+            grain = 'daily'
+        else:
+            grain += 'ly'
+
+        if label:
+            grain = grain.upper()[0] + grain[1:]
+
+        return grain
+
+    def get_query_statement(self, metric: Metric, grain: str, dimension: List[str]):
         date_column_name = f'date_{grain}'
         if metric.calculation_method != 'derived':
             column = [column_clause(metric.timestamp), column_clause(metric.expression)]
@@ -114,17 +137,7 @@ class MetricEngine:
 
         return stmt
 
-    @staticmethod
-    def get_query_param(metric: Metric) -> (str, List[str]):
-        for grain in metric.time_grains:
-            if not metric.dimensions:
-                yield grain, []
-            else:
-                for r in range(1, len(metric.dimensions) + 1):
-                    for dims in itertools.combinations(metric.dimensions, r):
-                        yield grain, list(dims)
-
-    def set_query_start_date(self, stmt, timestamp_column, grain):
+    def set_query_start_date(self, stmt: select, timestamp_column: Column, grain: str):
         if grain == 'day':
             n = -30
         elif grain == 'week':
@@ -145,19 +158,7 @@ class MetricEngine:
             self.date_trunc(grain, timestamp_column) > start_date
         )
 
-    @staticmethod
-    def compose_query_name(grain, dimensions, label=False):
-        if grain == 'day':
-            grain = 'daily'
-        else:
-            grain += 'ly'
-
-        if label:
-            grain = grain.upper()[0] + grain[1:]
-
-        return grain
-
-    def get_calendar_cte(self, grain):
+    def get_calendar_cte(self, grain: str) -> CTE:
         if grain == 'day':
             n = -30
         elif grain == 'week':
@@ -189,7 +190,7 @@ class MetricEngine:
 
         return calendar_cte
 
-    def execute(self):
+    def execute(self) -> List[dict]:
         metrics = self.metrics
         results = []
         with self.engine.connect() as conn:
@@ -220,7 +221,7 @@ class MetricEngine:
                     results.append(query_result)
         return results
 
-    def date_trunc(self, *args):
+    def date_trunc(self, *args) -> Column:
         if self.engine.url.get_backend_name() == 'sqlite':
             if args[0] == "YEAR":
                 return func.strftime("%Y-01-01", args[1])
