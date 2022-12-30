@@ -325,6 +325,12 @@
         }
       }
     },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/metric"
+      }
+    },
     "tests": {
       "type": "array",
       "items": {
@@ -439,6 +445,79 @@
           "type": "array",
           "items": {
             "type": "integer"
+          }
+        }
+      }
+    },
+    "metric": {
+      "title": "Metric",
+      "type": "object",
+      "required": [
+        "name",
+        "label",
+        "description",
+        "grain",
+        "dimensions",
+        "headers",
+        "data"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "grain": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "headers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
           }
         }
       }
