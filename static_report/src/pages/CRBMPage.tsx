@@ -26,6 +26,7 @@ export function CRBMPage({ data: { base, input } }: Props) {
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base, input });
   const { BMOnly } = useReportStore.getState();
+
   const datasource =
     input?.datasource.name ?? base?.datasource.name ?? NO_VALUE;
 
@@ -40,14 +41,15 @@ export function CRBMPage({ data: { base, input } }: Props) {
             Report Business Metrics ({datasource})
           </Text>
         </GridItem>
-        {BMList.map((v, i) => (
-          <GridItem key={v.name}>
-            <BMWidget
-              data={{ base: BMOnly?.base?.[i], target: BMOnly?.target?.[i] }}
-              singleOnly
-            />
-          </GridItem>
-        ))}
+        {BMList.map((v, i) => {
+          //NOTE: find required as indexes are not reliable to match CR+BM pairs
+          const base = BMOnly?.base?.find((d) => d.name === v.name);
+          return (
+            <GridItem key={v.name}>
+              <BMWidget data={{ base, target: BMOnly?.target?.[i] }} />
+            </GridItem>
+          );
+        })}
       </Grid>
     </Main>
   );

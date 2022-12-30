@@ -42,13 +42,17 @@ export function BMLineChart({ data = [], timeGrain }: Props) {
   // for each BMGroup, map its chart dataset
   data.forEach((d, i) => {
     const { data = [] } = d ?? {};
-    const [labels, dataValues] = data;
+    const [labels, dataValues = []] = data;
 
     //NOTE: narrow dependency (first-val: target > base)
     labelVal = labelVal ?? labels;
 
-    const numericalDataValues = dataValues.map((v) => Number(v) ?? 0);
+    //FIXME: Hack for target delta
+    const numericalDataValues = dataValues.map(
+      (v) => Number(i === 0 ? v : Number(v) * 2) ?? 0,
+    );
     datasets.push({
+      label: i === 0 ? 'Base' : 'Target',
       data: numericalDataValues,
       borderColor: colorList[i],
       pointBorderColor: BLACK_COLOR,

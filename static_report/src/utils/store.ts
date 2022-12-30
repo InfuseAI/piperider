@@ -214,7 +214,7 @@ const getBusinessMetrics = (rawData: ComparableReport) => {
     return { ...group, data: zippedDataColumns };
   });
 
-  return { base: baseBMValue, input: targetBMValue };
+  return { base: baseBMValue, target: targetBMValue };
 };
 
 export const useReportStore = create<ReportState & ReportSetters>()(function (
