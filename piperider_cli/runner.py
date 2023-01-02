@@ -574,7 +574,7 @@ class Runner():
             raise err
 
         try:
-            available_tables = ds.verify_connection()
+            available_tables = ds.verify_connection(configuration.include_views)
         except Exception as err:
             console.print(
                 f'[[bold red]FAILED[/bold red]] Failed to connect the \'{ds.name}\' data source.')

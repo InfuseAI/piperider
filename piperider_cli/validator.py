@@ -113,7 +113,7 @@ class CheckConnections(AbstractChecker):
                 self.console.print('  connector: [[bold green]OK[/bold green]]')
 
             try:
-                available_tables = ds.verify_connection()
+                available_tables = ds.verify_connection(configurator.include_views)
                 self.console.print(f'  Available Tables: {available_tables}')
                 self.console.print('  Connection: [[bold green]OK[/bold green]]')
             except Exception as e:
