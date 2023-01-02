@@ -166,8 +166,7 @@ def get_dbt_state_candidate(dbt_state_dir: str, view_profile: bool = False,
             continue
         config_material = node.get('config').get('materialized')
         if config_material in material_whitelist and not _is_filtered_out(node.get('name'), whitelist, blacklist):
-            candidate.append(ProfileSubject(node.get('alias'), node.get('schema'), node.get('name')))
-
+            candidate.append(ProfileSubject(node.get('alias'), node.get('schema'), node.get('name'), node.get('database')))
     return candidate
 
 

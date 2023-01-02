@@ -23,10 +23,11 @@ HISTOGRAM_NUM_BUCKET = 50
 
 
 class ProfileSubject:
-    def __init__(self, name: str, schema: str = None, model: str = None):
+    def __init__(self, name: str, schema: str = None, model: str = None, database: str = None):
         self.table = name
         self.schema = schema
         self.alias = model
+        self.database = database
 
     def get_lower_schema(self):
         return self.schema.lower() if self.schema else None
