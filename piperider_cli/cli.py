@@ -157,6 +157,8 @@ def diagnose(**kwargs):
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
 @click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
+@click.option('--only', default=None, type=click.STRING, help='Regex to include tables to profile')
+@click.option('--filter', default=None, type=click.STRING, help='Regex to filter tables to profile')
 @add_options(debug_option)
 def run(**kwargs):
     'Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
@@ -168,12 +170,17 @@ def run(**kwargs):
     skip_report = kwargs.get('skip_report')
     dbt_state_dir = kwargs.get('dbt_state')
     force_upload = kwargs.get('upload')
+    only = kwargs.get('only')
+    filter = kwargs.get('filter')
     ret = Runner.exec(datasource=datasource,
                       table=table,
                       output=output,
                       skip_report=skip_report,
                       dbt_state_dir=dbt_state_dir,
-                      report_dir=kwargs.get('report_dir'))
+                      report_dir=kwargs.get('report_dir'),
+                      only=only,
+                      filter=filter
+                      )
     if ret in (0, EC_ERR_TEST_FAILED):
         auto_upload = CloudConnector.is_auto_upload()
         is_cloud_view = (force_upload or auto_upload)

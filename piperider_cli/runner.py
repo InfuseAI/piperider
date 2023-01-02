@@ -584,7 +584,7 @@ def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results
 class Runner():
     @staticmethod
     def exec(datasource=None, table=None, output=None, skip_report=False, dbt_state_dir: str = None,
-             report_dir: str = None):
+             report_dir: str = None, only: str = None, filter: str = None):
         console = Console()
 
         raise_exception_when_directory_not_writable(output)
@@ -668,6 +668,14 @@ class Runner():
                 # cli --table is specified, no inclusion and exclusion applied
                 configuration.includes = None
                 configuration.excludes = None
+
+            if only:
+                p = re.compile(only)
+                tables = [s for s in tables if p.match(s.table)]
+
+            if filter:
+                p = re.compile(filter)
+                tables = [s for s in tables if not p.match(s.table)]
 
             if tables is not None and len(tables) == 0:
                 continue
