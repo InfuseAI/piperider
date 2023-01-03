@@ -328,7 +328,7 @@
     "metrics": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/metric"
+        "$ref": "#/definitions/business_metric"
       }
     },
     "tests": {
@@ -449,8 +449,8 @@
         }
       }
     },
-    "metric": {
-      "title": "Metric",
+    "business_metric": {
+      "title": "BusinessMetric",
       "type": "object",
       "required": [
         "name",
@@ -464,12 +464,15 @@
       "additionalProperties": false,
       "properties": {
         "name": {
+          "description": "Name of the business metric with time grain",
           "type": "string"
         },
         "label": {
+          "description": "A short for name of the business metric with time grain",
           "type": "string"
         },
         "description": {
+          "description": "Long form, human-readable description for the business metric",
           "oneOf": [
             {
               "type": "string"
@@ -480,6 +483,7 @@
           ]
         },
         "grain": {
+          "description": "The time grain that the metric was evaluated",
           "oneOf": [
             {
               "type": "string"
@@ -490,18 +494,21 @@
           ]
         },
         "dimensions": {
+          "description": "The list of dimensions to group the business metric",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "headers": {
+          "description": "The header names for queried row of the business metric",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "data": {
+          "description": "Lists of row results of the business metric",
           "type": "array",
           "items": {
             "type": "array",
