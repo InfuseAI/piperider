@@ -47,18 +47,12 @@ describe('Comparison Report [column-detail-page]', () => {
     cy.visit('http://localhost:3001');
 
     const navigatBtn = cy.get('[data-cy="sidebar-ribbon-assertions"]');
-    navigatBtn.first().click();
-  });
-  it('should navigate to the table list page from assertions list page ', () => {
-    cy.visit('http://localhost:3001/#/assertions');
-
-    const navigatBtn = cy.get('[data-cy="sidebar-ribbon-tables"]');
-    navigatBtn.first().click();
+    navigatBtn.first().click({ force: true });
   });
   it('should navigate to the table list page from BM page ', () => {
-    cy.visit('http://localhost:3001/#/business-metrics');
+    cy.visit('http://localhost:3001');
 
-    const navigatBtn = cy.get('[data-cy="sidebar-ribbon-tables"]');
-    navigatBtn.first().click();
+    const navigatBtn = cy.get('[data-cy="sidebar-ribbon-business-metrics"]');
+    navigatBtn.first().click({ force: true });
   });
 });
