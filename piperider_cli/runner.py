@@ -26,6 +26,7 @@ from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.filesystem import FileSystem
+from piperider_cli.metrics_engine import MetricEngine, MetricEventHandler
 from piperider_cli.profiler import Profiler, ProfilerEventHandler, ProfileSubject
 
 
@@ -124,6 +125,61 @@ class RichProfilerEventHandler(ProfilerEventHandler):
 
     def handle_column_end(self, table_name, column_result):
         task_id = self.tasks[table_name]
+        self.progress.update(task_id, advance=1)
+
+
+class RichMetricEventHandler(MetricEventHandler):
+
+    def __init__(self, metrics):
+        max_metric_width, counting_width = self._get_width(metrics)
+        total_column = TextColumn("{task.fields[coft]}", table_column=Column(width=counting_width))
+        text_column = TextColumn("{task.description}", table_column=Column(width=max_metric_width))
+        bar_column = BarColumn(bar_width=80, pulse_style=Style.from_color(Color.from_rgb(244, 164, 96)))
+        mofn_column = MofNCompleteColumn(table_column=Column(width=5, justify="right"))
+        time_elapsed_column = TimeElapsedColumn()
+
+        self.progress = Progress(total_column, text_column, bar_column, mofn_column, time_elapsed_column)
+        self.progress_started = False
+        self.tasks = {}
+        self.metric_total = 0
+        self.metric_completed = 0
+
+    @staticmethod
+    def _get_width(metrics):
+        return max([len(x) for x in metrics]), len(str(len(metrics))) * 2 + 2
+
+    def handle_run_start(self):
+        pass
+
+    def handle_run_progress(self, total: int, completed: int):
+        self.metric_total = total
+
+    def handle_run_end(self):
+        self.progress.stop()
+
+    def handle_metric_start(self, metric: str):
+        self.metric_completed += 1
+        padding = ' ' * (len(str(self.metric_total)) - len(str(self.metric_completed)))
+        coft = f'[{padding}{self.metric_completed}/{self.metric_total}]'
+        task_id = self.progress.add_task(metric, total=None, coft=coft)
+        self.tasks[metric] = task_id
+        self.progress.start()
+
+    def handle_metric_progress(self, metric: str, total: int, completed: int):
+        if completed == 0:
+            task_id = self.tasks[metric]
+            self.progress.update(task_id, total=total)
+
+    def handle_metric_end(self, metric: str):
+        self.progress.stop()
+        task_id = self.tasks[metric]
+        self.progress.remove_task(task_id)
+
+    def handle_param_query_start(self, metric: str, param: str):
+        pass
+
+    def handle_param_query_end(self, metric: str):
+        task_id = self.tasks[metric]
         self.progress.update(task_id, advance=1)
 
 
@@ -636,6 +692,18 @@ class Runner():
             return 1
         except Exception as e:
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
+
+        metrics = []
+        if dbt_state_dir:
+            metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir)
+
+        if metrics:
+            console.rule('Metrics')
+            run_result['metrics'] = MetricEngine(
+                engine,
+                metrics,
+                RichMetricEventHandler([m.label for m in metrics])
+            ).execute()
 
         # TODO: refactor input unused arguments
         assertion_results, assertion_exceptions = _execute_assertions(console, engine, ds.name, output,
