@@ -1,5 +1,5 @@
 import { Grid, GridItem, Text } from '@chakra-ui/react';
-import { NO_VALUE } from '../components';
+import { NoData, NO_VALUE } from '../components';
 import { Main } from '../components/Common/Main';
 import { BMWidget } from '../components/Widgets/BMWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
@@ -36,6 +36,9 @@ export function SRBMPage({ data }: Props) {
             <BMWidget data={{ base: v }} singleOnly />
           </GridItem>
         ))}
+        {!BMOnly?.base?.length && (
+          <NoData text="No Business Metrics Data Available" />
+        )}
       </Grid>
     </Main>
   );
