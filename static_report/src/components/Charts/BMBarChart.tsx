@@ -20,8 +20,14 @@ type Props = {
   data?: (DBTBusinessMetricGroupItem | undefined)[]; //treat as multiple datasets
   isHorizontal?: boolean;
   stacked?: boolean;
+  hasDimensions?: boolean;
 };
-export function BMBarChart({ data = [], isHorizontal, stacked }: Props) {
+export function BMBarChart({
+  data = [],
+  isHorizontal,
+  stacked,
+  hasDimensions,
+}: Props) {
   ChartJS.register(BarElement, LinearScale, CategoryScale, Legend, Tooltip);
 
   let labelVal;
@@ -29,6 +35,7 @@ export function BMBarChart({ data = [], isHorizontal, stacked }: Props) {
   //NOTE: colorList (max: up to 6)
   const colorList = [...colorMap.values()];
 
+  const isComparison = !hasDimensions && data.length === 2;
   // for each BMGroup, map its chart dataset
   data.forEach((d, i) => {
     const { data = [] } = d ?? {};
@@ -42,8 +49,10 @@ export function BMBarChart({ data = [], isHorizontal, stacked }: Props) {
       return y;
     });
 
+    const label = isComparison ? (i === 0 ? 'Base' : 'Target') : d?.label;
+
     datasets.push({
-      label: i === 0 ? 'Base' : 'Target',
+      label,
       data: chartXYDataset,
       borderColor: colorList[i],
       backgroundColor: colorList[i] + '50',
@@ -74,10 +83,10 @@ export function BMBarChart({ data = [], isHorizontal, stacked }: Props) {
         labels: {
           padding: 10,
           boxWidth: 30,
-          generateLabels({ data: { datasets, labels } }) {
+          generateLabels({ data: { datasets } }) {
             return datasets.map((ds, i) => ({
               fillStyle: colorList[i],
-              text: `${i === 0 ? 'Base' : 'Target'}`,
+              text: `${ds.label}`,
             }));
           },
         },

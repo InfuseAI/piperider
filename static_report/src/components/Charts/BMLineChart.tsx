@@ -30,8 +30,15 @@ type Props = {
   timeGrain?: TimeUnit;
   fill?: boolean;
   stacked?: boolean;
+  hasDimensions?: boolean;
 };
-export function BMLineChart({ data = [], timeGrain, fill, stacked }: Props) {
+export function BMLineChart({
+  data = [],
+  timeGrain,
+  fill,
+  stacked,
+  hasDimensions,
+}: Props) {
   ChartJS.register(
     LineElement,
     PointElement,
@@ -47,6 +54,8 @@ export function BMLineChart({ data = [], timeGrain, fill, stacked }: Props) {
   const datasets: ChartDataset<'line'>[] = [];
   //NOTE: colorList (max: up to 6)
   const colorList = [...colorMap.values()];
+
+  const isComparison = !hasDimensions && data.length === 2;
 
   // for each BMGroup, map its chart dataset
   data.forEach((d, i) => {
@@ -66,8 +75,10 @@ export function BMLineChart({ data = [], timeGrain, fill, stacked }: Props) {
       },
     );
 
+    const label = isComparison ? (i === 0 ? 'Base' : 'Target') : d?.label;
+
     datasets.push({
-      label: i === 0 ? 'Base' : 'Target',
+      label,
       data: chartXYDataset,
       borderColor: colorList[i],
       pointBackgroundColor: colorList[i],
@@ -106,10 +117,10 @@ export function BMLineChart({ data = [], timeGrain, fill, stacked }: Props) {
         labels: {
           padding: 10,
           boxWidth: 30,
-          generateLabels({ data: { datasets, labels } }) {
+          generateLabels({ data: { datasets } }) {
             return datasets.map((ds, i) => ({
               fillStyle: colorList[i],
-              text: `${i === 0 ? 'Base' : 'Target'}`,
+              text: `${ds.label}`,
             }));
           },
         },

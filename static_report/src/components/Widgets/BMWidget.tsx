@@ -113,6 +113,7 @@ function _getBMChart({
   // Determines the datasets shown by BM*Chart
   // TODO: (later: dimensions; dimension+cr??)
   const bmGroupList = singleOnly ? [base] : [base, target];
+  console.log(bmGroupList);
 
   // if no dimensions, treat w/ sr+cr split
   if (selectedBMChartType === 'line') {
