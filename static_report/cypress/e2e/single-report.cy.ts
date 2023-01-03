@@ -51,12 +51,6 @@ describe('Single Report [column-detail-page]', () => {
     secondColumnDetailListItem.click();
   });
 
-  it('should navigate to the assertions list page from table list page', () => {
-    cy.visit('http://localhost:3000');
-
-    const navigatBtn = cy.get('[data-cy="sidebar-ribbon-assertions"]');
-    navigatBtn.first().click();
-  });
   it('should navigate to assertions list page', () => {
     cy.visit('http://localhost:3000');
 
