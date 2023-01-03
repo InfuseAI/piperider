@@ -10,6 +10,9 @@ import { checkColumnCategorical, containsDataSummary } from '../Columns/utils';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ReactNode } from 'react';
 import { TopKSummaryList } from './TopKSummaryList';
+import { BMLineChart } from './BMLineChart';
+import { TimeUnit } from 'chart.js';
+import { ComparableData, DBTBusinessMetricGroupItem } from '../../lib';
 
 /**
  * Handles logic for rendering the right charts
@@ -166,3 +169,11 @@ export function getChartKindByColumnType(
  */
 export const skipped = (ctx, value) =>
   ctx.p0.skip || ctx.p1.skip ? value : undefined;
+
+export type BMChartTypes =
+  | 'line'
+  | 'stacked-line'
+  | 'y-bar'
+  | 'stacked-y-bar'
+  | 'x-bar'
+  | 'stacked-x-bar';

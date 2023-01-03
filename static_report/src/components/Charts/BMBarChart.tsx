@@ -3,23 +3,14 @@ import {
   ChartData,
   ChartDataset,
   LinearScale,
-  TimeSeriesScale,
   Tooltip,
   Chart as ChartJS,
   ChartOptions,
-  LineElement,
-  PointElement,
-  TimeUnit,
+  BarElement,
   Legend,
-  Filler,
 } from 'chart.js';
-import { Line } from 'react-chartjs-2';
-import {
-  BLACK_COLOR,
-  colorMap,
-  DBTBusinessMetricGroupItem,
-  skipped,
-} from '../../lib';
+import { Bar } from 'react-chartjs-2';
+import { BLACK_COLOR, colorMap, DBTBusinessMetricGroupItem } from '../../lib';
 
 import 'chartjs-adapter-date-fns';
 /**
@@ -27,24 +18,14 @@ import 'chartjs-adapter-date-fns';
  */
 type Props = {
   data?: (DBTBusinessMetricGroupItem | undefined)[]; //treat as multiple datasets
-  timeGrain?: TimeUnit;
-  fill?: boolean;
+  isHorizontal?: boolean;
   stacked?: boolean;
 };
-export function BMLineChart({ data = [], timeGrain, fill, stacked }: Props) {
-  ChartJS.register(
-    LineElement,
-    PointElement,
-    TimeSeriesScale,
-    LinearScale,
-    CategoryScale,
-    Filler,
-    Legend,
-    Tooltip,
-  );
+export function BMBarChart({ data = [], isHorizontal, stacked }: Props) {
+  ChartJS.register(BarElement, LinearScale, CategoryScale, Legend, Tooltip);
 
   let labelVal;
-  const datasets: ChartDataset<'line'>[] = [];
+  const datasets: ChartDataset<'bar'>[] = [];
   //NOTE: colorList (max: up to 6)
   const colorList = [...colorMap.values()];
 
@@ -57,36 +38,23 @@ export function BMLineChart({ data = [], timeGrain, fill, stacked }: Props) {
     labelVal = labelVal ?? labels;
 
     //REMOVE: Hack for target delta
-    //NOTE: fallback to undefined for coalescing NaN
-    //use {x, y} for dynamic date range (rather than data.cat-labels)
-    const chartXYDataset: ChartDataset<'line'>['data'] = dataValues.map(
-      (v, k) => {
-        const x = labelVal[k];
-        const y = Number(v ?? undefined) * (i === 0 ? 1 : 2);
-        return { x, y };
-      },
-    );
+    const chartXYDataset: ChartDataset<'bar'>['data'] = dataValues.map((v) => {
+      const y = Number(v ?? undefined) * (i === 0 ? 1 : 2);
+      return y;
+    });
 
     datasets.push({
       label: i === 0 ? 'Base' : 'Target',
       data: chartXYDataset,
       borderColor: colorList[i],
-      pointBackgroundColor: colorList[i],
-      spanGaps: true,
-      fill,
       backgroundColor: colorList[i] + '50',
-      segment: {
-        borderColor: (ctx) => skipped(ctx, 'rgb(0,0,0,0.2)'),
-        borderDash: (ctx) => skipped(ctx, [6, 6]),
-      },
     });
   });
 
-  const chartOpts: ChartOptions<'line'> = {
+  const chartOpts: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: true,
     plugins: {
-      filler: {},
       tooltip: {
         mode: 'index',
         position: 'nearest',
@@ -116,21 +84,17 @@ export function BMLineChart({ data = [], timeGrain, fill, stacked }: Props) {
       },
     },
     scales: {
-      x: {
-        type: 'time',
-        time: {
-          unit: timeGrain,
-        },
-      },
+      x: { stacked },
       y: {
         stacked,
       },
     },
   };
-  const chartData: ChartData<'line'> = {
+
+  const chartData: ChartData<'bar'> = {
     datasets,
-    // labels: labelVal, //TODO: for categorical data representations.
+    labels: labelVal, //TODO: dimensional cat. labels
   };
 
-  return <Line data={chartData} options={chartOpts} />;
+  return <Bar data={chartData} options={chartOpts} />;
 }
