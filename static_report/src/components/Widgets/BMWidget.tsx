@@ -22,11 +22,11 @@ export function BMWidget({ data: { base, target }, singleOnly }: Props) {
   const [selectedBMChartType, setSelectedBMChartType] =
     useState<BMChartTypes>('line');
   //TODO: Await Dimension Impl.
-  const chartViewOpts: BMChartTypes[] = [
-    'line',
+  const chartViewOpts: { type: BMChartTypes; displayName: string }[] = [
+    { type: 'line', displayName: 'Line Chart' },
     // 'stacked-line',
     // 'x-bar',
-    'y-bar',
+    { type: 'y-bar', displayName: 'Bar Chart' },
     // 'stacked-x-bar',
     // 'stacked-y-bar',
   ];
@@ -70,8 +70,8 @@ export function BMWidget({ data: { base, target }, singleOnly }: Props) {
             }
           >
             {chartViewOpts.map((v) => (
-              <option key={v} value={v}>
-                {v}
+              <option key={v.type} value={v.type}>
+                {v.displayName}
               </option>
             ))}
           </Select>
