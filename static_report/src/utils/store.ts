@@ -1,6 +1,7 @@
 import zip from 'lodash/zip';
 import {
   AssertionTest,
+  BusinessMetric,
   ColumnSchema,
   ComparableData,
   ComparisonReportSchema,
@@ -30,16 +31,6 @@ export type CompTableColEntryItem = EntryItem<
   ComparableData<CompTableWithColEntryOverwrite>
 >;
 export type ComparedAssertionTestValue = Partial<AssertionTest> | null;
-// FIXME: IMPORT ME FROM REGEN'ED SCHEMA TYPINGS
-export type DBTBusinessMetricGroupItem = {
-  name: string;
-  label: string;
-  description: string;
-  grain: string;
-  headers: string[];
-  data: unknown[][]; //2d-array: rows of table cells
-  dimensions: unknown[];
-};
 export interface ReportState {
   rawData: ComparableReport;
   reportTitle?: string;
@@ -51,7 +42,7 @@ export interface ReportState {
   /**
    * Business Metrics (zipped 2D arrays to data column format)
    */
-  BMOnly?: ComparableData<DBTBusinessMetricGroupItem[]>;
+  BMOnly?: ComparableData<BusinessMetric[]>;
 }
 
 interface ReportSetters {
@@ -201,16 +192,17 @@ const getAssertionsOnly = (rawData: ComparableReport) => {
   return comparableAssertionTests;
 };
 
+type DataColumn = (string | number | null)[][];
 const getBusinessMetrics = (rawData: ComparableReport) => {
   const { base, input } = rawData;
 
   const baseBMValue = (base?.metrics ?? []).map((group) => {
-    const zippedDataColumns = zip(...group.data);
+    const zippedDataColumns = zip(...group.data) as DataColumn;
     return { ...group, data: zippedDataColumns };
   });
 
   const targetBMValue = (input?.metrics ?? []).map((group) => {
-    const zippedDataColumns = zip(...group.data);
+    const zippedDataColumns = zip(...group.data) as DataColumn;
     return { ...group, data: zippedDataColumns };
   });
 

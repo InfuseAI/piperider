@@ -5,14 +5,11 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
-// FIXME: REMOVE ME LATER (AUTO_GENERATE)
-import { DBTBusinessMetricGroupItem } from '../utils';
-
 export interface SingleReportSchema {
-  metrics: DBTBusinessMetricGroupItem[];
   tables: {
     [k: string]: TableSchema;
   };
+  metrics?: BusinessMetric[];
   tests?: AssertionTest[];
   id: string;
   project_id?: string;
@@ -293,6 +290,36 @@ export interface Histogram {
 export interface Topk {
   values: (string | number)[];
   counts: number[];
+}
+export interface BusinessMetric {
+  /**
+   * Name of the business metric with time grain
+   */
+  name: string;
+  /**
+   * A short for name of the business metric with time grain
+   */
+  label: string;
+  /**
+   * Long form, human-readable description for the business metric
+   */
+  description: string | null;
+  /**
+   * The time grain that the metric was evaluated
+   */
+  grain: string | null;
+  /**
+   * The list of dimensions to group the business metric
+   */
+  dimensions: string[];
+  /**
+   * The header names for queried row of the business metric
+   */
+  headers: string[];
+  /**
+   * Lists of row results of the business metric
+   */
+  data: (string | number | null)[][];
 }
 export interface AssertionTest {
   id: string;

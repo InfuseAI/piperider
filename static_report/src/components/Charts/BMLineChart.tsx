@@ -14,19 +14,14 @@ import {
   Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import {
-  BLACK_COLOR,
-  colorMap,
-  DBTBusinessMetricGroupItem,
-  skipped,
-} from '../../lib';
+import { BLACK_COLOR, colorMap, BusinessMetric, skipped } from '../../lib';
 
 import 'chartjs-adapter-date-fns';
 /**
  * A line chart variant to visualize dbt processed business metrics, based on the dimension and time grain provided via Piperider CLI's report `metrics` property.
  */
 type Props = {
-  data?: (DBTBusinessMetricGroupItem | undefined)[]; //treat as multiple datasets
+  data?: (BusinessMetric | undefined)[]; //treat as multiple datasets
   timeGrain?: TimeUnit;
   fill?: boolean;
   stacked?: boolean;

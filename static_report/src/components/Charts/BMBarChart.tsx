@@ -10,14 +10,14 @@ import {
   Legend,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { BLACK_COLOR, colorMap, DBTBusinessMetricGroupItem } from '../../lib';
+import { BLACK_COLOR, colorMap, BusinessMetric } from '../../lib';
 
 import 'chartjs-adapter-date-fns';
 /**
  * A line chart variant to visualize dbt processed business metrics, based on the dimension and time grain provided via Piperider CLI's report `metrics` property.
  */
 type Props = {
-  data?: (DBTBusinessMetricGroupItem | undefined)[]; //treat as multiple datasets
+  data?: (BusinessMetric | undefined)[]; //treat as multiple datasets
   isHorizontal?: boolean;
   stacked?: boolean;
   hasDimensions?: boolean;
@@ -61,7 +61,6 @@ export function BMBarChart({
 
   const chartOpts: ChartOptions<'bar'> = {
     responsive: true,
-    // maintainAspectRatio: true,
     indexAxis: isHorizontal ? 'y' : 'x', //makes chart horizontal
     plugins: {
       tooltip: {

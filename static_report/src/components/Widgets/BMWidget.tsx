@@ -6,14 +6,14 @@ import {
   BMChartTypes,
   Comparable,
   ComparableData,
-  DBTBusinessMetricGroupItem,
+  BusinessMetric,
   getChartUnavailMsg,
 } from '../../lib';
 import { BMBarChart } from '../Charts/BMBarChart';
 import { BMLineChart } from '../Charts/BMLineChart';
 
 interface Props extends Comparable {
-  data: ComparableData<DBTBusinessMetricGroupItem>;
+  data: ComparableData<BusinessMetric>;
 }
 /**
  * A Widget container for displaying BM Charts (line).
@@ -105,9 +105,9 @@ function _getBMChart({
   comparableBMData,
 }: {
   selectedBMChartType: BMChartTypes;
-  timeGrain?: string;
+  timeGrain?: string | null;
   singleOnly?: boolean;
-  comparableBMData?: ComparableData<DBTBusinessMetricGroupItem>;
+  comparableBMData?: ComparableData<BusinessMetric>;
 }) {
   const { base, target } = comparableBMData ?? {};
   // Determines the datasets shown by BM*Chart

@@ -3,13 +3,8 @@ import { NoData, NO_VALUE } from '../components';
 import { Main } from '../components/Common/Main';
 import { BMWidget } from '../components/Widgets/BMWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
-import { ComparisonReportSchema } from '../types';
-import {
-  AMPLITUDE_EVENTS,
-  CR_TYPE_LABEL,
-  DBTBusinessMetricGroupItem,
-  useReportStore,
-} from '../utils';
+import { BusinessMetric, ComparisonReportSchema } from '../types';
+import { AMPLITUDE_EVENTS, CR_TYPE_LABEL, useReportStore } from '../utils';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -31,8 +26,7 @@ export function CRBMPage({ data: { base, input } }: Props) {
     input?.datasource.name ?? base?.datasource.name ?? NO_VALUE;
 
   //NOTE: target will override base BM's
-  const BMList: DBTBusinessMetricGroupItem[] =
-    BMOnly?.target ?? BMOnly?.base ?? [];
+  const BMList: BusinessMetric[] = BMOnly?.target ?? BMOnly?.base ?? [];
   return (
     <Main isSingleReport={false}>
       <Grid templateColumns={'1fr 1fr'} w={'100%'} gap={5} p={5}>
