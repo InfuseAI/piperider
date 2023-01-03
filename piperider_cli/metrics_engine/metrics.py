@@ -54,6 +54,8 @@ class MetricEngine:
     @staticmethod
     def get_query_param(metric: Metric) -> (str, List[str]):
         for grain in metric.time_grains:
+            if grain not in ['day', 'week', 'month', 'quarter', 'year']:
+                continue
             if not metric.dimensions:
                 yield grain, []
             else:
