@@ -692,9 +692,12 @@ class Runner():
         except Exception as e:
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
+        metrics = []
         if dbt_state_dir:
-            console.rule('DBT Metrics')
             metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir)
+
+        if metrics:
+            console.rule('Metrics')
             run_result['metrics'] = MetricEngine(
                 engine,
                 metrics,
