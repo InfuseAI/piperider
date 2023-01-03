@@ -80,11 +80,13 @@ class DataSource(metaclass=ABCMeta):
     def verify_connector(self):
         raise NotImplementedError
 
-    def verify_connection(self):
+    def verify_connection(self, include_views: bool = False):
         engine = None
         try:
             engine = self.create_engine()
             available_tables = inspect(engine).get_table_names()
+            if include_views:
+                available_tables += inspect(engine).get_view_names()
             if len(available_tables) == 0:
                 raise PipeRiderTableConnectionError(self.name, self.type_name)
         finally:
