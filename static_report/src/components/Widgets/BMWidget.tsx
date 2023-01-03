@@ -7,6 +7,7 @@ import {
   Comparable,
   ComparableData,
   DBTBusinessMetricGroupItem,
+  getChartUnavailMsg,
 } from '../../lib';
 import { BMBarChart } from '../Charts/BMBarChart';
 import { BMLineChart } from '../Charts/BMLineChart';
@@ -20,13 +21,14 @@ interface Props extends Comparable {
 export function BMWidget({ data: { base, target }, singleOnly }: Props) {
   const [selectedBMChartType, setSelectedBMChartType] =
     useState<BMChartTypes>('line');
+  //TODO: Await Dimension Impl.
   const chartViewOpts: BMChartTypes[] = [
     'line',
-    'stacked-line',
-    'x-bar',
+    // 'stacked-line',
+    // 'x-bar',
     'y-bar',
-    'stacked-x-bar',
-    'stacked-y-bar',
+    // 'stacked-x-bar',
+    // 'stacked-y-bar',
   ];
 
   //shared timeGrain selection + options (SR+CR+Dimensions)
@@ -80,7 +82,7 @@ export function BMWidget({ data: { base, target }, singleOnly }: Props) {
           </Text>
         </Flex>
       </Box>
-      <Flex maxH={'300px'}>
+      <Flex h={'300px'} w={'100%'}>
         {_getBMChart({
           selectedBMChartType,
           comparableBMData: { base, target },
@@ -108,9 +110,11 @@ function _getBMChart({
   comparableBMData?: ComparableData<DBTBusinessMetricGroupItem>;
 }) {
   const { base, target } = comparableBMData ?? {};
-  // Determines the datasets shown by BM*Chart (later: dimensions)
+  // Determines the datasets shown by BM*Chart
+  // TODO: (later: dimensions; dimension+cr??)
   const bmGroupList = singleOnly ? [base] : [base, target];
 
+  // if no dimensions, treat w/ sr+cr split
   if (selectedBMChartType === 'line') {
     return <BMLineChart data={bmGroupList} timeGrain={timeGrain as TimeUnit} />;
   }
@@ -130,8 +134,11 @@ function _getBMChart({
   if (selectedBMChartType === 'stacked-y-bar') {
     return <BMBarChart data={bmGroupList} stacked />;
   }
-  //determine chart type by arg
-  //based on arg, provide the correct dataset info for selected chart
-  //return JSX of chart
-  return null;
+  if (selectedBMChartType === 'x-bar') {
+    return <BMBarChart data={bmGroupList} isHorizontal />;
+  }
+  if (selectedBMChartType === 'stacked-x-bar') {
+    return <BMBarChart data={bmGroupList} stacked isHorizontal />;
+  }
+  return getChartUnavailMsg();
 }

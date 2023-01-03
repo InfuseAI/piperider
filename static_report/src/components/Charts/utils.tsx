@@ -10,9 +10,6 @@ import { checkColumnCategorical, containsDataSummary } from '../Columns/utils';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { ReactNode } from 'react';
 import { TopKSummaryList } from './TopKSummaryList';
-import { BMLineChart } from './BMLineChart';
-import { TimeUnit } from 'chart.js';
-import { ComparableData, DBTBusinessMetricGroupItem } from '../../lib';
 
 /**
  * Handles logic for rendering the right charts

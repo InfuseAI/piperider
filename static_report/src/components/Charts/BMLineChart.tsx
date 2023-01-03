@@ -56,13 +56,12 @@ export function BMLineChart({ data = [], timeGrain, fill, stacked }: Props) {
     //NOTE: narrow dependency (first-val: target > base)
     labelVal = labelVal ?? labels;
 
-    //REMOVE: Hack for target delta
     //NOTE: fallback to undefined for coalescing NaN
     //use {x, y} for dynamic date range (rather than data.cat-labels)
     const chartXYDataset: ChartDataset<'line'>['data'] = dataValues.map(
       (v, k) => {
         const x = labelVal[k];
-        const y = Number(v ?? undefined) * (i === 0 ? 1 : 2);
+        const y = Number(v ?? undefined);
         return { x, y };
       },
     );
@@ -78,13 +77,14 @@ export function BMLineChart({ data = [], timeGrain, fill, stacked }: Props) {
       segment: {
         borderColor: (ctx) => skipped(ctx, 'rgb(0,0,0,0.2)'),
         borderDash: (ctx) => skipped(ctx, [6, 6]),
+        backgroundColor: (ctx) => skipped(ctx, 'rgb(0,0,0,0.1)'),
       },
     });
   });
 
   const chartOpts: ChartOptions<'line'> = {
     responsive: true,
-    maintainAspectRatio: true,
+    maintainAspectRatio: false,
     plugins: {
       filler: {},
       tooltip: {
@@ -129,7 +129,6 @@ export function BMLineChart({ data = [], timeGrain, fill, stacked }: Props) {
   };
   const chartData: ChartData<'line'> = {
     datasets,
-    // labels: labelVal, //TODO: for categorical data representations.
   };
 
   return <Line data={chartData} options={chartOpts} />;

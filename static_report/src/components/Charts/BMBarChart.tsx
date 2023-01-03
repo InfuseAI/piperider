@@ -37,9 +37,8 @@ export function BMBarChart({ data = [], isHorizontal, stacked }: Props) {
     //NOTE: narrow dependency (first-val: target > base)
     labelVal = labelVal ?? labels;
 
-    //REMOVE: Hack for target delta
     const chartXYDataset: ChartDataset<'bar'>['data'] = dataValues.map((v) => {
-      const y = Number(v ?? undefined) * (i === 0 ? 1 : 2);
+      const y = Number(v ?? undefined);
       return y;
     });
 
@@ -53,7 +52,8 @@ export function BMBarChart({ data = [], isHorizontal, stacked }: Props) {
 
   const chartOpts: ChartOptions<'bar'> = {
     responsive: true,
-    maintainAspectRatio: true,
+    // maintainAspectRatio: true,
+    indexAxis: isHorizontal ? 'y' : 'x', //makes chart horizontal
     plugins: {
       tooltip: {
         mode: 'index',
