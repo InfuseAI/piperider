@@ -61,6 +61,7 @@ export function BMBarChart({
 
   const chartOpts: ChartOptions<'bar'> = {
     responsive: true,
+    maintainAspectRatio: false,
     indexAxis: isHorizontal ? 'y' : 'x', //makes chart horizontal
     plugins: {
       tooltip: {
