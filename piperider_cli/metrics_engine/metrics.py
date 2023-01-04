@@ -78,12 +78,7 @@ class MetricEngine:
     def get_query_statement(self, metric: Metric, grain: str, dimension: List[str]):
         date_column_name = f'date_{grain}'
         if metric.calculation_method != 'derived':
-            column = [column_clause(metric.timestamp), column_clause(metric.expression)]
-            for f in metric.filters:
-                field = f.get('field')
-                if field == metric.timestamp or field == metric.expression:
-                    continue
-                column.append(column_clause(field))
+            column = [column_clause(metric.timestamp), literal_column(metric.expression)]
             selectable = table_clause(metric.table, *column, schema=metric.schema)
         else:
             selectable = None
