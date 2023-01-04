@@ -45,26 +45,21 @@ export function BMLineChart({
     Tooltip,
   );
 
-  let labelVal;
   const datasets: ChartDataset<'line'>[] = [];
   //NOTE: colorList (max: up to 6)
   const colorList = [...colorMap.values()];
 
   const isComparison = !hasDimensions && data.length === 2;
 
-  // for each BMGroup, map its chart dataset
+  // for each BMGroup, map its chart dataset (base, value, ...dimensions?)
   data.forEach((d, i) => {
     const { data = [] } = d ?? {};
     const [labels, dataValues = []] = data;
 
-    //NOTE: narrow dependency (first-val: target > base)
-    labelVal = labelVal ?? labels;
-
-    //NOTE: fallback to undefined for coalescing NaN
     //use {x, y} for dynamic date range (rather than data.cat-labels)
     const chartXYDataset: ChartDataset<'line'>['data'] = dataValues.map(
       (v, k) => {
-        const x = labelVal[k];
+        const x = labels[k] as any; //NOTE: type doesn't support this.
         const y = Number(v ?? undefined);
         return { x, y };
       },

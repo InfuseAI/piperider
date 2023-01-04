@@ -41,7 +41,7 @@ export function BMBarChart({
     const { data = [] } = d ?? {};
     const [labels, dataValues = []] = data;
 
-    //NOTE: narrow dependency (first-val: target > base)
+    //NOTE: tight-coupling of label indexes, since fixed categorical label (order: target > base)
     labelVal = labelVal ?? labels;
 
     const chartXYDataset: ChartDataset<'bar'>['data'] = dataValues.map((v) => {
