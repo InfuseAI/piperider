@@ -69,6 +69,10 @@ export function BMBarChart({
         position: 'nearest',
         intersect: false,
         callbacks: {
+          title([{ label }]) {
+            const endAt = label.lastIndexOf(',');
+            return label.slice(0, endAt);
+          },
           labelColor: function ({ datasetIndex }) {
             return {
               borderColor: BLACK_COLOR,
