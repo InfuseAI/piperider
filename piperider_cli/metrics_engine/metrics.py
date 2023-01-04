@@ -78,12 +78,7 @@ class MetricEngine:
     def get_query_statement(self, metric: Metric, grain: str, dimension: List[str]):
         date_column_name = f'date_{grain}'
         if metric.calculation_method != 'derived':
-            column = [column_clause(metric.timestamp), column_clause(metric.expression)]
-            for f in metric.filters:
-                field = f.get('field')
-                if field == metric.timestamp or field == metric.expression:
-                    continue
-                column.append(column_clause(field))
+            column = [column_clause(metric.timestamp), literal_column(metric.expression)]
             selectable = table_clause(metric.table, *column, schema=metric.schema)
         else:
             selectable = None
@@ -101,7 +96,7 @@ class MetricEngine:
         elif metric.calculation_method == 'sum':
             agg_expression = func.sum(selectable.columns[metric.expression])
         elif metric.calculation_method == 'average':
-            agg_expression = func.average(selectable.columns[metric.expression])
+            agg_expression = func.avg(selectable.columns[metric.expression])
         elif metric.calculation_method == 'min':
             agg_expression = func.min(selectable.columns[metric.expression])
         elif metric.calculation_method == 'max':
@@ -162,7 +157,7 @@ class MetricEngine:
         start_date = func.dateadd(grain, n, end_date)
 
         return stmt.where(
-            self.date_trunc(grain, timestamp_column) > start_date
+            self.date_trunc(grain, timestamp_column) >= start_date
         )
 
     def get_calendar_cte(self, grain: str) -> CTE:
