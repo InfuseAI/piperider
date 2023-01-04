@@ -101,7 +101,7 @@ class MetricEngine:
         elif metric.calculation_method == 'sum':
             agg_expression = func.sum(selectable.columns[metric.expression])
         elif metric.calculation_method == 'average':
-            agg_expression = func.average(selectable.columns[metric.expression])
+            agg_expression = func.avg(selectable.columns[metric.expression])
         elif metric.calculation_method == 'min':
             agg_expression = func.min(selectable.columns[metric.expression])
         elif metric.calculation_method == 'max':
@@ -162,7 +162,7 @@ class MetricEngine:
         start_date = func.dateadd(grain, n, end_date)
 
         return stmt.where(
-            self.date_trunc(grain, timestamp_column) > start_date
+            self.date_trunc(grain, timestamp_column) >= start_date
         )
 
     def get_calendar_cte(self, grain: str) -> CTE:
