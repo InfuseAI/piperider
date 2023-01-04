@@ -1,5 +1,7 @@
+import zip from 'lodash/zip';
 import {
   AssertionTest,
+  BusinessMetric,
   ColumnSchema,
   ComparableData,
   ComparisonReportSchema,
@@ -37,6 +39,10 @@ export interface ReportState {
   reportOnly?: ComparableData<Omit<SaferSRSchema, 'tables'>>;
   tableColumnsOnly?: CompTableColEntryItem[];
   assertionsOnly?: ComparableData<ComparedAssertionTestValue[]>;
+  /**
+   * Business Metrics (zipped 2D arrays to data column format)
+   */
+  BMOnly?: ComparableData<BusinessMetric[]>;
 }
 
 interface ReportSetters {
@@ -186,7 +192,23 @@ const getAssertionsOnly = (rawData: ComparableReport) => {
   return comparableAssertionTests;
 };
 
-//NOTE: `this` will not work in setter functions (self-invoking)
+type DataColumn = (string | number | null)[][];
+const getBusinessMetrics = (rawData: ComparableReport) => {
+  const { base, input } = rawData;
+
+  const baseBMValue = (base?.metrics ?? []).map((group) => {
+    const zippedDataColumns = zip(...group.data) as DataColumn;
+    return { ...group, data: zippedDataColumns };
+  });
+
+  const targetBMValue = (input?.metrics ?? []).map((group) => {
+    const zippedDataColumns = zip(...group.data) as DataColumn;
+    return { ...group, data: zippedDataColumns };
+  });
+
+  return { base: baseBMValue, target: targetBMValue };
+};
+
 export const useReportStore = create<ReportState & ReportSetters>()(function (
   set,
 ) {
@@ -206,6 +228,8 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
       const tableColumnsOnly = getTableColumnsOnly(rawData);
       /** Table-level Assertions (flattened) */
       const assertionsOnly = getAssertionsOnly(rawData);
+      /** Report Business Metrics (BM) */
+      const BMOnly = getBusinessMetrics(rawData);
 
       const resultState: ReportState = {
         rawData,
@@ -215,6 +239,7 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
         reportDisplayTime,
         tableColumnsOnly,
         assertionsOnly,
+        BMOnly,
       };
 
       // final setter

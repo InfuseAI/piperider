@@ -3,6 +3,25 @@ import { defineStyle, defineStyleConfig } from '@chakra-ui/react';
 
 import { MetricMetaKeys } from '../lib';
 
+// For Charts
+export const BLACK_COLOR = '#16161D';
+export const INFO_VAL_COLOR = '#63B3ED';
+export const NEGATIVE_VAL_COLOR = '#805AD5';
+export const ZERO_VAL_COLOR = '#FFCF36';
+export const NON_ZERO_VAL_COLOR = '#5EC23A';
+export const INVALID_VAL_COLOR = '#FF0861';
+export const NULL_VAL_COLOR = '#D9D9D9';
+export const colorMap = new Map<MetricMetaKeys, string>([
+  ['total', INFO_VAL_COLOR],
+  ['invalids', INVALID_VAL_COLOR],
+  ['nulls', NULL_VAL_COLOR],
+  ['non_zero_length', NON_ZERO_VAL_COLOR],
+  ['zero_length', ZERO_VAL_COLOR],
+  ['zeros', ZERO_VAL_COLOR],
+  ['positives', NON_ZERO_VAL_COLOR],
+  ['negatives', NEGATIVE_VAL_COLOR],
+]);
+
 const fonts = { heading: `'Inter'`, body: `'Inter'` };
 
 const breakpoints = {
@@ -11,6 +30,7 @@ const breakpoints = {
   lg: '64em',
   xl: '80em',
 };
+
 const theme = extendTheme({
   fonts,
   breakpoints,
@@ -28,7 +48,7 @@ const theme = extendTheme({
       800: '#D6370E',
       900: '#BD2905',
     },
-    black: '#16161D',
+    black: BLACK_COLOR,
   },
   components: {
     Button: defineStyleConfig({
@@ -51,23 +71,5 @@ const theme = extendTheme({
     }),
   },
 });
-
-// For Charts
-export const INFO_VAL_COLOR = '#63B3ED';
-export const NEGATIVE_VAL_COLOR = '#805AD5';
-export const ZERO_VAL_COLOR = '#FFCF36';
-export const NON_ZERO_VAL_COLOR = '#5EC23A';
-export const INVALID_VAL_COLOR = '#FF0861';
-export const NULL_VAL_COLOR = '#D9D9D9';
-export const colorMap = new Map<MetricMetaKeys, string>([
-  ['invalids', INVALID_VAL_COLOR],
-  ['nulls', NULL_VAL_COLOR],
-  ['non_zero_length', NON_ZERO_VAL_COLOR],
-  ['zero_length', ZERO_VAL_COLOR],
-  ['zeros', ZERO_VAL_COLOR],
-  ['positives', NON_ZERO_VAL_COLOR],
-  ['negatives', NEGATIVE_VAL_COLOR],
-]);
-
 export default theme;
 export { theme };

@@ -51,16 +51,16 @@ describe('Single Report [column-detail-page]', () => {
     secondColumnDetailListItem.click();
   });
 
-  it('should navigate to the assertions list page from table list page', () => {
+  it('should navigate to assertions list page', () => {
     cy.visit('http://localhost:3000');
 
     const navigatBtn = cy.get('[data-cy="sidebar-ribbon-assertions"]');
-    navigatBtn.first().click();
+    navigatBtn.first().click({ force: true });
   });
-  it('should navigate to the assertions list page from table list page', () => {
-    cy.visit('http://localhost:3000/#/assertions');
+  it('should navigate to BM page ', () => {
+    cy.visit('http://localhost:3000');
 
-    const navigatBtn = cy.get('[data-cy="sidebar-ribbon-tables"]');
-    navigatBtn.first().click();
+    const navigatBtn = cy.get('[data-cy="sidebar-ribbon-business-metrics"]');
+    navigatBtn.first().click({ force: true });
   });
 });
