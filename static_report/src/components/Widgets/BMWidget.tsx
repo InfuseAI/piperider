@@ -16,7 +16,7 @@ interface Props extends Comparable {
   data: ComparableData<BusinessMetric>;
 }
 /**
- * A Widget container for displaying BM Charts (line).
+ * A Widget container for displaying BM Charts (BMBar*, BMLine*, etc).
  */
 export function BMWidget({ data: { base, target }, singleOnly }: Props) {
   const [selectedBMChartType, setSelectedBMChartType] =

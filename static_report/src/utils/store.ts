@@ -247,9 +247,3 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
     },
   };
 });
-
-/**
- * Transforms 2D-Array rows into another 2D-Array columns
- * @param dataRowList
- * @returns 2D array of columns (lodash zip)
- */

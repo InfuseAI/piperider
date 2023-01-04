@@ -14,7 +14,7 @@ import { BLACK_COLOR, colorMap, BusinessMetric } from '../../lib';
 
 import 'chartjs-adapter-date-fns';
 /**
- * A line chart variant to visualize dbt processed business metrics, based on the dimension and time grain provided via Piperider CLI's report `metrics` property.
+ * A bar chart variant to visualize dbt processed business metrics, based on the dimension and time grain provided via Piperider CLI's report `metrics` property.
  */
 type Props = {
   data?: (BusinessMetric | undefined)[]; //treat as multiple datasets
