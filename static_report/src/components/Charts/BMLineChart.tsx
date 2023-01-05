@@ -47,7 +47,7 @@ export function BMLineChart({
 
   const datasets: ChartDataset<'line'>[] = [];
   //NOTE: colorList (max: up to 6)
-  const colorList = [...colorMap.values()];
+  const colorList = Array.from(colorMap.values());
 
   const isComparison = !hasDimensions && data.length === 2;
 
