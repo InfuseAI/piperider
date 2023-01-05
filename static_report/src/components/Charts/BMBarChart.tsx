@@ -33,7 +33,7 @@ export function BMBarChart({
   let labelVal;
   const datasets: ChartDataset<'bar'>[] = [];
   //NOTE: colorList (max: up to 6)
-  const colorList = [...colorMap.values()];
+  const colorList = Array.from(colorMap.values());
 
   const isComparison = !hasDimensions && data.length === 2;
   // for each BMGroup, map its chart dataset
