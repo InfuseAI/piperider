@@ -2,7 +2,7 @@ import io
 import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, date
 from typing import List
 
 import inquirer
@@ -140,15 +140,19 @@ class ComparisonData(object):
 
         if tables_from == 'target-only':
             target_run_tables = target.get('tables', {}).keys()
+            target_run_metrics = {metric.get('name') for metric in target.get('metrics', [])}
             target_run_tests = {test.get('id') for test in target.get('tests', [])}
 
             base['tables'] = {table_name: base['tables'][table_name] for table_name in base['tables'] if table_name in target_run_tables}
+            base['metrics'] = [metric for metric in base['metrics'] if metric.get('name') in target_run_metrics]
             base['tests'] = [test for test in base['tests'] if test.get('id') in target_run_tests]
         elif tables_from == 'base-only':
             base_run_tables = base.get('tables', {}).keys()
+            base_run_metrics = {metric.get('name') for metric in base.get('metrics', [])}
             base_run_tests = {test.get('id') for test in base.get('tests', [])}
 
             target['tables'] = {table_name: target['tables'][table_name] for table_name in target['tables'] if table_name in base_run_tables}
+            target['metrics'] = [metric for metric in target['metrics'] if metric.get('name') in base_run_metrics]
             target['tests'] = [test for test in target['tests'] if test.get('id') in base_run_tests]
 
         self._base = base
@@ -212,6 +216,11 @@ class ComparisonData(object):
         out.write("\n")
         out.write(per_table_out.getvalue())
         out.write("</blockquote></details>")
+
+        base = self._base.get('metrics')
+        target = self._target.get('metrics')
+        out.write(self._render_business_metrics_comparison_markdown(base, target))
+
         return out.getvalue()
 
     @staticmethod
@@ -247,6 +256,21 @@ class ComparisonData(object):
             target = round(target * 100, 2)
 
         return f"{target}{annotation}{delta}"
+
+    @staticmethod
+    def _cal_value_delta(base, target, percentage=False):
+        if base is None and target is None:
+            return '-'
+
+        annotation = '%' if percentage else ''
+        delta = ''
+        if base is not None:
+            diff = target - base
+            if percentage:
+                diff *= 100
+            delta = f" ({'+' if target >= base else ''}{round(diff, 2)}{annotation})"
+
+        return f"{annotation}{delta}"
 
     @staticmethod
     def _get_column_changed(base, target):
@@ -384,6 +408,42 @@ class ComparisonData(object):
     @staticmethod
     def _get_metric_from_report(report, metric, default):
         return report.get(metric, default) if report else default
+
+    def _render_business_metrics_comparison_markdown(self, base, target):
+        out = io.StringIO()
+
+        base_metrics = {base_metric.get('label'): base_metric for base_metric in base}
+        target_metrics = {target_metric.get('label'): target_metric for target_metric in target}
+        joined = join(base_metrics, target_metrics)
+        if joined:
+            out.write("<details>\n")
+            out.write("<summary>Metrics</summary>\n")
+            out.write("<blockquote>\n\n")
+            for metric_label in joined.keys():
+                joined_metric = joined[metric_label]
+                b = joined_metric.get('base')
+                t = joined_metric.get('target')
+                b_data = {row[0]: row[1] for row in b.get('data')}
+                t_data = {row[0]: row[1] for row in t.get('data')}
+                date_grain = b.get('headers')[0]
+
+                out.write("<details>\n")
+                out.write(f"<summary>{metric_label}</summary>\n\n")
+                out.write(f"{date_grain} | base | target | -/+ \n")
+                out.write(":-: | :-: | :-: | :-: \n")
+                dates = list(set(b_data.keys()).union(set(t_data.keys())))
+                dates = sorted(dates, key=lambda k: date.fromisoformat(k), reverse=True)
+
+                for d in dates:
+                    b_result = b_data.get(d) if b_data.get(d) else '-'
+                    t_result = t_data.get(d) if t_data.get(d) else '-'
+                    delta = self._cal_value_delta(b_data.get(d), t_data.get(d))
+                    out.write(f"{d} | {b_result} | {t_result} | {delta}\n")
+
+                out.write("</details>\n")
+            out.write("</blockquote></details>")
+
+        return out.getvalue()
 
 
 def prepare_default_output_path(filesystem: FileSystem, created_at):
