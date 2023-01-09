@@ -217,8 +217,8 @@ class ComparisonData(object):
         out.write(per_table_out.getvalue())
         out.write("</blockquote></details>")
 
-        base = self._base.get('metrics')
-        target = self._target.get('metrics')
+        base = self._base.get('metrics', [])
+        target = self._target.get('metrics', [])
         out.write(self._render_business_metrics_comparison_markdown(base, target))
 
         return out.getvalue()
@@ -423,9 +423,15 @@ class ComparisonData(object):
                 joined_metric = joined[metric_label]
                 b = joined_metric.get('base')
                 t = joined_metric.get('target')
-                b_data = {row[0]: row[1] for row in b.get('data')}
-                t_data = {row[0]: row[1] for row in t.get('data')}
-                date_grain = b.get('headers')[0]
+                date_grain = 'date'
+                b_data = {}
+                t_data = {}
+                if b:
+                    date_grain = f"date_{b.get('grain')}"
+                    b_data = {row[0]: row[1] for row in b.get('data')}
+                if t:
+                    date_grain = f"date_{t.get('grain')}"
+                    t_data = {row[0]: row[1] for row in t.get('data')}
 
                 out.write("<details>\n")
                 out.write(f"<summary>{metric_label}</summary>\n\n")
@@ -437,7 +443,12 @@ class ComparisonData(object):
                 for d in dates:
                     b_result = b_data.get(d) if b_data.get(d) else '-'
                     t_result = t_data.get(d) if t_data.get(d) else '-'
-                    delta = self._cal_value_delta(b_data.get(d), t_data.get(d))
+                    if b_data.get(d) is None and t_data.get(d) is None:
+                        values = (None, None)
+                    else:
+                        values = (b_data.get(d) if b_data.get(d) is not None else 0,
+                                  t_data.get(d) if t_data.get(d) is not None else 0)
+                    delta = self._cal_value_delta(*values)
                     out.write(f"{d} | {b_result} | {t_result} | {delta}\n")
 
                 out.write("</details>\n")
