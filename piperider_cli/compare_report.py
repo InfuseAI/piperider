@@ -268,9 +268,9 @@ class ComparisonData(object):
             diff = target - base
             if percentage:
                 diff *= 100
-            delta = f" ({'+' if target >= base else ''}{round(diff, 2)}{annotation})"
+            delta = f"{'+' if target >= base else ''}{round(diff, 2)}{annotation}"
 
-        return f"{annotation}{delta}"
+        return delta
 
     @staticmethod
     def _get_column_changed(base, target):
@@ -437,18 +437,37 @@ class ComparisonData(object):
                 out.write(f"<summary>{metric_label}</summary>\n\n")
                 out.write(f"{date_grain} | base | target | -/+ \n")
                 out.write(":-: | :-: | :-: | :-: \n")
-                dates = list(set(b_data.keys()).union(set(t_data.keys())))
-                dates = sorted(dates, key=lambda k: date.fromisoformat(k), reverse=True)
+                b_dates = b_data.keys() if b_data.keys() else t_data.keys()
+                b_dates = sorted(list(b_dates), key=lambda k: date.fromisoformat(k), reverse=True)
+                b_latest_date = b_dates[0]
+                t_dates = t_data.keys() if t_data.keys() else b_data.keys()
+                t_dates = sorted(list(t_dates), key=lambda k: date.fromisoformat(k), reverse=True)
+                t_latest_date = t_dates[0]
 
-                for d in dates:
-                    b_result = b_data.get(d) if b_data.get(d) else '-'
-                    t_result = t_data.get(d) if t_data.get(d) else '-'
+                for d in t_dates:
+                    if date.fromisoformat(d) < date.fromisoformat(b_latest_date):
+                        b_result = b_data.get(d) if b_data.get(d) is not None else '-'
+                    elif date.fromisoformat(d) > date.fromisoformat(b_latest_date):
+                        b_result = ''
+                    else:
+                        b_result = f'~~{b_data.get(d)}~~' if b_data.get(d) is not None else '-'
+
+                    if date.fromisoformat(d) != date.fromisoformat(t_latest_date):
+                        t_result = t_data.get(d) if t_data.get(d) else '-'
+                    else:
+                        t_result = f'~~{t_data.get(d)}~~' if t_data.get(d) is not None else '-'
+
                     if b_data.get(d) is None and t_data.get(d) is None:
                         values = (None, None)
                     else:
                         values = (b_data.get(d) if b_data.get(d) is not None else 0,
                                   t_data.get(d) if t_data.get(d) is not None else 0)
-                    delta = self._cal_value_delta(*values)
+
+                    if date.fromisoformat(t_latest_date) >= date.fromisoformat(d) >= date.fromisoformat(b_latest_date):
+                        delta = ''
+                    else:
+                        delta = self._cal_value_delta(*values)
+                        delta = '-' if delta == '+0' or delta == '+0.0' else delta
                     out.write(f"{d} | {b_result} | {t_result} | {delta}\n")
 
                 out.write("</details>\n")
