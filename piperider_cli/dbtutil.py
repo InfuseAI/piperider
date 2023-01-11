@@ -245,6 +245,10 @@ def get_dbt_state_metrics(dbt_state_dir: str):
 
         metric_map[key] = m
         if 'piperider' in metric.get('tags'):
+            if metric.get('window'):
+                console.print(
+                    f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. Property 'window' is not supported.")
+                continue
             metrics.append(m)
 
     for key, metric in metric_map.items():
