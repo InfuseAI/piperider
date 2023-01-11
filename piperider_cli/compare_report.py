@@ -411,15 +411,15 @@ class ComparisonData(object):
 
     def _render_business_metrics_comparison_markdown(self, base, target):
         out = io.StringIO()
+        metrics_warn = False
 
         base_metrics = {base_metric.get('label'): base_metric for base_metric in base}
         target_metrics = {target_metric.get('label'): target_metric for target_metric in target}
         joined = join(base_metrics, target_metrics)
         if joined:
-            out.write("<details>\n")
-            out.write("<summary>Metrics</summary>\n")
-            out.write("<blockquote>\n\n")
+            out_metrics = io.StringIO()
             for metric_label in joined.keys():
+                metric_warn = False
                 joined_metric = joined[metric_label]
                 b = joined_metric.get('base')
                 t = joined_metric.get('target')
@@ -433,10 +433,6 @@ class ComparisonData(object):
                     date_grain = f"date_{t.get('grain')}"
                     t_data = {row[0]: row[1] for row in t.get('data')}
 
-                out.write("<details>\n")
-                out.write(f"<summary>{metric_label}</summary>\n\n")
-                out.write(f"{date_grain} | base | target | -/+ \n")
-                out.write(":-: | :-: | :-: | :-: \n")
                 b_dates = b_data.keys() if b_data.keys() else t_data.keys()
                 b_dates = sorted(list(b_dates), key=lambda k: date.fromisoformat(k), reverse=True)
                 b_latest_date = b_dates[0]
@@ -444,6 +440,7 @@ class ComparisonData(object):
                 t_dates = sorted(list(t_dates), key=lambda k: date.fromisoformat(k), reverse=True)
                 t_latest_date = t_dates[0]
 
+                out_metric = io.StringIO()
                 for d in t_dates:
                     if date.fromisoformat(d) < date.fromisoformat(b_latest_date):
                         b_result = b_data.get(d) if b_data.get(d) is not None else '-'
@@ -468,9 +465,21 @@ class ComparisonData(object):
                     else:
                         delta = self._cal_value_delta(*values)
                         delta = '-' if delta == '+0' or delta == '+0.0' else delta
-                    out.write(f"{d} | {b_result} | {t_result} | {delta}\n")
+                        if delta != '-':
+                            metric_warn = metrics_warn = True
+                    out_metric.write(f"{d} | {b_result} | {t_result} | {delta}\n")
 
-                out.write("</details>\n")
+                out_metrics.write("<details>\n")
+                out_metrics.write(f"<summary>{metric_label} {'(!)' if metric_warn else ''}</summary>\n\n")
+                out_metrics.write(f"{date_grain} | base | target | -/+ \n")
+                out_metrics.write(":-: | :-: | :-: | :-: \n")
+                out_metrics.write(out_metric.getvalue())
+                out_metrics.write("</details>\n")
+
+            out.write("<details>\n")
+            out.write(f"<summary>Metrics {'(!)' if metrics_warn else ''}</summary>\n")
+            out.write("<blockquote>\n\n")
+            out.write(out_metrics.getvalue())
             out.write("</blockquote></details>")
 
         return out.getvalue()
