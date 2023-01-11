@@ -413,24 +413,26 @@ class ComparisonData(object):
         out = io.StringIO()
         metrics_warn = False
 
-        base_metrics = {base_metric.get('label'): base_metric for base_metric in base}
-        target_metrics = {target_metric.get('label'): target_metric for target_metric in target}
+        base_metrics = {base_metric.get('name'): base_metric for base_metric in base}
+        target_metrics = {target_metric.get('name'): target_metric for target_metric in target}
         joined = join(base_metrics, target_metrics)
         if joined:
             out_metrics = io.StringIO()
-            for metric_label in joined.keys():
+            for metric_name in joined.keys():
                 metric_warn = False
-                joined_metric = joined[metric_label]
+                joined_metric = joined[metric_name]
                 b = joined_metric.get('base')
                 t = joined_metric.get('target')
                 date_grain = 'date'
                 b_data = {}
                 t_data = {}
                 if b:
-                    date_grain = f"date_{b.get('grain')}"
+                    date_grain = b.get('headers')[0]
+                    metric_label = b.get('label')
                     b_data = {row[0]: row[1] for row in b.get('data')}
                 if t:
-                    date_grain = f"date_{t.get('grain')}"
+                    date_grain = t.get('headers')[0]
+                    metric_label = t.get('label')
                     t_data = {row[0]: row[1] for row in t.get('data')}
 
                 b_dates = b_data.keys() if b_data.keys() else t_data.keys()
