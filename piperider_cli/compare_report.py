@@ -171,15 +171,15 @@ class ComparisonData(object):
         return json.dumps(output, separators=(',', ':'))
 
     def to_summary_markdown(self):
-        base = self._base.get('tables')
-        target = self._target.get('tables')
-
         out = io.StringIO()
 
         # Comparison summary
-        out.write(self._render_compare_markdown(base, target))
+        out.write(self._render_compare_markdown())
 
         # Per-table Comparison
+        base = self._base.get('tables')
+        target = self._target.get('tables')
+
         states = {}
         per_table_out = io.StringIO()
         joined = join(base, target)
@@ -219,7 +219,7 @@ class ComparisonData(object):
 
         base = self._base.get('metrics', [])
         target = self._target.get('metrics', [])
-        out.write(self._render_business_metrics_comparison_markdown(base, target))
+        out.write(self._render_metrics_comparison_markdown(base, target))
 
         return out.getvalue()
 
@@ -258,19 +258,20 @@ class ComparisonData(object):
         return f"{target}{annotation}{delta}"
 
     @staticmethod
-    def _cal_value_delta(base, target, percentage=False):
-        if base is None and target is None:
+    def _display_metrics_delta(b_value, t_value):
+        if b_value == '' or t_value == '':
+            return ''
+        elif isinstance(b_value, str) and b_value.startswith('~~'):
+            return ''
+        elif isinstance(t_value, str) and t_value.startswith('~~'):
+            return ''
+        elif b_value == t_value:
             return '-'
+        b_value = 0 if b_value == '-' else b_value
+        t_value = 0 if t_value == '-' else t_value
+        delta = t_value - b_value
 
-        annotation = '%' if percentage else ''
-        delta = ''
-        if base is not None:
-            diff = target - base
-            if percentage:
-                diff *= 100
-            delta = f"{'+' if target >= base else ''}{round(diff, 2)}{annotation}"
-
-        return delta
+        return f"{'+' if delta >= 0 else ''}{delta}"
 
     @staticmethod
     def _get_column_changed(base, target):
@@ -302,7 +303,10 @@ class ComparisonData(object):
             'changed': changed,
         }
 
-    def _render_compare_markdown(self, base, target):
+    def _render_compare_markdown(self):
+        base = self._base.get('tables')
+        target = self._target.get('tables')
+
         out = io.StringIO()
         joined = join(base, target)
         print("Table | Rows | Columns ", file=out)
@@ -344,10 +348,59 @@ class ComparisonData(object):
             out.write(f"{self._value_with_delta(rows_b, rows_t)} | ")
             out.write(f"{self._value_with_delta(cols_b, cols_t)}{change_message_str} \n")
 
+        base = self._base.get('metrics', [])
+        target = self._target.get('metrics', [])
+        base_metrics = {base_metric.get('name'): base_metric for base_metric in base}
+        target_metrics = {target_metric.get('name'): target_metric for target_metric in target}
+
+        joined = join(base_metrics, target_metrics)
+        out_metrics = io.StringIO()
+        if joined:
+            print("Metric | Period | Base | Target | +/- ", file=out_metrics)
+            print("--- | --- | :-: | :-: | :-: ", file=out_metrics)
+            for metric_name in joined.keys():
+                joined_metric = joined[metric_name]
+                b = joined_metric.get('base')
+                t = joined_metric.get('target')
+                b_data = {}
+                t_data = {}
+                if b:
+                    grain = b.get('grain')
+                    metric_label = b.get('label')
+                    b_data = {row[0]: row[1] for row in b.get('data')}
+                if t:
+                    grain = t.get('grain')
+                    metric_label = t.get('label')
+                    t_data = {row[0]: row[1] for row in t.get('data')}
+
+                t_dates = t_data.keys() if t_data.keys() else b_data.keys()
+                t_dates = sorted(list(t_dates), key=lambda k: date.fromisoformat(k), reverse=True)
+                t_last_date = t_dates[1]
+
+                if t_last_date not in b_data:
+                    b_result = ''
+                else:
+                    b_result = b_data.get(t_last_date) if b_data.get(t_last_date) is not None else '-'
+
+                if t_last_date not in t_data:
+                    t_result = ''
+                else:
+                    t_result = t_data.get(t_last_date) if t_data.get(t_last_date) is not None else '-'
+
+                def _display_period_annotation(period_grain):
+                    if period_grain == 'day':
+                        return '(Yesterday)'
+                    else:
+                        return f'(Last {period_grain})'
+
+                out_metrics.write(f"{metric_label} | {t_last_date} {_display_period_annotation(grain)} | ")
+                out_metrics.write(f"{b_result} | {t_result} | {self._display_metrics_delta(b_result, t_result)} \n ")
+
         return f"""<details>
 <summary>Comparison Summary</summary>
 
 {out.getvalue()}
+{out_metrics.getvalue()}
 </details>
 """
 
@@ -409,16 +462,17 @@ class ComparisonData(object):
     def _get_metric_from_report(report, metric, default):
         return report.get(metric, default) if report else default
 
-    def _render_business_metrics_comparison_markdown(self, base, target):
+    def _render_metrics_comparison_markdown(self, base, target):
         out = io.StringIO()
-        metrics_warn = False
 
         base_metrics = {base_metric.get('name'): base_metric for base_metric in base}
         target_metrics = {target_metric.get('name'): target_metric for target_metric in target}
         joined = join(base_metrics, target_metrics)
         if joined:
             out_metrics = io.StringIO()
+            states = {}
             for metric_name in joined.keys():
+                notation = ''
                 metric_warn = False
                 joined_metric = joined[metric_name]
                 b = joined_metric.get('base')
@@ -428,12 +482,24 @@ class ComparisonData(object):
                 t_data = {}
                 if b:
                     date_grain = b.get('headers')[0]
+                    date_grain = date_grain[0].upper() + date_grain[1:]
                     metric_label = b.get('label')
                     b_data = {row[0]: row[1] for row in b.get('data')}
+                else:
+                    notation = '(+)'
+                    if states.get('added') is None:
+                        states['added'] = 0
+                    states['added'] += 1
                 if t:
                     date_grain = t.get('headers')[0]
+                    date_grain = date_grain[0].upper() + date_grain[1:]
                     metric_label = t.get('label')
                     t_data = {row[0]: row[1] for row in t.get('data')}
+                else:
+                    notation = '(-)'
+                    if states.get('deleted') is None:
+                        states['deleted'] = 0
+                    states['deleted'] += 1
 
                 b_dates = b_data.keys() if b_data.keys() else t_data.keys()
                 b_dates = sorted(list(b_dates), key=lambda k: date.fromisoformat(k), reverse=True)
@@ -444,42 +510,50 @@ class ComparisonData(object):
 
                 out_metric = io.StringIO()
                 for d in t_dates:
-                    if date.fromisoformat(d) < date.fromisoformat(b_latest_date):
-                        b_result = b_data.get(d) if b_data.get(d) is not None else '-'
-                    elif date.fromisoformat(d) > date.fromisoformat(b_latest_date):
+                    if d not in b_data:
                         b_result = ''
                     else:
-                        b_result = f'~~{b_data.get(d)}~~' if b_data.get(d) is not None else '-'
+                        b_result = b_data.get(d) if b_data.get(d) is not None else '-'
+                        if date.fromisoformat(d) == date.fromisoformat(b_latest_date):
+                            b_result = f'~~{b_data.get(d)}~~' if b_data.get(d) is not None else '-'
 
-                    if date.fromisoformat(d) != date.fromisoformat(t_latest_date):
-                        t_result = t_data.get(d) if t_data.get(d) else '-'
+                    if d not in t_data:
+                        t_result = ''
                     else:
-                        t_result = f'~~{t_data.get(d)}~~' if t_data.get(d) is not None else '-'
-
-                    if b_data.get(d) is None and t_data.get(d) is None:
-                        values = (None, None)
-                    else:
-                        values = (b_data.get(d) if b_data.get(d) is not None else 0,
-                                  t_data.get(d) if t_data.get(d) is not None else 0)
+                        t_result = t_data.get(d) if t_data.get(d) is not None else '-'
+                        if date.fromisoformat(d) == date.fromisoformat(t_latest_date):
+                            t_result = f'~~{t_data.get(d)}~~' if t_data.get(d) is not None else '-'
 
                     if date.fromisoformat(t_latest_date) >= date.fromisoformat(d) >= date.fromisoformat(b_latest_date):
                         delta = ''
                     else:
-                        delta = self._cal_value_delta(*values)
-                        delta = '-' if delta == '+0' or delta == '+0.0' else delta
-                        if delta != '-':
-                            metric_warn = metrics_warn = True
+                        delta = self._display_metrics_delta(b_result, t_result)
+                        if delta != '-' and delta != '':
+                            metric_warn = True
                     out_metric.write(f"{d} | {b_result} | {t_result} | {delta}\n")
 
+                if metric_warn:
+                    notation = '(!)'
+                    if states.get('metric changed') is None:
+                        states['metric changed'] = 0
+                    states['metric changed'] += 1
+
                 out_metrics.write("<details>\n")
-                out_metrics.write(f"<summary>{metric_label} {'(!)' if metric_warn else ''}</summary>\n\n")
-                out_metrics.write(f"{date_grain} | base | target | -/+ \n")
-                out_metrics.write(":-: | :-: | :-: | :-: \n")
-                out_metrics.write(out_metric.getvalue())
+                out_metrics.write(f"<summary>{metric_label} {notation}</summary>\n\n")
+                if not t:
+                    out_metrics.write("Metric is not available in target\n")
+                else:
+                    out_metrics.write(f"{date_grain} | Base | Target | -/+ \n")
+                    out_metrics.write(":-: | :-: | :-: | :-: \n")
+                    out_metrics.write(out_metric.getvalue())
                 out_metrics.write("</details>\n")
 
+            states = sorted(states.items())
+            metrics_summary_hint = ', '.join([f'{state}={num}' for state, num in states])
+            if metrics_summary_hint:
+                metrics_summary_hint = f' ({metrics_summary_hint})'
             out.write("<details>\n")
-            out.write(f"<summary>Metrics {'(!)' if metrics_warn else ''}</summary>\n")
+            out.write(f"<summary>Metrics Summary{metrics_summary_hint}</summary>\n")
             out.write("<blockquote>\n\n")
             out.write(out_metrics.getvalue())
             out.write("</blockquote></details>")
