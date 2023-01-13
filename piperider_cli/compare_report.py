@@ -356,6 +356,12 @@ class ComparisonData(object):
         joined = join(base_metrics, target_metrics)
         out_metrics = io.StringIO()
         if joined:
+            def _display_period_annotation(period_grain):
+                if period_grain == 'day':
+                    return '(Yesterday)'
+                else:
+                    return f'(Last {period_grain})'
+
             print("Metric | Period | Base | Target | +/- ", file=out_metrics)
             print("--- | --- | :-: | :-: | :-: ", file=out_metrics)
             for metric_name in joined.keys():
@@ -386,12 +392,6 @@ class ComparisonData(object):
                     t_result = ''
                 else:
                     t_result = t_data.get(t_last_date) if t_data.get(t_last_date) is not None else '-'
-
-                def _display_period_annotation(period_grain):
-                    if period_grain == 'day':
-                        return '(Yesterday)'
-                    else:
-                        return f'(Last {period_grain})'
 
                 out_metrics.write(f"{metric_label} | {t_last_date} {_display_period_annotation(grain)} | ")
                 out_metrics.write(f"{b_result} | {t_result} | {self._display_metrics_delta(b_result, t_result)} \n ")
