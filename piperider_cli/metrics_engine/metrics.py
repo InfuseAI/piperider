@@ -3,10 +3,10 @@ import decimal
 import itertools
 from typing import List, Union
 
-from sqlalchemy import select, func, distinct, literal_column, join, Date, outerjoin, Column
+from sqlalchemy import select, func, distinct, literal_column, join, outerjoin, Column
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import SingletonThreadPool
-from sqlalchemy.sql.expression import table as table_clause, column as column_clause, text, union_all
+from sqlalchemy.sql.expression import table as table_clause, column as column_clause, text, union_all, case
 
 from piperider_cli.metrics_engine.event import MetricEventHandler, DefaultMetricEventHandler
 
@@ -227,9 +227,16 @@ class MetricEngine:
             metric_model = self._get_query_stmt(metric, grain, dimension).cte(f"{metric.name}_model")
             date_spine_model = self._date_spine(grain).cte(name="date_spine_model")
 
+            metric_column = metric_model.c[metric.name]
+            if metric.calculation_method in ['count', 'count_distinct', 'sum']:
+                metric_column = case(
+                    [(metric_column.is_(None), 0)],
+                    else_=metric_column
+                )
+
             stmt = select([
                 date_spine_model.c.d.label(f'date_{grain}'),
-                metric_model.c[metric.name]
+                metric_column
             ]).select_from(
                 outerjoin(date_spine_model, metric_model, date_spine_model.c.d == metric_model.c.d)
             ).order_by(
