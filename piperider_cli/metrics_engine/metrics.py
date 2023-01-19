@@ -7,6 +7,7 @@ from sqlalchemy import select, func, distinct, literal_column, join, outerjoin, 
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy.sql.expression import table as table_clause, column as column_clause, text, union_all, case
+from sqlalchemy.sql.selectable import CTE
 
 from piperider_cli.metrics_engine.event import MetricEventHandler, DefaultMetricEventHandler
 
@@ -86,7 +87,7 @@ class MetricEngine:
 
         return grain
 
-    def _get_query_stmt(self, metric: Metric, grain: str, dimension: List[str]):
+    def _get_query_stmt(self, metric: Metric, grain: str, dimension: List[str], date_spine_model: CTE):
         metric_column_name = metric.name
 
         if metric.calculation_method == 'derived':
@@ -94,14 +95,23 @@ class MetricEngine:
 
             # Join all parent metrics
             for ref_metric in metric.ref_metrics:
-                cte = self._get_query_stmt(ref_metric, grain, dimension).cte(f'{ref_metric.name}_model')
+                cte = self._get_query_stmt(ref_metric, grain, dimension, date_spine_model).cte(f'{ref_metric.name}_model')
                 if selectable is None:
                     selectable = cte
                 else:
                     selectable = join(selectable, cte, selectable.c.d == cte.c.d)
+
+            # a / b / c -> a / nullif(b, 0) / nullif(c, 0)
+            expression = metric.expression
+            if '/' in expression:
+                expression_list = expression.split('/')
+                dividend = expression_list[0]
+                divisors = [f'nullif({divisor}, 0)' for divisor in expression_list[1:]]
+                expression = f"{dividend} / {'/'.join(divisors)}"
+
             return select([
                 cte.c.d,
-                literal_column(metric.expression).label(metric_column_name)
+                literal_column(expression).label(metric_column_name)
             ]).select_from(
                 selectable
             ).order_by(
@@ -151,13 +161,29 @@ class MetricEngine:
             else:
                 return None
 
-            return select([
+            agg_model = select([
                 base_model.c.d,
-                agg_expression.label(metric_column_name)
+                agg_expression.label('m')
             ]).select_from(
                 base_model
             ).group_by(
                 base_model.c.d
+            ).cte(name=f"{metric.name}_agg_model")
+
+            metric_column = agg_model.c.m
+            if metric.calculation_method in ['count', 'count_distinct', 'sum']:
+                metric_column = case(
+                    [(metric_column.is_(None), 0)],
+                    else_=metric_column
+                )
+
+            return select([
+                date_spine_model.c.d,
+                metric_column.label(metric_column_name)
+            ]).select_from(
+                outerjoin(date_spine_model, agg_model, date_spine_model.c.d == agg_model.c.d)
+            ).order_by(
+                date_spine_model.c.d
             )
 
     def _interval(self, grain: str, n):
@@ -224,24 +250,9 @@ class MetricEngine:
         }
 
         with self.engine.connect() as conn:
-            metric_model = self._get_query_stmt(metric, grain, dimension).cte(f"{metric.name}_model")
             date_spine_model = self._date_spine(grain).cte(name="date_spine_model")
+            stmt = self._get_query_stmt(metric, grain, dimension, date_spine_model)
 
-            metric_column = metric_model.c[metric.name]
-            if metric.calculation_method in ['count', 'count_distinct', 'sum']:
-                metric_column = case(
-                    [(metric_column.is_(None), 0)],
-                    else_=metric_column
-                )
-
-            stmt = select([
-                date_spine_model.c.d.label(f'date_{grain}'),
-                metric_column
-            ]).select_from(
-                outerjoin(date_spine_model, metric_model, date_spine_model.c.d == metric_model.c.d)
-            ).order_by(
-                date_spine_model.c.d
-            )
             result = conn.execute(stmt)
 
             for row in result:
