@@ -66,18 +66,11 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         self.table_total = 0
         self.table_completed = 0
 
-        title = "Fetch metadata"
-        text_column = TextColumn("{task.description}", table_column=Column(width=len(title)))
-        bar_column = BarColumn(bar_width=80, pulse_style=Style.from_color(Color.from_rgb(244, 164, 96)))
-        mofn_column = MofNCompleteColumn(table_column=Column(width=5, justify="right"))
-        time_elapsed_column = TimeElapsedColumn()
-        self.progress_metadata = Progress(text_column, bar_column, mofn_column, time_elapsed_column)
-
     def _get_width(self, tables):
         return max([len(x) for x in tables]), len(str(len(tables))) * 2 + 2
 
     def handle_run_start(self, run_result):
-        self.progress_metadata.start()
+        self.progress.start()
 
     def handle_run_progress(self, run_result, total, completed):
         self.table_total = total
@@ -85,45 +78,28 @@ class RichProfilerEventHandler(ProfilerEventHandler):
     def handle_run_end(self, run_result):
         self.progress.stop()
 
-    def handle_fetch_metadata_start(self):
-        task_id = self.progress_metadata.add_task("Fetch metadata", total=None)
-        self.tasks["__metadata__"] = task_id
-
-    def handle_fetch_metadata_progress(self, table_name, total, completed):
-        task_id = self.tasks["__metadata__"]
-        self.progress_metadata.update(task_id, total=total, completed=completed)
-
-    def handle_fetch_metadata_end(self):
-        self.progress_metadata.stop()
-        print("")
-        self.progress.start()
-        pass
-
-    def handle_table_start(self, table_result):
+    def handle_table_start(self, table_name):
         self.table_completed += 1
-        table_name = table_result['name']
         padding = ' ' * (len(str(self.table_total)) - len(str(self.table_completed)))
         coft = f'[{padding}{self.table_completed}/{self.table_total}]'
         task_id = self.progress.add_task(table_name, total=None, coft=coft)
         self.tasks[table_name] = task_id
         self.progress.start()
 
-    def handle_table_progress(self, table_result, total, completed):
+    def handle_table_progress(self, table_name, table_result, total, completed):
         if completed == 0:
-            table_name = table_result['name']
             task_id = self.tasks[table_name]
             self.progress.update(task_id, total=total)
 
-    def handle_table_end(self, table_result):
+    def handle_table_end(self, table_name, table_result):
         self.progress.stop()
-        table_name = table_result['name']
         task_id = self.tasks[table_name]
         self.progress.remove_task(task_id)
 
-    def handle_column_start(self, table_name, column_result):
+    def handle_column_start(self, table_name, column_name):
         pass
 
-    def handle_column_end(self, table_name, column_result):
+    def handle_column_end(self, table_name, column_name, column_result):
         task_id = self.tasks[table_name]
         self.progress.update(task_id, advance=1)
 
@@ -649,7 +625,7 @@ class Runner():
         console.rule('Profiling')
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
-        engine = ds.create_engine()
+        engine = ds.get_engine_by_database()
         default_schema = ds.credential.get('schema')
 
         if default_schema is None and ds.type_name == 'bigquery':
@@ -683,7 +659,7 @@ class Runner():
 
         run_result = {}
         available_tables = [t.table for t in tables] if tables else available_tables
-        profiler = Profiler(engine, RichProfilerEventHandler(available_tables), configuration)
+        profiler = Profiler(ds, RichProfilerEventHandler(available_tables), configuration)
         try:
             profiler_result = profiler.profile(tables)
             run_result.update(profiler_result)
@@ -700,7 +676,7 @@ class Runner():
         if metrics:
             console.rule('Metrics')
             run_result['metrics'] = MetricEngine(
-                engine,
+                ds,
                 metrics,
                 RichMetricEventHandler([m.label for m in metrics])
             ).execute()

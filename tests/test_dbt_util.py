@@ -9,8 +9,8 @@ from tests.common import MockDatabase
 class TestRunner(TestCase):
 
     def setUp(self):
-        self.db = MockDatabase()
-        self.profiler = Profiler(self.db.engine)
+        db = MockDatabase()
+        profiler = Profiler(db.data_source)
 
         data1 = [
             ("symbol", "open", "ma60", "ma20"),
@@ -22,16 +22,16 @@ class TestRunner(TestCase):
             ("CCC", 1, 2, 3),
             ("DDD", 4, 5, 6),
         ]
-        self.db.create_table("PRICE", data1)
-        self.db.create_table("PRICE_PRESENT", data2)
-        self.profile_results = self.profiler.profile()
+        db.create_table("PRICE", data1)
+        db.create_table("PRICE_PRESENT", data2)
+        self.profile_results = profiler.profile()
         self.dbt_state_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mock_dbt_data")
 
     def test_get_dbt_state_candidate(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir)
         self.assertEqual(tables[0].table, 'PRICE_PRESENT')
         self.assertEqual(tables[0].schema, 'PUBLIC')
-        self.assertEqual(tables[0].alias, 'PRICE_PRESENT')
+        self.assertEqual(tables[0].name, 'PRICE_PRESENT')
 
     def test_get_dbt_state_tests_result(self):
         results = dbtutil.get_dbt_state_tests_result(self.dbt_state_dir)

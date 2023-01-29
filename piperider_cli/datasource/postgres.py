@@ -20,14 +20,17 @@ class PostgresDataSource(DataSource):
             raise ValueError('type name should be snowflake')
         return self._validate_required_fields()
 
-    def to_database_url(self):
+    def to_database_url(self, database):
         credential = self.credential
         host = credential.get('host')
         port = credential.get('port')
         user = credential.get('user')
         password = credential.get('password')
-        dbname = credential.get('dbname')
-        return f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
+        if database is None:
+            database = credential.get('dbname')
+        if database is None:
+            database = credential.get('database')
+        return f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}"
 
     def engine_args(self):
         credential = self.credential

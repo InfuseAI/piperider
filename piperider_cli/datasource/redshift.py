@@ -83,9 +83,13 @@ class RedshiftDataSource(DataSource):
             raise ValueError('type name should be redshift')
         return self._validate_required_fields()
 
-    def to_database_url(self):
+    def to_database_url(self, database):
         credential = self.credential
-        dbname = credential.get('dbname')
+        if database is None:
+            database = credential.get('dbname')
+        if database is None:
+            database = credential.get('database')
+
         host = credential.get('host') or credential.get('endpoint').split('/')[0].split(':')[0]
         try:
             port = credential.get('port') or credential.get('endpoint').split('/')[0].split(':')[1]
@@ -119,7 +123,7 @@ class RedshiftDataSource(DataSource):
                     client = aws.client('redshift-serverless',
                                         config=Config(region_name=region))
                     workgroup = host.split('.')[0]
-                    cluster_creds = client.get_credentials(dbName=dbname,
+                    cluster_creds = client.get_credentials(dbName=database,
                                                            workgroupName=workgroup,
                                                            durationSeconds=3600)
                     user = cluster_creds['dbUser']
@@ -134,7 +138,7 @@ class RedshiftDataSource(DataSource):
                     client = aws.client('redshift',
                                         config=Config(region_name=region))
                     cluster_creds = client.get_cluster_credentials(DbUser=user,
-                                                                   DbName=dbname,
+                                                                   DbName=database,
                                                                    ClusterIdentifier=cluster_id,
                                                                    DurationSeconds=duration_s,
                                                                    AutoCreate=auto_create,
@@ -150,7 +154,7 @@ class RedshiftDataSource(DataSource):
         url = URL.create(drivername='redshift+psycopg2',
                          host=host,
                          port=port,
-                         username=user, password=password, database=dbname)
+                         username=user, password=password, database=database)
         return url
 
     def engine_args(self):

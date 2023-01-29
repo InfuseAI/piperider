@@ -18,18 +18,17 @@ from sqlalchemy.types import Float
 
 from .event import ProfilerEventHandler, DefaultProfilerEventHandler
 from ..configuration import Configuration
+from ..datasource import DataSource
 
 HISTOGRAM_NUM_BUCKET = 50
 
 
 class ProfileSubject:
-    def __init__(self, name: str, schema: str = None, model: str = None):
-        self.table = name
+    def __init__(self, table: str, schema: str = None, database: str = None, name: str = None):
+        self.table = table
         self.schema = schema
-        self.alias = model
-
-    def get_lower_schema(self):
-        return self.schema.lower() if self.schema else None
+        self.database = database
+        self.name = name if name else table
 
 
 def dtof(value: Union[int, float, decimal.Decimal]) -> Union[int, float]:
@@ -86,21 +85,19 @@ class Profiler:
     """
     Profiler profile tables and columns by a sqlalchemy engine.
     """
-    engine: Engine = None
+    data_source: DataSource = None
     event_handler: ProfilerEventHandler
+    config = None
 
-    def __init__(self, engine: Engine, event_handler: ProfilerEventHandler = DefaultProfilerEventHandler(),
-                 config: Configuration = None):
-        self.engine = engine
+    def __init__(
+        self,
+        data_source: DataSource,
+        event_handler: ProfilerEventHandler = DefaultProfilerEventHandler(),
+        config: Configuration = None
+    ):
+        self.data_source = data_source
         self.event_handler = event_handler
         self.config = config
-
-    def _fetch_table_metadata(self, subject: ProfileSubject, reflecting_cache):
-        result = reflecting_cache.get((subject.get_lower_schema(), subject.table))
-        if result is not None:
-            return result
-        else:
-            return Table(subject.table, MetaData(), autoload_with=self.engine, schema=subject.get_lower_schema())
 
     def profile(self, subjects: List[ProfileSubject] = None) -> dict:
         """
@@ -124,59 +121,29 @@ class Profiler:
         }
         self.event_handler.handle_run_start(result)
 
-        metadata = MetaData()
-        default_schema = inspect(self.engine).default_schema_name
         include_views = self.config.include_views if self.config else False
 
-        self.event_handler.handle_fetch_metadata_start()
         if subjects is None:
             subjects = []
-            table_names = inspect(self.engine).get_table_names()
+            engine = self.data_source.get_engine_by_database()
+            table_names = inspect(engine).get_table_names()
             if include_views:
-                table_names += inspect(self.engine).get_view_names()
+                table_names += inspect(engine).get_view_names()
             table_names = self._apply_incl_excl_tables(table_names)
             for table_name in table_names:
-                subject = ProfileSubject(table_name, default_schema, table_name)
+                subject = ProfileSubject(table_name)
                 subjects.append(subject)
-
-        reflecting_cache = {}
-
-        # Optimization: Reflecting at Once as cache
-        if self.engine.url.get_backend_name() != 'postgresql' and len(subjects) > 1:
-            metadata.reflect(bind=self.engine, views=include_views)
-            for table_name, table in metadata.tables.items():
-                schema = default_schema.lower() if default_schema else None
-                reflecting_cache[(schema, table_name)] = table
-
-        completed = 0
-        self.event_handler.handle_fetch_metadata_progress(None, len(subjects), completed)
-        if isinstance(self.engine.pool, SingletonThreadPool):
-            for subject in subjects:
-                table_metadata = self._fetch_table_metadata(subject, reflecting_cache)
-                reflecting_cache[(subject.get_lower_schema(), subject.table)] = table_metadata
-                completed = completed + 1
-                self.event_handler.handle_fetch_metadata_progress(subject.table, len(subjects), completed)
-        else:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                future_to_subject = {executor.submit(self._fetch_table_metadata, subject, reflecting_cache): subject
-                                     for subject in subjects}
-                for future in concurrent.futures.as_completed(future_to_subject):
-                    subject = future_to_subject[future]
-                    table_metadata = future.result()
-                    reflecting_cache[(subject.get_lower_schema(), subject.table)] = table_metadata
-                    completed = completed + 1
-                    self.event_handler.handle_fetch_metadata_progress(subject.table, len(subjects), completed)
-
-        self.event_handler.handle_fetch_metadata_end()
 
         table_count = len(subjects)
         table_index = 0
         self.event_handler.handle_run_progress(result, table_count, table_index)
 
         for subject in subjects:
-            table = reflecting_cache[(subject.get_lower_schema(), subject.table)]
-            tresult = self._profile_table(subject.alias, table)
-            profiled_tables[subject.alias] = tresult
+            name = subject.name
+            engine = self.data_source.get_engine_by_database(subject.database)
+            table_profiler = TableProfiler(engine, subject, self.event_handler, self.config)
+            tresult = table_profiler.profile()
+            profiled_tables[name] = tresult
             table_index = table_index + 1
             self.event_handler.handle_run_progress(result, table_count, table_index)
 
@@ -203,6 +170,25 @@ class Profiler:
             final_list = [t for t in allow_list if t.upper() not in upper_excludes]
 
         return final_list
+
+
+class TableProfiler:
+    engine: Engine = None
+    config: dict = None
+    name: str = None
+    table: Table = None
+
+    def __init__(
+        self,
+        engine: Engine,
+        subject: ProfileSubject,
+        event_handler: ProfilerEventHandler,
+        config: Configuration
+    ):
+        self.engine = engine
+        self.subject = subject
+        self.event_handler = event_handler
+        self.config = config
 
     def _get_candidate_columns(self, table: Table) -> Tuple[Selectable, ColumnClause]:
         if self.engine.url.get_backend_name() == 'bigquery':
@@ -385,7 +371,13 @@ class Profiler:
             result['duplicate_rows'] = duplicate_rows
             result['duplicate_rows_p'] = percentage(duplicate_rows, samples)
 
-    def _profile_table(self, name: str, table: Table) -> dict:
+    def profile(self) -> dict:
+        subject = self.subject
+        name = subject.name
+
+        self.event_handler.handle_table_start(name)
+        schema = subject.schema.lower() if subject.schema is not None else None
+        table = Table(subject.table, MetaData(), autoload_with=self.engine, schema=schema)
         candidate_columns = list(self._get_candidate_columns(table))
         col_index = 0
         col_count = len(candidate_columns)
@@ -401,17 +393,11 @@ class Profiler:
             "columns": columns
         }
 
-        if not self.engine:
-            # unittest case
-            return result
-
-        self.event_handler.handle_table_start(result)
         profile_start = time.perf_counter()
-
         # Profile table metrics
         self._profile_table_metadata(result, table)
         self._profile_table_duplicate_rows(result, table)
-        self.event_handler.handle_table_progress(result, col_count, col_index)
+        self.event_handler.handle_table_progress(name, result, col_count, col_index)
 
         # Profile columns
         samples_p = result['samples_p']
@@ -421,13 +407,13 @@ class Profiler:
                 columns[column.name]['total'] = result['row_count']
                 columns[column.name]['samples_p'] = samples_p
                 col_index = col_index + 1
-                self.event_handler.handle_table_progress(result, col_count, col_index)
+                self.event_handler.handle_table_progress(name, result, col_count, col_index)
             profile_end = time.perf_counter()
             duration = profile_end - profile_start
             result["profile_duration"] = f"{duration:.2f}"
             result["elapsed_milli"] = int(duration * 1000)
 
-            self.event_handler.handle_table_end(result)
+            self.event_handler.handle_table_end(name, result)
         else:
             for selectable, column in candidate_columns:
                 columns[column.name] = None
@@ -448,19 +434,20 @@ class Profiler:
                             columns[column.name]['total'] = result['row_count']
                             columns[column.name]['samples_p'] = samples_p
                             col_index = col_index + 1
-                            self.event_handler.handle_table_progress(result, col_count, col_index)
+                            self.event_handler.handle_table_progress(name, result, col_count, col_index)
                 finally:
                     profile_end = time.perf_counter()
                     duration = profile_end - profile_start
                     result["profile_duration"] = f"{duration:.2f}"
                     result["elapsed_milli"] = int(duration * 1000)
 
-                    self.event_handler.handle_table_end(result)
+                    self.event_handler.handle_table_end(name, result)
 
         return result
 
     def _profile_column(self, table_name, table: Table, column: Column) -> dict:
         profiler_config = self.config.profiler_config if self.config else {}
+        column_name = column.name
         column_type = column.type
         schema_type = str(column.type)
         if isinstance(column_type, ARRAY) and column_type.item_type is not None:
@@ -510,7 +497,7 @@ class Profiler:
             "schema_type": schema_type,
         }
 
-        self.event_handler.handle_column_start(table.name, result)
+        self.event_handler.handle_column_start(table_name, column_name)
 
         profile_start = time.perf_counter()
         profile_result = profiler.profile()
@@ -521,7 +508,7 @@ class Profiler:
         result["profile_duration"] = f"{duration:.2f}"
         result["elapsed_milli"] = int(duration * 1000)
 
-        self.event_handler.handle_column_end(table_name, result)
+        self.event_handler.handle_column_end(table_name, column_name, result)
 
         return result
 
