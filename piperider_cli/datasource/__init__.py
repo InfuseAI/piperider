@@ -9,7 +9,7 @@ import inquirer
 import readchar
 from rich.console import Console
 from rich.prompt import Prompt
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, select, text
 
 import piperider_cli.hack.datasource_inquirer_prompt as datasource_prompt
 from piperider_cli.error import PipeRiderTableConnectionError
@@ -82,15 +82,14 @@ class DataSource(metaclass=ABCMeta):
     def verify_connector(self):
         raise NotImplementedError
 
-    def verify_connection(self, include_views: bool = False):
+    def verify_connection(self):
         engine = self.get_engine_by_database()
-        available_tables = inspect(engine).get_table_names()
-        if include_views:
-            available_tables += inspect(engine).get_view_names()
-        if len(available_tables) == 0:
-            raise PipeRiderTableConnectionError(self.name, self.type_name)
-
-        return available_tables
+        with engine.connect() as conn:
+            stmt = select(
+                text('1 as id')
+            )
+            conn.execute(stmt)
+        return
 
     def create_engine(self, database=None):
         return create_engine(self.to_database_url(database=database), **self.engine_args())
