@@ -118,7 +118,7 @@ class CsvDataSource(DuckDBDataSource):
     def to_database_url(self, database):
         return 'duckdb:///:memory:'
 
-    def create_engine(self, database):
+    def create_engine(self, database=None):
         credential = self.credential
         csv_path = os.path.abspath(credential.get('path'))
         if not os.path.exists(csv_path):
@@ -184,7 +184,7 @@ class ParquetDataSource(DuckDBDataSource):
 
         return 'file', os.path.abspath(parquet_path)
 
-    def create_engine(self, database):
+    def create_engine(self, database=None):
         type, parquet_path = self._extract_parquet_path()
         engine = super().create_engine(database)
 

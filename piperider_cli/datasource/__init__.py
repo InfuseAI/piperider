@@ -34,9 +34,7 @@ FANCY_USER_INPUT = _should_use_fancy_user_input()
 
 
 class DataSource(metaclass=ABCMeta):
-    type_name: str
-
-    def __init__(self, name, type_name, credential=None, **kwargs):
+    def __init__(self, name, type_name: str, credential=None, **kwargs):
         self.name = name
         self.type_name = type_name
         self.args = kwargs

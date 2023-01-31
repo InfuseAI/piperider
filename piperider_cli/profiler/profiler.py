@@ -85,9 +85,6 @@ class Profiler:
     """
     Profiler profile tables and columns by a sqlalchemy engine.
     """
-    data_source: DataSource = None
-    event_handler: ProfilerEventHandler
-    config = None
 
     def __init__(
         self,
@@ -173,10 +170,6 @@ class Profiler:
 
 
 class TableProfiler:
-    engine: Engine = None
-    config: dict = None
-    name: str = None
-    table: Table = None
 
     def __init__(
         self,
@@ -517,11 +510,6 @@ class BaseColumnProfiler:
     """
     The base class of the column profiler. It will automatically profile the metrics according to the schema type
     """
-
-    engine: Engine = None
-    config: dict = None
-    table: Table = None
-    column: Column = None
 
     def __init__(self, engine: Engine, config: dict, table: Table, column: Column):
         self.engine = engine
