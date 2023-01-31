@@ -1,5 +1,4 @@
 import { Main } from '../components/Common/Main';
-import { TableActionBar } from '../components/Tables/TableActionBar';
 
 import { TableListItem } from '../components/Tables/TableList/TableListItem';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -36,8 +35,6 @@ export function CRTablesListPage({ data }: Props) {
 
   return (
     <Main isSingleReport={false}>
-      <TableActionBar />
-
       <Flex direction="column" width={tableListWidth} minHeight="650px" pt={9}>
         <Grid templateColumns={tableListGridTempCols} px={4} my={6}>
           <Text>Name</Text>

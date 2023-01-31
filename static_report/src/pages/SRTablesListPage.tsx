@@ -3,7 +3,6 @@ import { useLocation } from 'wouter';
 import { useState } from 'react';
 
 import { Main } from '../components/Common/Main';
-import { TableActionBar } from '../components/Tables/TableActionBar';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 import { SaferSRSchema } from '../types';
@@ -37,7 +36,6 @@ export function SRTablesListPage({ data }: Props) {
 
   return (
     <Main isSingleReport>
-      <TableActionBar />
       <Flex direction="column" width={tableListWidth} minHeight="650px" pt={9}>
         <Grid templateColumns={tableListGridTempCols} px={4} my={6}>
           <Text>Name</Text>
