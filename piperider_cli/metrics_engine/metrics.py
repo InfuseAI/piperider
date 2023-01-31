@@ -124,7 +124,7 @@ class MetricEngine:
             ]).select_from(
                 selectable
             ).order_by(
-                literal_column('d')
+                cte.c.d,
             )
         else:
             # Source model
