@@ -2,29 +2,14 @@ import os
 from unittest import TestCase
 
 import piperider_cli.dbtutil as dbtutil
+from piperider_cli.datasource.sqlite import SqliteDataSource
 from piperider_cli.profiler import Profiler
-from tests.common import MockDatabase
+from tests.common import create_table
 
 
 class TestRunner(TestCase):
 
     def setUp(self):
-        db = MockDatabase()
-        profiler = Profiler(db.data_source)
-
-        data1 = [
-            ("symbol", "open", "ma60", "ma20"),
-            ("AAA", 1, 2, 3),
-            ("BBB", 4, 5, 6),
-        ]
-        data2 = [
-            ("symbol", "open", "ma60", "ma20"),
-            ("CCC", 1, 2, 3),
-            ("DDD", 4, 5, 6),
-        ]
-        db.create_table("PRICE", data1)
-        db.create_table("PRICE_PRESENT", data2)
-        self.profile_results = profiler.profile()
         self.dbt_state_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mock_dbt_data")
 
     def test_get_dbt_state_candidate(self):
@@ -50,12 +35,29 @@ class TestRunner(TestCase):
         self.assertEqual('failed', status)
 
     def test_dbt_append_descriptions(self):
-        dbtutil.append_descriptions(self.profile_results, self.dbt_state_dir)
+        ds = SqliteDataSource("test")
+        engine = ds.get_engine_by_database()
+        profiler = Profiler(ds)
+
+        data1 = [
+            ("symbol", "open", "ma60", "ma20"),
+            ("AAA", 1, 2, 3),
+            ("BBB", 4, 5, 6),
+        ]
+        data2 = [
+            ("symbol", "open", "ma60", "ma20"),
+            ("CCC", 1, 2, 3),
+            ("DDD", 4, 5, 6),
+        ]
+        create_table(engine, "PRICE", data1)
+        create_table(engine, "PRICE_PRESENT", data2)
+        profile_results = profiler.profile()
+        dbtutil.append_descriptions(profile_results, self.dbt_state_dir)
 
         self.assertEqual('The price data to today - via DBT',
-                         self.profile_results['tables']['PRICE_PRESENT']['description'])
+                         profile_results['tables']['PRICE_PRESENT']['description'])
         self.assertEqual('The symbol name - via DBT',
-                         self.profile_results['tables']['PRICE_PRESENT']['columns']['symbol']['description'])
+                         profile_results['tables']['PRICE_PRESENT']['columns']['symbol']['description'])
 
     def test_apply_incl_excl_filter(self):
         self.assertFalse(dbtutil._is_filtered_out('a', None, None))

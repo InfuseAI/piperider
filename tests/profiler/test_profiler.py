@@ -4,7 +4,8 @@ from piperider_cli.configuration import Configuration
 from piperider_cli.datasource.sqlite import SqliteDataSource
 from piperider_cli.profiler import Profiler, ProfileSubject
 from sqlalchemy import *
-from typing import List
+
+from tests.common import create_table
 
 
 def almost_equal(x, y, threshold=0.01):
@@ -18,50 +19,6 @@ class TestProfiler:
         self.engine = self.data_source.get_engine_by_database()
         return self.data_source
 
-    def create_table(self, table_name: str, data: List[tuple], columns=None, metadata=None):
-        engine = self.engine
-        header = data[0]
-        data = data[1:]
-
-        if not metadata:
-            metadata = MetaData()
-
-        if not columns:
-            columns = []
-            if len(data) == 0:
-                raise Exception("columns is not specified and data is empty")
-            first = data[0]
-            for i in range(len(header)):
-                col_name = header[i]
-                value = first[i]
-                col = None
-                if isinstance(value, str):
-                    col = Column(col_name, String)
-                elif isinstance(value, float):
-                    col = Column(col_name, Float)
-                elif isinstance(value, int):
-                    col = Column(col_name, Integer)
-                elif isinstance(value, datetime):
-                    col = Column(col_name, DateTime)
-                elif isinstance(value, date):
-                    col = Column(col_name, Date)
-                else:
-                    raise Exception(f"not support type: {type(value)}")
-                columns.append(col)
-        table = Table(table_name, metadata, *columns)
-        table.create(bind=engine)
-
-        with engine.connect() as conn:
-            for row in data:
-                row_data = dict(zip(header, row))
-                stmt = (
-                    insert(table).
-                        values(**row_data)
-                )
-                conn.execute(stmt)
-
-        return table
-
     def test_basic_profile(self):
         data_source = self.create_data_source()
 
@@ -70,8 +27,8 @@ class TestProfiler:
             (1, "bob", 23),
             (2, "alice", 25),
         ]
-        self.create_table("test1", data)
-        self.create_table("test2", data)
+        create_table(self.engine, "test1", data)
+        create_table(self.engine, "test2", data)
         profiler = Profiler(data_source)
         result = profiler.profile()
         assert "test1" in result["tables"]
@@ -90,7 +47,7 @@ class TestProfiler:
             (20,),
             (None,),
         ]
-        self.create_table("test", data)
+        create_table(self.engine, "test", data)
         profiler = Profiler(data_source)
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 3
@@ -125,7 +82,7 @@ class TestProfiler:
             (0,),
             (50,),
         ]
-        self.create_table("test", data)
+        create_table(self.engine, "test", data)
         profiler = Profiler(data_source)
 
         result = profiler.profile()["tables"]["test"]['columns']["col"]["histogram"]
@@ -143,7 +100,7 @@ class TestProfiler:
             ("col",),
             (0,),
         ]
-        self.create_table("test", data)
+        create_table(self.engine, "test", data)
         profiler = Profiler(data_source)
 
         result = profiler.profile()["tables"]["test"]['columns']["col"]["histogram"]
@@ -163,7 +120,7 @@ class TestProfiler:
             (500,),
             (750,),
         ]
-        self.create_table("test", data)
+        create_table(self.engine, "test", data)
         profiler = Profiler(data_source)
 
         result = profiler.profile()["tables"]["test"]['columns']["col"]
@@ -191,7 +148,7 @@ class TestProfiler:
         data = [
             ("num", "col"),
         ]
-        self.create_table("test", data, columns=[Column("col", Integer)])
+        create_table(self.engine, "test", data, columns=[Column("col", Integer)])
         profiler = Profiler(data_source)
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result['sum'] is None
@@ -215,7 +172,7 @@ class TestProfiler:
             (20.0,),
             (None,),
         ]
-        self.create_table("test", data)
+        create_table(self.engine, "test", data)
         profiler = Profiler(data_source)
 
         result = profiler.profile()["tables"]["test"]['columns']["col"]
@@ -262,7 +219,7 @@ class TestProfiler:
             (500.0,),
             (750.0,),
         ]
-        self.create_table("test", data)
+        create_table(self.engine, "test", data)
         profiler = Profiler(data_source)
         result = profiler.profile()["tables"]["test"]['columns']["col"]["histogram"]
         assert result["labels"][0] == '10.00 _ 29.80'
@@ -282,7 +239,7 @@ class TestProfiler:
             (500.0,),
             (750.0,),
         ]
-        self.create_table("test", data)
+        create_table(self.engine, "test", data)
         profiler = Profiler(data_source)
 
         result = profiler.profile()["tables"]["test"]['columns']["col"]
@@ -310,7 +267,7 @@ class TestProfiler:
         data = [
             ("num", "col"),
         ]
-        self.create_table("test", data, columns=[Column("col", Numeric)])
+        create_table(self.engine, "test", data, columns=[Column("col", Numeric)])
         profiler = Profiler(data_source)
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result['sum'] is None
@@ -334,7 +291,7 @@ class TestProfiler:
             (b"abc",),
             (None,),
         ]
-        self.create_table("test", data, columns=[Column("col", Integer)])
+        create_table(self.engine, "test", data, columns=[Column("col", Integer)])
         profiler = Profiler(data_source)
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 5
@@ -365,7 +322,7 @@ class TestProfiler:
             ("2022-07-18",),
             (None,),
         ]
-        self.create_table("test", data, columns=[
+        create_table(self.engine, "test", data, columns=[
             Column("str", String)
         ])
         profiler = Profiler(data_source)
@@ -414,7 +371,7 @@ class TestProfiler:
             ("2022-07-18",),
             (None,),
         ]
-        self.create_table("test", data, columns=[
+        create_table(self.engine, "test", data, columns=[
             Column("str", String)
         ])
         with engine.connect() as conn:
@@ -445,7 +402,7 @@ class TestProfiler:
             (None,),
         ]
 
-        self.create_table("test", data, columns=[Column("col", DateTime)])
+        create_table(self.engine, "test", data, columns=[Column("col", DateTime)])
         profiler = Profiler(data_source)
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 3
@@ -475,7 +432,7 @@ class TestProfiler:
             (None,),
         ]
 
-        self.create_table("test", data, columns=[Column("col", DateTime)])
+        create_table(self.engine, "test", data, columns=[Column("col", DateTime)])
         with engine.connect() as conn:
             conn.execute("insert into test values (0)")
             conn.execute("insert into test values (1.3)")
@@ -507,7 +464,7 @@ class TestProfiler:
             (None,),
         ]
 
-        self.create_table("test", data, columns=[Column("col", Boolean)])
+        create_table(self.engine, "test", data, columns=[Column("col", Boolean)])
         profiler = Profiler(data_source)
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 4
@@ -534,7 +491,7 @@ class TestProfiler:
             ("col",),
         ]
 
-        self.create_table("test", data, columns=[Column("col", Boolean)])
+        create_table(self.engine, "test", data, columns=[Column("col", Boolean)])
         with engine.connect() as conn:
             conn.execute("PRAGMA ignore_check_constraints = 1")
             conn.execute("insert into test values (0)")
@@ -563,7 +520,7 @@ class TestProfiler:
             (date(2022, 6, 26),),
             (date(2022, 7, 26),),
         ]
-        self.create_table("test", data)
+        create_table(self.engine, "test", data)
         profiler = Profiler(data_source)
         result = profiler.profile()
         cresult = result["tables"]["test"]['columns']["date"]
@@ -583,7 +540,7 @@ class TestProfiler:
             (date(2022, 2, 24),),
             (date(2022, 2, 26),),
         ]
-        self.create_table("test", data)
+        create_table(self.engine, "test", data)
         profiler = Profiler(data_source)
         result = profiler.profile()
         cresult = result["tables"]["test"]['columns']["date"]
@@ -603,7 +560,7 @@ class TestProfiler:
             (date(2022, 6, 24),),
             (date(2022, 7, 26),),
         ]
-        self.create_table("test", data)
+        create_table(self.engine, "test", data)
         profiler = Profiler(data_source)
         result = profiler.profile()
         cresult = result["tables"]["test"]['columns']["date"]
@@ -622,7 +579,7 @@ class TestProfiler:
             (date(2022, 1, 1),),
             (datetime(2022, 1, 1, 1, 2, 3),),
         ]
-        self.create_table("test", data)
+        create_table(self.engine, "test", data)
         profiler = Profiler(data_source)
         result = profiler.profile()
         cresult = result["tables"]["test"]['columns']["date"]
@@ -640,7 +597,7 @@ class TestProfiler:
         data = [
             ("num", "str"),
         ]
-        self.create_table("test", data, columns=[Column("num", Integer), Column("str", String)])
+        create_table(self.engine, "test", data, columns=[Column("num", Integer), Column("str", String)])
         profiler = Profiler(data_source)
         result = profiler.profile()
         assert result["tables"]["test"]['columns']["num"]["histogram"] == None
@@ -653,7 +610,7 @@ class TestProfiler:
             ("num", "str", "num_empty"),
             (1.0, "hello", None),
         ]
-        self.create_table("test", data, columns=[
+        create_table(self.engine, "test", data, columns=[
             Column("num", Float),
             Column("str", String),
             Column("num_empty", Integer)
@@ -676,7 +633,7 @@ class TestProfiler:
             (4.0,),
             (5.0,)
         ]
-        self.create_table("test", data)
+        create_table(self.engine, "test", data)
 
         profiler = Profiler(data_source, config=Configuration([], profiler={'table': {'limit': 3}}))
         result = profiler.profile()
@@ -698,9 +655,9 @@ class TestProfiler:
             ("col",),
             (1,)
         ]
-        self.create_table("a", data)
-        self.create_table("b", data)
-        self.create_table("c", data)
+        create_table(self.engine, "a", data)
+        create_table(self.engine, "b", data)
+        create_table(self.engine, "c", data)
 
         metadata = MetaData()
         metadata.reflect(bind=engine)
@@ -746,7 +703,7 @@ class TestProfiler:
             (1, 'aaa', 18),
             (1, 'aaa', 21)
         ]
-        self.create_table("dup", data)
+        create_table(self.engine, "dup", data)
 
         profiler = Profiler(data_source, config=Configuration([], profiler={'table': {'duplicateRows': True}}))
         result = profiler.profile()
@@ -759,7 +716,7 @@ class TestProfiler:
             (1, 'aaa', 18),
             (1, 'aaa', 21)
         ]
-        self.create_table("dup", data)
+        create_table(self.engine, "dup", data)
 
         profiler = Profiler(data_source, config=Configuration([], profiler={'table': {'duplicateRows': True}}))
         result = profiler.profile()
@@ -776,7 +733,7 @@ class TestProfiler:
             (1, 'bbb', 21),
             (1, 'bbb', 21)
         ]
-        self.create_table("dup", data)
+        create_table(self.engine, "dup", data)
 
         profiler = Profiler(data_source, config=Configuration([], profiler={'table': {'duplicateRows': True}}))
         result = profiler.profile()
@@ -793,7 +750,7 @@ class TestProfiler:
             (1, 'bbb', 21),
             (1, 'bbb', 21),
         ]
-        self.create_table("dup", data)
+        create_table(self.engine, "dup", data)
 
         profiler = Profiler(data_source,
                             config=Configuration([], profiler={'table': {'limit': 4, 'duplicateRows': True}}))
