@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/browser';
 import { Suspense, lazy } from 'react';
-import { Switch, Route, Router, BaseLocationHook } from 'wouter';
+import { Switch, Route, Router, BaseLocationHook, Redirect } from 'wouter';
 import { BrowserTracing } from '@sentry/tracing';
 
 import { Loading } from './components/Layouts/Loading';
@@ -47,9 +47,22 @@ function AppSingle() {
         <Switch>
           <Route
             path="/"
-            component={() => (
-              <SRTablesListPage data={window.PIPERIDER_SINGLE_REPORT_DATA} />
-            )}
+            component={() => {
+              const { tables = {} } = window.PIPERIDER_SINGLE_REPORT_DATA ?? {};
+              const tableEntries = Object.entries<any>(tables);
+              const firstTableEntry = tableEntries[0];
+              const firstTableName = firstTableEntry[0];
+              const firstTableColEntries = Object.entries<any>(
+                firstTableEntry[1].columns,
+              );
+              const firstTableColName = firstTableColEntries[0][0];
+
+              return (
+                <Redirect
+                  to={`/tables/${firstTableName}/columns/${firstTableColName}`}
+                />
+              );
+            }}
           />
 
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
@@ -62,7 +75,7 @@ function AppSingle() {
             )}
           </Route>
 
-          <Route path={ASSERTIONS_ROUTE_PATH}>
+          {/* <Route path={ASSERTIONS_ROUTE_PATH}>
             {() => (
               <SRAssertionListPage
                 data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
@@ -74,7 +87,7 @@ function AppSingle() {
             {() => (
               <SRBMPage data={window.PIPERIDER_SINGLE_REPORT_DATA || {}} />
             )}
-          </Route>
+          </Route> */}
 
           <Route>
             <NotFound />
@@ -109,19 +122,19 @@ function AppComparison() {
             )}
           </Route>
 
-          <Route path={ASSERTIONS_ROUTE_PATH}>
+          {/* <Route path={ASSERTIONS_ROUTE_PATH}>
             {() => (
               <CRAssertionListPage
                 data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}
               />
             )}
-          </Route>
+          </Route> */}
 
-          <Route path={BM_ROUTE_PATH}>
+          {/* <Route path={BM_ROUTE_PATH}>
             {() => (
               <CRBMPage data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}} />
             )}
-          </Route>
+          </Route> */}
 
           <Route>
             <NotFound />

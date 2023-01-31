@@ -3,7 +3,6 @@ import { useEffect, ReactNode } from 'react';
 import * as amplitude from '@amplitude/analytics-browser';
 
 import { Navbar } from './Navbar';
-import { Sidebar } from './Sidebar';
 import { topNavAndFooterHeightOffset } from '../../utils';
 
 interface Props extends FlexProps {
@@ -29,21 +28,17 @@ export function Main({ children, isSingleReport, ...props }: Props) {
     <Flex direction="column">
       <Navbar isSingleReport={isSingleReport} />
 
-      <Flex>
-        <Sidebar />
-
-        <Flex
-          direction="column"
-          alignItems="center"
-          justifyContent="flex-start"
-          bg={bgColor[colorMode]}
-          color={color[colorMode]}
-          minHeight={`calc(100vh - ${topNavAndFooterHeightOffset}px)`}
-          width="100%"
-          {...props}
-        >
-          {children}
-        </Flex>
+      <Flex
+        direction="column"
+        alignItems="center"
+        justifyContent="flex-start"
+        bg={bgColor[colorMode]}
+        color={color[colorMode]}
+        minHeight={`calc(100vh - ${topNavAndFooterHeightOffset}px)`}
+        width="100%"
+        {...props}
+      >
+        {children}
       </Flex>
     </Flex>
   );

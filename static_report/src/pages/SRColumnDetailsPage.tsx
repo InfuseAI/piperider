@@ -46,6 +46,7 @@ import {
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
+import { ReportContextBar } from '../components/Reports';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
@@ -71,7 +72,11 @@ export default function SRColumnDetailsPage({
 
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
-  const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
+  const {
+    tableColumnsOnly = [],
+    assertionsOnly,
+    rawData,
+  } = useReportStore.getState();
   const currentTableEntry = tableColumnsOnly.find(
     ([tableKey]) => tableKey === tableName,
   );
@@ -99,7 +104,12 @@ export default function SRColumnDetailsPage({
 
   const hasQuantile = containsColumnQuantile(type);
   return (
-    <Main isSingleReport maxHeight={mainContentAreaHeight}>
+    <Main isSingleReport maxHeight={mainContentAreaHeight} px={5}>
+      <ReportContextBar
+        datasource={rawData.base?.datasource}
+        version={rawData.base?.version}
+        tableColumns={tableColumnsOnly}
+      />
       <Grid
         width={'inherit'}
         templateColumns={
