@@ -218,13 +218,16 @@ class CloudConnector:
         return 0
 
     @staticmethod
-    def upload_latest_report(report_dir=None, debug=False, open_report=False, force_upload=False, auto_upload=False) -> int:
+    def upload_latest_report(report_dir=None, debug=False, open_report=False, force_upload=False,
+                             auto_upload=False) -> int:
         filesystem = FileSystem(report_dir=report_dir)
         latest_report_path = os.path.join(filesystem.get_output_dir(), 'latest', 'run.json')
-        return CloudConnector.upload_report(latest_report_path, debug=debug, open_report=open_report, force_upload=force_upload, auto_upload=auto_upload)
+        return CloudConnector.upload_report(latest_report_path, debug=debug, open_report=open_report,
+                                            force_upload=force_upload, auto_upload=auto_upload)
 
     @staticmethod
-    def upload_report(report_path=None, report_dir=None, datasource=None, debug=False, open_report=False, force_upload=False, auto_upload=False) -> int:
+    def upload_report(report_path=None, report_dir=None, datasource=None, debug=False, open_report=False,
+                      force_upload=False, auto_upload=False) -> int:
         if piperider_cloud.available is False:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
@@ -301,3 +304,37 @@ class CloudConnector:
                 os.makedirs(summary_dir, exist_ok=True)
             with open(summary_file, 'w') as f:
                 f.write(response.get('summary'))
+
+    @staticmethod
+    def list_projects(debug=False) -> int:
+        if piperider_cloud.available is False:
+            console.rule('Please login PipeRider Cloud first', style='red')
+            return 1
+
+        projects = piperider_cloud.get_projects()
+        # console.print(projects)
+
+        layout_table = Table(
+            title="Project List",
+            title_style='bold magenta',
+            show_header=True,
+            show_edge=True,
+            box=box.SIMPLE_HEAVY,
+        )
+        layout_table.add_column('Project')
+        layout_table.add_column('Type')
+        layout_table.add_column('Organization')
+        layout_table.add_column('URL', justify='right', no_wrap=True)
+
+        for project in projects:
+            project_id = project.get('id')
+            project_url = f'[deep_sky_blue1]{piperider_cloud.service.cloud_host}/projects/{project_id}[/deep_sky_blue1]'
+            layout_table.add_row(
+                project.get('name'),
+                project.get('parent_type'),
+                project.get('organization_display_name', 'N/A'),
+                project_url,
+            )
+
+        console.print(layout_table)
+        pass

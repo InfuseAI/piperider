@@ -1,5 +1,6 @@
 import json
 import os
+from typing import List
 
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
@@ -222,6 +223,50 @@ class PipeRiderCloud:
 
     def has_configured(self):
         return self.service.api_token is not None
+
+    def get_projects(self) -> List[dict]:
+        if not self.available:
+            self.raise_error()
+
+        url = self.service.url('/api/projects')
+        headers = self.service.auth_headers()
+        response = requests.get(url, headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        data = response.json()
+        output = []
+
+        def _parse_legacy_project_list(x):
+            output.append({
+                'id': x.get('id'),
+                'name': x.get('name'),
+                'is_default': x.get('is_default'),
+                'parent_type': 'personal',
+            })
+
+        def _parse_projects_with_organization_list(x):
+            for project in x.get('projects', []):
+                parent_type = 'organization' if project.get('organization_id') else 'personal'
+
+                p = {
+                    'id': project.get('id'),
+                    'name': project.get('name'),
+                    'is_default': project.get('is_default'),
+                    'parent_type': parent_type
+                }
+                if parent_type == 'organization':
+                    p['organization_name'] = x.get('name')
+                    p['organization_display_name'] = x.get('display_name')
+                output.append(p)
+
+        for x in data:
+            if x.get('id'):
+                _parse_legacy_project_list(x)
+            else:
+                _parse_projects_with_organization_list(x)
+        return output
 
 
 if __name__ == '__main__':
