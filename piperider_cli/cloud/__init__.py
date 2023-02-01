@@ -135,9 +135,18 @@ class PipeRiderCloud:
             return response.json()
         return None
 
+    def set_default_project(self, project_name):
+        self.update_config({'default_project': project_name})
+
     def get_default_project(self):
         if not self.available:
             self.raise_error()
+
+        if self.config.get('default_project'):
+            name = self.config.get('default_project')
+            project = self.get_project_by_name(name)
+            if project:
+                return project.get('id')
 
         url = self.service.url('/api/projects')
         headers = self.service.auth_headers()
@@ -268,6 +277,21 @@ class PipeRiderCloud:
             else:
                 _parse_projects_with_organization_list(x)
         return output
+
+    def get_project_by_name(self, name):
+        project_name = None
+        organization_name = None
+        if '/' in name:
+            organization_name, project_name = name.split('/')
+        else:
+            project_name = name
+
+        projects = self.list_projects()
+        for project in projects:
+            if project.get('name') == project_name and project.get('organization_name') == organization_name:
+                return project
+
+        return None
 
 
 if __name__ == '__main__':
