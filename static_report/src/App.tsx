@@ -66,6 +66,20 @@ function AppSingle() {
             )}
           </Route>
 
+          {/* <Route path={ASSERTIONS_ROUTE_PATH}>
+            {() => (
+              <CRAssertionListPage
+                data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}
+              />
+            )}
+          </Route> */}
+
+          {/* <Route path={BM_ROUTE_PATH}>
+            {() => (
+              <CRBMPage data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}} />
+            )}
+          </Route> */}
+
           <Route>
             <NotFound />
           </Route>
@@ -82,11 +96,25 @@ function AppComparison() {
         <Switch>
           <Route
             path="/"
-            component={() => (
-              <CRTablesListPage
-                data={window.PIPERIDER_COMPARISON_REPORT_DATA}
-              />
-            )}
+            component={() => {
+              const { base, input } =
+                window.PIPERIDER_COMPARISON_REPORT_DATA ?? {};
+              const fallbackTables = input || base;
+
+              const tableEntries = Object.entries<any>(fallbackTables.tables);
+              const firstTableEntry = tableEntries[0];
+              const firstTableName = firstTableEntry[0];
+              const firstTableColEntries = Object.entries<any>(
+                firstTableEntry[1].columns,
+              );
+              const firstTableColName = firstTableColEntries[0][0];
+
+              return (
+                <Redirect
+                  to={`/tables/${firstTableName}/columns/${firstTableColName}`}
+                />
+              );
+            }}
           />
 
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>

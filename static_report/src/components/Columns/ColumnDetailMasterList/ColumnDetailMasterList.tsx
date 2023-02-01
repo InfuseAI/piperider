@@ -8,11 +8,12 @@ import {
   AccordionItem,
   AccordionPanel,
   Grid,
+  Link as ChakraLink,
   Tag,
   TagLabel,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { FiChevronDown, FiChevronRight, FiGrid } from 'react-icons/fi';
+import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import {
   IoEye,
   IoEyeOutline,
@@ -46,8 +47,8 @@ interface Props extends Selectable, Comparable {
   currentColumn: string;
   tableColEntry: CompTableColEntryItem;
   tableColEntryList?: CompTableColEntryItem[];
-  onNavBack?: () => void;
-  onNavToTableDetail?: (tableName: string) => void;
+  onNavToAssertions?: () => void;
+  onNavToBM?: () => void;
   onToggleShowExtra?: () => void;
 }
 /**
@@ -60,9 +61,9 @@ export function ColumnDetailMasterList({
   currentColumn,
   singleOnly,
   onSelect,
-  onNavBack,
-  onNavToTableDetail,
-  onToggleShowExtra,
+  onNavToAssertions = () => {},
+  onNavToBM = () => {},
+  onToggleShowExtra = () => {},
 }: Props) {
   const [showExtra, setShowExtra] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
   const [displayMode, setDisplayMode] = useLocalStorage(
@@ -91,6 +92,7 @@ export function ColumnDetailMasterList({
   const fallbackTable = targetTable || baseTable;
   const fallbackColumns = fallbackTable?.columns || [];
 
+  //FIXME: Later (confirm if apply to table+col)
   const filteredTableColumnEntries = fallbackColumns
     .filter(([, { base, target }]) => {
       // Logic: base-first lookup (tag filter UI)
@@ -244,9 +246,23 @@ export function ColumnDetailMasterList({
       </Accordion>
 
       <Flex py={3} mt={5}>
-        All Metrics
+        <ChakraLink
+          onClick={() => {
+            onNavToBM();
+          }}
+        >
+          All Metrics
+        </ChakraLink>
       </Flex>
-      <Flex py={3}>All Assertions</Flex>
+      <Flex py={3}>
+        <ChakraLink
+          onClick={() => {
+            onNavToAssertions();
+          }}
+        >
+          All Assertions
+        </ChakraLink>
+      </Flex>
     </Box>
   );
 }

@@ -39,15 +39,13 @@ import { TableColumnSchemaList } from '../components/Tables/TableList/TableColum
 import { ColumnSchemaDeltaSummary } from '../components/Tables/TableList/ColumnSchemaDeltaSummary';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
-import { TableListAssertionSummary } from '../components/Tables/TableList/TableListAssertions';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import {
   AMPLITUDE_EVENTS,
   CR_TYPE_LABEL,
   MASTER_LIST_SHOW_EXTRA,
 } from '../utils';
-import { getAssertionStatusCountsFromList } from '../lib';
+import { ReportContextBar } from '../components/Reports';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -80,7 +78,7 @@ export default function CRColumnDetailsPage({
   const [extraSpace, setExtraSpace] = useState<boolean>(Boolean(showExtra));
 
   setReportData({ base: data.base, input: data.input });
-  const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
+  const { tableColumnsOnly = [], rawData } = useReportStore.getState();
   const currentTableEntry = tableColumnsOnly.find(
     ([tableKey]) => tableKey === tableName,
   );
@@ -106,18 +104,14 @@ export default function CRColumnDetailsPage({
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
 
-  const { failed: baseFailed, total: baseTotal } =
-    getAssertionStatusCountsFromList(
-      assertionsOnly?.base?.filter((v) => v?.table === tableName) || [],
-    );
-  const { failed: targetFailed, total: targetTotal } =
-    getAssertionStatusCountsFromList(
-      assertionsOnly?.target?.filter((v) => v?.table === tableName) || [],
-    );
-
   const { backgroundColor, icon } = getIconForColumnType(fallbackColumnDatum);
   return (
-    <Main isSingleReport={false} maxHeight={mainContentAreaHeight}>
+    <Main isSingleReport={false} maxHeight={'100%'} px={5}>
+      <ReportContextBar
+        datasource={rawData.base?.datasource}
+        version={rawData.base?.version}
+        tableColumns={tableColumnsOnly}
+      />
       <Grid
         width={'inherit'}
         templateColumns={
@@ -135,12 +129,8 @@ export default function CRColumnDetailsPage({
               setTabIndex(0); //reset tabs
               setLocation(`/tables/${tableName}/columns/${columnName}`);
             }}
-            onNavBack={() => {
-              setLocation('/');
-            }}
-            onNavToTableDetail={(tableName) => {
-              setLocation(`/tables/${tableName}/columns/`);
-            }}
+            onNavToAssertions={() => setLocation('/assertions')}
+            onNavToBM={() => setLocation('/metrics')}
             onToggleShowExtra={() => setExtraSpace((v) => !v)}
           />
         </GridItem>
@@ -156,7 +146,6 @@ export default function CRColumnDetailsPage({
             <Tabs defaultIndex={0}>
               <TabList>
                 <Tab>Overview</Tab>
-                <Tab>Assertions</Tab>
                 <Tab>Schema</Tab>
               </TabList>
               <TabPanels>
@@ -166,27 +155,6 @@ export default function CRColumnDetailsPage({
                     <TableOverview tableDatum={baseDataTable} />
                     <Divider orientation="vertical" />
                     <TableOverview tableDatum={targetDataTable} />
-                  </Grid>
-                </TabPanel>
-                <TabPanel>
-                  {Number(baseTotal) > 0 && (
-                    <Flex mb={5}>
-                      <TableListAssertionSummary
-                        baseAssertionFailed={baseFailed}
-                        baseAssertionTotal={baseTotal}
-                        targetAssertionFailed={targetFailed}
-                        targetAssertionTotal={targetTotal}
-                      />
-                    </Flex>
-                  )}
-                  <Grid templateColumns={'1fr'} gap={3} height={'100%'}>
-                    <AssertionListWidget
-                      filterString={tableName}
-                      filterByTableOnly
-                      caseSensitiveFilter
-                      comparableAssertions={assertionsOnly}
-                      tableSize={'sm'}
-                    />
                   </Grid>
                 </TabPanel>
                 <TabPanel>

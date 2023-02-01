@@ -1,5 +1,4 @@
 import {
-  Flex,
   Grid,
   GridItem,
   Tab,
@@ -35,13 +34,10 @@ import {
 import { TableOverview } from '../components/Tables/TableOverview';
 import {
   AMPLITUDE_EVENTS,
-  AssertionPassFailCountLabel,
-  AssertionListWidget,
   SR_TYPE_LABEL,
   TableColumnSchemaList,
   useAmplitudeOnMount,
   useDocumentTitle,
-  getAssertionStatusCountsFromList,
   MASTER_LIST_SHOW_EXTRA,
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
@@ -72,11 +68,7 @@ export default function SRColumnDetailsPage({
 
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
-  const {
-    tableColumnsOnly = [],
-    assertionsOnly,
-    rawData,
-  } = useReportStore.getState();
+  const { tableColumnsOnly = [], rawData } = useReportStore.getState();
   const currentTableEntry = tableColumnsOnly.find(
     ([tableKey]) => tableKey === tableName,
   );
@@ -87,10 +79,6 @@ export default function SRColumnDetailsPage({
   const dataColumns = dataTable.columns;
   const columnDatum = dataColumns[columnName];
 
-  const { failed: baseFailed, total: baseTotal } =
-    getAssertionStatusCountsFromList(
-      assertionsOnly?.base?.filter((v) => v?.table === tableName) || [],
-    );
   const { type, histogram, schema_type } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
 
@@ -104,7 +92,7 @@ export default function SRColumnDetailsPage({
 
   const hasQuantile = containsColumnQuantile(type);
   return (
-    <Main isSingleReport maxHeight={mainContentAreaHeight} px={5}>
+    <Main isSingleReport maxHeight={'100%'} px={5}>
       <ReportContextBar
         datasource={rawData.base?.datasource}
         version={rawData.base?.version}
@@ -127,12 +115,8 @@ export default function SRColumnDetailsPage({
               setTabIndex(0); //resets tabs
               setLocation(`/tables/${tableName}/columns/${columnName}`);
             }}
-            onNavBack={() => {
-              setLocation('/');
-            }}
-            onNavToTableDetail={(tableName) => {
-              setLocation(`/tables/${tableName}/columns/`);
-            }}
+            onNavToAssertions={() => setLocation('/assertions')}
+            onNavToBM={() => setLocation('/metrics')}
             onToggleShowExtra={() => setExtraSpace((v) => !v)}
             singleOnly
           />
@@ -149,7 +133,6 @@ export default function SRColumnDetailsPage({
             <Tabs mt={3} defaultIndex={0}>
               <TabList>
                 <Tab>Overview</Tab>
-                <Tab>Assertions</Tab>
                 <Tab>Schema</Tab>
               </TabList>
               <TabPanels>
@@ -157,24 +140,6 @@ export default function SRColumnDetailsPage({
                   <Grid templateColumns={'1fr 1fr'} gap={3}>
                     <TableOverview tableDatum={dataTable} />
                   </Grid>
-                </TabPanel>
-                <TabPanel>
-                  {Number(baseTotal) > 0 && (
-                    <Flex mb={5}>
-                      <AssertionPassFailCountLabel
-                        total={baseTotal}
-                        failed={baseFailed}
-                      />
-                    </Flex>
-                  )}
-                  <AssertionListWidget
-                    filterString={dataTable.name}
-                    filterByTableOnly
-                    caseSensitiveFilter
-                    comparableAssertions={assertionsOnly}
-                    singleOnly
-                    tableSize={'sm'}
-                  />
                 </TabPanel>
                 <TabPanel>
                   <TableColumnSchemaList
