@@ -3,7 +3,7 @@ import decimal
 import itertools
 from typing import List, Union
 
-from sqlalchemy import select, func, distinct, literal_column, join, outerjoin, Column
+from sqlalchemy import select, func, distinct, literal_column, join, outerjoin, Column, Date
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy.sql.expression import table as table_clause, column as column_clause, text, union_all, case
@@ -139,11 +139,11 @@ class MetricEngine:
                                                                                       self._slot_count_by_grain(grain))
             stmt = select([
                 literal_column(metric.expression).label('c'),
-                self.date_trunc(grain, literal_column(metric.timestamp)).label('d'),
+                self.date_trunc(grain, func.cast(literal_column(metric.timestamp), Date)).label('d'),
             ]).select_from(
                 source_model
             ).where(
-                literal_column(metric.timestamp) >= start_date
+                func.cast(literal_column(metric.timestamp), Date) >= start_date
             )
             for f in metric.filters:
                 stmt = stmt.where(text(f"{f.get('field')} {f.get('operator')} {f.get('value')}"))
