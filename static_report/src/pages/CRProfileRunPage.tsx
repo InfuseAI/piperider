@@ -46,6 +46,7 @@ import {
   MASTER_LIST_SHOW_EXTRA,
 } from '../utils';
 import { ReportContextBar } from '../components/Reports';
+import { MasterDetailContainer } from '../components/Layouts/MasterDetailContainer';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -107,32 +108,12 @@ export default function CRProfileRunPage({
   const { backgroundColor, icon } = getIconForColumnType(fallbackColumnDatum);
   return (
     <Main isSingleReport={false}>
-      <ReportContextBar
-        datasource={rawData.base?.datasource}
-        version={rawData.base?.version}
-        tableColumns={tableColumnsOnly}
-      />
-      <Grid
-        width={'inherit'}
-        templateColumns={
-          extraSpace ? extraSpaceAllContentGridTempCols : allContentGridTempCols
-        }
+      <MasterDetailContainer
+        rawData={rawData}
+        tableColEntries={tableColumnsOnly}
+        tableName={tableName}
+        columnName={columnName}
       >
-        {/* Master Area */}
-        <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
-          <MasterSideNav
-            tableColEntryList={tableColumnsOnly}
-            currentTable={tableName}
-            currentColumn={columnName}
-            onSelect={({ tableName, columnName }) => {
-              setTabIndex(0); //reset tabs
-              setLocation(`/tables/${tableName}/columns/${columnName}`);
-            }}
-            onNavToAssertions={() => setLocation('/assertions')}
-            onNavToBM={() => setLocation('/metrics')}
-            onToggleShowExtra={() => setExtraSpace((v) => !v)}
-          />
-        </GridItem>
         {/* Detail Area - Table Detail */}
         {isTableDetailsView ? (
           <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
@@ -251,7 +232,7 @@ export default function CRProfileRunPage({
             </GridItem>
           </Grid>
         )}
-      </Grid>
+      </MasterDetailContainer>
     </Main>
   );
 }

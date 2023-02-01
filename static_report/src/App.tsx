@@ -13,6 +13,8 @@ import {
 } from './utils/routes';
 import { SRAssertionListPage } from './pages/SRAssertionListPage';
 import { SRBMPage } from './pages/SRBMPage';
+import { CRBMPage } from './pages/CRBMPage';
+import { CRAssertionListPage } from './pages/CRAssertionListPage';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns && process.env.NODE_ENV !== 'development') {
@@ -132,19 +134,19 @@ function AppComparison() {
             )}
           </Route>
 
-          {/* <Route path={ASSERTIONS_ROUTE_PATH}>
+          <Route path={ASSERTIONS_ROUTE_PATH}>
             {() => (
               <CRAssertionListPage
                 data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}
               />
             )}
-          </Route> */}
+          </Route>
 
-          {/* <Route path={BM_ROUTE_PATH}>
+          <Route path={BM_ROUTE_PATH}>
             {() => (
               <CRBMPage data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}} />
             )}
-          </Route> */}
+          </Route>
 
           <Route>
             <NotFound />

@@ -238,7 +238,6 @@ export function MasterSideNav({
             const isTableActive = Boolean(
               currentColumn === '' && isSameTableName,
             );
-            console.log(compTableColItem);
 
             return (
               <AccordionItem key={tableName}>
