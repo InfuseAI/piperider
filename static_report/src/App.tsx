@@ -5,9 +5,14 @@ import { BrowserTracing } from '@sentry/tracing';
 
 import { Loading } from './components/Layouts/Loading';
 import { NotFound } from './components/Common/NotFound';
-import { CRTablesListPage } from './pages/CRTablesListPage';
 import { useHashLocation } from './hooks/useHashLcocation';
-import { COLUMN_DETAILS_ROUTE_PATH } from './utils/routes';
+import {
+  ASSERTIONS_ROUTE_PATH,
+  BM_ROUTE_PATH,
+  COLUMN_DETAILS_ROUTE_PATH,
+} from './utils/routes';
+import { SRAssertionListPage } from './pages/SRAssertionListPage';
+import { SRBMPage } from './pages/SRBMPage';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns && process.env.NODE_ENV !== 'development') {
@@ -28,7 +33,7 @@ if (sentryDns && process.env.NODE_ENV !== 'development') {
   Sentry.setTag('piperider.version', appVersion);
 }
 
-const SRColumnDetailsPage = lazy(() => import('./pages/SRColumnDetailsPage'));
+const SRProfileRunPage = lazy(() => import('./pages/SRProfileRunPage'));
 const CRColumnDetailsPage = lazy(() => import('./pages/CRColumnDetailsPage'));
 
 function AppSingle() {
@@ -58,7 +63,7 @@ function AppSingle() {
 
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
             {({ tableName, columnName }) => (
-              <SRColumnDetailsPage
+              <SRProfileRunPage
                 tableName={decodeURIComponent(tableName || '')}
                 columnName={decodeURIComponent(columnName || '')}
                 data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
@@ -66,19 +71,19 @@ function AppSingle() {
             )}
           </Route>
 
-          {/* <Route path={ASSERTIONS_ROUTE_PATH}>
+          <Route path={ASSERTIONS_ROUTE_PATH}>
             {() => (
-              <CRAssertionListPage
+              <SRAssertionListPage
                 data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}
               />
             )}
-          </Route> */}
+          </Route>
 
-          {/* <Route path={BM_ROUTE_PATH}>
+          <Route path={BM_ROUTE_PATH}>
             {() => (
-              <CRBMPage data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}} />
+              <SRBMPage data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}} />
             )}
-          </Route> */}
+          </Route>
 
           <Route>
             <NotFound />

@@ -29,6 +29,7 @@ export function SRAssertionListPage({ data }: Props) {
 
   return (
     <Main isSingleReport>
+      {/* TODO: Insert MasterDetailContainer here */}
       <Flex maxW={assertionListWidth - 50} w={'100%'} mt={10}>
         <SearchTextInput
           onChange={setFilterString}

@@ -215,8 +215,9 @@ export function ColumnDetailMasterList({
             compTableColItem.target || compTableColItem.base;
           const fallbackColEntries = fallbackTableEntries?.columns;
 
+          const isSameTableName = currentTable === tableName;
           const isTableActive = Boolean(
-            currentColumn === '' && currentTable === tableName,
+            currentColumn === '' && isSameTableName,
           );
           return (
             <AccordionItem key={tableName}>
@@ -231,12 +232,13 @@ export function ColumnDetailMasterList({
                     singleOnly={singleOnly}
                   />
                   <ColumnListAccordionPanel
+                    onSelect={onSelect}
                     compColList={fallbackColEntries}
-                    hasShowExtra={hasShowExtra}
-                    singleOnly={singleOnly}
                     currentColumn={currentColumn}
                     currentTable={currentTable}
-                    onSelect={onSelect}
+                    indexedTableName={tableName}
+                    hasShowExtra={hasShowExtra}
+                    singleOnly={singleOnly}
                   />
                 </>
               )}
@@ -333,6 +335,7 @@ interface ColumnListAccordionPanelProps extends Comparable, Selectable {
   hasShowExtra: boolean;
   currentColumn: string;
   currentTable: string;
+  indexedTableName: string;
 }
 function ColumnListAccordionPanel({
   compColList = [],
@@ -341,22 +344,25 @@ function ColumnListAccordionPanel({
   hasShowExtra,
   currentColumn,
   currentTable,
+  indexedTableName,
 }: ColumnListAccordionPanelProps) {
-  //TODO: active currentColumn (even when all accordions are expanded state)
   return (
     <AccordionPanel>
       <Box mt={2}>
         {compColList.map(([colKey, { base, target }]) => {
+          const isActiveColumn =
+            (target || base)?.name === currentColumn &&
+            indexedTableName === currentTable;
           return (
             <Box key={colKey}>
               {/* LIST - Columns */}
               <ColumnDetailListItem
-                isActive={(target || base)?.name === currentColumn}
+                isActive={isActiveColumn}
                 tableName={currentTable}
                 baseColumnDatum={base}
                 targetColumnDatum={target}
                 onSelect={(data) => {
-                  onSelect(data);
+                  onSelect({ ...data, tableName: indexedTableName });
                 }}
                 singleOnly={singleOnly}
                 showExtra={hasShowExtra}

@@ -25,6 +25,7 @@ export function SRBMPage({ data }: Props) {
 
   return (
     <Main isSingleReport>
+      {/* TODO: Insert MasterDetailContainer here */}
       <Flex w={'100%'} p={5}>
         <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
           Report Business Metrics ({datasource})

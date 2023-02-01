@@ -7,21 +7,13 @@ import {
   TabPanels,
   Tabs,
 } from '@chakra-ui/react';
-import { useLocation } from 'wouter';
 import { useState } from 'react';
-import { useLocalStorage } from 'react-use';
 
 import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
-import {
-  allContentGridTempCols,
-  borderVal,
-  extraSpaceAllContentGridTempCols,
-  mainContentAreaHeight,
-} from '../utils/layout';
+import { borderVal, mainContentAreaHeight } from '../utils/layout';
 import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
-import { ColumnDetailMasterList } from '../components/Columns/ColumnDetailMasterList';
 
 import type { SingleReportSchema } from '../sdlc/single-report-schema';
 import { DataSummaryWidget } from '../components/Widgets/DataSummaryWidget';
@@ -38,17 +30,16 @@ import {
   TableColumnSchemaList,
   useAmplitudeOnMount,
   useDocumentTitle,
-  MASTER_LIST_SHOW_EXTRA,
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { ReportContextBar } from '../components/Reports';
+import { MasterDetailContainer } from '../components/Layouts/MasterDetailContainer';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
   tableName: string;
 }
-export default function SRColumnDetailsPage({
+export default function SRProfileRunPage({
   data,
   columnName,
   tableName,
@@ -61,10 +52,7 @@ export default function SRColumnDetailsPage({
       page: 'column-details-page',
     },
   });
-  const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
-  const [showExtra] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
-  const [extraSpace, setExtraSpace] = useState<boolean>(Boolean(showExtra));
 
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
@@ -93,34 +81,14 @@ export default function SRColumnDetailsPage({
   const hasQuantile = containsColumnQuantile(type);
   return (
     <Main isSingleReport maxHeight={'100%'} px={5}>
-      <ReportContextBar
-        datasource={rawData.base?.datasource}
-        version={rawData.base?.version}
-        tableColumns={tableColumnsOnly}
-      />
-      <Grid
-        width={'inherit'}
-        templateColumns={
-          extraSpace ? extraSpaceAllContentGridTempCols : allContentGridTempCols
-        }
+      <MasterDetailContainer
+        rawData={rawData}
+        tableColEntries={tableColumnsOnly}
+        tableColEntry={currentTableEntry}
+        tableName={tableName}
+        columnName={columnName}
+        singleOnly
       >
-        {/* Master Area */}
-        <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
-          <ColumnDetailMasterList
-            tableColEntryList={tableColumnsOnly}
-            tableColEntry={currentTableEntry}
-            currentTable={tableName}
-            currentColumn={columnName}
-            onSelect={({ tableName, columnName }) => {
-              setTabIndex(0); //resets tabs
-              setLocation(`/tables/${tableName}/columns/${columnName}`);
-            }}
-            onNavToAssertions={() => setLocation('/assertions')}
-            onNavToBM={() => setLocation('/metrics')}
-            onToggleShowExtra={() => setExtraSpace((v) => !v)}
-            singleOnly
-          />
-        </GridItem>
         {/* Detail Area - Table Detail */}
         {isTableDetailsView ? (
           <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
@@ -222,7 +190,7 @@ export default function SRColumnDetailsPage({
             </GridItem>
           </Grid>
         )}
-      </Grid>
+      </MasterDetailContainer>
     </Main>
   );
 }
