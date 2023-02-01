@@ -606,7 +606,7 @@ class Runner():
             raise err
 
         try:
-            available_tables = ds.verify_connection(configuration.include_views)
+            ds.verify_connection()
         except Exception as err:
             console.print(
                 f'[[bold red]FAILED[/bold red]] Failed to connect the \'{ds.name}\' data source.')
@@ -658,6 +658,9 @@ class Runner():
             configuration.excludes = None
 
         run_result = {}
+        available_tables = inspect(engine).get_table_names()
+        if configuration.include_views:
+            available_tables += inspect(engine).get_view_names()
         available_tables = [t.table for t in tables] if tables else available_tables
         profiler = Profiler(ds, RichProfilerEventHandler(available_tables), configuration)
         try:
