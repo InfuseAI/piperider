@@ -10,20 +10,12 @@ import {
   Tabs,
   Text,
 } from '@chakra-ui/react';
-import { useLocation } from 'wouter';
 import { useState } from 'react';
-import { useLocalStorage } from 'react-use';
 
 import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
-import { MasterSideNav } from '../components/Columns';
-import {
-  allContentGridTempCols,
-  borderVal,
-  extraSpaceAllContentGridTempCols,
-  mainContentAreaHeight,
-} from '../utils/layout';
+import { borderVal, mainContentAreaHeight } from '../utils/layout';
 import { DataSummaryWidget } from '../components/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
 
@@ -40,12 +32,7 @@ import { ColumnSchemaDeltaSummary } from '../components/Tables/TableList/ColumnS
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
-import {
-  AMPLITUDE_EVENTS,
-  CR_TYPE_LABEL,
-  MASTER_LIST_SHOW_EXTRA,
-} from '../utils';
-import { ReportContextBar } from '../components/Reports';
+import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
 import { MasterDetailContainer } from '../components/Layouts/MasterDetailContainer';
 
 interface Props {
@@ -71,12 +58,9 @@ export default function CRProfileRunPage({
     base: { tables: baseTables },
     input: { tables: targetTables },
   } = data;
-  const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
   const isTableDetailsView = columnName.length === 0;
   const setReportData = useReportStore((s) => s.setReportRawData);
-  const [showExtra] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
-  const [extraSpace, setExtraSpace] = useState<boolean>(Boolean(showExtra));
 
   setReportData({ base: data.base, input: data.input });
   const { tableColumnsOnly = [], rawData } = useReportStore.getState();
