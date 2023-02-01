@@ -11,8 +11,9 @@ import {
   Link as ChakraLink,
   Tag,
   TagLabel,
+  Link,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import {
   IoEye,
@@ -69,7 +70,6 @@ export function MasterSideNav({
     '',
   );
 
-  //FIXME: Update the filters! (unplugged)
   const [filterString, setFilterString] = useState<string>('');
   const [filterState, setFilterState] = useState<
     Map<ProfilerGenericTypes | undefined, boolean>
@@ -84,21 +84,42 @@ export function MasterSideNav({
     ]),
   );
   const quickFilters = Array.from(filterState.keys());
-  // const [, { base: baseTable, target: targetTable }] = tableColEntry;
-  // target is placed before fallback as it represents the target of change
 
-  // const fallbackTable = targetTable || baseTable;
-  // const fallbackColumns = fallbackTable?.columns || [];
+  const filterHandler = useCallback(
+    (compColEntryItem?: CompTableWithColEntryOverwrite) => {
+      return (
+        compColEntryItem?.columns
+          ?.filter(([, { base, target }]) => {
+            // Logic: base-first lookup (tag filter UI)
+            return filterState.get(base?.type) || filterState.get(target?.type);
+          })
+          .filter(([key]) =>
+            filterString
+              ? key.search(new RegExp(filterString, 'gi')) > -1
+              : true,
+          ) || []
+      );
+    },
+    [filterState, filterString],
+  );
 
-  //FIXME: Later (confirm if apply to table+col)
-  // const filteredTableColumnEntries = fallbackColumns
-  //   .filter(([, { base, target }]) => {
-  //     // Logic: base-first lookup (tag filter UI)
-  //     return filterState.get(base?.type) || filterState.get(target?.type);
-  //   })
-  //   .filter(([key]) =>
-  //     filterString ? key.search(new RegExp(filterString, 'gi')) > -1 : true,
-  //   );
+  const filteredTableColumnEntryList = tableColEntryList.map(
+    ([tableName, { base, target }, meta]) => {
+      const filteredBaseColumns = filterHandler(base);
+      const filteredTargetColumns = filterHandler(target);
+      const filteredTableColumnEntry = [
+        tableName,
+        {
+          base: base ? { ...base, columns: filteredBaseColumns } : undefined,
+          target: target
+            ? { ...target, columns: filteredTargetColumns }
+            : undefined,
+        },
+        meta,
+      ];
+      return filteredTableColumnEntry as CompTableColEntryItem;
+    },
+  );
 
   const SEARCH_KEY = 'search';
   const SearchIcon =
@@ -125,9 +146,9 @@ export function MasterSideNav({
   const hasShowExtra = showExtra === SHOW_EXTRA_KEY;
 
   return (
-    <Box w={'100%'} p={3} pb={0} zIndex={150} bg={'inherit'}>
-      {/* HEADER - Label + Toggle/Filters */}
-      <Flex justifyContent={'space-between'} mb={2}>
+    <Box w={'100%'} p={3} pl={8} zIndex={150} bg={'inherit'}>
+      {/* FILTER HEADER */}
+      <Flex mt={3} justifyContent={'space-between'} mb={2}>
         <Text color={'gray.500'} size={'md'}>
           Tables
         </Text>
@@ -164,7 +185,7 @@ export function MasterSideNav({
           </Box>
         </Flex>
       </Flex>
-      {/* BODY - Filter contents */}
+      {/* FILTER BODY */}
       <Box p={2}>
         {/* Search Text Filter */}
         {displayMode === 'search' && (
@@ -207,42 +228,45 @@ export function MasterSideNav({
       </Box>
 
       <Accordion reduceMotion allowMultiple>
-        {/* TODO: Filtered? */}
-        {tableColEntryList.map(([tableName, compTableColItem, meta]) => {
-          const fallbackTableEntries =
-            compTableColItem.target || compTableColItem.base;
-          const fallbackColEntries = fallbackTableEntries?.columns;
+        {filteredTableColumnEntryList.map(
+          ([tableName, compTableColItem, meta]) => {
+            const fallbackTableEntries =
+              compTableColItem?.target || compTableColItem?.base;
+            const fallbackColEntries = fallbackTableEntries?.columns;
 
-          const isSameTableName = currentTable === tableName;
-          const isTableActive = Boolean(
-            currentColumn === '' && isSameTableName,
-          );
-          return (
-            <AccordionItem key={tableName}>
-              {({ isExpanded }) => (
-                <>
-                  <TableItemAccordionButton
-                    onSelect={onSelect}
-                    isActive={isTableActive}
-                    isExpanded={isExpanded}
-                    compTableColItem={compTableColItem}
-                    hasShowExtra={hasShowExtra}
-                    singleOnly={singleOnly}
-                  />
-                  <ColumnListAccordionPanel
-                    onSelect={onSelect}
-                    compColList={fallbackColEntries}
-                    currentColumn={currentColumn}
-                    currentTable={currentTable}
-                    indexedTableName={tableName}
-                    hasShowExtra={hasShowExtra}
-                    singleOnly={singleOnly}
-                  />
-                </>
-              )}
-            </AccordionItem>
-          );
-        })}
+            const isSameTableName = currentTable === tableName;
+            const isTableActive = Boolean(
+              currentColumn === '' && isSameTableName,
+            );
+            console.log(compTableColItem);
+
+            return (
+              <AccordionItem key={tableName}>
+                {({ isExpanded }) => (
+                  <>
+                    <TableItemAccordionButton
+                      onSelect={onSelect}
+                      isActive={isTableActive}
+                      isExpanded={isExpanded}
+                      compTableColItem={compTableColItem}
+                      hasShowExtra={hasShowExtra}
+                      singleOnly={singleOnly}
+                    />
+                    <ColumnListAccordionPanel
+                      onSelect={onSelect}
+                      compColList={fallbackColEntries}
+                      currentColumn={currentColumn}
+                      currentTable={currentTable}
+                      indexedTableName={tableName}
+                      hasShowExtra={hasShowExtra}
+                      singleOnly={singleOnly}
+                    />
+                  </>
+                )}
+              </AccordionItem>
+            );
+          },
+        )}
       </Accordion>
 
       <Flex py={3} mt={5}>
@@ -276,6 +300,8 @@ interface TableItemAccordionButtonProps extends Comparable, Selectable {
   isActive: boolean;
   isExpanded: boolean;
 }
+// * Selecting larger area will expand/collapse w/o navigating
+// * Selecting text area will navigate and NOT expand/collapse
 function TableItemAccordionButton({
   compTableColItem: { base: baseTable, target: targetTable },
   isActive,
@@ -289,17 +315,19 @@ function TableItemAccordionButton({
   return (
     <h2>
       <AccordionButton>
-        <Flex
-          p={3}
-          w={'100%'}
-          justify={'space-between'}
-          onClick={() => {
-            onSelect({ tableName: fallbackTable?.name, columnName: '' });
-          }}
-        >
+        <Flex p={3} w={'100%'} justify={'space-between'}>
           <Flex alignItems={'center'} gap={2} fontSize={'sm'}>
             <Icon as={isExpanded ? FiChevronDown : FiChevronRight} />
-            <Text noOfLines={1}>{fallbackTable?.name}</Text>
+            <Link
+              onClick={(e) => {
+                e.preventDefault();
+                onSelect({ tableName: fallbackTable?.name, columnName: '' });
+              }}
+              noOfLines={1}
+              fontWeight={isActive ? 'bold' : 'normal'}
+            >
+              {fallbackTable?.name}
+            </Link>
           </Flex>
           {hasShowExtra && (
             <Flex color={'gray.500'} fontSize={'sm'}>
@@ -346,7 +374,7 @@ function ColumnListAccordionPanel({
 }: ColumnListAccordionPanelProps) {
   return (
     <AccordionPanel>
-      <Box mt={2}>
+      <Box>
         {compColList.map(([colKey, { base, target }]) => {
           const isActiveColumn =
             (target || base)?.name === currentColumn &&

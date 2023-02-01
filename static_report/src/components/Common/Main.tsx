@@ -3,10 +3,7 @@ import { useEffect, ReactNode } from 'react';
 import * as amplitude from '@amplitude/analytics-browser';
 
 import { Navbar } from './Navbar';
-import {
-  mainContentAreaHeight,
-  topNavAndFooterHeightOffset,
-} from '../../utils';
+import { mainContentAreaHeight } from '../../utils';
 
 interface Props extends FlexProps {
   children: ReactNode;

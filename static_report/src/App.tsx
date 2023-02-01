@@ -34,7 +34,7 @@ if (sentryDns && process.env.NODE_ENV !== 'development') {
 }
 
 const SRProfileRunPage = lazy(() => import('./pages/SRProfileRunPage'));
-const CRColumnDetailsPage = lazy(() => import('./pages/CRColumnDetailsPage'));
+const CRProfileRunPage = lazy(() => import('./pages/CRProfileRunPage'));
 
 function AppSingle() {
   return (
@@ -124,7 +124,7 @@ function AppComparison() {
 
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
             {({ tableName, columnName }) => (
-              <CRColumnDetailsPage
+              <CRProfileRunPage
                 tableName={decodeURIComponent(tableName || '')}
                 columnName={decodeURIComponent(columnName || '')}
                 data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}

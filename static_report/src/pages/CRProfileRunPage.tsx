@@ -17,7 +17,7 @@ import { useLocalStorage } from 'react-use';
 import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
-import { MasterSideNav } from '../components/Columns/MasterSideNav/MasterSideNav';
+import { MasterSideNav } from '../components/Columns';
 import {
   allContentGridTempCols,
   borderVal,
@@ -53,7 +53,7 @@ interface Props {
   tableName: string;
 }
 
-export default function CRColumnDetailsPage({
+export default function CRProfileRunPage({
   data,
   columnName,
   tableName,
@@ -106,7 +106,7 @@ export default function CRColumnDetailsPage({
 
   const { backgroundColor, icon } = getIconForColumnType(fallbackColumnDatum);
   return (
-    <Main isSingleReport={false} maxHeight={'100%'} px={5}>
+    <Main isSingleReport={false}>
       <ReportContextBar
         datasource={rawData.base?.datasource}
         version={rawData.base?.version}
