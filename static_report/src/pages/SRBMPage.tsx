@@ -5,7 +5,12 @@ import { MasterDetailContainer } from '../components/Layouts/MasterDetailContain
 import { BMWidget } from '../components/Widgets/BMWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { SaferSRSchema } from '../types';
-import { AMPLITUDE_EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
+import {
+  AMPLITUDE_EVENTS,
+  mainContentAreaHeight,
+  SR_TYPE_LABEL,
+  useReportStore,
+} from '../utils';
 
 interface Props {
   data: SaferSRSchema;
@@ -31,13 +36,19 @@ export function SRBMPage({ data }: Props) {
         tableColEntries={tableColumnsOnly}
         singleOnly
       >
-        <Box mx={9}>
+        <Box px={9} h={mainContentAreaHeight} overflowY={'auto'}>
           <Flex w={'100%'} p={5}>
             <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
               Report Business Metrics ({datasource})
             </Text>
           </Flex>
-          <Grid templateColumns={'1fr 1fr'} w={'100%'} h={'100%'} gap={5} p={5}>
+          <Grid
+            templateColumns={'1fr 1fr'}
+            w={'100%'}
+            minH={'50%'}
+            gap={5}
+            p={5}
+          >
             {(BMOnly?.base ?? []).map((v) => (
               <GridItem key={v.name}>
                 <BMWidget data={{ base: v }} singleOnly />

@@ -28,7 +28,7 @@ export function ReportContextBar({
       PLACEHOLDER: SHOW_PROJ_INFO UI case (selector + reports-list-meta)
     </Flex>
   ) : (
-    <Flex p={5} w={'100%'} gap={5}>
+    <Flex p={5} w={'100%'} gap={5} boxShadow={'xs'}>
       <Flex alignItems={'center'} gap={2}>
         <BiPlug />
         <Text color={'gray.500'}>Source: {datasource?.name}</Text>

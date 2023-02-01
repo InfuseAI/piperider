@@ -80,7 +80,7 @@ export default function SRProfileRunPage({
 
   const hasQuantile = containsColumnQuantile(type);
   return (
-    <Main isSingleReport px={5}>
+    <Main isSingleReport>
       <MasterDetailContainer
         rawData={rawData}
         tableColEntries={tableColumnsOnly}
@@ -90,7 +90,7 @@ export default function SRProfileRunPage({
       >
         {/* Detail Area - Table Detail */}
         {isTableDetailsView ? (
-          <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
+          <GridItem h={mainContentAreaHeight} overflowY={'auto'} p={10}>
             <TableColumnHeader
               title={dataTable.name}
               subtitle={'Table'}
@@ -125,7 +125,7 @@ export default function SRProfileRunPage({
             gridAutoFlow={'column'}
             width={'100%'}
             pb={5}
-            maxHeight={mainContentAreaHeight}
+            h={mainContentAreaHeight}
             overflowY={'auto'}
           >
             {/* Label Block */}

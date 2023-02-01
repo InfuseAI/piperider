@@ -3,7 +3,6 @@ import { FiSquare, FiColumns } from 'react-icons/fi';
 import { Link } from 'wouter';
 import { NO_VALUE } from '../Columns';
 import { useReportStore } from '../../utils/store';
-
 type Props = {
   isSingleReport: boolean;
 };
@@ -12,7 +11,7 @@ export function Navbar({ isSingleReport }: Props) {
   const { reportTime } = useReportStore.getState();
 
   return (
-    <Flex alignItems="center" px={6} bg="white" boxShadow="md">
+    <Flex alignItems="center" px={6} bg="white">
       <CharakaLink as={Link} to="/">
         <a href="/">
           <Image src="logo/logo.svg" height="64px" alt="PipeRider" />
