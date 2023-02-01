@@ -74,14 +74,14 @@ function AppSingle() {
           <Route path={ASSERTIONS_ROUTE_PATH}>
             {() => (
               <SRAssertionListPage
-                data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}
+                data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
               />
             )}
           </Route>
 
           <Route path={BM_ROUTE_PATH}>
             {() => (
-              <SRBMPage data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}} />
+              <SRBMPage data={window.PIPERIDER_SINGLE_REPORT_DATA || {}} />
             )}
           </Route>
 

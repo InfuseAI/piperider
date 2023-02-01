@@ -43,9 +43,8 @@ import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 type ProfilerGenericTypes = ColumnSchema['type'];
 interface Props extends Selectable, Comparable {
-  currentTable: string;
-  currentColumn: string;
-  tableColEntry: CompTableColEntryItem;
+  currentTable?: string;
+  currentColumn?: string;
   tableColEntryList?: CompTableColEntryItem[];
   onNavToAssertions?: () => void;
   onNavToBM?: () => void;
@@ -54,9 +53,8 @@ interface Props extends Selectable, Comparable {
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of all tables and columns from datasource. Belongs in the profiling column details page to view in-depth metrics and visualizations
  */
-export function ColumnDetailMasterList({
+export function MasterSideNav({
   tableColEntryList = [],
-  tableColEntry,
   currentTable,
   currentColumn,
   singleOnly,
@@ -86,21 +84,21 @@ export function ColumnDetailMasterList({
     ]),
   );
   const quickFilters = Array.from(filterState.keys());
-  const [, { base: baseTable, target: targetTable }] = tableColEntry;
+  // const [, { base: baseTable, target: targetTable }] = tableColEntry;
   // target is placed before fallback as it represents the target of change
 
-  const fallbackTable = targetTable || baseTable;
-  const fallbackColumns = fallbackTable?.columns || [];
+  // const fallbackTable = targetTable || baseTable;
+  // const fallbackColumns = fallbackTable?.columns || [];
 
   //FIXME: Later (confirm if apply to table+col)
-  const filteredTableColumnEntries = fallbackColumns
-    .filter(([, { base, target }]) => {
-      // Logic: base-first lookup (tag filter UI)
-      return filterState.get(base?.type) || filterState.get(target?.type);
-    })
-    .filter(([key]) =>
-      filterString ? key.search(new RegExp(filterString, 'gi')) > -1 : true,
-    );
+  // const filteredTableColumnEntries = fallbackColumns
+  //   .filter(([, { base, target }]) => {
+  //     // Logic: base-first lookup (tag filter UI)
+  //     return filterState.get(base?.type) || filterState.get(target?.type);
+  //   })
+  //   .filter(([key]) =>
+  //     filterString ? key.search(new RegExp(filterString, 'gi')) > -1 : true,
+  //   );
 
   const SEARCH_KEY = 'search';
   const SearchIcon =
@@ -333,8 +331,8 @@ function TableItemAccordionButton({
 interface ColumnListAccordionPanelProps extends Comparable, Selectable {
   compColList?: CompColEntryItem[];
   hasShowExtra: boolean;
-  currentColumn: string;
-  currentTable: string;
+  currentColumn?: string;
+  currentTable?: string;
   indexedTableName: string;
 }
 function ColumnListAccordionPanel({

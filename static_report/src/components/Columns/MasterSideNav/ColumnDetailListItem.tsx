@@ -9,7 +9,7 @@ import { ColumnName } from '../../Tables';
 import { getIconForColumnType } from '../utils';
 
 interface Props extends Comparable, Selectable {
-  tableName: string;
+  tableName?: string;
   baseColumnDatum?: Partial<ColumnSchema>;
   targetColumnDatum?: Partial<ColumnSchema>;
   isActive: boolean;

@@ -1,7 +1,8 @@
-import { Flex } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 import { useState } from 'react';
 import { AssertionPassFailCountLabel } from '../components/Assertions/AssertionPassFailCountLabel';
 import { Main } from '../components/Common/Main';
+import { MasterDetailContainer } from '../components/Layouts/MasterDetailContainer';
 import { SearchTextInput } from '../components/Layouts/SearchTextInput';
 import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
@@ -24,33 +25,50 @@ export function SRAssertionListPage({ data }: Props) {
   const [filterString, setFilterString] = useState<string>('');
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base: data });
-  const { assertionsOnly } = useReportStore.getState();
+
+  const {
+    tableColumnsOnly = [],
+    rawData,
+    assertionsOnly,
+  } = useReportStore.getState();
   const { metadata } = assertionsOnly || {};
 
   return (
     <Main isSingleReport>
-      {/* TODO: Insert MasterDetailContainer here */}
-      <Flex maxW={assertionListWidth - 50} w={'100%'} mt={10}>
-        <SearchTextInput
-          onChange={setFilterString}
-          filterString={filterString}
-        />
-      </Flex>
-      <Flex justify={'start'} maxW={assertionListWidth - 50} w={'100%'} my={5}>
-        {Number(metadata?.base?.total) > 0 && (
-          <AssertionPassFailCountLabel
-            total={metadata?.base?.total}
-            failed={metadata?.base?.failed}
-          />
-        )}
-      </Flex>
-      <AssertionListWidget
-        maxW={assertionListWidth - 25}
-        w={'100%'}
+      <MasterDetailContainer
+        rawData={rawData}
+        tableColEntries={tableColumnsOnly}
         singleOnly
-        filterString={filterString}
-        comparableAssertions={assertionsOnly}
-      />
+      >
+        <Box mx={9}>
+          <Flex maxW={assertionListWidth - 50} w={'100%'}>
+            <SearchTextInput
+              onChange={setFilterString}
+              filterString={filterString}
+            />
+          </Flex>
+          <Flex
+            justify={'start'}
+            maxW={assertionListWidth - 50}
+            w={'100%'}
+            my={5}
+          >
+            {Number(metadata?.base?.total) > 0 && (
+              <AssertionPassFailCountLabel
+                total={metadata?.base?.total}
+                failed={metadata?.base?.failed}
+              />
+            )}
+          </Flex>
+          <AssertionListWidget
+            maxW={assertionListWidth - 50}
+            w={'100%'}
+            singleOnly
+            filterString={filterString}
+            comparableAssertions={assertionsOnly}
+          />
+        </Box>
+      </MasterDetailContainer>
     </Main>
   );
 }

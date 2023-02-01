@@ -80,11 +80,10 @@ export default function SRProfileRunPage({
 
   const hasQuantile = containsColumnQuantile(type);
   return (
-    <Main isSingleReport maxHeight={'100%'} px={5}>
+    <Main isSingleReport px={5}>
       <MasterDetailContainer
         rawData={rawData}
         tableColEntries={tableColumnsOnly}
-        tableColEntry={currentTableEntry}
         tableName={tableName}
         columnName={columnName}
         singleOnly

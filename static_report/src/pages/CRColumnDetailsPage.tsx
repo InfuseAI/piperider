@@ -17,7 +17,7 @@ import { useLocalStorage } from 'react-use';
 import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
-import { ColumnDetailMasterList } from '../components/Columns/ColumnDetailMasterList/ColumnDetailMasterList';
+import { MasterSideNav } from '../components/Columns/MasterSideNav/MasterSideNav';
 import {
   allContentGridTempCols,
   borderVal,
@@ -120,9 +120,8 @@ export default function CRColumnDetailsPage({
       >
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
-          <ColumnDetailMasterList
+          <MasterSideNav
             tableColEntryList={tableColumnsOnly}
-            tableColEntry={currentTableEntry}
             currentTable={tableName}
             currentColumn={columnName}
             onSelect={({ tableName, columnName }) => {

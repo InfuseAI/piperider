@@ -2,7 +2,6 @@ import { Grid, GridItem } from '@chakra-ui/react';
 import { ReactNode, useState } from 'react';
 import { useLocalStorage } from 'react-use';
 import { useLocation } from 'wouter';
-import { ColumnDetailMasterList } from '..';
 import { Comparable, ComparisonReportSchema } from '../../types';
 import {
   allContentGridTempCols,
@@ -12,21 +11,20 @@ import {
   MASTER_LIST_SHOW_EXTRA,
 } from '../../utils';
 import { ASSERTIONS_ROUTE_PATH, BM_ROUTE_PATH } from '../../utils/routes';
+import { MasterSideNav } from '../Columns/MasterSideNav';
 import { ReportContextBar } from '../Reports';
 
 interface Props extends Comparable {
   rawData: Partial<ComparisonReportSchema>;
   tableColEntries: CompTableColEntryItem[];
-  tableColEntry: CompTableColEntryItem;
-  tableName: string;
-  columnName: string;
+  tableName?: string;
+  columnName?: string;
   children: ReactNode;
 }
 //NOTE: Only for OSS usage.
 export function MasterDetailContainer({
   rawData,
   tableColEntries,
-  tableColEntry,
   tableName,
   columnName,
   children,
@@ -51,9 +49,8 @@ export function MasterDetailContainer({
       >
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
-          <ColumnDetailMasterList
+          <MasterSideNav
             tableColEntryList={tableColEntries}
-            tableColEntry={tableColEntry}
             currentTable={tableName}
             currentColumn={columnName}
             onSelect={({ tableName, columnName }) => {

@@ -81,8 +81,8 @@ const getReportTime = (rawData: ComparableReport) => {
   return result;
 };
 const getReportTitle = (rawData: ComparableReport) => {
-  const baseName = rawData.base?.datasource.name;
-  const targetName = rawData.input?.datasource.name;
+  const baseName = rawData.base?.datasource?.name;
+  const targetName = rawData.input?.datasource?.name;
   const title = targetName ?? baseName;
 
   return title;
