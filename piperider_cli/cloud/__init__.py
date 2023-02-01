@@ -166,7 +166,7 @@ class PipeRiderCloud:
 
         return response.json()
 
-    def upload_report(self, file_path, show_progress=True):
+    def upload_report(self, file_path, show_progress=True, project_id=None):
         # TODO validate project name
         if not self.available:
             self.raise_error()
@@ -184,7 +184,8 @@ class PipeRiderCloud:
             )
             m = MultipartEncoderMonitor(encoder, _upload_callback)
 
-            url = self.service.url('/api/reports/upload')
+            url = self.service.url(f'/api/projects/{project_id}/reports/upload') if project_id else self.service.url(
+                '/api/reports/upload')
             headers = self.service.auth_headers()
             headers['Content-Type'] = m.content_type
 
@@ -224,7 +225,7 @@ class PipeRiderCloud:
     def has_configured(self):
         return self.service.api_token is not None
 
-    def get_projects(self) -> List[dict]:
+    def list_projects(self) -> List[dict]:
         if not self.available:
             self.raise_error()
 

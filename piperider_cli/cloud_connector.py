@@ -114,8 +114,8 @@ def select_reports(report_dir=None, datasource=None) -> List[RunOutput]:
     return selector.select_multiple_reports(action='upload')
 
 
-def upload_to_cloud(report: RunOutput, debug=False) -> dict:
-    response = piperider_cloud.upload_report(report.path)
+def upload_to_cloud(report: RunOutput, debug=False, project_id=None) -> dict:
+    response = piperider_cloud.upload_report(report.path, project_id=project_id)
     # TODO refine the output when API is ready
 
     if response.get('success') is True:
@@ -227,10 +227,22 @@ class CloudConnector:
 
     @staticmethod
     def upload_report(report_path=None, report_dir=None, datasource=None, debug=False, open_report=False,
-                      force_upload=False, auto_upload=False) -> int:
+                      force_upload=False, auto_upload=False, project=None) -> int:
         if piperider_cloud.available is False:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
+
+        project_id = None
+        if project is not None:
+            available_projects = piperider_cloud.list_projects()
+            for p in available_projects:
+                if p.get('name') == project:
+                    project_id = p.get('id')
+                    break
+
+            if project_id is None:
+                console.print(f'[[bold red]Error[/bold red]] Project \'{project}\' is not found')
+                return 1
 
         rc = 0
         results = []
@@ -238,7 +250,7 @@ class CloudConnector:
             reports = select_reports(report_dir=report_dir, datasource=datasource)
             console.rule('Uploading Reports')
             for r in reports:
-                response = upload_to_cloud(r, debug)
+                response = upload_to_cloud(r, debug, project_id=project_id)
                 if response.get('success') is False:
                     rc = 1
                 response['name'] = r.name
@@ -247,7 +259,7 @@ class CloudConnector:
         else:
             console.rule('Uploading Report')
             report = RunOutput(report_path)
-            response = upload_to_cloud(report, debug)
+            response = upload_to_cloud(report, debug, project_id=project_id)
             if response.get('success') is False:
                 rc = 1
             response['name'] = report.name
@@ -311,11 +323,11 @@ class CloudConnector:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
 
-        projects = piperider_cloud.get_projects()
+        projects = piperider_cloud.list_projects()
         # console.print(projects)
 
         layout_table = Table(
-            title="Project List",
+            title="PipeRider Cloud - Project List",
             title_style='bold magenta',
             show_header=True,
             show_edge=True,
@@ -337,4 +349,8 @@ class CloudConnector:
             )
 
         console.print(layout_table)
+        pass
+
+    @staticmethod
+    def select_project(project_name=None, debug=False):
         pass

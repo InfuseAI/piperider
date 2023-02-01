@@ -306,6 +306,8 @@ def cloud(**kwargs):
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
               help='Specify the datasource.')
+@click.option('--project', default=None, type=click.STRING, metavar='PROJECT_NAME',
+              help='Specify the project to upload.')
 @add_options(debug_option)
 def upload_report(**kwargs):
     """
@@ -314,7 +316,9 @@ def upload_report(**kwargs):
     report_path = kwargs.get('run')
     datasource = kwargs.get('datasource')
     report_dir = kwargs.get('report_dir')
+    project = kwargs.get('project')
     ret = CloudConnector.upload_report(report_path=report_path, datasource=datasource, report_dir=report_dir,
+                                       project=project,
                                        debug=kwargs.get('debug', False))
     return ret
 
@@ -376,4 +380,12 @@ def logout(**kwargs):
 @add_options(debug_option)
 def list_projects(**kwargs):
     ret = CloudConnector.list_projects()
+    return ret
+
+
+@cloud.command(short_help='Select a project on PipeRider Cloud.', cls=TrackCommand)
+@click.option('--project', default=None, type=click.STRING, help='Specify the project name.')
+@add_options(debug_option)
+def select_project(**kwargs):
+    ret = CloudConnector.select_project()
     return ret
