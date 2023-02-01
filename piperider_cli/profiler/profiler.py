@@ -118,15 +118,10 @@ class Profiler:
         }
         self.event_handler.handle_run_start(result)
 
-        include_views = self.config.include_views if self.config else False
-
         if subjects is None:
             subjects = []
             engine = self.data_source.get_engine_by_database()
             table_names = inspect(engine).get_table_names()
-            if include_views:
-                table_names += inspect(engine).get_view_names()
-            table_names = self._apply_incl_excl_tables(table_names)
             for table_name in table_names:
                 subject = ProfileSubject(table_name)
                 subjects.append(subject)
@@ -147,26 +142,6 @@ class Profiler:
         self.event_handler.handle_run_end(result)
 
         return result
-
-    def _apply_incl_excl_tables(self, tables: List[str]) -> List[str]:
-        if not self.config:
-            return tables
-        if self.config.includes is None and self.config.excludes is None:
-            return tables
-
-        if self.config.includes is None:
-            allow_list = tables
-        else:
-            upper_includes = [t.upper() for t in self.config.includes]
-            allow_list = [t for t in tables if t.upper() in upper_includes]
-
-        if self.config.excludes is None:
-            final_list = allow_list
-        else:
-            upper_excludes = [t.upper() for t in self.config.excludes]
-            final_list = [t for t in allow_list if t.upper() not in upper_excludes]
-
-        return final_list
 
 
 class TableProfiler:

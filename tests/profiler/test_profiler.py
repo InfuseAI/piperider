@@ -647,54 +647,6 @@ class TestProfiler:
         assert result["tables"]["test"]['samples'] == 3
         assert almost_equal(result["tables"]["test"]['samples_p'], 3 / 5)
 
-    def test_incl_excl_tables(self):
-        data_source = self.create_data_source()
-        engine = self.engine
-
-        data = [
-            ("col",),
-            (1,)
-        ]
-        create_table(self.engine, "a", data)
-        create_table(self.engine, "b", data)
-        create_table(self.engine, "c", data)
-
-        metadata = MetaData()
-        metadata.reflect(bind=engine)
-        tables = list(metadata.tables.keys())
-
-        profiler = Profiler(data_source, config=Configuration([], includes=None, excludes=None))
-        final_tables = profiler._apply_incl_excl_tables(tables)
-        assert final_tables == ['a', 'b', 'c']
-
-        profiler = Profiler(data_source, config=Configuration([], includes=['a', 'b'], excludes=None))
-        final_tables = profiler._apply_incl_excl_tables(tables)
-        assert final_tables == ['a', 'b']
-
-        profiler = Profiler(data_source, config=Configuration([], includes=['a', 'b', 'c', 'd'], excludes=None))
-        final_tables = profiler._apply_incl_excl_tables(tables)
-        assert final_tables == ['a', 'b', 'c']
-
-        profiler = Profiler(data_source, config=Configuration([], includes=[], excludes=None))
-        final_tables = profiler._apply_incl_excl_tables(tables)
-        assert final_tables == []
-
-        profiler = Profiler(data_source, config=Configuration([], includes=None, excludes=[]))
-        final_tables = profiler._apply_incl_excl_tables(tables)
-        assert final_tables == ['a', 'b', 'c']
-
-        profiler = Profiler(data_source, config=Configuration([], includes=None, excludes=['a']))
-        final_tables = profiler._apply_incl_excl_tables(tables)
-        assert final_tables == ['b', 'c']
-
-        profiler = Profiler(data_source, config=Configuration([], includes=['a'], excludes=['b']))
-        final_tables = profiler._apply_incl_excl_tables(tables)
-        assert final_tables == ['a']
-
-        profiler = Profiler(data_source, config=Configuration([], includes=['A', 'B'], excludes=None))
-        final_tables = profiler._apply_incl_excl_tables(tables)
-        assert final_tables == ['a', 'b']
-
     def test_duplicate_rows(self):
         data_source = self.create_data_source()
 

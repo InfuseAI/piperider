@@ -6,6 +6,7 @@ import shutil
 import sys
 import uuid
 from datetime import datetime
+from typing import List
 
 from rich import box
 from rich.color import Color
@@ -157,6 +158,21 @@ class RichMetricEventHandler(MetricEventHandler):
     def handle_param_query_end(self, metric: str):
         task_id = self.tasks[metric]
         self.progress.update(task_id, advance=1)
+
+
+def _filter_subject(name: str, includes: List[str], excludes: List[str]) -> bool:
+    name = name.upper()
+    if includes is not None:
+        includes = [include.upper() for include in includes]
+        if name not in includes:
+            return False
+
+    if excludes is not None:
+        excludes = [exclude.upper() for exclude in excludes]
+        if name in excludes:
+            return False
+
+    return True
 
 
 def _execute_assertions(console: Console, engine, ds_name: str, output, profiler_result, created_at):
@@ -394,31 +410,6 @@ def _validate_assertions(console: Console):
     return False
 
 
-def _get_table_list(table, default_schema, dbt_adapter):
-    tables = None
-
-    if table:
-        table = re.sub(f'^({default_schema})\.', '', table)
-        tables = [table]
-
-    if dbt_adapter.is_ready():
-        dbt_tables = dbt_adapter.list_dbt_tables(default_schema)
-        if not dbt_tables:
-            return None, "No table found in dbt project."
-
-        if not table:
-            tables = dbt_tables
-        elif table not in dbt_tables:
-            suggestion = ''
-            lower_tables = [t.lower() for t in dbt_tables]
-            if table.lower() in lower_tables:
-                index = lower_tables.index(table.lower())
-                suggestion = f"Do you mean '{dbt_tables[index]}'?"
-            return None, f"Table '{table}' doesn't exist in dbt project. {suggestion}"
-
-    return tables, None
-
-
 def prepare_default_output_path(filesystem: FileSystem, created_at, ds):
     latest_symlink_path = os.path.join(filesystem.get_output_dir(), 'latest')
     latest_source = f"{ds.name}-{convert_to_tzlocal(created_at).strftime('%Y%m%d%H%M%S')}"
@@ -626,45 +617,42 @@ class Runner():
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
         engine = ds.get_engine_by_database()
-        default_schema = ds.credential.get('schema')
 
-        if default_schema is None and ds.type_name == 'bigquery':
-            default_schema = ds.credential.get('dataset')
-
-        if default_schema is None:
-            inspector = inspect(engine)
-            default_schema = inspector.default_schema_name
-
-        tables = None
+        subjects: List[ProfileSubject]
         dbt_test_results = None
-        if dbt_state_dir:
-            if not dbtutil.is_dbt_state_ready(dbt_state_dir):
-                console.print(
-                    f"[bold red]Error:[/bold red] No available 'manifest.json' or 'run_results.json' under '{dbt_state_dir}'")
-                return 1
-
-            tables = dbtutil.get_dbt_state_candidate(dbt_state_dir, configuration.include_views,
-                                                     configuration.includes, configuration.excludes)
-            dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir)
-
         if table:
             if len(table.split('.')) == 2:
                 schema, table_name = table.split('.')
-                tables = [ProfileSubject(table_name, schema, table_name)]
+                subjects = [ProfileSubject(table_name, schema)]
             else:
-                tables = [ProfileSubject(table, default_schema, table)]
-            # cli --table is specified, no inclusion and exclusion applied
-            configuration.includes = None
-            configuration.excludes = None
+                subjects = [ProfileSubject(table)]
+        else:
+            if dbt_state_dir:
+                if not dbtutil.is_dbt_state_ready(dbt_state_dir):
+                    console.print(
+                        f"[bold red]Error:[/bold red] No available 'manifest.json' or 'run_results.json' under '{dbt_state_dir}'")
+                    return 1
+
+                subjects = dbtutil.get_dbt_state_candidate(dbt_state_dir, configuration.include_views)
+                dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir)
+
+            else:
+                table_names = inspect(engine).get_table_names()
+                if configuration.include_views:
+                    table_names += inspect(engine).get_view_names()
+
+                subjects = [ProfileSubject(table_name) for table_name in table_names]
+
+            def filter_fn(subject: ProfileSubject):
+                return _filter_subject(subject.name, configuration.includes, configuration.excludes)
+
+            subjects = list(filter(filter_fn, subjects))
 
         run_result = {}
-        available_tables = inspect(engine).get_table_names()
-        if configuration.include_views:
-            available_tables += inspect(engine).get_view_names()
-        available_tables = [t.table for t in tables] if tables else available_tables
-        profiler = Profiler(ds, RichProfilerEventHandler(available_tables), configuration)
+
+        profiler = Profiler(ds, RichProfilerEventHandler([subject.name for subject in subjects]), configuration)
         try:
-            profiler_result = profiler.profile(tables)
+            profiler_result = profiler.profile(subjects)
             run_result.update(profiler_result)
         except NoSuchTableError as e:
             console.print(f"[bold red]Error:[/bold red] No such table '{str(e)}'")
