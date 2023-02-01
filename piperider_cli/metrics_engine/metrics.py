@@ -9,6 +9,7 @@ from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy.sql.expression import table as table_clause, column as column_clause, text, union_all, case
 from sqlalchemy.sql.selectable import CTE
 
+from piperider_cli.datasource import DataSource
 from piperider_cli.metrics_engine.event import MetricEventHandler, DefaultMetricEventHandler
 
 
@@ -30,6 +31,7 @@ class Metric:
         name,
         table,
         schema,
+        database,
         expression,
         timestamp,
         calculation_method,
@@ -41,7 +43,8 @@ class Metric:
     ):
         self.name = name
         self.table = table
-        self.schema = schema
+        self.database = database
+        self.schema = schema.lower() if schema is not None else None
         self.expression = expression
         self.timestamp = timestamp
         self.calculation_method = calculation_method
@@ -58,8 +61,13 @@ class MetricEngine:
     Profiler profile tables and columns by a sqlalchemy engine.
     """
 
-    def __init__(self, engine: Engine, metrics, event_handler: MetricEventHandler = DefaultMetricEventHandler()):
-        self.engine = engine
+    def __init__(
+        self,
+        data_source: DataSource,
+        metrics,
+        event_handler: MetricEventHandler = DefaultMetricEventHandler()
+    ):
+        self.data_source = data_source
         self.metrics = metrics
         self.event_handler = event_handler
 
@@ -95,7 +103,8 @@ class MetricEngine:
 
             # Join all parent metrics
             for ref_metric in metric.ref_metrics:
-                cte = self._get_query_stmt(ref_metric, grain, dimension, date_spine_model).cte(f'{ref_metric.name}_model')
+                cte = self._get_query_stmt(ref_metric, grain, dimension, date_spine_model).cte(
+                    f'{ref_metric.name}_model')
                 if selectable is None:
                     selectable = cte
                 else:
@@ -115,12 +124,11 @@ class MetricEngine:
             ]).select_from(
                 selectable
             ).order_by(
-                literal_column('d')
+                cte.c.d,
             )
         else:
             # Source model
-            column = [column_clause(metric.timestamp), literal_column(metric.expression)]
-            source_model = table_clause(metric.table, *column, schema=metric.schema)
+            source_model = text(f"{metric.database}.{metric.schema}.{metric.table}")
 
             # Base model
             # 1. map expression to 'c'
@@ -130,12 +138,12 @@ class MetricEngine:
             start_date = self.date_trunc(grain, func.current_date()) - self._interval(grain,
                                                                                       self._slot_count_by_grain(grain))
             stmt = select([
-                source_model.columns[metric.expression].label('c'),
-                self.date_trunc(grain, source_model.columns[metric.timestamp]).label('d'),
+                literal_column(metric.expression).label('c'),
+                self.date_trunc(grain, literal_column(metric.timestamp)).label('d'),
             ]).select_from(
                 source_model
             ).where(
-                source_model.columns[metric.timestamp] >= start_date
+                literal_column(metric.timestamp) >= start_date
             )
             for f in metric.filters:
                 stmt = stmt.where(text(f"{f.get('field')} {f.get('operator')} {f.get('value')}"))
@@ -187,7 +195,7 @@ class MetricEngine:
             )
 
     def _interval(self, grain: str, n):
-        if self.engine.url.get_backend_name() == 'bigquery':
+        if self.data_source.type_name == 'bigquery':
             return text(f"interval {n} {grain}")
         else:
             if grain == 'quarter':
@@ -227,7 +235,7 @@ class MetricEngine:
 
         return union_all(*dates, current_date)
 
-    def _query_metric(self, metric: Metric, grain: str, dimension: List[str]) -> dict:
+    def _query_metric(self, engine: Engine, metric: Metric, grain: str, dimension: List[str]) -> dict:
         '''
         Query a metric with given parameter. Just implement the behavior of 'metrics.calculate'
         ref: https://docs.getdbt.com/docs/build/metrics#querying-your-metric
@@ -249,7 +257,7 @@ class MetricEngine:
             'data': []
         }
 
-        with self.engine.connect() as conn:
+        with engine.connect() as conn:
             date_spine_model = self._date_spine(grain).cte(name="date_spine_model")
             stmt = self._get_query_stmt(metric, grain, dimension, date_spine_model)
 
@@ -277,12 +285,13 @@ class MetricEngine:
 
             total_param = len(list(self._get_query_param(metric)))
             completed_param = 0
-            if isinstance(self.engine.pool, SingletonThreadPool):
+            engine = self.data_source.get_engine_by_database(metric.database)
+            if isinstance(engine.pool, SingletonThreadPool):
                 for grain, dimension in self._get_query_param(metric):
                     self.event_handler.handle_metric_progress(metric.label, total_param, completed_param)
                     self.event_handler.handle_param_query_start(metric.label,
                                                                 self._compose_query_name(grain, dimension))
-                    query_result = self._query_metric(metric, grain, dimension)
+                    query_result = self._query_metric(engine, metric, grain, dimension)
 
                     results.append(query_result)
 
@@ -297,7 +306,7 @@ class MetricEngine:
                         query_param = self._compose_query_name(grain, dimension)
                         query_results[query_param] = None
 
-                        future = executor.submit(self._query_metric, metric, grain, dimension)
+                        future = executor.submit(self._query_metric, engine, metric, grain, dimension)
                         future_to_query[future] = query_param
 
                     for future in concurrent.futures.as_completed(future_to_query):
@@ -318,14 +327,15 @@ class MetricEngine:
         return results
 
     def date_trunc(self, date_part, date_expression) -> Column:
-        if self.engine.url.get_backend_name() == 'sqlite':
+        type_name = self.data_source.type_name
+        if type_name == 'sqlite':
             if date_part == "YEAR":
                 return func.strftime("%Y-01-01", date_expression)
             elif date_part == "MONTH":
                 return func.strftime("%Y-%m-01", date_expression)
             else:
                 return func.strftime("%Y-%m-%d", date_expression)
-        elif self.engine.url.get_backend_name() == 'bigquery':
+        elif type_name == 'bigquery':
             return func.date_trunc(date_expression, text(date_part))
         else:
             return func.date_trunc(date_part, date_expression)

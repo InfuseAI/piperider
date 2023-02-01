@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import threading
 from abc import ABCMeta, abstractmethod
 from typing import List, Dict, Callable
 
@@ -33,14 +34,15 @@ FANCY_USER_INPUT = _should_use_fancy_user_input()
 
 
 class DataSource(metaclass=ABCMeta):
-
-    def __init__(self, name, type_name, credential=None, **kwargs):
+    def __init__(self, name, type_name: str, credential=None, **kwargs):
         self.name = name
         self.type_name = type_name
         self.args = kwargs
         self.fields: List[DataSourceField] = []
         self.credential: Dict = credential or {}
         self.credential_source = 'credentials'
+        self._cached_engine = {}
+        self._cached_lock = threading.Lock()
 
     def _validate_required_fields(self):
         reasons = []
@@ -69,7 +71,7 @@ class DataSource(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def to_database_url(self):
+    def to_database_url(self, database):
         """
         build a database url for sqlalchemy create_engine method
         :return:
@@ -81,21 +83,28 @@ class DataSource(metaclass=ABCMeta):
         raise NotImplementedError
 
     def verify_connection(self, include_views: bool = False):
-        engine = None
-        try:
-            engine = self.create_engine()
-            available_tables = inspect(engine).get_table_names()
-            if include_views:
-                available_tables += inspect(engine).get_view_names()
-            if len(available_tables) == 0:
-                raise PipeRiderTableConnectionError(self.name, self.type_name)
-        finally:
-            if engine:
-                engine.dispose()
+        engine = self.get_engine_by_database()
+        available_tables = inspect(engine).get_table_names()
+        if include_views:
+            available_tables += inspect(engine).get_view_names()
+        if len(available_tables) == 0:
+            raise PipeRiderTableConnectionError(self.name, self.type_name)
+
         return available_tables
 
-    def create_engine(self):
-        return create_engine(self.to_database_url(), **self.engine_args())
+    def create_engine(self, database=None):
+        return create_engine(self.to_database_url(database=database), **self.engine_args())
+
+    def get_engine_by_database(self, database=None):
+        engine = self._cached_engine.get(database)
+        if engine is None:
+            with self._cached_lock:
+                engine = self._cached_engine.get(database)
+                if engine is None:
+                    engine = self.create_engine(database)
+                    self._cached_engine[database] = engine
+
+        return engine
 
     def engine_args(self):
         return dict()

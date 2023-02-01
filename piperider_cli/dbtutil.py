@@ -166,7 +166,11 @@ def get_dbt_state_candidate(dbt_state_dir: str, view_profile: bool = False,
             continue
         config_material = node.get('config').get('materialized')
         if config_material in material_whitelist and not _is_filtered_out(node.get('name'), whitelist, blacklist):
-            candidate.append(ProfileSubject(node.get('alias'), node.get('schema'), node.get('name')))
+            name = node.get('name')
+            table = node.get('alias')
+            schema = node.get('schema')
+            database = node.get('database')
+            candidate.append(ProfileSubject(table, schema, database, name))
 
     return candidate
 
@@ -234,12 +238,14 @@ def get_dbt_state_metrics(dbt_state_dir: str):
         if metric.get('calculation_method') == 'derived':
             table = None
             schema = None
+            database = None
         else:
             depends_on_node = metric.get('depends_on').get('nodes')[0]
             table = manifest.get('nodes').get(depends_on_node).get('alias')
             schema = manifest.get('nodes').get(depends_on_node).get('schema')
+            database = manifest.get('nodes').get(depends_on_node).get('database')
 
-        m = Metric(metric.get('name'), table, schema, metric.get('expression'), metric.get('timestamp'),
+        m = Metric(metric.get('name'), table, schema, database, metric.get('expression'), metric.get('timestamp'),
                    metric.get('calculation_method'), metric.get('time_grains'), dimensions=None,
                    filters=metric.get('filters'), label=metric.get('label'), description=metric.get('description'))
 

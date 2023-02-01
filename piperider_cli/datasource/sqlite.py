@@ -29,13 +29,16 @@ class SqliteDataSource(DataSource):
             raise ValueError('type name should be sqlite')
         return self._validate_required_fields()
 
-    def to_database_url(self):
+    def to_database_url(self, database):
         credential = self.credential
         dbpath = credential.get('dbpath')
-        sqlite_file = os.path.abspath(dbpath)
-        if not os.path.exists(sqlite_file):
-            raise ValueError(f'Cannot find the sqlite at {sqlite_file}')
-        return f"sqlite:///{sqlite_file}"
+        if dbpath is None:
+            return "sqlite://"
+        else:
+            sqlite_file = os.path.abspath(dbpath)
+            if not os.path.exists(sqlite_file):
+                raise ValueError(f'Cannot find the sqlite at {sqlite_file}')
+            return f"sqlite:///{sqlite_file}"
 
     def verify_connector(self):
         # sqlite is builtin connector

@@ -199,15 +199,20 @@ class BigQueryDataSource(DataSource):
 
         return reasons == [], reasons
 
-    def to_database_url(self):
+    def to_database_url(self, project):
         from pybigquery.sqlalchemy_bigquery import BigQueryDialect
         BigQueryDialect.supports_statement_cache = True
+
+        if project is None:
+            project = self.credential["project"]
+        if project is None:
+            project = self.credential["database"]
 
         dataset = self.credential.get("dataset")
         if dataset is None:
             dataset = self.credential.get("schema")
 
-        return f'bigquery://{self.credential["project"]}/{dataset}'
+        return f'bigquery://{project}/{dataset}'
 
     def engine_args(self):
         args = dict()

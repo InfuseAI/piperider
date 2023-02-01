@@ -40,12 +40,13 @@ class SnowflakeDataSource(DataSource):
             raise ValueError('type name should be snowflake')
         return self._validate_required_fields()
 
-    def to_database_url(self):
+    def to_database_url(self, database):
         credential = self.credential
         account = credential.get('account')
         password = credential.get('password')
         user = credential.get('user')
-        database = credential.get('database')
+        if database is None:
+            database = credential.get('database')
         schema = credential.get('schema')
         warehouse = credential.get('warehouse')
         role = credential.get('role')

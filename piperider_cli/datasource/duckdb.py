@@ -85,7 +85,7 @@ class DuckDBDataSource(DataSource):
         except Exception as e:
             return PipeRiderConnectorError(str(e), self.type_name)
 
-    def to_database_url(self):
+    def to_database_url(self, database):
         credential = self.credential
         dbpath = credential.get('path')
         duckdb_path = os.path.abspath(dbpath)
@@ -115,16 +115,16 @@ class CsvDataSource(DuckDBDataSource):
             PathField('path', description='Path of csv file'),
         ]
 
-    def to_database_url(self):
+    def to_database_url(self, database):
         return 'duckdb:///:memory:'
 
-    def create_engine(self):
+    def create_engine(self, database=None):
         credential = self.credential
         csv_path = os.path.abspath(credential.get('path'))
         if not os.path.exists(csv_path):
             raise PipeRiderDataBaseConnectionError(self.name, self.type_name, db_path=csv_path)
         table_name = self._formalize_table_name(splitext(basename(csv_path))[0])
-        engine = super().create_engine()
+        engine = super().create_engine(database)
         # Load csv file as table
         sql_query = f"CREATE TABLE '{table_name}' AS SELECT * FROM read_csv_auto('{csv_path}')"
         try:
@@ -157,7 +157,7 @@ class ParquetDataSource(DuckDBDataSource):
                       validate=_parquet_path_validate_func),
         ]
 
-    def to_database_url(self):
+    def to_database_url(self, database):
         return 'duckdb:///:memory:'
 
     def _extract_parquet_path(self):
@@ -184,9 +184,9 @@ class ParquetDataSource(DuckDBDataSource):
 
         return 'file', os.path.abspath(parquet_path)
 
-    def create_engine(self):
+    def create_engine(self, database=None):
         type, parquet_path = self._extract_parquet_path()
-        engine = super().create_engine()
+        engine = super().create_engine(database)
 
         if type == 'http':
             # HTTP
