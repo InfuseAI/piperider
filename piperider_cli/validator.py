@@ -96,6 +96,7 @@ class CheckConnections(AbstractChecker):
             type = ds.type_name
 
             if dbt:  # dbt provider
+                # TODO: dbt args no show
                 self.console.print(f'  DBT: {ds.type_name} > {dbt["profile"]} > {dbt["target"]} ', end='')
                 self.console.print('[[bold green]OK[/bold green]]')
 

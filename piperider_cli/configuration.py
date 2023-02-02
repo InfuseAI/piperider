@@ -119,8 +119,6 @@ class Configuration(object):
         credential = _load_credential_from_dbt_profile(dbt_profile, profile_name, target_name)
         type_name = credential.get('type')
         dbt = {
-            'profile': profile_name,
-            'target': target_name,
             'projectDir': os.path.relpath(os.path.dirname(dbt_project_path), os.getcwd()),
         }
 
@@ -273,20 +271,22 @@ class Configuration(object):
 
         config = dict(
             dataSources=[],
+            dbt=None,
             profiler=None,
             telemetry=dict(id=self.telemetry_id)
         )
 
-        for d in self.dataSources:
-            datasource = dict(name=d.name, type=d.type_name)
-            if d.args.get('dbt'):
-                # dbt project
-                datasource['dbt'] = d.args.get('dbt')
-            else:
-                # non-dbt project
-                if d.credential_source == 'config':
-                    datasource.update(**d.credential)
-
+        d = self.dataSources[0]
+        datasource = dict(name=d.name, type=d.type_name)
+        if d.args.get('dbt'):
+            # dbt project
+            #datasource['dbt'] = d.args.get('dbt')
+            config['dbt'] = CommentedMap(d.args.get('dbt'))
+        else:
+            # non-dbt project
+            if d.credential_source == 'config':
+                datasource.update(**d.credential)
+            config.pop('dbt')
             config['dataSources'].append(datasource)
 
         template = '''  table:
@@ -311,6 +311,9 @@ tables:
 '''
 
         config_yaml = CommentedMap(config)
+
+        if config_yaml.get('dbt'):
+            config_yaml.yaml_set_comment_before_after_key('profiler', before="tag: 'piperider'", indent=2)
         config_yaml.yaml_set_comment_before_after_key('profiler', before='\n')
         config_yaml.yaml_set_comment_before_after_key('telemetry', before=template)
 
