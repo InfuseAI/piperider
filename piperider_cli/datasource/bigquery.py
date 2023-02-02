@@ -231,3 +231,9 @@ class BigQueryDataSource(DataSource):
             return None
         except Exception as e:
             return PipeRiderConnectorError(str(e), 'bigquery')
+
+    def _get_display_description(self):
+        cred = self.credential
+        project = cred.get('project') if cred.get('project') else cred.get('database')
+        dataset = cred.get('dataset') if cred.get('dataset') else cred.get('schema')
+        return f"type={self.type_name}, project={project}, dataset={dataset}"

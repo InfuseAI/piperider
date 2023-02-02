@@ -97,7 +97,8 @@ class CheckConnections(AbstractChecker):
 
             if dbt:  # dbt provider
                 # TODO: dbt args no show
-                self.console.print(f'  DBT: {ds.type_name} > {dbt["profile"]} > {dbt["target"]} ', end='')
+                # self.console.print(f'  DBT: {ds.type_name} > {dbt["profile"]} > {dbt["target"]} ', end='')
+                self.console.print(f'  DBT: {ds.type_name} > {dbt["target"]} ', end='')
                 self.console.print('[[bold green]OK[/bold green]]')
 
             self.console.print(f'  Name: {name}')

@@ -200,6 +200,39 @@ class Configuration(object):
                 data_source = datasource_class(name=ds.get('name'), credential=credential)
             data_sources.append(data_source)
 
+        # find dbt_project.yml and bt profile.yml
+        dbt = config.get('dbt')
+        if dbt:
+            project_dir = config.get('dbt').get('projectDir')
+            project = _load_dbt_project(project_dir)
+            profile_name = project.get('profile')
+
+            # Precedence reference
+            # https://docs.getdbt.com/docs/get-started/connection-profiles#advanced-customizing-a-profile-directory
+            if dbt.get('profilesDir'):
+                profile_dir = dbt.get('profilesDir')
+            elif os.getenv('DBT_PROFILES_DIR'):
+                profile_dir = os.getenv('DBT_PROFILES_DIR')
+            elif os.path.exists(os.path.join(project_dir, DBT_PROFILE_FILE)):
+                profile_dir = project_dir
+            else:
+                profile_dir = DBT_PROFILES_DIR_DEFAULT
+
+            profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
+            if '~' in profile_path:
+                profile_path = os.path.expanduser(profile_path)
+            profile = _load_dbt_profile(profile_path)
+            if profile.get(profile_name):
+                for target in list(profile.get(profile_name).get('outputs').keys()):
+                    credential = _load_credential_from_dbt_profile(profile, profile_name, target)
+                    datasource_class = DATASOURCE_PROVIDERS[credential.get('type')]
+                    data_source = datasource_class(
+                        name=target,
+                        dbt=dict(**dbt, profile=profile_name, target=target),
+                        credential=credential
+                    )
+                    data_sources.append(data_source)
+
         return cls(
             dataSources=data_sources,
             profiler=config.get('profiler', {}),
@@ -359,6 +392,19 @@ tables:
     def delete_datasource(self, datasource):
         if datasource in self.dataSources:
             self.dataSources.remove(datasource)
+
+
+def _load_dbt_project(path: str):
+    if not path.endswith('dbt_project.yml'):
+        path = os.path.join(path, 'dbt_project.yml')
+
+    with open(path, 'r') as fd:
+        try:
+            yml = yaml.YAML()
+            yml.allow_duplicate_keys = True
+            return yml.load(fd)
+        except Exception as e:
+            raise DbtProjectInvalidError(path, e)
 
 
 def _load_dbt_profile(path):

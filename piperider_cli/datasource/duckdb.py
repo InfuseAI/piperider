@@ -105,6 +105,10 @@ class DuckDBDataSource(DataSource):
 
         return name.replace('.', '_')
 
+    def _get_display_description(self):
+        cred = self.credential
+        return f"type={self.type_name}, dbpath={cred.get('path')}, schema={cred.get('schema')}"
+
 
 class CsvDataSource(DuckDBDataSource):
     def __init__(self, name, **kwargs):

@@ -123,44 +123,20 @@ class Initializer():
 
         if _is_piperider_workspace_exist(working_dir):
             config = Configuration.load()
-            with open(os.path.join(working_dir, 'config.yml'), 'r') as f:
-                yaml_markdown = Syntax(f.read(), "yaml", theme="monokai", line_numbers=True)
-                list_table = Table(show_header=True, show_edge=True, box=box.SIMPLE_HEAVY)
-                list_table.add_column("Datasource", style="cyan", no_wrap=True)
-                list_table.add_column("Name", style="magenta", no_wrap=True)
-                list_table.add_column("Source Type", style="blue", no_wrap=True)
-                list_table.add_column("Source", style="green", no_wrap=True)
-                for ds in config.dataSources:
-                    source_type = 'N/A'
-                    source = 'N/A'
-                    if ds.type_name in ['csv', 'parquet']:
-                        source = ds.credential['path']
-                        source_type = 'File Path'
-                    elif ds.type_name in ['sqlite']:
-                        source = ds.credential['dbpath']
-                        source_type = 'File Path'
-                    elif ds.type_name in ['redshift', 'postgres']:
-                        source = ds.credential['dbname']
-                        source_type = 'Database'
-                    elif ds.type_name in ['snowflake']:
-                        source = ds.credential['database']
-                        source_type = 'Database'
-                    elif ds.type_name in ['bigquery']:
-                        source = ds.credential['dataset']
-                        source_type = 'Dataset'
-                    list_table.add_row(ds.type_name, ds.name, source_type, source)
+            list_table = Table(show_header=True, show_edge=True, box=box.SIMPLE_HEAVY)
+            list_table.add_column("Datasource", style="cyan", no_wrap=True)
+            list_table.add_column("Description", style="magenta", no_wrap=True)
+            for ds in config.dataSources:
+                fields = ds.get_display_description().split(', ')
+                colored_fields = []
+                for f in fields:
+                    key = f.split('=')[0]
+                    value = f.split('=')[-1]
+                    colored_fields.append(f"[bold][blue]{key}[/blue][default]=[/default][green]{value}[/green][/bold]")
 
-                layout_table = Table(
-                    title='PipeRider Configuration',
-                    title_style='bold magenta',
-                    show_header=False,
-                    show_edge=True,
-                    box=box.SIMPLE_HEAVY)
-                layout_table.add_column("List")
-                layout_table.add_column("Yaml", width=80)
-                layout_table.add_row(list_table, yaml_markdown)
+                list_table.add_row(ds.name, ', '.join(colored_fields))
 
-            console.print(layout_table)
+            console.print(list_table)
         else:
             console.print('[bold red]Piperider workspace does not exist[/bold red] ')
 
