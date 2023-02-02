@@ -4,7 +4,7 @@
   </a>
 </p>
 <p>
-  Data reliability tool for profiling and testing your data
+  Code review of data in dbt
 </p>
 
 [![ci-tests](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)](https://github.com/infuseai/piperider-cli/actions/workflows/tests.yaml/badge.svg)
@@ -22,38 +22,41 @@
   <a href="https://blog.infuseai.io/data-reliability-automated-with-piperider-7a823521ef11"> Blog </a> 
 </p>
 
-# Data Reliability = Profiling + Testing
 
-Piperider is a CLI tool that allows you to build data profiles and write assertion tests for easily evaluating and tracking your data's reliability over time.
 
-## Core Concepts
 
-1. **Profile Your Data** to explore/understand what kind of dataset you're dealing with
-   _e.g. completeness, duplicates, missing values, distributions_
-2. **Test Your Data** to verify that your data is within acceptable range and formatted correctly
-3. **Observe & Monitor Your Data** to keep an eye on how that data changes over time
+# Code review for data in dbt
 
-## Key Features
+PipeRider automatically compares your data to highlight the difference in impacted downstream dbt models so you can merge your Pull Requests with confidence.
 
-- **SQL-based** (additionally supports CSV)
-- **Data Profiling Characteristics**
-  - Provides rich data profiling [metrics](https://github.com/InfuseAI/piperider/blob/main/docs/metrics.md)
-  - e.g. `missing`, `uniqueness`, `duplicate_rows`, `quantiles`, `histogram`
-- **Test datasets with a mix of custom and built-in assertion definitions**
-- **Auto-generates recommended assertions based on your single-run profiles**
-- **Generates single-run reports** to visualize your data profile and assertion test results ([example](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.17.0/index.html))
-- **Generates comparison reports** to visualize how your data has changed over time ([example](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.17.0/index.html))
-- **Supported Datasources**: Snowflake, BigQuery, Redshift, Postgres, SQLite, DuckDB, CSV, Parquet.
+
+### How it works:
+1. Easy to connect your datasource -> PipeRider leverages the [connection profiles in your dbt project](https://docs.getdbt.com/docs/get-started/connection-profiles) to connect to the data warehouse
+2. Generate profiling statistics of your models to get a high-level overview of your data
+3. Compare local changes with the main branch in a HTML report
+4. Post a quick summary of the data changes to your PR, so others can be confident too
+
+
+
+### Core concepts
+
+* **Easy to install**: Leveraging dbt's configuration settings, PipeRider can be installed within 2 minutes
+* **Fast comparison**: by collecting profiling statistics (e.g. uniqueness, averages, quantiles, histogram) and metric queries, comparing downstream data impact takes little time, speeding up your team's review time
+* **Valuable insights**: various profiling statistics displayed in the HTML report give fast insights into your data
+
+
 
 # Quickstart
 
-## Installation
+### 1. Install PipeRider
+
+Navigate to your dbt folder, and install pipeirder. 
 
 ```bash
 pip install piperider
 ```
 
-By default, PipeRider supports built-in SQLite connector, extra connectors are available:
+PipeRider supports the following data connectors
 
 | connectors | install                              |
 | ---------- | ------------------------------------ |
@@ -65,62 +68,68 @@ By default, PipeRider supports built-in SQLite connector, extra connectors are a
 | csv        | `pip install 'piperider[csv]'`       |
 | duckdb     | `pip install 'piperider[duckdb]'`    |
 
-Use comma to install multiple connectors in one line:
 
+### 2. Initialize PipeRider
+<!-- PipeRider will look for the `profile` in the folder's `dbt_project.yml` file, and connects with the data source linked to the profile in `~/.dbt/profiles.yml`
+ -->
+ Go to your dbt project, and initalize PipeRider.
+ 
 ```bash
-pip install 'piperider[postgres,snowflake]'
+piperider init
 ```
 
-## Initialize Project & Diagnose Settings
+### 3. Run PipeRider
+Collect profiling statistics by using 
 
-Once installed, initialize a new project with the following command.
-
-```bash
-piperider init        # initializes project config
-piperider diagnose    # verifies your data source connection & project config
+```
+piperider run
 ```
 
-## Profiling and Testing Your Data
-
-Next, execute `piperider run`, which will do a number of things:
-
-1. Create a single-run profile of your data source
-1. Auto-generate recommended or template assertions files (first-run only)
-1. Test that single-run profile against any available assertions, including custom and/or recommended assertions
-1. Generate a static HTML report, which helps visualize the single-run profile and its assertion results.
-
-Common Usages/Tips:
-
-```bash
-piperider run                           # profile all tables in the data source.
-
-piperider run --table $TABLENAME        # profile a specific table
-
-piperider generate-report -o $PATHNAME  # Specify the output location of the generated report
-
-piperider generate-assertions           # To re-generate the recommended assertions after the first-run
+### 4. Run PipeRider in another branch
+Go to another branch to compare your local changes, by running
+```
+dbt build
+piperider run --open
 ```
 
-## Comparing Your Data Profiles
-
-With at least two runs completed, you can then run `piperider compare-reports`, which will generate a comparison report that presents the changes between them (e.g. schema changes, column renaming, distributions).
-
-Common Usages/Tips:
+### 4. Compare your changes 
+You then can compare the branch of your new Pull Request against the main branch and explore the impact of your changes by opening the generated HTML comparison report
 
 ```bash
-piperider compare-reports --last        # Compare the last two reports automatically using
+piperider compare-reports --last
 ```
 
-For more details on the generated report, see the [doc](https://docs.piperider.io/how-to-guides/generate-report)
+
+### 6. Add a markdown summary
+You can add a Markdown summary of the data changes to your Pull Request, so that you're reviewer can merge with confidence.
+
+Markdown summaries and reports are stored in
+`.piperider/comparisons/<timestamp>`
+
+
+
+
+
+# Features
+* Use PipeRider for exploratory data analysis by doing `piperider run` to view the profiling statistics of a single data source, even in an environment that doesn't use dbt
+* Leverage dbt-defined `metrics` to have a quick overview of the impact on your most important metrics 
+* Include PipeRider into your CI process via PipeRider Cloud or self-hosted to be confident of every PRs that is submitted
+* Benefit from dbt's features such as Slim CI, custom schema, custom database, [node selection](https://docs.getdbt.com/reference/node-selection/syntax), [dbt test result](https://docs.getdbt.com/docs/build/tests) 
+
+
+
+# PipeRider Cloud (beta)
+PipeRider Cloud offers a hosted version for HTML reports, including features such as alerts and historical trend watching. Get early beta access by signing up on our website: https://piperider.io
+
 
 ## Example Report Demo
 
-[See Generated Single-Run Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.17.0/index.html)
+[See Generated Single-Run Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.16.0/index.html)
 
-[See Comparison Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.17.0/index.html)
+[See Comparison Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.16.0/index.html)
 
 # Development
 
 See [setup dev environment](DEVELOP.md) and the [contributing guildlines](CONTRIBUTING.md) to get started.
 
-**We're in an early stage, so [let us know](mailto:product@infuseai.io) if you have any questions, feedback, or need help trying out PipeRider! :heart:**
+**We love chatting with our users! [Let us know](mailto:product@infuseai.io) if you have any questions, feedback, or need help trying out PipeRider! :heart:**
