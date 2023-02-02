@@ -143,7 +143,8 @@ class ComparisonData(object):
             target_run_metrics = {metric.get('name') for metric in target.get('metrics', [])}
             target_run_tests = {test.get('id') for test in target.get('tests', [])}
 
-            base['tables'] = {table_name: base['tables'][table_name] for table_name in base['tables'] if table_name in target_run_tables}
+            base['tables'] = {table_name: base['tables'][table_name] for table_name in base['tables'] if
+                              table_name in target_run_tables}
             base['metrics'] = [metric for metric in base['metrics'] if metric.get('name') in target_run_metrics]
             base['tests'] = [test for test in base['tests'] if test.get('id') in target_run_tests]
         elif tables_from == 'base-only':
@@ -151,7 +152,8 @@ class ComparisonData(object):
             base_run_metrics = {metric.get('name') for metric in base.get('metrics', [])}
             base_run_tests = {test.get('id') for test in base.get('tests', [])}
 
-            target['tables'] = {table_name: target['tables'][table_name] for table_name in target['tables'] if table_name in base_run_tables}
+            target['tables'] = {table_name: target['tables'][table_name] for table_name in target['tables'] if
+                                table_name in base_run_tables}
             target['metrics'] = [metric for metric in target['metrics'] if metric.get('name') in base_run_metrics]
             target['tests'] = [test for test in target['tests'] if test.get('id') in base_run_tests]
 
@@ -582,14 +584,15 @@ def prepare_default_output_path(filesystem: FileSystem, created_at):
 
 
 class CompareReport(object):
-    def __init__(self, profiler_output_path, a=None, b=None, datasource=None):
+    def __init__(self, profiler_output_path, a=None, b=None, datasource=None, profiler_outputs=None):
         self.profiler_output_path = profiler_output_path
+        self.profiler_outputs = profiler_outputs
         self.console = Console()
         self.a: RunOutput = RunOutput(a) if a else None
         self.b: RunOutput = RunOutput(b) if b else None
         self.datasource = datasource
 
-    def list_existing_outputs(self, output_search_path=None):
+    def list_existing_outputs(self, output_search_path=None) -> List[RunOutput]:
         """
         List existing profiler outputs.
         """
@@ -648,7 +651,7 @@ class CompareReport(object):
             else:
                 return len(current) == limit
 
-        profiler_outputs = self.list_existing_outputs()
+        profiler_outputs = self.profiler_outputs if self.profiler_outputs else self.list_existing_outputs()
         arrow_alias_msg = ''
         if sys.platform == "win32" or sys.platform == "cygwin":
             # change readchar key UP & DOWN by 'w' and 's'
@@ -710,7 +713,8 @@ class CompareReport(object):
         return ComparisonData(self.a.load(), self.b.load(), tables_from)
 
     @staticmethod
-    def exec(*, a=None, b=None, last=None, datasource=None, report_dir=None, output=None, tables_from='all', debug=False):
+    def exec(*, a=None, b=None, last=None, datasource=None, report_dir=None, output=None, tables_from='all',
+             debug=False):
         console = Console()
 
         filesystem = FileSystem(report_dir=report_dir)

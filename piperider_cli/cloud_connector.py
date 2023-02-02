@@ -116,6 +116,40 @@ def select_reports(report_dir=None, datasource=None) -> List[RunOutput]:
     return selector.select_multiple_reports(action='upload')
 
 
+class CloudReportOutput(RunOutput):
+    def __init__(self, report):
+        self.report = report
+        self.id = report['id']
+        self.name = report['datasource_name']
+        self.created_at = report['created_at']
+        self.table_count = report['tables']
+        self.pass_count = report['passed']
+        self.fail_count = report['failed']
+
+
+def select_cloud_reports(project_id: int = None, datasource=None, base=None, target=None):
+    if base and target:
+        return base, target
+
+    if project_id is None:
+        project_id = piperider_cloud.get_default_project()
+
+    reports = [CloudReportOutput(r) for r in piperider_cloud.list_reports(project_id, datasource=datasource)]
+    selector = CompareReport(None, None, None, datasource=datasource, profiler_outputs=reports)
+
+    if base is None and target is None:
+        console.rule('Please select base and target reports to compare')
+        base, target = selector.select_two_reports(action='compare')
+    elif base and target is None:
+        console.rule('Please select a target report to compare')
+        target = selector.select_one_report(action='compare')
+    elif target and base is None:
+        console.rule('Please select a base report to compare')
+        base = selector.select_one_report(action='compare')
+
+    return base, target
+
+
 def upload_to_cloud(report: RunOutput, debug=False, project_id=None) -> dict:
     response = piperider_cloud.upload_report(report.path, project_id=project_id)
     # TODO refine the output when API is ready
@@ -294,8 +328,19 @@ class CloudConnector:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
 
-        base_id = get_run_report_id(base)
-        target_id = get_run_report_id(target)
+        if base is None or target is None:
+            base, target = select_cloud_reports(base=base, target=target)
+            if isinstance(base, CloudReportOutput):
+                base_id = base.id
+            else:
+                base_id = get_run_report_id(base)
+            if isinstance(target, CloudReportOutput):
+                target_id = target.id
+            else:
+                target_id = get_run_report_id(target)
+        else:
+            base_id = get_run_report_id(base)
+            target_id = get_run_report_id(target)
 
         if base_id is None or target_id is None:
             console.print('No report found.')
