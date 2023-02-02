@@ -67,6 +67,8 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         self.table_completed = 0
 
     def _get_width(self, tables):
+        if not tables:
+            return 0, 0
         return max([len(x) for x in tables]), len(str(len(tables))) * 2 + 2
 
     def handle_run_start(self, run_result):
