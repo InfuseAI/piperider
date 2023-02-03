@@ -77,10 +77,9 @@ def _ask_user_input_datasource(config: Configuration = None):
 
 def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None):
     config = safe_load_yaml(PIPERIDER_CONFIG_PATH)
-    if config.get('dataSources'):
+    if config and config.get('dataSources'):
         console = Console()
-        console.print(
-            f'[[bold yellow]Warning[/bold yellow]] Found existing configuration. Skip initialization.')
+        console.print('[[bold yellow]Warning[/bold yellow]] Found existing configuration. Skip initialization.')
         return config
 
     dbt_config = Configuration.from_dbt_project(dbt_project_path, dbt_profiles_dir)
@@ -184,6 +183,10 @@ class Initializer():
     def add(report_dir=None):
         console = Console()
         config = Configuration.load()
+        if config.dbt:
+            console.print('[bold yellow]You have connected with a dbt project. '
+                          'Please add datasource in the dbt profile directly. [/bold yellow]')
+            return
         console.rule('Add datasource')
         cls, name = DataSource.ask(exist_datasource=[ds.name for ds in config.dataSources])
         ds: DataSource = cls(name=name)

@@ -319,7 +319,6 @@ class Configuration(object):
         datasource = dict(name=d.name, type=d.type_name)
         if d.args.get('dbt'):
             # dbt project
-            #datasource['dbt'] = d.args.get('dbt')
             config['dbt'] = CommentedMap(d.args.get('dbt'))
         else:
             # non-dbt project
