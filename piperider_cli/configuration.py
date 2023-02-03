@@ -47,6 +47,9 @@ class Configuration(object):
         self.includes = [str(t) for t in self.includes] if self.includes else self.includes
         self.excludes = [str(t) for t in self.excludes] if self.excludes else self.excludes
 
+        # global dbt config
+        self.dbt = kwargs.get('dbt', None)
+
     def _to_report_dir(self, dirname: str):
         if dirname is None or dirname.strip() == '':
             dirname = '.'
@@ -200,7 +203,7 @@ class Configuration(object):
                 data_source = datasource_class(name=ds.get('name'), credential=credential)
             data_sources.append(data_source)
 
-        # find dbt_project.yml and bt profile.yml
+        # load global dbt config
         dbt = config.get('dbt')
         if dbt:
             project_dir = config.get('dbt').get('projectDir')
@@ -232,6 +235,8 @@ class Configuration(object):
                         credential=credential
                     )
                     data_sources.append(data_source)
+                # dbt behavior: dbt uses 'default' as target name if no target given in profiles.yml
+                dbt['target'] = profile.get(profile_name).get('target', 'default')
 
         return cls(
             dataSources=data_sources,
@@ -241,7 +246,8 @@ class Configuration(object):
             excludes=config.get('excludes', None),
             include_views=config.get('include_views', False),
             telemetry_id=config.get('telemetry', {}).get('id'),
-            report_dir=config.get('report_dir', '.')
+            report_dir=config.get('report_dir', '.'),
+            dbt=dbt
         )
 
     def flush_datasource(self, path):

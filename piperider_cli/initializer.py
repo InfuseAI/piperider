@@ -7,7 +7,7 @@ from rich.prompt import Prompt
 from rich.syntax import Syntax
 from rich.table import Table
 
-from piperider_cli import clone_directory
+from piperider_cli import clone_directory, safe_load_yaml
 from piperider_cli.configuration import Configuration, \
     PIPERIDER_WORKSPACE_NAME, \
     PIPERIDER_CONFIG_PATH, \
@@ -75,13 +75,19 @@ def _ask_user_input_datasource(config: Configuration = None):
     return config
 
 
-def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None,
-                                         config: Configuration = None) -> bool:
-    config = Configuration.from_dbt_project(dbt_project_path, dbt_profiles_dir)
-    _generate_piperider_workspace()
-    config.dump(PIPERIDER_CONFIG_PATH)
+def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None):
+    config = safe_load_yaml(PIPERIDER_CONFIG_PATH)
+    if config.get('dataSources'):
+        console = Console()
+        console.print(
+            f'[[bold yellow]Warning[/bold yellow]] Found existing configuration. Skip initialization.')
+        return config
 
-    return config
+    dbt_config = Configuration.from_dbt_project(dbt_project_path, dbt_profiles_dir)
+    _generate_piperider_workspace()
+    dbt_config.dump(PIPERIDER_CONFIG_PATH)
+
+    return dbt_config
 
 
 def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None):

@@ -575,13 +575,18 @@ class Runner():
             console.print("[bold red]Error: no datasource found[/bold red]")
             return 1
 
-        if datasource and datasource not in datasource_names:
-            console.print(f"[bold red]Error: datasource '{datasource}' doesn't exist[/bold red]")
+        if datasource:
+            ds_name = datasource
+        else:
+            # if global dbt config exists, use dbt profile target
+            # else use the first datasource
+            ds_name = configuration.dbt.get('target') if configuration.dbt else datasource_names[0]
+
+        if ds_name not in datasource_names:
+            console.print(f"[bold red]Error: datasource '{ds_name}' doesn't exist[/bold red]")
             console.print(f"Available datasources: {', '.join(datasource_names)}")
             return 1
 
-        # Use the first datasource if no datasource is specified
-        ds_name = datasource if datasource else datasource_names[0]
         ds = datasources[ds_name]
 
         passed, reasons = ds.validate()
