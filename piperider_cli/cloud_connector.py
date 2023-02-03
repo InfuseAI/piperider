@@ -334,18 +334,19 @@ class CloudConnector:
         layout_table.add_column('Name')
         layout_table.add_column('Type')
         layout_table.add_column('Organization')
-        layout_table.add_column('Project URL', justify='right', no_wrap=True)
+        # layout_table.add_column('Project URL', justify='right', no_wrap=True)
 
         for project in projects:
-            project_id = project.get('id')
-            project_url = f'[deep_sky_blue1]{piperider_cloud.service.cloud_host}/projects/{project_id}[/deep_sky_blue1]'
+            # TODO: Put the project URL in the table once the project URL is available
+            # project_id = project.get('id')
+            # project_url = f'[deep_sky_blue1]{piperider_cloud.service.cloud_host}/projects/{project_id}[/deep_sky_blue1]'
             project_name = project.get('name') if project.get(
                 'organization_name') is None else f"{project.get('organization_name')}/{project.get('name')}"
             layout_table.add_row(
                 project_name,
                 project.get('parent_type'),
                 project.get('organization_display_name', '-'),
-                project_url,
+                # project_url,
             )
 
         console.print(layout_table)
