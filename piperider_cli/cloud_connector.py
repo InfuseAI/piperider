@@ -1,8 +1,10 @@
 import os
+import sys
 import webbrowser
 from typing import List, Optional
 
 import inquirer
+import readchar
 from rich import box
 from rich.console import Console
 from rich.prompt import Prompt
@@ -114,8 +116,8 @@ def select_reports(report_dir=None, datasource=None) -> List[RunOutput]:
     return selector.select_multiple_reports(action='upload')
 
 
-def upload_to_cloud(report: RunOutput, debug=False) -> dict:
-    response = piperider_cloud.upload_report(report.path)
+def upload_to_cloud(report: RunOutput, debug=False, project_id=None) -> dict:
+    response = piperider_cloud.upload_report(report.path, project_id=project_id)
     # TODO refine the output when API is ready
 
     if response.get('success') is True:
@@ -218,16 +220,27 @@ class CloudConnector:
         return 0
 
     @staticmethod
-    def upload_latest_report(report_dir=None, debug=False, open_report=False, force_upload=False, auto_upload=False) -> int:
+    def upload_latest_report(report_dir=None, debug=False, open_report=False, force_upload=False,
+                             auto_upload=False) -> int:
         filesystem = FileSystem(report_dir=report_dir)
         latest_report_path = os.path.join(filesystem.get_output_dir(), 'latest', 'run.json')
-        return CloudConnector.upload_report(latest_report_path, debug=debug, open_report=open_report, force_upload=force_upload, auto_upload=auto_upload)
+        return CloudConnector.upload_report(latest_report_path, debug=debug, open_report=open_report,
+                                            force_upload=force_upload, auto_upload=auto_upload)
 
     @staticmethod
-    def upload_report(report_path=None, report_dir=None, datasource=None, debug=False, open_report=False, force_upload=False, auto_upload=False) -> int:
+    def upload_report(report_path=None, report_dir=None, datasource=None, debug=False, open_report=False,
+                      force_upload=False, auto_upload=False, project_name=None) -> int:
         if piperider_cloud.available is False:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
+
+        project_id = piperider_cloud.get_default_project()
+        if project_name is not None:
+            project = piperider_cloud.get_project_by_name(project_name)
+            if project is None:
+                console.print(f'[[bold red]Error[/bold red]] Project \'{project_name}\' does not exist')
+                return 1
+            project_id = project.get('id')
 
         rc = 0
         results = []
@@ -235,7 +248,7 @@ class CloudConnector:
             reports = select_reports(report_dir=report_dir, datasource=datasource)
             console.rule('Uploading Reports')
             for r in reports:
-                response = upload_to_cloud(r, debug)
+                response = upload_to_cloud(r, debug, project_id=project_id)
                 if response.get('success') is False:
                     rc = 1
                 response['name'] = r.name
@@ -244,7 +257,7 @@ class CloudConnector:
         else:
             console.rule('Uploading Report')
             report = RunOutput(report_path)
-            response = upload_to_cloud(report, debug)
+            response = upload_to_cloud(report, debug, project_id=project_id)
             if response.get('success') is False:
                 rc = 1
             response['name'] = report.name
@@ -301,3 +314,83 @@ class CloudConnector:
                 os.makedirs(summary_dir, exist_ok=True)
             with open(summary_file, 'w') as f:
                 f.write(response.get('summary'))
+
+    @staticmethod
+    def list_projects(debug=False) -> int:
+        if piperider_cloud.available is False:
+            console.rule('Please login PipeRider Cloud first', style='red')
+            return 1
+
+        projects = piperider_cloud.list_projects()
+        # console.print(projects)
+
+        layout_table = Table(
+            title="PipeRider Cloud - Project List",
+            title_style='bold magenta',
+            show_header=True,
+            show_edge=True,
+            box=box.SIMPLE_HEAVY,
+        )
+        layout_table.add_column('Name')
+        layout_table.add_column('Type')
+        layout_table.add_column('Organization')
+        # layout_table.add_column('Project URL', justify='right', no_wrap=True)
+
+        for project in projects:
+            # TODO: Put the project URL in the table once the project URL is available
+            # project_id = project.get('id')
+            # project_url = f'[deep_sky_blue1]{piperider_cloud.service.cloud_host}/projects/{project_id}[/deep_sky_blue1]'
+            project_name = project.get('name') if project.get(
+                'organization_name') is None else f"{project.get('organization_name')}/{project.get('name')}"
+            layout_table.add_row(
+                project_name,
+                project.get('parent_type'),
+                project.get('organization_display_name', '-'),
+                # project_url,
+            )
+
+        console.print(layout_table)
+        pass
+
+    @staticmethod
+    def select_project(project_name: str = None, datasource: str = None, debug: bool = False):
+
+        def _project_selector():
+            arrow_alias_msg = ''
+            if sys.platform == "win32" or sys.platform == "cygwin":
+                # change readchar key UP & DOWN by 'w' and 's'
+                readchar.key.UP = 'w'
+                readchar.key.DOWN = 's'
+                arrow_alias_msg = " 'w' to Up, 's' to Down,"
+
+            projects = [
+                (f"{p.get('organization_name')}/{p.get('name')}" if p.get('organization_name') else p.get('name'), p)
+                for p in piperider_cloud.list_projects()]
+
+            question = [
+                inquirer.List('selected_project',
+                              message=f"Please select a project as default project ({arrow_alias_msg} ENTER to confirm )",
+                              choices=projects,
+                              carousel=True,
+                              )
+            ]
+            answers = inquirer.prompt(question, raise_keyboard_interrupt=True)
+            if answers:
+                return answers['selected_project']
+            return None
+
+        if project_name is None:
+            project = _project_selector()
+        else:
+            project = piperider_cloud.get_project_by_name(project_name)
+            if project is None:
+                console.print(f'[[bold red]Warning[/bold red]] Project \'{project_name}\' does not exist')
+                return 1
+
+        name = project.get('name') if project.get(
+            'organization_name') is None else f"{project.get('organization_name')}/{project.get('name')}"
+        piperider_cloud.set_default_project(name)
+
+        # TODO: Add project name into the datasource config if datasource is not None
+        console.print(f'[[bold green]Config[/bold green]] Default project is set to \'{name}\'')
+        pass

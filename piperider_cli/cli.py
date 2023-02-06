@@ -6,13 +6,13 @@ import sentry_sdk
 from rich.console import Console
 from rich.syntax import Syntax
 
-from piperider_cli import __version__, sentry_dns, sentry_env, event
 import piperider_cli.dbtutil as dbtutil
+from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
 from piperider_cli.event import UserProfileConfigurator
-from piperider_cli.event.track import TrackCommand, BetaGroup
+from piperider_cli.event.track import TrackCommand
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.feedback import Feedback
 from piperider_cli.generate_report import GenerateReport
@@ -179,7 +179,9 @@ def run(**kwargs):
         is_cloud_view = (force_upload or auto_upload)
 
         if CloudConnector.is_login() and is_cloud_view:
-            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'), open_report=open_report, force_upload=force_upload, auto_upload=auto_upload)
+            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
+                                                open_report=open_report, force_upload=force_upload,
+                                                auto_upload=auto_upload)
 
         if not skip_report:
             GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report, is_cloud_view)
@@ -304,6 +306,8 @@ def cloud(**kwargs):
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
               help='Specify the datasource.')
+@click.option('--project', default=None, type=click.STRING, metavar='PROJECT_NAME',
+              help='Specify the project to upload.')
 @add_options(debug_option)
 def upload_report(**kwargs):
     """
@@ -312,7 +316,9 @@ def upload_report(**kwargs):
     report_path = kwargs.get('run')
     datasource = kwargs.get('datasource')
     report_dir = kwargs.get('report_dir')
+    project_name = kwargs.get('project')
     ret = CloudConnector.upload_report(report_path=report_path, datasource=datasource, report_dir=report_dir,
+                                       project_name=project_name,
                                        debug=kwargs.get('debug', False))
     return ret
 
@@ -367,4 +373,21 @@ def login(**kwargs):
 @add_options(debug_option)
 def logout(**kwargs):
     ret = CloudConnector.logout()
+    return ret
+
+
+@cloud.command(short_help='List projects on PipeRider Cloud.', cls=TrackCommand)
+@add_options(debug_option)
+def list_projects(**kwargs):
+    ret = CloudConnector.list_projects()
+    return ret
+
+
+@cloud.command(short_help='Select a project on PipeRider Cloud as default project.', cls=TrackCommand)
+@click.option('--project', default=None, type=click.STRING, metavar='PROJECT_NAME',
+              help='Specify the project name.')
+@add_options(debug_option)
+def select_project(**kwargs):
+    project_name = kwargs.get('project')
+    ret = CloudConnector.select_project(project_name=project_name)
     return ret

@@ -164,6 +164,8 @@ class CloudAccountChecker(AbstractChecker):
             self.console.print(f"    User Name: [bold green]{piperider_cloud.me.get('username', 'N/A')}[/bold green]")
             self.console.print(f"    Full Name: [bold green]{piperider_cloud.me.get('fullname', 'N/A')}[/bold green]")
             self.console.print(f"  Auto Upload: {piperider_cloud.config.get('auto_upload', False)}")
+            self.console.print(
+                f"  Default Project: [bold green]{piperider_cloud.config.get('default_project', 'N/A')}[bold green]")
             return True, ""
 
 

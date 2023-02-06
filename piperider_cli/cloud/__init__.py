@@ -1,5 +1,6 @@
 import json
 import os
+from typing import List
 
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
@@ -134,9 +135,18 @@ class PipeRiderCloud:
             return response.json()
         return None
 
+    def set_default_project(self, project_name):
+        self.update_config({'default_project': project_name})
+
     def get_default_project(self):
         if not self.available:
             self.raise_error()
+
+        if self.config.get('default_project'):
+            name = self.config.get('default_project')
+            project = self.get_project_by_name(name)
+            if project:
+                return project.get('id')
 
         url = self.service.url('/api/projects')
         headers = self.service.auth_headers()
@@ -165,7 +175,7 @@ class PipeRiderCloud:
 
         return response.json()
 
-    def upload_report(self, file_path, show_progress=True):
+    def upload_report(self, file_path, show_progress=True, project_id=None):
         # TODO validate project name
         if not self.available:
             self.raise_error()
@@ -183,7 +193,8 @@ class PipeRiderCloud:
             )
             m = MultipartEncoderMonitor(encoder, _upload_callback)
 
-            url = self.service.url('/api/reports/upload')
+            url = self.service.url(f'/api/projects/{project_id}/reports/upload') if project_id else self.service.url(
+                '/api/reports/upload')
             headers = self.service.auth_headers()
             headers['Content-Type'] = m.content_type
 
@@ -222,6 +233,65 @@ class PipeRiderCloud:
 
     def has_configured(self):
         return self.service.api_token is not None
+
+    def list_projects(self) -> List[dict]:
+        if not self.available:
+            self.raise_error()
+
+        url = self.service.url('/api/projects')
+        headers = self.service.auth_headers()
+        response = requests.get(url, headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        data = response.json()
+        output = []
+
+        def _parse_legacy_project_list(x):
+            output.append({
+                'id': x.get('id'),
+                'name': x.get('name'),
+                'is_default': x.get('is_default'),
+                'parent_type': 'personal',
+            })
+
+        def _parse_projects_with_organization_list(x):
+            for project in x.get('projects', []):
+                parent_type = 'organization' if project.get('organization_id') else 'personal'
+
+                p = {
+                    'id': project.get('id'),
+                    'name': project.get('name'),
+                    'is_default': project.get('is_default'),
+                    'parent_type': parent_type
+                }
+                if parent_type == 'organization':
+                    p['organization_name'] = x.get('name')
+                    p['organization_display_name'] = x.get('display_name')
+                output.append(p)
+
+        for x in data:
+            if x.get('id'):
+                _parse_legacy_project_list(x)
+            else:
+                _parse_projects_with_organization_list(x)
+        return output
+
+    def get_project_by_name(self, name):
+        project_name = None
+        organization_name = None
+        if '/' in name:
+            organization_name, project_name = name.split('/')
+        else:
+            project_name = name
+
+        projects = self.list_projects()
+        for project in projects:
+            if project.get('name') == project_name and project.get('organization_name') == organization_name:
+                return project
+
+        return None
 
 
 if __name__ == '__main__':
