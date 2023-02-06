@@ -28,6 +28,7 @@ import { useLocalStorage } from 'react-use';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { Comparable, ComparableData, Selectable } from '../../../types';
 import {
+  borderVal,
   MASTER_LIST_DISPLAY_MODE,
   MASTER_LIST_SHOW_EXTRA,
 } from '../../../utils';
@@ -146,129 +147,162 @@ export function MasterSideNav({
   const hasShowExtra = showExtra === SHOW_EXTRA_KEY;
 
   return (
-    <Box w={'100%'} p={3} pl={8} zIndex={150} bg={'inherit'}>
-      {/* FILTER HEADER */}
-      <Flex mt={3} justifyContent={'space-between'} mb={2}>
-        <Text color={'gray.500'} size={'md'}>
-          Tables
-        </Text>
-        {/* Show More info Header */}
-        <Flex gap={2}>
-          <Box
-            _hover={{ cursor: 'pointer' }}
-            onClick={() => {
-              const result = displayMode === SEARCH_KEY ? '' : SEARCH_KEY;
-              setDisplayMode(result);
-            }}
-          >
-            {SearchIcon}
-          </Box>
-          <Box
-            _hover={{ cursor: 'pointer' }}
-            onClick={() => {
-              const result =
-                displayMode === SCHEMA_FILTER_KEY ? '' : SCHEMA_FILTER_KEY;
-              setDisplayMode(result);
-            }}
-          >
-            {FilterIcon}
-          </Box>
-          <Box
-            _hover={{ cursor: 'pointer' }}
-            onClick={() => {
-              const result = showExtra === SHOW_EXTRA_KEY ? '' : SHOW_EXTRA_KEY;
-              setShowExtra(result);
-              onToggleShowExtra && onToggleShowExtra(); // to inform parent about layout changes e.g. change grid-templates
-            }}
-          >
-            {ShowExtraIcon}
-          </Box>
-        </Flex>
-      </Flex>
-      {/* FILTER BODY */}
-      <Box p={2}>
-        {/* Search Text Filter */}
-        {displayMode === 'search' && (
-          <SearchTextInput
-            onChange={setFilterString}
-            filterString={filterString}
-          />
-        )}
-        {/* Tag Toggle Filters */}
-        {displayMode === 'schema-filter' && (
-          <Grid templateColumns={'1fr 1fr'} gap={3}>
-            {quickFilters.map((v) => {
-              const { icon } = getIconForColumnType({ type: v });
-              const itemValue = filterState.get(v);
-
-              return (
-                <Tag
-                  borderRadius={'xl'}
-                  key={v}
-                  py={3}
-                  size={'lg'}
-                  bg={itemValue ? 'piperider.100' : 'gray.200'}
-                  onClick={() => {
-                    const newState = new Map(filterState).set(v, !itemValue);
-                    setFilterState(newState);
-                  }}
-                  cursor={'pointer'}
-                >
-                  <TagLabel fontSize={'lg'}>
-                    <Flex alignItems={'center'} gap={2}>
-                      <Icon as={icon} />
-                      {v}
-                    </Flex>
-                  </TagLabel>
-                </Tag>
-              );
-            })}
-          </Grid>
-        )}
-      </Box>
-
+    <Box w={'100%'} zIndex={150} bg={'inherit'}>
       <Accordion reduceMotion allowMultiple>
-        {filteredTableColumnEntryList.map(
-          ([tableName, compTableColItem, meta]) => {
-            const fallbackTableEntries =
-              compTableColItem?.target || compTableColItem?.base;
-            const fallbackColEntries = fallbackTableEntries?.columns;
+        <AccordionItem border={'none'}>
+          {({ isExpanded }) => (
+            <>
+              <h2>
+                <AccordionButton py={0}>
+                  {/* FILTER HEADER */}
+                  <Flex
+                    mt={3}
+                    justifyContent={'space-between'}
+                    mb={2}
+                    w={'100%'}
+                  >
+                    <Flex alignItems={'center'} gap={2}>
+                      <Icon as={isExpanded ? FiChevronDown : FiChevronRight} />
+                      <Text>All Tables</Text>
+                    </Flex>
+                    {isExpanded && (
+                      <Flex gap={2}>
+                        {/* Show More info Header */}
+                        <Box
+                          _hover={{ cursor: 'pointer' }}
+                          onClick={() => {
+                            const result =
+                              displayMode === SEARCH_KEY ? '' : SEARCH_KEY;
+                            setDisplayMode(result);
+                          }}
+                        >
+                          {SearchIcon}
+                        </Box>
+                        <Box
+                          _hover={{ cursor: 'pointer' }}
+                          onClick={() => {
+                            const result =
+                              displayMode === SCHEMA_FILTER_KEY
+                                ? ''
+                                : SCHEMA_FILTER_KEY;
+                            setDisplayMode(result);
+                          }}
+                        >
+                          {FilterIcon}
+                        </Box>
+                        <Box
+                          _hover={{ cursor: 'pointer' }}
+                          onClick={() => {
+                            const result =
+                              showExtra === SHOW_EXTRA_KEY
+                                ? ''
+                                : SHOW_EXTRA_KEY;
+                            setShowExtra(result);
+                            onToggleShowExtra && onToggleShowExtra(); // to inform parent about layout changes e.g. change grid-templates
+                          }}
+                        >
+                          {ShowExtraIcon}
+                        </Box>
+                      </Flex>
+                    )}
+                  </Flex>
+                </AccordionButton>
+              </h2>
+              <AccordionPanel py={0} position={'relative'} top={'-0.5em'}>
+                <>
+                  {/* FILTER BODY */}
+                  <Box p={2}>
+                    {/* Search Text Filter */}
+                    {displayMode === 'search' && (
+                      <SearchTextInput
+                        onChange={setFilterString}
+                        filterString={filterString}
+                      />
+                    )}
+                    {/* Tag Toggle Filters */}
+                    {displayMode === 'schema-filter' && (
+                      <Grid templateColumns={'1fr 1fr'} gap={3}>
+                        {quickFilters.map((v) => {
+                          const { icon } = getIconForColumnType({ type: v });
+                          const itemValue = filterState.get(v);
 
-            const isSameTableName = currentTable === tableName;
-            const isTableActive = Boolean(
-              currentColumn === '' && isSameTableName,
-            );
+                          return (
+                            <Tag
+                              borderRadius={'xl'}
+                              key={v}
+                              py={3}
+                              size={'lg'}
+                              bg={itemValue ? 'piperider.100' : 'gray.200'}
+                              onClick={() => {
+                                const newState = new Map(filterState).set(
+                                  v,
+                                  !itemValue,
+                                );
+                                setFilterState(newState);
+                              }}
+                              cursor={'pointer'}
+                            >
+                              <TagLabel fontSize={'lg'}>
+                                <Flex alignItems={'center'} gap={2}>
+                                  <Icon as={icon} />
+                                  {v}
+                                </Flex>
+                              </TagLabel>
+                            </Tag>
+                          );
+                        })}
+                      </Grid>
+                    )}
+                  </Box>
+                  <Accordion reduceMotion allowMultiple>
+                    {filteredTableColumnEntryList.map(
+                      ([tableName, compTableColItem, meta]) => {
+                        const fallbackTableEntries =
+                          compTableColItem?.target || compTableColItem?.base;
+                        const fallbackColEntries =
+                          fallbackTableEntries?.columns;
 
-            return (
-              <AccordionItem key={tableName}>
-                {({ isExpanded }) => (
-                  <>
-                    <TableItemAccordionButton
-                      onSelect={onSelect}
-                      isActive={isTableActive}
-                      isExpanded={isExpanded}
-                      compTableColItem={compTableColItem}
-                      hasShowExtra={hasShowExtra}
-                      singleOnly={singleOnly}
-                    />
-                    <ColumnListAccordionPanel
-                      onSelect={onSelect}
-                      compColList={fallbackColEntries}
-                      currentColumn={currentColumn}
-                      currentTable={currentTable}
-                      indexedTableName={tableName}
-                      hasShowExtra={hasShowExtra}
-                      singleOnly={singleOnly}
-                    />
-                  </>
-                )}
-              </AccordionItem>
-            );
-          },
-        )}
+                        const isSameTableName = currentTable === tableName;
+                        const isTableActive = Boolean(
+                          currentColumn === '' && isSameTableName,
+                        );
+
+                        return (
+                          <AccordionItem key={tableName}>
+                            {({ isExpanded }) => (
+                              <>
+                                <TableItemAccordionButton
+                                  onSelect={onSelect}
+                                  isActive={isTableActive}
+                                  isExpanded={isExpanded}
+                                  compTableColItem={compTableColItem}
+                                  hasShowExtra={hasShowExtra}
+                                  singleOnly={singleOnly}
+                                />
+                                <ColumnListAccordionPanel
+                                  onSelect={onSelect}
+                                  compColList={fallbackColEntries}
+                                  currentColumn={currentColumn}
+                                  currentTable={currentTable}
+                                  indexedTableName={tableName}
+                                  hasShowExtra={hasShowExtra}
+                                  singleOnly={singleOnly}
+                                />
+                              </>
+                            )}
+                          </AccordionItem>
+                        );
+                      },
+                    )}
+                  </Accordion>
+                </>
+              </AccordionPanel>
+            </>
+          )}
+        </AccordionItem>
       </Accordion>
 
-      <Flex py={3} mt={5}>
+      <Flex px={5} mt={5}>
         <ChakraLink
           onClick={() => {
             onNavToBM();
@@ -277,7 +311,7 @@ export function MasterSideNav({
           All Metrics
         </ChakraLink>
       </Flex>
-      <Flex py={3}>
+      <Flex px={5} mt={5}>
         <ChakraLink
           onClick={() => {
             onNavToAssertions();
@@ -313,10 +347,16 @@ function TableItemAccordionButton({
 
   return (
     <h2>
-      <AccordionButton>
-        <Flex p={3} w={'100%'} justify={'space-between'}>
+      <AccordionButton
+        bg={isActive ? 'piperider.400' : 'inherit'}
+        _hover={{ bg: isActive ? 'piperider.500' : 'blackAlpha.50' }}
+      >
+        <Flex w={'100%'} justify={'space-between'}>
           <Flex alignItems={'center'} gap={2} fontSize={'sm'}>
-            <Icon as={isExpanded ? FiChevronDown : FiChevronRight} />
+            <Icon
+              as={isExpanded ? FiChevronDown : FiChevronRight}
+              color={isActive ? 'white' : 'inherit'}
+            />
             <Link
               onClick={(e) => {
                 e.preventDefault();
@@ -324,6 +364,7 @@ function TableItemAccordionButton({
               }}
               noOfLines={1}
               fontWeight={isActive ? 'bold' : 'normal'}
+              color={isActive ? 'white' : 'inherit'}
             >
               {fallbackTable?.name}
             </Link>
