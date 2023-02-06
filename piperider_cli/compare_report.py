@@ -651,7 +651,7 @@ class CompareReport(object):
             else:
                 return len(current) == limit
 
-        profiler_outputs = self.profiler_outputs if self.profiler_outputs else self.list_existing_outputs()
+        profiler_outputs = self.profiler_outputs if self.profiler_outputs is not None else self.list_existing_outputs()
         arrow_alias_msg = ''
         if sys.platform == "win32" or sys.platform == "cygwin":
             # change readchar key UP & DOWN by 'w' and 's'
