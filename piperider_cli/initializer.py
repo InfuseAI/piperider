@@ -15,6 +15,7 @@ from piperider_cli.configuration import Configuration, \
 from piperider_cli.datasource import DataSource, FANCY_USER_INPUT
 from piperider_cli.datasource.survey import UserSurveyMockDataSource
 from piperider_cli.error import PipeRiderConfigError
+from piperider_cli.recipes import prepare_the_default_recipe
 
 
 def _is_piperider_workspace_exist(workspace_path: str) -> bool:
@@ -115,7 +116,8 @@ class Initializer():
         # get Configuration object from dbt or user created configuration
         configuration = _generate_configuration(dbt_project_path, dbt_profiles_dir)
 
-        # TODO generate the default recipe
+        # generate the default recipe
+        prepare_the_default_recipe()
         return configuration
 
     @staticmethod
