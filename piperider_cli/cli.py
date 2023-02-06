@@ -356,6 +356,24 @@ def cloud_compare_reports(**kwargs):
     return ret
 
 
+@cloud.command(name='compare', short_help='Generate comparison report with the recipe.', cls=TrackCommand)
+@click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
+@click.option('--summary-file', default=None, type=click.STRING, help='Output the comparison summary markdown file.')
+@add_options(debug_option)
+def compare_with_recipe(**kwargs):
+    """
+    Generate comparison report with the recipe
+    """
+
+    # TODO implement the compare with recipe
+    # TODO for the existing project, it might not have a default recipe, we should generate it first to use it.
+
+    # TODO --summary-file copy the markdown to the assigned path
+    # TODO --output duplicated the generated files to the assigned path
+    ret = 0
+    return ret
+
+
 @cloud.command(short_help='Login to PipeRider Cloud.', cls=TrackCommand)
 @click.option('--token', default=None, type=click.STRING, help='Specify the API token.')
 @click.option('--enable-auto-upload', default=None, is_flag=True, help='Enable auto upload.')

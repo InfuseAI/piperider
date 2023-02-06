@@ -119,6 +119,8 @@ class Initializer():
 
         # get Configuration object from dbt or user created configuration
         configuration = _generate_configuration(dbt_project_path, dbt_profiles_dir)
+
+        # TODO generate the default recipe
         return configuration
 
     @staticmethod
