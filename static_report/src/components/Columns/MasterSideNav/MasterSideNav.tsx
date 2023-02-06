@@ -28,7 +28,6 @@ import { useLocalStorage } from 'react-use';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { Comparable, ComparableData, Selectable } from '../../../types';
 import {
-  borderVal,
   MASTER_LIST_DISPLAY_MODE,
   MASTER_LIST_SHOW_EXTRA,
 } from '../../../utils';
