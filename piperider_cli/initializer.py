@@ -150,6 +150,10 @@ class Initializer():
         console = Console()
 
         config = Configuration.load()
+        if config.dbt:
+            console.print('[bold yellow]You have connected with a dbt project. '
+                          'Please add datasource in the dbt profile directly. [/bold yellow]')
+            return
 
         if FANCY_USER_INPUT:
             questions = [
