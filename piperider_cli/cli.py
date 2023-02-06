@@ -386,11 +386,8 @@ def list_projects(**kwargs):
 @cloud.command(short_help='Select a project on PipeRider Cloud as default project.', cls=TrackCommand)
 @click.option('--project', default=None, type=click.STRING, metavar='PROJECT_NAME',
               help='Specify the project name.')
-# @click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
-#               help='Specify the datasource.')
 @add_options(debug_option)
 def select_project(**kwargs):
     project_name = kwargs.get('project')
-    # datasource = kwargs.get('datasource')
     ret = CloudConnector.select_project(project_name=project_name)
     return ret
