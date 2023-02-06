@@ -1,8 +1,10 @@
 import os
+import sys
 import uuid
 from typing import List
 
 import inquirer
+from rich.console import Console
 from ruamel import yaml
 from ruamel.yaml import CommentedMap, CommentedSeq
 
@@ -119,6 +121,12 @@ class Configuration(object):
 
         profile_name = dbt_project.get('profile')
         target_name = dbt_profile.get(profile_name, {}).get('target')
+        if target_name not in list(dbt_profile.get(profile_name, {}).get('outputs').keys()):
+            console = Console()
+            console.print("[bold red]Error:[/bold red] "
+                          f"The profile '{profile_name}' does not have a target named '{target_name}'.\n"
+                          "Please check the dbt profile format.")
+            sys.exit(1)
         credential = _load_credential_from_dbt_profile(dbt_profile, profile_name, target_name)
         type_name = credential.get('type')
         dbt = {
@@ -226,7 +234,8 @@ class Configuration(object):
                 profile_path = os.path.expanduser(profile_path)
             profile = _load_dbt_profile(profile_path)
             if profile.get(profile_name):
-                for target in list(profile.get(profile_name).get('outputs').keys()):
+                target_names = list(profile.get(profile_name).get('outputs').keys())
+                for target in target_names:
                     credential = _load_credential_from_dbt_profile(profile, profile_name, target)
                     datasource_class = DATASOURCE_PROVIDERS[credential.get('type')]
                     data_source = datasource_class(
@@ -237,6 +246,12 @@ class Configuration(object):
                     data_sources.append(data_source)
                 # dbt behavior: dbt uses 'default' as target name if no target given in profiles.yml
                 dbt['target'] = profile.get(profile_name).get('target', 'default')
+                if dbt['target'] not in target_names:
+                    console = Console()
+                    console.print("[bold red]Error:[/bold red] "
+                                  f"The profile '{profile_name}' does not have a target named '{dbt['target']}'.\n"
+                                  "Please check the dbt profile format.")
+                    sys.exit(1)
 
         return cls(
             dataSources=data_sources,
