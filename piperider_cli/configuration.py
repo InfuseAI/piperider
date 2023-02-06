@@ -369,6 +369,8 @@ tables:
         for d in self.dataSources:
             if after_init_config and d.credential_source == 'config':
                 continue
+            if d.args.get('dbt'):
+                continue
             creds[d.name] = dict(type=d.type_name, **d.credential)
 
         if creds:
