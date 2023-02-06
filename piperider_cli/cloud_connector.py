@@ -137,6 +137,9 @@ def select_cloud_report_ids(project_id: int = None, datasource=None, target=None
         project_id = piperider_cloud.get_default_project()
 
     reports = [CloudReportOutput(r) for r in piperider_cloud.list_reports(project_id, datasource=datasource)]
+    if len(reports) == 0:
+        return None, None
+
     selector = CompareReport(None, None, None, datasource=datasource, profiler_outputs=reports)
 
     if base is None and target is None:
@@ -336,8 +339,7 @@ class CloudConnector:
 
         base_id, target_id = select_cloud_report_ids(base=base, target=target)
         if base_id is None or target_id is None:
-            console.print('No report found.')
-            return 1
+            raise Exception('No report found in the PipeRider Cloud. Please upload reports to PipeRider Cloud first.')
 
         console.print(f"Creating comparison report id={base_id} ... id={target_id}")
         response = create_compare_reports(base_id, target_id, tables_from)

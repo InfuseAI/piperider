@@ -178,7 +178,7 @@ class PipeRiderCloud:
         response = requests.get(url, headers=headers)
 
         if response.status_code != 200:
-            return None
+            return []
 
         return response.json()
 
