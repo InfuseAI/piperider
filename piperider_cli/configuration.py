@@ -1,8 +1,10 @@
 import os
+import sys
 import uuid
 from typing import List
 
 import inquirer
+from rich.console import Console
 from ruamel import yaml
 from ruamel.yaml import CommentedMap, CommentedSeq
 
@@ -46,6 +48,9 @@ class Configuration(object):
         self._verify_input_config()
         self.includes = [str(t) for t in self.includes] if self.includes else self.includes
         self.excludes = [str(t) for t in self.excludes] if self.excludes else self.excludes
+
+        # global dbt config
+        self.dbt = kwargs.get('dbt', None)
 
     def _to_report_dir(self, dirname: str):
         if dirname is None or dirname.strip() == '':
@@ -116,11 +121,15 @@ class Configuration(object):
 
         profile_name = dbt_project.get('profile')
         target_name = dbt_profile.get(profile_name, {}).get('target')
+        if target_name not in list(dbt_profile.get(profile_name, {}).get('outputs').keys()):
+            console = Console()
+            console.print("[bold red]Error:[/bold red] "
+                          f"The profile '{profile_name}' does not have a target named '{target_name}'.\n"
+                          "Please check the dbt profile format.")
+            sys.exit(1)
         credential = _load_credential_from_dbt_profile(dbt_profile, profile_name, target_name)
         type_name = credential.get('type')
         dbt = {
-            'profile': profile_name,
-            'target': target_name,
             'projectDir': os.path.relpath(os.path.dirname(dbt_project_path), os.getcwd()),
         }
 
@@ -202,6 +211,48 @@ class Configuration(object):
                 data_source = datasource_class(name=ds.get('name'), credential=credential)
             data_sources.append(data_source)
 
+        # load global dbt config
+        dbt = config.get('dbt')
+        if dbt:
+            project_dir = config.get('dbt').get('projectDir')
+            project = _load_dbt_project(project_dir)
+            profile_name = project.get('profile')
+
+            # Precedence reference
+            # https://docs.getdbt.com/docs/get-started/connection-profiles#advanced-customizing-a-profile-directory
+            if dbt.get('profilesDir'):
+                profile_dir = dbt.get('profilesDir')
+            elif os.getenv('DBT_PROFILES_DIR'):
+                profile_dir = os.getenv('DBT_PROFILES_DIR')
+            elif os.path.exists(os.path.join(project_dir, DBT_PROFILE_FILE)):
+                profile_dir = project_dir
+            else:
+                profile_dir = DBT_PROFILES_DIR_DEFAULT
+
+            profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
+            if '~' in profile_path:
+                profile_path = os.path.expanduser(profile_path)
+            profile = _load_dbt_profile(profile_path)
+            if profile.get(profile_name):
+                target_names = list(profile.get(profile_name).get('outputs').keys())
+                for target in target_names:
+                    credential = _load_credential_from_dbt_profile(profile, profile_name, target)
+                    datasource_class = DATASOURCE_PROVIDERS[credential.get('type')]
+                    data_source = datasource_class(
+                        name=target,
+                        dbt=dict(**dbt, profile=profile_name, target=target),
+                        credential=credential
+                    )
+                    data_sources.append(data_source)
+                # dbt behavior: dbt uses 'default' as target name if no target given in profiles.yml
+                dbt['target'] = profile.get(profile_name).get('target', 'default')
+                if dbt['target'] not in target_names:
+                    console = Console()
+                    console.print("[bold red]Error:[/bold red] "
+                                  f"The profile '{profile_name}' does not have a target named '{dbt['target']}'.\n"
+                                  "Please check the dbt profile format.")
+                    sys.exit(1)
+
         return cls(
             dataSources=data_sources,
             profiler=config.get('profiler', {}),
@@ -210,7 +261,8 @@ class Configuration(object):
             excludes=config.get('excludes', None),
             include_views=config.get('include_views', False),
             telemetry_id=config.get('telemetry', {}).get('id'),
-            report_dir=config.get('report_dir', '.')
+            report_dir=config.get('report_dir', '.'),
+            dbt=dbt
         )
 
     def flush_datasource(self, path):
@@ -273,20 +325,21 @@ class Configuration(object):
 
         config = dict(
             dataSources=[],
+            dbt=None,
             profiler=None,
             telemetry=dict(id=self.telemetry_id)
         )
 
-        for d in self.dataSources:
-            datasource = dict(name=d.name, type=d.type_name)
-            if d.args.get('dbt'):
-                # dbt project
-                datasource['dbt'] = d.args.get('dbt')
-            else:
-                # non-dbt project
-                if d.credential_source == 'config':
-                    datasource.update(**d.credential)
-
+        d = self.dataSources[0]
+        datasource = dict(name=d.name, type=d.type_name)
+        if d.args.get('dbt'):
+            # dbt project
+            config['dbt'] = CommentedMap(d.args.get('dbt'))
+        else:
+            # non-dbt project
+            if d.credential_source == 'config':
+                datasource.update(**d.credential)
+            config.pop('dbt')
             config['dataSources'].append(datasource)
 
         template = '''  table:
@@ -311,6 +364,9 @@ tables:
 '''
 
         config_yaml = CommentedMap(config)
+
+        if config_yaml.get('dbt'):
+            config_yaml.yaml_set_comment_before_after_key('profiler', before="tag: 'piperider'", indent=2)
         config_yaml.yaml_set_comment_before_after_key('profiler', before='\n')
         config_yaml.yaml_set_comment_before_after_key('telemetry', before=template)
 
@@ -327,6 +383,8 @@ tables:
         creds = dict()
         for d in self.dataSources:
             if after_init_config and d.credential_source == 'config':
+                continue
+            if d.args.get('dbt'):
                 continue
             creds[d.name] = dict(type=d.type_name, **d.credential)
 
@@ -356,6 +414,19 @@ tables:
     def delete_datasource(self, datasource):
         if datasource in self.dataSources:
             self.dataSources.remove(datasource)
+
+
+def _load_dbt_project(path: str):
+    if not path.endswith('dbt_project.yml'):
+        path = os.path.join(path, 'dbt_project.yml')
+
+    with open(path, 'r') as fd:
+        try:
+            yml = yaml.YAML()
+            yml.allow_duplicate_keys = True
+            return yml.load(fd)
+        except Exception as e:
+            raise DbtProjectInvalidError(path, e)
 
 
 def _load_dbt_profile(path):

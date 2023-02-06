@@ -115,3 +115,7 @@ class SnowflakeDataSource(DataSource):
             return None
         except Exception as e:
             return PipeRiderConnectorError(str(e), 'snowflake')
+
+    def _get_display_description(self):
+        cred = self.credential
+        return f"type={self.type_name}, database={cred.get('database')}, schema={cred.get('schema')}"

@@ -221,6 +221,24 @@ class DataSource(metaclass=ABCMeta):
         cls = answers['type']
         return cls, name
 
+    @abstractmethod
+    def _get_display_description(self):
+        """
+        get the description of the datasource to display.
+
+        Returns description
+
+        :return: str
+        """
+        raise NotImplementedError
+
+    def get_display_description(self):
+        # if dbt
+        dbt = self.args.get('dbt')
+        if dbt:
+            return f"profile={dbt.get('profile')}, target={dbt.get('target')}"
+        return self._get_display_description()
+
 
 def _list_datasource_providers():
     from .snowflake import SnowflakeDataSource

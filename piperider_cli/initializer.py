@@ -7,7 +7,7 @@ from rich.prompt import Prompt
 from rich.syntax import Syntax
 from rich.table import Table
 
-from piperider_cli import clone_directory
+from piperider_cli import clone_directory, safe_load_yaml
 from piperider_cli.configuration import Configuration, \
     PIPERIDER_WORKSPACE_NAME, \
     PIPERIDER_CONFIG_PATH, \
@@ -75,13 +75,18 @@ def _ask_user_input_datasource(config: Configuration = None):
     return config
 
 
-def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None,
-                                         config: Configuration = None) -> bool:
-    config = Configuration.from_dbt_project(dbt_project_path, dbt_profiles_dir)
-    _generate_piperider_workspace()
-    config.dump(PIPERIDER_CONFIG_PATH)
+def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None):
+    config = safe_load_yaml(PIPERIDER_CONFIG_PATH)
+    if config and config.get('dataSources'):
+        console = Console()
+        console.print('[[bold yellow]Warning[/bold yellow]] Found existing configuration. Skip initialization.')
+        return config
 
-    return config
+    dbt_config = Configuration.from_dbt_project(dbt_project_path, dbt_profiles_dir)
+    _generate_piperider_workspace()
+    dbt_config.dump(PIPERIDER_CONFIG_PATH)
+
+    return dbt_config
 
 
 def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None):
@@ -123,44 +128,20 @@ class Initializer():
 
         if _is_piperider_workspace_exist(working_dir):
             config = Configuration.load()
-            with open(os.path.join(working_dir, 'config.yml'), 'r') as f:
-                yaml_markdown = Syntax(f.read(), "yaml", theme="monokai", line_numbers=True)
-                list_table = Table(show_header=True, show_edge=True, box=box.SIMPLE_HEAVY)
-                list_table.add_column("Datasource", style="cyan", no_wrap=True)
-                list_table.add_column("Name", style="magenta", no_wrap=True)
-                list_table.add_column("Source Type", style="blue", no_wrap=True)
-                list_table.add_column("Source", style="green", no_wrap=True)
-                for ds in config.dataSources:
-                    source_type = 'N/A'
-                    source = 'N/A'
-                    if ds.type_name in ['csv', 'parquet']:
-                        source = ds.credential['path']
-                        source_type = 'File Path'
-                    elif ds.type_name in ['sqlite']:
-                        source = ds.credential['dbpath']
-                        source_type = 'File Path'
-                    elif ds.type_name in ['redshift', 'postgres']:
-                        source = ds.credential['dbname']
-                        source_type = 'Database'
-                    elif ds.type_name in ['snowflake']:
-                        source = ds.credential['database']
-                        source_type = 'Database'
-                    elif ds.type_name in ['bigquery']:
-                        source = ds.credential['dataset']
-                        source_type = 'Dataset'
-                    list_table.add_row(ds.type_name, ds.name, source_type, source)
+            list_table = Table(show_header=True, show_edge=True, box=box.SIMPLE_HEAVY)
+            list_table.add_column("Datasource", style="cyan", no_wrap=True)
+            list_table.add_column("Description", style="magenta", no_wrap=True)
+            for ds in config.dataSources:
+                fields = ds.get_display_description().split(', ')
+                colored_fields = []
+                for f in fields:
+                    key = f.split('=')[0]
+                    value = f.split('=')[-1]
+                    colored_fields.append(f"[bold][blue]{key}[/blue][default]=[/default][green]{value}[/green][/bold]")
 
-                layout_table = Table(
-                    title='PipeRider Configuration',
-                    title_style='bold magenta',
-                    show_header=False,
-                    show_edge=True,
-                    box=box.SIMPLE_HEAVY)
-                layout_table.add_column("List")
-                layout_table.add_column("Yaml", width=80)
-                layout_table.add_row(list_table, yaml_markdown)
+                list_table.add_row(ds.name, ', '.join(colored_fields))
 
-            console.print(layout_table)
+            console.print(list_table)
         else:
             console.print('[bold red]Piperider workspace does not exist[/bold red] ')
 
@@ -169,6 +150,10 @@ class Initializer():
         console = Console()
 
         config = Configuration.load()
+        if config.dbt:
+            console.print('[bold yellow]You have connected with a dbt project. '
+                          'Please add datasource in the dbt profile directly. [/bold yellow]')
+            return
 
         if FANCY_USER_INPUT:
             questions = [
@@ -202,6 +187,10 @@ class Initializer():
     def add(report_dir=None):
         console = Console()
         config = Configuration.load()
+        if config.dbt:
+            console.print('[bold yellow]You have connected with a dbt project. '
+                          'Please add datasource in the dbt profile directly. [/bold yellow]')
+            return
         console.rule('Add datasource')
         cls, name = DataSource.ask(exist_datasource=[ds.name for ds in config.dataSources])
         ds: DataSource = cls(name=name)

@@ -43,3 +43,6 @@ class SqliteDataSource(DataSource):
     def verify_connector(self):
         # sqlite is builtin connector
         return None
+
+    def _get_display_description(self):
+        return f"type={self.type_name}, dbpath={self.credential.get('dbpath')}"

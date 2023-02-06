@@ -171,3 +171,8 @@ class RedshiftDataSource(DataSource):
             return None
         except Exception as e:
             return PipeRiderConnectorError(str(e), 'redshift')
+
+    def _get_display_description(self):
+        cred = self.credential
+        database = cred.get('dbname') if cred.get('dbname') else cred.get('database')
+        return f"type={self.type_name}, dbname={database}, schema={cred.get('schema')}"
