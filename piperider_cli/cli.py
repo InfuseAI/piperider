@@ -179,7 +179,9 @@ def run(**kwargs):
         is_cloud_view = (force_upload or auto_upload)
 
         if CloudConnector.is_login() and is_cloud_view:
-            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'), open_report=open_report, force_upload=force_upload, auto_upload=auto_upload)
+            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
+                                                open_report=open_report, force_upload=force_upload,
+                                                auto_upload=auto_upload)
 
         if not skip_report:
             GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report, is_cloud_view)
@@ -341,6 +343,24 @@ def cloud_compare_reports(**kwargs):
 
     if ret != 0:
         sys.exit(ret)
+    return ret
+
+
+@cloud.command(name='compare', short_help='Generate comparison report with the recipe.', cls=TrackCommand)
+@click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
+@click.option('--summary-file', default=None, type=click.STRING, help='Output the comparison summary markdown file.')
+@add_options(debug_option)
+def compare_with_recipe(**kwargs):
+    """
+    Generate comparison report with the recipe
+    """
+
+    # TODO implement the compare with recipe
+    # TODO for the existing project, it might not have a default recipe, we should generate it first to use it.
+
+    # TODO --summary-file copy the markdown to the assigned path
+    # TODO --output duplicated the generated files to the assigned path
+    ret = 0
     return ret
 
 
