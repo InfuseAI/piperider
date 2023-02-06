@@ -156,8 +156,15 @@ class PipeRiderCloud:
             return None
 
         for project in response.json():
-            if project.get('is_default'):
-                return project.get('id')
+            if project.get('id'):
+                # Legacy projects api response
+                if project.get('is_default'):
+                    return project.get('id')
+            else:
+                # New projects api response
+                for p in project.get('projects', []):
+                    if p.get('is_default'):
+                        return p.get('id')
 
     def list_reports(self, project_id, datasource=None):
         if not self.available:
@@ -171,7 +178,7 @@ class PipeRiderCloud:
         response = requests.get(url, headers=headers)
 
         if response.status_code != 200:
-            return None
+            return []
 
         return response.json()
 

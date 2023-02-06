@@ -116,6 +116,50 @@ def select_reports(report_dir=None, datasource=None) -> List[RunOutput]:
     return selector.select_multiple_reports(action='upload')
 
 
+class CloudReportOutput(RunOutput):
+    def __init__(self, report):
+        self.report = report
+        self.id = report['id']
+        self.name = report['datasource_name']
+        self.created_at = report['created_at']
+        self.table_count = report['tables']
+        self.pass_count = report['passed']
+        self.fail_count = report['failed']
+
+
+def select_cloud_report_ids(project_id: int = None, datasource=None, project_name=None, target=None, base=None) -> (
+    int, int):
+    if target:
+        target_id = get_run_report_id(target)
+    if base:
+        base_id = get_run_report_id(base)
+
+    if project_id is None:
+        project_id = piperider_cloud.get_default_project()
+
+    reports = [CloudReportOutput(r) for r in piperider_cloud.list_reports(project_id, datasource=datasource)]
+    if len(reports) == 0:
+        return None, None
+
+    selector = CompareReport(None, None, None, datasource=datasource, profiler_outputs=reports)
+
+    if base is None and target is None:
+        console.rule('Please select base and target reports to compare')
+        base, target = selector.select_two_reports(action='compare')
+        target_id = target.id
+        base_id = base.id
+    elif base and target is None:
+        console.rule('Please select a target report to compare')
+        target = selector.select_one_report(action='compare')
+        target_id = target.id
+    elif target and base is None:
+        console.rule('Please select a base report to compare')
+        base = selector.select_one_report(action='compare')
+        base_id = base.id
+
+    return base_id, target_id
+
+
 def upload_to_cloud(report: RunOutput, debug=False, project_id=None) -> dict:
     response = piperider_cloud.upload_report(report.path, project_id=project_id)
     # TODO refine the output when API is ready
@@ -161,8 +205,9 @@ def get_run_report_id(report_key: str) -> Optional[int]:
     return None
 
 
-def create_compare_reports(base_id: int, target_id: int, tables_from) -> dict:
-    project_id = piperider_cloud.get_default_project()
+def create_compare_reports(base_id: int, target_id: int, tables_from, project_id=None) -> dict:
+    if project_id is None:
+        project_id = piperider_cloud.get_default_project()
     response = piperider_cloud.compare_reports(project_id, base_id, target_id, tables_from)
     if response is not None:
         url = f'{piperider_cloud.service.cloud_host}/projects/{project_id}/reports/{base_id}/comparison/{target_id}'
@@ -289,20 +334,26 @@ class CloudConnector:
         return rc
 
     @staticmethod
-    def compare_reports(base=None, target=None, tables_from='all', summary_file=None, debug=False) -> int:
+    def compare_reports(base=None, target=None, tables_from='all', summary_file=None, debug=False,
+                        project_name=None) -> int:
         if piperider_cloud.available is False:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
 
-        base_id = get_run_report_id(base)
-        target_id = get_run_report_id(target)
+        project_id = None
+        if project_name is not None:
+            project = piperider_cloud.get_project_by_name(project_name)
+            if project is None:
+                console.print(f'[[bold red]Error[/bold red]] Project \'{project_name}\' does not exist')
+                return 1
+            project_id = project.get('id')
 
+        base_id, target_id = select_cloud_report_ids(base=base, target=target, project_id=project_id)
         if base_id is None or target_id is None:
-            console.print('No report found.')
-            return 1
+            raise Exception('No report found in the PipeRider Cloud. Please upload reports to PipeRider Cloud first.')
 
         console.print(f"Creating comparison report id={base_id} ... id={target_id}")
-        response = create_compare_reports(base_id, target_id, tables_from)
+        response = create_compare_reports(base_id, target_id, tables_from, project_id=project_id)
 
         if debug:
             console.print(response)
