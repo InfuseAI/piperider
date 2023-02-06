@@ -143,16 +143,17 @@ def append_descriptions(profile_result, dbt_state_dir):
                 profile_result['tables'][model]['columns'][column]['description'] = f"{column_desc} - via DBT"
 
 
-def get_dbt_state_candidate(dbt_state_dir: str, view_profile: bool = False, dbt_run_results: bool = False):
+def get_dbt_state_candidate(dbt_state_dir: str, options: dict = None):
     candidate = []
     material_whitelist = ['seed', 'table', 'incremental']
-    if view_profile:
+    tag = options.get('tag') if options else None
+    if options and options.get('view_profile'):
         material_whitelist.append('view')
     manifest = _get_state_manifest(dbt_state_dir)
     nodes = manifest.get('nodes')
 
     unique_ids = list(nodes.keys())
-    if dbt_run_results:
+    if options and options.get('dbt_run_results'):
         run_results = _get_state_run_results(dbt_state_dir)
         run_results_ids = []
         for result in run_results.get('results'):
@@ -164,6 +165,8 @@ def get_dbt_state_candidate(dbt_state_dir: str, view_profile: bool = False, dbt_
     for unique_id in unique_ids:
         node = nodes.get(unique_id)
         if node.get('resource_type') not in ['model', 'seed', 'source']:
+            continue
+        if tag is not None and tag not in node.get('tags', []):
             continue
         config_material = node.get('config').get('materialized')
         if config_material in material_whitelist:
@@ -226,7 +229,7 @@ def get_dbt_state_tests_result(dbt_state_dir: str):
     return output
 
 
-def get_dbt_state_metrics(dbt_state_dir: str):
+def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str):
     manifest = _get_state_manifest(dbt_state_dir)
 
     metrics = []
@@ -247,7 +250,7 @@ def get_dbt_state_metrics(dbt_state_dir: str):
                    filters=metric.get('filters'), label=metric.get('label'), description=metric.get('description'))
 
         metric_map[key] = m
-        if 'piperider' in metric.get('tags'):
+        if dbt_tag in metric.get('tags'):
             if metric.get('window'):
                 console.print(
                     f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. Property 'window' is not supported.")

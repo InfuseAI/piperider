@@ -651,7 +651,12 @@ class Runner():
                     dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir)
 
                 subjects = []
-                candidate_nodes = dbtutil.get_dbt_state_candidate(dbt_state_dir, configuration.include_views, dbt_run_results)
+                options = dict(
+                    view_profile=configuration.include_views,
+                    dbt_run_results=dbt_run_results,
+                    tag=configuration.dbt.get('tag')
+                )
+                candidate_nodes = dbtutil.get_dbt_state_candidate(dbt_state_dir, options)
                 for node in candidate_nodes:
                     name = node.get('name')
                     table = node.get('alias')
@@ -684,7 +689,7 @@ class Runner():
 
         metrics = []
         if dbt_state_dir:
-            metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir)
+            metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, configuration.dbt.get('tag', 'piperider'))
 
         if metrics:
             console.rule('Metrics')
