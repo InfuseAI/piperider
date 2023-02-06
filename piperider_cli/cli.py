@@ -332,6 +332,8 @@ def upload_report(**kwargs):
               type=click.Choice(['all', 'target-only', 'base-only'], case_sensitive=False),
               help='Show table comparison from base or target.')
 @click.option('--summary-file', default=None, type=click.STRING, help='Download the comparison summary markdown file.')
+@click.option('--project', default=None, type=click.STRING, metavar='PROJECT_NAME',
+              help='Specify the project to upload.')
 @add_options(debug_option)
 def cloud_compare_reports(**kwargs):
     """
@@ -341,9 +343,10 @@ def cloud_compare_reports(**kwargs):
     target = kwargs.get('target')
     tables_from = kwargs.get('tables_from')
     summary_file = kwargs.get('summary_file')
+    project_name = kwargs.get('project')
 
     ret = CloudConnector.compare_reports(base=base, target=target, tables_from=tables_from, summary_file=summary_file,
-                                         debug=kwargs.get('debug', False))
+                                         project_name=project_name, debug=kwargs.get('debug', False))
 
     if ret != 0:
         sys.exit(ret)
