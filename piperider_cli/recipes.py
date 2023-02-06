@@ -36,3 +36,7 @@ target:
     # datasource: dev
         """.strip())
         fh.write("\n")
+
+        # TODO is it possible to get the git default branch main or master?
+        # TODO should we show warnings when there is no dbt command ?
+        # TODO put the datasource name from the Configuration
