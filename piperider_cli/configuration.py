@@ -8,7 +8,7 @@ from rich.console import Console
 from ruamel import yaml
 from ruamel.yaml import CommentedMap, CommentedSeq
 
-from piperider_cli import round_trip_load_yaml, safe_load_yaml
+from piperider_cli import round_trip_load_yaml, safe_load_yaml, dbtutil
 from piperider_cli.datasource import DATASOURCE_PROVIDERS, DataSource
 from piperider_cli.error import \
     PipeRiderConfigError, \
@@ -16,9 +16,7 @@ from piperider_cli.error import \
     PipeRiderInvalidDataSourceError, \
     DbtProjectNotFoundError, \
     DbtProfileNotFoundError, \
-    DbtProjectInvalidError, \
-    DbtProfileInvalidError, \
-    DbtProfileBigQueryAuthWithTokenUnsupportedError
+    DbtProjectInvalidError
 
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
@@ -117,7 +115,7 @@ class Configuration(object):
         if not os.path.exists(os.path.expanduser(dbt_profile_path)):
             raise DbtProfileNotFoundError(dbt_profile_path)
 
-        dbt_profile = _load_dbt_profile(os.path.expanduser(dbt_profile_path))
+        dbt_profile = dbtutil.load_dbt_profile(os.path.expanduser(dbt_profile_path))
 
         profile_name = dbt_project.get('profile')
         target_name = dbt_profile.get(profile_name, {}).get('target')
@@ -127,7 +125,7 @@ class Configuration(object):
                           f"The profile '{profile_name}' does not have a target named '{target_name}'.\n"
                           "Please check the dbt profile format.")
             sys.exit(1)
-        credential = _load_credential_from_dbt_profile(dbt_profile, profile_name, target_name)
+        credential = dbtutil.load_credential_from_dbt_profile(dbt_profile, profile_name, target_name)
         type_name = credential.get('type')
         dbt = {
             'projectDir': os.path.relpath(os.path.dirname(dbt_project_path), os.getcwd()),
@@ -191,10 +189,10 @@ class Configuration(object):
                 profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
                 if '~' in profile_path:
                     profile_path = os.path.expanduser(profile_path)
-                profile = _load_dbt_profile(profile_path)
+                profile = dbtutil.load_dbt_profile(profile_path)
                 profile_name = dbt.get('profile')
                 target_name = dbt.get('target')
-                credential.update(_load_credential_from_dbt_profile(profile, profile_name, target_name))
+                credential.update(dbtutil.load_credential_from_dbt_profile(profile, profile_name, target_name))
                 # TODO: extract duplicate code from func 'from_dbt_project'
                 if credential.get('pass') and credential.get('password') is None:
                     credential['password'] = credential.pop('pass')
@@ -215,7 +213,7 @@ class Configuration(object):
         dbt = config.get('dbt')
         if dbt:
             project_dir = config.get('dbt').get('projectDir')
-            project = _load_dbt_project(project_dir)
+            project = dbtutil.load_dbt_project(project_dir)
             profile_name = project.get('profile')
 
             # Precedence reference
@@ -232,11 +230,11 @@ class Configuration(object):
             profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
             if '~' in profile_path:
                 profile_path = os.path.expanduser(profile_path)
-            profile = _load_dbt_profile(profile_path)
+            profile = dbtutil.load_dbt_profile(profile_path)
             if profile.get(profile_name):
                 target_names = list(profile.get(profile_name).get('outputs').keys())
                 for target in target_names:
-                    credential = _load_credential_from_dbt_profile(profile, profile_name, target)
+                    credential = dbtutil.load_credential_from_dbt_profile(profile, profile_name, target)
                     datasource_class = DATASOURCE_PROVIDERS[credential.get('type')]
                     data_source = datasource_class(
                         name=target,
@@ -414,71 +412,3 @@ tables:
     def delete_datasource(self, datasource):
         if datasource in self.dataSources:
             self.dataSources.remove(datasource)
-
-
-def _load_dbt_project(path: str):
-    if not path.endswith('dbt_project.yml'):
-        path = os.path.join(path, 'dbt_project.yml')
-
-    with open(path, 'r') as fd:
-        try:
-            yml = yaml.YAML()
-            yml.allow_duplicate_keys = True
-            return yml.load(fd)
-        except Exception as e:
-            raise DbtProjectInvalidError(path, e)
-
-
-def _load_dbt_profile(path):
-    from jinja2 import Environment, FileSystemLoader
-
-    def env_var(var, default=None):
-        return os.getenv(var, default)
-
-    def as_bool(var):
-        return var.lower() in ('true', 'yes', '1')
-
-    def as_number(var):
-        if var.isnumeric():
-            return int(var)
-        return float(var)
-
-    def as_text(var):
-        return str(var)
-
-    env = Environment(loader=FileSystemLoader(searchpath=os.path.dirname(path)))
-    env.globals['env_var'] = env_var
-    env.filters['as_bool'] = as_bool
-    env.filters['as_number'] = as_number
-    env.filters['as_text'] = as_text
-    template = env.get_template(os.path.basename(path))
-    try:
-        yml = yaml.YAML()
-        yml.allow_duplicate_keys = True
-        return yml.load(template.render())
-    except Exception as e:
-        raise DbtProfileInvalidError(path, e)
-
-
-def _load_credential_from_dbt_profile(dbt_profile, profile_name, target_name):
-    credential = dbt_profile.get(profile_name, {}).get('outputs', {}).get(target_name, {})
-
-    if credential.get('type') == 'bigquery':
-        # BigQuery Data Source
-        from piperider_cli.datasource.bigquery import AUTH_METHOD_OAUTH_SECRETS
-        # DBT profile support 4 types of methods to authenticate with BigQuery:
-        #   [ 'oauth', 'oauth-secrets', 'service-account', 'service-account-json' ]
-        # Ref: https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#authentication-methods
-        if credential.get('method') == 'oauth-secrets':
-            credential['method'] = AUTH_METHOD_OAUTH_SECRETS
-            # TODO: Currently SqlAlchemy haven't support using access token to authenticate with BigQuery.
-            #       Ref: https://github.com/googleapis/python-bigquery-sqlalchemy/pull/459
-            raise DbtProfileBigQueryAuthWithTokenUnsupportedError
-    elif credential.get('type') == 'redshift':
-        if credential.get('method') is None:
-            credential['method'] = 'password'
-        host = credential.get('host')
-        port = credential.get('port')
-        dbname = credential.get('dbname')
-        credential['endpoint'] = f'{host}:{port}/{dbname}'
-    return credential
