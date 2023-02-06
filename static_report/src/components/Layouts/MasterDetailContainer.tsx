@@ -39,7 +39,6 @@ export function MasterDetailContainer({
       <ReportContextBar
         datasource={rawData.base?.datasource}
         version={rawData.base?.version}
-        tableColumns={tableColEntries}
       />
       <Grid
         width={'inherit'}
