@@ -205,13 +205,26 @@ def verify_git_dependencies(cfg: RecipeConfiguration):
     from piperider_cli.recipes.utils import ensure_git_ready
     ensure_git_ready()
 
-    
+
 def verify_dbt_dependencies(cfg: RecipeConfiguration):
     if cfg.base.dbt is None and cfg.target.dbt is None:
         # nobody set the dbt configurations
         return
 
-    # TODO verify the dbt command
+    def test_dbt_by_deps():
+        try:
+            import dbt
+            dbt.__path__
+            return True
+        except:
+            return False
+
+    if test_dbt_by_deps():
+        return
+
+    # check the dbt by executing it
+    from piperider_cli.recipes.utils import check_dbt_command
+    check_dbt_command()
 
 
 def execute_recipe(model: RecipeModel, current_branch):
@@ -221,7 +234,7 @@ def execute_recipe(model: RecipeModel, current_branch):
     2. run dbt commands
     3. run piperider commands
     """
-    # TODO run all in the model
+
     working_branch = model.branch or current_branch
     if working_branch is not None:
         switch_branch(working_branch)
