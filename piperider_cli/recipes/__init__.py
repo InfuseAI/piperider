@@ -32,6 +32,12 @@ class AbstractRecipeField(metaclass=ABCMeta):
         self.environments: Dict[str, str] = {e['name']: e['value'] for e in content.get('env', [])}
         self.commands: List[str] = content.get('commands', [])
 
+    def envs(self):
+        merged_envs = os.environ.copy()
+        for k, v in self.environments.items():
+            merged_envs[k] = v
+        return merged_envs
+
 
 class RecipeDbtField(AbstractRecipeField):
     pass
@@ -145,6 +151,7 @@ def load_hardcode_recipe():
     base = copy.deepcopy(m)
     target = copy.deepcopy(m)
     target.branch = None
+    target.piperider.commands.append("piperider compare-reports --last")
 
     cfg = RecipeConfiguration(base, target)
     return cfg
@@ -185,15 +192,13 @@ def execute_recipe(model: RecipeModel, current_branch):
     # model.dbt.commands
     for cmd in model.dbt.commands or []:
         print(f"Run: {cmd}")
-        # TODO fixed the env
-        exit_code = execute_command(cmd, os.environ.copy())
+        exit_code = execute_command(cmd, model.dbt.envs())
         print(f"Exit {exit_code}\n")
 
     # model.piperider.commands
     for cmd in model.piperider.commands or []:
         print(f"Run: {cmd}")
-        # TODO fixed the env
-        exit_code = execute_command(cmd, os.environ.copy())
+        exit_code = execute_command(cmd, model.piperider.envs())
         print(f"Exit {exit_code}\n")
 
 
@@ -226,8 +231,9 @@ def execute(cfg: RecipeConfiguration):
     execute_recipe(cfg.base, current_branch)
     execute_recipe(cfg.target, current_branch)
 
-    # switch back to the original branch
-    switch_branch(current_branch)
+    if current_branch is not None:
+        # switch back to the original branch
+        switch_branch(current_branch)
 
 
 if __name__ == '__main__':
