@@ -91,5 +91,6 @@ setup(name='piperider',
           "Development Status :: 4 - Beta"
       ],
       package_data={
-          'piperider_cli': ['*.json', 'VERSION', 'SENTRY_DNS', 'data/**', 'profiler/schema.json']
+          'piperider_cli': ['*.json', 'VERSION', 'SENTRY_DNS', 'data/**', 'profiler/schema.json',
+                            'recipes/recipe_schema.json']
       })
