@@ -176,8 +176,25 @@ def execute_recipe(model: RecipeModel, current_branch):
     3. run piperider commands
     """
     # TODO run all in the model
-    #
-    pass
+    working_branch = model.branch or current_branch
+    if working_branch is not None:
+        switch_branch(working_branch)
+
+    from piperider_cli.recipes.utils import execute_command
+
+    # model.dbt.commands
+    for cmd in model.dbt.commands or []:
+        print(f"Run: {cmd}")
+        # TODO fixed the env
+        exit_code = execute_command(cmd, os.environ.copy())
+        print(f"Exit {exit_code}\n")
+
+    # model.piperider.commands
+    for cmd in model.piperider.commands or []:
+        print(f"Run: {cmd}")
+        # TODO fixed the env
+        exit_code = execute_command(cmd, os.environ.copy())
+        print(f"Exit {exit_code}\n")
 
 
 def get_current_branch(cfg: RecipeConfiguration):
@@ -189,15 +206,15 @@ def get_current_branch(cfg: RecipeConfiguration):
         # We don't care the current branch, because we won't change it
         return None
 
-    # TODO save the current branch
-    original_branch = None
+    from piperider_cli.recipes.utils import git_branch
+    original_branch = git_branch()
 
     return original_branch
 
 
-def switch_back_branch(branch_name):
-    # TODO switch back to the branch
-    pass
+def switch_branch(branch_name):
+    from piperider_cli.recipes.utils import git_switch_to
+    git_switch_to(branch_name)
 
 
 def execute(cfg: RecipeConfiguration):
@@ -208,10 +225,13 @@ def execute(cfg: RecipeConfiguration):
     current_branch = get_current_branch(cfg)
     execute_recipe(cfg.base, current_branch)
     execute_recipe(cfg.target, current_branch)
-    switch_back_branch(current_branch)
+
+    # switch back to the original branch
+    switch_branch(current_branch)
 
 
 if __name__ == '__main__':
+
     test_recipe_path = os.path.join(os.path.dirname(__file__), 'example_recipe.yml')
     try:
         recipe = RecipeConfiguration.load(test_recipe_path)
