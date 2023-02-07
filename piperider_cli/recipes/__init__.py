@@ -5,6 +5,7 @@ from typing import List, Dict
 
 import jsonschema
 from jsonschema.exceptions import ValidationError
+from ruamel import yaml
 
 from piperider_cli import round_trip_load_yaml, load_json
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
@@ -32,6 +33,14 @@ class AbstractRecipeField(metaclass=ABCMeta):
         self.environments: Dict[str, str] = {e['name']: e['value'] for e in content.get('env', [])}
         self.commands: List[str] = content.get('commands', [])
 
+    def __dict__(self):
+        d = dict()
+        if self.environments:
+            d['env'] = [{'name': k, 'value': v} for k, v in self.environments.items()]
+        if self.commands:
+            d['commands'] = self.commands
+        return d
+
 
 class RecipeDbtField(AbstractRecipeField):
     pass
@@ -53,6 +62,13 @@ class RecipeCloudField(AbstractRecipeField):
         self.datasource = content.get('datasource')
         self.report_id = int(content.get('report_id'))
 
+    def __dict__(self):
+        return {
+            'env': [{'name': k, 'value': v} for k, v in self.environments.items()],
+            'datasource': self.datasource,
+            'report_id': self.report_id
+        }
+
 
 class RecipeModel:
     branch: str = None
@@ -70,11 +86,35 @@ class RecipeModel:
         self.piperider: RecipePiperiderField = RecipePiperiderField(content.get('piperider'))
         self.cloud: RecipeCloudField = RecipeCloudField(content.get('cloud'))
 
+    def __dict__(self):
+        d = dict()
+        if self.branch:
+            d['branch'] = self.branch
+        if self.dbt:
+            d['dbt'] = self.dbt.__dict__()
+        if self.piperider:
+            d['piperider'] = self.piperider.__dict__()
+        if self.cloud:
+            d['cloud'] = self.cloud.__dict__()
+        return d
+
 
 class RecipeConfiguration:
     def __init__(self, base: RecipeModel, target: RecipeModel):
         self.base: RecipeModel = base
         self.target: RecipeModel = target
+
+    def __dict__(self):
+        return {
+            'base': self.base.__dict__(),
+            'target': self.target.__dict__()
+        }
+
+    def dump(self, output_path: str):
+        with open(output_path, "w") as fh:
+            RecipeConfiguration.validate(self.__dict__())
+            yaml.round_trip_dump(self.__dict__(), fh)
+        pass
 
     @staticmethod
     def validate(content: dict = None):
