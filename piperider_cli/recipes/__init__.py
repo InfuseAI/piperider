@@ -5,6 +5,7 @@ from typing import List, Dict
 
 import jsonschema
 from jsonschema.exceptions import ValidationError
+from rich.console import Console
 from ruamel import yaml
 
 from piperider_cli import round_trip_load_yaml, load_json
@@ -13,6 +14,8 @@ from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 PIPERIDER_RECIPES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'recipe_schema.json')
 PIPERIDER_RECIPES_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'compare')
 DEFAULT_RECIPE_PATH = os.path.join(PIPERIDER_RECIPES_PATH, "default.yml")
+
+console = Console()
 
 
 class RecipeEnv:
@@ -237,21 +240,22 @@ def execute_recipe(model: RecipeModel, current_branch):
 
     working_branch = model.branch or current_branch
     if working_branch is not None:
+        console.print(f"Switch git branch to: \[{working_branch}]")
         switch_branch(working_branch)
 
     from piperider_cli.recipes.utils import execute_command
 
     # model.dbt.commands
     for cmd in model.dbt.commands or []:
-        print(f"Run: {cmd}")
+        console.print(f"Run: \[{cmd}]")
         exit_code = execute_command(cmd, model.dbt.envs())
-        print(f"Exit {exit_code}\n")
+        console.print(f"Exit code: {exit_code}")
 
     # model.piperider.commands
     for cmd in model.piperider.commands or []:
-        print(f"Run: {cmd}")
+        console.print(f"Run: \[{cmd}]")
         exit_code = execute_command(cmd, model.piperider.envs())
-        print(f"Exit {exit_code}\n")
+        console.print(f"Exit code: {exit_code}")
 
 
 def get_current_branch(cfg: RecipeConfiguration):
@@ -275,16 +279,24 @@ def switch_branch(branch_name):
 
 
 def execute(cfg: RecipeConfiguration):
+    console.rule("Recipe executor: verify execution environments")
     # check the dependencies
+    console.print("Check: git")
     verify_git_dependencies(cfg)
+    console.print("Check: dbt")
     verify_dbt_dependencies(cfg)
 
     current_branch = get_current_branch(cfg)
+
+    console.rule("Recipe executor: the base phase")
     execute_recipe(cfg.base, current_branch)
+
+    console.rule("Recipe executor: the target phase")
     execute_recipe(cfg.target, current_branch)
 
     if current_branch is not None:
         # switch back to the original branch
+        console.print(f"Switch git branch back to: \[{current_branch}]")
         switch_branch(current_branch)
 
 
