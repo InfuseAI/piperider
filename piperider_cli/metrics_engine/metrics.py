@@ -1,6 +1,8 @@
+import asyncio
 import concurrent.futures
 import decimal
 import itertools
+from concurrent.futures import ThreadPoolExecutor
 from typing import List, Union
 
 from sqlalchemy import select, func, distinct, literal_column, join, outerjoin, Column, Date
@@ -70,6 +72,10 @@ class MetricEngine:
         self.data_source = data_source
         self.metrics = metrics
         self.event_handler = event_handler
+        if self.data_source.threads > 1:
+            self.executor = ThreadPoolExecutor(max_workers=self.data_source.threads)
+        else:
+            self.executor = None
 
     @staticmethod
     def _get_query_param(metric: Metric) -> (str, List[str]):
@@ -269,9 +275,9 @@ class MetricEngine:
                 row[-1] = dtof(row[-1])
                 query_result['data'].append(row)
 
-        return query_result
+        return self._compose_query_name(grain, dimension), query_result
 
-    def execute(self) -> List[dict]:
+    async def _execute(self) -> List[dict]:
         metrics = self.metrics
         results = []
 
@@ -286,45 +292,40 @@ class MetricEngine:
             total_param = len(list(self._get_query_param(metric)))
             completed_param = 0
             engine = self.data_source.get_engine_by_database(metric.database)
-            if isinstance(engine.pool, SingletonThreadPool):
-                for grain, dimension in self._get_query_param(metric):
-                    self.event_handler.handle_metric_progress(metric.label, total_param, completed_param)
-                    self.event_handler.handle_param_query_start(metric.label,
-                                                                self._compose_query_name(grain, dimension))
-                    query_result = self._query_metric(engine, metric, grain, dimension)
 
-                    results.append(query_result)
+            query_results = {}
+            futures = []
+            loop = asyncio.get_running_loop()
+            for grain, dimension in self._get_query_param(metric):
+                # to keep the order
+                query_param = self._compose_query_name(grain, dimension)
+                query_results[query_param] = None
 
-                    self.event_handler.handle_param_query_end(metric.label)
-                    completed_param += 1
-            else:
-                with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                    query_results = {}
-                    future_to_query = {}
-                    for grain, dimension in self._get_query_param(metric):
-                        # to keep the order
-                        query_param = self._compose_query_name(grain, dimension)
-                        query_results[query_param] = None
+                future = loop.run_in_executor(self.executor, self._query_metric, engine, metric, grain, dimension)
+                futures.append(future)
 
-                        future = executor.submit(self._query_metric, engine, metric, grain, dimension)
-                        future_to_query[future] = query_param
+            for future in asyncio.as_completed(futures):
+                query_param, result = await future
+                self.event_handler.handle_metric_progress(metric.label, total_param, completed_param)
+                self.event_handler.handle_param_query_start(metric.label, query_param)
+                query_results[query_param] = result
+                self.event_handler.handle_param_query_end(metric.label)
+                completed_param += 1
 
-                    for future in concurrent.futures.as_completed(future_to_query):
-                        query_param = future_to_query[future]
-                        self.event_handler.handle_metric_progress(metric.label, total_param, completed_param)
-                        self.event_handler.handle_param_query_start(metric.label, query_param)
-                        query_results[query_param] = future.result()
-
-                        self.event_handler.handle_param_query_end(metric.label)
-                        completed_param += 1
-
-                    for query_result in query_results.values():
-                        results.append(query_result)
+            for query_result in query_results.values():
+                results.append(query_result)
 
             self.event_handler.handle_metric_end(metric.label)
             completed_metric += 1
         self.event_handler.handle_run_end()
         return results
+
+    def execute(self) -> List[dict]:
+        if self.executor:
+            with self.executor:
+                return asyncio.run(self._execute())
+        else:
+            return asyncio.run(self._execute())
 
     def date_trunc(self, date_part, date_expression) -> Column:
         type_name = self.data_source.type_name

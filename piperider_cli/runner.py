@@ -68,9 +68,8 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         self.table_completed = 0
 
     def _get_width(self, tables):
-        if not tables:
-            return 0, 0
-        return max([len(x) for x in tables]), len(str(len(tables))) * 2 + 2
+        names = ['METADATA'] + tables
+        return max([len(x) for x in names]), len(str(len(names))) * 2 + 2
 
     def handle_run_start(self, run_result):
         self.progress.start()
@@ -81,18 +80,33 @@ class RichProfilerEventHandler(ProfilerEventHandler):
     def handle_run_end(self, run_result):
         self.progress.stop()
 
+    def handle_metadata_start(self):
+        self.progress.start()
+        padding = ' ' * (len(str(self.table_total)) - len(str(self.table_completed)))
+        coft = f'[{padding}{self.table_completed}/{self.table_total}]'
+        task_id = self.progress.add_task('METADATA', total=None, coft=coft)
+        self.tasks['__metadata__'] = task_id
+
+    def handle_metadata_progress(self, total, completed):
+        task_id = self.tasks['__metadata__']
+        self.progress.update(task_id, completed=completed, total=total)
+
+    def handle_metadata_end(self):
+        self.progress.stop()
+        task_id = self.tasks['__metadata__']
+        self.progress.remove_task(task_id)
+
     def handle_table_start(self, table_name):
+        self.progress.start()
         self.table_completed += 1
         padding = ' ' * (len(str(self.table_total)) - len(str(self.table_completed)))
         coft = f'[{padding}{self.table_completed}/{self.table_total}]'
         task_id = self.progress.add_task(table_name, total=None, coft=coft)
         self.tasks[table_name] = task_id
-        self.progress.start()
 
     def handle_table_progress(self, table_name, table_result, total, completed):
-        if completed == 0:
-            task_id = self.tasks[table_name]
-            self.progress.update(task_id, total=total)
+        task_id = self.tasks[table_name]
+        self.progress.update(task_id, total=total, completed=completed)
 
     def handle_table_end(self, table_name, table_result):
         self.progress.stop()
@@ -103,8 +117,7 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         pass
 
     def handle_column_end(self, table_name, column_name, column_result):
-        task_id = self.tasks[table_name]
-        self.progress.update(task_id, advance=1)
+        pass
 
 
 class RichMetricEventHandler(MetricEventHandler):
