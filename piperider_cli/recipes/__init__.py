@@ -100,3 +100,35 @@ def load_hardcode_recipe():
 
     cfg = RecipeConfiguration(base, target)
     return cfg
+
+
+def verify_git_dependencies(cfg: RecipeConfiguration):
+    if cfg.base.branch is None and cfg.target.branch is None:
+        # nobody set the git branch, skip the verification
+        return
+
+    # TODO verify the git command
+    # TODO verify the branch existing
+    # TODO verify the working directory dirty
+
+
+def verify_dbt_dependencies(cfg: RecipeConfiguration):
+    if cfg.base.dbt is None and cfg.target.dbt is None:
+        # nobody set the dbt configurations
+        return
+
+    # TODO verify the dbt command
+
+
+def execute_recipe(model: RecipeModel):
+    # TODO run all in the model
+    pass
+
+
+def execute(cfg: RecipeConfiguration):
+    # check the dependencies
+    verify_git_dependencies(cfg)
+    verify_dbt_dependencies(cfg)
+
+    execute_recipe(cfg.base)
+    execute_recipe(cfg.target)
