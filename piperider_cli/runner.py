@@ -636,7 +636,7 @@ class Runner():
         else:
             if dbt_config:
                 if not dbt_state_dir:
-                    dbt_project = dbtutil.load_dbt_project(configuration.dbt.get('projectDir'))
+                    dbt_project = dbtutil.load_dbt_project(dbt_config.get('projectDir'))
                     dbt_state_dir = dbt_project.get('target-path')
                 if not dbtutil.is_dbt_state_ready(dbt_state_dir):
                     console.print(
@@ -654,7 +654,7 @@ class Runner():
                 options = dict(
                     view_profile=configuration.include_views,
                     dbt_run_results=dbt_run_results,
-                    tag=configuration.dbt.get('tag')
+                    tag=dbt_config.get('tag')
                 )
                 candidate_nodes = dbtutil.get_dbt_state_candidate(dbt_state_dir, options)
                 for node in candidate_nodes:
@@ -689,7 +689,7 @@ class Runner():
 
         metrics = []
         if dbt_state_dir:
-            metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, configuration.dbt.get('tag', 'piperider'))
+            metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, dbt_config.get('tag', 'piperider'))
 
         if metrics:
             console.rule('Metrics')
