@@ -184,15 +184,17 @@ target:
 
 
 def load_hardcode_recipe():
-    m = RecipeModel()
-    m.branch = "main"
-    m.dbt = RecipeDbtField()
-    m.dbt.commands = ["dbt deps", "dbt run"]
-    m.piperider = RecipePiperiderField()
-    m.piperider.commands = ["piperider run --dbt-state target/"]
+    def create():
+        m = RecipeModel()
+        m.branch = "main"
+        m.dbt = RecipeDbtField()
+        m.dbt.commands = ["dbt deps", "dbt run"]
+        m.piperider = RecipePiperiderField()
+        m.piperider.commands = ["piperider run --dbt-state target/"]
+        return m
 
-    base = copy.deepcopy(m)
-    target = copy.deepcopy(m)
+    base = create()
+    target = create()
     target.branch = None
     target.piperider.commands.append("piperider compare-reports --last")
 
