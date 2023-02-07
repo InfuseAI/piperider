@@ -120,8 +120,35 @@ def verify_dbt_dependencies(cfg: RecipeConfiguration):
     # TODO verify the dbt command
 
 
-def execute_recipe(model: RecipeModel):
+def execute_recipe(model: RecipeModel, current_branch):
+    """
+    We execute a recipe in the following steps:
+    1. if there was a branch or current_branch, switch to it
+    2. run dbt commands
+    3. run piperider commands
+    """
     # TODO run all in the model
+    #
+    pass
+
+
+def get_current_branch(cfg: RecipeConfiguration):
+    """
+    Update the effective branch name for cfg and return the original branch before execution
+    """
+
+    if cfg.base.branch is None and cfg.target.branch is None:
+        # We don't care the current branch, because we won't change it
+        return None
+
+    # TODO save the current branch
+    original_branch = None
+
+    return original_branch
+
+
+def switch_back_branch(branch_name):
+    # TODO switch back to the branch
     pass
 
 
@@ -130,5 +157,7 @@ def execute(cfg: RecipeConfiguration):
     verify_git_dependencies(cfg)
     verify_dbt_dependencies(cfg)
 
-    execute_recipe(cfg.base)
-    execute_recipe(cfg.target)
+    current_branch = get_current_branch(cfg)
+    execute_recipe(cfg.base, current_branch)
+    execute_recipe(cfg.target, current_branch)
+    switch_back_branch(current_branch)
