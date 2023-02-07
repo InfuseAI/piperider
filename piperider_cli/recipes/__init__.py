@@ -202,11 +202,10 @@ def verify_git_dependencies(cfg: RecipeConfiguration):
         # nobody set the git branch, skip the verification
         return
 
-    # TODO verify the git command
-    # TODO verify the branch existing
-    # TODO verify the working directory dirty
+    from piperider_cli.recipes.utils import ensure_git_ready
+    ensure_git_ready()
 
-
+    
 def verify_dbt_dependencies(cfg: RecipeConfiguration):
     if cfg.base.dbt is None and cfg.target.dbt is None:
         # nobody set the dbt configurations
