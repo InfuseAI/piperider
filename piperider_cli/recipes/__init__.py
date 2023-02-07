@@ -1,3 +1,4 @@
+import copy
 import os
 from typing import List
 
@@ -83,3 +84,19 @@ target:
         # TODO is it possible to get the git default branch main or master?
         # TODO should we show warnings when there is no dbt command ?
         # TODO put the datasource name from the Configuration
+
+
+def load_hardcode_recipe():
+    m = RecipeModel()
+    m.branch = "main"
+    m.dbt = RecipeDbtField()
+    m.dbt.commands = ["dbt deps", "dbt run"]
+    m.piperider = RecipePiperiderField()
+    m.piperider.commands = ["piperider run --dbt-state target/"]
+
+    base = copy.deepcopy(m)
+    target = copy.deepcopy(m)
+    target.branch = None
+
+    cfg = RecipeConfiguration(base, target)
+    return cfg
