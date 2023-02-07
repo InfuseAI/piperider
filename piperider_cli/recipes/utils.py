@@ -77,11 +77,11 @@ def ensure_git_ready():
         raise RecipeException("Working directory is dirty. Stop to run the recipe")
 
 
-def go():
-    # print(f"o:{outs}, errs:{errs}, ec: {exit_code}")
-    pass
+def check_dbt_command():
+    outs, errs, exit_code = _execute_command("dbt --version")
+    if exit_code != 0:
+        raise RecipeException(errs)
 
 
 if __name__ == '__main__':
-    os.chdir("/Users/qrtt1/temp/git-repo-analytics")
     ensure_git_ready()
