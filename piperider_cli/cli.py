@@ -356,7 +356,7 @@ def cloud_compare_reports(**kwargs):
     return ret
 
 
-@cloud.command(name='compare', short_help='Generate comparison report with the recipe.', cls=TrackCommand)
+@cli.command(name='compare', short_help='Generate comparison report with the recipe.', cls=TrackCommand)
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--summary-file', default=None, type=click.STRING, help='Output the comparison summary markdown file.')
 @add_options(debug_option)
@@ -370,7 +370,12 @@ def compare_with_recipe(**kwargs):
 
     # TODO --summary-file copy the markdown to the assigned path
     # TODO --output duplicated the generated files to the assigned path
+
+    from piperider_cli.recipes import load_hardcode_recipe, execute as recipe_executor
+    cfg = load_hardcode_recipe()
+    recipe_executor(cfg)
     ret = 0
+
     return ret
 
 
