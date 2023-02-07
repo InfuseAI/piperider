@@ -146,6 +146,7 @@ def append_descriptions(profile_result, dbt_state_dir):
 def get_dbt_state_candidate(dbt_state_dir: str, options: dict = None):
     candidate = []
     material_whitelist = ['seed', 'table', 'incremental']
+    resource_whitelist = ['model']
     tag = options.get('tag') if options else None
     if options and options.get('view_profile'):
         material_whitelist.append('view')
@@ -164,7 +165,7 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict = None):
 
     for unique_id in unique_ids:
         node = nodes.get(unique_id)
-        if node.get('resource_type') not in ['model', 'seed', 'source']:
+        if node.get('resource_type') not in resource_whitelist:
             continue
         if tag is not None and tag not in node.get('tags', []):
             continue
