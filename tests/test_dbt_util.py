@@ -13,7 +13,10 @@ class TestRunner(TestCase):
         self.dbt_state_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mock_dbt_data")
 
     def test_get_dbt_state_candidate(self):
-        tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir)
+        tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
+                                                                          dbt_resources=None,
+                                                                          dbt_run_results=None,
+                                                                          tag=None))
         self.assertEqual(tables[0].get('name'), 'PRICE_PRESENT')
         self.assertEqual(tables[0].get('schema'), 'PUBLIC')
         self.assertEqual(tables[0].get('alias'), 'PRICE_PRESENT')

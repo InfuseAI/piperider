@@ -1,12 +1,11 @@
 import json
 import math
 import os
-import re
 import shutil
 import sys
 import uuid
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from rich import box
 from rich.color import Color
@@ -551,10 +550,14 @@ def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results
 class Runner():
     @staticmethod
     def exec(datasource=None, table=None, output=None, skip_report=False, dbt_state_dir: str = None,
-             dbt_run_results: bool = False, report_dir: str = None):
+             dbt_run_results: bool = False, dbt_resources: Optional[dict] = None, report_dir: str = None):
         console = Console()
 
         raise_exception_when_directory_not_writable(output)
+
+        if dbt_resources and dbt_run_results:
+            console.print("[bold red]Error:[/bold red] Cannot specify dbt resources with '--dbt-run-results'")
+            return 1
 
         configuration = Configuration.load()
         filesystem = FileSystem(report_dir=report_dir)
@@ -653,6 +656,7 @@ class Runner():
                 subjects = []
                 options = dict(
                     view_profile=configuration.include_views,
+                    dbt_resources=dbt_resources,
                     dbt_run_results=dbt_run_results,
                     tag=dbt_config.get('tag')
                 )
@@ -689,7 +693,7 @@ class Runner():
 
         metrics = []
         if dbt_state_dir:
-            metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, dbt_config.get('tag', 'piperider'))
+            metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, dbt_config.get('tag', 'piperider'), dbt_resources)
 
         if metrics:
             console.rule('Metrics')
