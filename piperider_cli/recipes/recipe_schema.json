@@ -88,7 +88,7 @@
           "type": "string"
         },
         "report_id": {
-          "type": "string"
+          "type": "number"
         }
       }
     }
