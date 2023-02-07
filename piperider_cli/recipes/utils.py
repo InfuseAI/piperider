@@ -59,15 +59,29 @@ def execute_command(command_line, envs: Dict):
     return exit_code
 
 
+def ensure_git_ready():
+    outs, errs, exit_code = _execute_command(f"git --version")
+    if exit_code != 0:
+        raise RecipeException(errs)
+
+    if "version" not in outs:
+        raise RecipeException("Unknown response from git --version")
+
+    outs, errs, exit_code = _execute_command(f"git status --porcelain")
+    if exit_code != 0 and "not a git repository" in errs:
+        raise RecipeException("The working directory is not a git repository.")
+
+    dirty_list = [x for x in outs.split("\n") if not x.strip().startswith("??")]
+    dirty_list = [x for x in dirty_list if x]
+    if len(dirty_list) != 0:
+        raise RecipeException("Working directory is dirty. Stop to run the recipe")
+
+
 def go():
     # print(f"o:{outs}, errs:{errs}, ec: {exit_code}")
-    # parser = argparse.ArgumentParser()
-    # parser.parse_known_args()
-    # print(git_branch())
-    git_switch_to("main")
-    git_switch_to("-")
+    pass
 
 
 if __name__ == '__main__':
-    # os.chdir("/tmp")
-    go()
+    os.chdir("/Users/qrtt1/temp/git-repo-analytics")
+    ensure_git_ready()
