@@ -1,9 +1,15 @@
 import copy
 import os
-from typing import List
+from abc import ABCMeta
+from typing import List, Dict
 
+import jsonschema
+from jsonschema.exceptions import ValidationError
+
+from piperider_cli import round_trip_load_yaml, load_json
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 
+PIPERIDER_RECIPES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'recipe_schema.json')
 PIPERIDER_RECIPES_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'compare')
 DEFAULT_RECIPE_PATH = os.path.join(PIPERIDER_RECIPES_PATH, "default.yml")
 
@@ -15,38 +21,80 @@ class RecipeEnv:
         self.value: str = None
 
 
-class RecipeDbtField:
-    def __init__(self):
-        self.env: List[RecipeEnv] = []
-        self.commands: List[str] = []
+class AbstractRecipeField(metaclass=ABCMeta):
+    environments: Dict[str, str] = {}
+    commands: List[str] = []
+
+    def __init__(self, content: dict = None):
+        if content is None:
+            return
+
+        self.environments: Dict[str, str] = {e['name']: e['value'] for e in content.get('env', [])}
+        self.commands: List[str] = content.get('commands', [])
 
 
-class RecipePiperiderField:
-    def __init__(self):
-        self.env: dict = {}
-        self.commands: List[str] = []
+class RecipeDbtField(AbstractRecipeField):
+    pass
 
 
-class RecipeCloudField:
-    def __init__(self):
-        self.env: dict = {}
-        self.datasource: str = None
-        self.report_id: str = None
+class RecipePiperiderField(AbstractRecipeField):
+    pass
+
+
+class RecipeCloudField(AbstractRecipeField):
+    datasource: str = None
+    report_id: int = None
+
+    def __init__(self, content: dict = None):
+        if content is None:
+            return
+
+        self.environments = {e['name']: e['value'] for e in content.get('env', [])}
+        self.datasource = content.get('datasource')
+        self.report_id = int(content.get('report_id'))
 
 
 class RecipeModel:
+    branch: str = None
+    dbt: RecipeDbtField = None
+    piperider: RecipePiperiderField = None
+    cloud: RecipeCloudField = None
 
-    def __init__(self):
+    def __init__(self, content: dict = None):
+        if content is None:
+            return
+
         # git branch name
-        self.branch: str = None
-        self.dbt: RecipeDbtField = None
-        self.piperider: RecipePiperiderField = None
+        self.branch: str = content.get('branch')
+        self.dbt: RecipeDbtField = RecipeDbtField(content.get('dbt'))
+        self.piperider: RecipePiperiderField = RecipePiperiderField(content.get('piperider'))
+        self.cloud: RecipeCloudField = RecipeCloudField(content.get('cloud'))
 
 
 class RecipeConfiguration:
     def __init__(self, base: RecipeModel, target: RecipeModel):
         self.base: RecipeModel = base
         self.target: RecipeModel = target
+
+    @staticmethod
+    def validate(content: dict = None):
+        schema = load_json(PIPERIDER_RECIPES_SCHEMA_PATH)
+        jsonschema.validate(content, schema)
+
+    @classmethod
+    def load(cls, path: str) -> 'RecipeConfiguration':
+        content = round_trip_load_yaml(path)
+        if content is None:
+            raise Exception("Recipe content is empty")
+
+        cls.validate(content)
+
+        base = RecipeModel(content['base'])
+        target = RecipeModel(content['target'])
+        return cls(
+            base=base,
+            target=target
+        )
 
 
 def validate_recipe(recipe):
@@ -161,3 +209,13 @@ def execute(cfg: RecipeConfiguration):
     execute_recipe(cfg.base, current_branch)
     execute_recipe(cfg.target, current_branch)
     switch_back_branch(current_branch)
+
+
+if __name__ == '__main__':
+    test_recipe_path = os.path.join(os.path.dirname(__file__), 'example_recipe.yml')
+    try:
+        recipe = RecipeConfiguration.load(test_recipe_path)
+        print(recipe)
+    except ValidationError as e:
+        print(e.message)
+    exit(1)
