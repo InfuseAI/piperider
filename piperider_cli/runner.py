@@ -551,7 +551,7 @@ def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results
 class Runner():
     @staticmethod
     def exec(datasource=None, table=None, output=None, skip_report=False, dbt_state_dir: str = None,
-             report_dir: str = None):
+             dbt_run_results: bool = False, report_dir: str = None):
         console = Console()
 
         raise_exception_when_directory_not_writable(output)
@@ -591,7 +591,7 @@ class Runner():
                 "[bold yellow]Hint:[/bold yellow]\n  Please execute command 'piperider init' to move forward.")
             return 1
 
-        if not datasource and len(datasource_names) > 1:
+        if not datasource and configuration.dbt is None and len(datasource_names) > 1:
             console.print(
                 f"[bold yellow]Warning: multiple datasources found ({', '.join(datasource_names)}), using '{ds_name}'[/bold yellow]\n")
 
@@ -618,7 +618,7 @@ class Runner():
 
         if dbt_config and not dbtutil.is_ready(dbt_config):
             console.log('[bold red]ERROR:[/bold red] DBT configuration is not completed, please check the config.yml')
-            return 1
+            return sys.exit(1)
 
         console.rule('Profiling')
         run_id = uuid.uuid4().hex
@@ -634,15 +634,35 @@ class Runner():
             else:
                 subjects = [ProfileSubject(table)]
         else:
-            if dbt_state_dir:
+            if dbt_config:
+                if not dbt_state_dir:
+                    dbt_project = dbtutil.load_dbt_project(dbt_config.get('projectDir'))
+                    dbt_state_dir = dbt_project.get('target-path')
                 if not dbtutil.is_dbt_state_ready(dbt_state_dir):
                     console.print(
-                        f"[bold red]Error:[/bold red] No available 'manifest.json' or 'run_results.json' under '{dbt_state_dir}'")
-                    return 1
+                        f"[bold red]Error:[/bold red] No available 'manifest.json' under '{dbt_state_dir}'")
+                    return sys.exit(1)
 
-                subjects = dbtutil.get_dbt_state_candidate(dbt_state_dir, configuration.include_views)
-                dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir)
+                if dbt_run_results:
+                    if not dbtutil.is_dbt_run_results_ready(dbt_state_dir):
+                        console.print(
+                            f"[bold red]Error:[/bold red] No available 'run_results.json' under '{dbt_state_dir}'")
+                        return sys.exit(1)
+                    dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir)
 
+                subjects = []
+                options = dict(
+                    view_profile=configuration.include_views,
+                    dbt_run_results=dbt_run_results,
+                    tag=dbt_config.get('tag')
+                )
+                candidate_nodes = dbtutil.get_dbt_state_candidate(dbt_state_dir, options)
+                for node in candidate_nodes:
+                    name = node.get('name')
+                    table = node.get('alias')
+                    schema = node.get('schema')
+                    database = node.get('database')
+                    subjects.append(ProfileSubject(table, schema, database, name))
             else:
                 table_names = inspect(engine).get_table_names()
                 if configuration.include_views:
@@ -669,7 +689,7 @@ class Runner():
 
         metrics = []
         if dbt_state_dir:
-            metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir)
+            metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, dbt_config.get('tag', 'piperider'))
 
         if metrics:
             console.rule('Metrics')

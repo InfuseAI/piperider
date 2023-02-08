@@ -6,9 +6,14 @@ from glob import glob
 import inquirer
 from rich.console import Console
 from rich.table import Table
+from ruamel import yaml
 
-from piperider_cli.profiler import ProfileSubject
 from piperider_cli.metrics_engine import Metric
+
+from piperider_cli.error import \
+    DbtProjectInvalidError, \
+    DbtProfileInvalidError, \
+    DbtProfileBigQueryAuthWithTokenUnsupportedError
 
 console = Console()
 
@@ -80,13 +85,20 @@ def is_ready(config):
     return True
 
 
-def is_dbt_state_ready(dbt_state_dir: str):
+def _is_dbt_file_existing(dbt_state_dir: str, filename: str):
     dbt_state_dir = os.path.abspath(dbt_state_dir)
-    run_results_path = os.path.join(dbt_state_dir, 'run_results.json')
-    manifest_path = os.path.join(dbt_state_dir, 'manifest.json')
-    if not os.path.exists(run_results_path) or not os.path.exists(manifest_path):
+    filepath = os.path.join(dbt_state_dir, filename)
+    if not os.path.exists(filepath):
         return False
     return True
+
+
+def is_dbt_state_ready(dbt_state_dir: str):
+    return _is_dbt_file_existing(dbt_state_dir, 'manifest.json')
+
+
+def is_dbt_run_results_ready(dbt_state_dir: str):
+    return _is_dbt_file_existing(dbt_state_dir, 'run_results.json')
 
 
 def _get_state_run_results(dbt_state_dir: str):
@@ -131,28 +143,35 @@ def append_descriptions(profile_result, dbt_state_dir):
                 profile_result['tables'][model]['columns'][column]['description'] = f"{column_desc} - via DBT"
 
 
-def get_dbt_state_candidate(dbt_state_dir: str, view_profile: bool = False):
+def get_dbt_state_candidate(dbt_state_dir: str, options: dict = None):
     candidate = []
     material_whitelist = ['seed', 'table', 'incremental']
-    if view_profile:
+    resource_whitelist = ['model']
+    tag = options.get('tag') if options else None
+    if options and options.get('view_profile'):
         material_whitelist.append('view')
-    run_results = _get_state_run_results(dbt_state_dir)
     manifest = _get_state_manifest(dbt_state_dir)
-
     nodes = manifest.get('nodes')
-    for result in run_results.get('results'):
-        if result.get('status') != 'success':
+
+    unique_ids = list(nodes.keys())
+    if options and options.get('dbt_run_results'):
+        run_results = _get_state_run_results(dbt_state_dir)
+        run_results_ids = []
+        for result in run_results.get('results'):
+            if result.get('status') != 'success':
+                continue
+            run_results_ids.append(result.get('unique_id'))
+        unique_ids = run_results_ids
+
+    for unique_id in unique_ids:
+        node = nodes.get(unique_id)
+        if node.get('resource_type') not in resource_whitelist:
             continue
-        node = nodes.get(result.get('unique_id'))
-        if node.get('resource_type') not in ['model', 'seed', 'source']:
+        if tag is not None and tag not in node.get('tags', []):
             continue
         config_material = node.get('config').get('materialized')
         if config_material in material_whitelist:
-            name = node.get('name')
-            table = node.get('alias')
-            schema = node.get('schema')
-            database = node.get('database')
-            candidate.append(ProfileSubject(table, schema, database, name))
+            candidate.append(node)
 
     return candidate
 
@@ -211,7 +230,7 @@ def get_dbt_state_tests_result(dbt_state_dir: str):
     return output
 
 
-def get_dbt_state_metrics(dbt_state_dir: str):
+def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str):
     manifest = _get_state_manifest(dbt_state_dir)
 
     metrics = []
@@ -232,7 +251,7 @@ def get_dbt_state_metrics(dbt_state_dir: str):
                    filters=metric.get('filters'), label=metric.get('label'), description=metric.get('description'))
 
         metric_map[key] = m
-        if 'piperider' in metric.get('tags'):
+        if dbt_tag in metric.get('tags'):
             if metric.get('window'):
                 console.print(
                     f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. Property 'window' is not supported.")
@@ -245,3 +264,71 @@ def get_dbt_state_metrics(dbt_state_dir: str):
                 metric.ref_metrics.append(metric_map.get(depends_on_metric))
 
     return metrics
+
+
+def load_dbt_project(path: str):
+    if not path.endswith('dbt_project.yml'):
+        path = os.path.join(path, 'dbt_project.yml')
+
+    with open(path, 'r') as fd:
+        try:
+            yml = yaml.YAML()
+            yml.allow_duplicate_keys = True
+            return yml.load(fd)
+        except Exception as e:
+            raise DbtProjectInvalidError(path, e)
+
+
+def load_dbt_profile(path):
+    from jinja2 import Environment, FileSystemLoader
+
+    def env_var(var, default=None):
+        return os.getenv(var, default)
+
+    def as_bool(var):
+        return var.lower() in ('true', 'yes', '1')
+
+    def as_number(var):
+        if var.isnumeric():
+            return int(var)
+        return float(var)
+
+    def as_text(var):
+        return str(var)
+
+    env = Environment(loader=FileSystemLoader(searchpath=os.path.dirname(path)))
+    env.globals['env_var'] = env_var
+    env.filters['as_bool'] = as_bool
+    env.filters['as_number'] = as_number
+    env.filters['as_text'] = as_text
+    template = env.get_template(os.path.basename(path))
+    try:
+        yml = yaml.YAML()
+        yml.allow_duplicate_keys = True
+        return yml.load(template.render())
+    except Exception as e:
+        raise DbtProfileInvalidError(path, e)
+
+
+def load_credential_from_dbt_profile(dbt_profile, profile_name, target_name):
+    credential = dbt_profile.get(profile_name, {}).get('outputs', {}).get(target_name, {})
+
+    if credential.get('type') == 'bigquery':
+        # BigQuery Data Source
+        from piperider_cli.datasource.bigquery import AUTH_METHOD_OAUTH_SECRETS
+        # DBT profile support 4 types of methods to authenticate with BigQuery:
+        #   [ 'oauth', 'oauth-secrets', 'service-account', 'service-account-json' ]
+        # Ref: https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#authentication-methods
+        if credential.get('method') == 'oauth-secrets':
+            credential['method'] = AUTH_METHOD_OAUTH_SECRETS
+            # TODO: Currently SqlAlchemy haven't support using access token to authenticate with BigQuery.
+            #       Ref: https://github.com/googleapis/python-bigquery-sqlalchemy/pull/459
+            raise DbtProfileBigQueryAuthWithTokenUnsupportedError
+    elif credential.get('type') == 'redshift':
+        if credential.get('method') is None:
+            credential['method'] = 'password'
+        host = credential.get('host')
+        port = credential.get('port')
+        dbname = credential.get('dbname')
+        credential['endpoint'] = f'{host}:{port}/{dbname}'
+    return credential

@@ -14,9 +14,9 @@ class TestRunner(TestCase):
 
     def test_get_dbt_state_candidate(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir)
-        self.assertEqual(tables[0].table, 'PRICE_PRESENT')
-        self.assertEqual(tables[0].schema, 'PUBLIC')
-        self.assertEqual(tables[0].name, 'PRICE_PRESENT')
+        self.assertEqual(tables[0].get('name'), 'PRICE_PRESENT')
+        self.assertEqual(tables[0].get('schema'), 'PUBLIC')
+        self.assertEqual(tables[0].get('alias'), 'PRICE_PRESENT')
 
     def test_get_dbt_state_tests_result(self):
         results = dbtutil.get_dbt_state_tests_result(self.dbt_state_dir)

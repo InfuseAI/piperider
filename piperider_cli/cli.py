@@ -154,6 +154,7 @@ def diagnose(**kwargs):
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
 @click.option('--dbt-state', default=None, help='Directory of the the dbt state.')
+@click.option('--dbt-run-results', is_flag=True, help='Associate with dbt run results')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
 @click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
@@ -167,12 +168,14 @@ def run(**kwargs):
     open_report = kwargs.get('open')
     skip_report = kwargs.get('skip_report')
     dbt_state_dir = kwargs.get('dbt_state')
+    dbt_run_results = kwargs.get('dbt_run_results')
     force_upload = kwargs.get('upload')
     ret = Runner.exec(datasource=datasource,
                       table=table,
                       output=output,
                       skip_report=skip_report,
                       dbt_state_dir=dbt_state_dir,
+                      dbt_run_results=dbt_run_results,
                       report_dir=kwargs.get('report_dir'))
     if ret in (0, EC_ERR_TEST_FAILED):
         auto_upload = CloudConnector.is_auto_upload()
