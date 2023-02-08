@@ -101,7 +101,7 @@ piperider compare-reports --last
 
 
 ### 6. Add a markdown summary
-You can add a Markdown summary of the data changes to your Pull Request, so that you're reviewer can merge with confidence.
+You can add a Markdown summary of the data changes to your Pull Request, so that your reviewer can merge with confidence.
 
 Markdown summaries and reports are stored in
 `.piperider/comparisons/<timestamp>`
