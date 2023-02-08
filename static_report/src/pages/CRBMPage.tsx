@@ -16,7 +16,7 @@ interface Props {
   data: ComparisonReportSchema;
 }
 export function CRBMPage({ data: { base, input } }: Props) {
-  useDocumentTitle('Comparison Report: Business Metrics');
+  useDocumentTitle('Comparison Report: Metrics');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {
@@ -43,7 +43,7 @@ export function CRBMPage({ data: { base, input } }: Props) {
         <Box px={9} h={mainContentAreaHeight} overflowY={'auto'}>
           <Flex w={'100%'} p={5}>
             <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
-              Report Business Metrics ({datasource})
+              Report Metrics ({datasource})
             </Text>
           </Flex>
           <Grid templateColumns={'1fr 1fr'} w={'100%'} gap={5} p={5}>
@@ -58,7 +58,7 @@ export function CRBMPage({ data: { base, input } }: Props) {
             })}
             {BMList.length === 0 && (
               <GridItem colSpan={2} background={'gray.200'} p={5}>
-                <NoData text="No Business Metrics Data Available" />
+                <NoData text="No Metrics Data Available" />
               </GridItem>
             )}
           </Grid>

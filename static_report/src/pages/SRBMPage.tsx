@@ -1,7 +1,7 @@
 import { Box, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
 import { NoData, NO_VALUE } from '../components';
 import { Main } from '../components/Common/Main';
-import { MasterDetailContainer } from '../components/Common';
+import { MasterDetailContainer } from '../components/Common/MasterDetailContainer';
 import { BMWidget } from '../components/Widgets/BMWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { SaferSRSchema } from '../types';
@@ -16,7 +16,7 @@ interface Props {
   data: SaferSRSchema;
 }
 export function SRBMPage({ data }: Props) {
-  useDocumentTitle('Single Report: Business Metrics');
+  useDocumentTitle('Single Report: Metrics');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {
@@ -39,7 +39,7 @@ export function SRBMPage({ data }: Props) {
         <Box px={9} h={mainContentAreaHeight} overflowY={'auto'}>
           <Flex w={'100%'} p={5}>
             <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
-              Report Business Metrics ({datasource})
+              Report Metrics ({datasource})
             </Text>
           </Flex>
           <Grid
@@ -56,7 +56,7 @@ export function SRBMPage({ data }: Props) {
             ))}
             {!BMOnly?.base?.length && (
               <GridItem colSpan={2} background={'gray.200'} p={5}>
-                <NoData text="No Business Metrics Data Available" />
+                <NoData text="No Metrics Data Available" />
               </GridItem>
             )}
           </Grid>

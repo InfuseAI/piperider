@@ -54,6 +54,7 @@ interface Props extends Selectable, Comparable {
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of all tables and columns from datasource. Belongs in the profiling column details page to view in-depth metrics and visualizations
  */
+//FIXME:
 export function MasterSideNav({
   tableColEntryList = [],
   currentTable,
@@ -162,7 +163,7 @@ export function MasterSideNav({
                   >
                     <Flex alignItems={'center'} gap={2}>
                       <Icon as={isExpanded ? FiChevronDown : FiChevronRight} />
-                      <Text>All Tables</Text>
+                      <Text>Tables</Text>
                     </Flex>
                     {isExpanded && (
                       <Flex gap={2}>
@@ -307,7 +308,7 @@ export function MasterSideNav({
             onNavToBM();
           }}
         >
-          All Metrics
+          Metrics
         </ChakraLink>
       </Flex>
       <Flex px={5} mt={5}>
@@ -316,7 +317,7 @@ export function MasterSideNav({
             onNavToAssertions();
           }}
         >
-          All Assertions
+          Assertions
         </ChakraLink>
       </Flex>
     </Box>
