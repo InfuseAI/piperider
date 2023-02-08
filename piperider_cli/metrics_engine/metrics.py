@@ -6,7 +6,7 @@ from typing import List, Union
 from sqlalchemy import select, func, distinct, literal_column, join, outerjoin, Column, Date
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import SingletonThreadPool
-from sqlalchemy.sql.expression import table as table_clause, column as column_clause, text, union_all, case
+from sqlalchemy.sql.expression import text, union_all, case
 from sqlalchemy.sql.selectable import CTE
 
 from piperider_cli.datasource import DataSource
@@ -128,7 +128,10 @@ class MetricEngine:
             )
         else:
             # Source model
-            source_model = text(f"{metric.database}.{metric.schema}.{metric.table}")
+            if self.data_source.type_name == 'bigquery':
+                source_model = text(f"`{metric.database}.{metric.schema}.{metric.table}`")
+            else:
+                source_model = text(f"{metric.database}.{metric.schema}.{metric.table}")
 
             # Base model
             # 1. map expression to 'c'
