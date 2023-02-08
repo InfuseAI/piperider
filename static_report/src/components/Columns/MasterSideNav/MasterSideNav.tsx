@@ -54,7 +54,7 @@ interface Props extends Selectable, Comparable {
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of all tables and columns from datasource. Belongs in the profiling column details page to view in-depth metrics and visualizations
  */
-//FIXME:
+//FIXME: Accordion only on clicking the chevron instead of item
 export function MasterSideNav({
   tableColEntryList = [],
   currentTable,
@@ -122,22 +122,6 @@ export function MasterSideNav({
     },
   );
 
-  const SEARCH_KEY = 'search';
-  const SearchIcon =
-    displayMode === SEARCH_KEY ? (
-      <IoSearchCircle size={'1.5rem'} />
-    ) : (
-      <IoSearchCircleOutline size={'1.5rem'} />
-    );
-
-  const SCHEMA_FILTER_KEY = 'schema-filter';
-  const FilterIcon =
-    displayMode === SCHEMA_FILTER_KEY ? (
-      <IoFilterCircle size={'1.5rem'} />
-    ) : (
-      <IoFilterCircleOutline size={'1.5rem'} />
-    );
-
   const SHOW_EXTRA_KEY = 'show-extra';
   const ShowExtraIcon = showExtra ? (
     <IoEye size={'1.5rem'} />
@@ -146,6 +130,7 @@ export function MasterSideNav({
   );
   const hasShowExtra = showExtra === SHOW_EXTRA_KEY;
 
+  //Accordions should use controlled state to toggle
   return (
     <Box w={'100%'} zIndex={150} bg={'inherit'}>
       <Accordion reduceMotion allowMultiple>
@@ -170,29 +155,8 @@ export function MasterSideNav({
                         {/* Show More info Header */}
                         <Box
                           _hover={{ cursor: 'pointer' }}
-                          onClick={() => {
-                            const result =
-                              displayMode === SEARCH_KEY ? '' : SEARCH_KEY;
-                            setDisplayMode(result);
-                          }}
-                        >
-                          {SearchIcon}
-                        </Box>
-                        <Box
-                          _hover={{ cursor: 'pointer' }}
-                          onClick={() => {
-                            const result =
-                              displayMode === SCHEMA_FILTER_KEY
-                                ? ''
-                                : SCHEMA_FILTER_KEY;
-                            setDisplayMode(result);
-                          }}
-                        >
-                          {FilterIcon}
-                        </Box>
-                        <Box
-                          _hover={{ cursor: 'pointer' }}
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.preventDefault();
                             const result =
                               showExtra === SHOW_EXTRA_KEY
                                 ? ''
