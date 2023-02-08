@@ -183,25 +183,6 @@ target:
         # TODO put the datasource name from the Configuration
 
 
-def load_hardcode_recipe():
-    def create():
-        m = RecipeModel()
-        m.branch = "main"
-        m.dbt = RecipeDbtField()
-        m.dbt.commands = ["dbt deps", "dbt run"]
-        m.piperider = RecipePiperiderField()
-        m.piperider.commands = ["piperider run --dbt-state target/"]
-        return m
-
-    base = create()
-    target = create()
-    target.branch = None
-    target.piperider.commands.append("piperider compare-reports --last")
-
-    cfg = RecipeConfiguration(base, target)
-    return cfg
-
-
 def verify_git_dependencies(cfg: RecipeConfiguration):
     if cfg.base.branch is None and cfg.target.branch is None:
         # nobody set the git branch, skip the verification
@@ -280,7 +261,7 @@ def switch_branch(branch_name):
     git_switch_to(branch_name)
 
 
-def execute(cfg: RecipeConfiguration):
+def execute_configuration(cfg: RecipeConfiguration):
     console.rule("Recipe executor: verify execution environments")
     # check the dependencies
     console.print("Check: git")
@@ -300,6 +281,18 @@ def execute(cfg: RecipeConfiguration):
         # switch back to the original branch
         console.print(f"Switch git branch back to: \[{current_branch}]")
         switch_branch(current_branch)
+
+
+def execute_recipe_file(recipe_name: str):
+    if recipe_name is None:
+        recipe_name = "default"
+
+    recipe_path = os.path.join(PIPERIDER_RECIPES_PATH, f"{recipe_name}.yml")
+    if not os.path.exists(recipe_path):
+        raise ValueError(f"Cannot find the recipe at {recipe_path}")
+
+    cfg = RecipeConfiguration.load(recipe_path)
+    execute_configuration(cfg)
 
 
 if __name__ == '__main__':

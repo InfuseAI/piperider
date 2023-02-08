@@ -347,6 +347,7 @@ def cloud_compare_reports(**kwargs):
 
 
 @cli.command(name='compare', short_help='Generate comparison report with the recipe.', cls=TrackCommand)
+@click.option('--recipe', default=None, type=click.STRING, help='Select a different recipe.')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--summary-file', default=None, type=click.STRING, help='Output the comparison summary markdown file.')
 @add_options(debug_option)
@@ -355,16 +356,26 @@ def compare_with_recipe(**kwargs):
     Generate comparison report with the recipe
     """
 
-    # TODO implement the compare with recipe
-    # TODO for the existing project, it might not have a default recipe, we should generate it first to use it.
+    # TODO stop the process if there is no default recipe
 
-    # TODO --summary-file copy the markdown to the assigned path
-    # TODO --output duplicated the generated files to the assigned path
+    recipe = kwargs.get('recipe')
 
-    from piperider_cli.recipes import load_hardcode_recipe, execute as recipe_executor
-    cfg = load_hardcode_recipe()
-    recipe_executor(cfg)
+    # TODO copy the summary file
+    summary_file = kwargs.get('summary_file')
+
+    from piperider_cli.recipes import execute_recipe_file
+
     ret = 0
+    try:
+        execute_recipe_file(recipe)
+
+        CompareReport.exec(a=None, b=None, last=True, datasource=None,
+                           output=kwargs.get('output'), tables_from="all",
+                           debug=kwargs.get('debug', False))
+    except BaseException as e:
+        print(e)
+        ret = 1
+        pass
 
     return ret
 
