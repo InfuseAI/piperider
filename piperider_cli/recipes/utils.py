@@ -60,14 +60,14 @@ def execute_command(command_line, envs: Dict):
 
 
 def ensure_git_ready():
-    outs, errs, exit_code = _execute_command(f"git --version")
+    outs, errs, exit_code = _execute_command("git --version")
     if exit_code != 0:
         raise RecipeException(errs)
 
     if "version" not in outs:
         raise RecipeException("Unknown response from git --version")
 
-    outs, errs, exit_code = _execute_command(f"git status --porcelain")
+    outs, errs, exit_code = _execute_command("git status --porcelain")
     if exit_code != 0 and "not a git repository" in errs:
         raise RecipeException("The working directory is not a git repository.")
 
