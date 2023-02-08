@@ -9,7 +9,7 @@ interface Props {
   targetAssertionFailed?: number | string;
 }
 
-export function TableAssertionDeltaSummary({
+export function TableListAssertionSummary({
   baseAssertionFailed,
   baseAssertionTotal,
   targetAssertionFailed,
