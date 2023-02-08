@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/browser';
 import { Suspense, lazy } from 'react';
-import { Switch, Route, Router, BaseLocationHook, Redirect } from 'wouter';
+import { Switch, Route, Router, BaseLocationHook } from 'wouter';
 import { BrowserTracing } from '@sentry/tracing';
 
 import { NotFound } from './components/Common/NotFound';
@@ -16,6 +16,7 @@ import { CRBMPage } from './pages/CRBMPage';
 import { CRAssertionListPage } from './pages/CRAssertionListPage';
 import { Loading } from './components/Common';
 import { SRTablesListPage } from './pages/SRTablesListPage';
+import { CRTablesListPage } from './pages/CRTableListPage';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns && process.env.NODE_ENV !== 'development') {
@@ -96,21 +97,9 @@ function AppComparison() {
           <Route
             path="/"
             component={() => {
-              const { base, input } =
-                window.PIPERIDER_COMPARISON_REPORT_DATA ?? {};
-              const fallbackTables = input || base;
-
-              const tableEntries = Object.entries<any>(fallbackTables.tables);
-              const firstTableEntry = tableEntries[0];
-              const firstTableName = firstTableEntry[0];
-              const firstTableColEntries = Object.entries<any>(
-                firstTableEntry[1].columns,
-              );
-              const firstTableColName = firstTableColEntries[0][0];
-
               return (
-                <Redirect
-                  to={`/tables/${firstTableName}/columns/${firstTableColName}`}
+                <CRTablesListPage
+                  data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}
                 />
               );
             }}

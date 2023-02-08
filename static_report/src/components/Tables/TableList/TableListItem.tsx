@@ -1,5 +1,4 @@
-import { Flex, Text, Icon, Link, Grid, GridItem } from '@chakra-ui/react';
-import { BsChevronRight } from 'react-icons/bs';
+import { Flex, Text, Link, Grid, GridItem } from '@chakra-ui/react';
 import { TableWrapper, TableItemName } from './TableListItemDecorations';
 import { TableRowColDeltaSummary } from './TableRowColDeltaSummary';
 
