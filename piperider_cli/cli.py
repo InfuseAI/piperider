@@ -364,11 +364,7 @@ def compare_with_recipe(**kwargs):
     Generate comparison report with the recipe
     """
 
-    # TODO stop the process if there is no default recipe
-
     recipe = kwargs.get('recipe')
-
-    # TODO copy the summary file
     summary_file = kwargs.get('summary_file')
 
     ret = 0
@@ -377,6 +373,17 @@ def compare_with_recipe(**kwargs):
         CompareReport.exec(a=None, b=None, last=True, datasource=None,
                            output=kwargs.get('output'), tables_from="all",
                            debug=kwargs.get('debug', False))
+
+        # copy the summary file
+        from piperider_cli.filesystem import FileSystem
+        filesystem = FileSystem(report_dir=None)
+        summary_md_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'summary.md')
+        if summary_file is not None and os.path.exists(summary_md_path):
+            with open(summary_md_path, "r") as input_fh:
+                with open(summary_file, "w") as output_fh:
+                    output_fh.write(input_fh.read())
+
+
     except Exception as e:
         print(e)
         ret = 1
