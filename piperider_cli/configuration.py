@@ -19,8 +19,9 @@ from piperider_cli.error import \
     DbtProjectInvalidError
 
 PIPERIDER_WORKSPACE_NAME = '.piperider'
-PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
-PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'credentials.yml')
+PIPERIDER_WORKSPACE_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
+PIPERIDER_CONFIG_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'config.yml')
+PIPERIDER_CREDENTIALS_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'credentials.yml')
 
 # ref: https://docs.getdbt.com/dbt-cli/configure-your-profile
 DBT_PROFILES_DIR_DEFAULT = '~/.dbt/'

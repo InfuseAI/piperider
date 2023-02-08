@@ -4,13 +4,13 @@ import sys
 import click
 import sentry_sdk
 from rich.console import Console
-from rich.syntax import Syntax
 
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
+from piperider_cli.configuration import PIPERIDER_WORKSPACE_PATH
 from piperider_cli.event import UserProfileConfigurator
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
@@ -101,9 +101,9 @@ def init(**kwargs):
     'Initialize a PipeRider project in interactive mode. The configurations are saved in ".piperider".'
 
     console = Console()
-    piperider_config_dir = os.path.join(os.getcwd(), '.piperider')
+
     # TODO show the process and message to users
-    console.print(f'Initialize piperider to path {piperider_config_dir}')
+    console.print(f'Initialize piperider to path {PIPERIDER_WORKSPACE_PATH}')
 
     # Search dbt project config files
     dbt_project_path = None
@@ -128,10 +128,7 @@ def init(**kwargs):
         sys.exit(1)
 
     # Show the content of config.yml
-    with open(os.path.join(piperider_config_dir, 'config.yml'), 'r') as f:
-        console.rule('.piperider/config.yml')
-        config = Syntax(f.read(), "yaml", theme="monokai", line_numbers=True)
-        console.print(config)
+    Initializer.show_config()
 
 
 @cli.command(short_help='Check project configuration.', cls=TrackCommand)

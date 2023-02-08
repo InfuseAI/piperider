@@ -15,7 +15,7 @@ from piperider_cli.configuration import Configuration, \
 from piperider_cli.datasource import DataSource, FANCY_USER_INPUT
 from piperider_cli.datasource.survey import UserSurveyMockDataSource
 from piperider_cli.error import PipeRiderConfigError
-from piperider_cli.recipes import prepare_the_default_recipe
+from piperider_cli.recipes.default_recipe_generator import generate_default_recipe, show_recipe_content
 
 
 def _is_piperider_workspace_exist(workspace_path: str) -> bool:
@@ -111,9 +111,10 @@ def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None):
 
 class Initializer():
     @staticmethod
-    def exec(dbt_project_path=None, dbt_profiles_dir=None):
+    def exec(working_dir=None, dbt_project_path=None, dbt_profiles_dir=None):
         console = Console()
-        working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
+        if working_dir is None:
+            working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
 
         if _is_piperider_workspace_exist(working_dir):
             console.print('[bold green]Piperider workspace already exist[/bold green] ')
@@ -122,8 +123,22 @@ class Initializer():
         configuration = _generate_configuration(dbt_project_path, dbt_profiles_dir)
 
         # generate the default recipe
-        prepare_the_default_recipe()
+        generate_default_recipe()
         return configuration
+
+    @staticmethod
+    def show_config():
+        console = Console()
+
+        # show config.yml
+        with open(PIPERIDER_CONFIG_PATH, 'r') as f:
+            console.rule('.piperider/config.yml')
+            config = Syntax(f.read(), "yaml", theme="monokai", line_numbers=True)
+            console.print(config)
+            console.rule('End of .piperider/config.yml')
+
+        # show default recipe
+        show_recipe_content()
 
     @staticmethod
     def list(report_dir=None):

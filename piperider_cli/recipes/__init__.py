@@ -120,9 +120,9 @@ class RecipeConfiguration:
 
     def dump(self, output_path: str):
         with open(output_path, "w") as fh:
-            RecipeConfiguration.validate(self.__dict__())
-            yaml.round_trip_dump(self.__dict__(), fh)
-        pass
+            payload = self.__dict__()
+            RecipeConfiguration.validate(payload)
+            yaml.round_trip_dump(payload, fh)
 
     @staticmethod
     def validate(content: dict = None):
