@@ -154,7 +154,6 @@ class Profiler:
         result = {
             "tables": profiled_tables,
         }
-        self.event_handler.handle_run_start(result)
 
         if subjects is None:
             subjects = []
@@ -165,20 +164,24 @@ class Profiler:
 
         table_count = len(subjects)
         table_index = 0
-        self.event_handler.handle_run_progress(result, table_count, table_index)
 
-        map_name_tables = await self._fetch_metadata(subjects)
-        for subject in subjects:
-            name = subject.name
-            table = map_name_tables[name]
-            engine = self.data_source.get_engine_by_database(subject.database)
-            table_profiler = TableProfiler(engine, self.executor, subject, table, self.event_handler, self.config)
-            tresult = await table_profiler.profile()
-            profiled_tables[name] = tresult
-            table_index = table_index + 1
+        if len(subjects) > 0:
+            self.event_handler.handle_run_start(result)
             self.event_handler.handle_run_progress(result, table_count, table_index)
 
-        self.event_handler.handle_run_end(result)
+            map_name_tables = await self._fetch_metadata(subjects)
+            for subject in subjects:
+                name = subject.name
+                table = map_name_tables[name]
+                engine = self.data_source.get_engine_by_database(subject.database)
+                table_profiler = TableProfiler(engine, self.executor, subject, table, self.event_handler, self.config)
+                tresult = await table_profiler.profile()
+                profiled_tables[name] = tresult
+                table_index = table_index + 1
+                self.event_handler.handle_run_progress(result, table_count, table_index)
+            self.event_handler.handle_run_end(result)
+        else:
+            print("No table to profile")
 
         return result
 
@@ -498,9 +501,9 @@ class TableProfiler:
             future = asyncio.create_task(self._profile_column(result, name, selectable, column))
             futures.append(future)
 
-            total = len(futures)
-            completed = 0
-            self.event_handler.handle_table_progress(name, result, total, completed)
+        total = len(futures)
+        completed = 0
+        self.event_handler.handle_table_progress(name, result, total, completed)
 
         for future in asyncio.as_completed(futures):
             await future
