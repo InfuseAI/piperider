@@ -1,14 +1,13 @@
-import copy
 import os
 from abc import ABCMeta
-from typing import List, Dict
+from typing import Dict, List
 
 import jsonschema
 from jsonschema.exceptions import ValidationError
 from rich.console import Console
 from ruamel import yaml
 
-from piperider_cli import round_trip_load_yaml, load_json
+from piperider_cli import load_json, round_trip_load_yaml
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 
 PIPERIDER_RECIPES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'recipe_schema.json')
@@ -144,43 +143,6 @@ class RecipeConfiguration:
             base=base,
             target=target
         )
-
-
-def validate_recipe(recipe):
-    # TODO validate it
-    pass
-
-
-def prepare_the_default_recipe():
-    if os.path.exists(DEFAULT_RECIPE_PATH):
-        validate_recipe(DEFAULT_RECIPE_PATH)
-        return
-
-    os.makedirs(PIPERIDER_RECIPES_PATH, exist_ok=True)
-    with open(DEFAULT_RECIPE_PATH, "w") as fh:
-        # TODO fix the recipe content
-        fh.write("""
-# .piperider/compare/default.yml
-base:
-	branch: main
-  dbt:
-	  commands:
-    - dbt build
-  piperider:
-    # datasource: dev
-target:
-  dbt:
-	  commands:
-    - dbt build
-  piperider:
-    # datasource: dev
-        """.strip())
-        fh.write("\n")
-
-        # TODO should we show warnings when there is no git repo ?
-        # TODO is it possible to get the git default branch main or master?
-        # TODO should we show warnings when there is no dbt command ?
-        # TODO put the datasource name from the Configuration
 
 
 def verify_git_dependencies(cfg: RecipeConfiguration):
