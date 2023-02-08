@@ -44,7 +44,7 @@ export function MasterSideNav({
   onNavToAssertions = () => {},
   onNavToBM = () => {},
 }: Props) {
-  //// eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line
   const [placeholder] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
 
   //initial state should depend on position of current table in tableColEntryList
