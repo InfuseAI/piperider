@@ -245,16 +245,15 @@ def execute_configuration(cfg: RecipeConfiguration):
         switch_branch(current_branch)
 
 
-def execute_recipe_file(recipe_name: str):
-    if recipe_name is None:
-        recipe_name = "default"
+def select_recipe_file(name: str = None):
+    if name is None:
+        name = "default"
 
-    recipe_path = os.path.join(PIPERIDER_RECIPES_PATH, f"{recipe_name}.yml")
+    recipe_path = os.path.join(PIPERIDER_RECIPES_PATH, f"{name}.yml")
     if not os.path.exists(recipe_path):
-        raise ValueError(f"Cannot find the recipe at {recipe_path}")
+        return None
 
-    cfg = RecipeConfiguration.load(recipe_path)
-    execute_configuration(cfg)
+    return recipe_path
 
 
 if __name__ == '__main__':

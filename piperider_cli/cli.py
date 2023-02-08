@@ -18,6 +18,7 @@ from piperider_cli.feedback import Feedback
 from piperider_cli.generate_report import GenerateReport
 from piperider_cli.guide import Guide
 from piperider_cli.initializer import Initializer
+from piperider_cli.recipe_executor import RecipeExecutor
 from piperider_cli.runner import Runner
 from piperider_cli.validator import Validator
 
@@ -370,19 +371,15 @@ def compare_with_recipe(**kwargs):
     # TODO copy the summary file
     summary_file = kwargs.get('summary_file')
 
-    from piperider_cli.recipes import execute_recipe_file
-
     ret = 0
     try:
-        execute_recipe_file(recipe)
-
+        RecipeExecutor.exec(recipe_name=recipe)
         CompareReport.exec(a=None, b=None, last=True, datasource=None,
                            output=kwargs.get('output'), tables_from="all",
                            debug=kwargs.get('debug', False))
-    except BaseException as e:
+    except Exception as e:
         print(e)
         ret = 1
-        pass
 
     return ret
 

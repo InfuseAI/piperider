@@ -12,16 +12,17 @@ from piperider_cli.recipes.utils import git_branch
 console = Console()
 
 
-def _create_base_recipe(is_dbt: bool = False, options: dict = None) -> RecipeModel:
+def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeModel:
     """
     Create the base recipe
     """
     base = RecipeModel()
+    piperider_command = 'piperider run'
 
     if git_branch() is not None:
         base.branch = 'main'
 
-    if is_dbt:
+    if dbt_project_path:
         base.dbt = RecipeDbtField({
             'commands': [
                 'dbt deps',
@@ -31,13 +32,13 @@ def _create_base_recipe(is_dbt: bool = False, options: dict = None) -> RecipeMod
 
     base.piperider = RecipePiperiderField({
         'commands': [
-            'piperider run'
+            piperider_command
         ]
     })
     return base
 
 
-def _create_target_recipe(is_dbt: bool = False, options: dict = None) -> RecipeModel:
+def _create_target_recipe(dbt_project_path=None, options: dict = None) -> RecipeModel:
     """
     Create the target recipe
     """
@@ -47,7 +48,7 @@ def _create_target_recipe(is_dbt: bool = False, options: dict = None) -> RecipeM
     if current_branch is not None and current_branch != 'main':
         target.branch = current_branch
 
-    if is_dbt:
+    if dbt_project_path:
         target.dbt = RecipeDbtField({
             'commands': [
                 'dbt deps',
@@ -64,7 +65,7 @@ def _create_target_recipe(is_dbt: bool = False, options: dict = None) -> RecipeM
 
 
 def generate_default_recipe(overwrite_existing: bool = False,
-                            is_dbt: bool = False, options: dict = None):
+                            dbt_project_path=None, options: dict = None):
     """
     Generate the default recipe
     """
@@ -73,8 +74,8 @@ def generate_default_recipe(overwrite_existing: bool = False,
         console.print('[bold green]Piperider default recipe already exist[/bold green]')
         return 0
 
-    base = _create_base_recipe(is_dbt)
-    target = _create_target_recipe(is_dbt)
+    base = _create_base_recipe(dbt_project_path)
+    target = _create_target_recipe(dbt_project_path)
     recipe = RecipeConfiguration(base=base, target=target)
 
     try:
@@ -94,6 +95,9 @@ def show_recipe_content(recipe_path=DEFAULT_RECIPE_PATH):
     """
     Display the recipe content
     """
+    if not os.path.exists(recipe_path):
+        # Skip if the recipe does not exist
+        return
 
     with open(recipe_path, 'r') as f:
         console.rule(f'Recipe: {os.path.basename(recipe_path)}')
