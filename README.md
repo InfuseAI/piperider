@@ -92,7 +92,7 @@ dbt build
 piperider run --open
 ```
 
-### 4. Compare your changes 
+### 5. Compare your changes 
 You then can compare the branch of your new Pull Request against the main branch and explore the impact of your changes by opening the generated HTML comparison report
 
 ```bash
