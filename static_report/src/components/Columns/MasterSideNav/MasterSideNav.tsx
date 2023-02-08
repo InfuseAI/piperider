@@ -44,8 +44,8 @@ export function MasterSideNav({
   onNavToAssertions = () => {},
   onNavToBM = () => {},
 }: Props) {
-  //FIXME: removing causes store error???
-  const [] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
+  //// eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [placeholder] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
 
   //initial state should depend on position of current table in tableColEntryList
   const initialIndex = tableColEntryList.findIndex(
