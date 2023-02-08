@@ -1,14 +1,11 @@
 import { Grid, GridItem } from '@chakra-ui/react';
-import { ReactNode, useState } from 'react';
-import { useLocalStorage } from 'react-use';
+import { ReactNode } from 'react';
 import { useLocation } from 'wouter';
 import { Comparable, ComparisonReportSchema } from '../../types';
 import {
   allContentGridTempCols,
   CompTableColEntryItem,
-  extraSpaceAllContentGridTempCols,
   mainContentAreaHeight,
-  MASTER_LIST_SHOW_EXTRA,
 } from '../../utils';
 import { ASSERTIONS_ROUTE_PATH, BM_ROUTE_PATH } from '../../utils/routes';
 import { MasterSideNav } from '../Columns/MasterSideNav';
@@ -21,7 +18,7 @@ interface Props extends Comparable {
   columnName?: string;
   children: ReactNode;
 }
-//NOTE: Only for OSS usage.
+//NOTE: Only for OSS usage. Possible for Cloud?
 export function MasterDetailContainer({
   rawData,
   tableColEntries,
@@ -31,8 +28,6 @@ export function MasterDetailContainer({
   singleOnly,
 }: Props) {
   const [, setLocation] = useLocation();
-  const [showExtra] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
-  const [extraSpace, setExtraSpace] = useState<boolean>(Boolean(showExtra));
 
   return (
     <>
@@ -40,12 +35,7 @@ export function MasterDetailContainer({
         datasource={rawData.base?.datasource}
         version={rawData.base?.version}
       />
-      <Grid
-        width={'inherit'}
-        templateColumns={
-          extraSpace ? extraSpaceAllContentGridTempCols : allContentGridTempCols
-        }
-      >
+      <Grid width={'inherit'} templateColumns={allContentGridTempCols}>
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <MasterSideNav
@@ -57,7 +47,6 @@ export function MasterDetailContainer({
             }}
             onNavToAssertions={() => setLocation(ASSERTIONS_ROUTE_PATH)}
             onNavToBM={() => setLocation(BM_ROUTE_PATH)}
-            onToggleShowExtra={() => setExtraSpace((v) => !v)}
             singleOnly={singleOnly}
           />
         </GridItem>

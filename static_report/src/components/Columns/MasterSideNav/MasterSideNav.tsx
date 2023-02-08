@@ -7,42 +7,21 @@ import {
   AccordionButton,
   AccordionItem,
   AccordionPanel,
-  Grid,
   Link as ChakraLink,
-  Tag,
-  TagLabel,
   Link,
 } from '@chakra-ui/react';
-import { useCallback, useState } from 'react';
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
-import {
-  IoEye,
-  IoEyeOutline,
-  IoFilterCircle,
-  IoFilterCircleOutline,
-  IoSearchCircle,
-  IoSearchCircleOutline,
-} from 'react-icons/io5';
 import { useLocalStorage } from 'react-use';
 
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { Comparable, ComparableData, Selectable } from '../../../types';
-import {
-  MASTER_LIST_DISPLAY_MODE,
-  MASTER_LIST_SHOW_EXTRA,
-} from '../../../utils';
-import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
+import { MASTER_LIST_SHOW_EXTRA } from '../../../utils';
 import {
   CompColEntryItem,
   CompTableColEntryItem,
   CompTableWithColEntryOverwrite,
 } from '../../../utils/store';
-import { SearchTextInput } from '../../Common/SearchTextInput';
-import { TableRowColDeltaSummary } from '../../Tables/Schema/TableRowColDeltaSummary';
-import { getIconForColumnType } from '../utils';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
-type ProfilerGenericTypes = ColumnSchema['type'];
 interface Props extends Selectable, Comparable {
   currentTable?: string;
   currentColumn?: string;
@@ -54,7 +33,7 @@ interface Props extends Selectable, Comparable {
 /**
  * A master list UI for showing a top-level, navigable, filterable, list of all tables and columns from datasource. Belongs in the profiling column details page to view in-depth metrics and visualizations
  */
-//FIXME: Accordion only on clicking the chevron instead of item
+//FIXME: Doc Site Behaviors
 export function MasterSideNav({
   tableColEntryList = [],
   currentTable,
@@ -65,70 +44,8 @@ export function MasterSideNav({
   onNavToBM = () => {},
   onToggleShowExtra = () => {},
 }: Props) {
+  //FIXME: removing causes store error???
   const [showExtra, setShowExtra] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
-  const [displayMode, setDisplayMode] = useLocalStorage(
-    MASTER_LIST_DISPLAY_MODE,
-    '',
-  );
-
-  const [filterString, setFilterString] = useState<string>('');
-  const [filterState, setFilterState] = useState<
-    Map<ProfilerGenericTypes | undefined, boolean>
-  >(
-    new Map([
-      ['string', true],
-      ['numeric', true],
-      ['integer', true],
-      ['datetime', true],
-      ['boolean', true],
-      ['other', true],
-    ]),
-  );
-  const quickFilters = Array.from(filterState.keys());
-
-  const filterHandler = useCallback(
-    (compColEntryItem?: CompTableWithColEntryOverwrite) => {
-      return (
-        compColEntryItem?.columns
-          ?.filter(([, { base, target }]) => {
-            // Logic: base-first lookup (tag filter UI)
-            return filterState.get(base?.type) || filterState.get(target?.type);
-          })
-          .filter(([key]) =>
-            filterString
-              ? key.search(new RegExp(filterString, 'gi')) > -1
-              : true,
-          ) || []
-      );
-    },
-    [filterState, filterString],
-  );
-
-  const filteredTableColumnEntryList = tableColEntryList.map(
-    ([tableName, { base, target }, meta]) => {
-      const filteredBaseColumns = filterHandler(base);
-      const filteredTargetColumns = filterHandler(target);
-      const filteredTableColumnEntry = [
-        tableName,
-        {
-          base: base ? { ...base, columns: filteredBaseColumns } : undefined,
-          target: target
-            ? { ...target, columns: filteredTargetColumns }
-            : undefined,
-        },
-        meta,
-      ];
-      return filteredTableColumnEntry as CompTableColEntryItem;
-    },
-  );
-
-  const SHOW_EXTRA_KEY = 'show-extra';
-  const ShowExtraIcon = showExtra ? (
-    <IoEye size={'1.5rem'} />
-  ) : (
-    <IoEyeOutline size={'1.5rem'} />
-  );
-  const hasShowExtra = showExtra === SHOW_EXTRA_KEY;
 
   //Accordions should use controlled state to toggle
   return (
@@ -150,76 +67,13 @@ export function MasterSideNav({
                       <Icon as={isExpanded ? FiChevronDown : FiChevronRight} />
                       <Text>Tables</Text>
                     </Flex>
-                    {isExpanded && (
-                      <Flex gap={2}>
-                        {/* Show More info Header */}
-                        <Box
-                          _hover={{ cursor: 'pointer' }}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            const result =
-                              showExtra === SHOW_EXTRA_KEY
-                                ? ''
-                                : SHOW_EXTRA_KEY;
-                            setShowExtra(result);
-                            onToggleShowExtra && onToggleShowExtra(); // to inform parent about layout changes e.g. change grid-templates
-                          }}
-                        >
-                          {ShowExtraIcon}
-                        </Box>
-                      </Flex>
-                    )}
                   </Flex>
                 </AccordionButton>
               </h2>
-              <AccordionPanel py={0} position={'relative'} top={'-0.5em'}>
+              <AccordionPanel py={0}>
                 <>
-                  {/* FILTER BODY */}
-                  <Box p={2}>
-                    {/* Search Text Filter */}
-                    {displayMode === 'search' && (
-                      <SearchTextInput
-                        onChange={setFilterString}
-                        filterString={filterString}
-                      />
-                    )}
-                    {/* Tag Toggle Filters */}
-                    {displayMode === 'schema-filter' && (
-                      <Grid templateColumns={'1fr 1fr'} gap={3}>
-                        {quickFilters.map((v) => {
-                          const { icon } = getIconForColumnType({ type: v });
-                          const itemValue = filterState.get(v);
-
-                          return (
-                            <Tag
-                              borderRadius={'xl'}
-                              key={v}
-                              py={3}
-                              size={'lg'}
-                              bg={itemValue ? 'piperider.100' : 'gray.200'}
-                              onClick={() => {
-                                const newState = new Map(filterState).set(
-                                  v,
-                                  !itemValue,
-                                );
-                                setFilterState(newState);
-                              }}
-                              cursor={'pointer'}
-                            >
-                              <TagLabel fontSize={'lg'}>
-                                <Flex alignItems={'center'} gap={2}>
-                                  <Icon as={icon} />
-                                  {v}
-                                </Flex>
-                              </TagLabel>
-                            </Tag>
-                          );
-                        })}
-                      </Grid>
-                    )}
-                  </Box>
                   <Accordion reduceMotion allowMultiple>
-                    {filteredTableColumnEntryList.map(
+                    {tableColEntryList.map(
                       ([tableName, compTableColItem, meta]) => {
                         const fallbackTableEntries =
                           compTableColItem?.target || compTableColItem?.base;
@@ -240,7 +94,6 @@ export function MasterSideNav({
                                   isActive={isTableActive}
                                   isExpanded={isExpanded}
                                   compTableColItem={compTableColItem}
-                                  hasShowExtra={hasShowExtra}
                                   singleOnly={singleOnly}
                                 />
                                 <ColumnListAccordionPanel
@@ -249,7 +102,6 @@ export function MasterSideNav({
                                   currentColumn={currentColumn}
                                   currentTable={currentTable}
                                   indexedTableName={tableName}
-                                  hasShowExtra={hasShowExtra}
                                   singleOnly={singleOnly}
                                 />
                               </>
@@ -293,7 +145,6 @@ export function MasterSideNav({
  */
 interface TableItemAccordionButtonProps extends Comparable, Selectable {
   compTableColItem: ComparableData<CompTableWithColEntryOverwrite>;
-  hasShowExtra: boolean;
   isActive: boolean;
   isExpanded: boolean;
 }
@@ -304,7 +155,6 @@ function TableItemAccordionButton({
   isActive,
   isExpanded,
   singleOnly,
-  hasShowExtra,
   onSelect,
 }: TableItemAccordionButtonProps) {
   const fallbackTable = targetTable || baseTable;
@@ -333,24 +183,6 @@ function TableItemAccordionButton({
               {fallbackTable?.name}
             </Link>
           </Flex>
-          {hasShowExtra && (
-            <Flex color={'gray.500'} fontSize={'sm'}>
-              <Text mr={4}>Rows</Text>
-              {singleOnly ? (
-                <Text>
-                  {formatColumnValueWith(
-                    fallbackTable?.row_count,
-                    formatNumber,
-                  )}
-                </Text>
-              ) : (
-                <TableRowColDeltaSummary
-                  baseCount={baseTable?.row_count}
-                  targetCount={targetTable?.row_count}
-                />
-              )}
-            </Flex>
-          )}
         </Flex>
       </AccordionButton>
     </h2>
@@ -362,7 +194,6 @@ function TableItemAccordionButton({
  */
 interface ColumnListAccordionPanelProps extends Comparable, Selectable {
   compColList?: CompColEntryItem[];
-  hasShowExtra: boolean;
   currentColumn?: string;
   currentTable?: string;
   indexedTableName: string;
@@ -371,7 +202,6 @@ function ColumnListAccordionPanel({
   compColList = [],
   onSelect,
   singleOnly,
-  hasShowExtra,
   currentColumn,
   currentTable,
   indexedTableName,
@@ -395,7 +225,6 @@ function ColumnListAccordionPanel({
                   onSelect({ ...data, tableName: indexedTableName });
                 }}
                 singleOnly={singleOnly}
-                showExtra={hasShowExtra}
                 p={3}
               />
             </Box>

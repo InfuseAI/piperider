@@ -27,8 +27,8 @@ import {
   getIconForColumnType,
 } from '../components/Columns/utils';
 import { TableOverview } from '../components/Tables/TableOverview';
-import { TableColumnSchemaList } from '../components/Tables/Schema/TableColumnSchemaList';
-import { ColumnSchemaDeltaSummary } from '../components/Tables/Schema/ColumnSchemaDeltaSummary';
+import { TableColumnSchemaList } from '../components/Tables/TableList/TableColumnSchemaList';
+import { ColumnSchemaDeltaSummary } from '../components/Tables/TableList/ColumnSchemaDeltaSummary';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';

@@ -15,6 +15,7 @@ import { SRBMPage } from './pages/SRBMPage';
 import { CRBMPage } from './pages/CRBMPage';
 import { CRAssertionListPage } from './pages/CRAssertionListPage';
 import { Loading } from './components/Common';
+import { SRTablesListPage } from './pages/SRTablesListPage';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns && process.env.NODE_ENV !== 'development') {
@@ -46,18 +47,9 @@ function AppSingle() {
           <Route
             path="/"
             component={() => {
-              const { tables = {} } = window.PIPERIDER_SINGLE_REPORT_DATA ?? {};
-              const tableEntries = Object.entries<any>(tables);
-              const firstTableEntry = tableEntries[0];
-              const firstTableName = firstTableEntry[0];
-              const firstTableColEntries = Object.entries<any>(
-                firstTableEntry[1].columns,
-              );
-              const firstTableColName = firstTableColEntries[0][0];
-
               return (
-                <Redirect
-                  to={`/tables/${firstTableName}/columns/${firstTableColName}`}
+                <SRTablesListPage
+                  data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
                 />
               );
             }}
