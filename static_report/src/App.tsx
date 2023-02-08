@@ -3,7 +3,6 @@ import { Suspense, lazy } from 'react';
 import { Switch, Route, Router, BaseLocationHook, Redirect } from 'wouter';
 import { BrowserTracing } from '@sentry/tracing';
 
-import { Loading } from './components/Layouts/Loading';
 import { NotFound } from './components/Common/NotFound';
 import { useHashLocation } from './hooks/useHashLcocation';
 import {
@@ -15,6 +14,7 @@ import { SRAssertionListPage } from './pages/SRAssertionListPage';
 import { SRBMPage } from './pages/SRBMPage';
 import { CRBMPage } from './pages/CRBMPage';
 import { CRAssertionListPage } from './pages/CRAssertionListPage';
+import { Loading } from './components/Common';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns && process.env.NODE_ENV !== 'development') {

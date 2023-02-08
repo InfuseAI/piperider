@@ -17,7 +17,7 @@ import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
 
 import type { SingleReportSchema } from '../sdlc/single-report-schema';
 import { DataSummaryWidget } from '../components/Widgets/DataSummaryWidget';
-import { NoData } from '../components/Layouts/NoData';
+import { NoData } from '../components/Common/NoData';
 import {
   containsDataSummary,
   containsColumnQuantile,
@@ -33,7 +33,7 @@ import {
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { MasterDetailContainer } from '../components/Layouts/MasterDetailContainer';
+import { MasterDetailContainer } from '../components/Common/MasterDetailContainer';
 interface Props {
   data: SingleReportSchema;
   columnName: string;

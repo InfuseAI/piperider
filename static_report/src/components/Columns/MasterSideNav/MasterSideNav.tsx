@@ -37,8 +37,8 @@ import {
   CompTableColEntryItem,
   CompTableWithColEntryOverwrite,
 } from '../../../utils/store';
-import { SearchTextInput } from '../../Layouts/SearchTextInput';
-import { TableRowColDeltaSummary } from '../../Tables/TableList/TableRowColDeltaSummary';
+import { SearchTextInput } from '../../Common/SearchTextInput';
+import { TableRowColDeltaSummary } from '../../Tables/Schema/TableRowColDeltaSummary';
 import { getIconForColumnType } from '../utils';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 

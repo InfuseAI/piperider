@@ -20,20 +20,20 @@ import { DataSummaryWidget } from '../components/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
 
 import type { ComparisonReportSchema } from '../types';
-import { NoData } from '../components/Layouts/NoData';
+import { NoData } from '../components/Common/NoData';
 import {
   containsDataSummary,
   containsColumnQuantile,
   getIconForColumnType,
 } from '../components/Columns/utils';
 import { TableOverview } from '../components/Tables/TableOverview';
-import { TableColumnSchemaList } from '../components/Tables/TableList/TableColumnSchemaList';
-import { ColumnSchemaDeltaSummary } from '../components/Tables/TableList/ColumnSchemaDeltaSummary';
+import { TableColumnSchemaList } from '../components/Tables/Schema/TableColumnSchemaList';
+import { ColumnSchemaDeltaSummary } from '../components/Tables/Schema/ColumnSchemaDeltaSummary';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
-import { MasterDetailContainer } from '../components/Layouts/MasterDetailContainer';
+import { MasterDetailContainer } from '../components/Common/MasterDetailContainer';
 
 interface Props {
   data: ComparisonReportSchema;

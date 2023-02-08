@@ -1,9 +1,9 @@
 import { Box, Flex } from '@chakra-ui/react';
 import { useState } from 'react';
 import { Main } from '../components/Common/Main';
-import { MasterDetailContainer } from '../components/Layouts/MasterDetailContainer';
-import { SearchTextInput } from '../components/Layouts/SearchTextInput';
-import { TableListAssertionSummary } from '../components/Tables/TableList/TableListAssertions';
+import { MasterDetailContainer } from '../components/Common/MasterDetailContainer';
+import { SearchTextInput } from '../components/Common/SearchTextInput';
+import { TableAssertionDeltaSummary } from '../components/Tables';
 import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { ComparisonReportSchema } from '../types';
@@ -52,7 +52,7 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
             w={'100%'}
             my={5}
           >
-            <TableListAssertionSummary
+            <TableAssertionDeltaSummary
               baseAssertionFailed={metadata?.base?.failed}
               baseAssertionTotal={metadata?.base?.total}
               targetAssertionFailed={metadata?.target?.failed}

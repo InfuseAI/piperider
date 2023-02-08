@@ -1,7 +1,7 @@
 import { Box, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
 import { NoData, NO_VALUE } from '../components';
 import { Main } from '../components/Common/Main';
-import { MasterDetailContainer } from '../components/Layouts/MasterDetailContainer';
+import { MasterDetailContainer } from '../components/Common/MasterDetailContainer';
 import { BMWidget } from '../components/Widgets/BMWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { BusinessMetric, ComparisonReportSchema } from '../types';
