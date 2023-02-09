@@ -170,12 +170,27 @@ def run(**kwargs):
     dbt_state_dir = kwargs.get('dbt_state')
     dbt_run_results = kwargs.get('dbt_run_results')
     force_upload = kwargs.get('upload')
+
+    dbt_resources = None
+    if not sys.stdin.isatty():
+        metrics = []
+        models = []
+        for dbt_resource in sys.stdin:
+            if dbt_resource.startswith('source:'):
+                continue
+            elif dbt_resource.startswith('metric:'):
+                metrics.append(dbt_resource.rstrip().replace('metric:', 'metric.'))
+            else:
+                models.append(dbt_resource.rstrip())
+        dbt_resources = dict(metrics=metrics, models=models)
+
     ret = Runner.exec(datasource=datasource,
                       table=table,
                       output=output,
                       skip_report=skip_report,
                       dbt_state_dir=dbt_state_dir,
                       dbt_run_results=dbt_run_results,
+                      dbt_resources=dbt_resources,
                       report_dir=kwargs.get('report_dir'))
     if ret in (0, EC_ERR_TEST_FAILED):
         auto_upload = CloudConnector.is_auto_upload()

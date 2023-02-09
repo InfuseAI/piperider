@@ -1,12 +1,11 @@
 import json
 import math
 import os
-import re
 import shutil
 import sys
 import uuid
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from rich import box
 from rich.color import Color
@@ -564,10 +563,17 @@ def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results
 class Runner():
     @staticmethod
     def exec(datasource=None, table=None, output=None, skip_report=False, dbt_state_dir: str = None,
-             dbt_run_results: bool = False, report_dir: str = None):
+             dbt_run_results: bool = False, dbt_resources: Optional[dict] = None, report_dir: str = None):
         console = Console()
 
         raise_exception_when_directory_not_writable(output)
+
+        if table and dbt_run_results:
+            console.print("[bold red]Error:[/bold red] '--dbt-run-results' cannot be used with '--table'")
+            return sys.exit(1)
+        if dbt_resources and dbt_run_results:
+            console.print("[bold red]Error:[/bold red] Cannot specify dbt resources with '--dbt-run-results'")
+            return sys.exit(1)
 
         configuration = Configuration.load()
         filesystem = FileSystem(report_dir=report_dir)
@@ -647,6 +653,9 @@ class Runner():
             else:
                 subjects = [ProfileSubject(table)]
         else:
+            def filter_fn(subject: ProfileSubject):
+                return _filter_subject(subject.name, configuration.includes, configuration.excludes)
+
             if dbt_config:
                 if not dbt_state_dir:
                     dbt_project = dbtutil.load_dbt_project(dbt_config.get('projectDir'))
@@ -666,6 +675,7 @@ class Runner():
                 subjects = []
                 options = dict(
                     view_profile=configuration.include_views,
+                    dbt_resources=dbt_resources,
                     dbt_run_results=dbt_run_results,
                     tag=dbt_config.get('tag')
                 )
@@ -676,17 +686,16 @@ class Runner():
                     schema = node.get('schema')
                     database = node.get('database')
                     subjects.append(ProfileSubject(table, schema, database, name))
+
+                if not dbt_resources:
+                    subjects = list(filter(filter_fn, subjects))
             else:
                 table_names = inspect(engine).get_table_names()
                 if configuration.include_views:
                     table_names += inspect(engine).get_view_names()
 
                 subjects = [ProfileSubject(table_name) for table_name in table_names]
-
-            def filter_fn(subject: ProfileSubject):
-                return _filter_subject(subject.name, configuration.includes, configuration.excludes)
-
-            subjects = list(filter(filter_fn, subjects))
+                subjects = list(filter(filter_fn, subjects))
 
         run_result = {}
 
@@ -702,7 +711,7 @@ class Runner():
 
         metrics = []
         if dbt_state_dir:
-            metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, dbt_config.get('tag', 'piperider'))
+            metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, dbt_config.get('tag', 'piperider'), dbt_resources)
 
         if metrics:
             console.rule('Metrics')

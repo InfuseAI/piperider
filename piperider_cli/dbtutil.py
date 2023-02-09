@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from glob import glob
+from typing import Optional
 
 import inquirer
 from rich.console import Console
@@ -143,35 +144,47 @@ def append_descriptions(profile_result, dbt_state_dir):
                 profile_result['tables'][model]['columns'][column]['description'] = f"{column_desc} - via DBT"
 
 
-def get_dbt_state_candidate(dbt_state_dir: str, options: dict = None):
+def get_dbt_state_candidate(dbt_state_dir: str, options: dict):
     candidate = []
     material_whitelist = ['seed', 'table', 'incremental']
     resource_whitelist = ['model']
-    tag = options.get('tag') if options else None
-    if options and options.get('view_profile'):
+    if options.get('view_profile'):
         material_whitelist.append('view')
+
+    tag = options.get('tag')
+    dbt_run_results = options.get('dbt_run_results')
+    dbt_resources = options.get('dbt_resources')
+
     manifest = _get_state_manifest(dbt_state_dir)
     nodes = manifest.get('nodes')
 
-    unique_ids = list(nodes.keys())
-    if options and options.get('dbt_run_results'):
+    run_results_ids = []
+    if dbt_run_results:
         run_results = _get_state_run_results(dbt_state_dir)
-        run_results_ids = []
         for result in run_results.get('results'):
             if result.get('status') != 'success':
                 continue
             run_results_ids.append(result.get('unique_id'))
-        unique_ids = run_results_ids
 
-    for unique_id in unique_ids:
-        node = nodes.get(unique_id)
+    def is_chosen(key, node):
+        if dbt_resources:
+            return '.'.join(node.get('fqn')) in dbt_resources['models']
+        else:
+            config_material = node.get('config').get('materialized')
+            if config_material not in material_whitelist:
+                return False
+            if tag and tag not in node.get('tags', []):
+                return False
+            if dbt_run_results and key not in run_results_ids:
+                return False
+            return True
+
+    for key, node in nodes.items():
         if node.get('resource_type') not in resource_whitelist:
             continue
-        if tag is not None and tag not in node.get('tags', []):
+        if not is_chosen(key, node):
             continue
-        config_material = node.get('config').get('materialized')
-        if config_material in material_whitelist:
-            candidate.append(node)
+        candidate.append(node)
 
     return candidate
 
@@ -230,8 +243,13 @@ def get_dbt_state_tests_result(dbt_state_dir: str):
     return output
 
 
-def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str):
+def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optional[dict] = None):
     manifest = _get_state_manifest(dbt_state_dir)
+
+    def is_chosen(key, metric):
+        if dbt_resources:
+            return key in dbt_resources['metrics']
+        return dbt_tag in metric.get('tags')
 
     metrics = []
     metric_map = {}
@@ -251,7 +269,8 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str):
                    filters=metric.get('filters'), label=metric.get('label'), description=metric.get('description'))
 
         metric_map[key] = m
-        if dbt_tag in metric.get('tags'):
+
+        if is_chosen(key, metric):
             if metric.get('window'):
                 console.print(
                     f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. Property 'window' is not supported.")

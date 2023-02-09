@@ -52,6 +52,7 @@
         "checksum": "aa8bb21ee2edb1ebfd2d605530c322ad1f96bc95d817ce0129b747818d58916d"
       },
       "tags": [
+        "piperider"
       ],
       "refs": [
       ],
@@ -412,6 +413,1105 @@
       "created_at": 1667959592.40849,
       "column_name": "splits",
       "file_key_name": "sources.PUBLIC"
+    },
+    "model.infusetude.event_filtered": {
+      "resource_type": "model",
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+          "seed.infusetude.user_internal",
+          "seed.infusetude.user_block",
+          "seed.infusetude.project_block",
+          "model.infusetude.stg_event"
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": null,
+        "database": null,
+        "tags": [
+        ],
+        "meta": {
+        },
+        "materialized": "table",
+        "incremental_strategy": null,
+        "persist_docs": {
+        },
+        "quoting": {
+        },
+        "column_types": {
+        },
+        "full_refresh": null,
+        "unique_key": null,
+        "on_schema_change": "ignore",
+        "grants": {
+        },
+        "packages": [
+        ],
+        "docs": {
+          "show": true,
+          "node_color": null
+        },
+        "post-hook": [
+        ],
+        "pre-hook": [
+        ]
+      },
+      "database": "AMPLITUDE",
+      "schema": "DBT_ANDY",
+      "fqn": [
+        "infusetude",
+        "amplitude",
+        "event_filtered"
+      ],
+      "unique_id": "model.infusetude.event_filtered",
+      "raw_code": "",
+      "language": "sql",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "amplitude/event_filtered.sql",
+      "original_file_path": "models/amplitude/event_filtered.sql",
+      "name": "event_filtered",
+      "alias": "event_filtered",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "1a623e9dcd63e7baa060b10fc62ce172dfa1b1e4b8998e3523f3a20a385bed51"
+      },
+      "tags": [
+      ],
+      "refs": [
+        [
+          "user_internal"
+        ],
+        [
+          "user_block"
+        ],
+        [
+          "project_block"
+        ],
+        [
+          "stg_event"
+        ]
+      ],
+      "sources": [
+      ],
+      "metrics": [
+      ],
+      "description": "",
+      "columns": {
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true,
+        "node_color": null
+      },
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+        "materialized": "table"
+      },
+      "created_at": 1675673693.987345
+    },
+    "model.infusetude.stg_event": {
+      "resource_type": "model",
+      "depends_on": {
+        "macros": [
+          "macro.dbt.type_timestamp",
+          "macro.dbt_utils.surrogate_key",
+          "macro.dbt.type_string"
+        ],
+        "nodes": [
+          "source.infusetude.amplitude.event"
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": null,
+        "database": null,
+        "tags": [
+        ],
+        "meta": {
+        },
+        "materialized": "view",
+        "incremental_strategy": null,
+        "persist_docs": {
+        },
+        "quoting": {
+        },
+        "column_types": {
+        },
+        "full_refresh": null,
+        "unique_key": null,
+        "on_schema_change": "ignore",
+        "grants": {
+        },
+        "packages": [
+        ],
+        "docs": {
+          "show": true,
+          "node_color": null
+        },
+        "post-hook": [
+        ],
+        "pre-hook": [
+        ]
+      },
+      "database": "AMPLITUDE",
+      "schema": "DBT_ANDY",
+      "fqn": [
+        "infusetude",
+        "amplitude",
+        "stg_event"
+      ],
+      "unique_id": "model.infusetude.stg_event",
+      "raw_code": "",
+      "language": "sql",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "amplitude/stg_event.sql",
+      "original_file_path": "models/amplitude/stg_event.sql",
+      "name": "stg_event",
+      "alias": "stg_event",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "c80957327d661f617cc036623d9750f9e7d2b2dc1866b345203de0227116a557"
+      },
+      "tags": [
+        "test"
+      ],
+      "refs": [
+      ],
+      "sources": [
+        [
+          "amplitude",
+          "event"
+        ]
+      ],
+      "metrics": [
+      ],
+      "description": "",
+      "columns": {
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true,
+        "node_color": null
+      },
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+      },
+      "created_at": 1675673693.988978
+    },
+    "model.infusetude.session": {
+      "resource_type": "model",
+      "depends_on": {
+        "macros": [
+          "macro.dbt.datediff",
+          "macro.dbt_utils.group_by",
+          "macro.dbt.date_trunc",
+          "macro.dbt.type_int"
+        ],
+        "nodes": [
+          "model.infusetude.event_filtered"
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": null,
+        "database": null,
+        "tags": [
+        ],
+        "meta": {
+        },
+        "materialized": "table",
+        "incremental_strategy": null,
+        "persist_docs": {
+        },
+        "quoting": {
+        },
+        "column_types": {
+        },
+        "full_refresh": null,
+        "unique_key": null,
+        "on_schema_change": "ignore",
+        "grants": {
+        },
+        "packages": [
+        ],
+        "docs": {
+          "show": true,
+          "node_color": null
+        },
+        "post-hook": [
+        ],
+        "pre-hook": [
+        ]
+      },
+      "database": "AMPLITUDE",
+      "schema": "DBT_ANDY",
+      "fqn": [
+        "infusetude",
+        "amplitude",
+        "session"
+      ],
+      "unique_id": "model.infusetude.session",
+      "raw_code": "",
+      "language": "sql",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "amplitude/session.sql",
+      "original_file_path": "models/amplitude/session.sql",
+      "name": "session",
+      "alias": "session",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "24fa63b8b70912cd8d602032f5db969bcb56bed137edd2f5df15d33718c3532e"
+      },
+      "tags": [
+        "test"
+      ],
+      "refs": [
+        [
+          "event_filtered"
+        ]
+      ],
+      "sources": [
+      ],
+      "metrics": [
+      ],
+      "description": "",
+      "columns": {
+        "unique_session_id": {
+          "name": "unique_session_id",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "user_id": {
+          "name": "user_id",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "events_per_session": {
+          "name": "events_per_session",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "session_started_at": {
+          "name": "session_started_at",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "session_ended_at": {
+          "name": "session_ended_at",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "session_length": {
+          "name": "session_length",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "session_started_at_day": {
+          "name": "session_started_at_day",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "session_ended_at_day": {
+          "name": "session_ended_at_day",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "user_session_number": {
+          "name": "user_session_number",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "last_session_ended_at": {
+          "name": "last_session_ended_at",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "last_session_ended_at_day": {
+          "name": "last_session_ended_at_day",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "is_first_user_session": {
+          "name": "is_first_user_session",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "seconds_in_between_sessions": {
+          "name": "seconds_in_between_sessions",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "minutes_in_between_sessions": {
+          "name": "minutes_in_between_sessions",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "days_in_between_sessions": {
+          "name": "days_in_between_sessions",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        }
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true,
+        "node_color": null
+      },
+      "patch_path": "infusetude://models/amplitude/amplitude.yml",
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+        "materialized": "table"
+      },
+      "created_at": 1675673694.15212
+    },
+    "model.infusetude.event_enhanced": {
+      "resource_type": "model",
+      "depends_on": {
+        "macros": [
+          "macro.dbt.type_string",
+          "macro.dbt.date_trunc",
+          "macro.dbt_utils.surrogate_key"
+        ],
+        "nodes": [
+          "model.infusetude.event_filtered",
+          "model.infusetude.session"
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": null,
+        "database": null,
+        "tags": [
+        ],
+        "meta": {
+        },
+        "materialized": "table",
+        "incremental_strategy": null,
+        "persist_docs": {
+        },
+        "quoting": {
+        },
+        "column_types": {
+        },
+        "full_refresh": null,
+        "unique_key": null,
+        "on_schema_change": "ignore",
+        "grants": {
+        },
+        "packages": [
+        ],
+        "docs": {
+          "show": true,
+          "node_color": null
+        },
+        "post-hook": [
+        ],
+        "pre-hook": [
+        ]
+      },
+      "database": "AMPLITUDE",
+      "schema": "DBT_ANDY",
+      "fqn": [
+        "infusetude",
+        "amplitude",
+        "event_enhanced"
+      ],
+      "unique_id": "model.infusetude.event_enhanced",
+      "raw_code": "",
+      "language": "sql",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "amplitude/event_enhanced.sql",
+      "original_file_path": "models/amplitude/event_enhanced.sql",
+      "name": "event_enhanced",
+      "alias": "event_enhanced",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "e957a006faedbc849882269f8e2b710bdce787d42c0715d275db29bf226a3cbe"
+      },
+      "tags": [
+      ],
+      "refs": [
+        [
+          "event_filtered"
+        ],
+        [
+          "session"
+        ]
+      ],
+      "sources": [
+      ],
+      "metrics": [
+      ],
+      "description": "",
+      "columns": {
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true,
+        "node_color": null
+      },
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+        "materialized": "table"
+      },
+      "created_at": 1675673694.0133948
+    },
+    "model.infusetude.user": {
+      "resource_type": "model",
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+          "model.infusetude.event_filtered",
+          "model.infusetude.session"
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": null,
+        "database": null,
+        "tags": [
+        ],
+        "meta": {
+        },
+        "materialized": "table",
+        "incremental_strategy": null,
+        "persist_docs": {
+        },
+        "quoting": {
+        },
+        "column_types": {
+        },
+        "full_refresh": null,
+        "unique_key": null,
+        "on_schema_change": "ignore",
+        "grants": {
+        },
+        "packages": [
+        ],
+        "docs": {
+          "show": true,
+          "node_color": null
+        },
+        "post-hook": [
+        ],
+        "pre-hook": [
+        ]
+      },
+      "database": "AMPLITUDE",
+      "schema": "DBT_ANDY",
+      "fqn": [
+        "infusetude",
+        "amplitude",
+        "user"
+      ],
+      "unique_id": "model.infusetude.user",
+      "raw_code": "",
+      "language": "sql",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "amplitude/user.sql",
+      "original_file_path": "models/amplitude/user.sql",
+      "name": "user",
+      "alias": "user",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "e339e58d7db4997ff94b0cc72fe11846bac943e56b2d6807017cdf010391e4f7"
+      },
+      "tags": [
+      ],
+      "refs": [
+        [
+          "event_filtered"
+        ],
+        [
+          "session"
+        ]
+      ],
+      "sources": [
+      ],
+      "metrics": [
+      ],
+      "description": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "user_created_at": {
+          "name": "user_created_at",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "first_session_at": {
+          "name": "first_session_at",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "last_session_at": {
+          "name": "last_session_at",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "total_events_per_user": {
+          "name": "total_events_per_user",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "total_sessions_per_user": {
+          "name": "total_sessions_per_user",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "average_session_length": {
+          "name": "average_session_length",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "average_seconds_in_between_sessions": {
+          "name": "average_seconds_in_between_sessions",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "average_minutes_in_between_sessions": {
+          "name": "average_minutes_in_between_sessions",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        },
+        "average_days_in_between_sessions": {
+          "name": "average_days_in_between_sessions",
+          "description": "",
+          "meta": {
+          },
+          "data_type": null,
+          "quote": null,
+          "tags": [
+          ]
+        }
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true,
+        "node_color": null
+      },
+      "patch_path": "infusetude://models/amplitude/amplitude.yml",
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+        "materialized": "table"
+      },
+      "created_at": 1675673694.153769
+    },
+    "seed.infusetude.project_block": {
+      "resource_type": "seed",
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": null,
+        "database": null,
+        "tags": [
+          "piperider"
+        ],
+        "meta": {
+        },
+        "materialized": "seed",
+        "incremental_strategy": null,
+        "persist_docs": {
+        },
+        "quoting": {
+        },
+        "column_types": {
+        },
+        "full_refresh": null,
+        "unique_key": null,
+        "on_schema_change": "ignore",
+        "grants": {
+        },
+        "packages": [
+        ],
+        "docs": {
+          "show": true,
+          "node_color": null
+        },
+        "quote_columns": null,
+        "post-hook": [
+        ],
+        "pre-hook": [
+        ]
+      },
+      "database": "AMPLITUDE",
+      "schema": "DBT_ANDY",
+      "fqn": [
+        "infusetude",
+        "project_block"
+      ],
+      "unique_id": "seed.infusetude.project_block",
+      "raw_code": "",
+      "language": "sql",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "project_block.csv",
+      "original_file_path": "seeds/project_block.csv",
+      "name": "project_block",
+      "alias": "project_block",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "ff8dae7a315c7154528f1129c4464d4c0072f9e674f7f4a2749d6f9ddfc3a4e7"
+      },
+      "tags": [
+        "piperider"
+      ],
+      "refs": [
+      ],
+      "sources": [
+      ],
+      "metrics": [
+      ],
+      "description": "",
+      "columns": {
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true,
+        "node_color": null
+      },
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+        "tags": "piperider"
+      },
+      "created_at": 1675673694.050499
+    },
+    "seed.infusetude.user_block": {
+      "resource_type": "seed",
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": null,
+        "database": null,
+        "tags": [
+          "piperider"
+        ],
+        "meta": {
+        },
+        "materialized": "seed",
+        "incremental_strategy": null,
+        "persist_docs": {
+        },
+        "quoting": {
+        },
+        "column_types": {
+        },
+        "full_refresh": null,
+        "unique_key": null,
+        "on_schema_change": "ignore",
+        "grants": {
+        },
+        "packages": [
+        ],
+        "docs": {
+          "show": true,
+          "node_color": null
+        },
+        "quote_columns": null,
+        "post-hook": [
+        ],
+        "pre-hook": [
+        ]
+      },
+      "database": "AMPLITUDE",
+      "schema": "DBT_ANDY",
+      "fqn": [
+        "infusetude",
+        "user_block"
+      ],
+      "unique_id": "seed.infusetude.user_block",
+      "raw_code": "",
+      "language": "sql",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "user_block.csv",
+      "original_file_path": "seeds/user_block.csv",
+      "name": "user_block",
+      "alias": "user_block",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "85a98e49f536bddf71c410877cacf464371113d83d3a74b969e2c73e752d6ca8"
+      },
+      "tags": [
+        "piperider"
+      ],
+      "refs": [
+      ],
+      "sources": [
+      ],
+      "metrics": [
+      ],
+      "description": "",
+      "columns": {
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true,
+        "node_color": null
+      },
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+        "tags": "piperider"
+      },
+      "created_at": 1675673694.0517938
+    },
+    "seed.infusetude.user_internal": {
+      "resource_type": "seed",
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": null,
+        "database": null,
+        "tags": [
+          "piperider"
+        ],
+        "meta": {
+        },
+        "materialized": "seed",
+        "incremental_strategy": null,
+        "persist_docs": {
+        },
+        "quoting": {
+        },
+        "column_types": {
+        },
+        "full_refresh": null,
+        "unique_key": null,
+        "on_schema_change": "ignore",
+        "grants": {
+        },
+        "packages": [
+        ],
+        "docs": {
+          "show": true,
+          "node_color": null
+        },
+        "quote_columns": null,
+        "post-hook": [
+        ],
+        "pre-hook": [
+        ]
+      },
+      "database": "AMPLITUDE",
+      "schema": "DBT_ANDY",
+      "fqn": [
+        "infusetude",
+        "user_internal"
+      ],
+      "unique_id": "seed.infusetude.user_internal",
+      "raw_code": "",
+      "language": "sql",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "user_internal.csv",
+      "original_file_path": "seeds/user_internal.csv",
+      "name": "user_internal",
+      "alias": "user_internal",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "ade4c686bb7d2b380eb2eb2bb2d8739634b238a02b08a382a575051fddb55358"
+      },
+      "tags": [
+        "piperider"
+      ],
+      "refs": [
+      ],
+      "sources": [
+      ],
+      "metrics": [
+      ],
+      "description": "",
+      "columns": {
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true,
+        "node_color": null
+      },
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+        "tags": "piperider"
+      },
+      "created_at": 1675673694.053091
+    },
+    "model.infusetude.project": {
+      "resource_type": "model",
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+          "model.infusetude.event_filtered"
+        ]
+      },
+      "config": {
+        "enabled": true,
+        "alias": null,
+        "schema": "cust",
+        "database": null,
+        "tags": [
+          "abc"
+        ],
+        "meta": {
+        },
+        "materialized": "table",
+        "incremental_strategy": null,
+        "persist_docs": {
+        },
+        "quoting": {
+        },
+        "column_types": {
+        },
+        "full_refresh": null,
+        "unique_key": null,
+        "on_schema_change": "ignore",
+        "grants": {
+        },
+        "packages": [
+        ],
+        "docs": {
+          "show": true,
+          "node_color": null
+        },
+        "post-hook": [
+        ],
+        "pre-hook": [
+        ]
+      },
+      "database": "AMPLITUDE",
+      "schema": "DBT_ANDY_cust",
+      "fqn": [
+        "infusetude",
+        "amplitude",
+        "project"
+      ],
+      "unique_id": "model.infusetude.project",
+      "raw_code": "",
+      "language": "sql",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "amplitude/project.sql",
+      "original_file_path": "models/amplitude/project.sql",
+      "name": "project",
+      "alias": "project",
+      "checksum": {
+        "name": "sha256",
+        "checksum": "09b0f953f3dd9af5f081c7768ce878cf5c264942f740a67a720327bbbda2ed5b"
+      },
+      "tags": [
+        "abc"
+      ],
+      "refs": [
+        [
+          "event_filtered"
+        ]
+      ],
+      "sources": [
+      ],
+      "metrics": [
+      ],
+      "description": "",
+      "columns": {
+      },
+      "meta": {
+      },
+      "docs": {
+        "show": true,
+        "node_color": null
+      },
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {
+        "materialized": "table",
+        "tags": "abc",
+        "schema": "cust"
+      },
+      "created_at": 1675840103.4016159
     }
   },
   "sources": {
@@ -592,6 +1692,360 @@
       },
       "relation_name": "INFUSE_FINANCE.PUBLIC.SYMBOL",
       "created_at": 1668579120.97753
+    }
+  },
+  "metrics": {
+    "metric.infusetude.total_events": {
+      "fqn": [
+        "infusetude",
+        "amplitude",
+        "total_events"
+      ],
+      "unique_id": "metric.infusetude.total_events",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "amplitude/metrics.yml",
+      "original_file_path": "models/amplitude/metrics.yml",
+      "name": "total_events",
+      "description": "",
+      "label": "Total Events",
+      "calculation_method": "count_distinct",
+      "timestamp": "event_time",
+      "expression": "unique_event_id",
+      "filters": [
+      ],
+      "time_grains": [
+        "day",
+        "week",
+        "month",
+        "quarter",
+        "year"
+      ],
+      "dimensions": [],
+      "window": null,
+      "model": "ref('event_enhanced')",
+      "model_unique_id": null,
+      "resource_type": "metric",
+      "meta": {
+      },
+      "tags": [
+      ],
+      "config": {
+        "enabled": true
+      },
+      "unrendered_config": {
+      },
+      "sources": [
+      ],
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+          "model.infusetude.event_enhanced"
+        ]
+      },
+      "refs": [
+        [
+          "event_enhanced"
+        ]
+      ],
+      "metrics": [
+      ],
+      "created_at": 1675673694.100235
+    },
+    "metric.infusetude.total_sessions": {
+      "fqn": [
+        "infusetude",
+        "amplitude",
+        "total_sessions"
+      ],
+      "unique_id": "metric.infusetude.total_sessions",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "amplitude/metrics.yml",
+      "original_file_path": "models/amplitude/metrics.yml",
+      "name": "total_sessions",
+      "description": "",
+      "label": "Total Sessions",
+      "calculation_method": "count_distinct",
+      "timestamp": "event_time",
+      "expression": "unique_session_id",
+      "filters": [
+      ],
+      "time_grains": [
+        "day",
+        "week",
+        "month",
+        "quarter",
+        "year"
+      ],
+      "dimensions": [
+      ],
+      "window": null,
+      "model": "ref('event_enhanced')",
+      "model_unique_id": null,
+      "resource_type": "metric",
+      "meta": {
+      },
+      "tags": [
+      ],
+      "config": {
+        "enabled": true
+      },
+      "unrendered_config": {
+      },
+      "sources": [
+      ],
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+          "model.infusetude.event_enhanced"
+        ]
+      },
+      "refs": [
+        [
+          "event_enhanced"
+        ]
+      ],
+      "metrics": [
+      ],
+      "created_at": 1675673694.1070561
+    },
+    "metric.infusetude.total_users": {
+      "fqn": [
+        "infusetude",
+        "amplitude",
+        "total_users"
+      ],
+      "unique_id": "metric.infusetude.total_users",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "amplitude/metrics.yml",
+      "original_file_path": "models/amplitude/metrics.yml",
+      "name": "total_users",
+      "description": "",
+      "label": "Total Users",
+      "calculation_method": "count_distinct",
+      "timestamp": "event_time",
+      "expression": "user_id",
+      "filters": [
+      ],
+      "time_grains": [
+        "day",
+        "week",
+        "month",
+        "quarter",
+        "year"
+      ],
+      "dimensions": [
+      ],
+      "window": null,
+      "model": "ref('event_enhanced')",
+      "model_unique_id": null,
+      "resource_type": "metric",
+      "meta": {
+      },
+      "tags": [
+      ],
+      "config": {
+        "enabled": true
+      },
+      "unrendered_config": {
+      },
+      "sources": [
+      ],
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+          "model.infusetude.event_enhanced"
+        ]
+      },
+      "refs": [
+        [
+          "event_enhanced"
+        ]
+      ],
+      "metrics": [
+      ],
+      "created_at": 1675673694.110406
+    },
+    "metric.infusetude.active_users": {
+      "fqn": [
+        "infusetude",
+        "amplitude",
+        "active_users"
+      ],
+      "unique_id": "metric.infusetude.active_users",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "amplitude/metrics.yml",
+      "original_file_path": "models/amplitude/metrics.yml",
+      "name": "active_users",
+      "description": "",
+      "label": "Active Users",
+      "calculation_method": "count_distinct",
+      "timestamp": "event_time",
+      "expression": "user_id",
+      "filters": [
+      ],
+      "time_grains": [
+        "day",
+        "week"
+      ],
+      "dimensions": [
+      ],
+      "window": null,
+      "model": "ref('event_filtered')",
+      "model_unique_id": null,
+      "resource_type": "metric",
+      "meta": {
+      },
+      "tags": [
+        "piperider"
+      ],
+      "config": {
+        "enabled": true
+      },
+      "unrendered_config": {
+      },
+      "sources": [
+      ],
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+          "model.infusetude.event_filtered"
+        ]
+      },
+      "refs": [
+        [
+          "event_filtered"
+        ]
+      ],
+      "metrics": [
+      ],
+      "created_at": 1675673694.115314
+    },
+    "metric.infusetude.active_projects": {
+      "fqn": [
+        "infusetude",
+        "amplitude",
+        "active_projects"
+      ],
+      "unique_id": "metric.infusetude.active_projects",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "amplitude/metrics.yml",
+      "original_file_path": "models/amplitude/metrics.yml",
+      "name": "active_projects",
+      "description": "",
+      "label": "Active Projects",
+      "calculation_method": "count_distinct",
+      "timestamp": "event_time",
+      "expression": "project_id",
+      "filters": [
+      ],
+      "time_grains": [
+        "day",
+        "week"
+      ],
+      "dimensions": [
+      ],
+      "window": null,
+      "model": "ref('event_filtered')",
+      "model_unique_id": null,
+      "resource_type": "metric",
+      "meta": {
+      },
+      "tags": [
+        "piperider"
+      ],
+      "config": {
+        "enabled": true
+      },
+      "unrendered_config": {
+      },
+      "sources": [
+      ],
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+          "model.infusetude.event_filtered"
+        ]
+      },
+      "refs": [
+        [
+          "event_filtered"
+        ]
+      ],
+      "metrics": [
+      ],
+      "created_at": 1675673694.146018
+    },
+    "metric.infusetude.active_projects_per_user": {
+      "fqn": [
+        "infusetude",
+        "amplitude",
+        "active_projects_per_user"
+      ],
+      "unique_id": "metric.infusetude.active_projects_per_user",
+      "package_name": "infusetude",
+      "root_path": "",
+      "path": "amplitude/metrics.yml",
+      "original_file_path": "models/amplitude/metrics.yml",
+      "name": "active_projects_per_user",
+      "description": "The average project per user",
+      "label": "Average Project Per User",
+      "calculation_method": "derived",
+      "timestamp": "order_date",
+      "expression": "active_projects / active_users",
+      "filters": [
+      ],
+      "time_grains": [
+        "day",
+        "week"
+      ],
+      "dimensions": [
+      ],
+      "window": null,
+      "model": null,
+      "model_unique_id": null,
+      "resource_type": "metric",
+      "meta": {
+      },
+      "tags": [
+        "piperider",
+        "abc"
+      ],
+      "config": {
+        "enabled": true
+      },
+      "unrendered_config": {
+      },
+      "sources": [
+      ],
+      "depends_on": {
+        "macros": [
+        ],
+        "nodes": [
+          "metric.infusetude.active_projects",
+          "metric.infusetude.active_users"
+        ]
+      },
+      "refs": [
+      ],
+      "metrics": [
+        [
+          "active_projects"
+        ],
+        [
+          "active_users"
+        ]
+      ],
+      "created_at": 1675674694.48552
     }
   }
 }
