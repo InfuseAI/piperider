@@ -8,14 +8,11 @@ from rich.console import Console
 from rich.table import Table
 from ruamel import yaml
 
-from piperider_cli.error import DbtProjectInvalidError
-from piperider_cli.metrics_engine import Metric
-from piperider_cli.profiler import ProfileSubject
-
 from piperider_cli.error import \
     DbtProjectInvalidError, \
     DbtProfileInvalidError, \
     DbtProfileBigQueryAuthWithTokenUnsupportedError
+from piperider_cli.metrics_engine import Metric
 
 console = Console()
 
@@ -55,17 +52,6 @@ def search_dbt_project_path():
             return None
 
     return dbt_project_path
-
-
-def load_dbt_project(dbt_project_path):
-    with open(dbt_project_path, 'r') as fd:
-        try:
-            yml = yaml.YAML()
-            yml.allow_duplicate_keys = True
-            dbt_project = yml.load(fd)
-        except Exception as e:
-            raise DbtProjectInvalidError(dbt_project_path, e)
-    return dbt_project
 
 
 def _warning_if_search_path_too_widely(search_path):
