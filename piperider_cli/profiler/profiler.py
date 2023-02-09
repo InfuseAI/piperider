@@ -1,7 +1,8 @@
-import concurrent.futures
+import asyncio
 import decimal
 import math
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, date, timezone
 from typing import Union, List, Tuple
 
@@ -81,6 +82,13 @@ def percentage(number, total):
     return number / total
 
 
+async def _run_in_executor(executor, func, *args):
+    if executor:
+        return await asyncio.get_running_loop().run_in_executor(executor, func, *args)
+    else:
+        return func(*args)
+
+
 class Profiler:
     """
     Profiler profile tables and columns by a sqlalchemy engine.
@@ -95,8 +103,38 @@ class Profiler:
         self.data_source = data_source
         self.event_handler = event_handler
         self.config = config
+        if self.data_source.threads > 1:
+            self.executor = ThreadPoolExecutor(max_workers=self.data_source.threads)
+        else:
+            self.executor = None
 
-    def profile(self, subjects: List[ProfileSubject] = None) -> dict:
+    async def _fetch_metadata(self, subjects):
+        futures = []
+        map_name_tables = dict()
+        total = len(subjects)
+        completed = 0
+
+        self.event_handler.handle_metadata_start()
+        self.event_handler.handle_metadata_progress(total, completed)
+        for subject in subjects:
+            def _fetch_table_task(subject):
+                engine = self.data_source.get_engine_by_database(subject.database)
+                schema = subject.schema.lower() if subject.schema is not None else None
+                return subject.name, Table(subject.table, MetaData(), autoload_with=engine, schema=schema)
+
+            future = _run_in_executor(self.executor, _fetch_table_task, subject)
+            futures.append(future)
+
+        for future in asyncio.as_completed(futures):
+            name, table = await future
+            map_name_tables[name] = table
+            completed += 1
+            self.event_handler.handle_metadata_progress(total, completed)
+        self.event_handler.handle_metadata_end()
+
+        return map_name_tables
+
+    async def _profile(self, subjects: List[ProfileSubject] = None) -> dict:
         """
         profile all tables or specific table. With different column types, it would profile different metrics.
 
@@ -116,32 +154,43 @@ class Profiler:
         result = {
             "tables": profiled_tables,
         }
-        self.event_handler.handle_run_start(result)
 
         if subjects is None:
             subjects = []
-            engine = self.data_source.get_engine_by_database()
-            table_names = inspect(engine).get_table_names()
+            table_names = inspect(self.data_source.get_engine_by_database()).get_table_names()
             for table_name in table_names:
                 subject = ProfileSubject(table_name)
                 subjects.append(subject)
 
         table_count = len(subjects)
         table_index = 0
-        self.event_handler.handle_run_progress(result, table_count, table_index)
 
-        for subject in subjects:
-            name = subject.name
-            engine = self.data_source.get_engine_by_database(subject.database)
-            table_profiler = TableProfiler(engine, subject, self.event_handler, self.config)
-            tresult = table_profiler.profile()
-            profiled_tables[name] = tresult
-            table_index = table_index + 1
+        if len(subjects) > 0:
+            self.event_handler.handle_run_start(result)
             self.event_handler.handle_run_progress(result, table_count, table_index)
 
-        self.event_handler.handle_run_end(result)
+            map_name_tables = await self._fetch_metadata(subjects)
+            for subject in subjects:
+                name = subject.name
+                table = map_name_tables[name]
+                engine = self.data_source.get_engine_by_database(subject.database)
+                table_profiler = TableProfiler(engine, self.executor, subject, table, self.event_handler, self.config)
+                tresult = await table_profiler.profile()
+                profiled_tables[name] = tresult
+                table_index = table_index + 1
+                self.event_handler.handle_run_progress(result, table_count, table_index)
+            self.event_handler.handle_run_end(result)
+        else:
+            print("No table to profile")
 
         return result
+
+    def profile(self, subjects: List[ProfileSubject] = None) -> dict:
+        if self.executor:
+            with self.executor:
+                return asyncio.run(self._profile(subjects))
+        else:
+            return asyncio.run(self._profile(subjects))
 
 
 class TableProfiler:
@@ -149,23 +198,29 @@ class TableProfiler:
     def __init__(
         self,
         engine: Engine,
+        executor: ThreadPoolExecutor,
         subject: ProfileSubject,
+        table: Table,
         event_handler: ProfilerEventHandler,
         config: Configuration
     ):
         self.engine = engine
+        self.executor = executor
         self.subject = subject
+        self.table = table
         self.event_handler = event_handler
         self.config = config
 
-    def _get_candidate_columns(self, table: Table) -> Tuple[Selectable, ColumnClause]:
+    def _get_candidate_columns(self) -> Tuple[Selectable, ColumnClause]:
+        table = self.table
         if self.engine.url.get_backend_name() == 'bigquery':
-            yield from self._get_candidate_columns_bigquery(table)
+            yield from self._get_candidate_columns_bigquery()
         else:
             for column in table.columns:
                 yield table, column
 
-    def _get_candidate_columns_bigquery(self, table: Table) -> Tuple[Selectable, ColumnClause]:
+    def _get_candidate_columns_bigquery(self) -> Tuple[Selectable, ColumnClause]:
+        table = self.table
         cte_map = dict()
 
         cte_map[None] = select(
@@ -216,7 +271,8 @@ class TableProfiler:
             else:
                 yield selectable, literal_column(f"{selectable.name}.{name}", column.type).label(column.name)
 
-    def _profile_table_metadata(self, result: dict, table: Table):
+    def _profile_table_metadata(self, result: dict):
+        table = self.table
         row_count = created = last_altered = size_bytes = None
         with self.engine.connect() as conn:
             try:
@@ -294,7 +350,8 @@ class TableProfiler:
         if size_bytes:
             result['bytes'] = size_bytes
 
-    def _profile_table_duplicate_rows(self, result: dict, table: Table):
+    def _profile_table_duplicate_rows(self, result: dict):
+        table = self.table
         if not self.config:
             return
         if not self.config.profiler_config.get('table', {}).get('duplicateRows'):
@@ -339,81 +396,11 @@ class TableProfiler:
             result['duplicate_rows'] = duplicate_rows
             result['duplicate_rows_p'] = percentage(duplicate_rows, samples)
 
-    def profile(self) -> dict:
-        subject = self.subject
-        name = subject.name
+    async def _profile_table(self, result):
+        await _run_in_executor(self.executor, self._profile_table_metadata, result)
+        await _run_in_executor(self.executor, self._profile_table_duplicate_rows, result)
 
-        self.event_handler.handle_table_start(name)
-        schema = subject.schema.lower() if subject.schema is not None else None
-        table = Table(subject.table, MetaData(), autoload_with=self.engine, schema=schema)
-        candidate_columns = list(self._get_candidate_columns(table))
-        col_index = 0
-        col_count = len(candidate_columns)
-        columns = {}
-        result = {
-            "name": name,
-            "row_count": 0,
-            "samples": 0,
-            "samples_p": None,
-            "col_count": col_count,
-            "duplicate_rows": None,
-            "duplicate_rows_p": None,
-            "columns": columns
-        }
-
-        profile_start = time.perf_counter()
-        # Profile table metrics
-        self._profile_table_metadata(result, table)
-        self._profile_table_duplicate_rows(result, table)
-        self.event_handler.handle_table_progress(name, result, col_count, col_index)
-
-        # Profile columns
-        samples_p = result['samples_p']
-        if isinstance(self.engine.pool, SingletonThreadPool):
-            for selectable, column in candidate_columns:
-                columns[column.name] = self._profile_column(name, selectable, column)
-                columns[column.name]['total'] = result['row_count']
-                columns[column.name]['samples_p'] = samples_p
-                col_index = col_index + 1
-                self.event_handler.handle_table_progress(name, result, col_count, col_index)
-            profile_end = time.perf_counter()
-            duration = profile_end - profile_start
-            result["profile_duration"] = f"{duration:.2f}"
-            result["elapsed_milli"] = int(duration * 1000)
-
-            self.event_handler.handle_table_end(name, result)
-        else:
-            for selectable, column in candidate_columns:
-                columns[column.name] = None
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                future_to_profile = {
-                    executor.submit(self._profile_column, name, selectable, column): column
-                    for selectable, column in candidate_columns
-                }
-                try:
-                    for future in concurrent.futures.as_completed(future_to_profile):
-                        column = future_to_profile[future]
-                        try:
-                            data = future.result()
-                        except Exception as exc:
-                            raise exc
-                        else:
-                            columns[column.name] = data
-                            columns[column.name]['total'] = result['row_count']
-                            columns[column.name]['samples_p'] = samples_p
-                            col_index = col_index + 1
-                            self.event_handler.handle_table_progress(name, result, col_count, col_index)
-                finally:
-                    profile_end = time.perf_counter()
-                    duration = profile_end - profile_start
-                    result["profile_duration"] = f"{duration:.2f}"
-                    result["elapsed_milli"] = int(duration * 1000)
-
-                    self.event_handler.handle_table_end(name, result)
-
-        return result
-
-    def _profile_column(self, table_name, table: Table, column: Column) -> dict:
+    async def _profile_column(self, result, table_name, table: Table, column: Column) -> dict:
         profiler_config = self.config.profiler_config if self.config else {}
         column_name = column.name
         column_type = column.type
@@ -459,7 +446,7 @@ class TableProfiler:
             generic_type = "other"
             profiler = BaseColumnProfiler(self.engine, profiler_config, table, column)
 
-        result = {
+        column_result = {
             "name": column.name,
             "type": generic_type,
             "schema_type": schema_type,
@@ -468,16 +455,71 @@ class TableProfiler:
         self.event_handler.handle_column_start(table_name, column_name)
 
         profile_start = time.perf_counter()
-        profile_result = profiler.profile()
+        profile_result = await _run_in_executor(self.executor, profiler.profile)
         profile_end = time.perf_counter()
         duration = profile_end - profile_start
 
-        result.update(profile_result)
+        column_result.update(profile_result)
+        column_result["profile_duration"] = f"{duration:.2f}"
+        column_result["elapsed_milli"] = int(duration * 1000)
+
+        self.event_handler.handle_column_end(table_name, column_name, column_result)
+
+        result['columns'][column_name] = column_result
+
+    async def profile(self) -> dict:
+        subject = self.subject
+        name = subject.name
+
+        self.event_handler.handle_table_start(name)
+        candidate_columns = list(self._get_candidate_columns())
+        col_index = 0
+        col_count = len(candidate_columns)
+        columns = {}
+        result = {
+            "name": name,
+            "row_count": 0,
+            "samples": 0,
+            "samples_p": None,
+            "col_count": col_count,
+            "duplicate_rows": None,
+            "duplicate_rows_p": None,
+            "columns": columns
+        }
+        futures = []
+        profile_start = time.perf_counter()
+
+        self.event_handler.handle_table_progress(name, result, col_count, col_index)
+
+        # Profile table
+        future = asyncio.create_task(self._profile_table(result))
+        futures.append(future)
+
+        # Profile columns
+        for selectable, column in candidate_columns:
+            columns[column.name] = None
+            future = asyncio.create_task(self._profile_column(result, name, selectable, column))
+            futures.append(future)
+
+        total = len(futures)
+        completed = 0
+        self.event_handler.handle_table_progress(name, result, total, completed)
+
+        for future in asyncio.as_completed(futures):
+            await future
+            completed += 1
+            self.event_handler.handle_table_progress(name, result, total, completed)
+
+        for column_result in columns.values():
+            column_result['total'] = result['row_count']
+            column_result['samples_p'] = result['samples_p']
+
+        profile_end = time.perf_counter()
+        duration = profile_end - profile_start
         result["profile_duration"] = f"{duration:.2f}"
         result["elapsed_milli"] = int(duration * 1000)
 
-        self.event_handler.handle_column_end(table_name, column_name, result)
-
+        self.event_handler.handle_table_end(name, result)
         return result
 
 

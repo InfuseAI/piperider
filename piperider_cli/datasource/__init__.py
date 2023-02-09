@@ -10,6 +10,7 @@ import readchar
 from rich.console import Console
 from rich.prompt import Prompt
 from sqlalchemy import create_engine, select, text
+from sqlalchemy.pool import SingletonThreadPool
 
 import piperider_cli.hack.datasource_inquirer_prompt as datasource_prompt
 from piperider_cli.error import PipeRiderTableConnectionError
@@ -102,6 +103,15 @@ class DataSource(metaclass=ABCMeta):
                     self._cached_engine[database] = engine
 
         return engine
+
+    @property
+    def threads(self):
+        if self.credential.get('threads'):
+            return self.credential.get('threads')
+        elif not isinstance(self.get_engine_by_database().pool, SingletonThreadPool):
+            return 5
+        else:
+            return 1
 
     def engine_args(self):
         return dict()
