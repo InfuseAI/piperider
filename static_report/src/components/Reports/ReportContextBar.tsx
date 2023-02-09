@@ -3,11 +3,9 @@ import { ReactNode } from 'react';
 import { BiPlug } from 'react-icons/bi';
 import { BsGearWideConnected } from 'react-icons/bs';
 
-import { SaferSRSchema } from '../../types';
-
 interface Props {
-  datasource?: SaferSRSchema['datasource'];
-  version?: SaferSRSchema['version'];
+  datasource?: string;
+  version?: string;
   showProjectInfo?: boolean;
   children?: ReactNode;
 }
@@ -21,21 +19,18 @@ export function ReportContextBar({
   children,
 }: Props) {
   return (
-    <Flex p={5} w={'100%'} gap={5} boxShadow={'xs'}>
-      {showProjectInfo ? (
-        children
-      ) : (
-        <>
-          <Flex alignItems={'center'} gap={2}>
-            <BiPlug />
-            <Text color={'gray.500'}>Source: {datasource?.name}</Text>
-          </Flex>
-          <Flex alignItems={'center'} gap={2}>
-            <BsGearWideConnected />
-            <Text color={'gray.500'}>Version: {version}</Text>
-          </Flex>
-        </>
-      )}
+    <Flex py={5} w={'100%'} gap={5}>
+      <>
+        {showProjectInfo && children}
+        <Flex alignItems={'center'} gap={2}>
+          <BiPlug />
+          <Text color={'gray.500'}>Source: {datasource}</Text>
+        </Flex>
+        <Flex alignItems={'center'} gap={2}>
+          <BsGearWideConnected />
+          <Text color={'gray.500'}>Version: {version}</Text>
+        </Flex>
+      </>
     </Flex>
   );
 }
