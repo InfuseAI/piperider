@@ -176,3 +176,9 @@ class RedshiftDataSource(DataSource):
         cred = self.credential
         database = cred.get('dbname') if cred.get('dbname') else cred.get('database')
         return f"type={self.type_name}, dbname={database}, schema={cred.get('schema')}"
+
+    def get_database(self):
+        return self.credential.get('dbname')
+
+    def get_schema(self):
+        return self.credential.get('schema')

@@ -247,6 +247,14 @@ class DataSource(metaclass=ABCMeta):
             return f"profile={dbt.get('profile')}, target={dbt.get('target')}"
         return self._get_display_description()
 
+    @abstractmethod
+    def get_database(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_schema(self):
+        raise NotImplementedError
+
 
 def _list_datasource_providers():
     from .snowflake import SnowflakeDataSource

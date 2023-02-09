@@ -24,6 +24,7 @@ from piperider_cli import event
 from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration
+from piperider_cli.datasource import DataSource
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.filesystem import FileSystem
 from piperider_cli.metrics_engine import MetricEngine, MetricEventHandler
@@ -560,6 +561,26 @@ def _check_test_status(assertion_results, assertion_exceptions, dbt_test_results
     return True
 
 
+def check_dbt_manifest_compatibility(ds: DataSource, dbt_state_dir: str):
+    database = ds.get_database()
+    schema = ds.get_schema()
+
+    manifest = dbtutil._get_state_manifest(dbt_state_dir)
+    models = [x for x in manifest.get('nodes').values() if x.get('resource_type') in ['model']]
+
+    # all model’s schema should be the prefix of target’s schema
+    def filter_schema(model):
+        model_schema = model.get('schema', '')
+        return model_schema == schema or model_schema.startswith(f'{schema}_')
+    filtered_models = list(filter(filter_schema, models))
+
+    if len(models) != len(filtered_models):
+        return False
+
+    # at least one model uses the target’s database
+    return len([x for x in models if x.get('database') == database])
+
+
 class Runner():
     @staticmethod
     def exec(datasource=None, table=None, output=None, skip_report=False, dbt_state_dir: str = None,
@@ -663,6 +684,11 @@ class Runner():
                 if not dbtutil.is_dbt_state_ready(dbt_state_dir):
                     console.print(
                         f"[bold red]Error:[/bold red] No available 'manifest.json' under '{dbt_state_dir}'")
+                    return sys.exit(1)
+
+                if not check_dbt_manifest_compatibility(ds, dbt_state_dir):
+                    console.print("[bold red]Error:[/bold red] Target mismatched. "
+                                  f"Please run 'dbt compile -t {dbt_config.get('target')}' to generate the new manifest")
                     return sys.exit(1)
 
                 if dbt_run_results:

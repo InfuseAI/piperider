@@ -237,3 +237,13 @@ class BigQueryDataSource(DataSource):
         project = cred.get('project') if cred.get('project') else cred.get('database')
         dataset = cred.get('dataset') if cred.get('dataset') else cred.get('schema')
         return f"type={self.type_name}, project={project}, dataset={dataset}"
+
+    def get_database(self):
+        cred = self.credential
+        project = cred.get('project') if cred.get('project') else cred.get('database')
+        return project
+
+    def get_schema(self):
+        cred = self.credential
+        dataset = cred.get('dataset') if cred.get('dataset') else cred.get('schema')
+        return dataset

@@ -46,3 +46,9 @@ class SqliteDataSource(DataSource):
 
     def _get_display_description(self):
         return f"type={self.type_name}, dbpath={self.credential.get('dbpath')}"
+
+    def get_database(self):
+        return self.credential.get('database')
+
+    def get_schema(self):
+        return self.credential.get('schema')
