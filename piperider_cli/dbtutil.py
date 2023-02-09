@@ -154,33 +154,37 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict):
     tag = options.get('tag')
     dbt_run_results = options.get('dbt_run_results')
     dbt_resources = options.get('dbt_resources')
-    if dbt_resources:
-        tag = dbt_run_results = None
 
     manifest = _get_state_manifest(dbt_state_dir)
     nodes = manifest.get('nodes')
 
-    unique_ids = list(nodes.keys())
+    run_results_ids = []
     if dbt_run_results:
         run_results = _get_state_run_results(dbt_state_dir)
-        run_results_ids = []
         for result in run_results.get('results'):
             if result.get('status') != 'success':
                 continue
             run_results_ids.append(result.get('unique_id'))
-        unique_ids = run_results_ids
 
-    for unique_id in unique_ids:
-        node = nodes.get(unique_id)
+    def is_chosen(key, node):
+        if dbt_resources:
+            return '.'.join(node.get('fqn')) in dbt_resources['models']
+        else:
+            config_material = node.get('config').get('materialized')
+            if config_material not in material_whitelist:
+                return False
+            if tag and tag not in node.get('tags', []):
+                return False
+            if dbt_run_results and key not in run_results_ids:
+                return False
+            return True
+
+    for key, node in nodes.items():
         if node.get('resource_type') not in resource_whitelist:
             continue
-        if tag is not None and tag not in node.get('tags', []):
+        if not is_chosen(key, node):
             continue
-        if dbt_resources is not None and '.'.join(node.get('fqn')) not in dbt_resources['models']:
-            continue
-        config_material = node.get('config').get('materialized')
-        if config_material in material_whitelist:
-            candidate.append(node)
+        candidate.append(node)
 
     return candidate
 
