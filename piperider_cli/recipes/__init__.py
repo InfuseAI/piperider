@@ -167,7 +167,7 @@ def verify_dbt_dependencies(cfg: RecipeConfiguration):
             import dbt
             dbt.__path__
             return True
-        except:
+        except Exception:
             return False
 
     if test_dbt_by_deps():
