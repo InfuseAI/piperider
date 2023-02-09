@@ -39,7 +39,7 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
         rawData={rawData}
         tableColEntries={tableColumnsOnly}
       >
-        <Box px={9} h={mainContentAreaHeight} overflowY={'auto'}>
+        <Box p={9} h={mainContentAreaHeight} overflowY={'auto'}>
           <Flex maxW={assertionListWidth - 50} w={'100%'} mt={10}>
             <SearchTextInput
               onChange={setFilterString}

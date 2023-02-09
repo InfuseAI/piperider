@@ -18,7 +18,7 @@ interface Props extends Comparable {
   columnName?: string;
   children: ReactNode;
 }
-//NOTE: Only for OSS usage. Possible for Cloud?
+//NOTE: Only for OSS usage. Reusable for Cloud?
 export function MasterDetailContainer({
   rawData,
   tableColEntries,
@@ -27,7 +27,14 @@ export function MasterDetailContainer({
   children,
   singleOnly,
 }: Props) {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  const activeMasterItem = location.includes(BM_ROUTE_PATH)
+    ? BM_ROUTE_PATH.slice(1)
+    : location.includes(ASSERTIONS_ROUTE_PATH)
+    ? ASSERTIONS_ROUTE_PATH.slice(1)
+    : location === '/'
+    ? 'root'
+    : 'children';
 
   return (
     <>
@@ -39,11 +46,16 @@ export function MasterDetailContainer({
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <MasterSideNav
+            activeMasterParent={activeMasterItem}
             tableColEntryList={tableColEntries}
             currentTable={tableName}
             currentColumn={columnName}
             onSelect={({ tableName, columnName }) => {
-              setLocation(`/tables/${tableName}/columns/${columnName}`);
+              const path = Boolean(!tableName && !columnName)
+                ? `/`
+                : `/tables/${tableName}/columns/${columnName}`;
+
+              setLocation(path);
             }}
             onNavToAssertions={() => setLocation(ASSERTIONS_ROUTE_PATH)}
             onNavToBM={() => setLocation(BM_ROUTE_PATH)}

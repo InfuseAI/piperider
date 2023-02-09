@@ -40,7 +40,7 @@ export function SRAssertionListPage({ data }: Props) {
         tableColEntries={tableColumnsOnly}
         singleOnly
       >
-        <Box px={9} h={mainContentAreaHeight} overflowY={'auto'}>
+        <Box p={9} h={mainContentAreaHeight} overflowY={'auto'}>
           <Flex maxW={assertionListWidth - 50} w={'100%'}>
             <SearchTextInput
               onChange={setFilterString}

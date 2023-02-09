@@ -9,11 +9,7 @@ import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
 import { NoData } from '../../Common';
 import { AssertionPassFailCountLabel } from '../../Assertions/AssertionPassFailCountLabel';
 import { getAssertionStatusCountsFromList } from '../utils';
-import {
-  tableListGridTempCols,
-  tableListMaxWidth,
-  tableListWidth,
-} from '../../../utils/layout';
+import { tableListGridTempCols, tableListWidth } from '../../../utils/layout';
 import { CompTableColEntryItem, ReportState } from '../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../../Common/constant';
 import { getIconForColumnType } from '../../Columns';
@@ -30,7 +26,7 @@ export function TableListItem({
   combinedTableEntry,
   onSelect,
   singleOnly,
-  ...props
+  onInfoClick,
 }: Props) {
   const [tableName, tableValue] = combinedTableEntry || [];
   const filteredBaseTableTests = combinedAssertions?.base?.filter(
@@ -53,20 +49,15 @@ export function TableListItem({
   }
   return (
     <Link
+      w={'100%'}
+      mb={2}
       _hover={{ textDecoration: 'none' }}
       onClick={(event) => {
-        event.stopPropagation();
         onSelect({ tableName });
       }}
     >
       <TableWrapper>
-        <Grid
-          templateColumns={tableListGridTempCols}
-          width={tableListMaxWidth}
-          justifyItems="flex-start"
-          position={'relative'}
-          rowGap={3}
-        >
+        <Grid templateColumns={tableListGridTempCols} rowGap={3} w={'100%'}>
           {/* 1st Row */}
           <GridItem>
             <TableItemName
@@ -74,7 +65,7 @@ export function TableListItem({
               description={description}
               onInfoClick={(event) => {
                 event.stopPropagation();
-                props.onInfoClick();
+                onInfoClick();
               }}
             />
           </GridItem>

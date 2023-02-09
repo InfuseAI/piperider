@@ -16,6 +16,8 @@ export function TableWrapper({ children }: TableWrapperProps) {
       bgColor="white"
       borderRadius="md"
       _hover={{ bgColor: 'gray.100' }}
+      justify={'space-between'}
+      maxWidth={tableListWidth}
     >
       {children}
       <Icon

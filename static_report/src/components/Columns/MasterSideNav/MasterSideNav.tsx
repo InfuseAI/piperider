@@ -7,7 +7,6 @@ import {
   AccordionButton,
   AccordionItem,
   AccordionPanel,
-  Link as ChakraLink,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
@@ -20,6 +19,8 @@ import { ColumnListAccordionPanel } from './ColumnListAccordionPanel';
 import { TableItemAccordionButton } from './TableItemAccordionButton';
 
 interface Props extends Selectable, Comparable {
+  activeMasterParent?: string;
+  isTablesIndex?: boolean;
   currentTable?: string;
   currentColumn?: string;
   tableColEntryList?: CompTableColEntryItem[];
@@ -36,6 +37,7 @@ interface Props extends Selectable, Comparable {
  * if icon is selected, no-nav + expand.
  */
 export function MasterSideNav({
+  activeMasterParent,
   tableColEntryList = [],
   currentTable,
   currentColumn,
@@ -47,23 +49,40 @@ export function MasterSideNav({
   // eslint-disable-next-line
   const [placeholder] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
 
-  //initial state should depend on position of current table in tableColEntryList
+  //initial state depends on position of current table in tableColEntryList
   const initialIndex = tableColEntryList.findIndex(
     ([key]) => key === currentTable,
   );
 
+  const [rootTablesExpandedIndexList, setRootTablesExpandedIndexList] =
+    useState<number[]>([0]);
   const [tablesExpandedIndexList, setTablesExpandedIndexList] = useState<
     number[]
   >([initialIndex]);
 
   return (
     <Box w={'100%'} zIndex={150} bg={'inherit'}>
-      <Accordion allowMultiple defaultIndex={[0]}>
+      <Accordion allowToggle index={rootTablesExpandedIndexList}>
         <AccordionItem border={'none'}>
           {({ isExpanded }) => (
             <>
               <h2>
-                <AccordionButton py={0}>
+                <AccordionButton
+                  py={0}
+                  _hover={{
+                    bg:
+                      activeMasterParent === 'root'
+                        ? 'piperider.400'
+                        : 'inherit',
+                  }}
+                  color={activeMasterParent === 'root' ? 'white' : 'inherit'}
+                  bg={
+                    activeMasterParent === 'root' ? 'piperider.400' : 'inherit'
+                  }
+                  onClick={(e) => {
+                    onSelect({});
+                  }}
+                >
                   <Flex
                     mt={3}
                     mb={2}
@@ -72,8 +91,16 @@ export function MasterSideNav({
                     justifyContent={'space-between'}
                     alignItems={'center'}
                   >
-                    <Text>Tables</Text>
-                    <Icon as={isExpanded ? FiChevronDown : FiChevronRight} />
+                    <Text fontWeight={'medium'}>Tables</Text>
+                    <Icon
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRootTablesExpandedIndexList(([itemIndex]) =>
+                          itemIndex > -1 ? [] : [0],
+                        );
+                      }}
+                      as={isExpanded ? FiChevronDown : FiChevronRight}
+                    />
                   </Flex>
                 </AccordionButton>
               </h2>
@@ -169,26 +196,41 @@ export function MasterSideNav({
             </>
           )}
         </AccordionItem>
+        <AccordionItem>
+          <AccordionButton
+            _hover={{
+              bg:
+                activeMasterParent === 'metrics' ? 'piperider.400' : 'inherit',
+            }}
+            color={activeMasterParent === 'metrics' ? 'white' : 'inherit'}
+            bg={activeMasterParent === 'metrics' ? 'piperider.400' : 'inherit'}
+            onClick={() => {
+              onNavToBM();
+            }}
+          >
+            <Text fontWeight={'medium'}>Metrics</Text>
+          </AccordionButton>
+        </AccordionItem>
+        <AccordionItem>
+          <AccordionButton
+            _hover={{
+              bg:
+                activeMasterParent === 'assertions'
+                  ? 'piperider.400'
+                  : 'inherit',
+            }}
+            color={activeMasterParent === 'assertions' ? 'white' : 'inherit'}
+            bg={
+              activeMasterParent === 'assertions' ? 'piperider.400' : 'inherit'
+            }
+            onClick={() => {
+              onNavToAssertions();
+            }}
+          >
+            <Text fontWeight={'medium'}>Assertions</Text>
+          </AccordionButton>
+        </AccordionItem>
       </Accordion>
-
-      <Flex px={5} mt={5}>
-        <ChakraLink
-          onClick={() => {
-            onNavToBM();
-          }}
-        >
-          Metrics
-        </ChakraLink>
-      </Flex>
-      <Flex px={5} mt={5}>
-        <ChakraLink
-          onClick={() => {
-            onNavToAssertions();
-          }}
-        >
-          Assertions
-        </ChakraLink>
-      </Flex>
     </Box>
   );
 }
