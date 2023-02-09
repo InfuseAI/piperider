@@ -16,7 +16,9 @@ from piperider_cli.error import \
     PipeRiderInvalidDataSourceError, \
     DbtProjectNotFoundError, \
     DbtProfileNotFoundError, \
-    DbtProjectInvalidError
+    DbtProjectInvalidError, \
+    DbtProfileInvalidError, \
+    DbtProfileBigQueryAuthWithTokenUnsupportedError
 
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_WORKSPACE_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
@@ -105,13 +107,8 @@ class Configuration(object):
         if not os.path.exists(dbt_project_path):
             raise DbtProjectNotFoundError(dbt_project_path)
 
-        with open(dbt_project_path, 'r') as fd:
-            try:
-                yml = yaml.YAML()
-                yml.allow_duplicate_keys = True
-                dbt_project = yml.load(fd)
-            except Exception as e:
-                raise DbtProjectInvalidError(dbt_project_path, e)
+        from piperider_cli.dbtutil import load_dbt_project
+        dbt_project = load_dbt_project(dbt_project_path)
 
         if not os.path.exists(os.path.expanduser(dbt_profile_path)):
             raise DbtProfileNotFoundError(dbt_profile_path)
@@ -129,6 +126,8 @@ class Configuration(object):
         credential = dbtutil.load_credential_from_dbt_profile(dbt_profile, profile_name, target_name)
         type_name = credential.get('type')
         dbt = {
+            'profile': profile_name,
+            'target': target_name,
             'projectDir': os.path.relpath(os.path.dirname(dbt_project_path), os.getcwd()),
         }
 

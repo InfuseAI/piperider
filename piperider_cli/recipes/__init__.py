@@ -35,6 +35,9 @@ class AbstractRecipeField(metaclass=ABCMeta):
         self.environments: Dict[str, str] = {e['name']: e['value'] for e in content.get('env', [])}
         self.commands: List[str] = content.get('commands', [])
 
+        if content.get('command'):
+            self.commands.append(content.get('command'))
+
     def __dict__(self):
         d = dict()
         if self.environments:
@@ -260,8 +263,9 @@ if __name__ == '__main__':
 
     test_recipe_path = os.path.join(os.path.dirname(__file__), 'example_recipe.yml')
     try:
+
         recipe = RecipeConfiguration.load(test_recipe_path)
-        print(recipe)
+        console.print(recipe.__dict__())
     except ValidationError as e:
         print(e.message)
     exit(1)
