@@ -665,7 +665,7 @@ class Runner():
 
                 if not check_dbt_manifest_compatibility(ds, dbt_state_dir):
                     console.print("[bold red]Error:[/bold red] Target mismatched. "
-                                  "Please run 'dbt compile -t <target>' to generate the new manifest")
+                                  f"Please run 'dbt compile -t {dbt_config.get('target')}' to generate the new manifest")
                     return sys.exit(1)
 
                 if dbt_run_results:
