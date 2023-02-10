@@ -56,7 +56,7 @@ export function MasterSideNav({
     ([key]) => key === currentTable,
   );
 
-  //If parent container passes a `initAsExpandedTables: boolean` flag, certain routes can decide whether to show as expanded or not when navigating
+  //If parent container passes a `initAsExpandedTables: boolean` flag, certain routes to decide whether to show as expanded or not
   const [rootTablesExpandedIndexList, setRootTablesExpandedIndexList] =
     useState<number[]>(initAsExpandedTables ? [0] : []);
   const [tablesExpandedIndexList, setTablesExpandedIndexList] = useState<

@@ -82,7 +82,8 @@ export function BMWidget({ data: { base, target }, singleOnly }: Props) {
           </Text>
         </Flex>
       </Box>
-      <Flex h={'300px'} w={'100%'}>
+      {/* NOTE: Weird bug where chart.js responsive overflows on 100% */}
+      <Flex h={'300px'} maxW={'98%'}>
         {_getBMChart({
           selectedBMChartType,
           comparableBMData: { base, target },
@@ -96,7 +97,7 @@ export function BMWidget({ data: { base, target }, singleOnly }: Props) {
 
 /**
  * gets the Business Metric chart for the selected type
- * NOTE: exporting from utils will cause circular dep breakage
+ * FIXME: Does functional component returns cause grid css breakage?
  */
 function _getBMChart({
   selectedBMChartType,
@@ -113,6 +114,7 @@ function _getBMChart({
   // Determines the datasets shown by BM*Chart
   // TODO: (later: dimensions; dimension+cr??)
   const bmGroupList = singleOnly ? [base] : [base, target];
+  console.log(bmGroupList);
 
   // if no dimensions, treat w/ sr+cr split
   if (selectedBMChartType === 'line') {
