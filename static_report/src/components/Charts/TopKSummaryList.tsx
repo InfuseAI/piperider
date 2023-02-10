@@ -30,6 +30,7 @@ export function TopKSummaryList({ topk, valids }: Props) {
   const displayList = topk.counts.slice(0, endAtIndex);
   const remainingSumCount =
     valids - displayList.reduce((accum, curr) => accum + curr, 0);
+  console.log('>>>', displayList);
 
   return (
     <Box w={'100%'}>
@@ -37,6 +38,7 @@ export function TopKSummaryList({ topk, valids }: Props) {
         const isLastItemOthers = index === displayList.length;
         const topkCount = isLastItemOthers ? remainingSumCount : v;
         const catName = String(topk.values[index]);
+
         const topkLabel = isLastItemOthers ? '(others)' : catName || '(empty)';
         const displayTopkCount = formatAsAbbreviatedNumber(topkCount);
         const displayTopkRatio = formatIntervalMinMax(topkCount / valids);
