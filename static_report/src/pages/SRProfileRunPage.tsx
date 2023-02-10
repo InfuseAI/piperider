@@ -82,6 +82,7 @@ export default function SRProfileRunPage({
   return (
     <Main isSingleReport>
       <MasterDetailContainer
+        initAsExpandedTables
         rawData={rawData}
         tableColEntries={tableColumnsOnly}
         tableName={tableName}
@@ -89,6 +90,7 @@ export default function SRProfileRunPage({
         singleOnly
       >
         {/* Detail Area - Table Detail */}
+        {/* TODO: extract as *Views? */}
         {isTableDetailsView ? (
           <GridItem h={mainContentAreaHeight} overflowY={'auto'} p={10}>
             <TableColumnHeader

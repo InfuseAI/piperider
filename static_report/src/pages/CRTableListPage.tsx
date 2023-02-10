@@ -44,6 +44,7 @@ export function CRTablesListPage({ data }: Props) {
   return (
     <Main isSingleReport={false}>
       <MasterDetailContainer
+        initAsExpandedTables
         rawData={rawData}
         tableColEntries={tableColumnsOnly}
       >

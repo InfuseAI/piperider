@@ -21,6 +21,7 @@ import { TableItemAccordionButton } from './TableItemAccordionButton';
 interface Props extends Selectable, Comparable {
   activeMasterParent?: string;
   isTablesIndex?: boolean;
+  initAsExpandedTables?: boolean;
   currentTable?: string;
   currentColumn?: string;
   tableColEntryList?: CompTableColEntryItem[];
@@ -38,6 +39,7 @@ interface Props extends Selectable, Comparable {
  */
 export function MasterSideNav({
   activeMasterParent,
+  initAsExpandedTables,
   tableColEntryList = [],
   currentTable,
   currentColumn,
@@ -54,8 +56,9 @@ export function MasterSideNav({
     ([key]) => key === currentTable,
   );
 
+  //If parent container passes a `initAsExpandedTables: boolean` flag, certain routes can decide whether to show as expanded or not when navigating
   const [rootTablesExpandedIndexList, setRootTablesExpandedIndexList] =
-    useState<number[]>([0]);
+    useState<number[]>(initAsExpandedTables ? [0] : []);
   const [tablesExpandedIndexList, setTablesExpandedIndexList] = useState<
     number[]
   >([initialIndex]);

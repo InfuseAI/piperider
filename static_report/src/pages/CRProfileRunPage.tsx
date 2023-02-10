@@ -93,6 +93,7 @@ export default function CRProfileRunPage({
   return (
     <Main isSingleReport={false}>
       <MasterDetailContainer
+        initAsExpandedTables
         rawData={rawData}
         tableColEntries={tableColumnsOnly}
         tableName={tableName}

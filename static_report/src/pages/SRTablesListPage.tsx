@@ -42,6 +42,7 @@ export function SRTablesListPage({ data }: Props) {
   return (
     <Main isSingleReport>
       <MasterDetailContainer
+        initAsExpandedTables
         rawData={rawData}
         tableColEntries={tableColumnsOnly}
       >

@@ -1,4 +1,4 @@
-import { Flex, Text } from '@chakra-ui/react';
+import { Flex, FlexProps, Text } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { BiPlug } from 'react-icons/bi';
 import { BsGearWideConnected } from 'react-icons/bs';
@@ -17,9 +17,10 @@ export function ReportContextBar({
   version,
   showProjectInfo,
   children,
-}: Props) {
+  ...props
+}: Props & FlexProps) {
   return (
-    <Flex py={5} w={'100%'} gap={5}>
+    <Flex py={5} w={'100%'} gap={5} {...props}>
       <>
         {showProjectInfo && children}
         <Flex alignItems={'center'} gap={2}>

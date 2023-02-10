@@ -12,6 +12,7 @@ import { MasterSideNav } from '../Columns/MasterSideNav';
 import { ReportContextBar } from '../Reports';
 
 interface Props extends Comparable {
+  initAsExpandedTables?: boolean;
   rawData: Partial<ComparisonReportSchema>;
   tableColEntries: CompTableColEntryItem[];
   tableName?: string;
@@ -23,11 +24,13 @@ export function MasterDetailContainer({
   rawData,
   tableColEntries,
   tableName,
+  initAsExpandedTables,
   columnName,
   children,
   singleOnly,
 }: Props) {
   const [location, setLocation] = useLocation();
+  const fallback = rawData.input ?? rawData.base;
   const activeMasterItem = location.includes(BM_ROUTE_PATH)
     ? BM_ROUTE_PATH.slice(1)
     : location.includes(ASSERTIONS_ROUTE_PATH)
@@ -39,13 +42,15 @@ export function MasterDetailContainer({
   return (
     <>
       <ReportContextBar
-        datasource={rawData.base?.datasource}
-        version={rawData.base?.version}
+        datasource={fallback?.datasource.name}
+        version={fallback?.version}
+        px={3}
       />
       <Grid width={'inherit'} templateColumns={allContentGridTempCols}>
         {/* Master Area */}
         <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
           <MasterSideNav
+            initAsExpandedTables={initAsExpandedTables}
             activeMasterParent={activeMasterItem}
             tableColEntryList={tableColEntries}
             currentTable={tableName}
