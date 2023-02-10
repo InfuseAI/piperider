@@ -42,8 +42,11 @@ class AbstractRecipeField(metaclass=ABCMeta):
         d = dict()
         if self.environments:
             d['env'] = [{'name': k, 'value': v} for k, v in self.environments.items()]
-        if self.commands:
+        if len(self.commands) == 1:
+            d['command'] = self.commands[0]
+        elif self.commands:
             d['commands'] = self.commands
+
         return d
 
     def envs(self):
