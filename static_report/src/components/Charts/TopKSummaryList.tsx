@@ -30,7 +30,6 @@ export function TopKSummaryList({ topk, valids }: Props) {
   const displayList = topk.counts.slice(0, endAtIndex);
   const remainingSumCount =
     valids - displayList.reduce((accum, curr) => accum + curr, 0);
-  console.log('>>>', displayList);
 
   return (
     <Box w={'100%'}>
