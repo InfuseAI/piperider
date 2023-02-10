@@ -3,10 +3,7 @@ import { Suspense, lazy } from 'react';
 import { Switch, Route, Router, BaseLocationHook } from 'wouter';
 import { BrowserTracing } from '@sentry/tracing';
 
-import { Loading } from './components/Layouts/Loading';
 import { NotFound } from './components/Common/NotFound';
-import { SRTablesListPage } from './pages/SRTablesListPage';
-import { CRTablesListPage } from './pages/CRTablesListPage';
 import { useHashLocation } from './hooks/useHashLcocation';
 import {
   ASSERTIONS_ROUTE_PATH,
@@ -14,9 +11,12 @@ import {
   COLUMN_DETAILS_ROUTE_PATH,
 } from './utils/routes';
 import { SRAssertionListPage } from './pages/SRAssertionListPage';
-import { CRAssertionListPage } from './pages/CRAssertionListPage';
 import { SRBMPage } from './pages/SRBMPage';
 import { CRBMPage } from './pages/CRBMPage';
+import { CRAssertionListPage } from './pages/CRAssertionListPage';
+import { Loading } from './components/Common';
+import { SRTablesListPage } from './pages/SRTablesListPage';
+import { CRTablesListPage } from './pages/CRTableListPage';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns && process.env.NODE_ENV !== 'development') {
@@ -37,8 +37,8 @@ if (sentryDns && process.env.NODE_ENV !== 'development') {
   Sentry.setTag('piperider.version', appVersion);
 }
 
-const SRColumnDetailsPage = lazy(() => import('./pages/SRColumnDetailsPage'));
-const CRColumnDetailsPage = lazy(() => import('./pages/CRColumnDetailsPage'));
+const SRProfileRunPage = lazy(() => import('./pages/SRProfileRunPage'));
+const CRProfileRunPage = lazy(() => import('./pages/CRProfileRunPage'));
 
 function AppSingle() {
   return (
@@ -47,14 +47,18 @@ function AppSingle() {
         <Switch>
           <Route
             path="/"
-            component={() => (
-              <SRTablesListPage data={window.PIPERIDER_SINGLE_REPORT_DATA} />
-            )}
+            component={() => {
+              return (
+                <SRTablesListPage
+                  data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
+                />
+              );
+            }}
           />
 
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
             {({ tableName, columnName }) => (
-              <SRColumnDetailsPage
+              <SRProfileRunPage
                 tableName={decodeURIComponent(tableName || '')}
                 columnName={decodeURIComponent(columnName || '')}
                 data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
@@ -92,16 +96,18 @@ function AppComparison() {
         <Switch>
           <Route
             path="/"
-            component={() => (
-              <CRTablesListPage
-                data={window.PIPERIDER_COMPARISON_REPORT_DATA}
-              />
-            )}
+            component={() => {
+              return (
+                <CRTablesListPage
+                  data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}
+                />
+              );
+            }}
           />
 
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
             {({ tableName, columnName }) => (
-              <CRColumnDetailsPage
+              <CRProfileRunPage
                 tableName={decodeURIComponent(tableName || '')}
                 columnName={decodeURIComponent(columnName || '')}
                 data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}

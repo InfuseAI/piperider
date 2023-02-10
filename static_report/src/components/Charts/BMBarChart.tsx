@@ -28,7 +28,7 @@ export function BMBarChart({
   stacked,
   hasDimensions,
 }: Props) {
-  ChartJS.register(BarElement, LinearScale, CategoryScale, Legend, Tooltip);
+  ChartJS.register(BarElement, LinearScale, CategoryScale, Tooltip);
 
   let labelVal;
   const datasets: ChartDataset<'bar'>[] = [];
@@ -109,5 +109,5 @@ export function BMBarChart({
     labels: labelVal, //TODO: dimensional cat. labels
   };
 
-  return <Bar data={chartData} options={chartOpts} />;
+  return <Bar plugins={[Legend]} data={chartData} options={chartOpts} />;
 }

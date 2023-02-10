@@ -1,4 +1,3 @@
-export * from './TableActionBar';
 export * from './TableColumnHeader';
 export * from './TableList';
 export * from './TableMetrics';

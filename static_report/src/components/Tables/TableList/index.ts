@@ -1,5 +1,5 @@
 export * from './ColumnBadge';
-export * from './ColumnName';
+export * from '../../Columns/MasterSideNav/ColumnName';
 export * from './TableColumnSchemaList';
 export * from './TableListAssertions';
 export * from './TableListItem';

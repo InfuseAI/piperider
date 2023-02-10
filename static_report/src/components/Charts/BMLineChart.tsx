@@ -41,7 +41,6 @@ export function BMLineChart({
     LinearScale,
     CategoryScale,
     Filler,
-    Legend,
     Tooltip,
   );
 
@@ -136,5 +135,5 @@ export function BMLineChart({
     datasets,
   };
 
-  return <Line data={chartData} options={chartOpts} />;
+  return <Line plugins={[Legend]} data={chartData} options={chartOpts} />;
 }

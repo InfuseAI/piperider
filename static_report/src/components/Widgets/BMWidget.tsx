@@ -82,7 +82,8 @@ export function BMWidget({ data: { base, target }, singleOnly }: Props) {
           </Text>
         </Flex>
       </Box>
-      <Flex h={'300px'} w={'100%'}>
+      {/* NOTE: Weird bug where chart.js responsive overflows on 100% (inside Grid)*/}
+      <Flex h={'300px'} maxW={'98%'}>
         {_getBMChart({
           selectedBMChartType,
           comparableBMData: { base, target },
@@ -96,7 +97,6 @@ export function BMWidget({ data: { base, target }, singleOnly }: Props) {
 
 /**
  * gets the Business Metric chart for the selected type
- * NOTE: exporting from utils will cause circular dep breakage
  */
 function _getBMChart({
   selectedBMChartType,

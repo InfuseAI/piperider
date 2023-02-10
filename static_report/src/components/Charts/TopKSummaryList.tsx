@@ -37,6 +37,7 @@ export function TopKSummaryList({ topk, valids }: Props) {
         const isLastItemOthers = index === displayList.length;
         const topkCount = isLastItemOthers ? remainingSumCount : v;
         const catName = String(topk.values[index]);
+
         const topkLabel = isLastItemOthers ? '(others)' : catName || '(empty)';
         const displayTopkCount = formatAsAbbreviatedNumber(topkCount);
         const displayTopkRatio = formatIntervalMinMax(topkCount / valids);

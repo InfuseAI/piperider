@@ -1,52 +1,54 @@
-import { Flex, Text, Grid, useDisclosure } from '@chakra-ui/react';
-import { useLocation } from 'wouter';
-import { useState } from 'react';
-
 import { Main } from '../components/Common/Main';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
-import { SaferSRSchema } from '../types';
 import { TableListItem } from '../components/Tables/TableList/TableListItem';
-import { tableListGridTempCols, tableListMaxWidth } from '../utils/layout';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { type ComparisonReportSchema } from '../types';
+import { Flex, Text, Grid, useDisclosure } from '@chakra-ui/react';
+import { useState } from 'react';
+import { useLocation } from 'wouter';
+
+import {
+  tableListGridTempCols,
+  tableListMaxWidth,
+  tableListWidth,
+} from '../utils/layout';
 import { useReportStore } from '../utils/store';
 import { TableColumnSchemaList } from '../components/Tables/TableList/TableColumnSchemaList';
-import { useAmplitudeOnMount } from '../hooks/useAmplitudeOnMount';
-import { AMPLITUDE_EVENTS, SR_TYPE_LABEL } from '../utils/amplitudeEvents';
+import { useAmplitudeOnMount } from '../hooks';
+import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils/amplitudeEvents';
 import { CommonModal } from '../components/Common/CommonModal';
 import { MasterDetailContainer } from '../components/Common/MasterDetailContainer';
 
-type Props = { data: SaferSRSchema };
+type Props = { data: ComparisonReportSchema };
 
-export function SRTablesListPage({ data }: Props) {
+export function CRTablesListPage({ data }: Props) {
+  useDocumentTitle('Comparison Report: Tables');
+  useAmplitudeOnMount({
+    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+    eventProperties: {
+      type: CR_TYPE_LABEL,
+      page: 'table-list-page',
+    },
+  });
   const modal = useDisclosure();
   const [tableColsEntryId, setTableColsEntryId] = useState(-1);
+  const [, setLocation] = useLocation();
   const setReportData = useReportStore((s) => s.setReportRawData);
-  setReportData({ base: data });
+  setReportData({ base: data.base, input: data.input });
   const {
     tableColumnsOnly = [],
     assertionsOnly,
     rawData,
   } = useReportStore.getState();
 
-  const [, setLocation] = useLocation();
-
-  useDocumentTitle('Single-Run Report: Tables');
-  useAmplitudeOnMount({
-    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
-    eventProperties: {
-      type: SR_TYPE_LABEL,
-      page: 'table-list-page',
-    },
-  });
-
   return (
-    <Main isSingleReport>
+    <Main isSingleReport={false}>
       <MasterDetailContainer
         initAsExpandedTables
         rawData={rawData}
         tableColEntries={tableColumnsOnly}
       >
-        <Flex direction="column" width={'100%'} minHeight="650px" p={9}>
+        <Flex direction="column" width={tableListWidth} minHeight="650px" p={9}>
           <Grid
             templateColumns={tableListGridTempCols}
             maxW={tableListMaxWidth}
@@ -57,21 +59,22 @@ export function SRTablesListPage({ data }: Props) {
             <Text>Summary</Text>
             <Text>Assertions</Text>
           </Grid>
-          {tableColumnsOnly.map((tableColsEntry, i) => {
+
+          {tableColumnsOnly.map((tableColEntry, i) => {
             return (
-              <TableListItem
-                key={i}
-                combinedAssertions={assertionsOnly}
-                combinedTableEntry={tableColsEntry}
-                singleOnly
-                onInfoClick={() => {
-                  setTableColsEntryId(i);
-                  modal.onOpen();
-                }}
-                onSelect={({ tableName }) =>
-                  setLocation(`/tables/${tableName}/columns/`)
-                }
-              />
+              <Flex key={i}>
+                <TableListItem
+                  combinedAssertions={assertionsOnly}
+                  combinedTableEntry={tableColEntry}
+                  onSelect={() =>
+                    setLocation(`/tables/${tableColEntry[0]}/columns/`)
+                  }
+                  onInfoClick={() => {
+                    setTableColsEntryId(i);
+                    modal.onOpen();
+                  }}
+                />
+              </Flex>
             );
           })}
         </Flex>
@@ -90,14 +93,16 @@ export function SRTablesListPage({ data }: Props) {
           <Text fontSize="lg" mb={4}>
             Description:{' '}
             {(tableColsEntryId !== -1 &&
-              tableColumnsOnly[tableColsEntryId][1].base?.description) ?? (
+              tableColumnsOnly[tableColsEntryId][1].target?.description) ?? (
               <Text as="i">No description provided.</Text>
             )}
           </Text>
           {tableColsEntryId !== -1 && (
             <TableColumnSchemaList
-              singleOnly
               baseTableEntryDatum={tableColumnsOnly[tableColsEntryId][1].base}
+              targetTableEntryDatum={
+                tableColumnsOnly[tableColsEntryId][1].target
+              }
             />
           )}
         </CommonModal>

@@ -1,5 +1,4 @@
 import {
-  Flex,
   Grid,
   GridItem,
   Tab,
@@ -8,25 +7,17 @@ import {
   TabPanels,
   Tabs,
 } from '@chakra-ui/react';
-import { useLocation } from 'wouter';
 import { useState } from 'react';
-import { useLocalStorage } from 'react-use';
 
 import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
-import {
-  allContentGridTempCols,
-  borderVal,
-  extraSpaceAllContentGridTempCols,
-  mainContentAreaHeight,
-} from '../utils/layout';
+import { borderVal, mainContentAreaHeight } from '../utils/layout';
 import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
-import { ColumnDetailMasterList } from '../components/Columns/ColumnDetailMasterList';
 
 import type { SingleReportSchema } from '../sdlc/single-report-schema';
 import { DataSummaryWidget } from '../components/Widgets/DataSummaryWidget';
-import { NoData } from '../components/Layouts/NoData';
+import { NoData } from '../components/Common/NoData';
 import {
   containsDataSummary,
   containsColumnQuantile,
@@ -35,23 +26,20 @@ import {
 import { TableOverview } from '../components/Tables/TableOverview';
 import {
   AMPLITUDE_EVENTS,
-  AssertionPassFailCountLabel,
-  AssertionListWidget,
   SR_TYPE_LABEL,
   TableColumnSchemaList,
   useAmplitudeOnMount,
   useDocumentTitle,
-  getAssertionStatusCountsFromList,
-  MASTER_LIST_SHOW_EXTRA,
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
+import { MasterDetailContainer } from '../components/Common/MasterDetailContainer';
 interface Props {
   data: SingleReportSchema;
   columnName: string;
   tableName: string;
 }
-export default function SRColumnDetailsPage({
+export default function SRProfileRunPage({
   data,
   columnName,
   tableName,
@@ -64,14 +52,11 @@ export default function SRColumnDetailsPage({
       page: 'column-details-page',
     },
   });
-  const [, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState<number>(0);
-  const [showExtra] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
-  const [extraSpace, setExtraSpace] = useState<boolean>(Boolean(showExtra));
 
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
-  const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
+  const { tableColumnsOnly = [], rawData } = useReportStore.getState();
   const currentTableEntry = tableColumnsOnly.find(
     ([tableKey]) => tableKey === tableName,
   );
@@ -82,10 +67,6 @@ export default function SRColumnDetailsPage({
   const dataColumns = dataTable.columns;
   const columnDatum = dataColumns[columnName];
 
-  const { failed: baseFailed, total: baseTotal } =
-    getAssertionStatusCountsFromList(
-      assertionsOnly?.base?.filter((v) => v?.table === tableName) || [],
-    );
   const { type, histogram, schema_type } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
 
@@ -99,37 +80,19 @@ export default function SRColumnDetailsPage({
 
   const hasQuantile = containsColumnQuantile(type);
   return (
-    <Main isSingleReport maxHeight={mainContentAreaHeight}>
-      <Grid
-        width={'inherit'}
-        templateColumns={
-          extraSpace ? extraSpaceAllContentGridTempCols : allContentGridTempCols
-        }
+    <Main isSingleReport>
+      <MasterDetailContainer
+        initAsExpandedTables
+        rawData={rawData}
+        tableColEntries={tableColumnsOnly}
+        tableName={tableName}
+        columnName={columnName}
+        singleOnly
       >
-        {/* Master Area */}
-        <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
-          <ColumnDetailMasterList
-            tableColEntryList={tableColumnsOnly}
-            tableColEntry={currentTableEntry}
-            currentTable={tableName}
-            currentColumn={columnName}
-            onSelect={({ tableName, columnName }) => {
-              setTabIndex(0); //resets tabs
-              setLocation(`/tables/${tableName}/columns/${columnName}`);
-            }}
-            onNavBack={() => {
-              setLocation('/');
-            }}
-            onNavToTableDetail={(tableName) => {
-              setLocation(`/tables/${tableName}/columns/`);
-            }}
-            onToggleShowExtra={() => setExtraSpace((v) => !v)}
-            singleOnly
-          />
-        </GridItem>
         {/* Detail Area - Table Detail */}
+        {/* TODO: extract as *Views? */}
         {isTableDetailsView ? (
-          <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
+          <GridItem h={mainContentAreaHeight} overflowY={'auto'} p={10}>
             <TableColumnHeader
               title={dataTable.name}
               subtitle={'Table'}
@@ -139,7 +102,6 @@ export default function SRColumnDetailsPage({
             <Tabs mt={3} defaultIndex={0}>
               <TabList>
                 <Tab>Overview</Tab>
-                <Tab>Assertions</Tab>
                 <Tab>Schema</Tab>
               </TabList>
               <TabPanels>
@@ -147,24 +109,6 @@ export default function SRColumnDetailsPage({
                   <Grid templateColumns={'1fr 1fr'} gap={3}>
                     <TableOverview tableDatum={dataTable} />
                   </Grid>
-                </TabPanel>
-                <TabPanel>
-                  {Number(baseTotal) > 0 && (
-                    <Flex mb={5}>
-                      <AssertionPassFailCountLabel
-                        total={baseTotal}
-                        failed={baseFailed}
-                      />
-                    </Flex>
-                  )}
-                  <AssertionListWidget
-                    filterString={dataTable.name}
-                    filterByTableOnly
-                    caseSensitiveFilter
-                    comparableAssertions={assertionsOnly}
-                    singleOnly
-                    tableSize={'sm'}
-                  />
                 </TabPanel>
                 <TabPanel>
                   <TableColumnSchemaList
@@ -183,7 +127,7 @@ export default function SRColumnDetailsPage({
             gridAutoFlow={'column'}
             width={'100%'}
             pb={5}
-            maxHeight={mainContentAreaHeight}
+            h={mainContentAreaHeight}
             overflowY={'auto'}
           >
             {/* Label Block */}
@@ -247,7 +191,7 @@ export default function SRColumnDetailsPage({
             </GridItem>
           </Grid>
         )}
-      </Grid>
+      </MasterDetailContainer>
     </Main>
   );
 }

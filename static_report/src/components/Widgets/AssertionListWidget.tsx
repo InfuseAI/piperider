@@ -36,7 +36,7 @@ import {
   CRAssertionModal,
   CRAssertionModalData,
 } from '../Assertions/AssertionCRModal';
-import { NoData } from '../Layouts/NoData';
+import { NoData } from '../Common/NoData';
 
 type JoinFields = {
   baseStatus?: 'passed' | 'failed';
