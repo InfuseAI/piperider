@@ -4,6 +4,7 @@ import { useLocation } from 'wouter';
 import { Comparable, ComparisonReportSchema } from '../../types';
 import {
   allContentGridTempCols,
+  borderVal,
   CompTableColEntryItem,
   mainContentAreaHeight,
 } from '../../utils';
@@ -45,6 +46,7 @@ export function MasterDetailContainer({
         datasource={fallback?.datasource.name}
         version={fallback?.version}
         px={3}
+        borderBottom={borderVal}
       />
       <Grid width={'inherit'} templateColumns={allContentGridTempCols}>
         {/* Master Area */}
