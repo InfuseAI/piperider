@@ -375,8 +375,7 @@ def compare_with_recipe(**kwargs):
                            summary_file=summary_file,
                            debug=kwargs.get('debug', False))
     except Exception as e:
-        print(e)
-        ret = 1
+        raise e
 
     return ret
 

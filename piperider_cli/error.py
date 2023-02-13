@@ -178,3 +178,9 @@ class AwsCredentialsError(PipeRiderError):
 class AwsUnExistedS3Bucket(PipeRiderError):
     def __init__(self, bucket):
         self.message = f'S3 bucket "{bucket}" does not exist'
+
+
+class RecipeException(PipeRiderError):
+    def __init__(self, message):
+        self.message = message
+        self.hint = 'Please use "git stash" to stash your changes or "git commit" to permanently save changes to current branch.'

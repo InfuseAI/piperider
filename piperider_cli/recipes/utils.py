@@ -1,15 +1,10 @@
-import argparse
 import os
 import shlex
 import subprocess
 from subprocess import Popen, TimeoutExpired
 from typing import Dict
 
-
-class RecipeException(BaseException):
-
-    def __init__(self, message):
-        self.message = message
+from piperider_cli.error import RecipeException
 
 
 def _execute_command(command_line, env: Dict = None):
