@@ -29,7 +29,6 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
     Create the base recipe
     """
     base = RecipeModel()
-    piperider_command = 'piperider run'
 
     if git_branch() is not None:
         base.branch = 'main'
@@ -42,12 +41,9 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
                 'dbt build'
             ]
         })
-        dbt_target_path = dbt_project.get('target-path')
-        if dbt_target_path:
-            piperider_command = f'piperider run --dbt-state {dbt_target_path}'
 
     base.piperider = RecipePiperiderField({
-        'command': piperider_command
+        'command': 'piperider run'
     })
     return base
 
@@ -57,7 +53,6 @@ def _create_target_recipe(dbt_project_path=None, options: dict = None) -> Recipe
     Create the target recipe
     """
     target = RecipeModel()
-    piperider_command = 'piperider run'
 
     current_branch = git_branch()
     if current_branch is not None and current_branch != 'main':
@@ -71,12 +66,9 @@ def _create_target_recipe(dbt_project_path=None, options: dict = None) -> Recipe
                 'dbt build'
             ]
         })
-        dbt_target_path = dbt_project.get('target-path')
-        if dbt_target_path:
-            piperider_command = f'piperider run --dbt-state {dbt_target_path}'
 
     target.piperider = RecipePiperiderField({
-        'command': piperider_command
+        'command': 'piperider run'
     })
     return target
 
