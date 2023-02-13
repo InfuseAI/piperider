@@ -21,7 +21,7 @@ piperider_cloud = PipeRiderCloud()
 
 
 def ask_login_info() -> str:
-    console.print('Please provide available email account to login')
+    console.print('Please provide your email account to login')
     if FANCY_USER_INPUT:
         account = inquirer.text('Email address', validate=lambda _, x: '@' in x)
     else:
@@ -29,11 +29,16 @@ def ask_login_info() -> str:
             account = Prompt.ask('[[yellow]?[/yellow]] Email address')
             if '@' in account:
                 break
+            else:
+                console.print(f"'{account}' is not a valid")
 
     response = piperider_cloud.magic_login(account)
-    if response is None or response.get('success') is False:
+    if response is None:
         console.print('[[red]Error[/red]] Login failed. Please try again.')
-        return None
+        return ''
+    elif response.get('success') is False:
+        console.print(f"[[red]Error[/red]] {response.get('message')}")
+        return ''
 
     if response.get('link'):
         webbrowser.open(response.get('link'))
