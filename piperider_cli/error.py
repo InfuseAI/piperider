@@ -184,3 +184,9 @@ class RecipeException(PipeRiderError):
     def __init__(self, message):
         self.message = message
         self.hint = 'Please use "git stash" to stash your changes or "git commit" to permanently save changes to current branch.'
+
+
+class RecipeConfigException(PipeRiderError):
+    def __init__(self, message, hint=None):
+        self.message = message
+        self.hint = hint

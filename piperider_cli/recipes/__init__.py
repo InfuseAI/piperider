@@ -9,6 +9,7 @@ from ruamel import yaml
 
 from piperider_cli import load_json, round_trip_load_yaml
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
+from piperider_cli.error import RecipeConfigException
 
 PIPERIDER_RECIPES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'recipe_schema.json')
 PIPERIDER_RECIPES_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'compare')
@@ -147,10 +148,14 @@ class RecipeConfiguration:
         target = RecipeModel(content['target'])
 
         if len(base.piperider.commands) == 0:
-            raise Exception("Base piperider commands is empty. Please modify the recipe file.")
+            raise RecipeConfigException(
+                message="Base piperider commands is empty.",
+                hint="Please modify the recipe file.")
 
         if len(target.piperider.commands) == 0:
-            raise Exception("Target piperider commands is empty.  Please modify the recipe file.")
+            raise RecipeConfigException(
+                message="Target piperider commands is empty.",
+                hint="Please modify the recipe file.")
 
         return cls(
             base=base,
@@ -264,7 +269,12 @@ def select_recipe_file(name: str = None):
 
     recipe_path = os.path.join(PIPERIDER_RECIPES_PATH, f"{name}.yml")
     if not os.path.exists(recipe_path):
-        return None
+        if name == "default":
+            return None
+        else:
+            raise FileNotFoundError(
+                f"Recipe file not found: {recipe_path}",
+            )
 
     return recipe_path
 

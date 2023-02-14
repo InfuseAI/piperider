@@ -1,6 +1,10 @@
+from rich.console import Console
+
 from piperider_cli import dbtutil
 from piperider_cli.recipes import select_recipe_file, RecipeConfiguration, execute_configuration, DEFAULT_RECIPE_PATH
-from piperider_cli.recipes.default_recipe_generator import generate_default_recipe
+from piperider_cli.recipes.default_recipe_generator import generate_default_recipe, show_recipe_content
+
+console = Console()
 
 
 class RecipeExecutor():
@@ -13,10 +17,11 @@ class RecipeExecutor():
                 dbt_project_path = dbtutil.search_dbt_project_path()
 
                 # generate a default recipe
+                console.rule("Recipe executor: generate default recipe")
                 generate_default_recipe(dbt_project_path=dbt_project_path)
                 recipe_path = DEFAULT_RECIPE_PATH
+                show_recipe_content(recipe_path)
             else:
-                raise ValueError(f"Cannot find the recipe '{recipe_name}'")
-        print(recipe_path)
+                raise FileNotFoundError(f"Cannot find the recipe '{recipe_name}'")
         cfg = RecipeConfiguration.load(recipe_path)
         execute_configuration(cfg)
