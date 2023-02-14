@@ -213,12 +213,16 @@ def execute_recipe(model: RecipeModel, current_branch):
         console.print(f"Run: \[{cmd}]")
         exit_code = execute_command(cmd, model.dbt.envs())
         console.print(f"Exit code: {exit_code}")
+        if exit_code != 0:
+            raise Exception(f"Recipe dbt command failed: '{cmd}' with exit code: {exit_code}")
 
     # model.piperider.commands
     for cmd in model.piperider.commands or []:
         console.print(f"Run: \[{cmd}]")
         exit_code = execute_command(cmd, model.piperider.envs())
         console.print(f"Exit code: {exit_code}")
+        if exit_code != 0:
+            raise Exception(f"Recipe piperider command failed: '{cmd}' with exit code: {exit_code}")
 
 
 def get_current_branch(cfg: RecipeConfiguration):
