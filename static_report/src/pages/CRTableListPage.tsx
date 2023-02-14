@@ -7,11 +7,7 @@ import { Flex, Text, Grid, useDisclosure } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 
-import {
-  tableListGridTempCols,
-  tableListMaxWidth,
-  tableListWidth,
-} from '../utils/layout';
+import { tableListGridTempCols, tableListMaxWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
 import { TableColumnSchemaList } from '../components/Tables/TableList/TableColumnSchemaList';
 import { useAmplitudeOnMount } from '../hooks';
@@ -48,7 +44,7 @@ export function CRTablesListPage({ data }: Props) {
         rawData={rawData}
         tableColEntries={tableColumnsOnly}
       >
-        <Flex direction="column" width={tableListWidth} minHeight="650px">
+        <Flex direction="column" w={'100%'} minHeight="650px">
           <Grid
             templateColumns={tableListGridTempCols}
             maxW={tableListMaxWidth}

@@ -48,9 +48,17 @@ export function MasterDetailContainer({
         px={3}
         borderBottom={borderVal}
       />
-      <Grid width={'inherit'} templateColumns={allContentGridTempCols}>
+      <Grid
+        width={'inherit'}
+        h={'100%'}
+        templateColumns={allContentGridTempCols}
+      >
         {/* Master Area */}
-        <GridItem overflowY={'scroll'} maxHeight={mainContentAreaHeight}>
+        <GridItem
+          overflowY={'scroll'}
+          maxHeight={mainContentAreaHeight}
+          h={'100%'}
+        >
           <MasterSideNav
             initAsExpandedTables={initAsExpandedTables}
             activeMasterParent={activeMasterItem}
@@ -69,7 +77,14 @@ export function MasterDetailContainer({
             singleOnly={singleOnly}
           />
         </GridItem>
-        {children}
+        <GridItem
+          overflowY={'scroll'}
+          maxHeight={mainContentAreaHeight}
+          h={'100%'}
+          p={9}
+        >
+          {children}
+        </GridItem>
       </Grid>
     </>
   );

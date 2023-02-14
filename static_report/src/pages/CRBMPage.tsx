@@ -5,12 +5,7 @@ import { MasterDetailContainer } from '../components/Common/MasterDetailContaine
 import { BMWidget } from '../components/Widgets/BMWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { BusinessMetric, ComparisonReportSchema } from '../types';
-import {
-  AMPLITUDE_EVENTS,
-  CR_TYPE_LABEL,
-  mainContentAreaHeight,
-  useReportStore,
-} from '../utils';
+import { AMPLITUDE_EVENTS, CR_TYPE_LABEL, useReportStore } from '../utils';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -40,7 +35,7 @@ export function CRBMPage({ data: { base, input } }: Props) {
         rawData={rawData}
         tableColEntries={tableColumnsOnly}
       >
-        <Box px={9} h={mainContentAreaHeight} overflowY={'auto'}>
+        <Box>
           <Flex w={'100%'} p={5}>
             <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
               Report Metrics ({datasource})
@@ -57,7 +52,7 @@ export function CRBMPage({ data: { base, input } }: Props) {
               );
             })}
             {BMList.length === 0 && (
-              <GridItem colSpan={2} background={'gray.200'} p={5}>
+              <GridItem colSpan={2} background={'gray.200'} p={5} minH={'50vh'}>
                 <NoData text="No Metrics Data Available" />
               </GridItem>
             )}
