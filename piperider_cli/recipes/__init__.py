@@ -145,6 +145,13 @@ class RecipeConfiguration:
 
         base = RecipeModel(content['base'])
         target = RecipeModel(content['target'])
+
+        if len(base.piperider.commands) == 0:
+            raise Exception("Base piperider commands is empty. Please modify the recipe file.")
+
+        if len(target.piperider.commands) == 0:
+            raise Exception("Target piperider commands is empty.  Please modify the recipe file.")
+
         return cls(
             base=base,
             target=target
