@@ -48,7 +48,7 @@ export function CRTablesListPage({ data }: Props) {
         rawData={rawData}
         tableColEntries={tableColumnsOnly}
       >
-        <Flex direction="column" width={tableListWidth} minHeight="650px" p={9}>
+        <Flex direction="column" width={tableListWidth} minHeight="650px">
           <Grid
             templateColumns={tableListGridTempCols}
             maxW={tableListMaxWidth}

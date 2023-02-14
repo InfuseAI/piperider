@@ -1,7 +1,7 @@
 import { AccordionButton, Flex, Icon, Text } from '@chakra-ui/react';
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import { Comparable, ComparableData } from '../../../types';
-import { CompTableWithColEntryOverwrite } from '../../../utils';
+import { borderVal, CompTableWithColEntryOverwrite } from '../../../utils';
 
 /**
  * TableItem: Accordion UI parent
@@ -49,13 +49,17 @@ export function TableItemAccordionButton({
             </Text>
             <Icon
               as={isExpanded ? FiChevronDown : FiChevronRight}
-              color={isActive ? 'white' : 'inherit'}
               onClick={(e) => {
                 e.stopPropagation();
                 onToggle({
                   shouldNavigate: false,
                 });
               }}
+              boxSize={5}
+              border={borderVal}
+              borderRadius={'lg'}
+              color={isActive ? 'white' : 'inherit'}
+              _hover={{ color: 'gray', bg: 'white' }}
             />
           </Flex>
         </Flex>

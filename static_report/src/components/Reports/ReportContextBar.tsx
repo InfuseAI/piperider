@@ -20,18 +20,20 @@ export function ReportContextBar({
   ...props
 }: Props & FlexProps) {
   return (
-    <Flex py={5} w={'100%'} gap={5} {...props}>
-      <>
-        {showProjectInfo && children}
-        <Flex alignItems={'center'} gap={2}>
-          <BiPlug />
-          <Text color={'gray.500'}>Source: {datasource}</Text>
-        </Flex>
-        <Flex alignItems={'center'} gap={2}>
-          <BsGearWideConnected />
-          <Text color={'gray.500'}>Version: {version}</Text>
-        </Flex>
-      </>
+    <Flex p={2} w={'100%'} gap={5} {...props}>
+      {children}
+      {showProjectInfo && (
+        <>
+          <Flex alignItems={'center'} gap={2}>
+            <BiPlug />
+            <Text color={'gray.500'}>Source: {datasource}</Text>
+          </Flex>
+          <Flex alignItems={'center'} gap={2}>
+            <BsGearWideConnected />
+            <Text color={'gray.500'}>Version: {version}</Text>
+          </Flex>
+        </>
+      )}
     </Flex>
   );
 }
