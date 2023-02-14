@@ -1,0 +1,18 @@
+# .piperider/compare/default.yml
+base:
+  branch: main
+  dbt:
+    commands:
+      - dbt deps
+      - dbt run
+  piperider:
+    commands:
+      - piperider run --dbt-state target/
+target:
+  dbt:
+    commands:
+      - dbt deps
+      - dbt run
+  piperider:
+    commands:
+      - piperider run --dbt-state target/

@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import re
@@ -154,6 +155,16 @@ def round_trip_load_yaml(file_path):
         try:
             payload = yaml.round_trip_load(f)
         except yaml.YAMLError as e:
+            print(e)
+            return None
+    return payload
+
+
+def load_json(file_path):
+    with open(file_path, 'r') as f:
+        try:
+            payload = json.load(f)
+        except json.JSONDecodeError as e:
             print(e)
             return None
     return payload

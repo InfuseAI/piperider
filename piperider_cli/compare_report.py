@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import shutil
 import sys
 from datetime import datetime, date
 from typing import List
@@ -714,7 +715,7 @@ class CompareReport(object):
 
     @staticmethod
     def exec(*, a=None, b=None, last=None, datasource=None, report_dir=None, output=None, tables_from='all',
-             debug=False):
+             summary_file=None, debug=False):
         console = Console()
 
         filesystem = FileSystem(report_dir=report_dir)
@@ -751,8 +752,16 @@ class CompareReport(object):
 
         if output:
             clone_directory(default_report_directory, output)
-            report_path = os.path.join(output, 'index.html')
-            summary_md_path = os.path.join(output, 'summary.md')
+            report_path = os.path.abspath(os.path.join(output, 'index.html'))
+            summary_md_path = os.path.abspath(os.path.join(output, 'summary.md'))
+
+        if summary_file:
+            summary_file = os.path.abspath(summary_file)
+            summary_dir = os.path.dirname(summary_file)
+            if summary_dir:
+                os.makedirs(summary_dir, exist_ok=True)
+            shutil.copyfile(summary_md_path, summary_file)
+            summary_md_path = summary_file
 
         console.print()
         console.print(f"Comparison report: {report_path}")

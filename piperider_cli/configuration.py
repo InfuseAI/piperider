@@ -15,12 +15,12 @@ from piperider_cli.error import \
     PipeRiderConfigTypeError, \
     PipeRiderInvalidDataSourceError, \
     DbtProjectNotFoundError, \
-    DbtProfileNotFoundError, \
-    DbtProjectInvalidError
+    DbtProfileNotFoundError
 
 PIPERIDER_WORKSPACE_NAME = '.piperider'
-PIPERIDER_CONFIG_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
-PIPERIDER_CREDENTIALS_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'credentials.yml')
+PIPERIDER_WORKSPACE_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
+PIPERIDER_CONFIG_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'config.yml')
+PIPERIDER_CREDENTIALS_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'credentials.yml')
 
 # ref: https://docs.getdbt.com/dbt-cli/configure-your-profile
 DBT_PROFILES_DIR_DEFAULT = '~/.dbt/'
@@ -104,22 +104,17 @@ class Configuration(object):
         if not os.path.exists(dbt_project_path):
             raise DbtProjectNotFoundError(dbt_project_path)
 
-        with open(dbt_project_path, 'r') as fd:
-            try:
-                yml = yaml.YAML()
-                yml.allow_duplicate_keys = True
-                dbt_project = yml.load(fd)
-            except Exception as e:
-                raise DbtProjectInvalidError(dbt_project_path, e)
+        from piperider_cli.dbtutil import load_dbt_project
+        dbt_project = load_dbt_project(dbt_project_path)
 
         if not os.path.exists(os.path.expanduser(dbt_profile_path)):
             raise DbtProfileNotFoundError(dbt_profile_path)
 
         dbt_profile = dbtutil.load_dbt_profile(os.path.expanduser(dbt_profile_path))
 
-        profile_name = dbt_project.get('profile')
-        target_name = dbt_profile.get(profile_name, {}).get('target')
-        if target_name not in list(dbt_profile.get(profile_name, {}).get('outputs').keys()):
+        profile_name = dbt_project.get('profile', '')
+        target_name = dbt_profile.get(profile_name, {}).get('target', '')
+        if target_name not in list(dbt_profile.get(profile_name, {}).get('outputs', {}).keys()):
             console = Console()
             console.print("[bold red]Error:[/bold red] "
                           f"The profile '{profile_name}' does not have a target named '{target_name}'.\n"

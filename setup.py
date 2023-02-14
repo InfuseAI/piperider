@@ -40,6 +40,7 @@ setup(name='piperider',
           'python-dateutil',
           'inquirer>=2.10.0',
           'jinja2',
+          "jsonschema>=3.2.0",
           'portalocker',
           'requests>=2.28.1',
           'requests_toolbelt>=0.9.1',
@@ -91,5 +92,6 @@ setup(name='piperider',
           "Development Status :: 4 - Beta"
       ],
       package_data={
-          'piperider_cli': ['*.json', 'VERSION', 'SENTRY_DNS', 'data/**', 'profiler/schema.json']
+          'piperider_cli': ['*.json', 'VERSION', 'SENTRY_DNS', 'data/**', 'profiler/schema.json',
+                            'recipes/recipe_schema.json']
       })

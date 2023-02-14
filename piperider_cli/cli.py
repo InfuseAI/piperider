@@ -4,13 +4,13 @@ import sys
 import click
 import sentry_sdk
 from rich.console import Console
-from rich.syntax import Syntax
 
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
+from piperider_cli.configuration import PIPERIDER_WORKSPACE_PATH
 from piperider_cli.event import UserProfileConfigurator
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
@@ -18,6 +18,7 @@ from piperider_cli.feedback import Feedback
 from piperider_cli.generate_report import GenerateReport
 from piperider_cli.guide import Guide
 from piperider_cli.initializer import Initializer
+from piperider_cli.recipe_executor import RecipeExecutor
 from piperider_cli.runner import Runner
 from piperider_cli.validator import Validator
 
@@ -101,9 +102,9 @@ def init(**kwargs):
     'Initialize a PipeRider project in interactive mode. The configurations are saved in ".piperider".'
 
     console = Console()
-    piperider_config_dir = os.path.join(os.getcwd(), '.piperider')
+
     # TODO show the process and message to users
-    console.print(f'Initialize piperider to path {piperider_config_dir}')
+    console.print(f'Initialize piperider to path {PIPERIDER_WORKSPACE_PATH}')
 
     # Search dbt project config files
     dbt_project_path = None
@@ -128,10 +129,7 @@ def init(**kwargs):
         sys.exit(1)
 
     # Show the content of config.yml
-    with open(os.path.join(piperider_config_dir, 'config.yml'), 'r') as f:
-        console.rule('.piperider/config.yml')
-        config = Syntax(f.read(), "yaml", theme="monokai", line_numbers=True)
-        console.print(config)
+    Initializer.show_config()
 
 
 @cli.command(short_help='Check project configuration.', cls=TrackCommand)
@@ -368,6 +366,32 @@ def cloud_compare_reports(**kwargs):
 
     if ret != 0:
         sys.exit(ret)
+    return ret
+
+
+@cli.command(name='compare', short_help='Generate comparison report with the recipe.', cls=TrackCommand)
+@click.option('--recipe', default=None, type=click.STRING, help='Select a different recipe.')
+@click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
+@click.option('--summary-file', default=None, type=click.STRING, help='Output the comparison summary markdown file.')
+@add_options(debug_option)
+def compare_with_recipe(**kwargs):
+    """
+    Generate comparison report with the recipe
+    """
+
+    recipe = kwargs.get('recipe')
+    summary_file = kwargs.get('summary_file')
+
+    ret = 0
+    try:
+        RecipeExecutor.exec(recipe_name=recipe)
+        CompareReport.exec(a=None, b=None, last=True, datasource=None,
+                           output=kwargs.get('output'), tables_from="all",
+                           summary_file=summary_file,
+                           debug=kwargs.get('debug', False))
+    except Exception as e:
+        raise e
+
     return ret
 
 

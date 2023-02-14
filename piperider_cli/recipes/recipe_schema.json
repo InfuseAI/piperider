@@ -1,0 +1,99 @@
+{
+  "title": "RecipeSchema",
+  "type": "object",
+  "required": [
+    "base",
+    "target"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "base": {
+      "$ref": "#/definitions/recipe"
+    },
+    "target": {
+      "$ref": "#/definitions/recipe"
+    }
+  },
+  "definitions": {
+    "recipe": {
+      "type": "object",
+      "properties": {
+        "branch": {
+          "type": "string"
+        },
+        "dbt": {
+          "$ref": "#/definitions/dbt"
+        },
+        "piperider": {
+          "$ref": "#/definitions/piperider"
+        },
+        "cloud": {
+          "$ref": "#/definitions/cloud"
+        }
+      }
+    },
+    "environment": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "value"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "dbt": {
+      "type": "object",
+      "properties": {
+        "env": {
+          "$ref": "#/definitions/environment"
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "piperider": {
+      "type": "object",
+      "properties": {
+        "env": {
+          "$ref": "#/definitions/environment"
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "command": {
+          "type": "string"
+        }
+      }
+    },
+    "cloud": {
+      "type": "object",
+      "properties": {
+        "env": {
+          "$ref": "#/definitions/environment"
+        },
+        "datasource": {
+          "type": "string"
+        },
+        "report_id": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

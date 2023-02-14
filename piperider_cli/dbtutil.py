@@ -9,12 +9,11 @@ from rich.console import Console
 from rich.table import Table
 from ruamel import yaml
 
-from piperider_cli.metrics_engine import Metric
-
 from piperider_cli.error import \
     DbtProjectInvalidError, \
     DbtProfileInvalidError, \
     DbtProfileBigQueryAuthWithTokenUnsupportedError
+from piperider_cli.metrics_engine import Metric
 
 console = Console()
 
