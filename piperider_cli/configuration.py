@@ -15,10 +15,7 @@ from piperider_cli.error import \
     PipeRiderConfigTypeError, \
     PipeRiderInvalidDataSourceError, \
     DbtProjectNotFoundError, \
-    DbtProfileNotFoundError, \
-    DbtProjectInvalidError, \
-    DbtProfileInvalidError, \
-    DbtProfileBigQueryAuthWithTokenUnsupportedError
+    DbtProfileNotFoundError
 
 PIPERIDER_WORKSPACE_NAME = '.piperider'
 PIPERIDER_WORKSPACE_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
@@ -115,9 +112,9 @@ class Configuration(object):
 
         dbt_profile = dbtutil.load_dbt_profile(os.path.expanduser(dbt_profile_path))
 
-        profile_name = dbt_project.get('profile')
-        target_name = dbt_profile.get(profile_name, {}).get('target')
-        if target_name not in list(dbt_profile.get(profile_name, {}).get('outputs').keys()):
+        profile_name = dbt_project.get('profile', '')
+        target_name = dbt_profile.get(profile_name, {}).get('target', '')
+        if target_name not in list(dbt_profile.get(profile_name, {}).get('outputs', {}).keys()):
             console = Console()
             console.print("[bold red]Error:[/bold red] "
                           f"The profile '{profile_name}' does not have a target named '{target_name}'.\n"
@@ -126,8 +123,6 @@ class Configuration(object):
         credential = dbtutil.load_credential_from_dbt_profile(dbt_profile, profile_name, target_name)
         type_name = credential.get('type')
         dbt = {
-            'profile': profile_name,
-            'target': target_name,
             'projectDir': os.path.relpath(os.path.dirname(dbt_project_path), os.getcwd()),
         }
 
