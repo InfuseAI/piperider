@@ -8,7 +8,7 @@ import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { ComparisonReportSchema } from '../types';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
-import { assertionListWidth, mainContentAreaHeight } from '../utils/layout';
+import { assertionListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
 
 interface Props {
@@ -39,8 +39,8 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
         rawData={rawData}
         tableColEntries={tableColumnsOnly}
       >
-        <Box p={9} h={mainContentAreaHeight} overflowY={'auto'}>
-          <Flex maxW={assertionListWidth - 50} w={'100%'} mt={10}>
+        <Box>
+          <Flex maxW={assertionListWidth - 50} w={'100%'} mt={5}>
             <SearchTextInput
               onChange={setFilterString}
               filterString={filterString}

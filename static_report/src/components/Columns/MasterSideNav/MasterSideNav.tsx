@@ -13,7 +13,7 @@ import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import { useLocalStorage } from 'react-use';
 
 import { Comparable, Selectable } from '../../../types';
-import { MASTER_LIST_SHOW_EXTRA } from '../../../utils';
+import { borderVal, MASTER_LIST_SHOW_EXTRA } from '../../../utils';
 import { CompTableColEntryItem } from '../../../utils/store';
 import { ColumnListAccordionPanel } from './ColumnListAccordionPanel';
 import { TableItemAccordionButton } from './TableItemAccordionButton';
@@ -67,137 +67,144 @@ export function MasterSideNav({
     <Box w={'100%'} zIndex={150} bg={'inherit'}>
       <Accordion allowToggle index={rootTablesExpandedIndexList}>
         <AccordionItem border={'none'}>
-          {({ isExpanded }) => (
-            <>
-              <h2>
-                <AccordionButton
-                  py={0}
-                  _hover={{
-                    bg:
-                      activeMasterParent === 'root'
-                        ? 'piperider.400'
-                        : 'inherit',
-                  }}
-                  color={activeMasterParent === 'root' ? 'white' : 'inherit'}
-                  bg={
-                    activeMasterParent === 'root' ? 'piperider.400' : 'inherit'
-                  }
-                  onClick={(e) => {
-                    onSelect({});
-                  }}
-                >
-                  <Flex
-                    mt={3}
-                    mb={2}
-                    gap={2}
-                    w={'100%'}
-                    justifyContent={'space-between'}
-                    alignItems={'center'}
+          {({ isExpanded }) => {
+            const activeRoot = activeMasterParent === 'root';
+            return (
+              <>
+                <h2>
+                  <AccordionButton
+                    py={0}
+                    _hover={{
+                      bg: activeRoot ? 'piperider.400' : 'inherit',
+                    }}
+                    color={activeRoot ? 'white' : 'inherit'}
+                    bg={activeRoot ? 'piperider.400' : 'inherit'}
+                    onClick={(e) => {
+                      onSelect({});
+                    }}
                   >
-                    <Text fontWeight={'medium'}>Tables</Text>
-                    <Icon
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setRootTablesExpandedIndexList(([itemIndex]) =>
-                          itemIndex > -1 ? [] : [0],
-                        );
-                      }}
-                      as={isExpanded ? FiChevronDown : FiChevronRight}
-                    />
-                  </Flex>
-                </AccordionButton>
-              </h2>
-              <AccordionPanel py={0}>
-                <>
-                  <Accordion allowMultiple index={tablesExpandedIndexList}>
-                    {tableColEntryList.map(
-                      ([tableName, compTableColItem, meta], index) => {
-                        const fallbackTableEntries =
-                          compTableColItem?.target || compTableColItem?.base;
-                        const fallbackColEntries =
-                          fallbackTableEntries?.columns;
+                    <Flex
+                      mt={3}
+                      mb={2}
+                      gap={2}
+                      w={'100%'}
+                      justifyContent={'space-between'}
+                      alignItems={'center'}
+                    >
+                      <Text fontWeight={'medium'}>Tables</Text>
+                      <Icon
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRootTablesExpandedIndexList(([itemIndex]) =>
+                            itemIndex > -1 ? [] : [0],
+                          );
+                        }}
+                        as={isExpanded ? FiChevronDown : FiChevronRight}
+                        boxSize={5}
+                        border={borderVal}
+                        borderRadius={'lg'}
+                        color={isExpanded && activeRoot ? 'white' : 'inherit'}
+                        _hover={{ color: 'gray', bg: 'white' }}
+                      />
+                    </Flex>
+                  </AccordionButton>
+                </h2>
+                <AccordionPanel py={0}>
+                  <>
+                    <Accordion allowMultiple index={tablesExpandedIndexList}>
+                      {tableColEntryList.map(
+                        ([tableName, compTableColItem, meta], index) => {
+                          const fallbackTableEntries =
+                            compTableColItem?.target || compTableColItem?.base;
+                          const fallbackColEntries =
+                            fallbackTableEntries?.columns;
 
-                        const isSameTableName = currentTable === tableName;
-                        const isTableActive = Boolean(
-                          currentColumn === '' && isSameTableName,
-                        );
+                          const isSameTableName = currentTable === tableName;
+                          const isTableActive = Boolean(
+                            currentColumn === '' && isSameTableName,
+                          );
 
-                        return (
-                          <AccordionItem key={tableName}>
-                            {({ isExpanded }) => (
-                              <>
-                                <TableItemAccordionButton
-                                  onToggle={({ shouldNavigate, tableName }) => {
-                                    //conditional dual-behavior (nav + expand)
-                                    const foundExpandedIndex =
-                                      tablesExpandedIndexList.findIndex(
-                                        (i) => i === index,
-                                      );
-                                    const hasExpandedIndex =
-                                      foundExpandedIndex > -1;
+                          return (
+                            <AccordionItem key={tableName}>
+                              {({ isExpanded }) => (
+                                <>
+                                  <TableItemAccordionButton
+                                    onToggle={({
+                                      shouldNavigate,
+                                      tableName,
+                                    }) => {
+                                      //conditional dual-behavior (nav + expand)
+                                      const foundExpandedIndex =
+                                        tablesExpandedIndexList.findIndex(
+                                          (i) => i === index,
+                                        );
+                                      const hasExpandedIndex =
+                                        foundExpandedIndex > -1;
 
-                                    // if not in the list, add to the indexList.
-                                    if (hasExpandedIndex) {
-                                      setTablesExpandedIndexList([
-                                        ...tablesExpandedIndexList,
-                                        index,
-                                      ]);
-                                    }
-
-                                    // if navigating, never close (leave that for the icon, which will always toggle accordion-item)
-                                    if (shouldNavigate) {
-                                      const updatedIndexList = Array.from(
-                                        new Set([
-                                          index,
+                                      // if not in the list, add to the indexList.
+                                      if (hasExpandedIndex) {
+                                        setTablesExpandedIndexList([
                                           ...tablesExpandedIndexList,
-                                        ]),
-                                      );
-                                      setTablesExpandedIndexList(
-                                        updatedIndexList,
-                                      ); // for updating toggled table-items
-                                      onSelect({ tableName, columnName: '' }); //for naviation
-                                    } else {
-                                      //filter the existing list
-                                      //found: remove; missing: add;
-                                      const updatedIndexList = hasExpandedIndex
-                                        ? tablesExpandedIndexList.filter(
-                                            (i) => i !== index,
-                                          )
-                                        : Array.from(
-                                            new Set([
-                                              ...tablesExpandedIndexList,
-                                              index,
-                                            ]),
-                                          );
-                                      setTablesExpandedIndexList(
-                                        updatedIndexList,
-                                      );
-                                    }
-                                  }}
-                                  isActive={isTableActive}
-                                  isExpanded={isExpanded}
-                                  compTableColItem={compTableColItem}
-                                  singleOnly={singleOnly}
-                                />
-                                <ColumnListAccordionPanel
-                                  onSelect={onSelect}
-                                  compColList={fallbackColEntries}
-                                  currentColumn={currentColumn}
-                                  currentTable={currentTable}
-                                  indexedTableName={tableName}
-                                  singleOnly={singleOnly}
-                                />
-                              </>
-                            )}
-                          </AccordionItem>
-                        );
-                      },
-                    )}
-                  </Accordion>
-                </>
-              </AccordionPanel>
-            </>
-          )}
+                                          index,
+                                        ]);
+                                      }
+
+                                      // if navigating, never close (leave that for the icon, which will always toggle accordion-item)
+                                      if (shouldNavigate) {
+                                        const updatedIndexList = Array.from(
+                                          new Set([
+                                            index,
+                                            ...tablesExpandedIndexList,
+                                          ]),
+                                        );
+                                        setTablesExpandedIndexList(
+                                          updatedIndexList,
+                                        ); // for updating toggled table-items
+                                        onSelect({ tableName, columnName: '' }); //for naviation
+                                      } else {
+                                        //filter the existing list
+                                        //found: remove; missing: add;
+                                        const updatedIndexList =
+                                          hasExpandedIndex
+                                            ? tablesExpandedIndexList.filter(
+                                                (i) => i !== index,
+                                              )
+                                            : Array.from(
+                                                new Set([
+                                                  ...tablesExpandedIndexList,
+                                                  index,
+                                                ]),
+                                              );
+                                        setTablesExpandedIndexList(
+                                          updatedIndexList,
+                                        );
+                                      }
+                                    }}
+                                    isActive={isTableActive}
+                                    isExpanded={isExpanded}
+                                    compTableColItem={compTableColItem}
+                                    singleOnly={singleOnly}
+                                  />
+                                  <ColumnListAccordionPanel
+                                    onSelect={onSelect}
+                                    compColList={fallbackColEntries}
+                                    currentColumn={currentColumn}
+                                    currentTable={currentTable}
+                                    indexedTableName={tableName}
+                                    singleOnly={singleOnly}
+                                  />
+                                </>
+                              )}
+                            </AccordionItem>
+                          );
+                        },
+                      )}
+                    </Accordion>
+                  </>
+                </AccordionPanel>
+              </>
+            );
+          }}
         </AccordionItem>
         <AccordionItem>
           <AccordionButton

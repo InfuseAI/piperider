@@ -127,8 +127,6 @@ export default function SRProfileRunPage({
             gridAutoFlow={'column'}
             width={'100%'}
             pb={5}
-            h={mainContentAreaHeight}
-            overflowY={'auto'}
           >
             {/* Label Block */}
             <GridItem colSpan={2} p={9}>

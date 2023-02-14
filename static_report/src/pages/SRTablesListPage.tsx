@@ -46,7 +46,7 @@ export function SRTablesListPage({ data }: Props) {
         rawData={rawData}
         tableColEntries={tableColumnsOnly}
       >
-        <Flex direction="column" width={'100%'} minHeight="650px" p={9}>
+        <Flex direction="column" width={'100%'} minHeight="650px">
           <Grid
             templateColumns={tableListGridTempCols}
             maxW={tableListMaxWidth}

@@ -15,7 +15,7 @@ import { useState } from 'react';
 import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
-import { borderVal, mainContentAreaHeight } from '../utils/layout';
+import { borderVal } from '../utils/layout';
 import { DataSummaryWidget } from '../components/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
 
@@ -101,7 +101,7 @@ export default function CRProfileRunPage({
       >
         {/* Detail Area - Table Detail */}
         {isTableDetailsView ? (
-          <GridItem maxHeight={mainContentAreaHeight} overflowY={'auto'} p={10}>
+          <GridItem>
             <TableColumnHeader
               title={tableName}
               subtitle={'Table'}
@@ -144,14 +144,9 @@ export default function CRProfileRunPage({
           </GridItem>
         ) : (
           // {/* Detail Area */}
-          <Grid
-            templateColumns={'1fr 1fr'}
-            width={'100%'}
-            maxHeight={mainContentAreaHeight}
-            overflowY={'auto'}
-          >
+          <Grid templateColumns={'1fr 1fr'} width={'100%'} gap={12} pr={9}>
             {/* Label Block */}
-            <GridItem colSpan={2} rowSpan={2} p={9}>
+            <GridItem colSpan={2} rowSpan={2}>
               <TableColumnHeader
                 title={columnName}
                 subtitle={fallbackColumnDatum?.schema_type}
@@ -166,7 +161,7 @@ export default function CRProfileRunPage({
               <ComparableGridHeader />
             </GridItem>
             {/* Data Composition Block */}
-            <GridItem colSpan={2} px={9} py={2} bg={'gray.50'}>
+            <GridItem colSpan={2} bg={'gray.50'}>
               <Grid templateColumns={'1fr 1fr'} gap={8} minWidth={0}>
                 <DataCompositionWidget columnDatum={baseColumnDatum} />
                 <DataCompositionWidget columnDatum={targetColumnDatum} />
@@ -175,13 +170,7 @@ export default function CRProfileRunPage({
             {/* Data Summary Block (avg, stddev, ...) */}
             {(containsDataSummary(baseType) ||
               containsDataSummary(targetType)) && (
-              <GridItem
-                colSpan={2}
-                gridRow={'span 1'}
-                px={9}
-                py={2}
-                bg={'gray.50'}
-              >
+              <GridItem colSpan={2} gridRow={'span 1'} bg={'gray.50'}>
                 <Grid templateColumns={'1fr 1fr'} gap={8}>
                   {<DataSummaryWidget columnDatum={baseColumnDatum} />}
                   {<DataSummaryWidget columnDatum={targetColumnDatum} />}
@@ -191,7 +180,7 @@ export default function CRProfileRunPage({
             {/* Quantiles Block */}
             {(containsColumnQuantile(baseType) ||
               containsColumnQuantile(targetType)) && (
-              <GridItem colSpan={2} gridRow={'span 1'} p={9} bg={'gray.50'}>
+              <GridItem colSpan={2} gridRow={'span 1'} bg={'gray.50'}>
                 <Grid templateColumns={'1fr 1fr'} gap={8}>
                   <QuantilesWidget columnDatum={baseColumnDatum} />
                   <QuantilesWidget columnDatum={targetColumnDatum} />
@@ -203,7 +192,7 @@ export default function CRProfileRunPage({
               colSpan={2}
               gridRow={'span 1'}
               minWidth={0}
-              p={9}
+              mt={5}
               bg={'gray.50'}
             >
               <ChartTabsWidget

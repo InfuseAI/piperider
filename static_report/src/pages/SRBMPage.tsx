@@ -5,12 +5,7 @@ import { MasterDetailContainer } from '../components/Common/MasterDetailContaine
 import { BMWidget } from '../components/Widgets/BMWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { SaferSRSchema } from '../types';
-import {
-  AMPLITUDE_EVENTS,
-  mainContentAreaHeight,
-  SR_TYPE_LABEL,
-  useReportStore,
-} from '../utils';
+import { AMPLITUDE_EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
 
 interface Props {
   data: SaferSRSchema;
@@ -36,7 +31,7 @@ export function SRBMPage({ data }: Props) {
         tableColEntries={tableColumnsOnly}
         singleOnly
       >
-        <Box px={9} h={mainContentAreaHeight} overflowY={'auto'}>
+        <Box>
           <Flex w={'100%'} p={5}>
             <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
               Report Metrics ({datasource})
@@ -55,7 +50,7 @@ export function SRBMPage({ data }: Props) {
               </GridItem>
             ))}
             {!BMOnly?.base?.length && (
-              <GridItem colSpan={2} background={'gray.200'} p={5}>
+              <GridItem colSpan={2} background={'gray.200'} p={5} minH={'50vh'}>
                 <NoData text="No Metrics Data Available" />
               </GridItem>
             )}

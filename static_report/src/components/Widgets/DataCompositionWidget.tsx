@@ -16,7 +16,7 @@ export function DataCompositionWidget({ columnDatum, hasAnimation }: Props) {
   const animationOptions = hasAnimation ? {} : false;
 
   return (
-    <Flex direction={'column'} pb={6}>
+    <Flex direction={'column'}>
       <Text fontSize={'xl'}>Data Composition</Text>
       <Divider my={3} />
       <Box h={`4em`} flexGrow={1}>

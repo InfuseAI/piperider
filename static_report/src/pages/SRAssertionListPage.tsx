@@ -8,7 +8,7 @@ import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { SaferSRSchema } from '../types';
 import { AMPLITUDE_EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
-import { assertionListWidth, mainContentAreaHeight } from '../utils/layout';
+import { assertionListWidth } from '../utils/layout';
 
 interface Props {
   data: SaferSRSchema;
@@ -40,7 +40,7 @@ export function SRAssertionListPage({ data }: Props) {
         tableColEntries={tableColumnsOnly}
         singleOnly
       >
-        <Box p={9} h={mainContentAreaHeight} overflowY={'auto'}>
+        <Box mt={5}>
           <Flex maxW={assertionListWidth - 50} w={'100%'}>
             <SearchTextInput
               onChange={setFilterString}
