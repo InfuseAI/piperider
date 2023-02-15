@@ -384,7 +384,7 @@ class CloudConnector:
         )
         layout_table.add_column('Name')
         layout_table.add_column('Type')
-        layout_table.add_column('Organization')
+        layout_table.add_column('Workspace')
         # layout_table.add_column('Project URL', justify='right', no_wrap=True)
 
         for project in projects:
@@ -392,11 +392,11 @@ class CloudConnector:
             # project_id = project.get('id')
             # project_url = f'[deep_sky_blue1]{piperider_cloud.service.cloud_host}/projects/{project_id}[/deep_sky_blue1]'
             project_name = project.get('name') if project.get(
-                'organization_name') is None else f"{project.get('organization_name')}/{project.get('name')}"
+                'workspace_name') is None else f"{project.get('workspace_name')}/{project.get('name')}"
             layout_table.add_row(
                 project_name,
                 project.get('parent_type'),
-                project.get('organization_display_name', '-'),
+                project.get('workspace_display_name', '-'),
                 # project_url,
             )
 
@@ -415,7 +415,7 @@ class CloudConnector:
                 arrow_alias_msg = " 'w' to Up, 's' to Down,"
 
             projects = [
-                (f"{p.get('organization_name')}/{p.get('name')}" if p.get('organization_name') else p.get('name'), p)
+                (f"{p.get('workspace_name')}/{p.get('name')}" if p.get('workspace_name') else p.get('name'), p)
                 for p in piperider_cloud.list_projects()]
 
             question = [
@@ -439,7 +439,7 @@ class CloudConnector:
                 return 1
 
         name = project.get('name') if project.get(
-            'organization_name') is None else f"{project.get('organization_name')}/{project.get('name')}"
+            'workspace_name') is None else f"{project.get('workspace_name')}/{project.get('name')}"
         piperider_cloud.set_default_project(name)
 
         # TODO: Add project name into the datasource config if datasource is not None

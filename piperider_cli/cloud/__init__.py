@@ -263,9 +263,9 @@ class PipeRiderCloud:
                 'parent_type': 'personal',
             })
 
-        def _parse_projects_with_organization_list(x):
+        def _parse_projects_with_workspace_list(x):
             for project in x.get('projects', []):
-                parent_type = 'organization' if project.get('organization_id') else 'personal'
+                parent_type = 'workspace' if project.get('workspace_id') else 'personal'
 
                 p = {
                     'id': project.get('id'),
@@ -273,29 +273,29 @@ class PipeRiderCloud:
                     'is_default': project.get('is_default'),
                     'parent_type': parent_type
                 }
-                if parent_type == 'organization':
-                    p['organization_name'] = x.get('name')
-                    p['organization_display_name'] = x.get('display_name')
+                if parent_type == 'workspace':
+                    p['workspace_name'] = x.get('name')
+                    p['workspace_display_name'] = x.get('display_name')
                 output.append(p)
 
         for x in data:
             if x.get('id'):
                 _parse_legacy_project_list(x)
             else:
-                _parse_projects_with_organization_list(x)
+                _parse_projects_with_workspace_list(x)
         return output
 
     def get_project_by_name(self, name):
         project_name = None
-        organization_name = None
+        workspace_name = None
         if '/' in name:
-            organization_name, project_name = name.split('/')
+            workspace_name, project_name = name.split('/')
         else:
             project_name = name
 
         projects = self.list_projects()
         for project in projects:
-            if project.get('name') == project_name and project.get('organization_name') == organization_name:
+            if project.get('name') == project_name and project.get('workspace_name') == workspace_name:
                 return project
 
         return None
