@@ -706,7 +706,7 @@ class Runner():
                     database = node.get('database')
                     subjects.append(ProfileSubject(table, schema, database, name))
 
-                if not dbt_resources:
+                if not dbt_resources and dbt_config.get('tag') is None:
                     subjects = list(filter(filter_fn, subjects))
             else:
                 table_names = inspect(engine).get_table_names()

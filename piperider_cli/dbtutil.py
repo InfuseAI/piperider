@@ -169,12 +169,14 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict):
         if dbt_resources:
             return '.'.join(node.get('fqn')) in dbt_resources['models']
         else:
+            if dbt_run_results and key not in run_results_ids:
+                return False
+            if tag and tag in node.get('tags', []):
+                return True
+            elif tag and tag not in node.get('tags', []):
+                return False
             config_material = node.get('config').get('materialized')
             if config_material not in material_whitelist:
-                return False
-            if tag and tag not in node.get('tags', []):
-                return False
-            if dbt_run_results and key not in run_results_ids:
                 return False
             return True
 
