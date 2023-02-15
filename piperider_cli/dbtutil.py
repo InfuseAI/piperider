@@ -118,15 +118,10 @@ def _get_state_manifest(dbt_state_dir: str):
 
 
 def append_descriptions(profile_result, dbt_state_dir):
-    run_results = _get_state_run_results(dbt_state_dir)
     manifest = _get_state_manifest(dbt_state_dir)
 
     nodes = manifest.get('nodes')
-    for result in run_results.get('results'):
-        node = nodes.get(result.get('unique_id'))
-        if node.get('resource_type') != 'model' and node.get('resource_type') != 'seed':
-            continue
-
+    for node in nodes.values():
         model = node.get('name')
         model_desc = node.get('description')
         if model not in profile_result['tables']:
