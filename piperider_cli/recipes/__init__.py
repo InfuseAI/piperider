@@ -255,16 +255,17 @@ def execute_configuration(cfg: RecipeConfiguration):
 
     current_branch = get_current_branch(cfg)
 
-    console.rule("Recipe executor: the base phase")
-    execute_recipe(cfg.base, current_branch)
+    try:
+        console.rule("Recipe executor: the base phase")
+        execute_recipe(cfg.base, current_branch)
 
-    console.rule("Recipe executor: the target phase")
-    execute_recipe(cfg.target, current_branch)
-
-    if current_branch is not None:
-        # switch back to the original branch
-        console.print(f"Switch git branch back to: \[{current_branch}]")
-        switch_branch(current_branch)
+        console.rule("Recipe executor: the target phase")
+        execute_recipe(cfg.target, current_branch)
+    finally:
+        if current_branch is not None:
+            # switch back to the original branch
+            console.print(f"Switch git branch back to: \[{current_branch}]")
+            switch_branch(current_branch)
 
 
 def select_recipe_file(name: str = None):

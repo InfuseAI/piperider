@@ -27,7 +27,7 @@ def execute_command_without_capture_output(command_line, env: Dict = None):
     cmd = shlex.split(command_line)
     proc = Popen(cmd, env=env or os.environ.copy())
     try:
-        proc.communicate(timeout=15)
+        proc.communicate()
     except TimeoutExpired:
         proc.kill()
         proc.communicate()
