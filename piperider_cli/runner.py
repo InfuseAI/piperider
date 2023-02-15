@@ -421,7 +421,6 @@ def _validate_assertions(console: Console):
         return True
 
     # continue to run profiling
-    console.print('assertion format is valid.')
     return False
 
 
@@ -686,12 +685,14 @@ class Runner():
 
         if dbt_config:
             if not dbtutil.is_ready(dbt_config):
-                console.log('[bold red]ERROR:[/bold red] DBT configuration is not completed, please check the config.yml')
+                console.log(
+                    '[bold red]ERROR:[/bold red] DBT configuration is not completed, please check the config.yml')
                 return sys.exit(1)
             dbt_state_dir, err_msg = get_dbt_state_dir(dbt_state_dir, dbt_config, ds, dbt_run_results)
             if err_msg:
                 console.print(err_msg)
                 return sys.exit(1)
+        console.print('everything is OK.')
 
         console.rule('Profiling')
         run_id = uuid.uuid4().hex
