@@ -340,20 +340,6 @@ class Configuration(object):
     limit: 1000000
     duplicateRows: false
 
-The tables to include/exclude
-includes: []
-excludes: []
-Include views or not
-include_views: true
-
-tables:
-  my-table-name:
-    # description of the table
-    description: "this is a table description"
-    columns:
-      my-col-name:
-        # description of the column
-        description: "this is a column description"\n
 '''
 
         config_yaml = CommentedMap(config)
