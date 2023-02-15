@@ -589,13 +589,6 @@ class Runner():
 
         raise_exception_when_directory_not_writable(output)
 
-        if table and dbt_run_results:
-            console.print("[bold red]Error:[/bold red] '--dbt-run-results' cannot be used with '--table'")
-            return sys.exit(1)
-        if dbt_resources and dbt_run_results:
-            console.print("[bold red]Error:[/bold red] Cannot specify dbt resources with '--dbt-run-results'")
-            return sys.exit(1)
-
         configuration = Configuration.load()
         filesystem = FileSystem(report_dir=report_dir)
         datasources = {}
