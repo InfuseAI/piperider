@@ -100,6 +100,8 @@ def log_usage_event(command, params, status):
     prop = dict(
         command=command,
         status=status,
+        upload=params.get('upload', False),
+        share=params.get('share', False)
     )
     log_event(prop, 'usage', params=params)
 
