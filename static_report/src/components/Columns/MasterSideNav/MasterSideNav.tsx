@@ -8,7 +8,7 @@ import {
   AccordionItem,
   AccordionPanel,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import { useLocalStorage } from 'react-use';
 
@@ -52,16 +52,22 @@ export function MasterSideNav({
   const [placeholder] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
 
   //initial state depends on position of current table in tableColEntryList
-  const initialIndex = tableColEntryList.findIndex(
-    ([key]) => key === currentTable,
-  );
+  const expandedIndex = tableColEntryList.findIndex(([key]) => {
+    return key === currentTable;
+  });
 
   //If parent container passes a `initAsExpandedTables: boolean` flag, certain routes to decide whether to show as expanded or not
   const [rootTablesExpandedIndexList, setRootTablesExpandedIndexList] =
     useState<number[]>(initAsExpandedTables ? [0] : []);
   const [tablesExpandedIndexList, setTablesExpandedIndexList] = useState<
     number[]
-  >([initialIndex]);
+  >([expandedIndex]);
+
+  useEffect(() => {
+    if (expandedIndex > -1) {
+      setTablesExpandedIndexList([expandedIndex]);
+    }
+  }, [expandedIndex]);
 
   return (
     <Box w={'100%'} zIndex={150} bg={'inherit'}>
@@ -111,7 +117,7 @@ export function MasterSideNav({
                 </h2>
                 <AccordionPanel py={0}>
                   <>
-                    <Accordion allowMultiple index={tablesExpandedIndexList}>
+                    <Accordion allowToggle index={tablesExpandedIndexList}>
                       {tableColEntryList.map(
                         ([tableName, compTableColItem, meta], index) => {
                           const fallbackTableEntries =
