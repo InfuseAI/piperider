@@ -27,6 +27,7 @@ export function ColumnListAccordionPanel({
           const isActiveColumn =
             (target || base)?.name === currentColumn &&
             indexedTableName === currentTable;
+
           return (
             <Box key={colKey}>
               {/* LIST - Columns */}
