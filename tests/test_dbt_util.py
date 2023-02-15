@@ -122,8 +122,9 @@ class TestRunner(TestCase):
                                                                           dbt_resources=None,
                                                                           dbt_run_results=None,
                                                                           tag='test'))
-        self.assertEqual(len(tables), 1)
-        self.assertEqual(tables[0].get('name'), 'session')
+        self.assertEqual(len(tables), 2)
+        self.assertEqual(tables[0].get('name'), 'stg_event')
+        self.assertEqual(tables[1].get('name'), 'session')
 
     def test_get_dbt_state_candidate_tag_and_view(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=True,

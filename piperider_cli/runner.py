@@ -421,7 +421,6 @@ def _validate_assertions(console: Console):
         return True
 
     # continue to run profiling
-    console.print('everything is OK.')
     return False
 
 
@@ -581,6 +580,41 @@ def check_dbt_manifest_compatibility(ds: DataSource, dbt_state_dir: str):
     return len([x for x in models if x.get('database') == database])
 
 
+def get_dbt_profile_subjects(dbt_state_dir, options, filter_fn):
+    subjects = []
+    candidate_nodes = dbtutil.get_dbt_state_candidate(dbt_state_dir, options)
+    for node in candidate_nodes:
+        name = node.get('name')
+        table = node.get('alias')
+        schema = node.get('schema')
+        database = node.get('database')
+        subjects.append(ProfileSubject(table, schema, database, name))
+
+    if not options.get('dbt_resources') and options.get('tag') is None:
+        subjects = list(filter(filter_fn, subjects))
+
+    return subjects
+
+
+def get_dbt_state_dir(dbt_state_dir, dbt_config, ds, dbt_run_results):
+    if not dbt_state_dir:
+        dbt_project = dbtutil.load_dbt_project(dbt_config.get('projectDir'))
+        dbt_state_dir = dbt_project.get('target-path')
+
+    if not dbtutil.is_dbt_state_ready(dbt_state_dir):
+        return None, f"[bold red]Error:[/bold red] No available 'manifest.json' under '{dbt_state_dir}'"
+
+    if not check_dbt_manifest_compatibility(ds, dbt_state_dir):
+        return None, f"[bold red]Error:[/bold red] Target mismatched. " \
+                     f"Please run 'dbt compile -t {dbt_config.get('target')}' to generate the new manifest"
+
+    if dbt_run_results:
+        if not dbtutil.is_dbt_run_results_ready(dbt_state_dir):
+            return None, f"[bold red]Error:[/bold red] No available 'run_results.json' under '{dbt_state_dir}'"
+
+    return dbt_state_dir, None
+
+
 class Runner():
     @staticmethod
     def exec(datasource=None, table=None, output=None, skip_report=False, dbt_state_dir: str = None,
@@ -588,13 +622,6 @@ class Runner():
         console = Console()
 
         raise_exception_when_directory_not_writable(output)
-
-        if table and dbt_run_results:
-            console.print("[bold red]Error:[/bold red] '--dbt-run-results' cannot be used with '--table'")
-            return sys.exit(1)
-        if dbt_resources and dbt_run_results:
-            console.print("[bold red]Error:[/bold red] Cannot specify dbt resources with '--dbt-run-results'")
-            return sys.exit(1)
 
         configuration = Configuration.load()
         filesystem = FileSystem(report_dir=report_dir)
@@ -656,9 +683,16 @@ class Runner():
 
         dbt_config = ds.args.get('dbt')
 
-        if dbt_config and not dbtutil.is_ready(dbt_config):
-            console.log('[bold red]ERROR:[/bold red] DBT configuration is not completed, please check the config.yml')
-            return sys.exit(1)
+        if dbt_config:
+            if not dbtutil.is_ready(dbt_config):
+                console.log(
+                    '[bold red]ERROR:[/bold red] DBT configuration is not completed, please check the config.yml')
+                return sys.exit(1)
+            dbt_state_dir, err_msg = get_dbt_state_dir(dbt_state_dir, dbt_config, ds, dbt_run_results)
+            if err_msg:
+                console.print(err_msg)
+                return sys.exit(1)
+        console.print('everything is OK.')
 
         console.rule('Profiling')
         run_id = uuid.uuid4().hex
@@ -678,43 +712,16 @@ class Runner():
                 return _filter_subject(subject.name, configuration.includes, configuration.excludes)
 
             if dbt_config:
-                if not dbt_state_dir:
-                    dbt_project = dbtutil.load_dbt_project(dbt_config.get('projectDir'))
-                    dbt_state_dir = dbt_project.get('target-path')
-                if not dbtutil.is_dbt_state_ready(dbt_state_dir):
-                    console.print(
-                        f"[bold red]Error:[/bold red] No available 'manifest.json' under '{dbt_state_dir}'")
-                    return sys.exit(1)
-
-                if not check_dbt_manifest_compatibility(ds, dbt_state_dir):
-                    console.print("[bold red]Error:[/bold red] Target mismatched. "
-                                  f"Please run 'dbt compile -t {dbt_config.get('target')}' to generate the new manifest")
-                    return sys.exit(1)
-
                 if dbt_run_results:
-                    if not dbtutil.is_dbt_run_results_ready(dbt_state_dir):
-                        console.print(
-                            f"[bold red]Error:[/bold red] No available 'run_results.json' under '{dbt_state_dir}'")
-                        return sys.exit(1)
                     dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir)
 
-                subjects = []
                 options = dict(
                     view_profile=configuration.include_views,
                     dbt_resources=dbt_resources,
                     dbt_run_results=dbt_run_results,
                     tag=dbt_config.get('tag')
                 )
-                candidate_nodes = dbtutil.get_dbt_state_candidate(dbt_state_dir, options)
-                for node in candidate_nodes:
-                    name = node.get('name')
-                    table = node.get('alias')
-                    schema = node.get('schema')
-                    database = node.get('database')
-                    subjects.append(ProfileSubject(table, schema, database, name))
-
-                if not dbt_resources:
-                    subjects = list(filter(filter_fn, subjects))
+                subjects = get_dbt_profile_subjects(dbt_state_dir, options, filter_fn)
             else:
                 table_names = inspect(engine).get_table_names()
                 if configuration.include_views:
@@ -736,7 +743,7 @@ class Runner():
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
         metrics = []
-        if dbt_state_dir:
+        if dbt_config:
             metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, dbt_config.get('tag', 'piperider'), dbt_resources)
 
         if metrics:
@@ -771,11 +778,7 @@ class Runner():
         _show_summary(run_result, assertion_results, assertion_exceptions, dbt_test_results)
         _show_recommended_assertion_notice_message(console, assertion_results)
 
-        if dbt_state_dir:
-            if not dbtutil.is_dbt_state_ready(dbt_state_dir):
-                console.print(
-                    f"[bold red]Error:[/bold red] No available 'manifest.json' or 'run_results.json' under '{dbt_state_dir}'")
-                return 1
+        if dbt_config:
             dbtutil.append_descriptions(run_result, dbt_state_dir)
         _append_descriptions_from_assertion(run_result)
 
@@ -790,7 +793,7 @@ class Runner():
         with open(output_file, 'w') as f:
             f.write(json.dumps(run_result, separators=(',', ':')))
 
-        if dbt_state_dir:
+        if dbt_config:
             abs_dir = os.path.abspath(dbt_state_dir)
             dbt_state_files = ['manifest.json', 'run_results.json', 'index.html', 'catalog.json']
             dbt_output_dir = os.path.join(output_path, 'dbt')

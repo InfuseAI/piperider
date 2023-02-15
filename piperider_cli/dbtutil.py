@@ -118,15 +118,10 @@ def _get_state_manifest(dbt_state_dir: str):
 
 
 def append_descriptions(profile_result, dbt_state_dir):
-    run_results = _get_state_run_results(dbt_state_dir)
     manifest = _get_state_manifest(dbt_state_dir)
 
     nodes = manifest.get('nodes')
-    for result in run_results.get('results'):
-        node = nodes.get(result.get('unique_id'))
-        if node.get('resource_type') != 'model' and node.get('resource_type') != 'seed':
-            continue
-
+    for node in nodes.values():
         model = node.get('name')
         model_desc = node.get('description')
         if model not in profile_result['tables']:
@@ -169,12 +164,12 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict):
         if dbt_resources:
             return '.'.join(node.get('fqn')) in dbt_resources['models']
         else:
+            if dbt_run_results and key not in run_results_ids:
+                return False
+            if tag:
+                return tag in node.get('tags', [])
             config_material = node.get('config').get('materialized')
             if config_material not in material_whitelist:
-                return False
-            if tag and tag not in node.get('tags', []):
-                return False
-            if dbt_run_results and key not in run_results_ids:
                 return False
             return True
 
