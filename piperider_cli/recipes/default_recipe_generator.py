@@ -108,7 +108,7 @@ def show_recipe_content(recipe_path=DEFAULT_RECIPE_PATH):
         return
 
     with open(recipe_path, 'r') as f:
-        console.rule(f'Recipe: {os.path.basename(recipe_path)}')
+        console.rule(f'Recipe: {os.path.relpath(recipe_path)}')
         yaml_output = Syntax(f.read(), 'yaml', theme='monokai', line_numbers=True)
         console.print(yaml_output)
         console.rule('End of Recipe')
