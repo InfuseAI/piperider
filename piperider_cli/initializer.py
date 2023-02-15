@@ -123,7 +123,7 @@ class Initializer():
         configuration = _generate_configuration(dbt_project_path, dbt_profiles_dir)
 
         # generate the default recipe
-        generate_default_recipe(dbt_project_path=dbt_project_path, config=configuration)
+        generate_default_recipe(dbt_project_path=dbt_project_path)
         return configuration
 
     @staticmethod
