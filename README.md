@@ -89,9 +89,13 @@ PipeRider automatically compares your data to highlight the difference in impact
 
 # Example Report Demo
 
-[See Generated Single-Run Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/run-0.16.0/index.html)
+We use the example project [git-repo-analytics](https://github.com/InfuseAI/git-repo-analytics) to demonstrate how to use piperider+dbt+duckdb to analyze [dbt-core](https://github.com/dbt-labs/dbt-core) repository. Here is the generated result (daily update)
 
-[See Comparison Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-0.16.0/index.html)
+[Run Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/single-run-report/index.html)
+
+[Comparison Report](https://piperider-github-readme.s3.ap-northeast-1.amazonaws.com/comparison-report/index.html)
+
+[Comparison Summary in a PR](https://github.com/InfuseAI/git-repo-analytics/pull/19)
 
 # PipeRider Cloud (beta)
 PipeRider Cloud offers a hosted version for HTML reports, including features such as alerts and historical trend watching. Get early beta access by signing up on our website: https://piperider.io
