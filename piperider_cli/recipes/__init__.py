@@ -173,7 +173,7 @@ def verify_git_dependencies(cfg: RecipeConfiguration):
 
 
 def verify_dbt_dependencies(cfg: RecipeConfiguration):
-    if cfg.base.dbt is None and cfg.target.dbt is None:
+    if len(cfg.base.dbt.commands) == 0 and len(cfg.target.dbt.commands) == 0:
         # nobody set the dbt configurations
         return
 
