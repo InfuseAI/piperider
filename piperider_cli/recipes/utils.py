@@ -1,20 +1,24 @@
 import os
 import shlex
 import subprocess
-from subprocess import Popen, TimeoutExpired
+from subprocess import Popen
 from typing import Dict
 
-from piperider_cli.error import RecipeException
+from piperider_cli.error import RecipeException, PipeRiderError
 
 
 def _execute_command(command_line, env: Dict = None):
     cmd = shlex.split(command_line)
-    proc = Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env or os.environ.copy())
+    proc = None
     try:
-        outs, errs = proc.communicate(timeout=15)
-    except TimeoutExpired:
-        proc.kill()
+        proc = Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env or os.environ.copy())
         outs, errs = proc.communicate()
+    except BaseException as e:
+        if proc:
+            proc.kill()
+            outs, errs = proc.communicate()
+        else:
+            return None, e, 1
 
     if outs is not None:
         outs = outs.decode().strip()
@@ -25,12 +29,17 @@ def _execute_command(command_line, env: Dict = None):
 
 def execute_command_without_capture_output(command_line, env: Dict = None):
     cmd = shlex.split(command_line)
-    proc = Popen(cmd, env=env or os.environ.copy())
+    proc = None
+
     try:
+        proc = Popen(cmd, env=env or os.environ.copy())
         proc.communicate()
-    except TimeoutExpired:
-        proc.kill()
-        proc.communicate()
+    except BaseException:
+        if proc:
+            proc.kill()
+            proc.communicate()
+        else:
+            return 1
 
     return proc.returncode
 
@@ -57,7 +66,7 @@ def execute_command(command_line, envs: Dict):
 def ensure_git_ready():
     outs, errs, exit_code = _execute_command("git --version")
     if exit_code != 0:
-        raise RecipeException(errs)
+        raise PipeRiderError('git is not installed', hint='Please install it first')
 
     if "version" not in outs:
         raise RecipeException("Unknown response from git --version")
@@ -75,7 +84,7 @@ def ensure_git_ready():
 def check_dbt_command():
     outs, errs, exit_code = _execute_command("dbt --version")
     if exit_code != 0:
-        raise RecipeException(errs)
+        raise PipeRiderError('dbt is not installed', hint='Please install it first')
 
 
 if __name__ == '__main__':
