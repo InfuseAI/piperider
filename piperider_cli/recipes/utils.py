@@ -4,7 +4,7 @@ import subprocess
 from subprocess import Popen
 from typing import Dict
 
-from piperider_cli.error import RecipeException
+from piperider_cli.error import RecipeException, PipeRiderError
 
 
 def _execute_command(command_line, env: Dict = None):
@@ -66,7 +66,7 @@ def execute_command(command_line, envs: Dict):
 def ensure_git_ready():
     outs, errs, exit_code = _execute_command("git --version")
     if exit_code != 0:
-        raise RecipeException(errs)
+        raise PipeRiderError('git is not installed', hint='Please install it first')
 
     if "version" not in outs:
         raise RecipeException("Unknown response from git --version")
@@ -84,7 +84,7 @@ def ensure_git_ready():
 def check_dbt_command():
     outs, errs, exit_code = _execute_command("dbt --version")
     if exit_code != 0:
-        raise RecipeException(errs)
+        raise PipeRiderError('dbt is not installed', hint='Please install it first')
 
 
 if __name__ == '__main__':
