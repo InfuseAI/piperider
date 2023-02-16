@@ -140,6 +140,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.PIPERIDER_INTERNAL_PROJECTS_GITHUB_TOKEN }}
-          repository: InfuseAI/piperider-internal-projects
+          repository: InfuseAI/git-repo-analytics
           event-type: generate-sample-report
           client-payload: '{"piperider_version": "${{ needs.build.outputs.piperider_version }}"}'
