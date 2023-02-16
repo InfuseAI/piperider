@@ -230,6 +230,8 @@ class Configuration(object):
                 target_names = list(profile.get(profile_name).get('outputs').keys())
                 for target in target_names:
                     credential = dbtutil.load_credential_from_dbt_profile(profile, profile_name, target)
+                    if credential.get('pass') and credential.get('password') is None:
+                        credential['password'] = credential.pop('pass')
                     datasource_class = DATASOURCE_PROVIDERS[credential.get('type')]
                     data_source = datasource_class(
                         name=target,
