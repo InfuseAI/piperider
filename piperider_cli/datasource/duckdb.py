@@ -111,6 +111,10 @@ class DuckDBDataSource(DataSource):
         return f"type={self.type_name}, dbpath={cred.get('path')}, schema={cred.get('schema')}"
 
     def get_database(self):
+        engine = self.get_engine_by_database()
+        row = engine.execute('pragma database_list').fetchone()
+        if row and len(row) > 1:
+            return row[1]
         return 'main'
 
     def get_schema(self):
