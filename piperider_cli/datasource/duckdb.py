@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 
 import requests
 from rich.console import Console
-from sqlalchemy import inspect
+from sqlalchemy import inspect, text
 from sqlalchemy.exc import DBAPIError
 
 from piperider_cli.error import PipeRiderConnectorError, AwsCredentialsError, AwsUnExistedS3Bucket, \
@@ -111,6 +111,13 @@ class DuckDBDataSource(DataSource):
         return f"type={self.type_name}, dbpath={cred.get('path')}, schema={cred.get('schema')}"
 
     def get_database(self):
+        engine = self.get_engine_by_database()
+        with engine.connect() as conn:
+            result = conn.execute(text('pragma database_list')).fetchone()
+            # 'pragma database_list' returns a tuple with three columns
+            if result and len(result) == 3:
+                seq, name, file = result
+                return name
         return 'main'
 
     def get_schema(self):
