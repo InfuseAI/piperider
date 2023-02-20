@@ -381,6 +381,8 @@ def cloud_compare_reports(**kwargs):
 
 @cli.command(name='compare', short_help='Generate comparison report with the recipe.', cls=TrackCommand)
 @click.option('--recipe', default=None, type=click.STRING, help='Select a different recipe.')
+@click.option('--upload', default=False, is_flag=True, help='Upload the report to PipeRider Cloud.')
+@click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--summary-file', default=None, type=click.STRING, help='Output the comparison summary markdown file.')
 @add_options(debug_option)
@@ -391,6 +393,8 @@ def compare_with_recipe(**kwargs):
 
     recipe = kwargs.get('recipe')
     summary_file = kwargs.get('summary_file')
+    force_upload = kwargs.get('upload')
+    enable_share = kwargs.get('share')
 
     ret = 0
     try:
@@ -398,6 +402,8 @@ def compare_with_recipe(**kwargs):
         CompareReport.exec(a=None, b=None, last=True, datasource=None,
                            output=kwargs.get('output'), tables_from="all",
                            summary_file=summary_file,
+                           force_upload=force_upload,
+                           enable_share=enable_share,
                            debug=kwargs.get('debug', False))
     except Exception as e:
         raise e

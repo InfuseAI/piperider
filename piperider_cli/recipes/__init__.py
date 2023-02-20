@@ -218,6 +218,7 @@ def execute_recipe(model: RecipeModel, current_branch):
 
     # model.piperider.commands
     for cmd in model.piperider.commands or []:
+
         console.print(f"Run: \[{cmd}]")
         exit_code = execute_command(cmd, model.piperider.envs())
         console.print(f"Exit code: {exit_code}")

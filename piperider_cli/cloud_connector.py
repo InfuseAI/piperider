@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import webbrowser
@@ -162,13 +163,25 @@ def select_cloud_report_ids(project_id: int = None, datasource=None, project_nam
 
 def upload_to_cloud(report: RunOutput, debug=False, project_id=None) -> dict:
     response = piperider_cloud.upload_report(report.path, project_id=project_id)
+
     # TODO refine the output when API is ready
+
+    def _patch_cloud_upload_response(report_path, project_id, report_id):
+        with open(report_path, 'r') as f:
+            report = json.load(f)
+        report['cloud'] = {
+            'report_id': report_id,
+            'project_id': project_id
+        }
+        with open(report_path, 'w') as f:
+            f.write(json.dumps(report, separators=(',', ':')))
 
     if response.get('success') is True:
         project_id = response.get('project_id')
         report_id = response.get('id')
         if project_id and report_id:
             report_url = f'{piperider_cloud.service.cloud_host}/projects/{project_id}/reports/{report_id}'
+            _patch_cloud_upload_response(report.path, project_id, report_id)
         else:
             report_url = 'N/A'
         return {
