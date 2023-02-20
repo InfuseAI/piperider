@@ -129,7 +129,7 @@ class PipeRiderCloud:
         response = requests.post(
             signup_url,
             headers={'Content-type': 'application/json', 'Accept': 'text/plain'},
-            data=json.dumps({'email': email})
+            data=json.dumps({'email': email, 'source': 'cli'})
         )
         if response.status_code == 200:
             return response.json()
@@ -142,7 +142,7 @@ class PipeRiderCloud:
         response = requests.post(
             login_url,
             headers={'Content-type': 'application/json', 'Accept': 'text/plain'},
-            data=json.dumps({'email': email})
+            data=json.dumps({'email': email, 'source': 'cli'})
         )
         if response.status_code == 200:
             return response.json()
