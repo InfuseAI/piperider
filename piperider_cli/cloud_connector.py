@@ -35,7 +35,8 @@ def _ask_email():
 
 
 def _ask_api_token():
-    console.print('Please paste the api token from magic link. The link has been sent to your email address.')
+    console.print('We have just sent an email with a magic link.\n'
+                  'Please paste the api token from the magic link.')
     while True:
         api_token = Prompt.ask('[[yellow]?[/yellow]] API token')
         if len(api_token) > 0:
