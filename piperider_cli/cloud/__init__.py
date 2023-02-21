@@ -122,6 +122,19 @@ class PipeRiderCloud:
         self.service.api_token = None
         self.service.update_api_token()
 
+    def magic_signup(self, email):
+        if self.available:
+            return True
+        signup_url = self.service.url('/api/credentials/signup')
+        response = requests.post(
+            signup_url,
+            headers={'Content-type': 'application/json', 'Accept': 'text/plain'},
+            data=json.dumps({'email': email, 'source': 'cli'})
+        )
+        if response.status_code == 200:
+            return response.json()
+        return None
+
     def magic_login(self, email):
         if self.available:
             return True
@@ -129,7 +142,7 @@ class PipeRiderCloud:
         response = requests.post(
             login_url,
             headers={'Content-type': 'application/json', 'Accept': 'text/plain'},
-            data=json.dumps({'email': email})
+            data=json.dumps({'email': email, 'source': 'cli'})
         )
         if response.status_code == 200:
             return response.json()

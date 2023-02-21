@@ -20,8 +20,7 @@ console = Console()
 piperider_cloud = PipeRiderCloud()
 
 
-def ask_login_info() -> str:
-    console.print('Please provide available email account to login')
+def _ask_email():
     if FANCY_USER_INPUT:
         account = inquirer.text('Email address', validate=lambda _, x: '@' in x)
     else:
@@ -29,21 +28,90 @@ def ask_login_info() -> str:
             account = Prompt.ask('[[yellow]?[/yellow]] Email address')
             if '@' in account:
                 break
+            else:
+                console.print(f"'{account}' is not a valid")
 
-    response = piperider_cloud.magic_login(account)
-    if response is None or response.get('success') is False:
-        console.print('[[red]Error[/red]] Login failed. Please try again.')
-        return None
+    return account
 
-    if response.get('link'):
-        webbrowser.open(response.get('link'))
 
-    console.print('Please paste the api token from magic link. The link has been sent to your email address.')
+def _ask_api_token():
+    console.print('We have just sent an email with a magic link.\n'
+                  'Please paste the api token from the magic link.')
     while True:
         api_token = Prompt.ask('[[yellow]?[/yellow]] API token')
         if len(api_token) > 0:
             break
     return api_token
+
+
+def _process_magic_signup(account: str):
+    response = piperider_cloud.magic_signup(account)
+    if response is None:
+        console.print('[[red]Error[/red]] Signup failed. Please try again.')
+        return False
+    elif response.get('success') is False:
+        # TODO: use error code
+        if 'User email or username already exists.' in response.get('message', ''):
+            console.print(f"'{account}' already exists.")
+            if not _process_magic_login(account):
+                return False
+        else:
+            console.print(f"[[red]Error[/red]] {response.get('message')}")
+            return False
+    return True
+
+
+def _process_magic_login(account: str):
+    response = piperider_cloud.magic_login(account)
+    if response is None:
+        console.print('[[red]Error[/red]] Login failed. Please try again.')
+        return False
+    elif response.get('success') is False:
+        # TODO: use error code
+        if f"'{account}' does not exist." in response.get('message', ''):
+            console.print('This email account was not found.')
+            question = f"Signup with '{account}' (y/n)"
+            allowed_ans = ['y', 'n', 'Y', 'N']
+            if FANCY_USER_INPUT:
+                ans = inquirer.text(question, validate=lambda _, x: x in allowed_ans)
+            else:
+                while True:
+                    ans = Prompt.ask(f'[[yellow]?[/yellow]] {question}')
+                    if ans in allowed_ans:
+                        break
+                    else:
+                        console.print(f"'{ans}' is not a valid")
+            if ans.upper() == 'N':
+                return False
+            else:
+                if _process_magic_signup(account):
+                    return True
+                return False
+        else:
+            console.print(f"[[red]Error[/red]] {response.get('message')}")
+            return False
+
+    if response.get('link'):
+        webbrowser.open(response.get('link'))
+    return True
+
+
+def ask_signup_info() -> str:
+    console.print('Please provide your email account to signup')
+    account = _ask_email()
+
+    if _process_magic_signup(account):
+        return _ask_api_token()
+    return ''
+
+
+def ask_login_info() -> str:
+    console.print('Please provide your email account to login')
+    account = _ask_email()
+
+    if _process_magic_login(account):
+        return _ask_api_token()
+    return ''
 
 
 def verify_api_token(api_token) -> bool:
@@ -230,6 +298,27 @@ class CloudConnector:
     def config_auto_upload(flag: bool):
         console.print(f'[[bold green]Config[/bold green]] Default auto upload behavior is set to {flag}')
         piperider_cloud.update_config({'auto_upload': flag})
+
+    @staticmethod
+    def signup(debug=False):
+
+        if piperider_cloud.available:
+            console.rule('Already Logged In')
+            show_user_info()
+            check_default_config(options={})
+            return 0
+
+        api_token = ask_signup_info()
+
+        if api_token:
+            if verify_api_token(api_token):
+                console.rule('Login Successful')
+                show_user_info()
+                check_default_config(options={})
+                return 0
+
+        console.rule('Login Failed', style='red')
+        return 1
 
     @staticmethod
     def login(api_token=None, options: dict = None, debug=False):
