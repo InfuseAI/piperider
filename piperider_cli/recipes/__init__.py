@@ -257,10 +257,10 @@ def execute_configuration(cfg: RecipeConfiguration):
     current_branch = get_current_branch(cfg)
 
     try:
-        console.rule("Recipe executor: the base phase")
+        console.rule("Recipe executor: base phase")
         execute_recipe(cfg.base, current_branch)
 
-        console.rule("Recipe executor: the target phase")
+        console.rule("Recipe executor: target phase")
         execute_recipe(cfg.target, current_branch)
     finally:
         if current_branch is not None:

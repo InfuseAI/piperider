@@ -380,7 +380,7 @@ class CloudConnector:
                 f.write(response.get('summary'))
 
     @staticmethod
-    def share_compare_report(base_id=None, target_id=None):
+    def share_compare_report(base_id=None, target_id=None, debug=False):
         if piperider_cloud.available is False:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
@@ -390,7 +390,8 @@ class CloudConnector:
             console.rule('Please select a workspace and a project first', style='red')
             return 1
 
-        console.print(f"Sharing comparison report id={base_id} ... id={target_id}")
+        if debug:
+            console.print(f"Sharing comparison report id={base_id} ... id={target_id}")
         response = piperider_cloud.share_compare_report(
             workspace_name=workspace_name,
             project_name=project_name,
@@ -398,6 +399,7 @@ class CloudConnector:
             target_id=target_id,
         )
         sharing_url = None
+
         if response:
             sharing_url = f'{piperider_cloud.service.cloud_host}/reports/sharing/comparison/{response.get("sharing_id")}'
         return sharing_url

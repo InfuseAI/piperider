@@ -396,6 +396,9 @@ def compare_with_recipe(**kwargs):
     force_upload = kwargs.get('upload')
     enable_share = kwargs.get('share')
 
+    if enable_share:
+        force_upload = True
+
     ret = 0
     try:
         RecipeExecutor.exec(recipe_name=recipe)

@@ -58,6 +58,9 @@ class RunOutput(object):
             data = json.load(f)
         return data
 
+    def refresh(self):
+        self.__init__(self.path)
+
     def __str__(self):
         created_at_str = datetime_to_str(str_to_datetime(self.created_at),
                                          to_tzlocal=True)
@@ -730,10 +733,10 @@ class CompareReport(object):
         if force_upload:
             from piperider_cli.cloud_connector import CloudConnector
             if report.a.cloud is None:
-                console.rule(f'Recipe executor: Uploading report {report.a.path} to cloud')
+                console.rule(f'Recipe executor: upload report {report.a.path} to cloud')
                 CloudConnector.upload_report(report.a.path)
             if report.b.cloud is None:
-                console.rule(f'Recipe executor: Uploading report {report.a.path} to cloud')
+                console.rule(f'Recipe executor: upload report {report.a.path} to cloud')
                 CloudConnector.upload_report(report.b.path)
 
         comparison_data = report.generate_data(tables_from)
@@ -763,12 +766,17 @@ class CompareReport(object):
         summary_md_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'summary.md')
 
         if enable_share:
+            # Refresh report to get the latest cloud report_id
+            report.a.refresh()
+            report.b.refresh()
+            console.rule('Recipe executor: share the comparison report')
+
             if report.a.cloud is None or report.b.cloud is None:
                 console.print(
                     '[[bold yellow]Skip[/bold yellow]] Please enable cloud auto upload or use "piperider compare --upload" to upload reports to cloud first.')
             else:
                 from piperider_cli.cloud_connector import CloudConnector
-                console.rule(f'Recipe executor: Share the comparison report')
+
                 base = str(report.a.cloud.get('report_id'))
                 target = str(report.b.cloud.get('report_id'))
                 CloudConnector.compare_reports(
