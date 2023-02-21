@@ -11,6 +11,7 @@ from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_PATH
+from piperider_cli.error import RecipeConfigException
 from piperider_cli.event import UserProfileConfigurator
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
@@ -398,6 +399,12 @@ def compare_with_recipe(**kwargs):
 
     if enable_share:
         force_upload = True
+
+    if force_upload is True and CloudConnector.is_login() is False:
+        raise RecipeConfigException(
+            message='Please login to PipeRider Cloud first.',
+            hint='Run "piprider cloud login" to login to PipeRider Cloud.'
+        )
 
     ret = 0
     try:

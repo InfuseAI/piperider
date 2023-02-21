@@ -347,6 +347,17 @@ class CloudConnector:
         return rc
 
     @staticmethod
+    def generate_compare_report_url(base_id: str, target_id: str, workspace_name: str = None, project_name: str = None,
+                                    project_id=None):
+        # TODO: Change to use new front-end URL pattern
+        def _generate_legacy_compare_report_url(base_id, target_id, project_id=None):
+            if project_id is None:
+                project_id = piperider_cloud.get_default_project()
+            return f'{piperider_cloud.service.cloud_host}/projects/{project_id}/reports/{base_id}/comparison/{target_id}'
+
+        return _generate_legacy_compare_report_url(base_id, target_id, project_id)
+
+    @staticmethod
     def compare_reports(base=None, target=None, tables_from='all', summary_file=None, debug=False,
                         project_name=None) -> int:
         if piperider_cloud.available is False:

@@ -730,14 +730,24 @@ class CompareReport(object):
         if not report.select_reports(use_last_two=last):
             raise Exception('No valid reports found')
 
-        if force_upload:
-            from piperider_cli.cloud_connector import CloudConnector
+        from piperider_cli.cloud_connector import CloudConnector
+        if force_upload or CloudConnector.is_auto_upload():
             if report.a.cloud is None:
                 console.rule(f'Recipe executor: upload report {report.a.path} to cloud')
                 CloudConnector.upload_report(report.a.path)
+                report.a.refresh()
+
             if report.b.cloud is None:
                 console.rule(f'Recipe executor: upload report {report.a.path} to cloud')
                 CloudConnector.upload_report(report.b.path)
+                report.b.refresh()
+
+            console.rule(f'Recipe executor: upload the comparison report')
+            base = str(report.a.cloud.get('report_id'))
+            target = str(report.b.cloud.get('report_id'))
+            project_id = report.a.cloud.get('project_id')
+            console.print(
+                f'Comparison report URL: {CloudConnector.generate_compare_report_url(base, target, project_id=project_id)}')
 
         comparison_data = report.generate_data(tables_from)
 
@@ -766,9 +776,6 @@ class CompareReport(object):
         summary_md_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'summary.md')
 
         if enable_share:
-            # Refresh report to get the latest cloud report_id
-            report.a.refresh()
-            report.b.refresh()
             console.rule('Recipe executor: share the comparison report')
 
             if report.a.cloud is None or report.b.cloud is None:
@@ -776,13 +783,8 @@ class CompareReport(object):
                     '[[bold yellow]Skip[/bold yellow]] Please enable cloud auto upload or use "piperider compare --upload" to upload reports to cloud first.')
             else:
                 from piperider_cli.cloud_connector import CloudConnector
-
                 base = str(report.a.cloud.get('report_id'))
                 target = str(report.b.cloud.get('report_id'))
-                CloudConnector.compare_reports(
-                    base=base,
-                    target=target
-                )
                 sharing_url = CloudConnector.share_compare_report(base, target)
                 console.print(f"Comparison sharing report: {sharing_url}")
 
