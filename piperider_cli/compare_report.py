@@ -742,7 +742,7 @@ class CompareReport(object):
                 CloudConnector.upload_report(report.b.path)
                 report.b.refresh()
 
-            console.rule(f'Recipe executor: upload the comparison report')
+            console.rule('Recipe executor: upload the comparison report')
             base = str(report.a.cloud.get('report_id'))
             target = str(report.b.cloud.get('report_id'))
             project_id = report.a.cloud.get('project_id')
