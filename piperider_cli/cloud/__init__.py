@@ -166,6 +166,35 @@ class PipeRiderCloud:
                     if p.get('is_default'):
                         return p.get('id')
 
+    def get_default_workspace_and_project(self):
+        if not self.available:
+            self.raise_error()
+
+        if self.config.get('default_project'):
+            name = self.config.get('default_project')
+            workspace_name, project_name = name.split('/')
+            return workspace_name, project_name
+
+        # Query workspace
+        url = self.service.url('/api/v2/workspaces')
+        headers = self.service.auth_headers()
+        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            return None, None
+
+        response = response.json()
+        if len(response.get('data', [])) == 0:
+            return None, None
+        workspace = response.get('data')[0]
+        workspace_name = workspace.get('name')
+        project_name = None
+        for p in workspace.get('projects', []):
+            if p.get('is_default'):
+                project_name = p.get('name')
+                break
+
+        return workspace_name, project_name
+
     def list_reports(self, project_id, datasource=None):
         if not self.available:
             self.raise_error()
@@ -229,6 +258,20 @@ class PipeRiderCloud:
         url = self.service.url(f'/api/projects/{project_id}/reports/{base_id}/compare/{target_id}')
         headers = self.service.auth_headers()
         response = requests.post(url, data=json.dumps({'tables_from': tables_from}), headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        return response.json()
+
+    def share_compare_report(self, workspace_name: str, project_name: str, base_id: int, target_id: int):
+        if not self.available:
+            self.raise_error()
+
+        url = self.service.url(
+            f'/api/v2/workspaces/{workspace_name}/projects/{project_name}/runs/{base_id}/compare/{target_id}/share')
+        headers = self.service.auth_headers()
+        response = requests.post(url, headers=headers)
 
         if response.status_code != 200:
             return None

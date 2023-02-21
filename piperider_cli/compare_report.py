@@ -769,11 +769,14 @@ class CompareReport(object):
             else:
                 from piperider_cli.cloud_connector import CloudConnector
                 console.rule(f'Recipe executor: Share the comparison report')
+                base = str(report.a.cloud.get('report_id'))
+                target = str(report.b.cloud.get('report_id'))
                 CloudConnector.compare_reports(
-                    base=str(report.a.cloud.get('report_id')),
-                    target=str(report.b.cloud.get('report_id'))
+                    base=base,
+                    target=target
                 )
-                # TODO: Implement share report feature
+                sharing_url = CloudConnector.share_compare_report(base, target)
+                console.print(f"Comparison sharing report: {sharing_url}")
 
         if output:
             clone_directory(default_report_directory, output)
