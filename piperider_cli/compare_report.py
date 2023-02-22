@@ -720,8 +720,9 @@ class CompareReport(object):
 
     @staticmethod
     def exec(*, a=None, b=None, last=None, datasource=None, report_dir=None, output=None, tables_from='all',
-             summary_file=None, force_upload=False, enable_share=False, debug=False):
+             summary_file=None, force_upload=False, enable_share=False, debug=False, show_progress=False):
         console = Console()
+        console.rule('Comparison report', style='bold blue')
 
         filesystem = FileSystem(report_dir=report_dir)
         raise_exception_when_directory_not_writable(output)
@@ -731,23 +732,26 @@ class CompareReport(object):
             raise Exception('No valid reports found')
 
         from piperider_cli.cloud_connector import CloudConnector
-        if force_upload or CloudConnector.is_auto_upload():
-            if report.a.cloud is None:
-                console.rule(f'Recipe executor: upload report {report.a.path} to cloud')
-                CloudConnector.upload_report(report.a.path)
-                report.a.refresh()
+        report_url = None
+        summary_data = None
 
-            if report.b.cloud is None:
-                console.rule(f'Recipe executor: upload report {report.a.path} to cloud')
-                CloudConnector.upload_report(report.b.path)
-                report.b.refresh()
+        if report.a.cloud is None and force_upload:
+            CloudConnector.upload_report(report.a.path, show_progress=show_progress)
+            report.a.refresh()
 
-            console.rule('Recipe executor: upload the comparison report')
+        if report.b.cloud is None and force_upload:
+            CloudConnector.upload_report(report.b.path, show_progress=show_progress)
+            report.b.refresh()
+
+        # Generate comparison report URL & summary markdown
+        if report.a.cloud and report.b.cloud:
             base = str(report.a.cloud.get('report_id'))
             target = str(report.b.cloud.get('report_id'))
             project_id = report.a.cloud.get('project_id')
-            console.print(
-                f'Comparison report URL: {CloudConnector.generate_compare_report_url(base, target, project_id=project_id)}')
+            response = CloudConnector.generate_compare_report(base, target, project_id=project_id)
+            if response:
+                report_url = response.get('url')
+                summary_data = response.get('summary')
 
         comparison_data = report.generate_data(tables_from)
 
@@ -763,21 +767,21 @@ class CompareReport(object):
                 html = setup_report_variables(report_template_html, False, comparison_data.to_json())
                 f.write(html)
 
-        def output_summary(directory):
+        def output_summary(directory, summary_data):
             filename = os.path.join(directory, 'summary.md')
             with open(filename, 'w') as f:
-                f.write(comparison_data.to_summary_markdown())
+                f.write(summary_data)
 
         data_id = comparison_data.id()
+        summary_data = summary_data if summary_data else comparison_data.to_summary_markdown()
         default_report_directory = prepare_default_output_path(filesystem, data_id)
         output_report(default_report_directory)
-        output_summary(default_report_directory)
+        output_summary(default_report_directory, summary_data)
         report_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'index.html')
         summary_md_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'summary.md')
 
+        sharing_url = None
         if enable_share:
-            console.rule('Recipe executor: share the comparison report')
-
             if report.a.cloud is None or report.b.cloud is None:
                 console.print(
                     '[[bold yellow]Skip[/bold yellow]] Please enable cloud auto upload or use "piperider compare --upload" to upload reports to cloud first.')
@@ -786,7 +790,6 @@ class CompareReport(object):
                 base = str(report.a.cloud.get('report_id'))
                 target = str(report.b.cloud.get('report_id'))
                 sharing_url = CloudConnector.share_compare_report(base, target)
-                console.print(f"Comparison sharing report: {sharing_url}")
 
         if output:
             clone_directory(default_report_directory, output)
@@ -804,6 +807,10 @@ class CompareReport(object):
         console.print()
         console.print(f"Comparison report: {report_path}")
         console.print(f"Comparison summary: {summary_md_path}")
+        if report_url:
+            console.print(f"Comparison report URL: {report_url}")
+        if sharing_url:
+            console.print(f"Comparison sharing report: {sharing_url}")
 
         if debug:
             # Write comparison data to file
