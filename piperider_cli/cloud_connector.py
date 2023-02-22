@@ -362,7 +362,7 @@ class CloudConnector:
 
         try:
             return _generate_legacy_compare_report_url(base_id, target_id, project_id)
-        except Exception as e:
+        except Exception:
             return None
 
     @staticmethod
