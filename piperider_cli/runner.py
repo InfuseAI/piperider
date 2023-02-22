@@ -29,6 +29,7 @@ from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.filesystem import FileSystem
 from piperider_cli.metrics_engine import MetricEngine, MetricEventHandler
 from piperider_cli.profiler import Profiler, ProfilerEventHandler, ProfileSubject
+from piperider_cli.statistics import Statistics
 
 
 class RunEventPayload:
@@ -606,8 +607,10 @@ def get_dbt_profile_subjects(dbt_state_dir, options, filter_fn):
         database = node.get('database')
         subjects.append(ProfileSubject(table, schema, database, name))
 
+    total = len(subjects)
     if not options.get('dbt_resources') and options.get('tag') is None:
         subjects = list(filter(filter_fn, subjects))
+        Statistics().add_field('filter', total - len(subjects))
 
     return subjects
 
@@ -747,7 +750,7 @@ class Runner():
                 subjects = list(filter(filter_fn, subjects))
 
         run_result = {}
-
+        Statistics().display_statistic()
         profiler = Profiler(ds, RichProfilerEventHandler([subject.name for subject in subjects]), configuration)
         try:
             profiler_result = profiler.profile(subjects)

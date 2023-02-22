@@ -14,6 +14,7 @@ from piperider_cli.error import \
     DbtProfileInvalidError, \
     DbtProfileBigQueryAuthWithTokenUnsupportedError
 from piperider_cli.metrics_engine import Metric
+from piperider_cli.statistics import Statistics
 
 console = Console()
 
@@ -162,20 +163,27 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict):
 
     def is_chosen(key, node):
         if dbt_resources:
+            if '.'.join(node.get('fqn')) not in dbt_resources['models']:
+                Statistics().add_field_one('filter')
             return '.'.join(node.get('fqn')) in dbt_resources['models']
         else:
             if dbt_run_results and key not in run_results_ids:
+                Statistics().add_field_one('norun')
                 return False
             if tag:
+                if tag not in node.get('tags', []):
+                    Statistics().add_field_one('notag')
                 return tag in node.get('tags', [])
             config_material = node.get('config').get('materialized')
             if config_material not in material_whitelist:
+                Statistics().add_field_one(config_material)
                 return False
             return True
 
     for key, node in nodes.items():
         if node.get('resource_type') not in resource_whitelist:
             continue
+        Statistics().add_field_one('total')
         if not is_chosen(key, node):
             continue
         candidate.append(node)
