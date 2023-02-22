@@ -26,6 +26,7 @@ class RunOutput(object):
         self.table_count = 0
         self.pass_count = 0
         self.fail_count = 0
+        self.cloud = None
 
         try:
             with open(path, 'r') as f:
@@ -41,6 +42,7 @@ class RunOutput(object):
                         self.pass_count += 1
                     else:
                         self.fail_count += 1
+                self.cloud = run_result.get('cloud')
         except Exception as e:
             if isinstance(e, json.decoder.JSONDecodeError):
                 raise json.decoder.JSONDecodeError(
@@ -55,6 +57,9 @@ class RunOutput(object):
         with open(self.path, 'r') as f:
             data = json.load(f)
         return data
+
+    def refresh(self):
+        self.__init__(self.path)
 
     def __str__(self):
         created_at_str = datetime_to_str(str_to_datetime(self.created_at),
@@ -715,8 +720,9 @@ class CompareReport(object):
 
     @staticmethod
     def exec(*, a=None, b=None, last=None, datasource=None, report_dir=None, output=None, tables_from='all',
-             summary_file=None, debug=False):
+             summary_file=None, force_upload=False, enable_share=False, debug=False, show_progress=False):
         console = Console()
+        console.rule('Comparison report', style='bold blue')
 
         filesystem = FileSystem(report_dir=report_dir)
         raise_exception_when_directory_not_writable(output)
@@ -724,6 +730,29 @@ class CompareReport(object):
         report = CompareReport(filesystem.get_output_dir(), a, b, datasource=datasource)
         if not report.select_reports(use_last_two=last):
             raise Exception('No valid reports found')
+
+        from piperider_cli.cloud_connector import CloudConnector
+        report_url = None
+        summary_data = None
+
+        if report.a.cloud is None and force_upload:
+            CloudConnector.upload_report(report.a.path, show_progress=show_progress)
+            report.a.refresh()
+
+        if report.b.cloud is None and force_upload:
+            CloudConnector.upload_report(report.b.path, show_progress=show_progress)
+            report.b.refresh()
+
+        # Generate comparison report URL & summary markdown
+        if report.a.cloud and report.b.cloud:
+            base = str(report.a.cloud.get('report_id'))
+            target = str(report.b.cloud.get('report_id'))
+            project_id = report.a.cloud.get('project_id')
+            response = CloudConnector.generate_compare_report(base, target, project_id=project_id)
+            if response:
+                report_url = response.get('url')
+                summary_data = response.get('summary')
+
         comparison_data = report.generate_data(tables_from)
 
         from piperider_cli import data
@@ -738,17 +767,29 @@ class CompareReport(object):
                 html = setup_report_variables(report_template_html, False, comparison_data.to_json())
                 f.write(html)
 
-        def output_summary(directory):
+        def output_summary(directory, summary_data):
             filename = os.path.join(directory, 'summary.md')
             with open(filename, 'w') as f:
-                f.write(comparison_data.to_summary_markdown())
+                f.write(summary_data)
 
         data_id = comparison_data.id()
+        summary_data = summary_data if summary_data else comparison_data.to_summary_markdown()
         default_report_directory = prepare_default_output_path(filesystem, data_id)
         output_report(default_report_directory)
-        output_summary(default_report_directory)
+        output_summary(default_report_directory, summary_data)
         report_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'index.html')
         summary_md_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'summary.md')
+
+        sharing_url = None
+        if enable_share:
+            if report.a.cloud is None or report.b.cloud is None:
+                console.print(
+                    '[[bold yellow]Skip[/bold yellow]] Please enable cloud auto upload or use "piperider compare --upload" to upload reports to cloud first.')
+            else:
+                from piperider_cli.cloud_connector import CloudConnector
+                base = str(report.a.cloud.get('report_id'))
+                target = str(report.b.cloud.get('report_id'))
+                sharing_url = CloudConnector.share_compare_report(base, target)
 
         if output:
             clone_directory(default_report_directory, output)
@@ -766,6 +807,10 @@ class CompareReport(object):
         console.print()
         console.print(f"Comparison report: {report_path}")
         console.print(f"Comparison summary: {summary_md_path}")
+        if report_url:
+            console.print(f"Comparison report URL: {report_url}")
+        if sharing_url:
+            console.print(f"Comparison sharing report: {sharing_url}")
 
         if debug:
             # Write comparison data to file

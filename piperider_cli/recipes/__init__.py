@@ -193,7 +193,7 @@ def verify_dbt_dependencies(cfg: RecipeConfiguration):
     check_dbt_command()
 
 
-def execute_recipe(model: RecipeModel, current_branch):
+def execute_recipe(model: RecipeModel, current_branch, debug=False):
     """
     We execute a recipe in the following steps:
     1. if there was a branch or current_branch, switch to it
@@ -212,17 +212,22 @@ def execute_recipe(model: RecipeModel, current_branch):
     for cmd in model.dbt.commands or []:
         console.print(f"Run: \[{cmd}]")
         exit_code = execute_command(cmd, model.dbt.envs())
-        console.print(f"Exit code: {exit_code}")
+        if debug:
+            console.print(f"Exit code: {exit_code}")
         if exit_code != 0:
             raise Exception(f"Recipe dbt command failed: '{cmd}' with exit code: {exit_code}")
+        console.print()
 
     # model.piperider.commands
     for cmd in model.piperider.commands or []:
+
         console.print(f"Run: \[{cmd}]")
         exit_code = execute_command(cmd, model.piperider.envs())
-        console.print(f"Exit code: {exit_code}")
+        if debug:
+            console.print(f"Exit code: {exit_code}")
         if exit_code != 0:
             raise Exception(f"Recipe piperider command failed: '{cmd}' with exit code: {exit_code}")
+        console.print()
 
 
 def get_current_branch(cfg: RecipeConfiguration):
@@ -245,7 +250,7 @@ def switch_branch(branch_name):
     git_switch_to(branch_name)
 
 
-def execute_configuration(cfg: RecipeConfiguration):
+def execute_configuration(cfg: RecipeConfiguration, debug=False):
     console.rule("Recipe executor: verify execution environments")
     # check the dependencies
     console.print("Check: git")
@@ -256,11 +261,11 @@ def execute_configuration(cfg: RecipeConfiguration):
     current_branch = get_current_branch(cfg)
 
     try:
-        console.rule("Recipe executor: the base phase")
-        execute_recipe(cfg.base, current_branch)
+        console.rule("Recipe executor: base phase")
+        execute_recipe(cfg.base, current_branch, debug=debug)
 
-        console.rule("Recipe executor: the target phase")
-        execute_recipe(cfg.target, current_branch)
+        console.rule("Recipe executor: target phase")
+        execute_recipe(cfg.target, current_branch, debug=debug)
     finally:
         if current_branch is not None:
             # switch back to the original branch

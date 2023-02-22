@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import webbrowser
@@ -228,15 +229,27 @@ def select_cloud_report_ids(project_id: int = None, datasource=None, project_nam
     return base_id, target_id
 
 
-def upload_to_cloud(report: RunOutput, debug=False, project_id=None) -> dict:
-    response = piperider_cloud.upload_report(report.path, project_id=project_id)
+def upload_to_cloud(report: RunOutput, debug=False, project_id=None, show_progress=True) -> dict:
+    response = piperider_cloud.upload_report(report.path, project_id=project_id, show_progress=show_progress)
+
     # TODO refine the output when API is ready
+
+    def _patch_cloud_upload_response(report_path, project_id, report_id):
+        with open(report_path, 'r') as f:
+            report = json.load(f)
+        report['cloud'] = {
+            'report_id': report_id,
+            'project_id': project_id
+        }
+        with open(report_path, 'w') as f:
+            f.write(json.dumps(report, separators=(',', ':')))
 
     if response.get('success') is True:
         project_id = response.get('project_id')
         report_id = response.get('id')
         if project_id and report_id:
             report_url = f'{piperider_cloud.service.cloud_host}/projects/{project_id}/reports/{report_id}'
+            _patch_cloud_upload_response(report.path, project_id, report_id)
         else:
             report_url = 'N/A'
         return {
@@ -277,11 +290,10 @@ def create_compare_reports(base_id: int, target_id: int, tables_from, project_id
     if project_id is None:
         project_id = piperider_cloud.get_default_project()
     response = piperider_cloud.compare_reports(project_id, base_id, target_id, tables_from)
-    if response is not None:
+    if response:
         url = f'{piperider_cloud.service.cloud_host}/projects/{project_id}/reports/{base_id}/comparison/{target_id}'
-        console.print(f'Comparison report URL: {url}')
-    else:
-        console.print('Failed to create the comparison report')
+        response['url'] = url
+
     return response
 
 
@@ -363,7 +375,7 @@ class CloudConnector:
 
     @staticmethod
     def upload_report(report_path=None, report_dir=None, datasource=None, debug=False, open_report=False,
-                      force_upload=False, auto_upload=False, project_name=None) -> int:
+                      force_upload=False, auto_upload=False, project_name=None, show_progress=True) -> int:
         if piperider_cloud.available is False:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
@@ -380,47 +392,67 @@ class CloudConnector:
         results = []
         if report_path is None:
             reports = select_reports(report_dir=report_dir, datasource=datasource)
-            console.rule('Uploading Reports')
+            if show_progress:
+                console.rule('Uploading Reports')
             for r in reports:
-                response = upload_to_cloud(r, debug, project_id=project_id)
+                response = upload_to_cloud(r, debug, project_id=project_id, show_progress=show_progress)
                 if response.get('success') is False:
                     rc = 1
                 response['name'] = r.name
                 response['created_at'] = r.created_at
                 results.append(response)
         else:
-            console.rule('Uploading Report')
+            if show_progress:
+                console.rule('Uploading Report')
             report = RunOutput(report_path)
-            response = upload_to_cloud(report, debug, project_id=project_id)
+            response = upload_to_cloud(report, debug, project_id=project_id, show_progress=show_progress)
             if response.get('success') is False:
                 rc = 1
             response['name'] = report.name
             response['created_at'] = report.created_at
             results.append(response)
 
-        console.rule('Upload Completed')
-        ascii_table = Table(show_header=True, show_edge=True, header_style="bold magenta",
-                            box=box.SIMPLE)
-        ascii_table.add_column('Status', justify='left', style='cyan')
-        ascii_table.add_column('Name', justify='left')
-        ascii_table.add_column('Created At', justify='left')
-        ascii_table.add_column('Report URL', justify='left', no_wrap=True)
-        ascii_table.add_column('Message', justify='left')
+        if show_progress:
+            console.rule('Upload Completed')
+            ascii_table = Table(show_header=True, show_edge=True, header_style="bold magenta",
+                                box=box.SIMPLE)
+            ascii_table.add_column('Status', justify='left', style='cyan')
+            ascii_table.add_column('Name', justify='left')
+            ascii_table.add_column('Created At', justify='left')
+            ascii_table.add_column('Report URL', justify='left', no_wrap=True)
+            ascii_table.add_column('Message', justify='left')
 
-        for response in results:
-            status = '[bold green]Success[/bold green]' if response.get(
-                'success') else '[bold yellow]Skipped[/bold yellow]'
-            url = f"[deep_sky_blue1]{response.get('report_url', 'N/A')}[/deep_sky_blue1]"
-            message = response.get('message')
-            created_at = datetime_to_str(str_to_datetime(response.get('created_at')), to_tzlocal=True)
-            ascii_table.add_row(status, response.get('name'), created_at, url, message)
+            for response in results:
+                status = '[bold green]Success[/bold green]' if response.get(
+                    'success') else '[bold yellow]Skipped[/bold yellow]'
+                url = f"[deep_sky_blue1]{response.get('report_url', 'N/A')}[/deep_sky_blue1]"
+                message = response.get('message')
+                created_at = datetime_to_str(str_to_datetime(response.get('created_at')), to_tzlocal=True)
+                ascii_table.add_row(status, response.get('name'), created_at, url, message)
+            console.print(ascii_table)
 
         if open_report:
             url = response.get('report_url')
             open_report_in_browser(url, True)
 
-        console.print(ascii_table)
         return rc
+
+    @staticmethod
+    def generate_compare_report(base_id: str, target_id: str, tables_from='all',
+                                workspace_name: str = None,
+                                project_name: str = None,
+                                project_id=None):
+        # TODO: Change to use new front-end URL pattern
+        def _generate_legacy_compare_report_url(base_id, target_id, project_id=None):
+            if project_id is None:
+                project_id = piperider_cloud.get_default_project()
+            response = create_compare_reports(base_id, target_id, tables_from, project_id=project_id)
+            return response
+
+        try:
+            return _generate_legacy_compare_report_url(base_id, target_id, project_id)
+        except Exception:
+            return None
 
     @staticmethod
     def compare_reports(base=None, target=None, tables_from='all', summary_file=None, debug=False,
@@ -443,6 +475,11 @@ class CloudConnector:
 
         console.print(f"Creating comparison report id={base_id} ... id={target_id}")
         response = create_compare_reports(base_id, target_id, tables_from, project_id=project_id)
+        if response is None:
+            console.print('Failed to create the comparison report')
+        else:
+            url = response.get('url')
+            console.print(f'Comparison report URL: {url}')
 
         if debug:
             console.print(response)
@@ -454,6 +491,31 @@ class CloudConnector:
                 os.makedirs(summary_dir, exist_ok=True)
             with open(summary_file, 'w') as f:
                 f.write(response.get('summary'))
+
+    @staticmethod
+    def share_compare_report(base_id=None, target_id=None, debug=False):
+        if piperider_cloud.available is False:
+            console.rule('Please login PipeRider Cloud first', style='red')
+            return 1
+
+        workspace_name, project_name = piperider_cloud.get_default_workspace_and_project()
+        if workspace_name is None or project_name is None:
+            console.rule('Please select a workspace and a project first', style='red')
+            return 1
+
+        if debug:
+            console.print(f"Sharing comparison report id={base_id} ... id={target_id}")
+        response = piperider_cloud.share_compare_report(
+            workspace_name=workspace_name,
+            project_name=project_name,
+            base_id=base_id,
+            target_id=target_id,
+        )
+        sharing_url = None
+
+        if response:
+            sharing_url = f'{piperider_cloud.service.cloud_host}/reports/sharing/comparison/{response.get("sharing_id")}'
+        return sharing_url
 
     @staticmethod
     def list_projects(debug=False) -> int:

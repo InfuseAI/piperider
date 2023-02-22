@@ -11,7 +11,7 @@ console = Console()
 
 class RecipeExecutor():
     @staticmethod
-    def exec(recipe_name: str, auto_generate_default_recipe: bool = True):
+    def exec(recipe_name: str, auto_generate_default_recipe: bool = True, debug=False):
         recipe_path = select_recipe_file(recipe_name)
 
         if recipe_path is None:
@@ -27,4 +27,4 @@ class RecipeExecutor():
             else:
                 raise FileNotFoundError(f"Cannot find the recipe '{recipe_name}'")
         cfg = RecipeConfiguration.load(recipe_path)
-        execute_configuration(cfg)
+        execute_configuration(cfg, debug=debug)

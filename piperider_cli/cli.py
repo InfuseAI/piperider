@@ -11,6 +11,7 @@ from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_PATH
+from piperider_cli.error import RecipeConfigException
 from piperider_cli.event import UserProfileConfigurator
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
@@ -255,6 +256,8 @@ def generate_report(**kwargs):
 @click.option('--tables-from', default='all',
               type=click.Choice(['all', 'target-only', 'base-only'], case_sensitive=False),
               help='Show table comparison from base or target.')
+@click.option('--upload', default=False, is_flag=True, help='Upload the report to PipeRider Cloud.')
+@click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @add_options(debug_option)
 def compare_reports(**kwargs):
     'Compare two existing reports selected in interactive mode or by option.'
@@ -264,9 +267,22 @@ def compare_reports(**kwargs):
     last = kwargs.get('last')
     datasource = kwargs.get('datasource')
     tables_from = kwargs.get('tables_from')
+    force_upload = kwargs.get('upload')
+    enable_share = kwargs.get('share')
+
+    if enable_share:
+        force_upload = True
+
+    if force_upload is True and CloudConnector.is_login() is False:
+        raise RecipeConfigException(
+            message='Please login to PipeRider Cloud first.',
+            hint='Run "piprider cloud login" to login to PipeRider Cloud.'
+        )
+
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
                        report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), tables_from=tables_from,
-                       debug=kwargs.get('debug', False))
+                       force_upload=force_upload, enable_share=enable_share,
+                       debug=kwargs.get('debug', False), show_progress=True)
 
 
 @cli.group('config', short_help='Manage the PipeRider configurations.')
@@ -381,6 +397,8 @@ def cloud_compare_reports(**kwargs):
 
 @cli.command(name='compare', short_help='Generate comparison report with the recipe.', cls=TrackCommand)
 @click.option('--recipe', default=None, type=click.STRING, help='Select a different recipe.')
+@click.option('--upload', default=False, is_flag=True, help='Upload the report to PipeRider Cloud.')
+@click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--summary-file', default=None, type=click.STRING, help='Output the comparison summary markdown file.')
 @add_options(debug_option)
@@ -391,14 +409,28 @@ def compare_with_recipe(**kwargs):
 
     recipe = kwargs.get('recipe')
     summary_file = kwargs.get('summary_file')
+    force_upload = kwargs.get('upload')
+    enable_share = kwargs.get('share')
+    debug = kwargs.get('debug', False)
+
+    if enable_share:
+        force_upload = True
+
+    if force_upload is True and CloudConnector.is_login() is False:
+        raise RecipeConfigException(
+            message='Please login to PipeRider Cloud first.',
+            hint='Run "piprider cloud login" to login to PipeRider Cloud.'
+        )
 
     ret = 0
     try:
-        RecipeExecutor.exec(recipe_name=recipe)
+        RecipeExecutor.exec(recipe_name=recipe, debug=debug)
         CompareReport.exec(a=None, b=None, last=True, datasource=None,
                            output=kwargs.get('output'), tables_from="all",
                            summary_file=summary_file,
-                           debug=kwargs.get('debug', False))
+                           force_upload=force_upload,
+                           enable_share=enable_share,
+                           debug=debug)
     except Exception as e:
         raise e
 
