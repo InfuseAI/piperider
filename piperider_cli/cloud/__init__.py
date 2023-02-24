@@ -178,9 +178,8 @@ class PipeRiderCloud:
                     return project.get('id')
             else:
                 # New projects api response
-                for p in project.get('projects', []):
-                    if p.get('is_default'):
-                        return p.get('id')
+                for p in project.get('projects', [])[:1]:
+                    return p.get('id')
 
     def get_default_workspace_and_project(self):
         if not self.available:
@@ -204,10 +203,9 @@ class PipeRiderCloud:
         workspace = response.get('data')[0]
         workspace_name = workspace.get('name')
         project_name = None
-        for p in workspace.get('projects', []):
-            if p.get('is_default'):
-                project_name = p.get('name')
-                break
+        for p in workspace.get('projects', [])[:1]:
+            project_name = p.get('name')
+            break
 
         return workspace_name, project_name
 
@@ -324,17 +322,12 @@ class PipeRiderCloud:
 
         def _parse_projects_with_workspace_list(x):
             for project in x.get('projects', []):
-                parent_type = 'workspace' if project.get('workspace_id') else 'personal'
-
                 p = {
                     'id': project.get('id'),
                     'name': project.get('name'),
-                    'is_default': project.get('is_default'),
-                    'parent_type': parent_type
+                    'workspace_name': x.get('name'),
+                    'workspace_display_name': x.get('display_name'),
                 }
-                if parent_type == 'workspace':
-                    p['workspace_name'] = x.get('name')
-                    p['workspace_display_name'] = x.get('display_name')
                 output.append(p)
 
         for x in data:

@@ -527,7 +527,6 @@ class CloudConnector:
             box=box.SIMPLE_HEAVY,
         )
         layout_table.add_column('Name')
-        layout_table.add_column('Type')
         layout_table.add_column('Workspace')
         # layout_table.add_column('Project URL', justify='right', no_wrap=True)
 
@@ -539,7 +538,6 @@ class CloudConnector:
                 'workspace_name') is None else f"{project.get('workspace_name')}/{project.get('name')}"
             layout_table.add_row(
                 project_name,
-                project.get('parent_type'),
                 project.get('workspace_display_name', '-'),
                 # project_url,
             )
