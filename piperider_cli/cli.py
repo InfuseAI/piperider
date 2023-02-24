@@ -440,25 +440,15 @@ def compare_with_recipe(**kwargs):
 @cloud.command(short_help='Signup to PipeRider Cloud.', cls=TrackCommand)
 @add_options(debug_option)
 def signup(**kwargs):
-
     ret = CloudConnector.signup(debug=kwargs.get('debug', False))
     return ret
 
 
 @cloud.command(short_help='Login to PipeRider Cloud.', cls=TrackCommand)
 @click.option('--token', default=None, type=click.STRING, help='Specify the API token.')
-@click.option('--enable-auto-upload', default=None, is_flag=True, help='Enable auto upload.')
-@click.option('--disable-auto-upload', default=None, is_flag=True, help='Disable auto upload.')
 @add_options(debug_option)
 def login(**kwargs):
-    options = {
-        # True for enable, False for disable, None for not defined
-        'auto_upload': None,
-    }
-    if kwargs.get('enable_auto_upload'):
-        options['auto_upload'] = True
-    elif kwargs.get('disable_auto_upload'):
-        options['auto_upload'] = False
+    options = {}
 
     ret = CloudConnector.login(api_token=kwargs.get('token'), options=options, debug=kwargs.get('debug', False))
     return ret
