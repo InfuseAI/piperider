@@ -122,6 +122,9 @@ class PipeRiderCloud:
         self.service.api_token = None
         self.service.update_api_token()
 
+        # remove the default project when logout
+        self.update_config({'default_project': None})
+
     def magic_signup(self, email):
         if self.available:
             return True

@@ -156,26 +156,19 @@ def show_user_info():
     pass
 
 
-def check_default_config(options: dict):
-    if options is None:
-        return
+def setup_cloud_default_config(options: dict = None):
+    if piperider_cloud.config.get('auto_upload') is None:
+        piperider_cloud.update_config({'auto_upload': False})
 
-    cloud_config = piperider_cloud.config
-
-    auto_upload_flag = options.get('auto_upload')
-
-    if cloud_config.get('auto_upload') is not None and auto_upload_flag is None:
-        # Skip if auto_upload is already set
-        return
-    if auto_upload_flag is None and cloud_config.get('auto_upload') is None:
-        console.print('Please select default behavior for auto upload')
-        if FANCY_USER_INPUT:
-            auto_upload_flag = inquirer.confirm('Auto upload reports to cloud', default=True)
+    if options and options.get('default_project'):
+        project_name = options.get('default_project')
+        if piperider_cloud.get_project_by_name(project_name):
+            piperider_cloud.update_config({'default_project': project_name})
+            console.print(f'[[bold green]Config[/bold green]] Default project is set to \'{project_name}\'')
         else:
-            auto_upload_flag = Prompt.ask('[[yellow]?[/yellow]] Auto upload reports to cloud', choices=['y', 'n'],
-                                          default='y') == 'y'
-    console.print(f'[[bold green]Config[/bold green]] Default auto upload behavior is set to {auto_upload_flag}')
-    piperider_cloud.update_config({'auto_upload': auto_upload_flag})
+            console.print(f"[[yellow]Skip[/yellow]] Project '{project_name}' does not exist.")
+    if piperider_cloud.config.get('default_project') is None:
+        CloudConnector.select_project()
 
 
 def select_reports(report_dir=None, datasource=None) -> List[RunOutput]:
@@ -317,7 +310,7 @@ class CloudConnector:
         if piperider_cloud.available:
             console.rule('Already Logged In')
             show_user_info()
-            check_default_config(options={})
+            setup_cloud_default_config()
             return 0
 
         api_token = ask_signup_info()
@@ -326,7 +319,7 @@ class CloudConnector:
             if verify_api_token(api_token):
                 console.rule('Login Successful')
                 show_user_info()
-                check_default_config(options={})
+                setup_cloud_default_config()
                 return 0
 
         console.rule('Login Failed', style='red')
@@ -338,7 +331,7 @@ class CloudConnector:
         if piperider_cloud.available:
             console.rule('Already Logged In')
             show_user_info()
-            check_default_config(options)
+            setup_cloud_default_config(options)
             return 0
 
         if api_token is None:
@@ -348,7 +341,7 @@ class CloudConnector:
             if verify_api_token(api_token):
                 console.rule('Login Successful')
                 show_user_info()
-                check_default_config(options)
+                setup_cloud_default_config(options)
                 return 0
 
         console.rule('Login Failed', style='red')
@@ -555,7 +548,7 @@ class CloudConnector:
         pass
 
     @staticmethod
-    def select_project(project_name: str = None, datasource: str = None, debug: bool = False):
+    def select_project(project_name: str = None, datasource: str = None, debug: bool = False) -> int:
 
         def _project_selector():
             arrow_alias_msg = ''
@@ -568,6 +561,10 @@ class CloudConnector:
             projects = [
                 (f"{p.get('workspace_name')}/{p.get('name')}" if p.get('workspace_name') else p.get('name'), p)
                 for p in piperider_cloud.list_projects()]
+
+            if len(projects) == 1:
+                _, p = projects[0]
+                return p
 
             question = [
                 inquirer.List('selected_project',
@@ -595,4 +592,4 @@ class CloudConnector:
 
         # TODO: Add project name into the datasource config if datasource is not None
         console.print(f'[[bold green]Config[/bold green]] Default project is set to \'{name}\'')
-        pass
+        return 0
