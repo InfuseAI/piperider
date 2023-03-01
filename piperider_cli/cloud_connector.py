@@ -563,7 +563,8 @@ class CloudConnector:
                 for p in piperider_cloud.list_projects()]
 
             if len(projects) == 1:
-                return projects[0][1]
+                _, p = projects[0]
+                return p
 
             question = [
                 inquirer.List('selected_project',
