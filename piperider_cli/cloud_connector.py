@@ -156,10 +156,17 @@ def show_user_info():
     pass
 
 
-def setup_cloud_default_config(options: dict = None, ):
+def setup_cloud_default_config(options: dict = None):
     if piperider_cloud.config.get('auto_upload') is None:
         piperider_cloud.update_config({'auto_upload': False})
 
+    if options and options.get('default_project'):
+        project_name = options.get('default_project')
+        if piperider_cloud.get_project_by_name(project_name):
+            piperider_cloud.update_config({'default_project': project_name})
+            console.print(f'[[bold green]Config[/bold green]] Default project is set to \'{project_name}\'')
+        else:
+            console.print(f"[[yellow]Skip[/yellow]] Project '{project_name}' does not exist.")
     if piperider_cloud.config.get('default_project') is None:
         CloudConnector.select_project()
 
@@ -541,7 +548,7 @@ class CloudConnector:
         pass
 
     @staticmethod
-    def select_project(project_name: str = None, datasource: str = None, debug: bool = False):
+    def select_project(project_name: str = None, datasource: str = None, debug: bool = False) -> int:
 
         def _project_selector():
             arrow_alias_msg = ''
@@ -584,4 +591,4 @@ class CloudConnector:
 
         # TODO: Add project name into the datasource config if datasource is not None
         console.print(f'[[bold green]Config[/bold green]] Default project is set to \'{name}\'')
-        pass
+        return 0

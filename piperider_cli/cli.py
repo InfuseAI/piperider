@@ -446,9 +446,14 @@ def signup(**kwargs):
 
 @cloud.command(short_help='Login to PipeRider Cloud.', cls=TrackCommand)
 @click.option('--token', default=None, type=click.STRING, help='Specify the API token.')
+@click.option('--project', default=None, type=click.STRING, metavar='PROJECT_NAME',
+              help='Specify the default project name.')
 @add_options(debug_option)
 def login(**kwargs):
     options = {}
+
+    if kwargs.get('project') is not None:
+        options['default_project'] = kwargs.get('project')
 
     ret = CloudConnector.login(api_token=kwargs.get('token'), options=options, debug=kwargs.get('debug', False))
     return ret
