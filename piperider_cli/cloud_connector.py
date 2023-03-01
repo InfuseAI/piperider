@@ -536,9 +536,12 @@ class CloudConnector:
             # project_url = f'[deep_sky_blue1]{piperider_cloud.service.cloud_host}/projects/{project_id}[/deep_sky_blue1]'
             project_name = project.get('name') if project.get(
                 'workspace_name') is None else f"{project.get('workspace_name')}/{project.get('name')}"
+            workspace_name = project.get('workspace_name')
+            display_name = project.get('workspace_display_name') if project.get(
+                'workspace_display_name') else workspace_name
             layout_table.add_row(
                 project_name,
-                project.get('workspace_display_name', '-'),
+                display_name
                 # project_url,
             )
 
