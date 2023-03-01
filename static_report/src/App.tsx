@@ -139,6 +139,21 @@ function AppComparison() {
 }
 
 function App() {
+  const isMobile: boolean = /iPhone|iPad|iPod|Android/i.test(
+    navigator.userAgent,
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        <div>
+          Please open this on a Desktop Computer. Mobile is currently not
+          supported.
+        </div>
+      </>
+    );
+  }
+
   if (process.env.REACT_APP_SINGLE_REPORT === 'true') {
     return <AppSingle />;
   } else {
