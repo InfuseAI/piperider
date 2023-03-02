@@ -371,6 +371,11 @@
           "type": "string"
         }
       }
+    },
+    "cloud": {
+      "title": "Cloud",
+      "type": "object",
+      "additionalProperties": true
     }
   },
   "definitions": {

@@ -18,6 +18,13 @@ SERVICE_ENV_SERVICE_KEY = 'PIPERIDER_API_SERVICE'
 yml = yaml.YAML()
 
 
+class PipeRiderProject(object):
+    def __init__(self, project: dict):
+        self.id = project.get('id')
+        self.name = project.get('name')
+        self.workspace_name = project.get('workspace_name')
+
+
 class CloudServiceHelper:
 
     def __init__(self):
@@ -125,14 +132,17 @@ class PipeRiderCloud:
         # remove the default project when logout
         self.update_config({'default_project': None})
 
-    def magic_signup(self, email):
+    def magic_signup(self, email: str, username: str = None):
         if self.available:
             return True
         signup_url = self.service.url('/api/credentials/signup')
+        payload = {'email': email, 'source': 'cli'}
+        if username:
+            payload['username'] = username
         response = requests.post(
             signup_url,
             headers={'Content-type': 'application/json', 'Accept': 'text/plain'},
-            data=json.dumps({'email': email, 'source': 'cli'})
+            data=json.dumps(payload)
         )
         if response.status_code == 200:
             return response.json()
@@ -151,10 +161,21 @@ class PipeRiderCloud:
             return response.json()
         return None
 
+    def is_username_available(self, username: str) -> (bool, str):
+        verify_username_url = self.service.url('/api/v2/credentials/username_verifier')
+        response = requests.post(
+            verify_username_url,
+            headers={'Content-type': 'application/json', 'Accept': 'text/plain'},
+            data=json.dumps({'username': username})
+        )
+        if response.status_code == 200:
+            return response.json().get('success'), response.json().get('message')
+        return False, 'Unable to access PipeRider Cloud service'
+
     def set_default_project(self, project_name):
         self.update_config({'default_project': project_name})
 
-    def get_default_project(self):
+    def get_default_project(self) -> PipeRiderProject:
         if not self.available:
             self.raise_error()
 
@@ -162,7 +183,7 @@ class PipeRiderCloud:
             name = self.config.get('default_project')
             project = self.get_project_by_name(name)
             if project:
-                return project.get('id')
+                return project
 
         url = self.service.url('/api/projects')
         headers = self.service.auth_headers()
@@ -175,11 +196,11 @@ class PipeRiderCloud:
             if project.get('id'):
                 # Legacy projects api response
                 if project.get('is_default'):
-                    return project.get('id')
+                    return PipeRiderProject(project)
             else:
                 # New projects api response
                 for p in project.get('projects', [])[:1]:
-                    return p.get('id')
+                    return PipeRiderProject(p)
 
     def get_default_workspace_and_project(self):
         if not self.available:
@@ -225,7 +246,7 @@ class PipeRiderCloud:
 
         return response.json()
 
-    def upload_report(self, file_path, show_progress=True, project_id=None):
+    def upload_run(self, file_path, show_progress=True, project: PipeRiderProject = None):
         # TODO validate project name
         if not self.available:
             self.raise_error()
@@ -243,8 +264,8 @@ class PipeRiderCloud:
             )
             m = MultipartEncoderMonitor(encoder, _upload_callback)
 
-            url = self.service.url(f'/api/projects/{project_id}/reports/upload') if project_id else self.service.url(
-                '/api/reports/upload')
+            url = self.service.url(
+                f'/api/v2/workspaces/{project.workspace_name}/projects/{project.name}/runs/upload')
             headers = self.service.auth_headers()
             headers['Content-Type'] = m.content_type
 
@@ -337,8 +358,7 @@ class PipeRiderCloud:
                 _parse_projects_with_workspace_list(x)
         return output
 
-    def get_project_by_name(self, name):
-        project_name = None
+    def get_project_by_name(self, name) -> PipeRiderProject:
         workspace_name = None
         if '/' in name:
             workspace_name, project_name = name.split('/')
@@ -348,11 +368,10 @@ class PipeRiderCloud:
         projects = self.list_projects()
         for project in projects:
             if project.get('name') == project_name and project.get('workspace_name') == workspace_name:
-                return project
-
+                return PipeRiderProject(project)
         return None
 
 
 if __name__ == '__main__':
     cloud = PipeRiderCloud()
-    cloud.upload_report(json.dumps(dict(foo='barbar')))
+    cloud.upload_run(json.dumps(dict(foo='barbar')))

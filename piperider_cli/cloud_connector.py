@@ -1,24 +1,28 @@
 import json
 import os
+import re
 import sys
 import webbrowser
 from typing import List, Optional
 
 import inquirer
 import readchar
+from inquirer.errors import ValidationError
 from rich import box
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
 
 from piperider_cli import datetime_to_str, open_report_in_browser, str_to_datetime
-from piperider_cli.cloud import PipeRiderCloud
+from piperider_cli.cloud import PipeRiderCloud, PipeRiderProject
 from piperider_cli.compare_report import CompareReport, RunOutput
 from piperider_cli.datasource import FANCY_USER_INPUT
 from piperider_cli.filesystem import FileSystem
 
 console = Console()
 piperider_cloud = PipeRiderCloud()
+
+WORKSPACE_PROJECT_NAME_REGEX = r'^[a-zA-Z0-9-_]+$'
 
 
 def _ask_email():
@@ -35,6 +39,33 @@ def _ask_email():
     return account
 
 
+def _ask_username():
+    def _username_validator(_, x):
+        if len(x) == 0:
+            return True
+        if not re.match(WORKSPACE_PROJECT_NAME_REGEX, x):
+            raise ValidationError('',
+                                  reason=f'"{x}" is not a valid username. Only alphanumeric characters, underscores and dashes are allowed.')
+        success, message = piperider_cloud.is_username_available(x)
+        if success is False:
+            raise ValidationError('', reason=message)
+        return True
+
+    if FANCY_USER_INPUT:
+        username = inquirer.text('Username [Optional]', validate=_username_validator)
+    else:
+        while True:
+            username = Prompt.ask('[[yellow]?[/yellow]] Username [Optional]')
+            try:
+                validator_result = _username_validator(None, username)
+                if validator_result is True:
+                    break
+            except ValidationError as e:
+                console.print(e)
+
+    return username
+
+
 def _ask_api_token():
     console.print('We have just sent an email with a magic link.\n'
                   'Please paste the api token from the magic link.')
@@ -45,8 +76,8 @@ def _ask_api_token():
     return api_token
 
 
-def _process_magic_signup(account: str):
-    response = piperider_cloud.magic_signup(account)
+def _process_magic_signup(account: str, username: str = None):
+    response = piperider_cloud.magic_signup(account, username)
     if response is None:
         console.print('[[red]Error[/red]] Signup failed. Please try again.')
         return False
@@ -189,17 +220,18 @@ class CloudReportOutput(RunOutput):
         self.fail_count = report['failed']
 
 
-def select_cloud_report_ids(project_id: int = None, datasource=None, project_name=None, target=None, base=None) -> (
+def select_cloud_report_ids(datasource=None, project: PipeRiderProject = None, target=None,
+                            base=None) -> (
     int, int):
     if target:
         target_id = get_run_report_id(target)
     if base:
         base_id = get_run_report_id(base)
 
-    if project_id is None:
-        project_id = piperider_cloud.get_default_project()
+    if project is None:
+        project = piperider_cloud.get_default_project()
 
-    reports = [CloudReportOutput(r) for r in piperider_cloud.list_reports(project_id, datasource=datasource)]
+    reports = [CloudReportOutput(r) for r in piperider_cloud.list_reports(project.id, datasource=datasource)]
     if len(reports) == 0:
         return None, None
 
@@ -222,34 +254,33 @@ def select_cloud_report_ids(project_id: int = None, datasource=None, project_nam
     return base_id, target_id
 
 
-def upload_to_cloud(report: RunOutput, debug=False, project_id=None, show_progress=True) -> dict:
-    response = piperider_cloud.upload_report(report.path, project_id=project_id, show_progress=show_progress)
+def upload_to_cloud(run: RunOutput, debug=False, project: PipeRiderProject = None, show_progress=True) -> dict:
+    response = piperider_cloud.upload_run(run.path, project=project, show_progress=show_progress)
 
     # TODO refine the output when API is ready
 
-    def _patch_cloud_upload_response(report_path, project_id, report_id):
-        with open(report_path, 'r') as f:
+    def _patch_cloud_upload_response(run_path, project: PipeRiderProject, run_id):
+        with open(run_path, 'r') as f:
             report = json.load(f)
         report['cloud'] = {
-            'report_id': report_id,
-            'project_id': project_id
+            'run_id': run_id,
+            'project_name': f'{project.workspace_name}/{project.name}'
         }
-        with open(report_path, 'w') as f:
+        with open(run_path, 'w') as f:
             f.write(json.dumps(report, separators=(',', ':')))
 
     if response.get('success') is True:
-        project_id = response.get('project_id')
-        report_id = response.get('id')
-        if project_id and report_id:
-            report_url = f'{piperider_cloud.service.cloud_host}/projects/{project_id}/reports/{report_id}'
-            _patch_cloud_upload_response(report.path, project_id, report_id)
+        run_id = response.get('id')
+        if run_id:
+            report_url = f'{piperider_cloud.service.cloud_host}/{project.workspace_name}/{project.name}/runs/{run_id}'
+            _patch_cloud_upload_response(run.path, project, run_id)
         else:
             report_url = 'N/A'
         return {
             'success': True,
             'message': response.get("message"),
             'report_url': report_url,
-            'file_path': report.path
+            'file_path': run.path
         }
 
     if debug:
@@ -258,7 +289,7 @@ def upload_to_cloud(report: RunOutput, debug=False, project_id=None, show_progre
         'success': False,
         'message': response.get("message"),
         'report_url': 'N/A',
-        'file_path': report.path
+        'file_path': run.path
     }
 
 
@@ -270,8 +301,8 @@ def get_run_report_id(report_key: str) -> Optional[int]:
 
     if report_key.startswith('datasource:'):
         datasource = report_key.split(':')[-1]
-        project_id = piperider_cloud.get_default_project()
-        reports = piperider_cloud.list_reports(project_id, datasource=datasource)
+        project = piperider_cloud.get_default_project()
+        reports = piperider_cloud.list_reports(project.id, datasource=datasource)
 
         if reports:
             return reports[0].get('id')
@@ -279,12 +310,12 @@ def get_run_report_id(report_key: str) -> Optional[int]:
     return None
 
 
-def create_compare_reports(base_id: int, target_id: int, tables_from, project_id=None) -> dict:
-    if project_id is None:
-        project_id = piperider_cloud.get_default_project()
-    response = piperider_cloud.compare_reports(project_id, base_id, target_id, tables_from)
+def create_compare_reports(base_id: int, target_id: int, tables_from, project: PipeRiderProject = None) -> dict:
+    if project is None:
+        project = piperider_cloud.get_default_project()
+    response = piperider_cloud.compare_reports(project.id, base_id, target_id, tables_from)
     if response:
-        url = f'{piperider_cloud.service.cloud_host}/projects/{project_id}/reports/{base_id}/comparison/{target_id}'
+        url = f'{piperider_cloud.service.cloud_host}/{project.workspace_name}/{project.name}/runs/{base_id}/comparison/{target_id}'
         response['url'] = url
 
     return response
@@ -373,13 +404,13 @@ class CloudConnector:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
 
-        project_id = piperider_cloud.get_default_project()
-        if project_name is not None:
+        if project_name:
             project = piperider_cloud.get_project_by_name(project_name)
             if project is None:
                 console.print(f'[[bold red]Error[/bold red]] Project \'{project_name}\' does not exist')
                 return 1
-            project_id = project.get('id')
+        else:
+            project = piperider_cloud.get_default_project()
 
         rc = 0
         results = []
@@ -388,7 +419,7 @@ class CloudConnector:
             if show_progress:
                 console.rule('Uploading Reports')
             for r in reports:
-                response = upload_to_cloud(r, debug, project_id=project_id, show_progress=show_progress)
+                response = upload_to_cloud(r, debug, project=project, show_progress=show_progress)
                 if response.get('success') is False:
                     rc = 1
                 response['name'] = r.name
@@ -398,7 +429,7 @@ class CloudConnector:
             if show_progress:
                 console.rule('Uploading Report')
             report = RunOutput(report_path)
-            response = upload_to_cloud(report, debug, project_id=project_id, show_progress=show_progress)
+            response = upload_to_cloud(report, debug, project=project, show_progress=show_progress)
             if response.get('success') is False:
                 rc = 1
             response['name'] = report.name
@@ -432,18 +463,24 @@ class CloudConnector:
 
     @staticmethod
     def generate_compare_report(base_id: str, target_id: str, tables_from='all',
-                                workspace_name: str = None,
-                                project_name: str = None,
-                                project_id=None):
+                                project_name: str = None):
         # TODO: Change to use new front-end URL pattern
-        def _generate_legacy_compare_report_url(base_id, target_id, project_id=None):
-            if project_id is None:
-                project_id = piperider_cloud.get_default_project()
-            response = create_compare_reports(base_id, target_id, tables_from, project_id=project_id)
+        def _generate_legacy_compare_report_url(base_id, target_id, project=None):
+            if project is None:
+                project = piperider_cloud.get_default_project()
+            response = create_compare_reports(base_id, target_id, tables_from, project=project)
             return response
 
         try:
-            return _generate_legacy_compare_report_url(base_id, target_id, project_id)
+            # TODO: change to use workspace and project name instead of project id
+            if project_name:
+                project = piperider_cloud.get_project_by_name(project_name)
+                if project is None:
+                    console.print(f'[[bold red]Error[/bold red]] Project \'{project_name}\' does not exist')
+                    return 1
+            else:
+                project = piperider_cloud.get_default_project()
+            return _generate_legacy_compare_report_url(base_id, target_id, project=project)
         except Exception:
             return None
 
@@ -454,20 +491,20 @@ class CloudConnector:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
 
-        project_id = None
-        if project_name is not None:
+        if project_name:
             project = piperider_cloud.get_project_by_name(project_name)
             if project is None:
                 console.print(f'[[bold red]Error[/bold red]] Project \'{project_name}\' does not exist')
                 return 1
-            project_id = project.get('id')
+        else:
+            project = piperider_cloud.get_default_project()
 
-        base_id, target_id = select_cloud_report_ids(base=base, target=target, project_id=project_id)
+        base_id, target_id = select_cloud_report_ids(base=base, target=target, project=project)
         if base_id is None or target_id is None:
             raise Exception('No report found in the PipeRider Cloud. Please upload reports to PipeRider Cloud first.')
 
         console.print(f"Creating comparison report id={base_id} ... id={target_id}")
-        response = create_compare_reports(base_id, target_id, tables_from, project_id=project_id)
+        response = create_compare_reports(base_id, target_id, tables_from, project=project)
         if response is None:
             console.print('Failed to create the comparison report')
         else:
@@ -560,7 +597,8 @@ class CloudConnector:
                 arrow_alias_msg = " 'w' to Up, 's' to Down,"
 
             projects = [
-                (f"{p.get('workspace_name')}/{p.get('name')}" if p.get('workspace_name') else p.get('name'), p)
+                (f"{p.get('workspace_name')}/{p.get('name')}" if p.get('workspace_name') else p.get('name'),
+                 PipeRiderProject(p))
                 for p in piperider_cloud.list_projects()]
 
             if len(projects) == 1:
@@ -587,8 +625,7 @@ class CloudConnector:
                 console.print(f'[[bold red]Warning[/bold red]] Project \'{project_name}\' does not exist')
                 return 1
 
-        name = project.get('name') if project.get(
-            'workspace_name') is None else f"{project.get('workspace_name')}/{project.get('name')}"
+        name = project.name if project.workspace_name is None else f"{project.workspace_name}/{project.name}"
         piperider_cloud.set_default_project(name)
 
         # TODO: Add project name into the datasource config if datasource is not None

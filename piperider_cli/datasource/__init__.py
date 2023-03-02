@@ -13,7 +13,6 @@ from sqlalchemy import create_engine, select, text
 from sqlalchemy.pool import SingletonThreadPool
 
 import piperider_cli.hack.datasource_inquirer_prompt as datasource_prompt
-from piperider_cli.error import PipeRiderTableConnectionError
 from .field import DataSourceField
 
 
@@ -30,7 +29,7 @@ def _should_use_fancy_user_input() -> bool:
         return False
 
 
-DATASOURCE_NAME_REGEX = r'^[a-zA-Z0-9_]+$'
+DATASOURCE_NAME_REGEX = r'^[a-zA-Z0-9_-]+$'
 FANCY_USER_INPUT = _should_use_fancy_user_input()
 
 

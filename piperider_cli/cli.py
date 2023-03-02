@@ -257,6 +257,8 @@ def generate_report(**kwargs):
               type=click.Choice(['all', 'target-only', 'base-only'], case_sensitive=False),
               help='Show table comparison from base or target.')
 @click.option('--upload', default=False, is_flag=True, help='Upload the report to PipeRider Cloud.')
+@click.option('--project', default=None, type=click.STRING,
+              help='Specify the project name to upload the report to PipeRider Cloud.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @add_options(debug_option)
 def compare_reports(**kwargs):
@@ -269,6 +271,7 @@ def compare_reports(**kwargs):
     tables_from = kwargs.get('tables_from')
     force_upload = kwargs.get('upload')
     enable_share = kwargs.get('share')
+    project_name = None
 
     if enable_share:
         force_upload = True
@@ -278,10 +281,11 @@ def compare_reports(**kwargs):
             message='Please login to PipeRider Cloud first.',
             hint='Run "piprider cloud login" to login to PipeRider Cloud.'
         )
+        project_name = kwargs.get('project')
 
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
                        report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), tables_from=tables_from,
-                       force_upload=force_upload, enable_share=enable_share,
+                       force_upload=force_upload, enable_share=enable_share, project_name=project_name,
                        debug=kwargs.get('debug', False), show_progress=True)
 
 
