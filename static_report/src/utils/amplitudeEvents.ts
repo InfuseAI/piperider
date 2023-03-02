@@ -3,6 +3,7 @@ import type { EventOptions } from '@amplitude/analytics-types';
 
 export const SR_TYPE_LABEL = 'single-report';
 export const CR_TYPE_LABEL = 'comparison-report';
+export const WARNING_TYPE_LABEL = 'mobile-device-warning';
 export const AMPLITUDE_EVENTS = {
   PAGE_VIEW: 'Page View',
 };
