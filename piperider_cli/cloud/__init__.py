@@ -286,11 +286,12 @@ class PipeRiderCloud:
 
             return response.json()
 
-    def compare_reports(self, project_id, base_id: int, target_id: int, tables_from):
+    def compare_reports(self, base_id: int, target_id: int, tables_from, project: PipeRiderProject):
         if not self.available:
             self.raise_error()
 
-        url = self.service.url(f'/api/projects/{project_id}/reports/{base_id}/compare/{target_id}')
+        url = self.service.url(
+            f'/api/v2/workspaces/{project.workspace_name}/projects/{project.name}/runs/{base_id}/compare/{target_id}')
         headers = self.service.auth_headers()
         response = requests.post(url, data=json.dumps({'tables_from': tables_from}), headers=headers)
 

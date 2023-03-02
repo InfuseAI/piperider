@@ -313,7 +313,7 @@ def get_run_report_id(report_key: str) -> Optional[int]:
 def create_compare_reports(base_id: int, target_id: int, tables_from, project: PipeRiderProject = None) -> dict:
     if project is None:
         project = piperider_cloud.get_default_project()
-    response = piperider_cloud.compare_reports(project.id, base_id, target_id, tables_from)
+    response = piperider_cloud.compare_reports(base_id, target_id, tables_from, project=project)
     if response:
         url = f'{piperider_cloud.service.cloud_host}/{project.workspace_name}/{project.name}/runs/{base_id}/comparison/{target_id}'
         response['url'] = url
