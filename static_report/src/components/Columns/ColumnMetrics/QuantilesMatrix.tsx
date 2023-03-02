@@ -8,7 +8,6 @@ import {
   Tooltip,
   Tr,
 } from '@chakra-ui/react';
-import { nanoid } from 'nanoid';
 import { schemaMetaDescriptions } from '../../../sdlc/schema-meta';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
 import { ZColSchema } from '../../../types';
@@ -41,8 +40,8 @@ export function QuantilesMatrix({ columnDatum }: Props) {
       <Table size={'sm'} variant={'simple'}>
         <Thead>
           <Tr>
-            {quantileData.map((d) => (
-              <Th pr={0} pl={2} key={nanoid()} textAlign={'center'}>
+            {quantileData.map((d, idx) => (
+              <Th pr={0} pl={2} key={`${idx}-${d.label}`} textAlign={'center'}>
                 <Tooltip label={schemaMetaDescriptions[d.metaKey]}>
                   {d.label}
                 </Tooltip>
@@ -52,9 +51,14 @@ export function QuantilesMatrix({ columnDatum }: Props) {
         </Thead>
         <Tbody>
           <Tr>
-            {quantileData.map((d) => {
+            {quantileData.map((d, idx) => {
               return (
-                <Td pr={0} pl={2} key={nanoid()} textAlign={'center'}>
+                <Td
+                  pr={0}
+                  pl={2}
+                  key={`${idx}-${d.label}`}
+                  textAlign={'center'}
+                >
                   {formatColumnValueWith(d.value, formatAsAbbreviatedNumber)}
                 </Td>
               );
