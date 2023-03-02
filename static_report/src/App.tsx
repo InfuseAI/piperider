@@ -17,6 +17,8 @@ import { CRAssertionListPage } from './pages/CRAssertionListPage';
 import { Loading } from './components/Common';
 import { SRTablesListPage } from './pages/SRTablesListPage';
 import { CRTablesListPage } from './pages/CRTableListPage';
+import { useAmplitudeOnMount } from './hooks';
+import { AMPLITUDE_EVENTS, WARNING_TYPE_LABEL } from './utils';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns && process.env.NODE_ENV !== 'development') {
@@ -138,6 +140,24 @@ function AppComparison() {
   );
 }
 
+function MobileDeviceWarning() {
+  useAmplitudeOnMount({
+    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+    eventProperties: {
+      type: WARNING_TYPE_LABEL,
+      page: 'report-index',
+    },
+  });
+  return (
+    <>
+      <div>
+        Please open this on a Desktop Computer. Mobile is currently not
+        supported.
+      </div>
+    </>
+  );
+}
+
 function App() {
   const isMobile: boolean = /iPhone|iPad|iPod|Android/i.test(
     navigator.userAgent,
@@ -146,10 +166,7 @@ function App() {
   if (isMobile) {
     return (
       <>
-        <div>
-          Please open this on a Desktop Computer. Mobile is currently not
-          supported.
-        </div>
+        <MobileDeviceWarning />
       </>
     );
   }
