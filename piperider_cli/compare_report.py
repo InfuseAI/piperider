@@ -736,11 +736,11 @@ class CompareReport(object):
         report_url = None
         summary_data = None
 
-        if report.a.cloud is None and force_upload:
+        if force_upload and (report.a.cloud is None or report.a.cloud.get('project_name') != project_name):
             CloudConnector.upload_report(report.a.path, show_progress=show_progress, project_name=project_name)
             report.a.refresh()
 
-        if report.b.cloud is None and force_upload:
+        if force_upload and (report.b.cloud is None or report.b.cloud.get('project_name') != project_name):
             CloudConnector.upload_report(report.b.path, show_progress=show_progress, project_name=project_name)
             report.b.refresh()
 
@@ -749,7 +749,7 @@ class CompareReport(object):
             base = str(report.a.cloud.get('run_id'))
             target = str(report.b.cloud.get('run_id'))
             project_name = report.a.cloud.get('project_name')
-            response = CloudConnector.generate_compare_report(base, target, project_name=project_name)
+            response = CloudConnector.generate_compare_report(base, target, project_name=project_name, debug=False)
             if response:
                 report_url = response.get('url')
                 summary_data = response.get('summary')

@@ -391,11 +391,12 @@ class CloudConnector:
 
     @staticmethod
     def upload_latest_report(report_dir=None, debug=False, open_report=False, force_upload=False,
-                             auto_upload=False) -> int:
+                             auto_upload=False, project_name: str = None) -> int:
         filesystem = FileSystem(report_dir=report_dir)
         latest_report_path = os.path.join(filesystem.get_output_dir(), 'latest', 'run.json')
         return CloudConnector.upload_report(latest_report_path, debug=debug, open_report=open_report,
-                                            force_upload=force_upload, auto_upload=auto_upload)
+                                            force_upload=force_upload, auto_upload=auto_upload,
+                                            project_name=project_name)
 
     @staticmethod
     def upload_report(report_path=None, report_dir=None, datasource=None, debug=False, open_report=False,
@@ -463,7 +464,7 @@ class CloudConnector:
 
     @staticmethod
     def generate_compare_report(base_id: str, target_id: str, tables_from='all',
-                                project_name: str = None):
+                                project_name: str = None, debug: bool = False):
         # TODO: Change to use new front-end URL pattern
         def _generate_legacy_compare_report_url(base_id, target_id, project=None):
             if project is None:
@@ -481,7 +482,9 @@ class CloudConnector:
             else:
                 project = piperider_cloud.get_default_project()
             return _generate_legacy_compare_report_url(base_id, target_id, project=project)
-        except Exception:
+        except Exception as e:
+            if debug:
+                console.print(f'[[bold red]Error[/bold red]] {e}')
             return None
 
     @staticmethod
@@ -544,7 +547,7 @@ class CloudConnector:
         sharing_url = None
 
         if response:
-            sharing_url = f'{piperider_cloud.service.cloud_host}/reports/sharing/comparison/{response.get("sharing_id")}'
+            sharing_url = f'{piperider_cloud.service.cloud_host}/runs/sharing/comparison/{response.get("sharing_id")}'
         return sharing_url
 
     @staticmethod

@@ -157,6 +157,7 @@ def diagnose(**kwargs):
 @click.option('--dbt-run-results', is_flag=True, help='Associate with dbt run results.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
+@click.option('--project', default=None, type=click.STRING, help='Specify the project name to upload.')
 @click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
 @add_options(debug_option)
 def run(**kwargs):
@@ -171,6 +172,7 @@ def run(**kwargs):
     dbt_list = kwargs.get('dbt_list')
     dbt_run_results = kwargs.get('dbt_run_results')
     force_upload = kwargs.get('upload')
+    project_name = kwargs.get('project')
 
     console = Console()
 
@@ -208,7 +210,7 @@ def run(**kwargs):
         if CloudConnector.is_login() and is_cloud_view:
             CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
                                                 open_report=open_report, force_upload=force_upload,
-                                                auto_upload=auto_upload)
+                                                auto_upload=auto_upload, project_name=project_name)
 
         if not skip_report:
             GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report, is_cloud_view)
@@ -258,7 +260,7 @@ def generate_report(**kwargs):
               help='Show table comparison from base or target.')
 @click.option('--upload', default=False, is_flag=True, help='Upload the report to PipeRider Cloud.')
 @click.option('--project', default=None, type=click.STRING,
-              help='Specify the project name to upload the report to PipeRider Cloud.')
+              help='Specify the project name to upload.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @add_options(debug_option)
 def compare_reports(**kwargs):
@@ -271,7 +273,7 @@ def compare_reports(**kwargs):
     tables_from = kwargs.get('tables_from')
     force_upload = kwargs.get('upload')
     enable_share = kwargs.get('share')
-    project_name = None
+    project_name = kwargs.get('project')
 
     if enable_share:
         force_upload = True
@@ -281,7 +283,6 @@ def compare_reports(**kwargs):
             message='Please login to PipeRider Cloud first.',
             hint='Run "piprider cloud login" to login to PipeRider Cloud.'
         )
-        project_name = kwargs.get('project')
 
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
                        report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), tables_from=tables_from,
@@ -353,7 +354,7 @@ def cloud(**kwargs):
 @click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
               help='Specify the datasource.')
 @click.option('--project', default=None, type=click.STRING, metavar='PROJECT_NAME',
-              help='Specify the project to upload.')
+              help='Specify the project name to upload.')
 @add_options(debug_option)
 def upload_report(**kwargs):
     """
@@ -379,7 +380,7 @@ def upload_report(**kwargs):
               help='Show table comparison from base or target.')
 @click.option('--summary-file', default=None, type=click.STRING, help='Download the comparison summary markdown file.')
 @click.option('--project', default=None, type=click.STRING, metavar='PROJECT_NAME',
-              help='Specify the project to upload.')
+              help='Specify the project name to upload.')
 @add_options(debug_option)
 def cloud_compare_reports(**kwargs):
     """
