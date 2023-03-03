@@ -720,7 +720,8 @@ class CompareReport(object):
 
     @staticmethod
     def exec(*, a=None, b=None, last=None, datasource=None, report_dir=None, output=None, tables_from='all',
-             summary_file=None, force_upload=False, enable_share=False, debug=False, show_progress=False):
+             summary_file=None, force_upload=False, enable_share=False, project_name: str = None, debug=False,
+             show_progress=False):
         console = Console()
         console.rule('Comparison report', style='bold blue')
 
@@ -735,20 +736,20 @@ class CompareReport(object):
         report_url = None
         summary_data = None
 
-        if report.a.cloud is None and force_upload:
-            CloudConnector.upload_report(report.a.path, show_progress=show_progress)
+        if force_upload and (report.a.cloud is None or report.a.cloud.get('project_name') != project_name):
+            CloudConnector.upload_report(report.a.path, show_progress=show_progress, project_name=project_name)
             report.a.refresh()
 
-        if report.b.cloud is None and force_upload:
-            CloudConnector.upload_report(report.b.path, show_progress=show_progress)
+        if force_upload and (report.b.cloud is None or report.b.cloud.get('project_name') != project_name):
+            CloudConnector.upload_report(report.b.path, show_progress=show_progress, project_name=project_name)
             report.b.refresh()
 
         # Generate comparison report URL & summary markdown
         if report.a.cloud and report.b.cloud:
-            base = str(report.a.cloud.get('report_id'))
-            target = str(report.b.cloud.get('report_id'))
-            project_id = report.a.cloud.get('project_id')
-            response = CloudConnector.generate_compare_report(base, target, project_id=project_id)
+            base = str(report.a.cloud.get('run_id'))
+            target = str(report.b.cloud.get('run_id'))
+            project_name = report.a.cloud.get('project_name')
+            response = CloudConnector.generate_compare_report(base, target, project_name=project_name, debug=False)
             if response:
                 report_url = response.get('url')
                 summary_data = response.get('summary')
@@ -787,8 +788,8 @@ class CompareReport(object):
                     '[[bold yellow]Skip[/bold yellow]] Please enable cloud auto upload or use "piperider compare --upload" to upload reports to cloud first.')
             else:
                 from piperider_cli.cloud_connector import CloudConnector
-                base = str(report.a.cloud.get('report_id'))
-                target = str(report.b.cloud.get('report_id'))
+                base = str(report.a.cloud.get('run_id'))
+                target = str(report.b.cloud.get('run_id'))
                 sharing_url = CloudConnector.share_compare_report(base, target)
 
         if output:
