@@ -185,7 +185,7 @@ class PipeRiderCloud:
             if project:
                 return project
 
-        url = self.service.url('/api/v2/projects')
+        url = self.service.url('/api/v2/workspaces')
         headers = self.service.auth_headers()
         response = requests.get(url, headers=headers)
 
@@ -326,7 +326,7 @@ class PipeRiderCloud:
         if not self.available:
             self.raise_error()
 
-        url = self.service.url('/api/v2/projects')
+        url = self.service.url('/api/v2/workspaces')
         headers = self.service.auth_headers()
         response = requests.get(url, headers=headers)
 
@@ -336,13 +336,10 @@ class PipeRiderCloud:
         data = response.json()
         output = []
 
-        def _parse_legacy_project_list(x):
-            output.append({
-                'id': x.get('id'),
-                'name': x.get('name'),
-                'is_default': x.get('is_default'),
-                'parent_type': 'personal',
-            })
+        if not data.get('success'):
+            return None
+
+        data = data.get('data')
 
         def _parse_projects_with_workspace_list(x):
             for project in x.get('projects', []):
@@ -355,10 +352,7 @@ class PipeRiderCloud:
                 output.append(p)
 
         for x in data:
-            if x.get('id'):
-                _parse_legacy_project_list(x)
-            else:
-                _parse_projects_with_workspace_list(x)
+            _parse_projects_with_workspace_list(x)
         return output
 
     def get_project_by_name(self, name) -> PipeRiderProject:
