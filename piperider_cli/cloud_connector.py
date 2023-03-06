@@ -502,7 +502,9 @@ class CloudConnector:
 
         base_id, target_id = select_cloud_report_ids(base=base, target=target, project=project)
         if base_id is None or target_id is None:
-            raise Exception('No report found in the PipeRider Cloud. Please upload reports to PipeRider Cloud first.')
+            raise Exception(
+                f'No reports found in the project: {project.workspace_name}/{project.name}. '
+                f'Please upload reports to PipeRider Cloud first.')
 
         console.print(f"Creating comparison report id={base_id} ... id={target_id}")
         response = create_compare_reports(base_id, target_id, tables_from, project=project)
