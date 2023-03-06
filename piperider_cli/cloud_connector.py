@@ -1,13 +1,11 @@
 import json
 import os
-import re
 import sys
 import webbrowser
 from typing import List, Optional
 
 import inquirer
 import readchar
-from inquirer.errors import ValidationError
 from rich import box
 from rich.console import Console
 from rich.prompt import Prompt
@@ -37,33 +35,6 @@ def _ask_email():
                 console.print(f"'{account}' is not a valid")
 
     return account
-
-
-def _ask_username():
-    def _username_validator(_, x):
-        if len(x) == 0:
-            return True
-        if not re.match(WORKSPACE_PROJECT_NAME_REGEX, x):
-            raise ValidationError('',
-                                  reason=f'"{x}" is not a valid username. Only alphanumeric characters, underscores and dashes are allowed.')
-        success, message = piperider_cloud.is_username_available(x)
-        if success is False:
-            raise ValidationError('', reason=message)
-        return True
-
-    if FANCY_USER_INPUT:
-        username = inquirer.text('Username [Optional]', validate=_username_validator)
-    else:
-        while True:
-            username = Prompt.ask('[[yellow]?[/yellow]] Username [Optional]')
-            try:
-                validator_result = _username_validator(None, username)
-                if validator_result is True:
-                    break
-            except ValidationError as e:
-                console.print(e)
-
-    return username
 
 
 def _ask_api_token():

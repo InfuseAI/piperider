@@ -161,17 +161,6 @@ class PipeRiderCloud:
             return response.json()
         return None
 
-    def is_username_available(self, username: str) -> (bool, str):
-        verify_username_url = self.service.url('/api/v2/credentials/username_verifier')
-        response = requests.post(
-            verify_username_url,
-            headers={'Content-type': 'application/json', 'Accept': 'text/plain'},
-            data=json.dumps({'username': username})
-        )
-        if response.status_code == 200:
-            return response.json().get('success'), response.json().get('message')
-        return False, 'Unable to access PipeRider Cloud service'
-
     def set_default_project(self, project_name):
         self.update_config({'default_project': project_name})
 
