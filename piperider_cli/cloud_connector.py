@@ -221,17 +221,16 @@ class CloudReportOutput(RunOutput):
 
 
 def select_cloud_report_ids(datasource=None, project: PipeRiderProject = None, target=None,
-                            base=None) -> (
-    int, int):
-    if target:
-        target_id = get_run_report_id(target)
-    if base:
-        base_id = get_run_report_id(base)
-
+                            base=None) -> (int, int):
     if project is None:
         project = piperider_cloud.get_default_project()
 
-    reports = [CloudReportOutput(r) for r in piperider_cloud.list_reports(project.id, datasource=datasource)]
+    if target:
+        target_id = get_run_report_id(project, target)
+    if base:
+        base_id = get_run_report_id(project, base)
+
+    reports = [CloudReportOutput(r) for r in piperider_cloud.list_reports(project, datasource=datasource)]
     if len(reports) == 0:
         return None, None
 
@@ -293,7 +292,7 @@ def upload_to_cloud(run: RunOutput, debug=False, project: PipeRiderProject = Non
     }
 
 
-def get_run_report_id(report_key: str) -> Optional[int]:
+def get_run_report_id(project: PipeRiderProject, report_key: str) -> Optional[int]:
     if report_key.isdecimal():
         if int(report_key) < 1:
             return None
@@ -301,8 +300,7 @@ def get_run_report_id(report_key: str) -> Optional[int]:
 
     if report_key.startswith('datasource:'):
         datasource = report_key.split(':')[-1]
-        project = piperider_cloud.get_default_project()
-        reports = piperider_cloud.list_reports(project.id, datasource=datasource)
+        reports = piperider_cloud.list_reports(project, datasource=datasource)
 
         if reports:
             return reports[0].get('id')

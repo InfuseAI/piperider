@@ -230,13 +230,15 @@ class PipeRiderCloud:
 
         return workspace_name, project_name
 
-    def list_reports(self, project_id, datasource=None):
+    def list_reports(self, project: PipeRiderProject, datasource=None):
         if not self.available:
             self.raise_error()
 
-        url = self.service.url(f'/api/v2/projects/{project_id}/reports')
+        url = self.service.url(f'/api/v2/workspaces/{project.workspace_name}/projects/{project.name}/runs')
+
         if datasource:
-            url = self.service.url(f'/api/v2/projects/{project_id}/reports?datasource={datasource}')
+            url = self.service.url(
+                f'/api/v2/workspaces/{project.workspace_name}/projects/{project.name}/runs?datasource={datasource}')
 
         headers = self.service.auth_headers()
         response = requests.get(url, headers=headers)
