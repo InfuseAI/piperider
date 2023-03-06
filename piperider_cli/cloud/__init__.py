@@ -92,7 +92,7 @@ class CloudServiceHelper:
         if not (self.api_token and self.api_service):
             return False, None
 
-        json_resp = self.http_get('/api/users/me')
+        json_resp = self.http_get('/api/v2/users/me')
         if json_resp and 'email' in json_resp:
             return True, json_resp
         return False, None
@@ -135,7 +135,7 @@ class PipeRiderCloud:
     def magic_signup(self, email: str, username: str = None):
         if self.available:
             return True
-        signup_url = self.service.url('/api/credentials/signup')
+        signup_url = self.service.url('/api/v2/credentials/signup')
         payload = {'email': email, 'source': 'cli'}
         if username:
             payload['username'] = username
@@ -151,7 +151,7 @@ class PipeRiderCloud:
     def magic_login(self, email):
         if self.available:
             return True
-        login_url = self.service.url('/api/session/new')
+        login_url = self.service.url('/api/v2/session/new')
         response = requests.post(
             login_url,
             headers={'Content-type': 'application/json', 'Accept': 'text/plain'},
@@ -160,17 +160,6 @@ class PipeRiderCloud:
         if response.status_code == 200:
             return response.json()
         return None
-
-    def is_username_available(self, username: str) -> (bool, str):
-        verify_username_url = self.service.url('/api/v2/credentials/username_verifier')
-        response = requests.post(
-            verify_username_url,
-            headers={'Content-type': 'application/json', 'Accept': 'text/plain'},
-            data=json.dumps({'username': username})
-        )
-        if response.status_code == 200:
-            return response.json().get('success'), response.json().get('message')
-        return False, 'Unable to access PipeRider Cloud service'
 
     def set_default_project(self, project_name):
         self.update_config({'default_project': project_name})
@@ -185,7 +174,7 @@ class PipeRiderCloud:
             if project:
                 return project
 
-        url = self.service.url('/api/projects')
+        url = self.service.url('/api/v2/workspaces')
         headers = self.service.auth_headers()
         response = requests.get(url, headers=headers)
 
@@ -230,13 +219,15 @@ class PipeRiderCloud:
 
         return workspace_name, project_name
 
-    def list_reports(self, project_id, datasource=None):
+    def list_reports(self, project: PipeRiderProject, datasource=None):
         if not self.available:
             self.raise_error()
 
-        url = self.service.url(f'/api/projects/{project_id}/reports')
+        url = self.service.url(f'/api/v2/workspaces/{project.workspace_name}/projects/{project.name}/runs')
+
         if datasource:
-            url = self.service.url(f'/api/projects/{project_id}/reports?datasource={datasource}')
+            url = self.service.url(
+                f'/api/v2/workspaces/{project.workspace_name}/projects/{project.name}/runs?datasource={datasource}')
 
         headers = self.service.auth_headers()
         response = requests.get(url, headers=headers)
@@ -324,7 +315,7 @@ class PipeRiderCloud:
         if not self.available:
             self.raise_error()
 
-        url = self.service.url('/api/projects')
+        url = self.service.url('/api/v2/workspaces')
         headers = self.service.auth_headers()
         response = requests.get(url, headers=headers)
 
@@ -334,13 +325,10 @@ class PipeRiderCloud:
         data = response.json()
         output = []
 
-        def _parse_legacy_project_list(x):
-            output.append({
-                'id': x.get('id'),
-                'name': x.get('name'),
-                'is_default': x.get('is_default'),
-                'parent_type': 'personal',
-            })
+        if not data.get('success'):
+            return None
+
+        data = data.get('data')
 
         def _parse_projects_with_workspace_list(x):
             for project in x.get('projects', []):
@@ -353,10 +341,7 @@ class PipeRiderCloud:
                 output.append(p)
 
         for x in data:
-            if x.get('id'):
-                _parse_legacy_project_list(x)
-            else:
-                _parse_projects_with_workspace_list(x)
+            _parse_projects_with_workspace_list(x)
         return output
 
     def get_project_by_name(self, name) -> PipeRiderProject:

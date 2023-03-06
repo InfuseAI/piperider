@@ -1,13 +1,11 @@
 import json
 import os
-import re
 import sys
 import webbrowser
 from typing import List, Optional
 
 import inquirer
 import readchar
-from inquirer.errors import ValidationError
 from rich import box
 from rich.console import Console
 from rich.prompt import Prompt
@@ -37,33 +35,6 @@ def _ask_email():
                 console.print(f"'{account}' is not a valid")
 
     return account
-
-
-def _ask_username():
-    def _username_validator(_, x):
-        if len(x) == 0:
-            return True
-        if not re.match(WORKSPACE_PROJECT_NAME_REGEX, x):
-            raise ValidationError('',
-                                  reason=f'"{x}" is not a valid username. Only alphanumeric characters, underscores and dashes are allowed.')
-        success, message = piperider_cloud.is_username_available(x)
-        if success is False:
-            raise ValidationError('', reason=message)
-        return True
-
-    if FANCY_USER_INPUT:
-        username = inquirer.text('Username [Optional]', validate=_username_validator)
-    else:
-        while True:
-            username = Prompt.ask('[[yellow]?[/yellow]] Username [Optional]')
-            try:
-                validator_result = _username_validator(None, username)
-                if validator_result is True:
-                    break
-            except ValidationError as e:
-                console.print(e)
-
-    return username
 
 
 def _ask_api_token():
@@ -221,17 +192,16 @@ class CloudReportOutput(RunOutput):
 
 
 def select_cloud_report_ids(datasource=None, project: PipeRiderProject = None, target=None,
-                            base=None) -> (
-    int, int):
-    if target:
-        target_id = get_run_report_id(target)
-    if base:
-        base_id = get_run_report_id(base)
-
+                            base=None) -> (int, int):
     if project is None:
         project = piperider_cloud.get_default_project()
 
-    reports = [CloudReportOutput(r) for r in piperider_cloud.list_reports(project.id, datasource=datasource)]
+    if target:
+        target_id = get_run_report_id(project, target)
+    if base:
+        base_id = get_run_report_id(project, base)
+
+    reports = [CloudReportOutput(r) for r in piperider_cloud.list_reports(project, datasource=datasource)]
     if len(reports) == 0:
         return None, None
 
@@ -293,7 +263,7 @@ def upload_to_cloud(run: RunOutput, debug=False, project: PipeRiderProject = Non
     }
 
 
-def get_run_report_id(report_key: str) -> Optional[int]:
+def get_run_report_id(project: PipeRiderProject, report_key: str) -> Optional[int]:
     if report_key.isdecimal():
         if int(report_key) < 1:
             return None
@@ -301,8 +271,7 @@ def get_run_report_id(report_key: str) -> Optional[int]:
 
     if report_key.startswith('datasource:'):
         datasource = report_key.split(':')[-1]
-        project = piperider_cloud.get_default_project()
-        reports = piperider_cloud.list_reports(project.id, datasource=datasource)
+        reports = piperider_cloud.list_reports(project, datasource=datasource)
 
         if reports:
             return reports[0].get('id')
@@ -504,7 +473,9 @@ class CloudConnector:
 
         base_id, target_id = select_cloud_report_ids(base=base, target=target, project=project)
         if base_id is None or target_id is None:
-            raise Exception('No report found in the PipeRider Cloud. Please upload reports to PipeRider Cloud first.')
+            raise Exception(
+                f'No reports found in the project: {project.workspace_name}/{project.name}. '
+                f'Please upload reports to PipeRider Cloud first.')
 
         console.print(f"Creating comparison report id={base_id} ... id={target_id}")
         response = create_compare_reports(base_id, target_id, tables_from, project=project)
