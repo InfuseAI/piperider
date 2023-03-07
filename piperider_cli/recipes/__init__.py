@@ -193,7 +193,7 @@ def verify_dbt_dependencies(cfg: RecipeConfiguration):
     check_dbt_command()
 
 
-def execute_recipe(model: RecipeModel, current_branch, debug=False):
+def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type='base'):
     """
     We execute a recipe in the following steps:
     1. if there was a branch or current_branch, switch to it
@@ -201,10 +201,17 @@ def execute_recipe(model: RecipeModel, current_branch, debug=False):
     3. run piperider commands
     """
 
-    working_branch = model.branch or current_branch
-    if working_branch is not None:
-        console.print(f"Switch git branch to: \[{working_branch}]")
-        switch_branch(working_branch)
+    if recipe_type == 'base':
+        a_branch = model.branch
+        b_branch = current_branch
+        if a_branch != b_branch:
+            commit_hash = switch_merge_base_branch(a_branch, b_branch)
+            console.print(f"Switch git branch to: \[merge-base of {a_branch}...{b_branch} -> {commit_hash}]")
+    else:
+        working_branch = model.branch or current_branch
+        if working_branch is not None:
+            console.print(f"Switch git branch to: \[{working_branch}]")
+            switch_branch(working_branch)
 
     from piperider_cli.recipes.utils import execute_command
 
@@ -245,6 +252,13 @@ def get_current_branch(cfg: RecipeConfiguration):
     return original_branch
 
 
+def switch_merge_base_branch(a: str, b: str) -> str:
+    from piperider_cli.recipes.utils import git_checkout_to, git_merge_base
+    base_commit = git_merge_base(a, b)
+    git_checkout_to(base_commit)
+    return base_commit
+
+
 def switch_branch(branch_name):
     from piperider_cli.recipes.utils import git_switch_to
     git_switch_to(branch_name)
@@ -262,10 +276,10 @@ def execute_configuration(cfg: RecipeConfiguration, debug=False):
 
     try:
         console.rule("Recipe executor: base phase")
-        execute_recipe(cfg.base, current_branch, debug=debug)
+        execute_recipe(cfg.base, current_branch, recipe_type='base', debug=debug)
 
         console.rule("Recipe executor: target phase")
-        execute_recipe(cfg.target, current_branch, debug=debug)
+        execute_recipe(cfg.target, current_branch, recipe_type='target', debug=debug)
     finally:
         if current_branch is not None:
             # switch back to the original branch

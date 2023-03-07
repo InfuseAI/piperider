@@ -58,6 +58,19 @@ def git_switch_to(branch_name):
         raise RecipeException(errs)
 
 
+def git_checkout_to(commit_or_branch):
+    outs, errs, exit_code = _execute_command(f"git checkout {commit_or_branch}")
+    if exit_code != 0:
+        raise RecipeException(errs)
+
+
+def git_merge_base(a: str, b: str):
+    outs, errs, exit_code = _execute_command(f"git merge-base {a} {b}")
+    if exit_code != 0:
+        raise RecipeException(errs)
+    return outs
+
+
 def execute_command(command_line, envs: Dict):
     exit_code = execute_command_without_capture_output(command_line, envs)
     return exit_code
