@@ -509,17 +509,12 @@ class CloudConnector:
 
         if debug:
             console.print(f"Sharing comparison report id={base_id} ... id={target_id}")
-        response = piperider_cloud.share_compare_report(
+        piperider_cloud.share_compare_report(
             workspace_name=workspace_name,
             project_name=project_name,
             base_id=base_id,
             target_id=target_id,
         )
-        sharing_url = None
-
-        if response:
-            sharing_url = f'{piperider_cloud.service.cloud_host}/runs/sharing/comparison/{response.get("sharing_id")}'
-        return sharing_url
 
     @staticmethod
     def list_projects(debug=False) -> int:

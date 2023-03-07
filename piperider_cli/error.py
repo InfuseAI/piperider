@@ -100,6 +100,12 @@ class PipeRiderDataBaseEncodingError(PipeRiderError):
                             f'    \'iconv -f {current_encoding} -t {support_encoding} "{file_path}" > "utf8-{os.path.basename(file_path)}"\''
 
 
+class PipeRiderNoDefaultProjectError(PipeRiderError):
+    def __init__(self):
+        self.message = 'No default project.'
+        self.hint = 'Run \'piperider cloud select-project\' to select the default project'
+
+
 class DbtError(PipeRiderError):
     type = 'dbt'
 
