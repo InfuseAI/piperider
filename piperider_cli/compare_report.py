@@ -781,7 +781,6 @@ class CompareReport(object):
         report_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'index.html')
         summary_md_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'summary.md')
 
-        sharing_url = None
         if enable_share:
             if report.a.cloud is None or report.b.cloud is None:
                 console.print(
@@ -790,7 +789,7 @@ class CompareReport(object):
                 from piperider_cli.cloud_connector import CloudConnector
                 base = str(report.a.cloud.get('run_id'))
                 target = str(report.b.cloud.get('run_id'))
-                sharing_url = CloudConnector.share_compare_report(base, target)
+                CloudConnector.share_compare_report(base, target)
 
         if output:
             clone_directory(default_report_directory, output)
@@ -810,8 +809,6 @@ class CompareReport(object):
         console.print(f"Comparison summary: {summary_md_path}")
         if report_url:
             console.print(f"Comparison report URL: {report_url}")
-        if sharing_url:
-            console.print(f"Comparison sharing report: {sharing_url}")
 
         if debug:
             # Write comparison data to file

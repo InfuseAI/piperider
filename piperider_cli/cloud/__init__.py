@@ -8,6 +8,7 @@ from rich.progress import Progress, TextColumn, BarColumn, DownloadColumn, TimeE
 from ruamel import yaml
 
 from piperider_cli import __version__
+from piperider_cli.error import PipeRiderNoDefaultProjectError
 from piperider_cli.event import load_user_profile, update_user_profile
 
 PIPERIDER_CLOUD_SERVICE = 'https://cloud.piperider.io/'
@@ -181,15 +182,18 @@ class PipeRiderCloud:
         if response.status_code != 200:
             return None
 
-        for project in response.json():
-            if project.get('id'):
-                # Legacy projects api response
-                if project.get('is_default'):
-                    return PipeRiderProject(project)
-            else:
-                # New projects api response
-                for p in project.get('projects', [])[:1]:
-                    return PipeRiderProject(p)
+        responseData = response.json()
+
+        def genProjects():
+            for workspace in responseData.get('data', []):
+                for project in workspace.get('projects', []):
+                    yield project
+
+        projects = list(genProjects())
+        if len(projects) == 1:
+            return PipeRiderProject(projects[0])
+        else:
+            raise PipeRiderNoDefaultProjectError()
 
     def get_default_workspace_and_project(self):
         if not self.available:
