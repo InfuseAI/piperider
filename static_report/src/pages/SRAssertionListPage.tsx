@@ -34,41 +34,28 @@ export function SRAssertionListPage({ data }: Props) {
   const { metadata } = assertionsOnly || {};
 
   return (
-    <Main isSingleReport>
-      <MasterDetailContainer
-        rawData={rawData}
-        tableColEntries={tableColumnsOnly}
-        singleOnly
-      >
-        <Box mt={5}>
-          <Flex maxW={assertionListWidth - 50} w={'100%'}>
-            <SearchTextInput
-              onChange={setFilterString}
-              filterString={filterString}
-            />
-          </Flex>
-          <Flex
-            justify={'start'}
-            maxW={assertionListWidth - 50}
-            w={'100%'}
-            my={5}
-          >
-            {Number(metadata?.base?.total) > 0 && (
-              <AssertionPassFailCountLabel
-                total={metadata?.base?.total}
-                failed={metadata?.base?.failed}
-              />
-            )}
-          </Flex>
-          <AssertionListWidget
-            maxW={assertionListWidth - 50}
-            w={'100%'}
-            singleOnly
-            filterString={filterString}
-            comparableAssertions={assertionsOnly}
+    <Box mt={5}>
+      <Flex maxW={assertionListWidth - 50} w={'100%'}>
+        <SearchTextInput
+          onChange={setFilterString}
+          filterString={filterString}
+        />
+      </Flex>
+      <Flex justify={'start'} maxW={assertionListWidth - 50} w={'100%'} my={5}>
+        {Number(metadata?.base?.total) > 0 && (
+          <AssertionPassFailCountLabel
+            total={metadata?.base?.total}
+            failed={metadata?.base?.failed}
           />
-        </Box>
-      </MasterDetailContainer>
-    </Main>
+        )}
+      </Flex>
+      <AssertionListWidget
+        maxW={assertionListWidth - 50}
+        w={'100%'}
+        singleOnly
+        filterString={filterString}
+        comparableAssertions={assertionsOnly}
+      />
+    </Box>
   );
 }

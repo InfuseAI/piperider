@@ -1,7 +1,9 @@
-import { AccordionButton, Flex, Icon, Text } from '@chakra-ui/react';
+import { AccordionButton, Flex, Icon, Text, Tooltip } from '@chakra-ui/react';
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
+import { useRoute } from 'wouter';
 import { Comparable, ComparableData } from '../../../types';
 import { borderVal, CompTableWithColEntryOverwrite } from '../../../utils';
+import { TABLE_DETAILS_ROUTE_PATH } from '../../../utils/routes';
 
 /**
  * TableItem: Accordion UI parent
@@ -14,11 +16,12 @@ interface TableItemAccordionButtonProps extends Comparable {
 }
 export function TableItemAccordionButton({
   compTableColItem: { base: baseTable, target: targetTable },
-  isActive,
   isExpanded,
   onToggle,
 }: TableItemAccordionButtonProps) {
   const tableName = (targetTable || baseTable)?.name;
+  const [match, params] = useRoute(TABLE_DETAILS_ROUTE_PATH);
+  const isActive = match && tableName === decodeURIComponent(params.tableName);
 
   return (
     <h2>
@@ -40,13 +43,15 @@ export function TableItemAccordionButton({
             fontSize={'sm'}
             w={'100%'}
           >
-            <Text
-              noOfLines={1}
-              fontWeight={isActive ? 'bold' : 'normal'}
-              color={isActive ? 'white' : 'inherit'}
-            >
-              {tableName}
-            </Text>
+            <Tooltip label={tableName}>
+              <Text
+                noOfLines={1}
+                fontWeight={isActive ? 'bold' : 'normal'}
+                color={isActive ? 'white' : 'inherit'}
+              >
+                {tableName}
+              </Text>
+            </Tooltip>
             <Icon
               as={isExpanded ? FiChevronDown : FiChevronRight}
               onClick={(e) => {

@@ -25,38 +25,24 @@ export function SRBMPage({ data }: Props) {
   const datasource = data?.datasource.name ?? NO_VALUE;
 
   return (
-    <Main isSingleReport>
-      <MasterDetailContainer
-        rawData={rawData}
-        tableColEntries={tableColumnsOnly}
-        singleOnly
-      >
-        <Box>
-          <Flex w={'100%'} p={5}>
-            <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
-              Report Metrics ({datasource})
-            </Text>
-          </Flex>
-          <Grid
-            templateColumns={'1fr 1fr'}
-            w={'100%'}
-            minH={'50%'}
-            gap={5}
-            p={5}
-          >
-            {(BMOnly?.base ?? []).map((v) => (
-              <GridItem key={v.name}>
-                <BMWidget data={{ base: v }} singleOnly />
-              </GridItem>
-            ))}
-            {!BMOnly?.base?.length && (
-              <GridItem colSpan={2} background={'gray.200'} p={5} minH={'50vh'}>
-                <NoData text="No Metrics Data Available" />
-              </GridItem>
-            )}
-          </Grid>
-        </Box>
-      </MasterDetailContainer>
-    </Main>
+    <Box>
+      <Flex w={'100%'} p={5}>
+        <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
+          Report Metrics ({datasource})
+        </Text>
+      </Flex>
+      <Grid templateColumns={'1fr 1fr'} w={'100%'} minH={'50%'} gap={5} p={5}>
+        {(BMOnly?.base ?? []).map((v) => (
+          <GridItem key={v.name}>
+            <BMWidget data={{ base: v }} singleOnly />
+          </GridItem>
+        ))}
+        {!BMOnly?.base?.length && (
+          <GridItem colSpan={2} background={'gray.200'} p={5} minH={'50vh'}>
+            <NoData text="No Metrics Data Available" />
+          </GridItem>
+        )}
+      </Grid>
+    </Box>
   );
 }

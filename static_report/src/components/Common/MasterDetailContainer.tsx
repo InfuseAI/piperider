@@ -1,5 +1,5 @@
 import { Grid, GridItem } from '@chakra-ui/react';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Comparable, ComparisonReportSchema } from '../../types';
 import {
@@ -32,13 +32,10 @@ export function MasterDetailContainer({
 }: Props) {
   const [location, setLocation] = useLocation();
   const fallback = rawData.input ?? rawData.base;
-  const activeMasterItem = location.includes(BM_ROUTE_PATH)
-    ? BM_ROUTE_PATH.slice(1)
-    : location.includes(ASSERTIONS_ROUTE_PATH)
-    ? ASSERTIONS_ROUTE_PATH.slice(1)
-    : location === '/'
-    ? 'root'
-    : 'children';
+
+  useEffect(() => {
+    if (!location || location === '/') setLocation('/tables');
+  }, [location]);
 
   return (
     <>
@@ -61,19 +58,7 @@ export function MasterDetailContainer({
         >
           <MasterSideNav
             initAsExpandedTables={initAsExpandedTables}
-            activeMasterParent={activeMasterItem}
             tableColEntryList={tableColEntries}
-            currentTable={tableName}
-            currentColumn={columnName}
-            onSelect={({ tableName, columnName }) => {
-              const path = Boolean(!tableName && !columnName)
-                ? `/`
-                : `/tables/${tableName}/columns/${columnName}`;
-
-              setLocation(path);
-            }}
-            onNavToAssertions={() => setLocation(ASSERTIONS_ROUTE_PATH)}
-            onNavToBM={() => setLocation(BM_ROUTE_PATH)}
             singleOnly={singleOnly}
           />
         </GridItem>

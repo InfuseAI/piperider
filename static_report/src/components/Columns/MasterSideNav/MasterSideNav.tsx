@@ -11,22 +11,25 @@ import {
 import { useEffect, useState } from 'react';
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import { useLocalStorage } from 'react-use';
+import { useLocation, useRoute } from 'wouter';
 
-import { Comparable, Selectable } from '../../../types';
+import { Comparable } from '../../../types';
 import { borderVal, MASTER_LIST_SHOW_EXTRA } from '../../../utils';
+import {
+  ASSERTIONS_ROUTE_PATH,
+  BM_ROUTE_PATH,
+  COLUMN_DETAILS_ROUTE_PATH,
+  TABLE_DETAILS_ROUTE_PATH,
+} from '../../../utils/routes';
 import { CompTableColEntryItem } from '../../../utils/store';
 import { ColumnListAccordionPanel } from './ColumnListAccordionPanel';
+import { RoutableAccordionButton } from './RoutableAccordionButton';
 import { TableItemAccordionButton } from './TableItemAccordionButton';
 
-interface Props extends Selectable, Comparable {
-  activeMasterParent?: string;
+interface Props extends Comparable {
   isTablesIndex?: boolean;
   initAsExpandedTables?: boolean;
-  currentTable?: string;
-  currentColumn?: string;
   tableColEntryList?: CompTableColEntryItem[];
-  onNavToAssertions?: () => void;
-  onNavToBM?: () => void;
   onToggleShowExtra?: () => void;
 }
 /**
@@ -38,18 +41,23 @@ interface Props extends Selectable, Comparable {
  * if icon is selected, no-nav + expand.
  */
 export function MasterSideNav({
-  activeMasterParent,
   initAsExpandedTables,
   tableColEntryList = [],
-  currentTable,
-  currentColumn,
   singleOnly,
-  onSelect,
-  onNavToAssertions = () => {},
-  onNavToBM = () => {},
 }: Props) {
-  // eslint-disable-next-line
-  const [placeholder] = useLocalStorage(MASTER_LIST_SHOW_EXTRA, '');
+  let currentTable = '';
+  let currentColumn = '';
+
+  const [matchTable, paramsTable] = useRoute(TABLE_DETAILS_ROUTE_PATH);
+  const [matchColumn, paramsColumn] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
+
+  if (matchTable) {
+    currentTable = paramsTable.tableName;
+  }
+  if (matchColumn) {
+    currentTable = paramsColumn.tableName;
+    currentColumn = paramsColumn.columnName;
+  }
 
   //initial state depends on position of current table in tableColEntryList
   const expandedIndex = tableColEntryList.findIndex(([key]) => {
@@ -69,12 +77,14 @@ export function MasterSideNav({
     }
   }, [expandedIndex]);
 
+  const [location, setLocation] = useLocation();
+
   return (
     <Box w={'100%'} zIndex={150} bg={'inherit'}>
       <Accordion allowToggle index={rootTablesExpandedIndexList}>
         <AccordionItem border={'none'}>
           {({ isExpanded }) => {
-            const activeRoot = activeMasterParent === 'root';
+            const activeRoot = location === '/tables';
             return (
               <>
                 <h2>
@@ -86,7 +96,8 @@ export function MasterSideNav({
                     color={activeRoot ? 'white' : 'inherit'}
                     bg={activeRoot ? 'piperider.400' : 'inherit'}
                     onClick={(e) => {
-                      onSelect({});
+                      setLocation('/');
+                      setRootTablesExpandedIndexList([0]);
                     }}
                   >
                     <Flex
@@ -166,7 +177,7 @@ export function MasterSideNav({
                                         setTablesExpandedIndexList(
                                           updatedIndexList,
                                         ); // for updating toggled table-items
-                                        onSelect({ tableName, columnName: '' }); //for naviation
+                                        setLocation(`/tables/${tableName}`);
                                       } else {
                                         //filter the existing list
                                         //found: remove; missing: add;
@@ -192,10 +203,8 @@ export function MasterSideNav({
                                     singleOnly={singleOnly}
                                   />
                                   <ColumnListAccordionPanel
-                                    onSelect={onSelect}
+                                    tableName={tableName}
                                     compColList={fallbackColEntries}
-                                    currentColumn={currentColumn}
-                                    currentTable={currentTable}
                                     indexedTableName={tableName}
                                     singleOnly={singleOnly}
                                   />
@@ -213,38 +222,13 @@ export function MasterSideNav({
           }}
         </AccordionItem>
         <AccordionItem>
-          <AccordionButton
-            _hover={{
-              bg:
-                activeMasterParent === 'metrics' ? 'piperider.400' : 'inherit',
-            }}
-            color={activeMasterParent === 'metrics' ? 'white' : 'inherit'}
-            bg={activeMasterParent === 'metrics' ? 'piperider.400' : 'inherit'}
-            onClick={() => {
-              onNavToBM();
-            }}
-          >
-            <Text fontWeight={'medium'}>Metrics</Text>
-          </AccordionButton>
+          <RoutableAccordionButton title="Metrics" path={BM_ROUTE_PATH} />
         </AccordionItem>
         <AccordionItem>
-          <AccordionButton
-            _hover={{
-              bg:
-                activeMasterParent === 'assertions'
-                  ? 'piperider.400'
-                  : 'inherit',
-            }}
-            color={activeMasterParent === 'assertions' ? 'white' : 'inherit'}
-            bg={
-              activeMasterParent === 'assertions' ? 'piperider.400' : 'inherit'
-            }
-            onClick={() => {
-              onNavToAssertions();
-            }}
-          >
-            <Text fontWeight={'medium'}>Assertions</Text>
-          </AccordionButton>
+          <RoutableAccordionButton
+            title="Assertions"
+            path={ASSERTIONS_ROUTE_PATH}
+          />
         </AccordionItem>
       </Accordion>
     </Box>

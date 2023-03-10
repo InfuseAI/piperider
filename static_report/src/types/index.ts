@@ -26,16 +26,6 @@ export interface ComparisonReportSchema {
 
 export type ComparsionSource = 'base' | 'target';
 
-export type Selectable = {
-  onSelect: ({
-    tableName,
-    columnName,
-  }: {
-    tableName?: string;
-    columnName?: string;
-  }) => void;
-};
-
 export type Comparable = {
   singleOnly?: boolean;
 };

@@ -62,9 +62,9 @@ export function CRTablesListPage({ data }: Props) {
                 <TableListItem
                   combinedAssertions={assertionsOnly}
                   combinedTableEntry={tableColEntry}
-                  onSelect={() =>
-                    setLocation(`/tables/${tableColEntry[0]}/columns/`)
-                  }
+                  // onSelect={() =>
+                  //   setLocation(`/tables/${tableColEntry[0]}/columns/`)
+                  // }
                   onInfoClick={() => {
                     setTableColsEntryId(i);
                     modal.onOpen();

@@ -10,15 +10,14 @@ import {
   BM_ROUTE_PATH,
   COLUMN_DETAILS_ROUTE_PATH,
 } from './utils/routes';
-import { SRAssertionListPage } from './pages/SRAssertionListPage';
-import { SRBMPage } from './pages/SRBMPage';
 import { CRBMPage } from './pages/CRBMPage';
 import { CRAssertionListPage } from './pages/CRAssertionListPage';
 import { Loading } from './components/Common';
-import { SRTablesListPage } from './pages/SRTablesListPage';
 import { CRTablesListPage } from './pages/CRTableListPage';
 import { useAmplitudeOnMount } from './hooks';
 import { AMPLITUDE_EVENTS, WARNING_TYPE_LABEL } from './utils';
+import SRPage from './pages/SRPage';
+import { Main } from './components/Common/Main';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns && process.env.NODE_ENV !== 'development') {
@@ -39,54 +38,14 @@ if (sentryDns && process.env.NODE_ENV !== 'development') {
   Sentry.setTag('piperider.version', appVersion);
 }
 
-const SRProfileRunPage = lazy(() => import('./pages/SRProfileRunPage'));
+const SRProfileRunPage = lazy(() => import('./pages/SRTableDetailPage'));
 const CRProfileRunPage = lazy(() => import('./pages/CRProfileRunPage'));
 
 function AppSingle() {
+  const data = window.PIPERIDER_SINGLE_REPORT_DATA || {};
   return (
     <Suspense fallback={<Loading />}>
-      <Router hook={useHashLocation as BaseLocationHook}>
-        <Switch>
-          <Route
-            path="/"
-            component={() => {
-              return (
-                <SRTablesListPage
-                  data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
-                />
-              );
-            }}
-          />
-
-          <Route path={COLUMN_DETAILS_ROUTE_PATH}>
-            {({ tableName, columnName }) => (
-              <SRProfileRunPage
-                tableName={decodeURIComponent(tableName || '')}
-                columnName={decodeURIComponent(columnName || '')}
-                data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
-              />
-            )}
-          </Route>
-
-          <Route path={ASSERTIONS_ROUTE_PATH}>
-            {() => (
-              <SRAssertionListPage
-                data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
-              />
-            )}
-          </Route>
-
-          <Route path={BM_ROUTE_PATH}>
-            {() => (
-              <SRBMPage data={window.PIPERIDER_SINGLE_REPORT_DATA || {}} />
-            )}
-          </Route>
-
-          <Route>
-            <NotFound />
-          </Route>
-        </Switch>
-      </Router>
+      <SRPage data={data} />
     </Suspense>
   );
 }
@@ -171,11 +130,14 @@ function App() {
     );
   }
 
-  if (process.env.REACT_APP_SINGLE_REPORT === 'true') {
-    return <AppSingle />;
-  } else {
-    return <AppComparison />;
-  }
+  const isSingleReport: boolean =
+    process.env.REACT_APP_SINGLE_REPORT === 'true';
+
+  return (
+    <Main isSingleReport={isSingleReport}>
+      {isSingleReport ? <AppSingle /> : <AppComparison />}
+    </Main>
+  );
 }
 
 export default App;

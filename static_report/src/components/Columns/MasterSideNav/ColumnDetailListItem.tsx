@@ -1,18 +1,22 @@
 import { Box, Flex, FlexProps, Progress, Text } from '@chakra-ui/react';
+import { useLocation, useRoute } from 'wouter';
 import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { Comparable, Selectable } from '../../../types';
+import { Comparable } from '../../../types';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
 } from '../../../utils/formatters';
+import {
+  COLUMN_DETAILS_ROUTE_PATH,
+  TABLE_DETAILS_ROUTE_PATH,
+} from '../../../utils/routes';
 import { getIconForColumnType } from '../utils';
 import { ColumnName } from './ColumnName';
 
-interface Props extends Comparable, Selectable {
+interface Props extends Comparable {
   tableName?: string;
   baseColumnDatum?: Partial<ColumnSchema>;
   targetColumnDatum?: Partial<ColumnSchema>;
-  isActive: boolean;
   showExtra?: boolean;
 }
 /**
@@ -22,13 +26,12 @@ export function ColumnDetailListItem({
   tableName,
   baseColumnDatum,
   targetColumnDatum,
-  onSelect,
-  isActive,
   singleOnly,
   showExtra,
   ...props
 }: Props & FlexProps) {
   const fallbackColumnDatum = targetColumnDatum || baseColumnDatum;
+  const columnName = fallbackColumnDatum?.name || '';
   const { icon } = getIconForColumnType(fallbackColumnDatum);
   const { valids_p: baseValidRatio } = baseColumnDatum || {};
   const baseValidsPercentValue = Number(baseValidRatio) * 100;
@@ -43,6 +46,13 @@ export function ColumnDetailListItem({
     formatIntervalMinMax,
   );
 
+  const [location, setLocation] = useLocation();
+  const [match, params] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
+  const isActive =
+    match &&
+    tableName === decodeURIComponent(params.tableName || '') &&
+    columnName === decodeURIComponent(params.columnName || '');
+
   return (
     <Flex
       mx={3}
@@ -51,9 +61,9 @@ export function ColumnDetailListItem({
       justifyContent={'space-between'}
       alignItems={'center'}
       cursor={'pointer'}
-      onClick={() =>
-        onSelect({ tableName, columnName: fallbackColumnDatum?.name || '' })
-      }
+      onClick={() => {
+        setLocation(`/tables/${tableName}/columns/${columnName}`);
+      }}
       color={isActive ? 'white' : 'inherit'}
       bg={isActive ? 'piperider.400' : 'inherit'}
       _hover={{ bgColor: isActive ? 'piperider.500' : 'blackAlpha.50' }}
