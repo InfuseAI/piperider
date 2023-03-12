@@ -249,6 +249,7 @@ def upload_to_cloud(run: RunOutput, debug=False, project: PipeRiderProject = Non
         return {
             'success': True,
             'message': response.get("message"),
+            'run_id': run_id,
             'report_url': report_url,
             'file_path': run.path
         }
@@ -359,17 +360,16 @@ class CloudConnector:
         return 0
 
     @staticmethod
-    def upload_latest_report(report_dir=None, debug=False, open_report=False, force_upload=False,
-                             auto_upload=False, project_name: str = None) -> int:
+    def upload_latest_report(report_dir=None, debug=False, open_report=False, enable_share=False,
+                             project_name: str = None) -> int:
         filesystem = FileSystem(report_dir=report_dir)
         latest_report_path = os.path.join(filesystem.get_output_dir(), 'latest', 'run.json')
         return CloudConnector.upload_report(latest_report_path, debug=debug, open_report=open_report,
-                                            force_upload=force_upload, auto_upload=auto_upload,
-                                            project_name=project_name)
+                                            enable_share=enable_share, project_name=project_name)
 
     @staticmethod
     def upload_report(report_path=None, report_dir=None, datasource=None, debug=False, open_report=False,
-                      force_upload=False, auto_upload=False, project_name=None, show_progress=True) -> int:
+                      enable_share=False, project_name=None, show_progress=True) -> int:
         if piperider_cloud.available is False:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
@@ -428,6 +428,10 @@ class CloudConnector:
         if open_report:
             url = response.get('report_url')
             open_report_in_browser(url, True)
+
+        if enable_share:
+            run_id = response.get('run_id')
+            CloudConnector.share_run_report(run_id, debug)
 
         return rc
 
@@ -495,6 +499,25 @@ class CloudConnector:
                 os.makedirs(summary_dir, exist_ok=True)
             with open(summary_file, 'w') as f:
                 f.write(response.get('summary'))
+
+    @staticmethod
+    def share_run_report(run_id=None, debug=False):
+        if piperider_cloud.available is False:
+            console.rule('Please login PipeRider Cloud first', style='red')
+            return 1
+
+        workspace_name, project_name = piperider_cloud.get_default_workspace_and_project()
+        if workspace_name is None or project_name is None:
+            console.rule('Please select a workspace and a project first', style='red')
+            return 1
+
+        if debug:
+            console.print(f"Sharing comparison report id={run_id}")
+        piperider_cloud.share_run_report(
+            workspace_name=workspace_name,
+            project_name=project_name,
+            run_id=run_id
+        )
 
     @staticmethod
     def share_compare_report(base_id=None, target_id=None, debug=False):

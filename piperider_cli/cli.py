@@ -159,6 +159,7 @@ def diagnose(**kwargs):
 @click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
 @click.option('--project', default=None, type=click.STRING, help='Specify the project name to upload.')
 @click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
+@click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @add_options(debug_option)
 def run(**kwargs):
     'Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
@@ -167,6 +168,7 @@ def run(**kwargs):
     table = kwargs.get('table')
     output = kwargs.get('output')
     open_report = kwargs.get('open')
+    enable_share = kwargs.get('share')
     skip_report = kwargs.get('skip_report')
     dbt_state_dir = kwargs.get('dbt_state')
     dbt_list = kwargs.get('dbt_list')
@@ -204,16 +206,19 @@ def run(**kwargs):
                       dbt_resources=dbt_resources,
                       report_dir=kwargs.get('report_dir'))
     if ret in (0, EC_ERR_TEST_FAILED):
+        if enable_share:
+            force_upload = True
+
         auto_upload = CloudConnector.is_auto_upload()
         is_cloud_view = (force_upload or auto_upload)
 
-        if CloudConnector.is_login() and is_cloud_view:
-            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
-                                                open_report=open_report, force_upload=force_upload,
-                                                auto_upload=auto_upload, project_name=project_name)
-
         if not skip_report:
             GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report, is_cloud_view)
+
+        if CloudConnector.is_login() and is_cloud_view:
+            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
+                                                open_report=open_report, enable_share=enable_share,
+                                                project_name=project_name)
     if ret != 0:
         sys.exit(ret)
     return ret
