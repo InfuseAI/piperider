@@ -1,6 +1,6 @@
 import inquirer.errors as errors
 import inquirer.themes as themes
-from inquirer.questions import Question
+from inquirer.questions import Checkbox as CheckboxQuestion
 from inquirer.render.console import ConsoleRender
 from inquirer.render.console._checkbox import Checkbox
 from inquirer.render.console._confirm import Confirm
@@ -30,12 +30,12 @@ class HackedConsoleRender(ConsoleRender):
         return matrix.get(question_type)
 
 
-class LimitedCheckboxQuestion(Question):
+class LimitedCheckboxQuestion(CheckboxQuestion):
     kind = 'limited_checkbox'
 
     def __init__(self, name, message="", choices=None, default=None, ignore=False, validate=True, carousel=False,
                  limited=0):
-        super().__init__(name, message, choices, default, ignore, validate)
+        super().__init__(name, message=message, choices=choices, default=default, ignore=ignore, validate=validate)
         self.carousel = carousel
         if limited > 0 and limited <= len(choices):
             self.limited = limited
