@@ -12,7 +12,7 @@ from rich.console import Console
 
 import piperider_cli.hack.inquirer as inquirer_hack
 from piperider_cli import datetime_to_str, str_to_datetime, clone_directory, \
-    raise_exception_when_directory_not_writable
+    raise_exception_when_directory_not_writable, open_report_in_browser
 from piperider_cli.filesystem import FileSystem
 from piperider_cli.generate_report import setup_report_variables
 
@@ -720,8 +720,8 @@ class CompareReport(object):
 
     @staticmethod
     def exec(*, a=None, b=None, last=None, datasource=None, report_dir=None, output=None, tables_from='all',
-             summary_file=None, force_upload=False, enable_share=False, project_name: str = None, debug=False,
-             show_progress=False):
+             summary_file=None, force_upload=False, open_report=False, enable_share=False, project_name: str = None,
+             debug=False, show_progress=False):
         console = Console()
         console.rule('Comparison report', style='bold blue')
 
@@ -809,6 +809,12 @@ class CompareReport(object):
         console.print(f"Comparison summary: {summary_md_path}")
         if report_url:
             console.print(f"Comparison report URL: {report_url}")
+
+        if open_report:
+            if report_url:
+                open_report_in_browser(report_url, True)
+            else:
+                open_report_in_browser(report_path)
 
         if debug:
             # Write comparison data to file

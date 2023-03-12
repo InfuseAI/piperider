@@ -259,11 +259,13 @@ def generate_report(**kwargs):
 @click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
               help='Specify the datasource.')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
+@click.option('--summary-file', default=None, type=click.STRING, help='Output the comparison summary markdown file.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--tables-from', default='all',
               type=click.Choice(['all', 'target-only', 'base-only'], case_sensitive=False),
               help='Show table comparison from base or target.')
 @click.option('--upload', default=False, is_flag=True, help='Upload the report to PipeRider Cloud.')
+@click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
 @click.option('--project', default=None, type=click.STRING,
               help='Specify the project name to upload.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
@@ -276,6 +278,8 @@ def compare_reports(**kwargs):
     last = kwargs.get('last')
     datasource = kwargs.get('datasource')
     tables_from = kwargs.get('tables_from')
+    summary_file = kwargs.get('summary_file')
+    open_report = kwargs.get('open')
     force_upload = kwargs.get('upload')
     enable_share = kwargs.get('share')
     project_name = kwargs.get('project')
@@ -290,9 +294,10 @@ def compare_reports(**kwargs):
         )
 
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
-                       report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), tables_from=tables_from,
-                       force_upload=force_upload, enable_share=enable_share, project_name=project_name,
-                       debug=kwargs.get('debug', False), show_progress=True)
+                       report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), summary_file=summary_file,
+                       tables_from=tables_from, force_upload=force_upload, open_report=open_report,
+                       enable_share=enable_share, project_name=project_name, debug=kwargs.get('debug', False),
+                       show_progress=True)
 
 
 @cli.group('config', short_help='Manage the PipeRider configurations.')
