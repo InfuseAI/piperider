@@ -158,8 +158,8 @@ def diagnose(**kwargs):
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
 @click.option('--project', default=None, type=click.STRING, help='Specify the project name to upload.')
-@click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
+@click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
 @add_options(debug_option)
 def run(**kwargs):
     'Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
@@ -265,10 +265,10 @@ def generate_report(**kwargs):
               type=click.Choice(['all', 'target-only', 'base-only'], case_sensitive=False),
               help='Show table comparison from base or target.')
 @click.option('--upload', default=False, is_flag=True, help='Upload the report to PipeRider Cloud.')
-@click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
 @click.option('--project', default=None, type=click.STRING,
               help='Specify the project name to upload.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
+@click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
 @add_options(debug_option)
 def compare_reports(**kwargs):
     'Compare two existing reports selected in interactive mode or by option.'
@@ -284,7 +284,7 @@ def compare_reports(**kwargs):
     enable_share = kwargs.get('share')
     project_name = kwargs.get('project')
 
-    if enable_share:
+    if enable_share or CloudConnector.is_auto_upload():
         force_upload = True
 
     if force_upload is True and CloudConnector.is_login() is False:
@@ -295,8 +295,8 @@ def compare_reports(**kwargs):
 
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
                        report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), summary_file=summary_file,
-                       tables_from=tables_from, force_upload=force_upload, open_report=open_report,
-                       enable_share=enable_share, project_name=project_name, debug=kwargs.get('debug', False),
+                       tables_from=tables_from, force_upload=force_upload, enable_share=enable_share,
+                       open_report=open_report, project_name=project_name, debug=kwargs.get('debug', False),
                        show_progress=True)
 
 
@@ -446,8 +446,8 @@ def compare_with_recipe(**kwargs):
                            output=kwargs.get('output'), tables_from="all",
                            summary_file=summary_file,
                            force_upload=force_upload,
-                           open_report=open_report,
                            enable_share=enable_share,
+                           open_report=open_report,
                            show_progress=True,
                            debug=debug)
     except Exception as e:

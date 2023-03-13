@@ -720,7 +720,7 @@ class CompareReport(object):
 
     @staticmethod
     def exec(*, a=None, b=None, last=None, datasource=None, report_dir=None, output=None, tables_from='all',
-             summary_file=None, force_upload=False, open_report=False, enable_share=False, project_name: str = None,
+             summary_file=None, force_upload=False, enable_share=False, open_report=False, project_name: str = None,
              debug=False, show_progress=False):
         console = Console()
         console.rule('Comparison report', style='bold blue')
