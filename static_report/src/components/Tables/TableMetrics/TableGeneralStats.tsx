@@ -1,4 +1,4 @@
-import { Box, BoxProps, Divider, Text } from '@chakra-ui/react';
+import { Box, BoxProps } from '@chakra-ui/react';
 import { SaferTableSchema } from '../../../types';
 import {
   MetricsInfo,
@@ -76,9 +76,6 @@ export function TableGeneralStats({ tableDatum, ...props }: Props & BoxProps) {
   /* Others - (1): % + n (2): % + % */
   return (
     <Box w={'100%'}>
-      <Text fontSize={'xl'}>Table Statistics</Text>
-      <Divider my={1} />
-
       {metricsList.map(
         ({ firstSlot, secondSlot, metakey, name, tooltipValues }, index) => (
           <MetricsInfo

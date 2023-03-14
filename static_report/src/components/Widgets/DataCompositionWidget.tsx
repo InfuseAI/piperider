@@ -1,4 +1,4 @@
-import { Divider, Text, Box, Flex } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { renderChartUnavailableMsg } from '../Charts/utils';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
@@ -17,8 +17,6 @@ export function DataCompositionWidget({ columnDatum, hasAnimation }: Props) {
 
   return (
     <Flex direction={'column'} width="100%">
-      <Text fontSize={'xl'}>Data Composition</Text>
-      <Divider />
       <Box h={`2em`} flexGrow={1}>
         {dataCompInput ? (
           <FlatStackedBarChart

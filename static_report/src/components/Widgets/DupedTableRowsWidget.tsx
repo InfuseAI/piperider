@@ -1,4 +1,4 @@
-import { Divider, Text, Box, Link } from '@chakra-ui/react';
+import { Text, Box, Link } from '@chakra-ui/react';
 import { SaferTableSchema } from '../../types';
 import { renderChartUnavailableMsg } from '../Charts/utils';
 import { FlatStackedBarChart } from '../Charts/FlatStackedBarChart';
@@ -15,8 +15,6 @@ export function DupedTableRowsWidget({ tableDatum, hasAnimation }: Props) {
 
   return (
     <Box w={'100%'}>
-      <Text fontSize={'xl'}>Duplicate Rows</Text>
-      <Divider my={1} />
       {dataCompInput ? (
         <>
           <Box height={'2em'}>

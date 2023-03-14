@@ -23,9 +23,7 @@ interface Props extends Comparable {
 export function MasterDetailContainer({
   rawData,
   tableColEntries,
-  tableName,
   initAsExpandedTables,
-  columnName,
   children,
   singleOnly,
 }: Props) {
