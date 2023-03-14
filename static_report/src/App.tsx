@@ -16,7 +16,6 @@ import { Loading } from './components/Common';
 import { CRTablesListPage } from './pages/CRTableListPage';
 import { useAmplitudeOnMount } from './hooks';
 import { AMPLITUDE_EVENTS, WARNING_TYPE_LABEL } from './utils';
-import SRPage from './pages/SRPage';
 import { Main } from './components/Common/Main';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
@@ -38,7 +37,7 @@ if (sentryDns && process.env.NODE_ENV !== 'development') {
   Sentry.setTag('piperider.version', appVersion);
 }
 
-const SRProfileRunPage = lazy(() => import('./pages/SRTableDetailPage'));
+const SRPage = lazy(() => import('./pages/SRPage'));
 const CRProfileRunPage = lazy(() => import('./pages/CRProfileRunPage'));
 
 function AppSingle() {

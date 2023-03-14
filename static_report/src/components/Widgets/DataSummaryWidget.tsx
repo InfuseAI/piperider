@@ -13,11 +13,11 @@ interface Props {
  */
 export function DataSummaryWidget({ columnDatum }: Props) {
   return (
-    <Box>
+    <Box width="100%">
       <Text fontSize={'xl'}>
         {columnDatum ? formatTitleCase(columnDatum?.type) : 'Type '} Statistics
       </Text>
-      <Divider my={3} />
+      <Divider my={1} />
       {columnDatum ? (
         <SummaryStats columnDatum={columnDatum} width={'100%'} />
       ) : (

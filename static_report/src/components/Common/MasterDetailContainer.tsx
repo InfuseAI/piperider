@@ -52,9 +52,11 @@ export function MasterDetailContainer({
       >
         {/* Master Area */}
         <GridItem
-          overflowY={'scroll'}
+          overflowY={'auto'}
           maxHeight={mainContentAreaHeight}
           h={'100%'}
+          borderRight="1px"
+          borderRightColor="lightgray"
         >
           <MasterSideNav
             initAsExpandedTables={initAsExpandedTables}
@@ -63,7 +65,7 @@ export function MasterDetailContainer({
           />
         </GridItem>
         <GridItem
-          overflowY={'scroll'}
+          overflowY={'auto'}
           maxHeight={mainContentAreaHeight}
           h={'100%'}
           p={9}

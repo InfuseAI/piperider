@@ -10,6 +10,7 @@ import {
   AnimationOptions,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import { useWindowSize } from 'react-use';
 import { formatIntervalMinMax } from '../../utils/formatters';
 
 /**
@@ -33,11 +34,19 @@ export function FlatStackedBarChart({
   data,
   animation = false,
 }: FlatStackedBarChartProps) {
+  const size = useWindowSize();
   ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip);
 
   const chartOptions = getFlatSackedBarChartOptions(data, { animation });
   const chartData = getFlatSackedBarChartData(data);
-  return <Bar data={chartData} options={chartOptions} plugins={[]} />;
+  return (
+    <Bar
+      key={Date.now()}
+      data={chartData}
+      options={chartOptions}
+      plugins={[]}
+    />
+  );
 }
 /**
  * @param param0 chart data

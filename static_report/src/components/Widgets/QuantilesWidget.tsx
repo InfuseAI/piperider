@@ -10,12 +10,12 @@ interface Props {
 export function QuantilesWidget({ columnDatum }: Props) {
   const { p50, max, min, p25, p75 } = columnDatum || {};
   return (
-    <Box bg={'gray.50'} minWidth={'0px'}>
+    <Box minWidth={'0px'} width="100%">
       <Text fontSize={'xl'}>Quantile Data</Text>
-      <Divider my={3} />
+      <Divider my={1} />
       {columnDatum ? (
         <>
-          <Box my={5}>
+          <Box>
             <FlatBoxPlotChart
               quantileData={{
                 p50,

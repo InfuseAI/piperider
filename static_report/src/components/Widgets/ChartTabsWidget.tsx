@@ -68,11 +68,9 @@ export function ChartTabsWidget({
   const histogramLabel = isText ? TEXTLENGTH : 'Histogram';
 
   return (
-    <Box pb={10}>
-      <Text fontSize={'xl'} mb={3}>
-        Visualizations
-      </Text>
-      <Divider mb={3} />
+    <Box pb={10} width="100%">
+      <Text fontSize={'xl'}>Visualizations</Text>
+      <Divider my={1} />
       {hasAny ? (
         <Tabs isLazy index={tabIndex} onChange={(i) => onSelectTab(i)}>
           <TabList>

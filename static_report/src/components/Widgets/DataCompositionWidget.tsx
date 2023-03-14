@@ -16,10 +16,10 @@ export function DataCompositionWidget({ columnDatum, hasAnimation }: Props) {
   const animationOptions = hasAnimation ? {} : false;
 
   return (
-    <Flex direction={'column'}>
+    <Flex direction={'column'} width="100%">
       <Text fontSize={'xl'}>Data Composition</Text>
-      <Divider my={3} />
-      <Box h={`4em`} flexGrow={1}>
+      <Divider />
+      <Box h={`2em`} flexGrow={1}>
         {dataCompInput ? (
           <FlatStackedBarChart
             data={dataCompInput}

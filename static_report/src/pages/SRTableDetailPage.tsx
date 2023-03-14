@@ -70,7 +70,7 @@ export default function SRProfileRunPage({ data }: Props) {
     );
   }
   return (
-    <GridItem h={mainContentAreaHeight} overflowY={'auto'} p={10}>
+    <GridItem h={mainContentAreaHeight} overflowY={'auto'} p={0}>
       <TableColumnHeader
         title={dataTable.name}
         subtitle={'Table'}
