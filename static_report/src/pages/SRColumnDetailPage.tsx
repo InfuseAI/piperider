@@ -1,22 +1,9 @@
-import {
-  Box,
-  Grid,
-  GridItem,
-  HStack,
-  SimpleGrid,
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
-  VStack,
-} from '@chakra-ui/react';
+import { Box, Grid, VStack } from '@chakra-ui/react';
 import { useState } from 'react';
 
 import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
-import { borderVal, mainContentAreaHeight } from '../utils/layout';
 import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
 
 import type { SingleReportSchema } from '../sdlc/single-report-schema';
@@ -41,7 +28,7 @@ interface Props {
   data: SingleReportSchema;
 }
 export default function SRColumnDetailPage({ data }: Props) {
-  const [match, params] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
+  const [, params] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
   const tableName = decodeURIComponent(params?.tableName || '');
   const columnName = decodeURIComponent(params?.columnName || '');
 
@@ -57,12 +44,10 @@ export default function SRColumnDetailPage({ data }: Props) {
 
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
-  const { tableColumnsOnly = [], rawData } = useReportStore.getState();
+  const { tableColumnsOnly = [] } = useReportStore.getState();
   const currentTableEntry = tableColumnsOnly.find(
     ([tableKey]) => tableKey === tableName,
   );
-
-  const isTableDetailsView = columnName.length === 0;
 
   const dataTable = data.tables[tableName];
   const dataColumns = dataTable?.columns;

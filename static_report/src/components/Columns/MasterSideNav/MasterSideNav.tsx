@@ -10,11 +10,10 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
-import { useLocalStorage } from 'react-use';
 import { useLocation, useRoute } from 'wouter';
 
 import { Comparable } from '../../../types';
-import { borderVal, MASTER_LIST_SHOW_EXTRA } from '../../../utils';
+import { borderVal } from '../../../utils';
 import {
   ASSERTIONS_ROUTE_PATH,
   BM_ROUTE_PATH,

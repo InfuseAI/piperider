@@ -1,8 +1,6 @@
 import { Flex, Text, Grid, useDisclosure } from '@chakra-ui/react';
-import { useLocation } from 'wouter';
 import { useState } from 'react';
 
-import { Main } from '../components/Common/Main';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 import { SaferSRSchema } from '../types';

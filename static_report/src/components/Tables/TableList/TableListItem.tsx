@@ -44,7 +44,7 @@ export function TableListItem({
 
   const description = fallbackTable?.description || NO_DESCRIPTION_MSG;
 
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
 
   if (!combinedTableEntry) {
     return <NoData />;

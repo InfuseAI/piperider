@@ -1,4 +1,4 @@
-export const allContentGridTempCols = '400px 3fr';
+export const allContentGridTempCols = { base: '300px 3fr', xl: '400px 3fr' };
 export const topNavAndFooterHeightOffset = 130 - 45;
 export const topProjectNavHeightOffset = 130;
 export const mainContentAreaHeight = `calc(100vh - ${topNavAndFooterHeightOffset}px)`;

@@ -34,7 +34,7 @@ export function FlatStackedBarChart({
   data,
   animation = false,
 }: FlatStackedBarChartProps) {
-  const size = useWindowSize();
+  useWindowSize();
   ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip);
 
   const chartOptions = getFlatSackedBarChartOptions(data, { animation });

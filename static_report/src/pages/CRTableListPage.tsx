@@ -5,7 +5,6 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { type ComparisonReportSchema } from '../types';
 import { Flex, Text, Grid, useDisclosure } from '@chakra-ui/react';
 import { useState } from 'react';
-import { useLocation } from 'wouter';
 
 import { tableListGridTempCols, tableListMaxWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
@@ -28,7 +27,6 @@ export function CRTablesListPage({ data }: Props) {
   });
   const modal = useDisclosure();
   const [tableColsEntryId, setTableColsEntryId] = useState(-1);
-  const [, setLocation] = useLocation();
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data.base, input: data.input });
   const {

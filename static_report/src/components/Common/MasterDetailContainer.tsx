@@ -8,7 +8,6 @@ import {
   CompTableColEntryItem,
   mainContentAreaHeight,
 } from '../../utils';
-import { ASSERTIONS_ROUTE_PATH, BM_ROUTE_PATH } from '../../utils/routes';
 import { MasterSideNav } from '../Columns/MasterSideNav';
 import { ReportContextBar } from '../Reports';
 
@@ -35,7 +34,7 @@ export function MasterDetailContainer({
 
   useEffect(() => {
     if (!location || location === '/') setLocation('/tables');
-  }, [location]);
+  }, [location, setLocation]);
 
   return (
     <>

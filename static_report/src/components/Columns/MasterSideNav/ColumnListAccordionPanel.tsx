@@ -1,8 +1,6 @@
 import { AccordionPanel, Box } from '@chakra-ui/react';
-import { useRoute } from 'wouter';
 import { Comparable } from '../../../types';
 import { CompColEntryItem } from '../../../utils';
-import { COLUMN_DETAILS_ROUTE_PATH } from '../../../utils/routes';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 /**

@@ -6,10 +6,7 @@ import {
   formatColumnValueWith,
   formatIntervalMinMax,
 } from '../../../utils/formatters';
-import {
-  COLUMN_DETAILS_ROUTE_PATH,
-  TABLE_DETAILS_ROUTE_PATH,
-} from '../../../utils/routes';
+import { COLUMN_DETAILS_ROUTE_PATH } from '../../../utils/routes';
 import { getIconForColumnType } from '../utils';
 import { ColumnName } from './ColumnName';
 
@@ -46,7 +43,7 @@ export function ColumnDetailListItem({
     formatIntervalMinMax,
   );
 
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const [match, params] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
   const isActive =
     match &&

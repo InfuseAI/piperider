@@ -1,8 +1,6 @@
 import { Box, Flex } from '@chakra-ui/react';
 import { useState } from 'react';
 import { AssertionPassFailCountLabel } from '../components/Assertions/AssertionPassFailCountLabel';
-import { Main } from '../components/Common/Main';
-import { MasterDetailContainer } from '../components/Common/MasterDetailContainer';
 import { SearchTextInput } from '../components/Common/SearchTextInput';
 import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
@@ -26,11 +24,7 @@ export function SRAssertionListPage({ data }: Props) {
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base: data });
 
-  const {
-    tableColumnsOnly = [],
-    rawData,
-    assertionsOnly,
-  } = useReportStore.getState();
+  const { assertionsOnly } = useReportStore.getState();
   const { metadata } = assertionsOnly || {};
 
   return (

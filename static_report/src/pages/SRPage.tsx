@@ -1,6 +1,4 @@
-import { useEffect } from 'react';
-import { Switch, Route, Router, BaseLocationHook, useLocation } from 'wouter';
-import { Main } from '../components/Common/Main';
+import { Switch, Route, Router, BaseLocationHook } from 'wouter';
 import { MasterDetailContainer } from '../components/Common/MasterDetailContainer';
 
 import { NotFound } from '../components/Common/NotFound';

@@ -1,7 +1,5 @@
 import { Box, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
 import { NoData, NO_VALUE } from '../components';
-import { Main } from '../components/Common/Main';
-import { MasterDetailContainer } from '../components/Common/MasterDetailContainer';
 import { BMWidget } from '../components/Widgets/BMWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
 import { SaferSRSchema } from '../types';
@@ -21,7 +19,7 @@ export function SRBMPage({ data }: Props) {
   });
   const setRawReport = useReportStore((s) => s.setReportRawData);
   setRawReport({ base: data });
-  const { BMOnly, rawData, tableColumnsOnly = [] } = useReportStore.getState();
+  const { BMOnly } = useReportStore.getState();
   const datasource = data?.datasource.name ?? NO_VALUE;
 
   return (

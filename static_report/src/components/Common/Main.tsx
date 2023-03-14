@@ -4,7 +4,6 @@ import * as amplitude from '@amplitude/analytics-browser';
 
 import { Navbar } from './Navbar';
 import { mainContentAreaHeight } from '../../utils';
-import { useLocation } from 'wouter';
 
 interface Props extends FlexProps {
   children: ReactNode;
