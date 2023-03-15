@@ -36,11 +36,11 @@ function SRPage({ data }) {
           </Route>
 
           <Route path={TABLE_DETAILS_ROUTE_PATH}>
-            <SRTableDetailPage />
+            <SRTableDetailPage key={window.location.hash} />
           </Route>
 
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
-            <SRColumnDetailPage />
+            <SRColumnDetailPage key={window.location.hash} />
           </Route>
 
           <Route path={ASSERTIONS_ROUTE_PATH}>

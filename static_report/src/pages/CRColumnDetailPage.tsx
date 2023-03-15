@@ -16,8 +16,8 @@ import {
 } from '../components/Columns/utils';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { useAmplitudeOnMount } from '../hooks';
-import { AMPLITUDE_EVENTS, CR_TYPE_LABEL, formatTitleCase } from '../utils';
+import { useTrackOnMount } from '../hooks';
+import { EVENTS, CR_TYPE_LABEL, formatTitleCase } from '../utils';
 import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
 import { useRoute } from 'wouter';
 
@@ -26,8 +26,8 @@ export default function CRColumnDetailPage() {
   const tableName = decodeURIComponent(params?.tableName || '');
   const columnName = decodeURIComponent(params?.columnName || '');
 
-  useAmplitudeOnMount({
-    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+  useTrackOnMount({
+    eventName: EVENTS.PAGE_VIEW,
     eventProperties: {
       type: CR_TYPE_LABEL,
       page: 'column-details-page',

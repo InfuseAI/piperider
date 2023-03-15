@@ -1,4 +1,3 @@
-export const allContentGridTempCols = 'minmax(200px, 400px) 75%';
 export const topNavAndFooterHeightOffset = 130 - 45;
 export const topProjectNavHeightOffset = 130;
 export const mainContentAreaHeight = `calc(100vh - ${topNavAndFooterHeightOffset}px)`;

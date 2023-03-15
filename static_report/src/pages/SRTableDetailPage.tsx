@@ -2,27 +2,27 @@ import { Text, Divider, Grid, GridItem } from '@chakra-ui/react';
 
 import { NoData } from '../components/Common/NoData';
 import {
-  AMPLITUDE_EVENTS,
+  EVENTS,
   DupedTableRowsWidget,
   SR_TYPE_LABEL,
   TableColumnSchemaList,
   TableGeneralStats,
-  useAmplitudeOnMount,
+  useTrackOnMount,
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useRoute } from 'wouter';
 import { TABLE_DETAILS_ROUTE_PATH } from '../utils/routes';
 
-export default function SRProfileRunPage() {
+export default function SRTableDetailPage() {
   const [, params] = useRoute(TABLE_DETAILS_ROUTE_PATH);
   const tableName = decodeURIComponent(params?.tableName || '');
 
-  useAmplitudeOnMount({
-    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+  useTrackOnMount({
+    eventName: EVENTS.PAGE_VIEW,
     eventProperties: {
       type: SR_TYPE_LABEL,
-      page: 'column-details-page',
+      page: 'table-details-page',
     },
   });
 

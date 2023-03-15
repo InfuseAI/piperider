@@ -1,15 +1,15 @@
 import { Box, Grid, GridItem, Text } from '@chakra-ui/react';
 import { NoData } from '../components';
 import { BMWidget } from '../components/Widgets/BMWidget';
-import { useAmplitudeOnMount } from '../hooks';
-import { AMPLITUDE_EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
+import { useTrackOnMount } from '../hooks';
+import { EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
 
 export function SRBMPage() {
-  useAmplitudeOnMount({
-    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+  useTrackOnMount({
+    eventName: EVENTS.PAGE_VIEW,
     eventProperties: {
       type: SR_TYPE_LABEL,
-      page: 'business-metrics-page',
+      page: 'metrics-page',
     },
   });
   const { BMOnly } = useReportStore.getState();

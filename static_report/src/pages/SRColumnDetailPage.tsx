@@ -13,10 +13,10 @@ import {
   getIconForColumnType,
 } from '../components/Columns/utils';
 import {
-  AMPLITUDE_EVENTS,
+  EVENTS,
   formatTitleCase,
   SR_TYPE_LABEL,
-  useAmplitudeOnMount,
+  useTrackOnMount,
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
@@ -28,8 +28,8 @@ export default function SRColumnDetailPage() {
   const tableName = decodeURIComponent(params?.tableName || '');
   const columnName = decodeURIComponent(params?.columnName || '');
 
-  useAmplitudeOnMount({
-    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+  useTrackOnMount({
+    eventName: EVENTS.PAGE_VIEW,
     eventProperties: {
       type: SR_TYPE_LABEL,
       page: 'column-details-page',

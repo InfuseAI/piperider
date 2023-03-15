@@ -3,8 +3,14 @@ import { Suspense, lazy } from 'react';
 import { BrowserTracing } from '@sentry/tracing';
 
 import { Loading } from './components/Common';
-import { useAmplitudeOnMount, useDocumentTitle } from './hooks';
-import { AMPLITUDE_EVENTS, useReportStore, WARNING_TYPE_LABEL } from './utils';
+import { useTrackOnMount, useDocumentTitle } from './hooks';
+import {
+  amplitudeTrack,
+  EVENTS,
+  useReportStore,
+  useTrackerStore,
+  WARNING_TYPE_LABEL,
+} from './utils';
 import { Main } from './components/Common/Main';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
@@ -56,8 +62,8 @@ function AppComparison() {
 }
 
 function MobileDeviceWarning() {
-  useAmplitudeOnMount({
-    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+  useTrackOnMount({
+    eventName: EVENTS.PAGE_VIEW,
     eventProperties: {
       type: WARNING_TYPE_LABEL,
       page: 'report-index',
@@ -75,6 +81,12 @@ function MobileDeviceWarning() {
 
 function App() {
   useDocumentTitle();
+  const setTracker = useTrackerStore((state) => state.setTracker);
+  const tracker = {
+    track: amplitudeTrack,
+  };
+  setTracker(tracker);
+
   const isMobile: boolean = /iPhone|iPad|iPod|Android/i.test(
     navigator.userAgent,
   );

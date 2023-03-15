@@ -3,13 +3,13 @@ import { useState } from 'react';
 import { AssertionPassFailCountLabel } from '../components/Assertions/AssertionPassFailCountLabel';
 import { SearchTextInput } from '../components/Common/SearchTextInput';
 import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
-import { useAmplitudeOnMount } from '../hooks';
-import { AMPLITUDE_EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
+import { useTrackOnMount } from '../hooks';
+import { EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
 import { assertionListWidth } from '../utils/layout';
 
 export function SRAssertionListPage() {
-  useAmplitudeOnMount({
-    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+  useTrackOnMount({
+    eventName: EVENTS.PAGE_VIEW,
     eventProperties: {
       type: SR_TYPE_LABEL,
       page: 'assertion-list-page',

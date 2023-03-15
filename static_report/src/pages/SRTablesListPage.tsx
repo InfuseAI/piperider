@@ -5,8 +5,8 @@ import { TableListItem } from '../components/Tables/TableList/TableListItem';
 import { tableListGridTempCols, tableListMaxWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
 import { TableColumnSchemaList } from '../components/Tables/TableList/TableColumnSchemaList';
-import { useAmplitudeOnMount } from '../hooks/useAmplitudeOnMount';
-import { AMPLITUDE_EVENTS, SR_TYPE_LABEL } from '../utils/amplitudeEvents';
+import { useTrackOnMount } from '../hooks/useTrackOnMount';
+import { EVENTS, SR_TYPE_LABEL } from '../utils/trackEvents';
 import { CommonModal } from '../components/Common/CommonModal';
 
 export function SRTablesListPage() {
@@ -14,8 +14,8 @@ export function SRTablesListPage() {
   const [tableColsEntryId, setTableColsEntryId] = useState(-1);
   const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
 
-  useAmplitudeOnMount({
-    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+  useTrackOnMount({
+    eventName: EVENTS.PAGE_VIEW,
     eventProperties: {
       type: SR_TYPE_LABEL,
       page: 'table-list-page',
