@@ -2,13 +2,10 @@ import { Box, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
 import { NoData } from '../components';
 import { BMWidget } from '../components/Widgets/BMWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
-import { BusinessMetric, ComparisonReportSchema } from '../types';
+import { BusinessMetric } from '../types';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL, useReportStore } from '../utils';
 
-interface Props {
-  data: ComparisonReportSchema;
-}
-export function CRBMPage({ data: { base, input } }: Props) {
+export function CRBMPage() {
   useDocumentTitle('Comparison Report: Metrics');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
@@ -17,8 +14,6 @@ export function CRBMPage({ data: { base, input } }: Props) {
       page: 'business-metrics-page',
     },
   });
-  const setRawReport = useReportStore((s) => s.setReportRawData);
-  setRawReport({ base, input });
   const { BMOnly } = useReportStore.getState();
 
   //NOTE: target will override base BM's

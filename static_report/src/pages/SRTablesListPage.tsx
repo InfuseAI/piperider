@@ -3,7 +3,6 @@ import { useState } from 'react';
 
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
-import { SaferSRSchema } from '../types';
 import { TableListItem } from '../components/Tables/TableList/TableListItem';
 import { tableListGridTempCols, tableListMaxWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
@@ -12,13 +11,9 @@ import { useAmplitudeOnMount } from '../hooks/useAmplitudeOnMount';
 import { AMPLITUDE_EVENTS, SR_TYPE_LABEL } from '../utils/amplitudeEvents';
 import { CommonModal } from '../components/Common/CommonModal';
 
-type Props = { data: SaferSRSchema };
-
-export function SRTablesListPage({ data }: Props) {
+export function SRTablesListPage() {
   const modal = useDisclosure();
   const [tableColsEntryId, setTableColsEntryId] = useState(-1);
-  const setReportData = useReportStore((s) => s.setReportRawData);
-  setReportData({ base: data });
   const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
 
   useDocumentTitle('Single-Run Report: Tables');
@@ -32,6 +27,10 @@ export function SRTablesListPage({ data }: Props) {
 
   return (
     <>
+      <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
+        Tables
+      </Text>
+
       <Flex direction="column" width={'100%'} minHeight="650px">
         <Grid
           templateColumns={tableListGridTempCols}

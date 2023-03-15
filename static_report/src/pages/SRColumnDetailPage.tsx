@@ -1,12 +1,10 @@
 import { Box, Grid, VStack } from '@chakra-ui/react';
 import { useState } from 'react';
 
-import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
 import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
 
-import type { SingleReportSchema } from '../sdlc/single-report-schema';
 import { DataSummaryWidget } from '../components/Widgets/DataSummaryWidget';
 import { NoData } from '../components/Common/NoData';
 import {
@@ -24,10 +22,8 @@ import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useRoute } from 'wouter';
 import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
-interface Props {
-  data: SingleReportSchema;
-}
-export default function SRColumnDetailPage({ data }: Props) {
+
+export default function SRColumnDetailPage() {
   const [, params] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
   const tableName = decodeURIComponent(params?.tableName || '');
   const columnName = decodeURIComponent(params?.columnName || '');
@@ -42,14 +38,15 @@ export default function SRColumnDetailPage({ data }: Props) {
   });
   const [tabIndex, setTabIndex] = useState<number>(0);
 
-  const setReportData = useReportStore((s) => s.setReportRawData);
-  setReportData({ base: data });
-  const { tableColumnsOnly = [] } = useReportStore.getState();
+  const {
+    tableColumnsOnly = [],
+    rawData: { base: data },
+  } = useReportStore.getState();
   const currentTableEntry = tableColumnsOnly.find(
     ([tableKey]) => tableKey === tableName,
   );
 
-  const dataTable = data.tables[tableName];
+  const dataTable = data?.tables[tableName];
   const dataColumns = dataTable?.columns;
   const columnDatum = dataColumns ? dataColumns[columnName] : undefined;
 
@@ -57,11 +54,7 @@ export default function SRColumnDetailPage({ data }: Props) {
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
 
   if (!tableName || !dataTable || !currentTableEntry) {
-    return (
-      <Main isSingleReport>
-        <NoData text={`No profile data found for table name: ${tableName}`} />
-      </Main>
-    );
+    return <NoData text={`No profile data found for '${tableName}'`} />;
   }
 
   const hasQuantile = containsColumnQuantile(type);

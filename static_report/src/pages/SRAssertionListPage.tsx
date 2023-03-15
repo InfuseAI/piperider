@@ -1,17 +1,13 @@
-import { Box, Flex } from '@chakra-ui/react';
+import { Box, Flex, Text } from '@chakra-ui/react';
 import { useState } from 'react';
 import { AssertionPassFailCountLabel } from '../components/Assertions/AssertionPassFailCountLabel';
 import { SearchTextInput } from '../components/Common/SearchTextInput';
 import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
-import { SaferSRSchema } from '../types';
 import { AMPLITUDE_EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
 import { assertionListWidth } from '../utils/layout';
 
-interface Props {
-  data: SaferSRSchema;
-}
-export function SRAssertionListPage({ data }: Props) {
+export function SRAssertionListPage() {
   useDocumentTitle('Single Report: Assertions');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
@@ -21,14 +17,16 @@ export function SRAssertionListPage({ data }: Props) {
     },
   });
   const [filterString, setFilterString] = useState<string>('');
-  const setRawReport = useReportStore((s) => s.setReportRawData);
-  setRawReport({ base: data });
 
   const { assertionsOnly } = useReportStore.getState();
   const { metadata } = assertionsOnly || {};
 
   return (
-    <Box mt={5}>
+    <Box>
+      <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
+        Assertions
+      </Text>
+
       <Flex maxW={assertionListWidth - 50} w={'100%'}>
         <SearchTextInput
           onChange={setFilterString}

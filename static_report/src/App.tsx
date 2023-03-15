@@ -4,7 +4,7 @@ import { BrowserTracing } from '@sentry/tracing';
 
 import { Loading } from './components/Common';
 import { useAmplitudeOnMount } from './hooks';
-import { AMPLITUDE_EVENTS, WARNING_TYPE_LABEL } from './utils';
+import { AMPLITUDE_EVENTS, useReportStore, WARNING_TYPE_LABEL } from './utils';
 import { Main } from './components/Common/Main';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
@@ -31,18 +31,26 @@ const CRPage = lazy(() => import('./pages/CRPage'));
 
 function AppSingle() {
   const data = window.PIPERIDER_SINGLE_REPORT_DATA || {};
+  const setReportData = useReportStore((s) => s.setReportRawData);
+  setReportData({ base: data });
   return (
     <Suspense fallback={<Loading />}>
-      <SRPage data={data} />
+      <Main isSingleReport>
+        <SRPage data={data} />
+      </Main>
     </Suspense>
   );
 }
 
 function AppComparison() {
   const data = window.PIPERIDER_COMPARISON_REPORT_DATA || {};
+  const setReportData = useReportStore((s) => s.setReportRawData);
+  setReportData(data);
   return (
     <Suspense fallback={<Loading />}>
-      <CRPage data={data} />
+      <Main isSingleReport={false}>
+        <CRPage data={data} />
+      </Main>
     </Suspense>
   );
 }
@@ -81,11 +89,7 @@ function App() {
   const isSingleReport: boolean =
     process.env.REACT_APP_SINGLE_REPORT === 'true';
 
-  return (
-    <Main isSingleReport={isSingleReport}>
-      {isSingleReport ? <AppSingle /> : <AppComparison />}
-    </Main>
-  );
+  return <>{isSingleReport ? <AppSingle /> : <AppComparison />}</>;
 }
 
 export default App;

@@ -11,38 +11,38 @@ import {
   TABLE_DETAILS_ROUTE_PATH,
   TABLE_LIST_ROUTE_PATH,
 } from '../utils/routes';
-import { SRAssertionListPage } from './SRAssertionListPage';
-import { SRBMPage } from './SRBMPage';
-import SRColumnDetailPage from './SRColumnDetailPage';
-import SRTableDetailPage from './SRTableDetailPage';
-import { SRTablesListPage } from './SRTablesListPage';
+import { CRAssertionListPage } from './CRAssertionListPage';
+import { CRBMPage } from './CRBMPage';
+import CRColumnDetailPage from './CRColumnDetailPage';
+import CRTableDetailPage from './CRTableDetailPage';
+import { CRTablesListPage } from './CRTableListPage';
 
-function SRPage({ data }) {
+function CRPage({ data }) {
   const setReportData = useReportStore((s) => s.setReportRawData);
-  setReportData({ base: data });
+  setReportData(data);
 
   return (
     <Router hook={useHashLocation as BaseLocationHook}>
       <MasterDetailContainer>
         <Switch>
           <Route path={TABLE_LIST_ROUTE_PATH}>
-            <SRTablesListPage />
+            <CRTablesListPage />
           </Route>
 
           <Route path={TABLE_DETAILS_ROUTE_PATH}>
-            <SRTableDetailPage />
+            <CRTableDetailPage />
           </Route>
 
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
-            <SRColumnDetailPage />
+            <CRColumnDetailPage />
           </Route>
 
           <Route path={ASSERTIONS_ROUTE_PATH}>
-            <SRAssertionListPage />
+            <CRAssertionListPage />
           </Route>
 
           <Route path={BM_ROUTE_PATH}>
-            <SRBMPage />
+            <CRBMPage />
           </Route>
 
           <Route>
@@ -54,4 +54,4 @@ function SRPage({ data }) {
   );
 }
 
-export default SRPage;
+export default CRPage;

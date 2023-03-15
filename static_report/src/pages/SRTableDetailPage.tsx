@@ -1,8 +1,5 @@
 import { Box, Grid, GridItem } from '@chakra-ui/react';
 
-import { Main } from '../components/Common/Main';
-
-import type { SingleReportSchema } from '../sdlc/single-report-schema';
 import { NoData } from '../components/Common/NoData';
 import {
   AMPLITUDE_EVENTS,
@@ -17,10 +14,8 @@ import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useRoute } from 'wouter';
 import { TABLE_DETAILS_ROUTE_PATH } from '../utils/routes';
-interface Props {
-  data: SingleReportSchema;
-}
-export default function SRProfileRunPage({ data }: Props) {
+
+export default function SRProfileRunPage() {
   const [, params] = useRoute(TABLE_DETAILS_ROUTE_PATH);
   const tableName = decodeURIComponent(params?.tableName || '');
 
@@ -33,21 +28,18 @@ export default function SRProfileRunPage({ data }: Props) {
     },
   });
 
-  const setReportData = useReportStore((s) => s.setReportRawData);
-  setReportData({ base: data });
-  const { tableColumnsOnly = [] } = useReportStore.getState();
+  const {
+    tableColumnsOnly = [],
+    rawData: { base: data },
+  } = useReportStore.getState();
   const currentTableEntry = tableColumnsOnly.find(
     ([tableKey]) => tableKey === tableName,
   );
 
-  const dataTable = data.tables[tableName];
+  const dataTable = data?.tables[tableName];
 
   if (!tableName || !dataTable || !currentTableEntry) {
-    return (
-      <Main isSingleReport>
-        <NoData text={`No profile data found for table name: ${tableName}`} />
-      </Main>
-    );
+    return <NoData text={`No profile data found for '${tableName}'`} />;
   }
   return (
     <>

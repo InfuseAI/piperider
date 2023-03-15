@@ -4,15 +4,11 @@ import { SearchTextInput } from '../components/Common/SearchTextInput';
 import { TableListAssertionSummary } from '../components/Tables';
 import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
-import { ComparisonReportSchema } from '../types';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
 import { assertionListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
 
-interface Props {
-  data: ComparisonReportSchema;
-}
-export function CRAssertionListPage({ data: { base, input } }: Props) {
+export function CRAssertionListPage() {
   useDocumentTitle('Comparison Report: Assertions');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
@@ -22,8 +18,6 @@ export function CRAssertionListPage({ data: { base, input } }: Props) {
     },
   });
   const [filterString, setFilterString] = useState<string>('');
-  const setRawReport = useReportStore((s) => s.setReportRawData);
-  setRawReport({ base, input });
   const { assertionsOnly } = useReportStore.getState();
   const { metadata } = assertionsOnly || {};
 

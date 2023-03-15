@@ -1,34 +1,29 @@
 import { Grid, GridItem } from '@chakra-ui/react';
 import { ReactNode, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { Comparable, ComparisonReportSchema } from '../../types';
+import { Comparable } from '../../types';
 import {
   allContentGridTempCols,
   borderVal,
-  CompTableColEntryItem,
   mainContentAreaHeight,
+  useReportStore,
 } from '../../utils';
 import { MasterSideNav } from '../Columns/MasterSideNav';
 import { ReportContextBar } from '../Reports';
 
 interface Props extends Comparable {
-  initAsExpandedTables?: boolean;
-  rawData: Partial<ComparisonReportSchema>;
-  tableColEntries: CompTableColEntryItem[];
-  tableName?: string;
-  columnName?: string;
   children: ReactNode;
 }
 //NOTE: Only for OSS usage. Reusable for Cloud?
-export function MasterDetailContainer({
-  rawData,
-  tableColEntries,
-  initAsExpandedTables,
-  children,
-  singleOnly,
-}: Props) {
+export function MasterDetailContainer({ children, singleOnly }: Props) {
+  const initAsExpandedTables = true;
   const [location, setLocation] = useLocation();
+
+  const { tableColumnsOnly: tableColEntries = [], rawData } =
+    useReportStore.getState();
+
   const fallback = rawData.input ?? rawData.base;
+  console.log('fallback', fallback);
 
   useEffect(() => {
     if (!location || location === '/') setLocation('/tables');
@@ -41,7 +36,8 @@ export function MasterDetailContainer({
         version={fallback?.version}
         px={3}
         borderBottom={borderVal}
-      />
+        showProjectInfo
+      ></ReportContextBar>
       <Grid
         width={'inherit'}
         h={'100%'}

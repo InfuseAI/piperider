@@ -1,6 +1,5 @@
 import { TableListItem } from '../components/Tables/TableList/TableListItem';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { type ComparisonReportSchema } from '../types';
 import { Flex, Text, Grid, useDisclosure } from '@chakra-ui/react';
 import { useState } from 'react';
 
@@ -11,9 +10,7 @@ import { useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils/amplitudeEvents';
 import { CommonModal } from '../components/Common/CommonModal';
 
-type Props = { data: ComparisonReportSchema };
-
-export function CRTablesListPage({ data }: Props) {
+export function CRTablesListPage() {
   useDocumentTitle('Comparison Report: Tables');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
@@ -24,8 +21,6 @@ export function CRTablesListPage({ data }: Props) {
   });
   const modal = useDisclosure();
   const [tableColsEntryId, setTableColsEntryId] = useState(-1);
-  const setReportData = useReportStore((s) => s.setReportRawData);
-  setReportData({ base: data.base, input: data.input });
   const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
 
   return (
