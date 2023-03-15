@@ -19,7 +19,7 @@ import { SRHomePage } from './SRHomePage';
 import SRTableDetailPage from './SRTableDetailPage';
 import { SRTablesListPage } from './SRTablesListPage';
 
-function SRPage({ data }) {
+export function SRPage({ data }) {
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
 

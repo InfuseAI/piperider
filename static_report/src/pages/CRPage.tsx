@@ -19,7 +19,7 @@ import { CRHomePage } from './CRHomePage';
 import CRTableDetailPage from './CRTableDetailPage';
 import { CRTablesListPage } from './CRTableListPage';
 
-function CRPage({ data }) {
+export function CRPage({ data }) {
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData(data);
 
