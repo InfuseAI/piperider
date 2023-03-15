@@ -8,12 +8,14 @@ import {
   ASSERTIONS_ROUTE_PATH,
   BM_ROUTE_PATH,
   COLUMN_DETAILS_ROUTE_PATH,
+  HOME_ROUTE_PATH,
   TABLE_DETAILS_ROUTE_PATH,
   TABLE_LIST_ROUTE_PATH,
 } from '../utils/routes';
 import { SRAssertionListPage } from './SRAssertionListPage';
 import { SRBMPage } from './SRBMPage';
 import SRColumnDetailPage from './SRColumnDetailPage';
+import { SRHomePage } from './SRHomePage';
 import SRTableDetailPage from './SRTableDetailPage';
 import { SRTablesListPage } from './SRTablesListPage';
 
@@ -25,6 +27,10 @@ function SRPage({ data }) {
     <Router hook={useHashLocation as BaseLocationHook}>
       <MasterDetailContainer>
         <Switch>
+          <Route path={HOME_ROUTE_PATH}>
+            <SRHomePage />
+          </Route>
+
           <Route path={TABLE_LIST_ROUTE_PATH}>
             <SRTablesListPage />
           </Route>

@@ -1,11 +1,10 @@
 import { Box, Grid, GridItem, Text } from '@chakra-ui/react';
 import { NoData } from '../components';
 import { BMWidget } from '../components/Widgets/BMWidget';
-import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
+import { useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
 
 export function SRBMPage() {
-  useDocumentTitle('Single Report: Metrics');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {
@@ -21,7 +20,7 @@ export function SRBMPage() {
         Metrics
       </Text>
 
-      <Grid templateColumns={'1fr 1fr'} w={'100%'} minH={'50%'} gap={5}>
+      <Grid templateColumns={{ base: '1fr', xl: '1fr 1fr' }} w={'100%'} gap={5}>
         {(BMOnly?.base ?? []).map((v) => (
           <GridItem key={v.name}>
             <BMWidget data={{ base: v }} singleOnly />

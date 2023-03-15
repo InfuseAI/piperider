@@ -3,13 +3,12 @@ import { useState } from 'react';
 import { SearchTextInput } from '../components/Common/SearchTextInput';
 import { TableListAssertionSummary } from '../components/Tables';
 import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
-import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
+import { useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
 import { assertionListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
 
 export function CRAssertionListPage() {
-  useDocumentTitle('Comparison Report: Assertions');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {

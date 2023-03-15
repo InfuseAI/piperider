@@ -1,8 +1,6 @@
 import { Flex, Text, Grid, useDisclosure } from '@chakra-ui/react';
 import { useState } from 'react';
 
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
-
 import { TableListItem } from '../components/Tables/TableList/TableListItem';
 import { tableListGridTempCols, tableListMaxWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
@@ -16,7 +14,6 @@ export function SRTablesListPage() {
   const [tableColsEntryId, setTableColsEntryId] = useState(-1);
   const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
 
-  useDocumentTitle('Single-Run Report: Tables');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {

@@ -13,38 +13,42 @@ export function DupedTableRowsWidget({ tableDatum, hasAnimation }: Props) {
   const dataCompInput = transformTableAsFlatStackInput(tableDatum);
   const animationOptions = hasAnimation ? {} : false;
 
+  if (!tableDatum) {
+    return <Box h={'100px'}>{renderChartUnavailableMsg({})}</Box>;
+  }
+
+  if (!dataCompInput) {
+    return (
+      <Box h={'100px'}>
+        {renderChartUnavailableMsg({
+          messageOverwrite: (
+            <Text as={'span'}>
+              Duplicate rows is not enabled by default. To enable, see{' '}
+              <Link
+                isExternal
+                textDecoration={'underline'}
+                href="https://docs.piperider.io/project-structure/config.yml"
+              >
+                config docs
+              </Link>
+            </Text>
+          ),
+        })}
+      </Box>
+    );
+  }
+
   return (
     <Box w={'100%'}>
-      {dataCompInput ? (
-        <>
-          <Box height={'2em'}>
-            <FlatStackedBarChart
-              data={dataCompInput}
-              animation={animationOptions}
-            />
-          </Box>
-          <Box>
-            <DupedTableRowStats tableDatum={tableDatum} />
-          </Box>
-        </>
-      ) : (
-        <Box h={'300px'}>
-          {renderChartUnavailableMsg({
-            messageOverwrite: (
-              <Text as={'span'}>
-                Configuration disabled. To enable, see{' '}
-                <Link
-                  isExternal
-                  textDecoration={'underline'}
-                  href="https://docs.piperider.io/project-structure/config.yml"
-                >
-                  config docs
-                </Link>
-              </Text>
-            ),
-          })}
-        </Box>
-      )}
+      <Box height={'2em'}>
+        <FlatStackedBarChart
+          data={dataCompInput}
+          animation={animationOptions}
+        />
+      </Box>
+      <Box>
+        <DupedTableRowStats tableDatum={tableDatum} />
+      </Box>
     </Box>
   );
 }

@@ -1,4 +1,4 @@
-import { Box, Grid, VStack } from '@chakra-ui/react';
+import { Box, Grid, VStack, Text, Divider } from '@chakra-ui/react';
 import { useState } from 'react';
 
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
@@ -14,9 +14,9 @@ import {
 } from '../components/Columns/utils';
 import {
   AMPLITUDE_EVENTS,
+  formatTitleCase,
   SR_TYPE_LABEL,
   useAmplitudeOnMount,
-  useDocumentTitle,
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
@@ -28,7 +28,6 @@ export default function SRColumnDetailPage() {
   const tableName = decodeURIComponent(params?.tableName || '');
   const columnName = decodeURIComponent(params?.columnName || '');
 
-  useDocumentTitle('Single Report: Table Column Details');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {
@@ -80,16 +79,31 @@ export default function SRColumnDetailPage() {
           flexGrow={1}
           flexShrink={1}
         >
-          <DataCompositionWidget columnDatum={columnDatum} />
+          <Box width="100%">
+            <Text fontSize={'xl'}>Data Composition</Text>
+            <Divider />
+            <DataCompositionWidget columnDatum={columnDatum} />
+          </Box>
           {containsDataSummary(type) && (
-            <DataSummaryWidget columnDatum={columnDatum} />
+            <Box width="100%">
+              <Text fontSize={'xl'}>
+                {columnDatum ? formatTitleCase(columnDatum?.type) : 'Type '}{' '}
+                Statistics
+              </Text>
+              <Divider />
+              <DataSummaryWidget columnDatum={columnDatum} />
+            </Box>
           )}
           {hasQuantile && histogram && (
-            <QuantilesWidget columnDatum={columnDatum} />
+            <Box width="100%">
+              <Text fontSize={'xl'}>Quantile Data</Text>
+              <Divider />
+              <QuantilesWidget columnDatum={columnDatum} />
+            </Box>
           )}
         </VStack>
 
-        <Box width="1px" bg="lightgray"></Box>
+        <Divider orientation="vertical" />
 
         <VStack spacing={10} width={'100%'}>
           <ChartTabsWidget

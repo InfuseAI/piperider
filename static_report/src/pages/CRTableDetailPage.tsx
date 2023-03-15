@@ -18,7 +18,7 @@ import type { ComparisonReportSchema } from '../types';
 import { NoData } from '../components/Common/NoData';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
+import { useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils';
 import { useRoute } from 'wouter';
 import { TABLE_DETAILS_ROUTE_PATH } from '../utils/routes';
@@ -30,7 +30,6 @@ export default function CRTableDetailPage() {
   const [, params] = useRoute(TABLE_DETAILS_ROUTE_PATH);
   const tableName = decodeURIComponent(params?.tableName || '');
 
-  useDocumentTitle('Comparison Report: Table Column Details');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {

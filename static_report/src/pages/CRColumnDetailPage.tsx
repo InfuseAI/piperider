@@ -1,7 +1,6 @@
 import { Box, Divider, Flex, Grid, Text, VStack } from '@chakra-ui/react';
 import { useState } from 'react';
 
-import { Main } from '../components/Common/Main';
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
 import { borderVal } from '../utils/layout';
@@ -17,7 +16,7 @@ import {
 } from '../components/Columns/utils';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
+import { useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL, formatTitleCase } from '../utils';
 import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
 import { useRoute } from 'wouter';
@@ -27,7 +26,6 @@ export default function CRColumnDetailPage() {
   const tableName = decodeURIComponent(params?.tableName || '');
   const columnName = decodeURIComponent(params?.columnName || '');
 
-  useDocumentTitle('Comparison Report: Table Column Details');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {
@@ -42,12 +40,6 @@ export default function CRColumnDetailPage() {
     base: { tables: baseTables },
     input: { tables: targetTables },
   } = rawData as ComparisonReportSchema;
-
-  const { tableColumnsOnly = [] } = useReportStore.getState();
-  const currentTableEntry = tableColumnsOnly.find(
-    ([tableKey]) => tableKey === tableName,
-  );
-
   const baseDataTable = baseTables[tableName];
   const targetDataTable = targetTables[tableName];
   const baseDataColumns = baseDataTable?.columns || {};
@@ -82,8 +74,9 @@ export default function CRColumnDetailPage() {
         <Box width="100%">
           <Text fontSize={'xl'}>Data Composition</Text>
           <Divider />
-          <Grid templateColumns={'1fr 1fr'} gap={8} minWidth={0}>
+          <Grid templateColumns={'1fr 1px 1fr'} gap={8} minWidth={0}>
             <DataCompositionWidget columnDatum={baseColumnDatum} />
+            <Divider orientation="vertical" />
             <DataCompositionWidget columnDatum={targetColumnDatum} />
           </Grid>
         </Box>
@@ -96,8 +89,10 @@ export default function CRColumnDetailPage() {
                 : 'Type '}{' '}
               Statistics
             </Text>
-            <Grid templateColumns={'1fr 1fr'} gap={8}>
+            <Divider />
+            <Grid templateColumns={'1fr 1px 1fr'} gap={8}>
               {<DataSummaryWidget columnDatum={baseColumnDatum} />}
+              <Divider orientation="vertical" />
               {<DataSummaryWidget columnDatum={targetColumnDatum} />}
             </Grid>
           </Box>
@@ -108,14 +103,16 @@ export default function CRColumnDetailPage() {
           <Box width="100%">
             <Text fontSize={'xl'}>Quantile Data</Text>
             <Divider />
-            <Grid templateColumns={'1fr 1fr'} gap={8}>
+            <Grid templateColumns={'1fr 1px 1fr'} gap={8}>
               <QuantilesWidget columnDatum={baseColumnDatum} />
+              <Divider orientation="vertical" />
               <QuantilesWidget columnDatum={targetColumnDatum} />
             </Grid>
           </Box>
         )}
 
         <ChartTabsWidget
+          key={columnName}
           baseColumnDatum={baseColumnDatum}
           targetColumnDatum={targetColumnDatum}
           hasSplitView

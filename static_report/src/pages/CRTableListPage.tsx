@@ -1,5 +1,4 @@
 import { TableListItem } from '../components/Tables/TableList/TableListItem';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { Flex, Text, Grid, useDisclosure } from '@chakra-ui/react';
 import { useState } from 'react';
 
@@ -11,7 +10,6 @@ import { AMPLITUDE_EVENTS, CR_TYPE_LABEL } from '../utils/amplitudeEvents';
 import { CommonModal } from '../components/Common/CommonModal';
 
 export function CRTablesListPage() {
-  useDocumentTitle('Comparison Report: Tables');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {

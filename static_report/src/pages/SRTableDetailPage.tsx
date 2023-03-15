@@ -1,4 +1,4 @@
-import { Box, Grid, GridItem } from '@chakra-ui/react';
+import { Text, Divider, Grid, GridItem } from '@chakra-ui/react';
 
 import { NoData } from '../components/Common/NoData';
 import {
@@ -8,7 +8,6 @@ import {
   TableColumnSchemaList,
   TableGeneralStats,
   useAmplitudeOnMount,
-  useDocumentTitle,
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
@@ -19,7 +18,6 @@ export default function SRProfileRunPage() {
   const [, params] = useRoute(TABLE_DETAILS_ROUTE_PATH);
   const tableName = decodeURIComponent(params?.tableName || '');
 
-  useDocumentTitle('Single Report: Table Column Details');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {
@@ -56,14 +54,18 @@ export default function SRProfileRunPage() {
       >
         <Grid mb={8} gap={8}>
           <GridItem colSpan={1}>
+            <Text fontSize={'xl'}>Table Statistics</Text>
+            <Divider my={1} />
             <TableGeneralStats tableDatum={dataTable} />
           </GridItem>
           <GridItem>
+            <Text fontSize={'xl'}>Duplicate Rows</Text>
+            <Divider my={1} />
             <DupedTableRowsWidget tableDatum={dataTable} />
           </GridItem>
         </Grid>
 
-        <Box width="1px" bg="lightgray"></Box>
+        <Divider orientation="vertical" />
         <TableColumnSchemaList
           baseTableEntryDatum={currentTableEntry?.[1].base}
           singleOnly

@@ -3,7 +3,7 @@ import { Suspense, lazy } from 'react';
 import { BrowserTracing } from '@sentry/tracing';
 
 import { Loading } from './components/Common';
-import { useAmplitudeOnMount } from './hooks';
+import { useAmplitudeOnMount, useDocumentTitle } from './hooks';
 import { AMPLITUDE_EVENTS, useReportStore, WARNING_TYPE_LABEL } from './utils';
 import { Main } from './components/Common/Main';
 
@@ -74,6 +74,7 @@ function MobileDeviceWarning() {
 }
 
 function App() {
+  useDocumentTitle();
   const isMobile: boolean = /iPhone|iPad|iPod|Android/i.test(
     navigator.userAgent,
   );

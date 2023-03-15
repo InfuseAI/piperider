@@ -1,12 +1,11 @@
 import { Box, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
 import { NoData } from '../components';
 import { BMWidget } from '../components/Widgets/BMWidget';
-import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
+import { useAmplitudeOnMount } from '../hooks';
 import { BusinessMetric } from '../types';
 import { AMPLITUDE_EVENTS, CR_TYPE_LABEL, useReportStore } from '../utils';
 
 export function CRBMPage() {
-  useDocumentTitle('Comparison Report: Metrics');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {

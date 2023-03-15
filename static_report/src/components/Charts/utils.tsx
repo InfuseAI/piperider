@@ -108,14 +108,8 @@ export function renderChartUnavailableMsg({
 }) {
   const noRenderMessage = getChartUnavailMsg(valids, schema_type);
   return (
-    <Flex
-      h={'inherit'}
-      minH={'100%'}
-      alignItems={'center'}
-      w={'100%'}
-      bg={'blackAlpha.300'}
-    >
-      <Text alignSelf={'center'} textAlign={'center'} w={'inherit'}>
+    <Flex h={'inherit'} minH={'100%'} w={'100%'} fontStyle="italic">
+      <Text textAlign={'left'} w={'inherit'} color={'gray.400'}>
         {messageOverwrite ?? noRenderMessage}
       </Text>
     </Flex>

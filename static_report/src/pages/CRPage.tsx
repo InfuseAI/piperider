@@ -8,12 +8,14 @@ import {
   ASSERTIONS_ROUTE_PATH,
   BM_ROUTE_PATH,
   COLUMN_DETAILS_ROUTE_PATH,
+  HOME_ROUTE_PATH,
   TABLE_DETAILS_ROUTE_PATH,
   TABLE_LIST_ROUTE_PATH,
 } from '../utils/routes';
 import { CRAssertionListPage } from './CRAssertionListPage';
 import { CRBMPage } from './CRBMPage';
 import CRColumnDetailPage from './CRColumnDetailPage';
+import { CRHomePage } from './CRHomePage';
 import CRTableDetailPage from './CRTableDetailPage';
 import { CRTablesListPage } from './CRTableListPage';
 
@@ -25,6 +27,14 @@ function CRPage({ data }) {
     <Router hook={useHashLocation as BaseLocationHook}>
       <MasterDetailContainer>
         <Switch>
+          <Route path={HOME_ROUTE_PATH}>
+            <CRHomePage />
+          </Route>
+
+          <Route path={TABLE_LIST_ROUTE_PATH}>
+            <CRTablesListPage />
+          </Route>
+
           <Route path={TABLE_LIST_ROUTE_PATH}>
             <CRTablesListPage />
           </Route>

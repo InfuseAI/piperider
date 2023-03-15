@@ -1,13 +1,7 @@
-import { Grid, GridItem } from '@chakra-ui/react';
-import { ReactNode, useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { Divider, Grid, GridItem } from '@chakra-ui/react';
+import { ReactNode } from 'react';
 import { Comparable } from '../../types';
-import {
-  allContentGridTempCols,
-  borderVal,
-  mainContentAreaHeight,
-  useReportStore,
-} from '../../utils';
+import { borderVal, mainContentAreaHeight, useReportStore } from '../../utils';
 import { MasterSideNav } from '../Columns/MasterSideNav';
 import { ReportContextBar } from '../Reports';
 
@@ -17,17 +11,11 @@ interface Props extends Comparable {
 //NOTE: Only for OSS usage. Reusable for Cloud?
 export function MasterDetailContainer({ children, singleOnly }: Props) {
   const initAsExpandedTables = true;
-  const [location, setLocation] = useLocation();
 
   const { tableColumnsOnly: tableColEntries = [], rawData } =
     useReportStore.getState();
 
   const fallback = rawData.input ?? rawData.base;
-  console.log('fallback', fallback);
-
-  useEffect(() => {
-    if (!location || location === '/') setLocation('/tables');
-  }, [location, setLocation]);
 
   return (
     <>
@@ -41,15 +29,13 @@ export function MasterDetailContainer({ children, singleOnly }: Props) {
       <Grid
         width={'inherit'}
         h={'100%'}
-        templateColumns={allContentGridTempCols}
+        templateColumns="minmax(200px, 400px) 1px minmax(420px, 100%)"
       >
         {/* Master Area */}
         <GridItem
           overflowY={'auto'}
           maxHeight={mainContentAreaHeight}
           h={'100%'}
-          borderRight="1px"
-          borderRightColor="lightgray"
         >
           <MasterSideNav
             initAsExpandedTables={initAsExpandedTables}
@@ -57,9 +43,11 @@ export function MasterDetailContainer({ children, singleOnly }: Props) {
             singleOnly={singleOnly}
           />
         </GridItem>
+        <Divider orientation="vertical" />
         <GridItem
           overflowY={'auto'}
           maxHeight={mainContentAreaHeight}
+          width="100%"
           h={'100%'}
           p={9}
         >

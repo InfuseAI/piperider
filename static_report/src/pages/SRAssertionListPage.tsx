@@ -3,12 +3,11 @@ import { useState } from 'react';
 import { AssertionPassFailCountLabel } from '../components/Assertions/AssertionPassFailCountLabel';
 import { SearchTextInput } from '../components/Common/SearchTextInput';
 import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
-import { useDocumentTitle, useAmplitudeOnMount } from '../hooks';
+import { useAmplitudeOnMount } from '../hooks';
 import { AMPLITUDE_EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
 import { assertionListWidth } from '../utils/layout';
 
 export function SRAssertionListPage() {
-  useDocumentTitle('Single Report: Assertions');
   useAmplitudeOnMount({
     eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
     eventProperties: {
