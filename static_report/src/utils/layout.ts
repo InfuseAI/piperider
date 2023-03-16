@@ -1,4 +1,4 @@
-export const topNavAndFooterHeightOffset = 130 - 45;
+export const topNavAndFooterHeightOffset = 130;
 export const topProjectNavHeightOffset = 130;
 export const mainContentAreaHeight = `calc(100vh - ${topNavAndFooterHeightOffset}px)`;
 export const mainContentAreaHeightWithProjectNav = `calc(100vh - ${

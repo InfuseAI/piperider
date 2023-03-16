@@ -1,9 +1,10 @@
-import { Flex, FlexProps, useColorMode } from '@chakra-ui/react';
+import { Box, Flex, FlexProps, useColorMode } from '@chakra-ui/react';
 import { useEffect, ReactNode } from 'react';
 import * as amplitude from '@amplitude/analytics-browser';
 
 import { Navbar } from './Navbar';
-import { mainContentAreaHeight } from '../../utils';
+import { borderVal, mainContentAreaHeight, useReportStore } from '../../utils';
+import { ReportContextBar } from '../Reports';
 
 interface Props extends FlexProps {
   children: ReactNode;
@@ -24,23 +25,37 @@ export function Main({ children, isSingleReport, ...props }: Props) {
     }
   }, []);
 
-  return (
-    <Flex direction="column" h={'100vh'}>
-      <Navbar isSingleReport={isSingleReport} />
+  const { rawData } = useReportStore.getState();
+  const fallback = rawData.input ?? rawData.base;
 
-      <Flex
-        direction="column"
-        alignItems="center"
-        justifyContent="flex-start"
-        bg={bgColor[colorMode]}
-        color={color[colorMode]}
-        minHeight={mainContentAreaHeight}
-        width="100%"
-        height={'100%'}
-        {...props}
-      >
-        {children}
-      </Flex>
+  return (
+    <Flex
+      direction="column"
+      h={'100vh'}
+      bg={bgColor[colorMode]}
+      color={color[colorMode]}
+    >
+      <Navbar isSingleReport={isSingleReport} />
+      <ReportContextBar
+        datasource={fallback?.datasource.name}
+        version={fallback?.version}
+        px={3}
+        borderBottom={borderVal}
+        showProjectInfo
+      ></ReportContextBar>
+      <Box bg={bgColor[colorMode]} color={color[colorMode]}>
+        <Flex
+          direction="column"
+          alignItems="center"
+          justifyContent="flex-start"
+          minHeight={mainContentAreaHeight}
+          height={'100%'}
+          mx="80px"
+          {...props}
+        >
+          {children}
+        </Flex>
+      </Box>
     </Flex>
   );
 }
