@@ -1,4 +1,4 @@
-import { Divider, Grid, GridItem } from '@chakra-ui/react';
+import { Box, Divider, Grid, GridItem } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { Comparable } from '../../types';
 import { borderVal, mainContentAreaHeight, useReportStore } from '../../utils';
@@ -18,7 +18,7 @@ export function MasterDetailContainer({ children, singleOnly }: Props) {
   const fallback = rawData.input ?? rawData.base;
 
   return (
-    <>
+    <Box width="100%">
       <ReportContextBar
         datasource={fallback?.datasource.name}
         version={fallback?.version}
@@ -54,6 +54,6 @@ export function MasterDetailContainer({ children, singleOnly }: Props) {
           {children}
         </GridItem>
       </Grid>
-    </>
+    </Box>
   );
 }

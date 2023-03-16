@@ -1,21 +1,36 @@
 import { useState, useEffect, useCallback } from 'react';
 
-function currentLocation() {
-  return window.location.hash.replace(/^#/, '') || '/';
+function getWindow(): Window | undefined {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+
+  return window;
 }
 
 export function useHashLocation() {
-  const [location, setLocation] = useState(currentLocation());
+  const _window = getWindow();
+  const [_hashLocation, setHashLocation] = useState('#/ssr');
 
   useEffect(() => {
-    const handler = () => setLocation(currentLocation());
+    if (!_window) {
+      return;
+    }
 
-    window.addEventListener('hashchange', handler);
+    setHashLocation(_window!.location.hash);
+    const handler = () => setHashLocation(_window!.location.hash);
+    _window.addEventListener('hashchange', handler);
 
     return () => window.removeEventListener('hashchange', handler);
-  }, []);
+  }, [_window]);
 
-  const navigate = useCallback((to) => (window.location.hash = to), []);
+  const navigate = (to) => {
+    window!.location.hash = to;
+  };
 
+  const hashLocation =
+    _hashLocation !== '#/ssr' ? _window!.location.hash : _hashLocation;
+
+  const location = hashLocation.replace(/^#/, '') || '/';
   return [location, navigate];
 }

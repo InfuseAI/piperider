@@ -1,4 +1,5 @@
 import { Switch, Route, Router, BaseLocationHook } from 'wouter';
+import { Loading } from '../components';
 import { MasterDetailContainer } from '../components/Common/MasterDetailContainer';
 
 import { NotFound } from '../components/Common/NotFound';
@@ -9,6 +10,7 @@ import {
   BM_ROUTE_PATH,
   COLUMN_DETAILS_ROUTE_PATH,
   HOME_ROUTE_PATH,
+  SSR_ROUTE_PATH,
   TABLE_DETAILS_ROUTE_PATH,
   TABLE_LIST_ROUTE_PATH,
 } from '../utils/routes';
@@ -36,11 +38,11 @@ export function SRPage({ data }) {
           </Route>
 
           <Route path={TABLE_DETAILS_ROUTE_PATH}>
-            <SRTableDetailPage key={window.location.hash} />
+            <SRTableDetailPage />
           </Route>
 
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
-            <SRColumnDetailPage key={window.location.hash} />
+            <SRColumnDetailPage />
           </Route>
 
           <Route path={ASSERTIONS_ROUTE_PATH}>
@@ -49,6 +51,10 @@ export function SRPage({ data }) {
 
           <Route path={BM_ROUTE_PATH}>
             <SRBMPage />
+          </Route>
+
+          <Route path={SSR_ROUTE_PATH}>
+            <Loading />
           </Route>
 
           <Route>
