@@ -26,11 +26,7 @@ export function SRBMPage() {
             <BMWidget data={{ base: v }} singleOnly />
           </GridItem>
         ))}
-        {!BMOnly?.base?.length && (
-          <GridItem colSpan={2} background={'gray.200'} p={5} minH={'50vh'}>
-            <NoData text="No Metrics Data Available" />
-          </GridItem>
-        )}
+        {!BMOnly?.base?.length && <NoData text="No metrics data available" />}
       </Grid>
     </Box>
   );

@@ -1,4 +1,4 @@
-import { Text, Divider, Grid, GridItem } from '@chakra-ui/react';
+import { Text, Divider, Grid, VStack, Box } from '@chakra-ui/react';
 
 import { NoData } from '../components/Common/NoData';
 import {
@@ -49,21 +49,21 @@ export default function SRTableDetailPage() {
       />
       <Grid
         width={'100%'}
-        templateColumns={{ base: '1fr', xl: '1fr 1px 1fr' }}
+        templateColumns={{ base: '1fr', '2xl': '1fr 1px 1fr' }}
         gap={5}
       >
-        <Grid mb={8} gap={8}>
-          <GridItem colSpan={1}>
+        <VStack spacing={10}>
+          <Box width="100%">
             <Text fontSize={'xl'}>Table Statistics</Text>
             <Divider my={1} />
             <TableGeneralStats tableDatum={dataTable} />
-          </GridItem>
-          <GridItem>
+          </Box>
+          <Box width="100%">
             <Text fontSize={'xl'}>Duplicate Rows</Text>
             <Divider my={1} />
             <DupedTableRowsWidget tableDatum={dataTable} />
-          </GridItem>
-        </Grid>
+          </Box>
+        </VStack>
 
         <Divider orientation="vertical" />
         <TableColumnSchemaList

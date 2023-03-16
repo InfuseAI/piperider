@@ -35,11 +35,7 @@ export function CRBMPage() {
             </GridItem>
           );
         })}
-        {BMList.length === 0 && (
-          <GridItem colSpan={2} background={'gray.200'} p={5} minH={'50vh'}>
-            <NoData text="No Metrics Data Available" />
-          </GridItem>
-        )}
+        {BMList.length === 0 && <NoData text="No metrics data available" />}
       </Grid>
     </Box>
   );
