@@ -1,24 +1,17 @@
 import * as Sentry from '@sentry/browser';
 import { Suspense, lazy } from 'react';
-import { Switch, Route, Router, BaseLocationHook } from 'wouter';
 import { BrowserTracing } from '@sentry/tracing';
 
-import { NotFound } from './components/Common/NotFound';
-import { useHashLocation } from './hooks/useHashLcocation';
-import {
-  ASSERTIONS_ROUTE_PATH,
-  BM_ROUTE_PATH,
-  COLUMN_DETAILS_ROUTE_PATH,
-} from './utils/routes';
-import { SRAssertionListPage } from './pages/SRAssertionListPage';
-import { SRBMPage } from './pages/SRBMPage';
-import { CRBMPage } from './pages/CRBMPage';
-import { CRAssertionListPage } from './pages/CRAssertionListPage';
 import { Loading } from './components/Common';
-import { SRTablesListPage } from './pages/SRTablesListPage';
-import { CRTablesListPage } from './pages/CRTableListPage';
-import { useAmplitudeOnMount } from './hooks';
-import { AMPLITUDE_EVENTS, WARNING_TYPE_LABEL } from './utils';
+import { useTrackOnMount, useDocumentTitle } from './hooks';
+import {
+  amplitudeTrack,
+  EVENTS,
+  useReportStore,
+  useTrackerStore,
+  WARNING_TYPE_LABEL,
+} from './utils';
+import { Main } from './components/Common/Main';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns && process.env.NODE_ENV !== 'development') {
@@ -39,110 +32,38 @@ if (sentryDns && process.env.NODE_ENV !== 'development') {
   Sentry.setTag('piperider.version', appVersion);
 }
 
-const SRProfileRunPage = lazy(() => import('./pages/SRProfileRunPage'));
-const CRProfileRunPage = lazy(() => import('./pages/CRProfileRunPage'));
+const SRPage = lazy(() => import('./pages/SRPage'));
+const CRPage = lazy(() => import('./pages/CRPage'));
 
 function AppSingle() {
+  const data = window.PIPERIDER_SINGLE_REPORT_DATA || {};
+  const setReportData = useReportStore((s) => s.setReportRawData);
+  setReportData({ base: data });
   return (
     <Suspense fallback={<Loading />}>
-      <Router hook={useHashLocation as BaseLocationHook}>
-        <Switch>
-          <Route
-            path="/"
-            component={() => {
-              return (
-                <SRTablesListPage
-                  data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
-                />
-              );
-            }}
-          />
-
-          <Route path={COLUMN_DETAILS_ROUTE_PATH}>
-            {({ tableName, columnName }) => (
-              <SRProfileRunPage
-                tableName={decodeURIComponent(tableName || '')}
-                columnName={decodeURIComponent(columnName || '')}
-                data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
-              />
-            )}
-          </Route>
-
-          <Route path={ASSERTIONS_ROUTE_PATH}>
-            {() => (
-              <SRAssertionListPage
-                data={window.PIPERIDER_SINGLE_REPORT_DATA || {}}
-              />
-            )}
-          </Route>
-
-          <Route path={BM_ROUTE_PATH}>
-            {() => (
-              <SRBMPage data={window.PIPERIDER_SINGLE_REPORT_DATA || {}} />
-            )}
-          </Route>
-
-          <Route>
-            <NotFound />
-          </Route>
-        </Switch>
-      </Router>
+      <Main isSingleReport>
+        <SRPage data={data} />
+      </Main>
     </Suspense>
   );
 }
 
 function AppComparison() {
+  const data = window.PIPERIDER_COMPARISON_REPORT_DATA || {};
+  const setReportData = useReportStore((s) => s.setReportRawData);
+  setReportData(data);
   return (
     <Suspense fallback={<Loading />}>
-      <Router hook={useHashLocation as BaseLocationHook}>
-        <Switch>
-          <Route
-            path="/"
-            component={() => {
-              return (
-                <CRTablesListPage
-                  data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}
-                />
-              );
-            }}
-          />
-
-          <Route path={COLUMN_DETAILS_ROUTE_PATH}>
-            {({ tableName, columnName }) => (
-              <CRProfileRunPage
-                tableName={decodeURIComponent(tableName || '')}
-                columnName={decodeURIComponent(columnName || '')}
-                data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}
-              />
-            )}
-          </Route>
-
-          <Route path={ASSERTIONS_ROUTE_PATH}>
-            {() => (
-              <CRAssertionListPage
-                data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}}
-              />
-            )}
-          </Route>
-
-          <Route path={BM_ROUTE_PATH}>
-            {() => (
-              <CRBMPage data={window.PIPERIDER_COMPARISON_REPORT_DATA || {}} />
-            )}
-          </Route>
-
-          <Route>
-            <NotFound />
-          </Route>
-        </Switch>
-      </Router>
+      <Main isSingleReport={false}>
+        <CRPage data={data} />
+      </Main>
     </Suspense>
   );
 }
 
 function MobileDeviceWarning() {
-  useAmplitudeOnMount({
-    eventName: AMPLITUDE_EVENTS.PAGE_VIEW,
+  useTrackOnMount({
+    eventName: EVENTS.PAGE_VIEW,
     eventProperties: {
       type: WARNING_TYPE_LABEL,
       page: 'report-index',
@@ -159,6 +80,13 @@ function MobileDeviceWarning() {
 }
 
 function App() {
+  useDocumentTitle();
+  const setTracker = useTrackerStore((state) => state.setTracker);
+  const tracker = {
+    track: amplitudeTrack,
+  };
+  setTracker(tracker);
+
   const isMobile: boolean = /iPhone|iPad|iPod|Android/i.test(
     navigator.userAgent,
   );
@@ -171,11 +99,10 @@ function App() {
     );
   }
 
-  if (process.env.REACT_APP_SINGLE_REPORT === 'true') {
-    return <AppSingle />;
-  } else {
-    return <AppComparison />;
-  }
+  const isSingleReport: boolean =
+    process.env.REACT_APP_SINGLE_REPORT === 'true';
+
+  return <>{isSingleReport ? <AppSingle /> : <AppComparison />}</>;
 }
 
 export default App;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-export function useDocumentTitle(value) {
+export function useDocumentTitle(value = null) {
   const [title, setTitle] = useState(value);
 
   useEffect(() => {

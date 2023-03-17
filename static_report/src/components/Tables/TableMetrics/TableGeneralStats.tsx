@@ -1,4 +1,4 @@
-import { BoxProps } from '@chakra-ui/react';
+import { Box, BoxProps } from '@chakra-ui/react';
 import { SaferTableSchema } from '../../../types';
 import {
   MetricsInfo,
@@ -12,6 +12,7 @@ import {
   formatNumber,
   formatReportTime,
 } from '../../../utils';
+import { renderChartUnavailableMsg } from '../../Charts/utils';
 
 interface Props {
   tableDatum?: SaferTableSchema;
@@ -76,19 +77,28 @@ export function TableGeneralStats({ tableDatum, ...props }: Props & BoxProps) {
   /* Others - (1): % + n (2): % + % */
   return (
     <>
-      {metricsList.map(
-        ({ firstSlot, secondSlot, metakey, name, tooltipValues }, index) => (
-          <MetricsInfo
-            key={index}
-            name={name}
-            metakey={metakey}
-            firstSlot={firstSlot}
-            secondSlot={secondSlot}
-            tooltipValues={tooltipValues}
-            width={'100%'}
-            {...props}
-          />
-        ),
+      {tableDatum ? (
+        <Box w={'100%'}>
+          {metricsList.map(
+            (
+              { firstSlot, secondSlot, metakey, name, tooltipValues },
+              index,
+            ) => (
+              <MetricsInfo
+                key={index}
+                name={name}
+                metakey={metakey}
+                firstSlot={firstSlot}
+                secondSlot={secondSlot}
+                tooltipValues={tooltipValues}
+                width={'100%'}
+                {...props}
+              />
+            ),
+          )}
+        </Box>
+      ) : (
+        renderChartUnavailableMsg({})
       )}
     </>
   );

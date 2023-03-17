@@ -1,10 +1,7 @@
-export const allContentGridTempCols = '1fr 3fr';
-export const topNavAndFooterHeightOffset = 130 - 45;
+export const topNavAndFooterHeightOffset = 130;
 export const topProjectNavHeightOffset = 130;
-export const mainContentAreaHeight = `calc(100vh - ${topNavAndFooterHeightOffset}px)`;
-export const mainContentAreaHeightWithProjectNav = `calc(100vh - ${
-  topNavAndFooterHeightOffset + topProjectNavHeightOffset
-}px)`;
+export const mainContentAreaHeight = `100%`;
+export const mainContentAreaHeightWithProjectNav = `100%`;
 export const tableListGridTempCols = '2fr 1fr 1.5fr';
 export const tableListWidth = 1150;
 export const tableListMaxWidth = `calc(${tableListWidth}px - 30px)`;

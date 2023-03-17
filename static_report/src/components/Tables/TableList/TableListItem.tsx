@@ -4,7 +4,7 @@ import { TableRowColDeltaSummary } from './TableRowColDeltaSummary';
 
 import { TableListAssertionSummary } from './TableListAssertions';
 
-import { Comparable, Selectable } from '../../../types';
+import { Comparable } from '../../../types';
 import { formatColumnValueWith, formatNumber } from '../../../utils/formatters';
 import { NoData } from '../../Common';
 import { AssertionPassFailCountLabel } from '../../Assertions/AssertionPassFailCountLabel';
@@ -14,8 +14,9 @@ import { CompTableColEntryItem, ReportState } from '../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../../Common/constant';
 import { getIconForColumnType } from '../../Columns';
 import { ColumnBadge } from './ColumnBadge';
+import { useLocation } from 'wouter';
 
-interface Props extends Selectable, Comparable {
+interface Props extends Comparable {
   combinedTableEntry?: CompTableColEntryItem;
   combinedAssertions?: ReportState['assertionsOnly'];
   onInfoClick: () => void;
@@ -24,7 +25,6 @@ interface Props extends Selectable, Comparable {
 export function TableListItem({
   combinedAssertions,
   combinedTableEntry,
-  onSelect,
   singleOnly,
   onInfoClick,
 }: Props) {
@@ -44,6 +44,8 @@ export function TableListItem({
 
   const description = fallbackTable?.description || NO_DESCRIPTION_MSG;
 
+  const [, setLocation] = useLocation();
+
   if (!combinedTableEntry) {
     return <NoData />;
   }
@@ -53,7 +55,7 @@ export function TableListItem({
       mb={2}
       _hover={{ textDecoration: 'none' }}
       onClick={(event) => {
-        onSelect({ tableName });
+        setLocation(`/tables/${tableName}`);
       }}
     >
       <TableWrapper>

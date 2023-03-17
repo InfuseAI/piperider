@@ -1,7 +1,6 @@
-import { Box, Divider, Text } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { renderChartUnavailableMsg } from '../Charts/utils';
-import { formatTitleCase } from '../../utils/formatters';
 import { SummaryStats } from '../Columns/ColumnMetrics/SummaryStats';
 
 interface Props {
@@ -13,11 +12,7 @@ interface Props {
  */
 export function DataSummaryWidget({ columnDatum }: Props) {
   return (
-    <Box>
-      <Text fontSize={'xl'}>
-        {columnDatum ? formatTitleCase(columnDatum?.type) : 'Type '} Statistics
-      </Text>
-      <Divider my={3} />
+    <Box width="100%">
       {columnDatum ? (
         <SummaryStats columnDatum={columnDatum} width={'100%'} />
       ) : (

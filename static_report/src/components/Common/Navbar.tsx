@@ -1,6 +1,5 @@
-import { Flex, Icon, Image, Text, Link as CharakaLink } from '@chakra-ui/react';
+import { Flex, Icon, Image, Text } from '@chakra-ui/react';
 import { FiSquare, FiColumns } from 'react-icons/fi';
-import { Link } from 'wouter';
 import { NO_VALUE } from '../Columns';
 import { useReportStore } from '../../utils/store';
 type Props = {
@@ -8,15 +7,13 @@ type Props = {
 };
 
 export function Navbar({ isSingleReport }: Props) {
-  const { reportTime } = useReportStore.getState();
+  const { reportDisplayTime } = useReportStore.getState();
 
   return (
     <Flex alignItems="center" px={6} bg="white">
-      <CharakaLink as={Link} to="/">
-        <a href="/">
-          <Image src="logo/logo.svg" height="64px" alt="PipeRider" />
-        </a>
-      </CharakaLink>
+      <a href="#/">
+        <Image src="logo/logo.svg" height="64px" alt="PipeRider" />
+      </a>
 
       <Flex
         justifyContent="center"
@@ -34,7 +31,7 @@ export function Navbar({ isSingleReport }: Props) {
           as={isSingleReport ? FiSquare : FiColumns}
           boxSize={4}
         />
-        <Text>{reportTime || NO_VALUE}</Text>
+        <Text>{reportDisplayTime || NO_VALUE}</Text>
       </Flex>
     </Flex>
   );

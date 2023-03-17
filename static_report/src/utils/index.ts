@@ -1,4 +1,4 @@
-export * from './amplitudeEvents';
+export * from './trackEvents';
 export * from './localStorageKeys';
 export * from './formatters';
 export * from './transformers';

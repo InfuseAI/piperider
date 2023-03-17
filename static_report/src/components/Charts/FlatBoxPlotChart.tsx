@@ -19,6 +19,7 @@ import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { formatAsAbbreviatedNumber } from '../../utils/formatters';
 import { getBoxPlotKeyData } from './utils';
 import { INVALID_VAL_COLOR, NULL_VAL_COLOR } from '../../utils/theme';
+import { useWindowSize } from 'react-use';
 
 const meanBackgroundColor = '#4780A8';
 
@@ -37,6 +38,7 @@ export function FlatBoxPlotChart({
   quantileData,
   animation = false,
 }: FlatBoxPlotChartProps) {
+  useWindowSize();
   ChartJS.register(
     BoxPlotController,
     BoxAndWiskers,
@@ -48,6 +50,7 @@ export function FlatBoxPlotChart({
   const chartData = getBoxPlotChartData(quantileData);
   return (
     <Chart
+      key={Date.now()}
       type={'boxplot'}
       data={chartData}
       options={chartOptions}

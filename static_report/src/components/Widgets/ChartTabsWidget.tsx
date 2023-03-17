@@ -68,11 +68,9 @@ export function ChartTabsWidget({
   const histogramLabel = isText ? TEXTLENGTH : 'Histogram';
 
   return (
-    <Box pb={10}>
-      <Text fontSize={'xl'} mb={3}>
-        Visualizations
-      </Text>
-      <Divider mb={3} />
+    <Box pb={10} width="100%">
+      <Text fontSize={'xl'}>Visualizations</Text>
+      <Divider my={1} />
       {hasAny ? (
         <Tabs isLazy index={tabIndex} onChange={(i) => onSelectTab(i)}>
           <TabList>
@@ -151,11 +149,18 @@ function _renderGridSplitView(
   chartKind?: ChartKind,
   hasAnimation?: boolean,
 ) {
+  const props = {};
+
+  if (chartKind !== 'topk') {
+    props['minHeight'] = '300px';
+    props['maxHeight'] = '300px';
+  }
+
   return (
     <Grid templateColumns={hasSplitView ? '1fr 1fr' : '1fr'} gap={10}>
       <GridItem minWidth={0}>
         {
-          <ChartContainer px={0} title={baseColumnDatum?.name}>
+          <ChartContainer px={0} title={baseColumnDatum?.name} {...props}>
             {getDataChart(
               baseColumnDatum,
               targetColumnDatum,
@@ -168,7 +173,7 @@ function _renderGridSplitView(
       {hasSplitView && (
         <GridItem minWidth={0}>
           {targetColumnDatum !== null && (
-            <ChartContainer p={0} title={targetColumnDatum?.name}>
+            <ChartContainer p={0} title={targetColumnDatum?.name} {...props}>
               {getDataChart(
                 targetColumnDatum,
                 baseColumnDatum,

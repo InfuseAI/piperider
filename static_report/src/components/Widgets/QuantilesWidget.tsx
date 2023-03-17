@@ -1,4 +1,4 @@
-import { Divider, Box, Text } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import { renderChartUnavailableMsg } from '../Charts/utils';
 import { FlatBoxPlotChart } from '../Charts/FlatBoxPlotChart';
@@ -10,12 +10,10 @@ interface Props {
 export function QuantilesWidget({ columnDatum }: Props) {
   const { p50, max, min, p25, p75 } = columnDatum || {};
   return (
-    <Box bg={'gray.50'} minWidth={'0px'}>
-      <Text fontSize={'xl'}>Quantile Data</Text>
-      <Divider my={3} />
+    <Box minWidth={'0px'} width="100%">
       {columnDatum ? (
         <>
-          <Box my={5}>
+          <Box>
             <FlatBoxPlotChart
               quantileData={{
                 p50,
