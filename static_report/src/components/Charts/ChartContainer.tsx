@@ -17,15 +17,12 @@ export function ChartContainer({
   title,
   children,
   allowModalPopup,
-  height = 300,
   ...props
 }: Props & FlexProps) {
   const modal = useDisclosure();
   return (
     <>
       <Flex
-        minHeight={`${height}px`}
-        maxHeight={`${height}px`}
         bg={'whiteAlpha.700'}
         rounded={'md'}
         onClick={() => allowModalPopup && modal.onOpen()}

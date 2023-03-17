@@ -149,11 +149,18 @@ function _renderGridSplitView(
   chartKind?: ChartKind,
   hasAnimation?: boolean,
 ) {
+  const props = {};
+
+  if (chartKind !== 'topk') {
+    props['minHeight'] = '300px';
+    props['maxHeight'] = '300px';
+  }
+
   return (
     <Grid templateColumns={hasSplitView ? '1fr 1fr' : '1fr'} gap={10}>
       <GridItem minWidth={0}>
         {
-          <ChartContainer px={0} title={baseColumnDatum?.name}>
+          <ChartContainer px={0} title={baseColumnDatum?.name} {...props}>
             {getDataChart(
               baseColumnDatum,
               targetColumnDatum,
@@ -166,7 +173,7 @@ function _renderGridSplitView(
       {hasSplitView && (
         <GridItem minWidth={0}>
           {targetColumnDatum !== null && (
-            <ChartContainer p={0} title={targetColumnDatum?.name}>
+            <ChartContainer p={0} title={targetColumnDatum?.name} {...props}>
               {getDataChart(
                 targetColumnDatum,
                 baseColumnDatum,

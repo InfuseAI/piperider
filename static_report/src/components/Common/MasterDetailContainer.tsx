@@ -20,7 +20,13 @@ export function MasterDetailContainer({ children, singleOnly }: Props) {
       templateColumns="minmax(200px, 400px) 1px minmax(420px, 100%)"
     >
       {/* Master Area */}
-      <GridItem overflowY={'auto'} maxHeight={mainContentAreaHeight} h={'100%'}>
+      <GridItem
+        overflowY={'auto'}
+        // maxHeight={mainContentAreaHeight}
+        position={'sticky'}
+        top={65}
+        maxHeight="calc(100vh - 65px)"
+      >
         <MasterSideNav
           initAsExpandedTables={initAsExpandedTables}
           tableColEntryList={tableColEntries}
@@ -28,13 +34,7 @@ export function MasterDetailContainer({ children, singleOnly }: Props) {
         />
       </GridItem>
       <Divider orientation="vertical" />
-      <GridItem
-        overflowY={'auto'}
-        maxHeight={mainContentAreaHeight}
-        width="100%"
-        h={'100%'}
-        p={9}
-      >
+      <GridItem maxHeight={mainContentAreaHeight} width="100%" h={'100%'} p={9}>
         {children}
       </GridItem>
     </Grid>
