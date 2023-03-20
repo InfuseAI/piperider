@@ -51,11 +51,11 @@ export function MasterSideNav({
   const [matchColumn, paramsColumn] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
 
   if (matchTable) {
-    currentTable = paramsTable.tableName;
+    currentTable = paramsTable.tableName as string;
   }
   if (matchColumn) {
-    currentTable = paramsColumn.tableName;
-    currentColumn = paramsColumn.columnName;
+    currentTable = paramsColumn.tableName as string;
+    currentColumn = paramsColumn.columnName as string;
   }
 
   //initial state depends on position of current table in tableColEntryList

@@ -21,7 +21,8 @@ export function TableItemAccordionButton({
 }: TableItemAccordionButtonProps) {
   const tableName = (targetTable || baseTable)?.name;
   const [match, params] = useRoute(TABLE_DETAILS_ROUTE_PATH);
-  const isActive = match && tableName === decodeURIComponent(params.tableName);
+  const isActive =
+    match && tableName === decodeURIComponent(params.tableName as string);
 
   return (
     <h2>
