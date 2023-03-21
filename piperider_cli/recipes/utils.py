@@ -67,7 +67,11 @@ def git_checkout_to(commit_or_branch):
 def git_merge_base(a: str, b: str):
     outs, errs, exit_code = _execute_command(f"git merge-base {a} {b}")
     if exit_code != 0:
-        raise RecipeException(errs)
+        ex = RecipeException(errs)
+        if outs == '' and errs == '':
+            ex.message = 'Empty result from git merge-base'
+            ex.hint = 'Please try "git fetch --unshallow" first'
+        raise ex
     return outs
 
 
