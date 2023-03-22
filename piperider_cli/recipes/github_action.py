@@ -31,11 +31,12 @@ def make_recipe_command():
     api_token = os.environ.get("INPUT_CLOUD_API_TOKEN")
     if api_token:
         # TODO check login success or failed
-        print("piperider cloud login --token $INPUT_CLOUD_API_TOKEN")
-
         project = os.environ.get("INPUT_CLOUD_PROJECT")
+
         if project:
-            print("piperider cloud select-project --project $INPUT_CLOUD_PROJECT")
+            print(f"piperider cloud login --token {api_token} --project {project}")
+        else:
+            print(f"piperider cloud login --token {api_token}")
 
         share = os.environ.get("INPUT_SHARE", "false")
         if share == "true":
