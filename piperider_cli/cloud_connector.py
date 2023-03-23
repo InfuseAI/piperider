@@ -593,7 +593,7 @@ class CloudConnector:
 
         def _select_project_by_rich(project_list: list) -> PipeRiderProject:
             console = Console()
-            console.print(f'[[yellow]?[/yellow]] Please select a project as default project:')
+            console.print('[[yellow]?[/yellow]] Please select a project as default project:')
             i = 0
             for p in project_list:
                 i += 1
@@ -620,7 +620,7 @@ class CloudConnector:
             existing_project_list = piperider_cloud.list_projects()
             if no_interaction is True:
                 if len(existing_project_list) == 0:
-                    console.print(f'[[bold red]Error[/bold red]] No project exists')
+                    console.print('[[bold red]Error[/bold red]] No project exists')
                     return 1
                 project = PipeRiderProject(existing_project_list[0])
             elif FANCY_USER_INPUT:
