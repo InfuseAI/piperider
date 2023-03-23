@@ -39,12 +39,12 @@ docker-build: require-VERSION
 	$(DOCKER_BUILD_CMD) --build-arg PIPERIDER_VERSION=${VERSION} -t piperider:${VERSION} .
 
 docker-deploy: docker-build
-	docker tag piperider:${VERSION}  infuseai/piperider:${VERSION}
-	docker push infuseai/piperider:${VERSION}
+	docker tag piperider:${VERSION}  piperider/piperider:${VERSION}
+	docker push piperider/piperider:${VERSION}
 
 docker-deploy-latest: docker-build
-	docker tag piperider:${VERSION}  infuseai/piperider:latest
-	docker push infuseai/piperider:latest
+	docker tag piperider:${VERSION}  piperider/piperider:latest
+	docker push piperider/piperider:latest
 
 generate-cli-docs:
 	@python3 -m piperider_cli.docgen
