@@ -58,7 +58,7 @@ class CloudServiceHelper:
     def update_config(self, options: dict):
         cloud_config = self.get_config()
         cloud_config.update(options)
-        update_user_profile({'cloud_config': cloud_config})
+        self.user_profile = update_user_profile({'cloud_config': cloud_config})
 
     def update_api_token(self):
         if self.api_token:

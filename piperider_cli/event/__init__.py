@@ -41,6 +41,7 @@ def update_user_profile(update_values):
     original.update(update_values)
     with open(PIPERIDER_USER_PROFILE, 'w+') as f:
         _yml.dump(original, f)
+    return original
 
 
 def _get_api_key():

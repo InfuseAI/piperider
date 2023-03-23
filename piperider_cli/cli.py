@@ -453,12 +453,17 @@ def signup(**kwargs):
 @click.option('--token', default=None, type=click.STRING, help='Specify the API token.')
 @click.option('--project', default=None, type=click.STRING, metavar='PROJECT_NAME',
               help='Specify the default project name.')
+@click.option('--no-interaction', default=False, is_flag=True, help='Disable interactive mode.')
 @add_options(debug_option)
 def login(**kwargs):
-    options = {}
+    options = {
+        'no_interaction': False,
+    }
 
     if kwargs.get('project') is not None:
         options['default_project'] = kwargs.get('project')
+    if kwargs.get('no_interaction') is True:
+        options['no_interaction'] = True
 
     ret = CloudConnector.login(api_token=kwargs.get('token'), options=options, debug=kwargs.get('debug', False))
     return ret
@@ -481,8 +486,10 @@ def list_projects(**kwargs):
 @cloud.command(short_help='Select a project on PipeRider Cloud as default project.', cls=TrackCommand)
 @click.option('--project', default=None, type=click.STRING, metavar='PROJECT_NAME',
               help='Specify the project name.')
+@click.option('--no-interaction', default=False, is_flag=True, help='Disable interactive mode.')
 @add_options(debug_option)
 def select_project(**kwargs):
     project_name = kwargs.get('project')
-    ret = CloudConnector.select_project(project_name=project_name)
+    no_interaction: bool = kwargs.get('no_interaction', False)
+    ret = CloudConnector.select_project(project_name=project_name, no_interaction=no_interaction)
     return ret
