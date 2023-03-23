@@ -169,8 +169,10 @@ def setup_cloud_default_config(options: dict = None):
             console.print(f'[[bold green]Config[/bold green]] Default project is set to \'{project_name}\'')
         else:
             console.print(f"[[yellow]Skip[/yellow]] Project '{project_name}' does not exist.")
+
     if piperider_cloud.config.get('default_project') is None:
-        CloudConnector.select_project()
+        no_interaction = options and options.get('no_interaction')
+        CloudConnector.select_project(no_interaction=no_interaction)
 
 
 def select_reports(report_dir=None, datasource=None) -> List[RunOutput]:
@@ -555,9 +557,12 @@ class CloudConnector:
         pass
 
     @staticmethod
-    def select_project(project_name: str = None, datasource: str = None, debug: bool = False) -> int:
+    def select_project(project_name: str = None,
+                       datasource: str = None,
+                       no_interaction: bool = False,
+                       debug: bool = False) -> int:
 
-        def _project_selector():
+        def _select_project_by_inquirer(project_list: list) -> PipeRiderProject:
             arrow_alias_msg = ''
             if sys.platform == "win32" or sys.platform == "cygwin":
                 # change readchar key UP & DOWN by 'w' and 's'
@@ -568,7 +573,7 @@ class CloudConnector:
             projects = [
                 (f"{p.get('workspace_name')}/{p.get('name')}" if p.get('workspace_name') else p.get('name'),
                  PipeRiderProject(p))
-                for p in piperider_cloud.list_projects()]
+                for p in project_list]
 
             if len(projects) == 1:
                 _, p = projects[0]
@@ -586,8 +591,42 @@ class CloudConnector:
                 return answers['selected_project']
             return None
 
+        def _select_project_by_rich(project_list: list) -> PipeRiderProject:
+            console = Console()
+            console.print(f'[[yellow]?[/yellow]] Please select a project as default project:')
+            i = 0
+            for p in project_list:
+                i += 1
+                if p.get('workspace_name'):
+                    project_name = f"{p.get('workspace_name')}/{p.get('name')}"
+                else:
+                    project_name = p.get('name')
+                console.print(f"[[blue]{i}[/blue]] {project_name}")
+
+            while True:
+                try:
+                    type_idx = Prompt.ask('[[yellow]?[/yellow]] Select a number')
+                    type_idx = int(type_idx)
+                except Exception:
+                    type_idx = 0
+                if type_idx > len(project_list) or type_idx < 1:
+                    console.print('    [[red]Error[/red]] Input is not a valid index value. Please try again.')
+                else:
+                    answer = PipeRiderProject(project_list[type_idx - 1])
+                    break
+            return answer if answer is not None else ''
+
         if project_name is None:
-            project = _project_selector()
+            existing_project_list = piperider_cloud.list_projects()
+            if no_interaction is True:
+                if len(existing_project_list) == 0:
+                    console.print(f'[[bold red]Error[/bold red]] No project exists')
+                    return 1
+                project = PipeRiderProject(existing_project_list[0])
+            elif FANCY_USER_INPUT:
+                project = _select_project_by_inquirer(existing_project_list)
+            else:
+                project = _select_project_by_rich(existing_project_list)
         else:
             project = piperider_cloud.get_project_by_name(project_name)
             if project is None:
