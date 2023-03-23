@@ -34,9 +34,9 @@ def make_recipe_command():
         project = os.environ.get("INPUT_CLOUD_PROJECT")
 
         if project:
-            print(f"piperider cloud login --token {api_token} --project {project}")
+            print(f"piperider cloud login --token {api_token} --project {project} --no-interaction")
         else:
-            print(f"piperider cloud login --token {api_token}")
+            print(f"piperider cloud login --token {api_token} --no-interaction")
 
         share = os.environ.get("INPUT_SHARE", "false")
         if share == "true":
@@ -59,7 +59,9 @@ def create_comment(github_token: str, repo: str, issue_number: str, body: str):
                                       "X-GitHub-Api-Version": "2022-11-28",
                                       "Authorization": f"token {github_token}"})
 
-    print(response.text)
+    if response.status_code != 201:
+        print("[Error] Failed to create pull-request comment", response.status_code, response.text)
+        sys.exit(1)
 
 
 def attach_comment():
@@ -88,12 +90,16 @@ Find it in the [Github Action Runs Page]({os.environ.get('GITHUB_ACTION_URL')})
 
 if __name__ == '__main__':
     function = sys.argv[-1]
-    if function == "prepare_for_action":
-        recipe = os.environ.get("INPUT_RECIPE")
-        prepare_for_action(recipe)
-    elif function == "make_recipe_command":
-        make_recipe_command()
-    elif function == "attach_comment":
-        attach_comment()
-    else:
-        print("Unknown command", sys.argv)
+    try:
+        if function == "prepare_for_action":
+            recipe = os.environ.get("INPUT_RECIPE")
+            prepare_for_action(recipe)
+        elif function == "make_recipe_command":
+            make_recipe_command()
+        elif function == "attach_comment":
+            attach_comment()
+        else:
+            raise Exception(f"Unknown command: {function}")
+    except Exception as e:
+        print(f"[Error] {e}")
+        sys.exit(1)
