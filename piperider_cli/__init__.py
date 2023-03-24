@@ -193,10 +193,14 @@ def get_run_json_path(output_dir: str, input=None):
     else:
         latest = os.path.join(output_dir, 'latest')
         run_json = os.path.join(latest, 'run.json')
-        if not os.path.isfile(run_json):
-            # TODO: optimize running complexity
-            dirs = [de for de in os.scandir(output_dir) if de.is_dir()]
-            dirs_to_ctime = {d: os.path.getctime(d.path) for d in dirs}
-            dirs_to_ctime = sorted(dirs_to_ctime.items(), key=lambda x: x[1], reverse=True)
-            run_json = os.path.join(output_dir, dirs_to_ctime[0][0].path, 'run.json')
+        if not os.path.isfile(run_json) and os.path.exists(output_dir):
+            latest_report_dir_ctime = 0
+            latest_report_dir = ''
+            for de in os.scandir(output_dir):
+                if not de.is_dir():
+                    continue
+                if os.path.getctime(de) > latest_report_dir_ctime:
+                    latest_report_dir_ctime = os.path.getctime(de)
+                    latest_report_dir = de.path
+            run_json = os.path.join(output_dir, latest_report_dir, 'run.json')
     return run_json
