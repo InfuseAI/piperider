@@ -6,7 +6,7 @@ from base64 import b64encode
 
 from rich.console import Console
 
-from piperider_cli import __version__, open_report_in_browser, sentry_dns, sentry_env, event
+from piperider_cli import __version__, open_report_in_browser, sentry_dns, sentry_env, event, get_run_json_path
 from piperider_cli import clone_directory, raise_exception_when_directory_not_writable
 from piperider_cli.configuration import Configuration
 from piperider_cli.error import PipeRiderNoProfilingResultError
@@ -65,23 +65,6 @@ def _generate_static_html(result, html, output_path):
         f.write(html)
 
 
-def _get_run_json_path(filesystem: FileSystem, input=None):
-    console = Console()
-    run_json = None
-    if input:
-        if not os.path.exists(input):
-            console.print(f'[bold red]Error: {input} not found[/bold red]')
-            return
-        if os.path.isdir(input):
-            run_json = os.path.join(input, 'run.json')
-        else:
-            run_json = input
-    else:
-        latest = os.path.join(filesystem.get_output_dir(), 'latest')
-        run_json = os.path.join(latest, 'run.json')
-    return run_json
-
-
 class GenerateReport:
     @staticmethod
     def exec(input=None, report_dir=None, output=None, open_report=None, open_in_cloud=None):
@@ -95,7 +78,7 @@ class GenerateReport:
         with open(os.path.join(report_template_dir, 'index.html')) as f:
             report_template_html = f.read()
 
-        run_json_path = _get_run_json_path(filesystem, input)
+        run_json_path = get_run_json_path(filesystem.get_output_dir(), input)
         if not os.path.isfile(run_json_path):
             print(os.path.abspath(run_json_path))
             raise PipeRiderNoProfilingResultError(run_json_path)

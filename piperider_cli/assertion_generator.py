@@ -2,31 +2,13 @@ import json
 import os
 
 from rich.console import Console
-from rich.table import Table
 
-from piperider_cli import raise_exception_when_directory_not_writable
+from piperider_cli import raise_exception_when_directory_not_writable, get_run_json_path
 from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.error import PipeRiderNoProfilingResultError
 from piperider_cli.filesystem import FileSystem
 
 console = Console()
-
-
-def _get_run_json_path(filesystem: FileSystem, input=None):
-    console = Console()
-    run_json = None
-    if input:
-        if not os.path.exists(input):
-            console.print(f'[bold red]Error: {input} not found[/bold red]')
-            return
-        if os.path.isdir(input):
-            run_json = os.path.join(input, 'run.json')
-        else:
-            run_json = input
-    else:
-        latest = os.path.join(filesystem.get_output_dir(), 'latest')
-        run_json = os.path.join(latest, 'run.json')
-    return run_json
 
 
 def _validate_input_result(result):
@@ -42,7 +24,7 @@ class AssertionGenerator():
         filesystem = FileSystem(report_dir=report_dir)
         raise_exception_when_directory_not_writable(report_dir)
 
-        run_json_path = _get_run_json_path(filesystem, input_path)
+        run_json_path = get_run_json_path(filesystem.get_output_dir(), input_path)
         if not os.path.isfile(run_json_path):
             raise PipeRiderNoProfilingResultError(run_json_path)
 
