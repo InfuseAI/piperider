@@ -580,10 +580,25 @@ def prepare_default_output_path(filesystem: FileSystem, created_at):
     # Create a symlink pointing to the latest comparison directory
     if os.path.islink(latest_symlink_path):
         os.unlink(latest_symlink_path)
+
+    console = Console()
     if not os.path.exists(latest_symlink_path):
-        os.symlink(latest_source, latest_symlink_path)
+        try:
+            os.symlink(latest_source, latest_symlink_path)
+        except OSError as e:
+            """
+            System Error Codes:
+                ERROR_PRIVILEGE_NOT_HELD
+                1314 (0x522)
+                A required privilege is not held by the client.
+                https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--1300-1699-
+            """
+            if e.winerror is not None and e.winerror == 1314:
+                console.print(
+                    f'[bold yellow]Warning:[/bold yellow] {e}. To solve this, run piperider as an administrator')
+            else:
+                raise e
     else:
-        console = Console()
         console.print(f'[bold yellow]Warning: {latest_symlink_path} already exists[/bold yellow]')
 
     return comparison_path
@@ -778,8 +793,13 @@ class CompareReport(object):
         default_report_directory = prepare_default_output_path(filesystem, data_id)
         output_report(default_report_directory)
         output_summary(default_report_directory, summary_data)
-        report_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'index.html')
-        summary_md_path = os.path.join(filesystem.get_comparison_dir(), 'latest', 'summary.md')
+
+        comparison_dir = filesystem.get_comparison_dir()
+        report_path = os.path.join(comparison_dir, 'latest', 'index.html')
+        summary_md_path = os.path.join(comparison_dir, 'latest', 'summary.md')
+        if not os.path.exists(os.path.join(comparison_dir, 'latest')):
+            report_path = os.path.join(default_report_directory, 'index.html')
+            summary_md_path = os.path.join(default_report_directory, 'summary.md')
 
         if enable_share:
             if report.a.cloud is None or report.b.cloud is None:

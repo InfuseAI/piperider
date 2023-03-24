@@ -435,10 +435,25 @@ def prepare_default_output_path(filesystem: FileSystem, created_at, ds):
     # Create a symlink pointing to the latest output directory
     if os.path.islink(latest_symlink_path):
         os.unlink(latest_symlink_path)
+
+    console = Console()
     if not os.path.exists(latest_symlink_path):
-        os.symlink(latest_source, latest_symlink_path)
+        try:
+            os.symlink(latest_source, latest_symlink_path)
+        except OSError as e:
+            """
+            System Error Codes:
+                ERROR_PRIVILEGE_NOT_HELD
+                1314 (0x522)
+                A required privilege is not held by the client.
+                https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--1300-1699-
+            """
+            if e.winerror is not None and e.winerror == 1314:
+                console.print(
+                    f'[bold yellow]Warning:[/bold yellow] {e}. To solve this, run piperider as an administrator')
+            else:
+                raise e
     else:
-        console = Console()
         console.print(f'[bold yellow]Warning: {latest_symlink_path} already exists[/bold yellow]')
 
     return output_path
