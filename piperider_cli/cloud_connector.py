@@ -243,11 +243,10 @@ def upload_to_cloud(run: RunOutput, debug=False, project: PipeRiderProject = Non
 
     if response.get('success') is True:
         run_id = response.get('id')
+        report_url = response.get('url')
         if run_id:
-            report_url = f'{piperider_cloud.service.cloud_host}/{project.workspace_name}/{project.name}/runs/{run_id}'
             _patch_cloud_upload_response(run.path, project, run_id)
-        else:
-            report_url = 'N/A'
+
         return {
             'success': True,
             'message': response.get("message"),
@@ -281,14 +280,10 @@ def get_run_report_id(project: PipeRiderProject, report_key: str) -> Optional[in
     return None
 
 
-def create_compare_reports(base_id: int, target_id: int, tables_from, project: PipeRiderProject = None) -> dict:
+def create_compare_reports(base_id: str, target_id: str, tables_from, project: PipeRiderProject = None) -> dict:
     if project is None:
         project = piperider_cloud.get_default_project()
     response = piperider_cloud.compare_reports(base_id, target_id, tables_from, project=project)
-    if response:
-        url = f'{piperider_cloud.service.cloud_host}/{project.workspace_name}/{project.name}/runs/{base_id}/comparison/{target_id}'
-        response['url'] = url
-
     return response
 
 
