@@ -52,8 +52,10 @@ export default function SRColumnDetailPage() {
   const { type, histogram, schema_type } = columnDatum || {};
   const { backgroundColor, icon } = getIconForColumnType(columnDatum);
 
-  if (!tableName || !dataTable || !currentTableEntry) {
-    return <NoData text={`No profile data found for '${tableName}'`} />;
+  if (!tableName || !dataTable || !currentTableEntry || !columnDatum) {
+    return (
+      <NoData text={`No profile data found for '${tableName}.${columnName}'`} />
+    );
   }
 
   const hasQuantile = containsColumnQuantile(type);

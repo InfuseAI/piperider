@@ -4,6 +4,7 @@ import { MasterDetailContainer } from '../components/Common/MasterDetailContaine
 
 import { NotFound } from '../components/Common/NotFound';
 import { useHashLocation } from '../hooks/useHashLcocation';
+import { ComparisonReportSchema } from '../types';
 import { useReportStore } from '../utils';
 import {
   ASSERTIONS_ROUTE_PATH,
@@ -21,13 +22,18 @@ import { CRHomePage } from './CRHomePage';
 import CRTableDetailPage from './CRTableDetailPage';
 import { CRTablesListPage } from './CRTableListPage';
 
-export function CRPage({ data }) {
+interface Props {
+  data: ComparisonReportSchema;
+  sideNavTop?: string;
+}
+
+export function CRPage({ data, sideNavTop = '0px' }: Props) {
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData(data);
 
   return (
     <Router hook={useHashLocation as BaseLocationHook}>
-      <MasterDetailContainer>
+      <MasterDetailContainer sideNavTop={sideNavTop}>
         <Switch>
           <Route path={HOME_ROUTE_PATH}>
             <CRHomePage />

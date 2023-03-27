@@ -24,16 +24,15 @@ export function ReportContextBar({
 }: Props & FlexProps) {
   return (
     <Flex
-      p={2}
       w={'100%'}
       gap={5}
       justify={'space-between'}
       alignItems={'center'}
       bg={'gray.100'}
       border={borderVal}
-      borderRadius={'lg'}
-      my={2}
-      px={5}
+      borderX={0}
+      px="80px"
+      py="10px"
       {...props}
     >
       <Flex gap={5}>

@@ -6,9 +6,15 @@ import { MasterSideNav } from '../Columns/MasterSideNav';
 
 interface Props extends Comparable {
   children: ReactNode;
+  singleOnly?: boolean;
+  sideNavTop?: string;
 }
 //NOTE: Only for OSS usage. Reusable for Cloud?
-export function MasterDetailContainer({ children, singleOnly }: Props) {
+export function MasterDetailContainer({
+  children,
+  singleOnly,
+  sideNavTop = '0px',
+}: Props) {
   const initAsExpandedTables = true;
 
   const { tableColumnsOnly: tableColEntries = [] } = useReportStore.getState();
@@ -24,8 +30,8 @@ export function MasterDetailContainer({ children, singleOnly }: Props) {
         overflowY={'auto'}
         // maxHeight={mainContentAreaHeight}
         position={'sticky'}
-        top={65}
-        maxHeight="calc(100vh - 65px)"
+        top={sideNavTop}
+        maxHeight={`calc(100vh - ${sideNavTop})`}
       >
         <MasterSideNav
           initAsExpandedTables={initAsExpandedTables}

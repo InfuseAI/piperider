@@ -42,7 +42,7 @@ function AppSingle() {
   return (
     <Suspense fallback={<Loading />}>
       <Main isSingleReport>
-        <SRPage data={data} />
+        <SRPage data={data} sideNavTop="46px" />
       </Main>
     </Suspense>
   );
@@ -55,7 +55,7 @@ function AppComparison() {
   return (
     <Suspense fallback={<Loading />}>
       <Main isSingleReport={false}>
-        <CRPage data={data} />
+        <CRPage data={data} sideNavTop="46px" />
       </Main>
     </Suspense>
   );
