@@ -102,11 +102,12 @@ class GenerateReport:
         if output:
             output_report(output)
             shutil.copyfile(run_json_path, os.path.join(output, os.path.basename(run_json_path)))
-            console.print(f"Report generated in {output}/index.html")
+            console.print(f"Report generated in {os.path.join(output, 'index.html')}")
         else:
-            console.print(f"Report generated in {default_output_directory}/index.html")
+            console.print(f"Report generated in {os.path.join(default_output_directory, 'index.html')}")
 
         # only open the local file report if auto-upload is OFF
         if open_report and not open_in_cloud:
-            result_output = f"{os.path.abspath(output) if output else default_output_directory}/index.html"
+            result_output = f"{os.path.abspath(output) if output else default_output_directory}"
+            result_output = os.path.join(result_output, 'index.html')
             open_report_in_browser(result_output)
