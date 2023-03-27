@@ -281,6 +281,20 @@ class PipeRiderCloud:
 
             return response.json()
 
+    def share_run_report(self, workspace_name: str, project_name: str, run_id: int):
+        if not self.available:
+            self.raise_error()
+
+        url = self.service.url(
+            f'/api/v2/workspaces/{workspace_name}/projects/{project_name}/runs/{run_id}/share')
+        headers = self.service.auth_headers()
+        response = requests.post(url, headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        return response.json()
+
     def compare_reports(self, base_id: int, target_id: int, tables_from, project: PipeRiderProject):
         if not self.available:
             self.raise_error()

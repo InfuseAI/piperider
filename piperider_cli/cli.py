@@ -158,6 +158,7 @@ def diagnose(**kwargs):
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
 @click.option('--project', default=None, type=click.STRING, help='Specify the project name to upload.')
+@click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
 @add_options(debug_option)
 def run(**kwargs):
@@ -167,6 +168,7 @@ def run(**kwargs):
     table = kwargs.get('table')
     output = kwargs.get('output')
     open_report = kwargs.get('open')
+    enable_share = kwargs.get('share')
     skip_report = kwargs.get('skip_report')
     dbt_state_dir = kwargs.get('dbt_state')
     dbt_list = kwargs.get('dbt_list')
@@ -204,16 +206,19 @@ def run(**kwargs):
                       dbt_resources=dbt_resources,
                       report_dir=kwargs.get('report_dir'))
     if ret in (0, EC_ERR_TEST_FAILED):
+        if enable_share:
+            force_upload = True
+
         auto_upload = CloudConnector.is_auto_upload()
         is_cloud_view = (force_upload or auto_upload)
 
-        if CloudConnector.is_login() and is_cloud_view:
-            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
-                                                open_report=open_report, force_upload=force_upload,
-                                                auto_upload=auto_upload, project_name=project_name)
-
         if not skip_report:
             GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report, is_cloud_view)
+
+        if CloudConnector.is_login() and is_cloud_view:
+            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
+                                                open_report=open_report, enable_share=enable_share,
+                                                project_name=project_name)
     if ret != 0:
         sys.exit(ret)
     return ret
@@ -254,6 +259,7 @@ def generate_report(**kwargs):
 @click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
               help='Specify the datasource.')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
+@click.option('--summary-file', default=None, type=click.STRING, help='Output the comparison summary markdown file.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--tables-from', default='all',
               type=click.Choice(['all', 'target-only', 'base-only'], case_sensitive=False),
@@ -262,6 +268,7 @@ def generate_report(**kwargs):
 @click.option('--project', default=None, type=click.STRING,
               help='Specify the project name to upload.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
+@click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
 @add_options(debug_option)
 def compare_reports(**kwargs):
     'Compare two existing reports selected in interactive mode or by option.'
@@ -271,11 +278,13 @@ def compare_reports(**kwargs):
     last = kwargs.get('last')
     datasource = kwargs.get('datasource')
     tables_from = kwargs.get('tables_from')
+    summary_file = kwargs.get('summary_file')
+    open_report = kwargs.get('open')
     force_upload = kwargs.get('upload')
     enable_share = kwargs.get('share')
     project_name = kwargs.get('project')
 
-    if enable_share:
+    if enable_share or CloudConnector.is_auto_upload():
         force_upload = True
 
     if force_upload is True and CloudConnector.is_login() is False:
@@ -285,9 +294,10 @@ def compare_reports(**kwargs):
         )
 
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
-                       report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), tables_from=tables_from,
-                       force_upload=force_upload, enable_share=enable_share, project_name=project_name,
-                       debug=kwargs.get('debug', False), show_progress=True)
+                       report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), summary_file=summary_file,
+                       tables_from=tables_from, force_upload=force_upload, enable_share=enable_share,
+                       open_report=open_report, project_name=project_name, debug=kwargs.get('debug', False),
+                       show_progress=True)
 
 
 @cli.group('config', short_help='Manage the PipeRider configurations.')
@@ -406,6 +416,7 @@ def cloud_compare_reports(**kwargs):
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--summary-file', default=None, type=click.STRING, help='Output the comparison summary markdown file.')
+@click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
 @add_options(debug_option)
 def compare_with_recipe(**kwargs):
     """
@@ -416,6 +427,7 @@ def compare_with_recipe(**kwargs):
     summary_file = kwargs.get('summary_file')
     force_upload = kwargs.get('upload')
     enable_share = kwargs.get('share')
+    open_report = kwargs.get('open')
     debug = kwargs.get('debug', False)
 
     if enable_share:
@@ -435,6 +447,8 @@ def compare_with_recipe(**kwargs):
                            summary_file=summary_file,
                            force_upload=force_upload,
                            enable_share=enable_share,
+                           open_report=open_report,
+                           show_progress=True,
                            debug=debug)
     except Exception as e:
         raise e
