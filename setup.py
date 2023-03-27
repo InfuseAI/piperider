@@ -55,11 +55,7 @@ setup(name='piperider',
               'psycopg2-binary'
           ],
           'bigquery': [
-              'pyarrow<6.1.0,>=6.0.0',
-              'pytz',
-              'pybigquery',
-              'google-cloud-bigquery-storage',
-
+              'sqlalchemy-bigquery',
           ],
           'redshift': [
               'sqlalchemy-redshift',
