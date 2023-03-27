@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
 
-from piperider_cli import datetime_to_str, open_report_in_browser, str_to_datetime
+from piperider_cli import datetime_to_str, open_report_in_browser, str_to_datetime, get_run_json_path
 from piperider_cli.cloud import PipeRiderCloud, PipeRiderProject
 from piperider_cli.compare_report import CompareReport, RunOutput
 from piperider_cli.datasource import FANCY_USER_INPUT
@@ -360,7 +360,7 @@ class CloudConnector:
     def upload_latest_report(report_dir=None, debug=False, open_report=False, enable_share=False,
                              project_name: str = None) -> int:
         filesystem = FileSystem(report_dir=report_dir)
-        latest_report_path = os.path.join(filesystem.get_output_dir(), 'latest', 'run.json')
+        latest_report_path = get_run_json_path(filesystem.get_output_dir())
         return CloudConnector.upload_report(latest_report_path, debug=debug, open_report=open_report,
                                             enable_share=enable_share, project_name=project_name)
 

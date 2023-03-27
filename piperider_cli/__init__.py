@@ -7,6 +7,7 @@ import webbrowser
 from datetime import datetime
 
 from dateutil import tz
+from rich.console import Console
 from ruamel import yaml
 
 PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
@@ -177,3 +178,29 @@ def open_report_in_browser(report_path='', is_cloud_path=False):
     except yaml.YAMLError as e:
         print(e)
         return None
+
+
+def get_run_json_path(output_dir: str, input=None):
+    console = Console()
+    if input:
+        if not os.path.exists(input):
+            console.print(f'[bold red]Error: {input} not found[/bold red]')
+            return
+        if os.path.isdir(input):
+            run_json = os.path.join(input, 'run.json')
+        else:
+            run_json = input
+    else:
+        latest = os.path.join(output_dir, 'latest')
+        run_json = os.path.join(latest, 'run.json')
+        if not os.path.isfile(run_json) and os.path.exists(output_dir):
+            latest_report_dir_ctime = 0
+            latest_report_dir = ''
+            for de in os.scandir(output_dir):
+                if not de.is_dir():
+                    continue
+                if os.path.getctime(de) > latest_report_dir_ctime:
+                    latest_report_dir_ctime = os.path.getctime(de)
+                    latest_report_dir = de.path
+            run_json = os.path.join(output_dir, latest_report_dir, 'run.json')
+    return run_json
