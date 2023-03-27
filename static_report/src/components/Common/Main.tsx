@@ -3,7 +3,7 @@ import { useEffect, ReactNode } from 'react';
 import * as amplitude from '@amplitude/analytics-browser';
 
 import { Navbar } from './Navbar';
-import { borderVal, useReportStore } from '../../utils';
+import { useReportStore } from '../../utils';
 import { ReportContextBar } from '../Reports';
 
 interface Props extends FlexProps {
@@ -41,8 +41,7 @@ export function Main({ children, isSingleReport, ...props }: Props) {
         <ReportContextBar
           datasource={fallback?.datasource.name}
           version={fallback?.version}
-          px={3}
-          borderBottom={borderVal}
+          px="96px"
           showProjectInfo
         ></ReportContextBar>
       </Box>
