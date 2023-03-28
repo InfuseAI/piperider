@@ -1,4 +1,5 @@
 import os
+import sys
 from abc import ABCMeta
 from typing import Dict, List
 
@@ -222,18 +223,21 @@ def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type=
         if debug:
             console.print(f"Exit code: {exit_code}")
         if exit_code != 0:
-            raise Exception(f"Recipe dbt command failed: '{cmd}' with exit code: {exit_code}")
+            console.print(
+                f"[bold yellow]Warning: [/bold yellow] Recipe dbt command failed: '{cmd}' with exit code: {exit_code}")
+            sys.exit(exit_code)
         console.print()
 
     # model.piperider.commands
     for cmd in model.piperider.commands or []:
-
         console.print(f"Run: \[{cmd}]")
         exit_code = execute_command(cmd, model.piperider.envs())
         if debug:
             console.print(f"Exit code: {exit_code}")
         if exit_code != 0:
-            raise Exception(f"Recipe piperider command failed: '{cmd}' with exit code: {exit_code}")
+            console.print(
+                f"[bold yellow]Warning: [/bold yellow] Recipe piperider command failed: '{cmd}' with exit code: {exit_code}")
+            sys.exit(exit_code)
         console.print()
 
 
