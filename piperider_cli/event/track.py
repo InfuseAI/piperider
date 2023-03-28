@@ -74,11 +74,23 @@ class TrackCommand(Command):
         except Exception as e:
             if _enable_trackback:
                 print(traceback.format_exc())
-            self._show_error_message(e, ctx.params)
+
             if isinstance(e, PipeRiderError):
                 if e.hint:
                     self._show_hint_message(e.hint)
-            sentry_sdk.capture_exception(e)
+
+            ignored = False
+            if isinstance(e, EOFError):
+                ignored = True
+                self._show_error_message(
+                    f"The '{ctx.command.name}' command could not be executed "
+                    f"due to the unavailability of STDIN, which is required to receive user input.", ctx.params)
+            else:
+                ignored = False
+                self._show_error_message(e, ctx.params)
+
+            if not ignored:
+                sentry_sdk.capture_exception(e)
             sentry_sdk.flush()
             sys.exit(1)
         finally:
