@@ -124,10 +124,10 @@ class MetricEngine:
                 divisors = [f'nullif({divisor}, 0)' for divisor in expression_list[1:]]
                 expression = f"{dividend} / {'/'.join(divisors)}"
 
-            return select([
+            return select(
                 cte.c.d,
                 literal_column(expression).label(metric_column_name)
-            ]).select_from(
+            ).select_from(
                 selectable
             ).order_by(
                 cte.c.d,
@@ -146,10 +146,10 @@ class MetricEngine:
             # 4. Filter according to metric filters
             start_date = self.date_trunc(grain, func.current_date()) - self._interval(grain,
                                                                                       self._slot_count_by_grain(grain))
-            stmt = select([
+            stmt = select(
                 literal_column(metric.expression).label('c'),
                 self.date_trunc(grain, func.cast(literal_column(metric.timestamp), Date)).label('d'),
-            ]).select_from(
+            ).select_from(
                 source_model
             ).where(
                 func.cast(literal_column(metric.timestamp), Date) >= start_date
@@ -178,10 +178,10 @@ class MetricEngine:
             else:
                 return None
 
-            agg_model = select([
+            agg_model = select(
                 base_model.c.d,
                 agg_expression.label('m')
-            ]).select_from(
+            ).select_from(
                 base_model
             ).group_by(
                 base_model.c.d
@@ -190,14 +190,14 @@ class MetricEngine:
             metric_column = agg_model.c.m
             if metric.calculation_method in ['count', 'count_distinct', 'sum']:
                 metric_column = case(
-                    [(metric_column.is_(None), 0)],
+                    (metric_column.is_(None), 0),
                     else_=metric_column
                 )
 
-            return select([
+            return select(
                 date_spine_model.c.d,
                 metric_column.label(metric_column_name)
-            ]).select_from(
+            ).select_from(
                 outerjoin(date_spine_model, agg_model, date_spine_model.c.d == agg_model.c.d)
             ).order_by(
                 date_spine_model.c.d
@@ -233,14 +233,14 @@ class MetricEngine:
         n = self._slot_count_by_grain(grain)
         dates = []
         for i in range(n):
-            one_date = select([
+            one_date = select(
                 (self.date_trunc(grain, func.current_date()) - self._interval(grain, i + 1)).label('d')
-            ])
+            )
             dates.append(one_date)
 
-        current_date = select([
+        current_date = select(
             self.date_trunc(grain, func.current_date()).label('d')
-        ])
+        )
 
         return union_all(*dates, current_date)
 

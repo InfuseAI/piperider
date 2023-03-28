@@ -249,7 +249,7 @@ class TableProfiler:
                     # add array cte to cte map
                     cte_name = '__'.join(comps)
                     stmt = select(
-                        [literal_column(f"`{name}`.*", column.type)]
+                        literal_column(f"`{name}`.*", column.type)
                     ).select_from(
                         selectable
                     ).select_from(
@@ -260,7 +260,7 @@ class TableProfiler:
                     # array cte
                     cte_name = '__'.join(comps)
                     selectable = select(
-                        [literal_column(f"`{name}`", column.type.item_type)]
+                        literal_column(f"`{name}`", column.type.item_type)
                     ).select_from(
                         selectable
                     ).select_from(
@@ -273,7 +273,7 @@ class TableProfiler:
                 # add cte to ctep map
                 cte_name = '__'.join(comps)
                 stmt = select(
-                    [literal_column(f"`{selectable.name}`.`{name}`.*", column.type)]
+                    literal_column(f"`{selectable.name}`.`{name}`.*", column.type)
                 ).select_from(
                     selectable
                 ).cte("t_" + cte_name)
@@ -294,13 +294,13 @@ class TableProfiler:
                                                   column_clause('table_schema'), column_clause('table_name'),
                                                   schema='INFORMATION_SCHEMA')
                     metadata_columns = {column.name: column for column in metadata_table.columns}
-                    stmt = select([
+                    stmt = select(
                         metadata_columns['row_count'],
                         func.convert_timezone('UTC', metadata_columns['created']),
                         func.convert_timezone('UTC', metadata_columns['last_altered']),
                         metadata_columns['bytes']
-                    ]).select_from(metadata_table).where(metadata_columns['table_schema'] == str.upper(default_schema),
-                                                         metadata_columns['table_name'] == str.upper(table.name))
+                    ).select_from(metadata_table).where(metadata_columns['table_schema'] == str.upper(default_schema),
+                                                        metadata_columns['table_name'] == str.upper(table.name))
                     row_count, created, last_altered, size_bytes = conn.execute(stmt).fetchone()
                     # datetime object transformation
                     created = created.isoformat()
@@ -311,12 +311,12 @@ class TableProfiler:
                                                   column_clause("creation_time"), column_clause("last_modified_time"),
                                                   column_clause("size_bytes"), column_clause('table_id'))
                     metadata_columns = {column.name: column for column in metadata_table.columns}
-                    stmt = select([
+                    stmt = select(
                         metadata_columns['row_count'],
                         metadata_columns['creation_time'],
                         metadata_columns['last_modified_time'],
                         metadata_columns['size_bytes']
-                    ]).select_from(metadata_table).where(metadata_columns['table_id'] == table.name)
+                    ).select_from(metadata_table).where(metadata_columns['table_id'] == table.name)
                     row_count, created, last_altered, size_bytes = conn.execute(stmt).fetchone()
                     # timestamp transformation
                     created = datetime.fromtimestamp(created / 1000.0, timezone.utc).isoformat()
@@ -325,10 +325,10 @@ class TableProfiler:
                     metadata_table = table_clause('SVV_TABLE_INFO', column_clause("tbl_rows"),
                                                   column_clause("size"), column_clause("table"))
                     metadata_columns = {column.name: column for column in metadata_table.columns}
-                    stmt = select([
+                    stmt = select(
                         metadata_columns['tbl_rows'],
                         metadata_columns['size'],
-                    ]).select_from(metadata_table).where(metadata_columns['table'] == table.name)
+                    ).select_from(metadata_table).where(metadata_columns['table'] == table.name)
                     row_count, size_mbytes = conn.execute(stmt).fetchone()
                     row_count = int(row_count)
                     size_bytes = size_mbytes * 1024
@@ -337,9 +337,9 @@ class TableProfiler:
                 pass
             finally:
                 if row_count is None:
-                    stmt = select([
+                    stmt = select(
                         func.count(),
-                    ]).select_from(table)
+                    ).select_from(table)
                     row_count, = conn.execute(stmt).fetchone()
 
         result['row_count'] = result['samples'] = row_count
@@ -373,31 +373,31 @@ class TableProfiler:
         with self.engine.connect() as conn:
             if self.engine.url.get_backend_name() == 'snowflake':
                 if limit <= 0:
-                    cte = select([func.hash(*columns).label('h')]).select_from(table).cte()
+                    cte = select(func.hash(*columns).label('h')).select_from(table).cte()
                 else:
-                    cte = select([func.hash(*columns).label('h')]).select_from(table).limit(limit).cte()
+                    cte = select(func.hash(*columns).label('h')).select_from(table).limit(limit).cte()
 
-                cte = select([
+                cte = select(
                     cte.c.h,
                     func.count().label('c')
-                ]).select_from(cte).group_by(cte.c.h).having(func.count() > 1).cte()
-                stmt = select([func.sum(cte.c.c)]).select_from(cte)
+                ).select_from(cte).group_by(cte.c.h).having(func.count() > 1).cte()
+                stmt = select(func.sum(cte.c.c)).select_from(cte)
                 duplicate_rows, = conn.execute(stmt).fetchone()
             else:
                 if limit <= 0:
-                    cte = select([
+                    cte = select(
                         *columns,
                         func.count().label('c')
-                    ]).select_from(table).group_by(*columns).having(func.count() > 1).cte()
+                    ).select_from(table).group_by(*columns).having(func.count() > 1).cte()
                 else:
-                    cte = select([*columns]).select_from(table).limit(limit).cte()
+                    cte = select(*columns).select_from(table).limit(limit).cte()
                     columns = [column for column in cte.columns]
-                    cte = select([
+                    cte = select(
                         *columns,
                         func.count().label('c')
-                    ]).select_from(cte).group_by(*columns).having(func.count() > 1).cte()
+                    ).select_from(cte).group_by(*columns).having(func.count() > 1).cte()
 
-                stmt = select([func.sum(cte.c.c)]).select_from(cte)
+                stmt = select(func.sum(cte.c.c)).select_from(cte)
                 duplicate_rows, = conn.execute(stmt).fetchone()
 
             samples = result['samples']
@@ -561,7 +561,7 @@ class BaseColumnProfiler:
         if limit <= 0:
             return t, c
         else:
-            cte = select([c.label('c')]).select_from(t).limit(limit).cte()
+            cte = select(c.label('c')).select_from(t).limit(limit).cte()
             return cte, cte.c.c
 
     def _get_table_cte(self) -> CTE:
@@ -587,7 +587,7 @@ class BaseColumnProfiler:
         """
         t, c = self._get_limited_table_cte()
 
-        return select([c.label("c")]).select_from(t).cte()
+        return select(c.label("c")).select_from(t).cte()
 
     def profile(self) -> dict:
         """
@@ -598,10 +598,10 @@ class BaseColumnProfiler:
 
         with self.engine.connect() as conn:
             cte = self._get_table_cte()
-            stmt = select([
+            stmt = select(
                 func.count().label("_total"),
                 func.count(cte.c.c).label("_non_nulls"),
-            ])
+            )
             result = conn.execute(stmt).fetchone()
             _total, _non_nulls, = result
             _nulls = _total - _non_nulls
@@ -629,29 +629,29 @@ class StringColumnProfiler(BaseColumnProfiler):
     def _get_table_cte(self) -> CTE:
         t, c = self._get_limited_table_cte()
         if self._get_database_backend() != 'sqlite':
-            cte = select([
+            cte = select(
                 c.label("c"),
                 c.label("orig")
-            ]).select_from(t).cte()
+            ).select_from(t).cte()
         else:
-            cte = select([
+            cte = select(
                 case(
-                    [(func.typeof(c) == 'blob', None)],
+                    (func.typeof(c) == 'blob', None),
                     else_=c
                 ).label("c"),
                 c.label("orig"),
-            ]).select_from(t).cte()
-        cte = select([
+            ).select_from(t).cte()
+        cte = select(
             cte.c.c,
             func.length(cte.c.c).label("len"),
             cte.c.orig
-        ]).select_from(cte).cte()
-        cte = select([
+        ).select_from(cte).cte()
+        cte = select(
             cte.c.c,
             cte.c.len,
-            case([(cte.c.len == 0, 1)], else_=None).label("zero_length"),
+            case((cte.c.len == 0, 1), else_=None).label("zero_length"),
             cte.c.orig
-        ]).select_from(cte).cte()
+        ).select_from(cte).cte()
         return cte
 
     def profile(self):
@@ -673,7 +673,7 @@ class StringColumnProfiler(BaseColumnProfiler):
                 columns.append((func.count(cte.c.len) * func.sum(
                     func.cast(cte.c.len, Float) * func.cast(cte.c.len, Float)) - func.sum(cte.c.len) * func.sum(
                     cte.c.len)) / ((func.count(cte.c.len) - 1) * func.count(cte.c.len)).label('_variance'))
-                stmt = select(columns)
+                stmt = select(*columns)
                 result = conn.execute(stmt).fetchone()
                 _total, _non_nulls, _valids, _zero_length, _distinct, _avg, _min, _max, _variance = result
                 _stddev = None
@@ -681,7 +681,7 @@ class StringColumnProfiler(BaseColumnProfiler):
                     _stddev = math.sqrt(_variance)
             else:
                 columns.append(func.stddev(cte.c.len).label("_stddev"))
-                stmt = select(columns)
+                stmt = select(*columns)
                 result = conn.execute(stmt).fetchone()
                 _total, _non_nulls, _valids, _zero_length, _distinct, _avg, _min, _max, _stddev = result
 
@@ -758,25 +758,25 @@ class NumericColumnProfiler(BaseColumnProfiler):
     def _get_table_cte(self) -> CTE:
         t, c = self._get_limited_table_cte()
         if self._get_database_backend() != 'sqlite':
-            cte = select([
+            cte = select(
                 c.label("c"),
                 c.label("orig")
-            ]).select_from(t).cte()
+            ).select_from(t).cte()
         else:
-            cte = select([
+            cte = select(
                 case(
-                    [(func.typeof(c) == 'text', None),
-                     (func.typeof(c) == 'blob', None)],
+                    (func.typeof(c) == 'text', None),
+                    (func.typeof(c) == 'blob', None),
                     else_=c
                 ).label("c"),
                 c.label("orig")
-            ]).select_from(t).cte(name="T")
-        cte = select([
+            ).select_from(t).cte(name="T")
+        cte = select(
             cte.c.c,
-            case([(cte.c.c == 0, 1)], else_=None).label("zero"),
-            case([(cte.c.c < 0, 1)], else_=None).label("negative"),
+            case((cte.c.c == 0, 1), else_=None).label("zero"),
+            case((cte.c.c < 0, 1), else_=None).label("negative"),
             cte.c.orig
-        ]).select_from(cte).cte()
+        ).select_from(cte).cte()
         return cte
 
     def profile(self):
@@ -800,7 +800,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 columns.append((func.count(cte.c.c) * func.sum(
                     func.cast(cte.c.c, Float) * func.cast(cte.c.c, Float)) - func.sum(cte.c.c) * func.sum(cte.c.c)) / (
                                    (func.count(cte.c.c) - 1) * func.count(cte.c.c)).label('_variance'))
-                stmt = select(columns)
+                stmt = select(*columns)
                 result = conn.execute(stmt).fetchone()
                 _total, _non_nulls, _valids, _zeros, _negatives, _distinct, _sum, _avg, _min, _max, _variance = result
                 _stddev = None
@@ -808,7 +808,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
                     _stddev = math.sqrt(_variance)
             else:
                 columns.append(func.stddev(func.cast(cte.c.c, Float)).label("_stddev"))
-                stmt = select(columns)
+                stmt = select(*columns)
                 result = conn.execute(stmt).fetchone()
                 _total, _non_nulls, _valids, _zeros, _negatives, _distinct, _sum, _avg, _min, _max, _stddev = result
 
@@ -901,11 +901,11 @@ class NumericColumnProfiler(BaseColumnProfiler):
         # )
         # select n, min(c) from t group by n order by n
         n_bucket = total if total < 100 else 100
-        t = select([
+        t = select(
             column.label("c"),
             func.ntile(n_bucket).over(order_by=column).label("n")
-        ]).where(column.isnot(None)).select_from(table).cte()
-        stmt = select([t.c.n, func.min(t.c.c)]).group_by(t.c.n).order_by(t.c.n)
+        ).where(column.isnot(None)).select_from(table).cte()
+        stmt = select(t.c.n, func.min(t.c.c)).group_by(t.c.n).order_by(t.c.n)
         result = conn.execute(stmt)
         quantile = []
         for row in result:
@@ -930,9 +930,9 @@ class NumericColumnProfiler(BaseColumnProfiler):
         def ntile(n):
             offset = n * total // 100
 
-            stmt = select([
+            stmt = select(
                 column
-            ]).select_from(
+            ).select_from(
                 table
             ).where(
                 column.isnot(None)
@@ -1013,7 +1013,7 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 func.percentile_disc(percentile).within_group(column) for percentile in [0.05, 0.25, 0.5, 0.75, 0.95]
             ]
 
-        stmt = select(selects).select_from(table)
+        stmt = select(*selects).select_from(table)
         result = conn.execute(stmt).fetchone()
         return {
             'p5': dtof(result[0]),
@@ -1050,19 +1050,19 @@ class NumericColumnProfiler(BaseColumnProfiler):
             else:
                 cases += [(column < bound + interval / 100, i)]
 
-        cte_with_bucket = select([
+        cte_with_bucket = select(
             column.label("c"),
-            case(cases, else_=None).label("bucket")
-        ]).select_from(
+            case(*cases, else_=None).label("bucket")
+        ).select_from(
             table
         ).where(
             column.isnot(None)
         ).cte()
 
-        stmt = select([
+        stmt = select(
             cte_with_bucket.c.bucket,
             func.count().label("_count")
-        ]).group_by(
+        ).group_by(
             cte_with_bucket.c.bucket
         ).order_by(
             cte_with_bucket.c.bucket
@@ -1117,34 +1117,34 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
     def _get_table_cte(self) -> CTE:
         t, c = self._get_limited_table_cte()
         if self._get_database_backend() != 'sqlite':
-            cte = select([
+            cte = select(
                 c.label("c"),
                 c.label("orig")
-            ]).select_from(t).cte()
+            ).select_from(t).cte()
         else:
-            cte = select([
+            cte = select(
                 case(
-                    [(func.typeof(c) == 'text', func.datetime(c)),
-                     (func.typeof(c) == 'integer', func.datetime(c, 'unixepoch')),
-                     (func.typeof(c) == 'real', func.datetime(c, 'unixepoch'))],
+                    (func.typeof(c) == 'text', func.datetime(c)),
+                    (func.typeof(c) == 'integer', func.datetime(c, 'unixepoch')),
+                    (func.typeof(c) == 'real', func.datetime(c, 'unixepoch')),
                     else_=None
                 ).label("c"),
                 c.label("orig"),
-            ]).select_from(t).cte()
+            ).select_from(t).cte()
         return cte
 
     def profile(self):
         with self.engine.connect() as conn:
             cte = self._get_table_cte()
 
-            stmt = select([
+            stmt = select(
                 func.count().label("_total"),
                 func.count(cte.c.orig).label("_non_nulls"),
                 func.count(cte.c.c).label("_valids"),
                 func.count(distinct(cte.c.c)).label("_distinct"),
                 func.min(cte.c.c).label("_min"),
                 func.max(cte.c.c).label("_max"),
-            ])
+            )
             result = conn.execute(stmt).fetchone()
             _total, _non_nulls, _valids, _distinct, _min, _max = result
             _nulls = _total - _non_nulls
@@ -1258,7 +1258,7 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             interval = relativedelta(years=+interval_years)
             num_buckets = math.ceil((dmax.year - dmin.year) / interval.years)
 
-            cte = select([date_trunc("YEAR", column).label("d")]).select_from(table).cte()
+            cte = select(date_trunc("YEAR", column).label("d")).select_from(table).cte()
         elif days_delta > 60:
             _type = "monthly"
             interval = relativedelta(months=+1)
@@ -1266,19 +1266,19 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             dmax = date(max.year, max.month, 1) + interval
             period = relativedelta(dmax, dmin)
             num_buckets = (period.years * 12 + period.months)
-            cte = select([date_trunc("MONTH", column).label("d")]).select_from(table).cte()
+            cte = select(date_trunc("MONTH", column).label("d")).select_from(table).cte()
         else:
             _type = "daily"
             interval = relativedelta(days=+1)
             dmin = date(min.year, min.month, min.day)
             dmax = date(max.year, max.month, max.day) + interval
             num_buckets = (dmax - dmin).days
-            cte = select([date_trunc("DAY", column).label("d")]).select_from(table).cte()
+            cte = select(date_trunc("DAY", column).label("d")).select_from(table).cte()
 
-        stmt = select([
+        stmt = select(
             cte.c.d,
             func.count(cte.c.d).label("_count")
-        ]).group_by(
+        ).group_by(
             cte.c.d
         ).order_by(
             cte.c.d
@@ -1318,37 +1318,37 @@ class BooleanColumnProfiler(BaseColumnProfiler):
     def _get_table_cte(self) -> CTE:
         t, c = self._get_limited_table_cte()
         if self._get_database_backend() != 'sqlite':
-            cte = select([
+            cte = select(
                 c.label("c"),
                 c.label("orig")
-            ]).select_from(t).cte()
+            ).select_from(t).cte()
         else:
-            cte = select([
+            cte = select(
                 case(
-                    [(c == true(), c),
-                     (c == false(), c)],
+                    (c == true(), c),
+                    (c == false(), c),
                     else_=None
                 ).label("c"),
                 c.label("orig"),
-            ]).cte()
-        cte = select([
+            ).cte()
+        cte = select(
             cte.c.c,
-            case([(cte.c.c == true(), 1)], else_=None).label("true_count"),
+            case((cte.c.c == true(), 1), else_=None).label("true_count"),
             cte.c.orig
-        ]).select_from(cte).cte()
+        ).select_from(cte).cte()
         return cte
 
     def profile(self):
         cte = self._get_table_cte()
 
         with self.engine.connect() as conn:
-            stmt = select([
+            stmt = select(
                 func.count().label("_total"),
                 func.count(cte.c.orig).label("_non_nulls"),
                 func.count(cte.c.c).label("_valids"),
                 func.count(cte.c.true_count).label("_trues"),
                 func.count(distinct(cte.c.c)).label("_distinct"),
-            ]).select_from(cte)
+            ).select_from(cte)
             result = conn.execute(stmt).fetchone()
             _total, _non_nulls, _valids, _trues, _distinct = result
             _nulls = _total - _non_nulls
@@ -1384,7 +1384,7 @@ class UUIDColumnProfiler(BaseColumnProfiler):
 
     def _get_table_cte(self) -> CTE:
         t, c = self._get_limited_table_cte()
-        return select([c.label("c")]).select_from(t).cte()
+        return select(c.label("c")).select_from(t).cte()
 
     def profile(self):
         with self.engine.connect() as conn:
@@ -1396,7 +1396,7 @@ class UUIDColumnProfiler(BaseColumnProfiler):
                 func.count(distinct(cte.c.c)).label("_distinct"),
             ]
 
-            stmt = select(columns)
+            stmt = select(*columns)
             result = conn.execute(stmt).fetchone()
             _total, _non_nulls, _distinct = result
 
@@ -1440,10 +1440,10 @@ class UUIDColumnProfiler(BaseColumnProfiler):
 
 
 def profile_topk(conn, expr, k=50) -> dict:
-    stmt = select([
+    stmt = select(
         expr,
         func.count().label("_count")
-    ]).where(
+    ).where(
         expr.isnot(None)
     ).group_by(
         expr
@@ -1491,19 +1491,19 @@ def profile_histogram(
         else:
             cases += [(column < bound + interval / 100, i)]
 
-    cte_with_bucket = select([
+    cte_with_bucket = select(
         column.label("c"),
-        case(cases, else_=None).label("bucket")
-    ]).select_from(
+        case(*cases, else_=None).label("bucket")
+    ).select_from(
         table
     ).where(
         column.isnot(None)
     ).cte()
 
-    stmt = select([
+    stmt = select(
         cte_with_bucket.c.bucket,
         func.count().label("_count")
-    ]).group_by(
+    ).group_by(
         cte_with_bucket.c.bucket
     ).order_by(
         cte_with_bucket.c.bucket
@@ -1564,9 +1564,9 @@ def profile_non_duplicate(
     # select
     # count(c) as non_duplicate
     # from t;
-    cte = select([
+    cte = select(
         func.count(column).label("non_duplicates")
-    ]).select_from(
+    ).select_from(
         table
     ).where(
         column.isnot(None)
@@ -1576,6 +1576,6 @@ def profile_non_duplicate(
         func.count(column) == 1
     ).cte()
 
-    stmt = select([func.count(cte.c.non_duplicates)]).select_from(cte)
+    stmt = select(func.count(cte.c.non_duplicates)).select_from(cte)
     non_duplicates, = conn.execute(stmt).fetchone()
     return non_duplicates

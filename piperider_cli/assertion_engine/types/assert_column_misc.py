@@ -229,13 +229,13 @@ class AssertColumnValue(BaseAssertionType):
         c = t.columns[column]
 
         with context.engine.connect() as conn:
-            base = select([c.label('c')]).select_from(t)
+            base = select(c.label('c')).select_from(t)
             if samples:
                 base = base.limit(samples)
             cte = base.cte()
-            stmt = select([
+            stmt = select(
                 func.distinct(cte.c.c)
-            ]).select_from(
+            ).select_from(
                 cte
             ).where(
                 cte.c.c.isnot(None)
