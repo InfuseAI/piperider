@@ -761,12 +761,14 @@ class Runner():
         except Exception as e:
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
+        Statistics().reset()
         metrics = []
         if dbt_config:
             metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, dbt_config.get('tag', 'piperider'), dbt_resources)
 
+        console.rule('Metrics')
+        Statistics().display_statistic()
         if metrics:
-            console.rule('Metrics')
             run_result['metrics'] = MetricEngine(
                 ds,
                 metrics,

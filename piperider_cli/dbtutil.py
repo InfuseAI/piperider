@@ -250,7 +250,11 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
 
     def is_chosen(key, metric):
         if dbt_resources:
+            if key not in dbt_resources['metrics']:
+                Statistics().add_field_one('filter')
             return key in dbt_resources['metrics']
+        if dbt_tag not in metric.get('tags'):
+            Statistics().add_field_one('notag')
         return dbt_tag in metric.get('tags')
 
     metrics = []
@@ -271,11 +275,13 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
                    filters=metric.get('filters'), label=metric.get('label'), description=metric.get('description'))
 
         metric_map[key] = m
+        Statistics().add_field_one('total')
 
         if is_chosen(key, metric):
             if metric.get('window'):
                 console.print(
                     f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. Property 'window' is not supported.")
+                Statistics().add_field_one('nosupport')
                 continue
             metrics.append(m)
 
