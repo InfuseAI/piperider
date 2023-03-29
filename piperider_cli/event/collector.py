@@ -107,19 +107,15 @@ class Collector:
                 api_key=self._api_key,
                 events=o['unsend_events'],
             )
+            o['unsend_events'] = []
+            f.seek(0)
+            f.truncate()
+            f.write(json.dumps(o))
+        try:
+            requests.post(self._api_endpoint, json=payload)
+        except Exception:
             # TODO: handle exception when sending events
-            try:
-                ret = requests.post(self._api_endpoint, json=payload)
-                if ret.status_code == 200:
-                    o['unsend_events'] = []
-                    f.seek(0)
-                    f.truncate()
-                    f.write(json.dumps(o))
-                else:
-                    # TODO: handle error
-                    pass
-            except Exception:
-                pass
+            pass
 
     def _store_to_file(self, event):
         with portalocker.Lock(self._unsend_events_file, 'r+', timeout=5) as f:
