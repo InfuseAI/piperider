@@ -54,9 +54,7 @@ def _create_target_recipe(dbt_project_path=None, options: dict = None) -> Recipe
     """
     target = RecipeModel()
 
-    current_branch = git_branch()
-    if current_branch is not None and current_branch != 'main':
-        target.branch = current_branch
+    # The target branch should be empty by default
 
     dbt_project = _read_dbt_project_file(dbt_project_path)
     if dbt_project:

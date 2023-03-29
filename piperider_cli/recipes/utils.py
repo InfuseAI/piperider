@@ -1,4 +1,5 @@
 import os
+import re
 import shlex
 import subprocess
 from subprocess import Popen
@@ -71,6 +72,10 @@ def git_merge_base(a: str, b: str):
         if outs == '' and errs == '':
             ex.message = 'Empty result from git merge-base'
             ex.hint = 'Please try "git fetch --unshallow" first'
+        elif re.match(r'fatal: Not a valid object name (.*)', errs):
+            matched = re.match(r'fatal: Not a valid object name (.*)', errs)
+            ex.message = f'Invalid git branch: {matched.group(1)}'
+            ex.hint = f'Please check is the branch name \'{matched.group(1)}\' correct?'
         raise ex
     return outs
 
