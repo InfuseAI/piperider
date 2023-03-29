@@ -40,6 +40,11 @@ class SqliteDataSource(DataSource):
                 raise ValueError(f'Cannot find the sqlite at {sqlite_file}')
             return f"sqlite:///{sqlite_file}"
 
+    def engine_args(self):
+        return {
+            'isolation_level': 'AUTOCOMMIT',
+        }
+
     def verify_connector(self):
         # sqlite is builtin connector
         return None

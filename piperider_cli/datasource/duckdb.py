@@ -150,9 +150,12 @@ class CsvDataSource(DuckDBDataSource):
         # Load csv file as table
         sql_query = f"CREATE TABLE '{table_name}' AS SELECT * FROM read_csv_auto('{csv_path}')"
         try:
-            engine.execute('SET enable_progress_bar=true;')
-            engine.execute(sql_query)
-            engine.execute('SET enable_progress_bar=false;')
+            with engine.connect() as conn:
+                trans = conn.begin()
+                conn.execute(text('SET enable_progress_bar=true;'))
+                conn.execute(text(sql_query))
+                conn.execute(text('SET enable_progress_bar=false;'))
+                trans.commit()
         except Exception as e:
             if isinstance(e, DBAPIError) and e.args[0].endswith('Invalid Error: String value is not valid UTF8'):
                 encoding_detection = self.detect_file_encoding(csv_path)
@@ -210,29 +213,33 @@ class ParquetDataSource(DuckDBDataSource):
         type, parquet_path = self._extract_parquet_path()
         engine = super().create_engine(database)
 
-        if type == 'http':
-            # HTTP
-            engine.execute('INSTALL httpfs')
-            engine.execute('LOAD httpfs')
-            url = urlparse(parquet_path)
-            table_name = self._formalize_table_name(splitext(os.path.basename(url.path))[0])
-            pass
-        elif type == 's3':
-            # S3
-            s3_uri = urlparse(parquet_path)
-            engine.execute('INSTALL httpfs')
-            engine.execute('LOAD httpfs')
-            aws_access_key_id, aws_secret_access_key = get_aws_credentials()
-            engine.execute(f'set s3_access_key_id="{aws_access_key_id}"')
-            engine.execute(f'set s3_secret_access_key="{aws_secret_access_key}"')
-            engine.execute(f'set s3_region="{get_s3_bucket_region(s3_uri.netloc)}"')
-            table_name = self._formalize_table_name(splitext(os.path.basename(s3_uri.path))[0])
-        else:
-            # File
-            table_name = self._formalize_table_name(splitext(basename(parquet_path))[0])
+        with engine.connect() as conn:
+            trans = conn.begin()
 
-        sql_query = f"CREATE TABLE '{table_name}' AS SELECT * FROM read_parquet('{parquet_path}')"
-        engine.execute('SET enable_progress_bar=true;')
-        engine.execute(sql_query)
-        engine.execute('SET enable_progress_bar=false;')
+            if type == 'http':
+                # HTTP
+                conn.execute(text('INSTALL httpfs'))
+                conn.execute(text('LOAD httpfs'))
+                url = urlparse(parquet_path)
+                table_name = self._formalize_table_name(splitext(os.path.basename(url.path))[0])
+                pass
+            elif type == 's3':
+                # S3
+                s3_uri = urlparse(parquet_path)
+                conn.execute(text('INSTALL httpfs'))
+                conn.execute(text('LOAD httpfs'))
+                aws_access_key_id, aws_secret_access_key = get_aws_credentials()
+                conn.execute(text(f'set s3_access_key_id="{aws_access_key_id}"'))
+                conn.execute(text(f'set s3_secret_access_key="{aws_secret_access_key}"'))
+                conn.execute(text(f'set s3_region="{get_s3_bucket_region(s3_uri.netloc)}"'))
+                table_name = self._formalize_table_name(splitext(os.path.basename(s3_uri.path))[0])
+            else:
+                # File
+                table_name = self._formalize_table_name(splitext(basename(parquet_path))[0])
+
+            sql_query = f"CREATE TABLE '{table_name}' AS SELECT * FROM read_parquet('{parquet_path}')"
+            conn.execute(text('SET enable_progress_bar=true;'))
+            conn.execute(text(sql_query))
+            conn.execute(text('SET enable_progress_bar=false;'))
+            trans.commit()
         return engine

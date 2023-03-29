@@ -375,7 +375,7 @@ class TestProfiler:
             Column("str", String)
         ])
         with engine.connect() as conn:
-            conn.execute("insert into test values (x'A1B2')")
+            conn.execute(text("insert into test values (x'A1B2')"))
         profiler = Profiler(data_source)
         result = profiler.profile()["tables"]["test"]['columns']["str"]
         assert result["total"] == 7
@@ -434,11 +434,11 @@ class TestProfiler:
 
         create_table(self.engine, "test", data, columns=[Column("col", DateTime)])
         with engine.connect() as conn:
-            conn.execute("insert into test values (0)")
-            conn.execute("insert into test values (1.3)")
-            conn.execute("insert into test values ('abc')")
-            conn.execute("insert into test values ('2021-02-13')")
-            conn.execute("insert into test values (x'A1B2')")
+            conn.execute(text("insert into test values (0)"))
+            conn.execute(text("insert into test values (1.3)"))
+            conn.execute(text("insert into test values ('abc')"))
+            conn.execute(text("insert into test values ('2021-02-13')"))
+            conn.execute(text("insert into test values (x'A1B2')"))
         profiler = Profiler(data_source)
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 8
@@ -493,14 +493,14 @@ class TestProfiler:
 
         create_table(self.engine, "test", data, columns=[Column("col", Boolean)])
         with engine.connect() as conn:
-            conn.execute("PRAGMA ignore_check_constraints = 1")
-            conn.execute("insert into test values (0)")
-            conn.execute("insert into test values (1)")
-            conn.execute("insert into test values (2.3)")  # invalid
-            conn.execute("insert into test values ('1')")
-            conn.execute("insert into test values ('123')")  # invalid
-            conn.execute("insert into test values (x'A1B2')")  # invalid
-            conn.execute("insert into test values (NULL)")
+            conn.execute(text("PRAGMA ignore_check_constraints = 1"))
+            conn.execute(text("insert into test values (0)"))
+            conn.execute(text("insert into test values (1)"))
+            conn.execute(text("insert into test values (2.3)"))  # invalid
+            conn.execute(text("insert into test values ('1')"))
+            conn.execute(text("insert into test values ('123')"))  # invalid
+            conn.execute(text("insert into test values (x'A1B2')"))  # invalid
+            conn.execute(text("insert into test values (NULL)"))
         profiler = Profiler(data_source)
         result = profiler.profile()["tables"]["test"]['columns']["col"]
         assert result["total"] == 7

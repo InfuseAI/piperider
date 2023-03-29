@@ -85,7 +85,7 @@ class DataSource(metaclass=ABCMeta):
     def verify_connection(self):
         engine = self.get_engine_by_database()
         with engine.connect() as conn:
-            stmt = select([text('1 as id')])
+            stmt = select(text('1 as id'))
             conn.execute(stmt)
         return
 
