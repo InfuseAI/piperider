@@ -85,6 +85,14 @@ class TrackCommand(Command):
                 self._show_error_message(
                     f"The '{ctx.command.name}' command could not be executed "
                     f"due to the unavailability of STDIN, which is required to receive user input.", ctx.params)
+
+                if ctx.command.name in ['login', 'select_project']:
+                    self._show_hint_message("""
+Consider using the following options to select a project:
+
+    - To automatically select the first project, use `--no-interaction` option.
+    - To select a specific project, use the `--project` option by the project name.
+                    """.strip())
             else:
                 ignored = False
                 self._show_error_message(e, ctx.params)
