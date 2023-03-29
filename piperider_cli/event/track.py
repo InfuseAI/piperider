@@ -65,6 +65,7 @@ class TrackCommand(Command):
     def invoke(self, ctx: Context) -> t.Any:
         status = False
         try:
+            self._apply_project_parameters(ctx)
 
             ret = super(TrackCommand, self).invoke(ctx)
             if ret is None or ret == 0:
@@ -104,3 +105,8 @@ Consider using the following options to select a project:
         finally:
             event.log_usage_event(ctx.command.name, ctx.params, status)
             event.flush_events(ctx.command.name)
+
+    def _apply_project_parameters(self, ctx):
+        # sc-30888 use PIPERIDER_API_PROJECT if `--project` did not set
+        if 'project' in ctx.params and ctx.params.get('project') is None:
+            ctx.params['project'] = os.environ.get('PIPERIDER_API_PROJECT')
