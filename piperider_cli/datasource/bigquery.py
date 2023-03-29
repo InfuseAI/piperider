@@ -200,7 +200,8 @@ class BigQueryDataSource(DataSource):
         return reasons == [], reasons
 
     def to_database_url(self, database):
-        from pybigquery.sqlalchemy_bigquery import BigQueryDialect
+        from sqlalchemy_bigquery import BigQueryDialect
+
         BigQueryDialect.supports_statement_cache = True
 
         project = database
@@ -225,7 +226,7 @@ class BigQueryDataSource(DataSource):
 
     def verify_connector(self):
         try:
-            import pybigquery
+            import sqlalchemy_bigquery
 
             # do nothing when everything is ok
             return None

@@ -220,6 +220,15 @@ class TableProfiler:
                 yield table, column
 
     def _get_candidate_columns_bigquery(self) -> Tuple[Selectable, ColumnClause]:
+        from sqlalchemy_bigquery import STRUCT, ARRAY
+
+        # works around to fix the warning
+        # SAWarning: UserDefinedType STRUCT(array=ARRAY(STRUCT(item1=String(), item2=String()))) will not produce a cache key because the ``cache_ok``
+        # attribute is not set to True.  This can have significant performance implications including some performance degradations in comparison to prior SQLAlchemy versions.  Set this attribute to True if this type object's state is safe to use
+        # in a cache key, or False to disable this warning. (Background on this error at: https://sqlalche.me/e/14/cprf)
+        STRUCT.cache_ok = false
+        ARRAY.cache_ok = false
+
         table = self.table
         cte_map = dict()
 
@@ -236,40 +245,41 @@ class TableProfiler:
             selectable = cte_map.get(prefix)
 
             if isinstance(column.type, ARRAY):
-                if isinstance(column.type.item_type, JSON):
+                if isinstance(column.type.item_type, JSON) or isinstance(column.type.item_type, STRUCT):
                     # add array cte to cte map
                     cte_name = '__'.join(comps)
                     stmt = select(
-                        [literal_column(f"{name}.*", column.type)]
+                        [literal_column(f"`{name}`.*", column.type)]
                     ).select_from(
                         selectable
                     ).select_from(
-                        text(f"unnest({selectable.name}.{name}) as {name}")
+                        text(f"unnest(`{selectable.name}`.`{name}`) as `{name}`")
                     ).cte("t_" + cte_name)
                     cte_map[cte_name] = stmt
                 else:
                     # array cte
                     cte_name = '__'.join(comps)
                     selectable = select(
-                        [literal_column(f"{name}", column.type.item_type)]
+                        [literal_column(f"`{name}`", column.type.item_type)]
                     ).select_from(
                         selectable
                     ).select_from(
-                        text(f"unnest({selectable.name}.{name}) as {name}")
+                        text(f"unnest(`{selectable.name}`.`{name}`) as `{name}`")
                     ).cte("t_" + cte_name)
-                    yield selectable, literal_column(f"{selectable.name}.{name}", column.type).label(
+                    yield selectable, literal_column(f"`{selectable.name}`.`{name}`", column.type).label(
                         column.name)
-            elif isinstance(column.type, JSON):
+            elif isinstance(column.type, JSON) or isinstance(column.type, STRUCT):
+
                 # add cte to ctep map
                 cte_name = '__'.join(comps)
                 stmt = select(
-                    [literal_column(f"{selectable.name}.{name}.*", column.type)]
+                    [literal_column(f"`{selectable.name}`.`{name}`.*", column.type)]
                 ).select_from(
                     selectable
                 ).cte("t_" + cte_name)
                 cte_map[cte_name] = stmt
             else:
-                yield selectable, literal_column(f"{selectable.name}.{name}", column.type).label(column.name)
+                yield selectable, literal_column(f"`{selectable.name}`.`{name}`", column.type).label(column.name)
 
     def _profile_table_metadata(self, result: dict):
         table = self.table
