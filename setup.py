@@ -59,6 +59,7 @@ setup(name='piperider',
               'pytz',
               'pybigquery',
               'google-cloud-bigquery-storage',
+              'pyarrow',
 
           ],
           'redshift': [
