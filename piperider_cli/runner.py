@@ -586,6 +586,7 @@ def check_dbt_manifest_compatibility(ds: DataSource, dbt_state_dir: str):
     def filter_schema(model):
         model_schema = model.get('schema', '')
         return model_schema == schema or model_schema.startswith(f'{schema}_')
+
     filtered_models = list(filter(filter_schema, models))
 
     if len(models) != len(filtered_models):
@@ -619,9 +620,9 @@ def get_dbt_state_dir(dbt_state_dir, dbt_config, ds, dbt_run_results):
     if not dbtutil.is_dbt_state_ready(dbt_state_dir):
         return None, f"[bold red]Error:[/bold red] No available 'manifest.json' under '{dbt_state_dir}'"
 
-    if not check_dbt_manifest_compatibility(ds, dbt_state_dir):
-        return None, f"[bold red]Error:[/bold red] Target mismatched. " \
-                     f"Please run 'dbt compile -t {dbt_config.get('target')}' to generate the new manifest"
+    if os.environ.get('PIPERIDER_SKIP_TARGET_CHECK', None) != '1':
+        if not check_dbt_manifest_compatibility(ds, dbt_state_dir):
+            return None, f"[bold red]Error:[/bold red] Target mismatched. Please run 'dbt compile -t {dbt_config.get('target')}' to generate the new manifest, or set the environment variable 'PIPERIDER_SKIP_TARGET_CHECK=1' to skip the check."
 
     if dbt_run_results:
         if not dbtutil.is_dbt_run_results_ready(dbt_state_dir):
