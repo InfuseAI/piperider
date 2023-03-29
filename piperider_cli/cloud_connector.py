@@ -625,6 +625,8 @@ class CloudConnector:
                 try:
                     type_idx = Prompt.ask('[[yellow]?[/yellow]] Select a number')
                     type_idx = int(type_idx)
+                except EOFError as e:
+                    raise e
                 except Exception:
                     type_idx = 0
                 if type_idx > len(project_list) or type_idx < 1:

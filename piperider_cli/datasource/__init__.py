@@ -192,8 +192,11 @@ class DataSource(metaclass=ABCMeta):
             try:
                 type_idx = Prompt.ask('[[yellow]?[/yellow]] Select a number: ')
                 type_idx = int(type_idx)
+            except EOFError as e:
+                raise e
             except Exception:
                 type_idx = 0
+
             if type_idx > len(source_choices) or type_idx < 1:
                 console.print('    [[red]Error[/red]] Input is not a valid index value. Please try again.')
             else:
