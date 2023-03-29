@@ -11,6 +11,7 @@ from ruamel import yaml
 from piperider_cli import load_json, round_trip_load_yaml
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 from piperider_cli.error import RecipeConfigException
+from piperider_cli.recipes.utils import git_checkout_to
 
 PIPERIDER_RECIPES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'recipe_schema.json')
 PIPERIDER_RECIPES_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'compare')
@@ -265,7 +266,7 @@ def switch_merge_base_branch(a: str, b: str) -> str:
 
 def switch_branch(branch_name):
     from piperider_cli.recipes.utils import git_switch_to
-    git_switch_to(branch_name)
+    git_checkout_to(branch_name)
 
 
 def execute_configuration(cfg: RecipeConfiguration, debug=False):
@@ -280,10 +281,14 @@ def execute_configuration(cfg: RecipeConfiguration, debug=False):
 
     try:
         console.rule("Recipe executor: base phase")
-        execute_recipe(cfg.base, current_branch, recipe_type='base', debug=debug)
+        target_branch = cfg.target.branch or current_branch
+        execute_recipe(cfg.base, target_branch, recipe_type='base', debug=debug)
 
         console.rule("Recipe executor: target phase")
         execute_recipe(cfg.target, current_branch, recipe_type='target', debug=debug)
+    except Exception as e:
+        console.rule("Recipe executor: error occurred", style="red")
+        raise e
     finally:
         if current_branch is not None:
             # switch back to the original branch
