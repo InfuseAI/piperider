@@ -162,21 +162,24 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict):
             run_results_ids.append(result.get('unique_id'))
 
     def is_chosen(key, node):
+        statistics = Statistics()
         if dbt_resources:
-            if '.'.join(node.get('fqn')) not in dbt_resources['models']:
-                Statistics().add_field_one('filter')
-            return '.'.join(node.get('fqn')) in dbt_resources['models']
+            chosen = '.'.join(node.get('fqn')) in dbt_resources['models']
+            if not chosen:
+                statistics.add_field_one('filter')
+            return chosen
         else:
             if dbt_run_results and key not in run_results_ids:
-                Statistics().add_field_one('norun')
+                statistics.add_field_one('norun')
                 return False
             if tag:
-                if tag not in node.get('tags', []):
-                    Statistics().add_field_one('notag')
-                return tag in node.get('tags', [])
+                chosen = tag in node.get('tags', [])
+                if not chosen:
+                    statistics.add_field_one('notag')
+                return chosen
             config_material = node.get('config').get('materialized')
             if config_material not in material_whitelist:
-                Statistics().add_field_one(config_material)
+                statistics.add_field_one(config_material)
                 return False
             return True
 
@@ -249,13 +252,16 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
     manifest = _get_state_manifest(dbt_state_dir)
 
     def is_chosen(key, metric):
+        statistics = Statistics()
         if dbt_resources:
-            if key not in dbt_resources['metrics']:
-                Statistics().add_field_one('filter')
-            return key in dbt_resources['metrics']
-        if dbt_tag not in metric.get('tags'):
-            Statistics().add_field_one('notag')
-        return dbt_tag in metric.get('tags')
+            chosen = key in dbt_resources['metrics']
+            if not chosen:
+                statistics.add_field_one('filter')
+            return chosen
+        chosen = dbt_tag in metric.get('tags')
+        if not chosen:
+            statistics.add_field_one('notag')
+        return chosen
 
     metrics = []
     metric_map = {}
@@ -275,13 +281,14 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
                    filters=metric.get('filters'), label=metric.get('label'), description=metric.get('description'))
 
         metric_map[key] = m
-        Statistics().add_field_one('total')
+        statistics = Statistics()
+        statistics.add_field_one('total')
 
         if is_chosen(key, metric):
             if metric.get('window'):
                 console.print(
                     f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. Property 'window' is not supported.")
-                Statistics().add_field_one('nosupport')
+                statistics.add_field_one('nosupport')
                 continue
             metrics.append(m)
 

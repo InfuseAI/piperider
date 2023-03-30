@@ -750,7 +750,8 @@ class Runner():
                 subjects = list(filter(filter_fn, subjects))
 
         run_result = {}
-        Statistics().display_statistic()
+        statistics = Statistics()
+        statistics.display_statistic('profile', 'model')
         profiler = Profiler(ds, RichProfilerEventHandler([subject.name for subject in subjects]), configuration)
         try:
             profiler_result = profiler.profile(subjects)
@@ -761,13 +762,13 @@ class Runner():
         except Exception as e:
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
-        Statistics().reset()
+        statistics.reset()
         metrics = []
         if dbt_config:
             metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, dbt_config.get('tag', 'piperider'), dbt_resources)
 
         console.rule('Metrics')
-        Statistics().display_statistic()
+        statistics.display_statistic('query', 'metric')
         if metrics:
             run_result['metrics'] = MetricEngine(
                 ds,
