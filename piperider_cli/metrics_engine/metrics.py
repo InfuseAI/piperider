@@ -206,6 +206,11 @@ class MetricEngine:
     def _interval(self, grain: str, n):
         if self.data_source.type_name == 'bigquery':
             return text(f"interval {n} {grain}")
+        elif self.data_source.type_name == 'athena':
+            if grain == 'week':
+                return text(f"interval '{n * 7}' day")
+            else:
+                return text(f"interval '{n}' {grain}")
         else:
             if grain == 'quarter':
                 return text(f"interval '{n * 3} months'")
