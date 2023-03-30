@@ -967,8 +967,9 @@ class NumericColumnProfiler(BaseColumnProfiler):
         :param total:
         :return:
         """
+        backend = self._get_database_backend()
 
-        if self._get_database_backend() == 'sqlite':
+        if backend == 'sqlite':
             import sqlite3
             version = sqlite3.sqlite_version.split(".")
 
@@ -982,21 +983,26 @@ class NumericColumnProfiler(BaseColumnProfiler):
                 return self._profile_quantile_via_window_function(conn, table, column, total)
             else:
                 return self._profile_quantile_via_query_one_by_one(conn, table, column, total)
-        elif self._get_database_backend() == 'duckdb':
+        elif backend == 'duckdb':
             selects = [
                 func.approx_quantile(column, literal_column(f"{percentile}")) for percentile in
                 [0.05, 0.25, 0.5, 0.75, 0.95]
             ]
-        elif self._get_database_backend() == 'bigquery':
+        elif backend == 'bigquery':
             # BigQuery does not support WITHIN, change to use over
             #   Ref: https://github.com/great-expectations/great_expectations/blob/develop/great_expectations/dataset/sqlalchemy_dataset.py#L1019:9
             selects = [
                 func.percentile_disc(column, percentile).over() for percentile in [0.05, 0.25, 0.5, 0.75, 0.95]
             ]
-        elif self._get_database_backend() == 'redshift':
+        elif backend == 'redshift':
             # ref: https://docs.aws.amazon.com/redshift/latest/dg/r_APPROXIMATE_PERCENTILE_DISC.html
             selects = [
                 func.approximate_percentile_disc(percentile).within_group(column) for percentile in
+                [0.05, 0.25, 0.5, 0.75, 0.95]
+            ]
+        elif backend == 'awsathena':
+            selects = [
+                func.approx_percentile(column, percentile) for percentile in
                 [0.05, 0.25, 0.5, 0.75, 0.95]
             ]
         else:
