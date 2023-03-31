@@ -209,6 +209,8 @@ class MetricEngine:
         elif self.data_source.type_name == 'athena':
             if grain == 'week':
                 return text(f"interval '{n * 7}' day")
+            elif grain == 'quarter':
+                return text(f"interval '{n * 3}' month")
             else:
                 return text(f"interval '{n}' {grain}")
         else:
