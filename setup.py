@@ -63,6 +63,9 @@ setup(name='piperider',
               'psycopg2-binary',
               'boto3>=1.24.11',
           ],
+          'athena': [
+              'PyAthena[SQLAlchemy]'
+          ],
           'duckdb': duckdb_require_packages,
           'csv': duckdb_require_packages,
           'parquet': duckdb_require_packages,

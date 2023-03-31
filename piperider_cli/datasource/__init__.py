@@ -266,10 +266,12 @@ def _list_datasource_providers():
     from .redshift import RedshiftDataSource
     from .survey import UserSurveyMockDataSource
     from .duckdb import DuckDBDataSource, CsvDataSource, ParquetDataSource
+    from .athena import AthenaDataSource
     return {
         'snowflake': SnowflakeDataSource,
         'bigquery': BigQueryDataSource,
         'redshift': RedshiftDataSource,
+        'athena': AthenaDataSource,
         'postgres': PostgresDataSource,
         'sqlite': SqliteDataSource,
         'duckdb': DuckDBDataSource,
