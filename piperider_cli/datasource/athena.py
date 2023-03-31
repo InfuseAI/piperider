@@ -1,3 +1,5 @@
+from sqlalchemy.engine import URL
+
 from piperider_cli.error import PipeRiderConnectorError
 from . import DataSource
 from .field import TextField
@@ -7,10 +9,12 @@ class AthenaDataSource(DataSource):
     def __init__(self, name, **kwargs):
         super().__init__(name, 'athena', **kwargs)
         self.fields = [
-            TextField('region_name', description='Redshift IAM Role'),
-            TextField('database', description='Redshift Database Name'),
-            TextField('schema', description='Redshift Schema'),
-            TextField('s3_staging_dir', description='Redshift Schema'),
+            TextField('s3_staging_dir',
+                      description='S3 location to store Athena query results and metadata, e.g. s3://athena_query_result/prefix/'),
+            TextField('region_name', description='AWS region name of your Athena instance'),
+            TextField('database', description='Athena data catalog', default='awsdatacatalog'),
+            TextField('schema', description='Athena database'),
+
         ]
 
     def validate(self):
@@ -20,11 +24,12 @@ class AthenaDataSource(DataSource):
 
     def to_database_url(self, database):
         credential = self.credential
-        # database = credential.get('database')
+        catalog_name = credential.get('database')
         schema = credential.get('schema')
         region_name = credential.get('region_name')
         s3_staging_dir = credential.get('s3_staging_dir')
-        return f"awsathena+rest://athena.{region_name}.amazonaws.com:443/{schema}?s3_staging_dir={s3_staging_dir}"
+
+        return f"awsathena+rest://athena.{region_name}.amazonaws.com:443/{schema}?s3_staging_dir={s3_staging_dir}&catalog_name={catalog_name}"
 
     def verify_connector(self):
         try:
