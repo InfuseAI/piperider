@@ -29,6 +29,7 @@ from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.filesystem import FileSystem
 from piperider_cli.metrics_engine import MetricEngine, MetricEventHandler
 from piperider_cli.profiler import Profiler, ProfilerEventHandler, ProfileSubject
+from piperider_cli.statistics import Statistics
 
 
 class RunEventPayload:
@@ -606,8 +607,10 @@ def get_dbt_profile_subjects(dbt_state_dir, options, filter_fn):
         database = node.get('database')
         subjects.append(ProfileSubject(table, schema, database, name))
 
+    total = len(subjects)
     if not options.get('dbt_resources') and options.get('tag') is None:
         subjects = list(filter(filter_fn, subjects))
+        Statistics().add_field('filter', total - len(subjects))
 
     return subjects
 
@@ -723,6 +726,7 @@ class Runner():
                 subjects = [ProfileSubject(table_name, schema)]
             else:
                 subjects = [ProfileSubject(table)]
+            Statistics().add_field('total', len(subjects))
         else:
             def filter_fn(subject: ProfileSubject):
                 return _filter_subject(subject.name, configuration.includes, configuration.excludes)
@@ -747,7 +751,8 @@ class Runner():
                 subjects = list(filter(filter_fn, subjects))
 
         run_result = {}
-
+        statistics = Statistics()
+        statistics.display_statistic('profile', 'model')
         profiler = Profiler(ds, RichProfilerEventHandler([subject.name for subject in subjects]), configuration)
         try:
             profiler_result = profiler.profile(subjects)
@@ -758,12 +763,14 @@ class Runner():
         except Exception as e:
             raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
+        statistics.reset()
         metrics = []
         if dbt_config:
             metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, dbt_config.get('tag', 'piperider'), dbt_resources)
 
+        console.rule('Metrics')
+        statistics.display_statistic('query', 'metric')
         if metrics:
-            console.rule('Metrics')
             run_result['metrics'] = MetricEngine(
                 ds,
                 metrics,

@@ -14,6 +14,7 @@ from piperider_cli.error import \
     DbtProfileInvalidError, \
     DbtProfileBigQueryAuthWithTokenUnsupportedError
 from piperider_cli.metrics_engine import Metric
+from piperider_cli.statistics import Statistics
 
 console = Console()
 
@@ -161,21 +162,31 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict):
             run_results_ids.append(result.get('unique_id'))
 
     def is_chosen(key, node):
+        statistics = Statistics()
         if dbt_resources:
-            return '.'.join(node.get('fqn')) in dbt_resources['models']
+            chosen = '.'.join(node.get('fqn')) in dbt_resources['models']
+            if not chosen:
+                statistics.add_field_one('filter')
+            return chosen
         else:
             if dbt_run_results and key not in run_results_ids:
+                statistics.add_field_one('norun')
                 return False
             if tag:
-                return tag in node.get('tags', [])
+                chosen = tag in node.get('tags', [])
+                if not chosen:
+                    statistics.add_field_one('notag')
+                return chosen
             config_material = node.get('config').get('materialized')
             if config_material not in material_whitelist:
+                statistics.add_field_one(config_material)
                 return False
             return True
 
     for key, node in nodes.items():
         if node.get('resource_type') not in resource_whitelist:
             continue
+        Statistics().add_field_one('total')
         if not is_chosen(key, node):
             continue
         candidate.append(node)
@@ -241,9 +252,16 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
     manifest = _get_state_manifest(dbt_state_dir)
 
     def is_chosen(key, metric):
+        statistics = Statistics()
         if dbt_resources:
-            return key in dbt_resources['metrics']
-        return dbt_tag in metric.get('tags')
+            chosen = key in dbt_resources['metrics']
+            if not chosen:
+                statistics.add_field_one('filter')
+            return chosen
+        chosen = dbt_tag in metric.get('tags')
+        if not chosen:
+            statistics.add_field_one('notag')
+        return chosen
 
     metrics = []
     metric_map = {}
@@ -263,11 +281,14 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
                    filters=metric.get('filters'), label=metric.get('label'), description=metric.get('description'))
 
         metric_map[key] = m
+        statistics = Statistics()
+        statistics.add_field_one('total')
 
         if is_chosen(key, metric):
             if metric.get('window'):
                 console.print(
                     f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. Property 'window' is not supported.")
+                statistics.add_field_one('nosupport')
                 continue
             metrics.append(m)
 
