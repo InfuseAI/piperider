@@ -79,6 +79,8 @@ class GenerateReport:
             report_template_html = f.read()
 
         run_json_path = get_run_json_path(filesystem.get_output_dir(), input)
+        if os.path.islink(os.path.dirname(run_json_path)):
+            run_json_path = os.path.realpath(run_json_path)
         if not os.path.isfile(run_json_path):
             print(os.path.abspath(run_json_path))
             raise PipeRiderNoProfilingResultError(run_json_path)
