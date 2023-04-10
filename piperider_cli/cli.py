@@ -216,9 +216,9 @@ def run(**kwargs):
             GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report, is_cloud_view)
 
         if CloudConnector.is_login() and is_cloud_view:
-            CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
-                                                open_report=open_report, enable_share=enable_share,
-                                                project_name=project_name)
+            ret = CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
+                                                      open_report=open_report, enable_share=enable_share,
+                                                      project_name=project_name)
     if ret != 0:
         sys.exit(ret)
     return ret
