@@ -8,7 +8,7 @@ from jsonschema.exceptions import ValidationError
 from rich.console import Console
 from ruamel import yaml
 
-from piperider_cli import load_json, round_trip_load_yaml
+from piperider_cli import load_json, round_trip_load_yaml, load_jinja_template
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 from piperider_cli.error import RecipeConfigException
 from piperider_cli.recipes.utils import git_checkout_to
@@ -140,7 +140,14 @@ class RecipeConfiguration:
 
     @classmethod
     def load(cls, path: str) -> 'RecipeConfiguration':
-        content = round_trip_load_yaml(path)
+        template = load_jinja_template(path)
+        try:
+            yml = yaml.YAML()
+            yml.allow_duplicate_keys = True
+            content = yml.load(template.render())
+        except Exception:
+            raise
+
         if content is None:
             raise Exception("Recipe content is empty")
 
