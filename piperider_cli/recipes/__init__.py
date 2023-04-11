@@ -99,6 +99,8 @@ class RecipeModel:
 
         # git branch name
         self.branch: str = content.get('branch')
+        if content.get('file') is not None:
+            self.file: str = content.get('file')
         self.dbt: RecipeDbtField = RecipeDbtField(content.get('dbt'))
         self.piperider: RecipePiperiderField = RecipePiperiderField(content.get('piperider'))
         self.cloud: RecipeCloudField = RecipeCloudField(content.get('cloud'))
@@ -107,6 +109,8 @@ class RecipeModel:
         d = dict()
         if self.branch:
             d['branch'] = self.branch
+        if self.file:
+            d['file'] = self.file
         if self.dbt:
             d['dbt'] = self.dbt.__dict__()
         if self.piperider:
@@ -156,12 +160,12 @@ class RecipeConfiguration:
         base = RecipeModel(content['base'])
         target = RecipeModel(content['target'])
 
-        if len(base.piperider.commands) == 0:
+        if not hasattr(base, 'file') and len(base.piperider.commands) == 0:
             raise RecipeConfigException(
                 message="Base piperider commands is empty.",
                 hint="Please modify the recipe file.")
 
-        if len(target.piperider.commands) == 0:
+        if not hasattr(target, 'file') and len(target.piperider.commands) == 0:
             raise RecipeConfigException(
                 message="Target piperider commands is empty.",
                 hint="Please modify the recipe file.")
@@ -209,6 +213,10 @@ def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type=
     2. run dbt commands
     3. run piperider commands
     """
+
+    if hasattr(model, 'file'):
+        console.print(f"Select {recipe_type} report: [{model.file}]")
+        return
 
     if recipe_type == 'base':
         a_branch = model.branch

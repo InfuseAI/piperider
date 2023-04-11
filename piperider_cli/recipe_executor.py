@@ -29,3 +29,5 @@ class RecipeExecutor():
                 raise FileNotFoundError(f"Cannot find the recipe '{recipe_name}'")
         cfg = RecipeConfiguration.load(recipe_path)
         execute_configuration(cfg, debug=debug)
+
+        return cfg

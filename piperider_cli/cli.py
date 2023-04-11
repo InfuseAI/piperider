@@ -6,7 +6,7 @@ import sentry_sdk
 from rich.console import Console
 
 import piperider_cli.dbtutil as dbtutil
-from piperider_cli import __version__, sentry_dns, sentry_env, event
+from piperider_cli import __version__, sentry_dns, sentry_env, event, get_run_json_path
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
@@ -16,10 +16,12 @@ from piperider_cli.event import UserProfileConfigurator
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.feedback import Feedback
+from piperider_cli.filesystem import FileSystem
 from piperider_cli.generate_report import GenerateReport
 from piperider_cli.guide import Guide
 from piperider_cli.initializer import Initializer
 from piperider_cli.recipe_executor import RecipeExecutor
+from piperider_cli.recipes import RecipeConfiguration
 from piperider_cli.runner import Runner
 from piperider_cli.validator import Validator
 
@@ -441,8 +443,35 @@ def compare_with_recipe(**kwargs):
 
     ret = 0
     try:
-        RecipeExecutor.exec(recipe_name=recipe, debug=debug)
-        CompareReport.exec(a=None, b=None, last=True, datasource=None,
+        recipe_config: RecipeConfiguration = RecipeExecutor.exec(recipe_name=recipe, debug=debug)
+        last = False
+        base = target = None
+        if not hasattr(recipe_config.base, 'file') and not hasattr(recipe_config.target, 'file'):
+            last = True
+        elif not hasattr(recipe_config.base, 'file'):
+            filesystem = FileSystem()
+            base = get_run_json_path(filesystem.get_output_dir())
+            target = recipe_config.target.file
+        elif not hasattr(recipe_config.target, 'file'):
+            filesystem = FileSystem()
+            target = get_run_json_path(filesystem.get_output_dir())
+            base = recipe_config.base.file
+        else:
+            base = recipe_config.base.file
+            target = recipe_config.target.file
+
+        if not last:
+            files = []
+            if not os.path.isfile(base):
+                files.append(base)
+            if not os.path.isfile(target):
+                files.append(target)
+            if len(files) > 0:
+                console = Console()
+                console.print(f"[bold red]File not found:[/bold red] {', '.join(files)}")
+                return 1
+
+        CompareReport.exec(a=base, b=target, last=last, datasource=None,
                            output=kwargs.get('output'), tables_from="all",
                            summary_file=summary_file,
                            force_upload=force_upload,
