@@ -2,6 +2,8 @@ import { Flex, Icon, Image, Link, Text } from '@chakra-ui/react';
 import { FiSquare, FiColumns } from 'react-icons/fi';
 import { NO_VALUE } from '../Columns';
 import { useReportStore } from '../../utils/store';
+import { HelpMenu } from './HelpMenu';
+
 type Props = {
   isSingleReport: boolean;
 };
@@ -42,6 +44,10 @@ export function Navbar({ isSingleReport }: Props) {
         <Text whiteSpace="nowrap" px="32px">
           {reportDisplayTime || NO_VALUE}
         </Text>
+      </Flex>
+
+      <Flex position="absolute" right="96px" zIndex={100}>
+        <HelpMenu feedbackLink="https://docs.google.com/forms/d/e/1FAIpQLSe0J8qC78lqMVxSAJFPub6QXx2NcVY8WLvIVEGthOeQcJHxFQ/viewform?usp=pp_url&entry.2024961102=PipeRider+Local+Reports" />
       </Flex>
     </Flex>
   );
