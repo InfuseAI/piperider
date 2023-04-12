@@ -215,7 +215,7 @@ def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type=
     """
 
     if hasattr(model, 'file'):
-        console.print(f"Select {recipe_type} report: [{model.file}]")
+        console.print(f"Select {recipe_type} report: \[{model.file}]")
         return
 
     if recipe_type == 'base':
