@@ -8,9 +8,10 @@ from jsonschema.exceptions import ValidationError
 from rich.console import Console
 from ruamel import yaml
 
-from piperider_cli import load_json, round_trip_load_yaml, load_jinja_template
+from piperider_cli import load_json, load_jinja_template, get_run_json_path
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 from piperider_cli.error import RecipeConfigException
+from piperider_cli.filesystem import FileSystem
 from piperider_cli.recipes.utils import git_checkout_to
 
 PIPERIDER_RECIPES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'recipe_schema.json')
@@ -119,6 +120,32 @@ class RecipeModel:
             d['cloud'] = self.cloud.__dict__()
         return d
 
+    def is_file_specified(self):
+        return hasattr(self, 'file')
+
+    def is_branch_specified(self):
+        return self.branch is not None
+
+    def is_piperider_commands_specified(self):
+        return len(self.piperider.commands) > 0
+
+    def validate_recipe(self):
+        if (self.is_branch_specified() or self.is_piperider_commands_specified()) and self.is_file_specified():
+            raise RecipeConfigException(
+                message="Both 'file' and 'branch/piperider commands' are specified.",
+                hint="Please modify the recipe file to use either one of them.")
+
+        if not self.is_file_specified() and len(self.piperider.commands) == 0:
+            raise RecipeConfigException(
+                message="No 'file' and 'branch/piperider commands' are given.",
+                hint="Please modify the recipe file to use either 'file' or 'branch/piperider commands.'")
+
+    def get_run_report(self):
+        if not self.is_file_specified():
+            filesystem = FileSystem()
+            return get_run_json_path(filesystem.get_output_dir())
+        return self.file
+
 
 class RecipeConfiguration:
     def __init__(self, base: RecipeModel, target: RecipeModel):
@@ -160,15 +187,8 @@ class RecipeConfiguration:
         base = RecipeModel(content['base'])
         target = RecipeModel(content['target'])
 
-        if not hasattr(base, 'file') and len(base.piperider.commands) == 0:
-            raise RecipeConfigException(
-                message="Base piperider commands is empty.",
-                hint="Please modify the recipe file.")
-
-        if not hasattr(target, 'file') and len(target.piperider.commands) == 0:
-            raise RecipeConfigException(
-                message="Target piperider commands is empty.",
-                hint="Please modify the recipe file.")
+        base.validate_recipe()
+        target.validate_recipe()
 
         return cls(
             base=base,
@@ -214,7 +234,7 @@ def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type=
     3. run piperider commands
     """
 
-    if hasattr(model, 'file'):
+    if model.is_file_specified():
         console.print(f"Select {recipe_type} report: \[{model.file}]")
         return
 

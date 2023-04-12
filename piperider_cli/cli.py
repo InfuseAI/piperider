@@ -16,7 +16,6 @@ from piperider_cli.event import UserProfileConfigurator
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.feedback import Feedback
-from piperider_cli.filesystem import FileSystem
 from piperider_cli.generate_report import GenerateReport
 from piperider_cli.guide import Guide
 from piperider_cli.initializer import Initializer
@@ -446,21 +445,12 @@ def compare_with_recipe(**kwargs):
         recipe_config: RecipeConfiguration = RecipeExecutor.exec(recipe_name=recipe, debug=debug)
         last = False
         base = target = None
-        if not hasattr(recipe_config.base, 'file') and not hasattr(recipe_config.target, 'file'):
+        if not recipe_config.base.is_file_specified() and not recipe_config.target.is_file_specified():
             last = True
-        elif not hasattr(recipe_config.base, 'file'):
-            filesystem = FileSystem()
-            base = get_run_json_path(filesystem.get_output_dir())
-            target = recipe_config.target.file
-        elif not hasattr(recipe_config.target, 'file'):
-            filesystem = FileSystem()
-            target = get_run_json_path(filesystem.get_output_dir())
-            base = recipe_config.base.file
         else:
-            base = recipe_config.base.file
-            target = recipe_config.target.file
+            base = recipe_config.base.get_run_report()
+            target = recipe_config.target.get_run_report()
 
-        if not last:
             files = []
             if not os.path.isfile(base):
                 files.append(base)
