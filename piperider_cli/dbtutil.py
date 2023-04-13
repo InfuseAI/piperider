@@ -305,13 +305,13 @@ def load_dbt_project(path: str):
     if not path.endswith('dbt_project.yml'):
         path = os.path.join(path, 'dbt_project.yml')
 
-    with open(path, 'r') as fd:
-        try:
-            yml = yaml.YAML()
-            yml.allow_duplicate_keys = True
-            return yml.load(fd)
-        except Exception as e:
-            raise DbtProjectInvalidError(path, e)
+    template = load_jinja_template(path)
+    try:
+        yml = yaml.YAML()
+        yml.allow_duplicate_keys = True
+        return yml.load(template.render())
+    except Exception as e:
+        raise DbtProjectInvalidError(path, e)
 
 
 def load_dbt_profile(path):
