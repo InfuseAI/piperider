@@ -451,16 +451,6 @@ def compare_with_recipe(**kwargs):
             base = recipe_config.base.get_run_report()
             target = recipe_config.target.get_run_report()
 
-            files = []
-            if not os.path.isfile(base):
-                files.append(base)
-            if not os.path.isfile(target):
-                files.append(target)
-            if len(files) > 0:
-                console = Console()
-                console.print(f"[bold red]File not found:[/bold red] {', '.join(files)}")
-                return 1
-
         CompareReport.exec(a=base, b=target, last=last, datasource=None,
                            output=kwargs.get('output'), tables_from="all",
                            summary_file=summary_file,

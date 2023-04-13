@@ -110,7 +110,7 @@ class RecipeModel:
         d = dict()
         if self.branch:
             d['branch'] = self.branch
-        if self.file:
+        if self.is_file_specified():
             d['file'] = self.file
         if self.dbt:
             d['dbt'] = self.dbt.__dict__()
@@ -130,15 +130,24 @@ class RecipeModel:
         return len(self.piperider.commands) > 0
 
     def validate_recipe(self):
+        # check conflict
         if (self.is_branch_specified() or self.is_piperider_commands_specified()) and self.is_file_specified():
             raise RecipeConfigException(
                 message="Both 'file' and 'branch/piperider commands' are specified.",
-                hint="Please modify the recipe file to use either one of them.")
+                hint="Please modify the recipe file to use either 'file' or 'branch/piperider commands'.")
 
-        if not self.is_file_specified() and len(self.piperider.commands) == 0:
+        # check no action
+        if not self.is_file_specified() and not self.is_piperider_commands_specified():
             raise RecipeConfigException(
-                message="No 'file' and 'branch/piperider commands' are given.",
-                hint="Please modify the recipe file to use either 'file' or 'branch/piperider commands.'")
+                message="No 'file' and 'piperider commands' are given.",
+                hint="Please modify the recipe file to use either 'file' or 'piperider commands.'")
+
+        # check file existence
+        if self.is_file_specified():
+            if not os.path.isfile(self.file):
+                raise RecipeConfigException(
+                    message=f"File '{self.file}' does not exist.",
+                    hint="Please modify the recipe file to use the correct file path.")
 
     def get_run_report(self):
         if not self.is_file_specified():
