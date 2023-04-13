@@ -21,6 +21,9 @@
         "branch": {
           "type": "string"
         },
+        "file": {
+          "type": "string"
+        },
         "dbt": {
           "$ref": "#/definitions/dbt"
         },

@@ -171,6 +171,33 @@ def load_json(file_path):
     return payload
 
 
+def load_jinja_template(path: str):
+    from jinja2 import Environment, FileSystemLoader
+
+    def env_var(var, default=None):
+        return os.getenv(var, default)
+
+    def as_bool(var):
+        return var.lower() in ('true', 'yes', '1')
+
+    def as_number(var):
+        if var.isnumeric():
+            return int(var)
+        return float(var)
+
+    def as_text(var):
+        return str(var)
+
+    env = Environment(loader=FileSystemLoader(searchpath=os.path.dirname(path)))
+    env.globals['env_var'] = env_var
+    env.filters['as_bool'] = as_bool
+    env.filters['as_number'] = as_number
+    env.filters['as_text'] = as_text
+    template = env.get_template(os.path.basename(path))
+
+    return template
+
+
 def open_report_in_browser(report_path='', is_cloud_path=False):
     protocol_prefix = "" if is_cloud_path else "file://"
     try:

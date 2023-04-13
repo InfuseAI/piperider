@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.table import Table
 from ruamel import yaml
 
+from piperider_cli import load_jinja_template
 from piperider_cli.error import \
     DbtProjectInvalidError, \
     DbtProfileInvalidError, \
@@ -314,28 +315,7 @@ def load_dbt_project(path: str):
 
 
 def load_dbt_profile(path):
-    from jinja2 import Environment, FileSystemLoader
-
-    def env_var(var, default=None):
-        return os.getenv(var, default)
-
-    def as_bool(var):
-        return var.lower() in ('true', 'yes', '1')
-
-    def as_number(var):
-        if var.isnumeric():
-            return int(var)
-        return float(var)
-
-    def as_text(var):
-        return str(var)
-
-    env = Environment(loader=FileSystemLoader(searchpath=os.path.dirname(path)))
-    env.globals['env_var'] = env_var
-    env.filters['as_bool'] = as_bool
-    env.filters['as_number'] = as_number
-    env.filters['as_text'] = as_text
-    template = env.get_template(os.path.basename(path))
+    template = load_jinja_template(path)
     try:
         yml = yaml.YAML()
         yml.allow_duplicate_keys = True

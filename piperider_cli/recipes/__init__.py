@@ -8,9 +8,10 @@ from jsonschema.exceptions import ValidationError
 from rich.console import Console
 from ruamel import yaml
 
-from piperider_cli import load_json, round_trip_load_yaml
+from piperider_cli import load_json, load_jinja_template, get_run_json_path
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 from piperider_cli.error import RecipeConfigException
+from piperider_cli.filesystem import FileSystem
 from piperider_cli.recipes.utils import git_checkout_to
 
 PIPERIDER_RECIPES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'recipe_schema.json')
@@ -99,6 +100,8 @@ class RecipeModel:
 
         # git branch name
         self.branch: str = content.get('branch')
+        if content.get('file') is not None:
+            self.file: str = content.get('file')
         self.dbt: RecipeDbtField = RecipeDbtField(content.get('dbt'))
         self.piperider: RecipePiperiderField = RecipePiperiderField(content.get('piperider'))
         self.cloud: RecipeCloudField = RecipeCloudField(content.get('cloud'))
@@ -107,6 +110,8 @@ class RecipeModel:
         d = dict()
         if self.branch:
             d['branch'] = self.branch
+        if self.is_file_specified():
+            d['file'] = self.file
         if self.dbt:
             d['dbt'] = self.dbt.__dict__()
         if self.piperider:
@@ -114,6 +119,41 @@ class RecipeModel:
         if self.cloud:
             d['cloud'] = self.cloud.__dict__()
         return d
+
+    def is_file_specified(self):
+        return hasattr(self, 'file')
+
+    def is_branch_specified(self):
+        return self.branch is not None
+
+    def is_piperider_commands_specified(self):
+        return len(self.piperider.commands) > 0
+
+    def validate_recipe(self):
+        # check conflict
+        if (self.is_branch_specified() or self.is_piperider_commands_specified()) and self.is_file_specified():
+            raise RecipeConfigException(
+                message="Both 'file' and 'branch/piperider commands' are specified.",
+                hint="Please modify the recipe file to use either 'file' or 'branch/piperider commands'.")
+
+        # check no action
+        if not self.is_file_specified() and not self.is_piperider_commands_specified():
+            raise RecipeConfigException(
+                message="No 'file' and 'piperider commands' are given.",
+                hint="Please modify the recipe file to use either 'file' or 'piperider commands.'")
+
+        # check file existence
+        if self.is_file_specified():
+            if not os.path.isfile(self.file):
+                raise RecipeConfigException(
+                    message=f"File '{self.file}' does not exist.",
+                    hint="Please modify the recipe file to use the correct file path.")
+
+    def get_run_report(self):
+        if not self.is_file_specified():
+            filesystem = FileSystem()
+            return get_run_json_path(filesystem.get_output_dir())
+        return self.file
 
 
 class RecipeConfiguration:
@@ -140,7 +180,14 @@ class RecipeConfiguration:
 
     @classmethod
     def load(cls, path: str) -> 'RecipeConfiguration':
-        content = round_trip_load_yaml(path)
+        template = load_jinja_template(path)
+        try:
+            yml = yaml.YAML()
+            yml.allow_duplicate_keys = True
+            content = yml.load(template.render())
+        except Exception:
+            raise
+
         if content is None:
             raise Exception("Recipe content is empty")
 
@@ -149,15 +196,8 @@ class RecipeConfiguration:
         base = RecipeModel(content['base'])
         target = RecipeModel(content['target'])
 
-        if len(base.piperider.commands) == 0:
-            raise RecipeConfigException(
-                message="Base piperider commands is empty.",
-                hint="Please modify the recipe file.")
-
-        if len(target.piperider.commands) == 0:
-            raise RecipeConfigException(
-                message="Target piperider commands is empty.",
-                hint="Please modify the recipe file.")
+        base.validate_recipe()
+        target.validate_recipe()
 
         return cls(
             base=base,
@@ -202,6 +242,10 @@ def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type=
     2. run dbt commands
     3. run piperider commands
     """
+
+    if model.is_file_specified():
+        console.print(f"Select {recipe_type} report: \[{model.file}]")
+        return
 
     if recipe_type == 'base':
         a_branch = model.branch
