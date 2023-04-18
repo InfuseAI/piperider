@@ -18,6 +18,7 @@ export interface SingleReportSchema {
   metadata_version?: string;
   created_at: string;
   datasource: DataSource;
+  cloud?: Cloud;
 }
 /**
  * This interface was referenced by `undefined`'s JSON-Schema definition
@@ -338,4 +339,7 @@ export interface AssertionTest {
 export interface DataSource {
   name: string;
   type: string;
+}
+export interface Cloud {
+  [k: string]: unknown;
 }

@@ -1,5 +1,4 @@
 import { Box, Divider, Flex, Grid, Text, VStack } from '@chakra-ui/react';
-import { useState } from 'react';
 
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
@@ -20,6 +19,7 @@ import { useTrackOnMount } from '../hooks';
 import { EVENTS, CR_TYPE_LABEL, formatTitleCase } from '../utils';
 import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
 import { useRoute } from 'wouter';
+import React from 'react';
 
 export default function CRColumnDetailPage() {
   const [, params] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
@@ -34,7 +34,6 @@ export default function CRColumnDetailPage() {
     },
   });
 
-  const [tabIndex, setTabIndex] = useState<number>(0);
   const { rawData } = useReportStore.getState();
   const {
     base: { tables: baseTables },
@@ -57,6 +56,81 @@ export default function CRColumnDetailPage() {
     );
   }
 
+  function SeparateView({
+    title,
+    Comp,
+  }: {
+    title: string;
+    Comp: React.FC<{ columnDatum: any }>;
+  }) {
+    if (baseColumnDatum === undefined) {
+      return (
+        <Box width="100%">
+          <Text fontSize={'xl'}>{title}</Text>
+          <Divider />
+          <Comp columnDatum={targetColumnDatum} />
+        </Box>
+      );
+    } else if (targetColumnDatum === undefined) {
+      return (
+        <Box width="100%">
+          <Text fontSize={'xl'}>{title}</Text>
+          <Divider />
+          <Comp columnDatum={baseColumnDatum} />
+        </Box>
+      );
+    } else {
+      return (
+        <Box width="100%">
+          <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
+            <Text fontSize={'xl'}>{title}</Text>
+            <Divider orientation="vertical" />
+            <Text fontSize={'xl'}>{title}</Text>
+          </Grid>
+          <Divider />
+          <Grid templateColumns={'1fr 1px 1fr'} gap={8} minWidth={0}>
+            <Comp columnDatum={baseColumnDatum} />
+            <Divider orientation="vertical" />
+            <Comp columnDatum={targetColumnDatum} />
+          </Grid>
+        </Box>
+      );
+    }
+  }
+
+  function ComparisonContent({ children }: { children: React.ReactNode }) {
+    function EmptyBox() {
+      return (
+        <Box
+          bg="gray.100"
+          width="100%"
+          height="100%"
+          borderWidth="2px"
+          borderColor="lightgray"
+        />
+      );
+    }
+    if (baseColumnDatum === undefined) {
+      return (
+        <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
+          <EmptyBox />
+          <Divider orientation="vertical" />
+          {children}
+        </Grid>
+      );
+    } else if (targetColumnDatum === undefined) {
+      return (
+        <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
+          {children}
+          <Divider orientation="vertical" />
+          <EmptyBox />
+        </Grid>
+      );
+    } else {
+      return <>{children}</>;
+    }
+  }
+
   const { backgroundColor, icon } = getIconForColumnType(fallbackColumnDatum);
   return (
     <>
@@ -70,57 +144,30 @@ export default function CRColumnDetailPage() {
         iconColor={backgroundColor}
       />
       <ComparableGridHeader />
-      <VStack spacing={10}>
-        <Box width="100%">
-          <Text fontSize={'xl'}>Data Composition</Text>
-          <Divider />
-          <Grid templateColumns={'1fr 1px 1fr'} gap={8} minWidth={0}>
-            <DataCompositionWidget columnDatum={baseColumnDatum} />
-            <Divider orientation="vertical" />
-            <DataCompositionWidget columnDatum={targetColumnDatum} />
-          </Grid>
-        </Box>
+      <ComparisonContent>
+        <VStack spacing={10}>
+          <SeparateView title="Data Composition" Comp={DataCompositionWidget} />
+          {(containsDataSummary(baseType) ||
+            containsDataSummary(targetType)) && (
+            <SeparateView
+              title={
+                fallbackColumnDatum
+                  ? `${formatTitleCase(fallbackColumnDatum?.type)} Statistics`
+                  : 'Type Statistics'
+              }
+              Comp={DataSummaryWidget}
+            />
+          )}
 
-        {(containsDataSummary(baseType) || containsDataSummary(targetType)) && (
-          <Box width="100%">
-            <Text fontSize={'xl'}>
-              {fallbackColumnDatum
-                ? formatTitleCase(fallbackColumnDatum?.type)
-                : 'Type '}{' '}
-              Statistics
-            </Text>
-            <Divider />
-            <Grid templateColumns={'1fr 1px 1fr'} gap={8}>
-              {<DataSummaryWidget columnDatum={baseColumnDatum} />}
-              <Divider orientation="vertical" />
-              {<DataSummaryWidget columnDatum={targetColumnDatum} />}
-            </Grid>
-          </Box>
-        )}
-        {/* Quantiles Block */}
-        {(containsColumnQuantile(baseType) ||
-          containsColumnQuantile(targetType)) && (
-          <Box width="100%">
-            <Text fontSize={'xl'}>Quantile Data</Text>
-            <Divider />
-            <Grid templateColumns={'1fr 1px 1fr'} gap={8}>
-              <QuantilesWidget columnDatum={baseColumnDatum} />
-              <Divider orientation="vertical" />
-              <QuantilesWidget columnDatum={targetColumnDatum} />
-            </Grid>
-          </Box>
-        )}
+          {/* Quantiles Block */}
+          {(containsColumnQuantile(baseType) ||
+            containsColumnQuantile(targetType)) && (
+            <SeparateView title="Quantile Data" Comp={QuantilesWidget} />
+          )}
 
-        <ChartTabsWidget
-          key={columnName}
-          baseColumnDatum={baseColumnDatum}
-          targetColumnDatum={targetColumnDatum}
-          hasSplitView
-          hasAnimation
-          tabIndex={tabIndex}
-          onSelectTab={(i) => setTabIndex(i)}
-        />
-      </VStack>
+          <SeparateView title="Visualizations" Comp={ChartTabsWidget} />
+        </VStack>
+      </ComparisonContent>
     </>
   );
 }

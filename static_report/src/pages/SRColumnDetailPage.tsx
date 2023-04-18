@@ -1,5 +1,4 @@
 import { Box, Grid, VStack, Text, Divider } from '@chakra-ui/react';
-import { useState } from 'react';
 
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
@@ -35,7 +34,6 @@ export default function SRColumnDetailPage() {
       page: 'column-details-page',
     },
   });
-  const [tabIndex, setTabIndex] = useState<number>(0);
 
   const {
     tableColumnsOnly = [],
@@ -108,12 +106,7 @@ export default function SRColumnDetailPage() {
         <Divider orientation="vertical" />
 
         <VStack spacing={10} width={'100%'}>
-          <ChartTabsWidget
-            baseColumnDatum={columnDatum}
-            hasAnimation
-            tabIndex={tabIndex}
-            onSelectTab={(i) => setTabIndex(i)}
-          />
+          <ChartTabsWidget columnDatum={columnDatum} />
         </VStack>
       </Grid>
     </>
