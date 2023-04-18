@@ -14,15 +14,12 @@ import { TopKSummaryList } from './TopKSummaryList';
 /**
  * Handles logic for rendering the right charts
  * @param columnDatum
- * @param baseColumnRef an optional column reference for comparing `target` against `base` columns, to ensure that the chart kind is consistent across comparisons members
  * @param chartKindOverride an optional flag to override the default logic (e.g. auto categorizing generic types based on distinct)
  * @returns *Chart Component
  */
 export function getDataChart(
   columnDatum?: ColumnSchema,
-  baseColumnRef?: ColumnSchema,
   chartKindOverride?: ChartKind,
-  hasAnimation?: boolean,
 ) {
   const {
     samples = 0,
@@ -40,12 +37,7 @@ export function getDataChart(
     max,
   } = columnDatum || {};
 
-  const hasSameTypeName =
-    type === baseColumnRef?.type && name === baseColumnRef?.name;
-
-  const chartKind =
-    chartKindOverride ||
-    getChartKindByColumnType(hasSameTypeName ? baseColumnRef : columnDatum);
+  const chartKind = chartKindOverride || getChartKindByColumnType(columnDatum);
 
   //TopK dataset
   if (chartKind === 'topk' && topk) {
@@ -78,12 +70,7 @@ export function getDataChart(
       (v) => v.charAt(0) + v.slice(1).toLowerCase(),
     );
     const ratios = counts.map((v) => v / samples);
-    return (
-      <BooleanPieChart
-        data={{ counts, labels, ratios }}
-        animation={hasAnimation ? {} : false}
-      />
-    );
+    return <BooleanPieChart data={{ counts, labels, ratios }} />;
   }
   return renderChartUnavailableMsg({ valids, schema_type });
 }
