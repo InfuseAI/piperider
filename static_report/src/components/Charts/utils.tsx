@@ -23,7 +23,6 @@ export function getDataChart(
 ) {
   const {
     samples = 0,
-    name,
     type,
     schema_type,
     histogram,

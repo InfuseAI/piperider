@@ -1,5 +1,4 @@
 import { Box, Grid, VStack, Text, Divider } from '@chakra-ui/react';
-import { useState } from 'react';
 
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';

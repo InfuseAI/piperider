@@ -1,5 +1,4 @@
 import { Box, Divider, Flex, Grid, Text, VStack } from '@chakra-ui/react';
-import { useState } from 'react';
 
 import { DataCompositionWidget } from '../components/Widgets/DataCompositionWidget';
 import { ChartTabsWidget } from '../components/Widgets/ChartTabsWidget';
@@ -64,7 +63,7 @@ export default function CRColumnDetailPage() {
     title: string;
     Comp: React.FC<{ columnDatum: any }>;
   }) {
-    if (baseColumnDatum == undefined) {
+    if (baseColumnDatum === undefined) {
       return (
         <Box width="100%">
           <Text fontSize={'xl'}>{title}</Text>
@@ -72,7 +71,7 @@ export default function CRColumnDetailPage() {
           <Comp columnDatum={targetColumnDatum} />
         </Box>
       );
-    } else if (targetColumnDatum == undefined) {
+    } else if (targetColumnDatum === undefined) {
       return (
         <Box width="100%">
           <Text fontSize={'xl'}>{title}</Text>
@@ -111,7 +110,7 @@ export default function CRColumnDetailPage() {
         />
       );
     }
-    if (baseColumnDatum == undefined) {
+    if (baseColumnDatum === undefined) {
       return (
         <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
           <EmptyBox />
@@ -119,7 +118,7 @@ export default function CRColumnDetailPage() {
           {children}
         </Grid>
       );
-    } else if (targetColumnDatum == undefined) {
+    } else if (targetColumnDatum === undefined) {
       return (
         <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
           {children}

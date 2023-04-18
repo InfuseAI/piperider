@@ -1,15 +1,4 @@
-import {
-  Tabs,
-  TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
-  Box,
-  Text,
-  Grid,
-  GridItem,
-  Divider,
-} from '@chakra-ui/react';
+import { Tabs, TabList, Tab, TabPanels, TabPanel, Box } from '@chakra-ui/react';
 import isNumber from 'lodash/isNumber';
 import { ColumnSchema } from '../../sdlc/single-report-schema';
 import {

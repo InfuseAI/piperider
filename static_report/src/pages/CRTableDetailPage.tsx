@@ -138,7 +138,7 @@ export default function CRTableDetailPage() {
         />
       );
     }
-    if (baseDataTable == undefined) {
+    if (baseDataTable === undefined) {
       return (
         <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
           <EmptyBox />
@@ -146,7 +146,7 @@ export default function CRTableDetailPage() {
           {children}
         </Grid>
       );
-    } else if (targetDataTable == undefined) {
+    } else if (targetDataTable === undefined) {
       return (
         <Grid templateColumns={'1fr 1px 1fr'} gap={3}>
           {children}
