@@ -124,6 +124,7 @@ class Configuration(object):
         type_name = credential.get('type')
         dbt = {
             'projectDir': os.path.relpath(os.path.dirname(dbt_project_path), os.getcwd()),
+            'tag': 'piperider',
         }
 
         if dbt_profiles_dir:
@@ -346,8 +347,6 @@ class Configuration(object):
 
         config_yaml = CommentedMap(config)
 
-        if config_yaml.get('dbt'):
-            config_yaml.yaml_set_comment_before_after_key('profiler', before="tag: 'piperider'", indent=2)
         config_yaml.yaml_set_comment_before_after_key('profiler', before='\n')
         config_yaml.yaml_set_comment_before_after_key('telemetry', before=template)
 

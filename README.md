@@ -57,6 +57,8 @@ PipeRider automatically compares your data to highlight the difference in impact
    piperider init
    ```
 
+1. **Apply PipeRider tag**: [Apply `piperider` tag to the models](https://docs.getdbt.com/reference/resource-configs/tags) you want to profile
+
 1. **Run PipeRider**: Collect profiling statistics by using
 
    ```
