@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.table import Table
 from ruamel import yaml
 
-from piperider_cli import load_jinja_template
+from piperider_cli import load_jinja_template, load_jinja_string_template
 from piperider_cli.error import \
     DbtProjectInvalidError, \
     DbtProfileInvalidError, \
@@ -305,13 +305,19 @@ def load_dbt_project(path: str):
     if not path.endswith('dbt_project.yml'):
         path = os.path.join(path, 'dbt_project.yml')
 
-    template = load_jinja_template(path)
-    try:
-        yml = yaml.YAML()
-        yml.allow_duplicate_keys = True
-        return yml.load(template.render())
-    except Exception as e:
-        raise DbtProjectInvalidError(path, e)
+    with open(path, 'r') as fd:
+        try:
+            yml = yaml.YAML()
+            yml.allow_duplicate_keys = True
+            content = yml.load(fd)
+
+            for key, val in content.items():
+                if not isinstance(val, str):
+                    continue
+                content[key] = load_jinja_string_template(val).render()
+            return content
+        except Exception as e:
+            raise DbtProjectInvalidError(path, e)
 
 
 def load_dbt_profile(path):
