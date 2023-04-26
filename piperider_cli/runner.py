@@ -473,7 +473,7 @@ def _clean_up_profile_null_properties(table_results):
         if t_metric_val is None:
             removed.append(t_metric)
         elif isinstance(t_metric_val, float) and not math.isfinite(t_metric_val):
-            removed.append(t_metric)
+            table_results[t_metric] = str(t_metric_val)
 
     for r in removed:
         del table_results[r]
@@ -484,7 +484,7 @@ def _clean_up_profile_null_properties(table_results):
             if v is None:
                 removed.append(dict(col=col_name, key=k))
             elif isinstance(v, float) and not math.isfinite(v):
-                removed.append(dict(col=col_name, key=k))
+                table_results['columns'][col_name][k] = str(v)
 
     for r in removed:
         del table_results['columns'][r['col']][r['key']]

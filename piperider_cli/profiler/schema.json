@@ -243,11 +243,25 @@
                     },
                     "sum": {
                       "description": "The sum of a column's values",
-                      "type": "number"
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
                     },
                     "avg": {
                       "description": "The average of a column's values",
-                      "type": "number"
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
                     },
                     "avg_length": {
                       "description": "The average text length of a string column",
@@ -255,7 +269,14 @@
                     },
                     "stddev": {
                       "description": "The standard deviation of a column's values",
-                      "type": "number"
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
                     },
                     "stddev_length": {
                       "description": "The standard deviation of text length of a string column",
