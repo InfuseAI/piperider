@@ -8,7 +8,6 @@
 
 <p align="left">
   <a href="https://docs.piperider.io/" alt="documentation site" title="Piperider Documentation"> Docs </a> |
-  <a href="https://github.com/orgs/InfuseAI/projects/1/views/1" alt="product roadmap" title="Planned Features/Changes"> Roadmap </a> |
   <a href="https://discord.com/invite/5zb2aK9KBV"> Discord </a> |
   <a href="https://blog.infuseai.io/data-reliability-automated-with-piperider-7a823521ef11"> Blog </a> 
 </p>
@@ -38,18 +37,7 @@ PipeRider automatically compares your data to highlight the difference in impact
    pip install piperider[<connector>]
    ```
 
-   PipeRider supports the following data connectors
-
-   | connectors | install                              |
-   | ---------- | ------------------------------------ |
-   | snowflake  | `pip install 'piperider[snowflake]'` |
-   | postgres   | `pip install 'piperider[postgres]'`  |
-   | bigquery   | `pip install 'piperider[bigquery]'`  |
-   | redshift   | `pip install 'piperider[redshift]'`  |
-   | athena     | `pip install 'piperider[athena]'`    |
-   | parquet    | `pip install 'piperider[parquet]'`   |
-   | csv        | `pip install 'piperider[csv]'`       |
-   | duckdb     | `pip install 'piperider[duckdb]'`    |
+   You can find all supported data source connectors [here](https://docs.piperider.io/reference/supported-data-sources).
 
 1. **Initialize PipeRider**: Go to your dbt project, and initialize PipeRider.
 
@@ -57,32 +45,38 @@ PipeRider automatically compares your data to highlight the difference in impact
    piperider init
    ```
 
-1. **Apply PipeRider tag**: [Apply `piperider` tag to the models](https://docs.getdbt.com/reference/resource-configs/tags) you want to profile
+1. **Add PipeRider tag on your model**:
 
-1. **Run PipeRider**: Collect profiling statistics by using
+   ```sql
+   --models/staging/stg_customers.sql
+   {{ config(
+      tags=["piperider"]
+   ) }}
+
+   select ...
+   ```
+
+   and show the models would be run by piperider
 
    ```
-   dbt build
-   piperider run
+    dbt list -s tag:piperider --resource-type model
    ```
 
-1. **Compare your changes**: You then can compare the branch of your new Pull Request against the main branch and explore the impact of your changes by opening the generated HTML comparison report
+1. **Run PipeRider**
 
    ```bash
-   git switch feature/pr-branch
-   dbt build
    piperider run
-   piperider compare-reports --last
    ```
 
-1. **Post the markdown summary on the PR**: You can post the markdown summary of the data changes to your Pull Request comment, so that your reviewer can merge with confidence.
+To see the full quick start guide, please refer to [PipeRider documentation](https://docs.piperider.io/get-started/quick-start)
 
 # Features
 
-- Use PipeRider for exploratory data analysis by doing `piperider run` to view the profiling statistics of a single data source, even in an environment that doesn't use dbt
-- Leverage dbt-defined `metrics` to have a quick overview of the impact on your most important metrics
-- Include PipeRider into your CI process via PipeRider Cloud or self-hosted to be confident of every PRs that is submitted
-- Benefit from dbt's features such as Slim CI, custom schema, custom database, [node selection](https://docs.getdbt.com/reference/node-selection/syntax), [dbt test result](https://docs.getdbt.com/docs/build/tests)
+- **Model profiling**: PipeRider can profile your [dbt models](https://docs.getdbt.com/docs/build/models) and obtain information such as basic data composition, quantiles, histograms, text length, top categories, and more.
+- **Metric queries**: PipeRider can integrate with [dbt metrics](https://docs.getdbt.com/docs/build/metrics) and present the time-series data of metrics in the report.
+- **HTML report**: PipeRider generates a static HTML report each time it runs, which can be viewed locally or shared.
+- **Report comparison**: You can compare two previously generated reports or use a single command to compare the differences between the current branch and the main branch. The latter is designed specifically for code review scenarios. In our pull requests on GitHub, we not only want to know which files have been changed, but also the impact of these changes on the data. PipeRider can easily generate comparison reports with a single command to provide this information.
+- **CI integration**: The key to CI is automation, and in the code review process, automating this workflow is even more meaningful. PipeRider can easily integrate into your CI process. When new commits are pushed to your PR branch, reports can be automatically generated to provide reviewers with more confidence in the changes made when reviewing.
 
 # Example Report Demo
 
@@ -96,7 +90,17 @@ We use the example project [git-repo-analytics](https://github.com/InfuseAI/git-
 
 # PipeRider Cloud (beta)
 
-PipeRider Cloud offers a hosted version for HTML reports, including features such as alerts and historical trend watching. Get early beta access by signing up on our website: https://piperider.io
+[PipeRider Cloud](http://cloud.piperider.io/) allows you to upload reports and share them with your team members. For information on pricing plans, please refer to the [pricing page](https://www.piperider.io/pricing).
+
+# PipeRider Compare Action
+
+PipeRider provides the [PipeRider Compare Action](https://github.com/marketplace/actions/piperider-compare-action) to quickly integrate into your Github Actions workflow. It has the following features:
+
+- Automatically generates a report comparing the PR branch to the main branch
+- Uploads the report to GitHub artifacts or PipeRider cloud
+- Adds a comment to the pull request with a comparison summary and a link to the report.
+
+You can refer to example [workflow yaml](https://github.com/InfuseAI/jaffle_shop/blob/main/.github/workflows/pr-compare.yml) and the [example pull request](https://github.com/InfuseAI/jaffle_shop/pull/19).
 
 # Development
 
