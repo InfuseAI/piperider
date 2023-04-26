@@ -302,6 +302,9 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
 
 
 def load_dbt_project(path: str):
+    """
+    Load dbt project file and return the content of 'profile' and 'target-path' fields
+    """
     if not path.endswith('dbt_project.yml'):
         path = os.path.join(path, 'dbt_project.yml')
 
@@ -309,12 +312,16 @@ def load_dbt_project(path: str):
         try:
             yml = yaml.YAML()
             yml.allow_duplicate_keys = True
-            content = yml.load(fd)
+            dbt_project = yml.load(fd)
 
-            for key, val in content.items():
-                if not isinstance(val, str):
+            content = {}
+            for key, val in dbt_project.items():
+                if key not in ['profile', 'target-path']:
                     continue
-                content[key] = load_jinja_string_template(val).render()
+                if isinstance(val, str):
+                    content[key] = load_jinja_string_template(val).render()
+                else:
+                    content[key] = val
             return content
         except Exception as e:
             raise DbtProjectInvalidError(path, e)
