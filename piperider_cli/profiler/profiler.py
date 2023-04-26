@@ -861,13 +861,13 @@ class NumericColumnProfiler(BaseColumnProfiler):
 
             # histogram
             histogram = None
-            if _valids > 0:
+            if _valids > 0 and math.isfinite(_min) and math.isfinite(_max):
                 histogram = profile_histogram(conn, cte, cte.c.c, _min, _max, self.is_integer)
             result['histogram'] = histogram
 
             # quantile
             quantile = {}
-            if _valids > 0:
+            if _valids > 0 and math.isfinite(_min) and math.isfinite(_max):
                 quantile = self._profile_quantile(conn, cte, cte.c.c, _valids)
             result.update({
                 'p5': quantile.get('p5'),
