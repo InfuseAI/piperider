@@ -33,7 +33,7 @@ setup(name='piperider',
       packages=find_packages(),
       install_requires=[
           'ruamel.yaml',
-          'sqlalchemy>=1.4',
+          'sqlalchemy>=1.4, <2.0.11',
           'sentry-sdk',
           'rich>=12.0.0',
           'click>=7.1',
