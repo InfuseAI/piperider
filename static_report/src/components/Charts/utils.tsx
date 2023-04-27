@@ -76,8 +76,13 @@ export function getDataChart(
 
 export function getChartUnavailMsg(
   valids?: ColumnSchema['valids'],
+  infinite?: boolean,
   schema_type?: ColumnSchema['schema_type'],
 ) {
+  if (infinite) {
+    return `Chart rendering unavailable for datasets have infinite values`;
+  }
+
   return Boolean(valids)
     ? `Chart rendering unavailable for (type: ${schema_type})`
     : `There are insufficient valid data points in this dataset`;
@@ -85,14 +90,16 @@ export function getChartUnavailMsg(
 
 export function renderChartUnavailableMsg({
   valids,
+  infinite,
   schema_type,
   messageOverwrite,
 }: {
   valids?: ColumnSchema['valids'];
+  infinite?: boolean;
   schema_type?: ColumnSchema['schema_type'];
   messageOverwrite?: ReactNode;
 }) {
-  const noRenderMessage = getChartUnavailMsg(valids, schema_type);
+  const noRenderMessage = getChartUnavailMsg(valids, infinite, schema_type);
   return (
     <Flex h={'inherit'} minH={'100%'} w={'100%'} fontStyle="italic">
       <Text textAlign={'left'} w={'inherit'} color={'gray.400'}>
