@@ -40,6 +40,14 @@ export function ChartTabsWidget({ columnDatum }: Props) {
       </ChartContainer>
     );
   }
+  function isInfinite(val: number | string | undefined) {
+    const finiteVal = ['inf', '-inf', 'nan'];
+
+    if (typeof val === 'string') {
+      return finiteVal.includes(val);
+    }
+    return false;
+  }
 
   return (
     <Box pb={10} width="100%">
@@ -93,6 +101,8 @@ export function ChartTabsWidget({ columnDatum }: Props) {
       ) : (
         renderChartUnavailableMsg({
           valids: columnDatum?.valids,
+          infinite:
+            isInfinite(columnDatum?.max) || isInfinite(columnDatum?.min),
           schema_type: columnDatum?.schema_type,
         })
       )}

@@ -226,11 +226,11 @@ export interface ColumnSchema {
   /**
    * The sum of a column's values
    */
-  sum?: number;
+  sum?: string | number;
   /**
    * The average of a column's values
    */
-  avg?: number;
+  avg?: string | number;
   /**
    * The average text length of a string column
    */
@@ -238,7 +238,7 @@ export interface ColumnSchema {
   /**
    * The standard deviation of a column's values
    */
-  stddev?: number;
+  stddev?: string | number;
   /**
    * The standard deviation of text length of a string column
    */
