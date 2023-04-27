@@ -407,20 +407,24 @@ class CloudConnector:
             console.rule('Upload Completed')
             ascii_table = Table(show_header=True, show_edge=True, header_style="bold magenta",
                                 box=box.SIMPLE)
+            ascii_table.add_column('ID', justify='left', style='cyan')
             ascii_table.add_column('Status', justify='left', style='cyan')
             ascii_table.add_column('Name', justify='left')
             ascii_table.add_column('Created At', justify='left')
-            ascii_table.add_column('Report URL', justify='left', overflow='fold')
             ascii_table.add_column('Message', justify='left')
 
+            reports = []
             for response in results:
                 status = '[bold green]Success[/bold green]' if response.get(
                     'success') else '[bold yellow]Skipped[/bold yellow]'
-                url = f"[deep_sky_blue1]{response.get('report_url', 'N/A')}[/deep_sky_blue1]"
+                reports.append((response.get('run_id'), response.get('report_url', 'N/A')))
                 message = response.get('message')
                 created_at = datetime_to_str(str_to_datetime(response.get('created_at')), to_tzlocal=True)
-                ascii_table.add_row(status, response.get('name'), created_at, url, message)
+                ascii_table.add_row(str(response.get('run_id')), status, response.get('name'), created_at, message)
             console.print(ascii_table)
+
+            for report in reports:
+                console.print(f'Report #{report[0]} URL: [deep_sky_blue1]{report[1]}[/deep_sky_blue1]', soft_wrap=True)
 
         if open_report:
             url = response.get('report_url')
