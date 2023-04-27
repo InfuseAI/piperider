@@ -421,6 +421,8 @@ def cloud_compare_reports(**kwargs):
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--summary-file', default=None, type=click.STRING, help='Output the comparison summary markdown file.')
+@click.option('--project', default=None, type=click.STRING, metavar='PROJECT_NAME',
+              help='Specify the default project name.')
 @click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
 @add_options(debug_option)
 def compare_with_recipe(**kwargs):
@@ -433,6 +435,7 @@ def compare_with_recipe(**kwargs):
     force_upload = kwargs.get('upload')
     enable_share = kwargs.get('share')
     open_report = kwargs.get('open')
+    project_name = kwargs.get('project')
     debug = kwargs.get('debug', False)
 
     if enable_share:
@@ -461,6 +464,7 @@ def compare_with_recipe(**kwargs):
                            force_upload=force_upload,
                            enable_share=enable_share,
                            open_report=open_report,
+                           project_name=project_name,
                            show_progress=True,
                            debug=debug)
     except Exception as e:
