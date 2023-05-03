@@ -3,8 +3,9 @@ import decimal
 import math
 import time
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from datetime import datetime, date, timezone
-from typing import Union, List, Tuple
+from typing import Optional, Union, List, Tuple
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, ARRAY, select, func, \
@@ -89,6 +90,14 @@ async def _run_in_executor(executor, func, *args):
         return func(*args)
 
 
+@dataclass
+class CollectedMetadata:
+    map_name_tables: dict
+    profiled_tables: dict
+    result: dict
+    subjects: List[ProfileSubject]
+
+
 class Profiler:
     """
     Profiler profile tables and columns by a sqlalchemy engine.
@@ -103,6 +112,7 @@ class Profiler:
         self.data_source = data_source
         self.event_handler = event_handler
         self.config = config
+        self.collected_metadata: Optional[CollectedMetadata] = None
         if self.data_source.threads > 1:
             self.executor = ThreadPoolExecutor(max_workers=self.data_source.threads)
         else:
@@ -134,7 +144,8 @@ class Profiler:
 
         return map_name_tables
 
-    async def _profile(self, subjects: List[ProfileSubject] = None) -> dict:
+    async def _profile(self, subjects: List[ProfileSubject] = None, *,
+                       metadata_subjects: List[ProfileSubject] = None) -> dict:
         """
         profile all tables or specific table. With different column types, it would profile different metrics.
 
@@ -150,26 +161,22 @@ class Profiler:
         :return: the profile results
         """
 
-        profiled_tables = {}
-        result = {
-            "tables": profiled_tables,
-        }
+        if self.collected_metadata is None:
+            await self._collect_metadata(subjects, metadata_subjects)
 
-        if subjects is None:
-            subjects = []
-            table_names = inspect(self.data_source.get_engine_by_database()).get_table_names()
-            for table_name in table_names:
-                subject = ProfileSubject(table_name)
-                subjects.append(subject)
+        map_name_tables = self.collected_metadata.map_name_tables
+        profiled_tables = self.collected_metadata.profiled_tables
+        result = self.collected_metadata.result
+        subjects = self.collected_metadata.subjects
 
         table_count = len(subjects)
         table_index = 0
 
+        # Profiling
         if len(subjects) > 0:
             self.event_handler.handle_run_start(result)
             self.event_handler.handle_run_progress(result, table_count, table_index)
 
-            map_name_tables = await self._fetch_metadata(subjects)
             for subject in subjects:
                 name = subject.name
                 table = map_name_tables[name]
@@ -185,12 +192,44 @@ class Profiler:
 
         return result
 
-    def profile(self, subjects: List[ProfileSubject] = None) -> dict:
-        if self.executor:
-            with self.executor:
-                return asyncio.run(self._profile(subjects))
-        else:
-            return asyncio.run(self._profile(subjects))
+    async def _collect_metadata(self, subjects: List[ProfileSubject], metadata_subjects: List[ProfileSubject]):
+        profiled_tables = {}
+        result = {
+            "tables": profiled_tables,
+        }
+        if subjects is None:
+            subjects = []
+            table_names = inspect(self.data_source.get_engine_by_database()).get_table_names()
+            for table_name in table_names:
+                subject = ProfileSubject(table_name)
+                subjects.append(subject)
+
+        # Fetch schema data
+        map_name_tables = await self._fetch_metadata(metadata_subjects if metadata_subjects else subjects)
+        for subject in metadata_subjects:
+            engine = self.data_source.get_engine_by_database(subject.database)
+            table = map_name_tables[subject.name]
+            table_profiler = TableProfiler(engine, self.executor, subject, table, self.event_handler, self.config)
+            tresult = await table_profiler.fetch_schema()
+            profiled_tables[subject.name] = tresult
+
+        self.collected_metadata = CollectedMetadata(map_name_tables=map_name_tables,
+                                                    profiled_tables=profiled_tables,
+                                                    result=result,
+                                                    subjects=subjects)
+        return self.collected_metadata
+
+    def collect_metadata(self, metadata_subjects: List[ProfileSubject], subjects: List[ProfileSubject]):
+        return asyncio.run(self._collect_metadata(subjects, metadata_subjects))
+
+    def profile(self, subjects: List[ProfileSubject] = None, *, metadata_subjects: List[ProfileSubject] = None) -> dict:
+        def job():
+            return asyncio.run(self._profile(subjects, metadata_subjects=metadata_subjects))
+
+        if not self.executor:
+            return job()
+        with self.executor:
+            return job()
 
 
 class TableProfiler:
@@ -411,14 +450,30 @@ class TableProfiler:
         await _run_in_executor(self.executor, self._profile_table_duplicate_rows, result)
 
     async def _profile_column(self, result, table_name, table: Table, column: Column) -> dict:
-        profiler_config = self.config.profiler_config if self.config else {}
         column_name = column.name
+        column_result, profiler = await self._create_column_metadata_and_profiler(table, column)
+
+        self.event_handler.handle_column_start(table_name, column_name)
+
+        profile_start = time.perf_counter()
+        profile_result = await _run_in_executor(self.executor, profiler.profile)
+        profile_end = time.perf_counter()
+        duration = profile_end - profile_start
+
+        column_result.update(profile_result)
+        column_result["profile_duration"] = f"{duration:.2f}"
+        column_result["elapsed_milli"] = int(duration * 1000)
+
+        self.event_handler.handle_column_end(table_name, column_name, column_result)
+        result['columns'][column_name] = column_result
+
+    async def _create_column_metadata_and_profiler(self, table, column):
+        profiler_config = self.config.profiler_config if self.config else {}
         column_type = column.type
         schema_type = str(column.type)
         if isinstance(column_type, ARRAY) and column_type.item_type is not None:
             column_type = column_type.item_type
             schema_type = f"ARRAY<{column_type}>"
-
         if isinstance(column_type, String):
             # VARCHAR
             # CHAR
@@ -455,27 +510,12 @@ class TableProfiler:
         else:
             generic_type = "other"
             profiler = BaseColumnProfiler(self.engine, profiler_config, table, column)
-
         column_result = {
             "name": column.name,
             "type": generic_type,
             "schema_type": schema_type,
         }
-
-        self.event_handler.handle_column_start(table_name, column_name)
-
-        profile_start = time.perf_counter()
-        profile_result = await _run_in_executor(self.executor, profiler.profile)
-        profile_end = time.perf_counter()
-        duration = profile_end - profile_start
-
-        column_result.update(profile_result)
-        column_result["profile_duration"] = f"{duration:.2f}"
-        column_result["elapsed_milli"] = int(duration * 1000)
-
-        self.event_handler.handle_column_end(table_name, column_name, column_result)
-
-        result['columns'][column_name] = column_result
+        return column_result, profiler
 
     async def profile(self) -> dict:
         subject = self.subject
@@ -494,7 +534,7 @@ class TableProfiler:
             "col_count": col_count,
             "duplicate_rows": None,
             "duplicate_rows_p": None,
-            "columns": columns
+            "columns": columns,
         }
         futures = []
         profile_start = time.perf_counter()
@@ -530,6 +570,30 @@ class TableProfiler:
         result["elapsed_milli"] = int(duration * 1000)
 
         self.event_handler.handle_table_end(name, result)
+        return result
+
+    async def fetch_schema(self) -> dict:
+        subject = self.subject
+        name = subject.name
+        candidate_columns = list(self._get_candidate_columns())
+        col_count = len(candidate_columns)
+        columns = {}
+        result = {
+            "name": name,
+            "col_count": col_count,
+            "columns": columns,
+        }
+        futures = []
+
+        # Profile columns
+        for selectable, column in candidate_columns:
+            columns[column.name] = None
+            future = asyncio.create_task(self._create_column_metadata_and_profiler(selectable, column))
+            futures.append(future)
+
+        for future in asyncio.as_completed(futures):
+            column_result, _ = await future
+            columns[column_result['name']] = column_result
         return result
 
 

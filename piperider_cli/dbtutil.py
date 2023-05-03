@@ -140,10 +140,10 @@ def append_descriptions(profile_result, dbt_state_dir):
                 profile_result['tables'][model]['columns'][column]['description'] = f"{column_desc} - via DBT"
 
 
-def get_dbt_state_candidate(dbt_state_dir: str, options: dict):
+def get_dbt_state_candidate(dbt_state_dir: str, options: dict, *, skip_chosen: bool = False):
     candidate = []
     material_whitelist = ['seed', 'table', 'incremental']
-    resource_whitelist = ['model']
+    resource_whitelist = ['model', 'seed']
     if options.get('view_profile'):
         material_whitelist.append('view')
 
@@ -153,6 +153,7 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict):
 
     manifest = _get_state_manifest(dbt_state_dir)
     nodes = manifest.get('nodes')
+    sources = manifest.get('sources')
 
     run_results_ids = []
     if dbt_run_results:
@@ -162,7 +163,7 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict):
                 continue
             run_results_ids.append(result.get('unique_id'))
 
-    def is_chosen(key, node):
+    def is_chosen_fn(key, node):
         statistics = Statistics()
         if dbt_resources:
             chosen = '.'.join(node.get('fqn')) in dbt_resources['models']
@@ -184,11 +185,21 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict):
                 return False
             return True
 
+    def skip_chosen_fn(key, node):
+        return True
+
+    is_chosen_fn = is_chosen_fn if not skip_chosen else skip_chosen_fn
+
     for key, node in nodes.items():
         if node.get('resource_type') not in resource_whitelist:
             continue
         Statistics().add_field_one('total')
-        if not is_chosen(key, node):
+        if not is_chosen_fn(key, node):
+            continue
+        candidate.append(node)
+
+    for key, node in sources.items():
+        if not is_chosen_fn(key, node):
             continue
         candidate.append(node)
 

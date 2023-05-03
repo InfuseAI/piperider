@@ -370,7 +370,13 @@ def _show_summary(profiled_result, assertion_results, assertion_exceptions, dbt_
 
 
 def _show_table_summary(ascii_table: Table, table: str, profiled_result, assertion_results):
+    profiled_rows = profiled_result['tables'][table].get('row_count')
     profiled_columns = profiled_result['tables'][table].get('col_count')
+
+    # the table is not profiled, reset the profiled_columns to 0
+    if profiled_rows is None:
+        profiled_columns = 0
+
     num_of_testcases = 0
     num_of_failed_testcases = 0
 
@@ -518,7 +524,8 @@ def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_resu
     # Table info
     for t in tables:
         event_payload.columns.append(profiled_result['tables'][t]['col_count'])
-        event_payload.rows.append(profiled_result['tables'][t]['row_count'])
+        # null row_count when the table is not profiled
+        event_payload.rows.append(profiled_result['tables'][t].get('row_count'))
 
     # Count PipeRider assertions
     for r in assertion_results or []:
@@ -597,22 +604,39 @@ def check_dbt_manifest_compatibility(ds: DataSource, dbt_state_dir: str):
     return len([x for x in models if x.get('database') == database])
 
 
-def get_dbt_profile_subjects(dbt_state_dir, options, filter_fn):
-    subjects = []
-    candidate_nodes = dbtutil.get_dbt_state_candidate(dbt_state_dir, options)
-    for node in candidate_nodes:
-        name = node.get('name')
-        table = node.get('alias')
-        schema = node.get('schema')
-        database = node.get('database')
-        subjects.append(ProfileSubject(table, schema, database, name))
+def get_dbt_all_subjects(dbt_state_dir, options, filter_fn):
+    def as_subjects(nodes):
+        result = []
+        for node in nodes:
+            if "source" == node.get('resource_type'):
+                name = node.get('name')
+                table = node.get('name')  # there is no alias in the source definition
+                schema = node.get('schema')
+                database = node.get('database')
+            else:
+                name = node.get('name')
+                table = node.get('alias')
+                schema = node.get('schema')
+                database = node.get('database')
+            result.append(ProfileSubject(table, schema, database, name))
+        return result
 
-    total = len(subjects)
+    subjects = as_subjects(dbtutil.get_dbt_state_candidate(dbt_state_dir, options, skip_chosen=True))
+    Statistics().reset()
+
+    tagged_subjects = as_subjects(dbtutil.get_dbt_state_candidate(dbt_state_dir, options))
+
+    total = len(tagged_subjects)
     if not options.get('dbt_resources') and options.get('tag') is None:
-        subjects = list(filter(filter_fn, subjects))
-        Statistics().add_field('filter', total - len(subjects))
+        tagged_subjects = list(filter(filter_fn, tagged_subjects))
+        Statistics().add_field('filter', total - len(tagged_subjects))
 
-    return subjects
+    return tagged_subjects, subjects
+
+
+def get_dbt_profile_subjects(dbt_state_dir, options, filter_fn):
+    tagged_subjects, _ = get_dbt_all_subjects(dbt_state_dir, options, filter_fn)
+    return tagged_subjects
 
 
 def get_dbt_state_dir(dbt_state_dir, dbt_config, ds, dbt_run_results):
@@ -713,12 +737,13 @@ class Runner():
                 return sys.exit(1)
         console.print('everything is OK.')
 
-        console.rule('Profiling')
+        console.rule('Metadata Collecting')
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
         engine = ds.get_engine_by_database()
 
         subjects: List[ProfileSubject]
+        dbt_metadata_subjects: List[ProfileSubject] = None
         dbt_test_results = None
         if table:
             if len(table.split('.')) == 2:
@@ -741,7 +766,7 @@ class Runner():
                     dbt_run_results=dbt_run_results,
                     tag=dbt_config.get('tag')
                 )
-                subjects = get_dbt_profile_subjects(dbt_state_dir, options, filter_fn)
+                subjects, dbt_metadata_subjects = get_dbt_all_subjects(dbt_state_dir, options, filter_fn)
             else:
                 table_names = inspect(engine).get_table_names()
                 if configuration.include_views:
@@ -752,10 +777,13 @@ class Runner():
 
         run_result = {}
         statistics = Statistics()
-        statistics.display_statistic('profile', 'model')
+
         profiler = Profiler(ds, RichProfilerEventHandler([subject.name for subject in subjects]), configuration)
         try:
-            profiler_result = profiler.profile(subjects)
+            profiler.collect_metadata(dbt_metadata_subjects, subjects)
+
+            console.rule('Profiling')
+            profiler_result = profiler.profile(subjects, metadata_subjects=dbt_metadata_subjects)
             run_result.update(profiler_result)
         except NoSuchTableError as e:
             console.print(f"[bold red]Error:[/bold red] No such table '{str(e)}'")
