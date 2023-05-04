@@ -12,6 +12,7 @@ import create from 'zustand';
 import { transformAsNestedBaseTargetRecord } from './transformers';
 import { formatReportTime } from './formatters';
 import { getAssertionStatusCountsFromList } from '../components/Tables';
+import { SidebarTreeItem, buildDatabaseTree, buildProjectTree } from './dbt';
 type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
 type ComparableMetadata = {
   added?: number;
@@ -44,10 +45,16 @@ export interface ReportState {
    */
   BMOnly?: ComparableData<BusinessMetric[]>;
   isCloudReport?: boolean;
+  /**
+   * Sidebar trees
+   */
+  projectTree?: SidebarTreeItem[];
+  databaseTree?: SidebarTreeItem[];
 }
 
 interface ReportSetters {
   setReportRawData: (input: ComparableReport) => void;
+  expandTreeForPath: (path: string) => void;
 }
 
 const getReportOnly = (rawData: ComparableReport) => {
@@ -215,44 +222,59 @@ const getIsCloudReport = (rawData: ComparableReport) => {
   return base?.cloud ? true : false;
 };
 
-export const useReportStore = create<ReportState & ReportSetters>()(function (
-  set,
-) {
-  return {
+export const useReportStore = create<ReportState & ReportSetters>()(
+  (set, get) => ({
     rawData: {},
     /** Entry point to get transformed report entities */
-    setReportRawData(rawData) {
-      /** Report */
-      const reportOnly = getReportOnly(rawData);
-      /** Report Display Time */
-      const reportDisplayTime = getReportDisplayTime(rawData);
-      /** Report Time */
-      const reportTime = getReportTime(rawData);
-      /** Report Title */
-      const reportTitle = getReportTitle(rawData);
-      /** Tables */
-      const tableColumnsOnly = getTableColumnsOnly(rawData);
-      /** Table-level Assertions (flattened) */
-      const assertionsOnly = getAssertionsOnly(rawData);
-      /** Report Business Metrics (BM) */
-      const BMOnly = getBusinessMetrics(rawData);
-      /** Is Cloud Report */
-      const isCloudReport = getIsCloudReport(rawData);
-
+    setReportRawData: (rawData) => {
       const resultState: ReportState = {
+        /**
+         * Raw Report Data
+         * Single:     {base: singleRun}
+         * Comparison: {base: compareBase, target: compareTarget}
+         */
         rawData,
-        reportOnly,
-        reportTime,
-        reportTitle,
-        reportDisplayTime,
-        tableColumnsOnly,
-        assertionsOnly,
-        BMOnly,
-        isCloudReport,
+
+        /** Report Metadata */
+        reportTime: getReportTime(rawData),
+        reportDisplayTime: getReportDisplayTime(rawData),
+        reportTitle: getReportTitle(rawData),
+        /*Report */
+        reportOnly: getReportOnly(rawData),
+        tableColumnsOnly: getTableColumnsOnly(rawData),
+        assertionsOnly: getAssertionsOnly(rawData),
+        BMOnly: getBusinessMetrics(rawData),
+        isCloudReport: getIsCloudReport(rawData),
+        /* Sidebar Trees */
+        projectTree: buildProjectTree(rawData.base),
+        databaseTree: buildDatabaseTree(rawData.base),
       };
 
       // final setter
       set(resultState);
     },
-  };
-});
+
+    expandTreeForPath: (path) => {
+      const { projectTree, databaseTree } = get();
+      function expandSelected(item: SidebarTreeItem) {
+        if (path && item.path === path) {
+          return true;
+        }
+        for (const child of item.items || []) {
+          const childrenSelected = expandSelected(child);
+          if (childrenSelected) {
+            item.expanded = true;
+            return true;
+          }
+        }
+        return false;
+      }
+      projectTree?.forEach((item) => {
+        expandSelected(item);
+      });
+      databaseTree?.forEach((item) => {
+        expandSelected(item);
+      });
+    },
+  }),
+);

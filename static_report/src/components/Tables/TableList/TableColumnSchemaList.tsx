@@ -15,15 +15,15 @@ import {
 } from '@chakra-ui/react';
 import { FiChevronRight } from 'react-icons/fi';
 
-import { Comparable } from '../../../types';
+import { Comparable, TableSchema } from '../../../types';
 import { NO_VALUE } from '../../Columns/constants';
 import { CompTableWithColEntryOverwrite } from '../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../../Common/constant';
 import { tableListWidth } from '../../../utils/layout';
 
 interface Props extends Comparable {
-  baseTableEntryDatum?: CompTableWithColEntryOverwrite;
-  targetTableEntryDatum?: CompTableWithColEntryOverwrite;
+  baseTableEntryDatum?: CompTableWithColEntryOverwrite | TableSchema;
+  targetTableEntryDatum?: CompTableWithColEntryOverwrite | TableSchema;
   visibleDetail?: boolean; //for reuse in other pages
 }
 export function TableColumnSchemaList({
@@ -35,6 +35,11 @@ export function TableColumnSchemaList({
   const fallbackTable = targetTableEntryDatum || baseTableEntryDatum;
 
   const isNotSingle = !singleOnly;
+
+  let columns = fallbackTable?.columns || [];
+  if (typeof columns === 'object') {
+    columns = Object.values(columns);
+  }
 
   return (
     <Box>
@@ -62,7 +67,7 @@ export function TableColumnSchemaList({
               </Tr>
             </Thead>
             <Tbody>
-              {fallbackTable?.columns.map(
+              {columns?.map(
                 ([
                   key,
                   { base: baseColumn, target: targetColumn },

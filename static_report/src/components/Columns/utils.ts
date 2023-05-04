@@ -127,19 +127,17 @@ export function transformCompositionAsFlatStackInput(
  * @param columnDatum
  * @returns
  */
-export function getIconForColumnType(columnDatum?: Partial<ColumnSchema>): {
+export function getIconForColumnType(type?: string): {
   backgroundColor: string;
   icon: any; //IconType not provided
 } {
-  const { type } = columnDatum || {};
-
   if (type === 'integer') {
     return { backgroundColor: 'orange.500', icon: TiSortNumerically };
   }
   if (type === 'string') {
     return { backgroundColor: 'blue.500', icon: BiText };
   }
-  if (containsColumnQuantile(type)) {
+  if (type === 'numeric') {
     return { backgroundColor: 'red.500', icon: VscSymbolOperator };
   }
   if (type === 'datetime') {

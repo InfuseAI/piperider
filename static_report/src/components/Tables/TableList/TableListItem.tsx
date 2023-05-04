@@ -131,8 +131,9 @@ export function TableListItem({
                   {fallbackTable &&
                     fallbackTable.columns?.length > 0 &&
                     fallbackTable.columns.map(([colName, { base }]) => {
-                      const { backgroundColor, icon } =
-                        getIconForColumnType(base);
+                      const { backgroundColor, icon } = getIconForColumnType(
+                        base?.type,
+                      );
                       return (
                         <ColumnBadge
                           key={colName}

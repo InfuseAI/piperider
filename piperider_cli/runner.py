@@ -639,6 +639,7 @@ class Runner():
             if err_msg:
                 console.print(err_msg)
                 return sys.exit(1)
+            dbt_manifest = dbtutil._get_state_manifest(dbt_state_dir)
         console.print('everything is OK.')
 
         console.rule('Metadata Collecting')
@@ -680,6 +681,9 @@ class Runner():
                 subjects = list(filter(filter_fn, subjects))
 
         run_result = {}
+        if dbt_manifest:
+            run_result['dbt'] = dict(manifest=dbt_manifest)
+
         statistics = Statistics()
 
         profiler = Profiler(ds, RichProfilerEventHandler([subject.name for subject in subjects]), configuration)
@@ -736,6 +740,7 @@ class Runner():
         run_result['id'] = run_id
         run_result['created_at'] = datetime_to_str(created_at)
         run_result['datasource'] = dict(name=ds.name, type=ds.type_name)
+
         decorate_with_metadata(run_result)
 
         output_path = prepare_default_output_path(filesystem, created_at, ds)

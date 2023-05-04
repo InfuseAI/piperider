@@ -20,11 +20,44 @@ import {
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useRoute } from 'wouter';
-import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
+import {
+  COLUMN_DETAILS_ROUTE_PATH as TABLE_COLUMN_DETAILS_ROUTE_PATH,
+  MODEL_COLUMN_DETAILS_ROUTE_PATH,
+  SOURCE_COLUMN_DETAILS_ROUTE_PATH,
+  SEED_COLUMN_DETAILS_ROUTE_PATH,
+} from '../utils/routes';
+import { DbtManifestSchema, ModelNode } from '../sdlc/dbt-manifest-schema';
+import { findNodeByUniqueID } from '../utils/dbt';
+
+function useColumnRoute(): {
+  readonly tableName?: string;
+  readonly uniqueId?: string;
+  readonly columnName?: string;
+} {
+  const [matchTable, paramsTable] = useRoute(TABLE_COLUMN_DETAILS_ROUTE_PATH);
+  const [matchModel, paramsModel] = useRoute(MODEL_COLUMN_DETAILS_ROUTE_PATH);
+  const [matchSource, paramsSource] = useRoute(
+    SOURCE_COLUMN_DETAILS_ROUTE_PATH,
+  );
+  const [matchSeed, paramsSeed] = useRoute(SEED_COLUMN_DETAILS_ROUTE_PATH);
+
+  if (matchTable) {
+    return paramsTable;
+  } else if (matchModel) {
+    return paramsModel;
+  } else if (matchSource) {
+    return paramsSource;
+  } else if (matchSeed) {
+    return paramsSeed;
+  } else {
+    return {};
+  }
+}
 
 export default function SRColumnDetailPage() {
-  const [, params] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
-  const tableName = decodeURIComponent(params?.tableName || '');
+  const params = useColumnRoute();
+  const uniqueId = params?.uniqueId;
+  let tableName = decodeURIComponent(params?.tableName || '');
   const columnName = decodeURIComponent(params?.columnName || '');
 
   useTrackOnMount({
@@ -39,21 +72,32 @@ export default function SRColumnDetailPage() {
     tableColumnsOnly = [],
     rawData: { base: data },
   } = useReportStore.getState();
-  const currentTableEntry = tableColumnsOnly.find(
-    ([tableKey]) => tableKey === tableName,
-  );
 
-  const dataTable = data?.tables[tableName];
+  let tableKey;
+  if (uniqueId) {
+    const manifest = data?.dbt?.manifest as DbtManifestSchema;
+    const node = findNodeByUniqueID(manifest, uniqueId) as ModelNode;
+    if (node) {
+      tableKey = node.name;
+    }
+  } else if (tableName) {
+    tableKey = tableName;
+  }
+
+  if (!tableKey) {
+    return <NoData text={`No data found for '${tableKey}'`} />;
+  }
+
+  const currentTableEntry = tableColumnsOnly.find(([key]) => key === tableKey);
+  const dataTable = data?.tables[tableKey];
   const dataColumns = dataTable?.columns;
   const columnDatum = dataColumns ? dataColumns[columnName] : undefined;
 
   const { type, histogram, schema_type } = columnDatum || {};
-  const { backgroundColor, icon } = getIconForColumnType(columnDatum);
+  const { backgroundColor, icon } = getIconForColumnType(columnDatum?.type);
 
-  if (!tableName || !dataTable || !currentTableEntry || !columnDatum) {
-    return (
-      <NoData text={`No profile data found for '${tableName}.${columnName}'`} />
-    );
+  if (!tableKey || !dataTable || !currentTableEntry || !columnDatum) {
+    return <NoData text={`No data found for '${tableKey}.${columnName}'`} />;
   }
 
   const hasQuantile = containsColumnQuantile(type);

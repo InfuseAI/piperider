@@ -1,24 +1,17 @@
 import { Divider, Grid, GridItem } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { Comparable } from '../../types';
-import { mainContentAreaHeight, useReportStore } from '../../utils';
-import { MasterSideNav } from '../Columns/MasterSideNav';
+import { mainContentAreaHeight } from '../../utils';
+import { SideBar } from '../SideBar/SideBar';
 
 interface Props extends Comparable {
   children: ReactNode;
   singleOnly?: boolean;
   sideNavTop?: string;
 }
+
 //NOTE: Only for OSS usage. Reusable for Cloud?
-export function MasterDetailContainer({
-  children,
-  singleOnly,
-  sideNavTop = '0px',
-}: Props) {
-  const initAsExpandedTables = true;
-
-  const { tableColumnsOnly: tableColEntries = [] } = useReportStore.getState();
-
+export function MasterDetailContainer({ children, sideNavTop = '0px' }: Props) {
   return (
     <Grid
       width={'100%'}
@@ -33,11 +26,7 @@ export function MasterDetailContainer({
         top={sideNavTop}
         maxHeight={`calc(100vh - ${sideNavTop})`}
       >
-        <MasterSideNav
-          initAsExpandedTables={initAsExpandedTables}
-          tableColEntryList={tableColEntries}
-          singleOnly={singleOnly}
-        />
+        <SideBar />
       </GridItem>
       <Divider orientation="vertical" />
       <GridItem maxHeight={mainContentAreaHeight} width="100%" h={'100%'} p={9}>

@@ -1,6 +1,6 @@
 import { AccordionPanel, Box } from '@chakra-ui/react';
-import { Comparable } from '../../../types';
-import { CompColEntryItem } from '../../../utils';
+import { Comparable } from '../../types';
+import { CompColEntryItem } from '../../utils';
 import { ColumnDetailListItem } from './ColumnDetailListItem';
 
 /**

@@ -7,8 +7,8 @@ import { useHashLocation } from '../hooks/useHashLcocation';
 import { ComparisonReportSchema } from '../types';
 import { useReportStore } from '../utils';
 import {
-  ASSERTIONS_ROUTE_PATH,
-  BM_ROUTE_PATH,
+  TESTS_ROUTE_PATH,
+  METRICS_ROUTE_PATH,
   COLUMN_DETAILS_ROUTE_PATH,
   HOME_ROUTE_PATH,
   SSR_ROUTE_PATH,
@@ -55,11 +55,11 @@ export function CRPage({ data, sideNavTop = '0px' }: Props) {
             <CRColumnDetailPage />
           </Route>
 
-          <Route path={ASSERTIONS_ROUTE_PATH}>
+          <Route path={TESTS_ROUTE_PATH}>
             <CRAssertionListPage />
           </Route>
 
-          <Route path={BM_ROUTE_PATH}>
+          <Route path={METRICS_ROUTE_PATH}>
             <CRBMPage />
           </Route>
 

@@ -6,7 +6,7 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { NO_VALUE } from '..';
+import { NO_VALUE } from '../Columns';
 
 interface Props {
   name?: string;

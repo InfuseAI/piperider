@@ -1,13 +1,13 @@
 import { Box, Flex, FlexProps, Progress, Text } from '@chakra-ui/react';
 import { useLocation, useRoute } from 'wouter';
-import { ColumnSchema } from '../../../sdlc/single-report-schema';
-import { Comparable } from '../../../types';
+import { ColumnSchema } from '../../sdlc/single-report-schema';
+import { Comparable } from '../../types';
 import {
   formatColumnValueWith,
   formatIntervalMinMax,
-} from '../../../utils/formatters';
-import { COLUMN_DETAILS_ROUTE_PATH } from '../../../utils/routes';
-import { getIconForColumnType } from '../utils';
+} from '../../utils/formatters';
+import { COLUMN_DETAILS_ROUTE_PATH } from '../../utils/routes';
+import { getIconForColumnType } from '../Columns/utils';
 import { ColumnName } from './ColumnName';
 
 interface Props extends Comparable {
@@ -29,7 +29,7 @@ export function ColumnDetailListItem({
 }: Props & FlexProps) {
   const fallbackColumnDatum = targetColumnDatum || baseColumnDatum;
   const columnName = fallbackColumnDatum?.name || '';
-  const { icon } = getIconForColumnType(fallbackColumnDatum);
+  const { icon } = getIconForColumnType(fallbackColumnDatum?.type);
   const { valids_p: baseValidRatio } = baseColumnDatum || {};
   const baseValidsPercentValue = Number(baseValidRatio) * 100;
   const baseValidsPercentLabel = formatColumnValueWith(

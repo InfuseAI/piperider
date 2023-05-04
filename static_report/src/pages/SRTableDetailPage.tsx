@@ -12,12 +12,40 @@ import {
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useRoute } from 'wouter';
-import { TABLE_DETAILS_ROUTE_PATH } from '../utils/routes';
+import {
+  MODEL_DETAILS_ROUTE_PATH,
+  SEED_DETAILS_ROUTE_PATH,
+  SOURCE_DETAILS_ROUTE_PATH,
+  TABLE_DETAILS_ROUTE_PATH,
+} from '../utils/routes';
+import { DbtManifestSchema, ModelNode } from '../sdlc/dbt-manifest-schema';
+import { findNodeByUniqueID } from '../utils/dbt';
+
+function useTableRoute(): {
+  readonly tableName?: string;
+  readonly uniqueId?: string;
+  readonly columnName?: string;
+} {
+  const [matchTable, paramsTable] = useRoute(TABLE_DETAILS_ROUTE_PATH);
+  const [matchModel, paramsModel] = useRoute(MODEL_DETAILS_ROUTE_PATH);
+  const [matchSource, paramsSource] = useRoute(SOURCE_DETAILS_ROUTE_PATH);
+  const [matchSeed, paramsSeed] = useRoute(SEED_DETAILS_ROUTE_PATH);
+
+  if (matchTable) {
+    return paramsTable;
+  } else if (matchModel) {
+    return paramsModel;
+  } else if (matchSource) {
+    return paramsSource;
+  } else if (matchSeed) {
+    return paramsSeed;
+  } else {
+    return {};
+  }
+}
 
 export default function SRTableDetailPage() {
-  const [, params] = useRoute(TABLE_DETAILS_ROUTE_PATH);
-  const tableName = decodeURIComponent(params?.tableName || '');
-
+  let { tableName, uniqueId } = useTableRoute();
   useTrackOnMount({
     eventName: EVENTS.PAGE_VIEW,
     eventProperties: {
@@ -30,14 +58,28 @@ export default function SRTableDetailPage() {
     tableColumnsOnly = [],
     rawData: { base: data },
   } = useReportStore.getState();
-  const currentTableEntry = tableColumnsOnly.find(
-    ([tableKey]) => tableKey === tableName,
-  );
 
-  const dataTable = data?.tables[tableName];
+  // Find the node in the manifest
+  let tableKey;
+  if (uniqueId) {
+    const manifest = data?.dbt?.manifest as DbtManifestSchema;
+    const node = findNodeByUniqueID(manifest, uniqueId) as ModelNode;
+    if (node) {
+      tableKey = node.name;
+    }
+  } else if (tableName) {
+    tableKey = tableName;
+  }
 
-  if (!tableName || !dataTable || !currentTableEntry) {
-    return <NoData text={`No profile data found for '${tableName}'`} />;
+  if (!tableKey) {
+    return <NoData text={`No data found for '${tableKey}'`} />;
+  }
+
+  const dataTable = data?.tables[tableKey];
+  const currentTableEntry = tableColumnsOnly.find(([key]) => key === tableKey);
+
+  if (!dataTable || !currentTableEntry) {
+    return <NoData text={`No data found for '${tableKey}'`} />;
   }
   return (
     <>

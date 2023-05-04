@@ -131,7 +131,9 @@ export default function CRColumnDetailPage() {
     }
   }
 
-  const { backgroundColor, icon } = getIconForColumnType(fallbackColumnDatum);
+  const { backgroundColor, icon } = getIconForColumnType(
+    fallbackColumnDatum?.type,
+  );
   return (
     <>
       <TableColumnHeader
