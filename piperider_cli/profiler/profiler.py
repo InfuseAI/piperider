@@ -11,7 +11,6 @@ from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, 
     distinct, case, text, literal_column, inspect, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.engine import Engine, Connection
-from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy.sql import FromClause, Selectable
 from sqlalchemy.sql.elements import ColumnClause
 from sqlalchemy.sql.expression import CTE, false, true, table as table_clause, column as column_clause
@@ -480,7 +479,6 @@ class TableProfiler:
     async def profile(self) -> dict:
         subject = self.subject
         name = subject.name
-
         self.event_handler.handle_table_start(name)
         candidate_columns = list(self._get_candidate_columns())
         col_index = 0

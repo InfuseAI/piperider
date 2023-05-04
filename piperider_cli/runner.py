@@ -725,7 +725,7 @@ class Runner():
                 schema, table_name = table.split('.')
                 subjects = [ProfileSubject(table_name, schema)]
             else:
-                subjects = [ProfileSubject(table)]
+                subjects = [ProfileSubject(table, ds.get_schema())]
             Statistics().add_field('total', len(subjects))
         else:
             def filter_fn(subject: ProfileSubject):
