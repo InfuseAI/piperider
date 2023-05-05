@@ -20,6 +20,22 @@ from piperider_cli.statistics import Statistics
 console = Console()
 
 
+def get_dbt_project_path(dbt_project_dir: str = None, no_auto_search: bool = False) -> str:
+    dbt_project_path = None
+    if not no_auto_search:
+        if dbt_project_dir:
+            dbt_project_path = os.path.join(dbt_project_dir, "dbt_project.yml")
+        else:
+            dbt_project_path = search_dbt_project_path()
+    if dbt_project_path:
+        console.print(f'[[bold green] DBT [/bold green]] Use the existing dbt project file: {dbt_project_path}')
+        console.print(
+            "[[bold green] DBT [/bold green]] "
+            "By default, PipeRider will profile the models and metrics with 'piperider' tag\n"
+            "        Apply 'piperider' tag to your models or change the tag in '.piperider/config.yml'\n")
+    return dbt_project_path
+
+
 def search_dbt_project_path():
     exclude_patterns = ['site-packages', 'dbt_packages']
     _warning_if_search_path_too_widely(os.getcwd())

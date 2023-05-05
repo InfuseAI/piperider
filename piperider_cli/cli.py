@@ -6,7 +6,7 @@ import sentry_sdk
 from rich.console import Console
 
 import piperider_cli.dbtutil as dbtutil
-from piperider_cli import __version__, sentry_dns, sentry_env, event, get_run_json_path
+from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
@@ -109,22 +109,10 @@ def init(**kwargs):
     console.print(f'Initialize piperider to path {PIPERIDER_WORKSPACE_PATH}')
 
     # Search dbt project config files
-    dbt_project_path = None
     dbt_project_dir = kwargs.get('dbt_project_dir')
-    dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     no_auto_search = kwargs.get('no_auto_search')
-    if not no_auto_search:
-        if dbt_project_dir:
-            dbt_project_path = os.path.join(dbt_project_dir, "dbt_project.yml")
-        else:
-            dbt_project_path = dbtutil.search_dbt_project_path()
-
-    if dbt_project_path:
-        console.print(f'[[bold green] DBT [/bold green]] Use the existing dbt project file: {dbt_project_path}')
-        console.print(
-            "[[bold green] DBT [/bold green]] "
-            "By default, PipeRider will profile the models and metrics with 'piperider' tag\n"
-            "        Apply 'piperider' tag to your models or change the tag in '.piperider/config.yml'\n")
+    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search)
+    dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
 
     config = Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir)
     if kwargs.get('debug'):
