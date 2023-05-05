@@ -206,6 +206,11 @@ class Profiler:
 
         # Fetch schema data
         map_name_tables = await self._fetch_metadata(metadata_subjects if metadata_subjects else subjects)
+
+        if metadata_subjects is None:
+            # for compatible with non-dbt cases, we use subjects as the metadata_subjects
+            metadata_subjects = subjects
+
         for subject in metadata_subjects:
             engine = self.data_source.get_engine_by_database(subject.database)
             table = map_name_tables[subject.name]
