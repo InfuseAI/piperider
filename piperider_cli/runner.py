@@ -297,104 +297,6 @@ def _show_assertion_result(results, exceptions, failed_only=False, single_table=
     pass
 
 
-def _show_recommended_assertion_notice_message(console: Console, results):
-    for assertion in results:
-        if assertion.result.status() is False and RECOMMENDED_ASSERTION_TAG in assertion.tags:
-            console.print(
-                f'\n[[bold yellow]Notice[/bold yellow]] You can use command '
-                f'"{os.path.basename(sys.argv[0])} generate-assertions" '
-                f'to re-generate recommended assertions with new profiling results.')
-            break
-
-
-def _show_dbt_test_result_summary(dbt_test_results, table: str = None):
-    if not dbt_test_results:
-        return None
-
-    # Prepare DBT Tests Summary
-    ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta', box=box.SIMPLE_HEAVY)
-    ascii_table.add_column('Table Name', style='bold yellow')
-    ascii_table.add_column('#DBT Tests Executed', style='bold blue', justify='right')
-    ascii_table.add_column('#DBT Tests Failed', style='bold red', justify='right')
-
-    test_count = {}
-    for r in dbt_test_results:
-        t = r.get('table')
-
-        if table is not None and t != table:
-            continue
-        if t not in test_count:
-            test_count[t] = dict(total=0, failed=0)
-
-        test_count[t]['total'] += 1
-        test_count[t]['failed'] += 1 if r.get('status') == 'failed' else 0
-
-    for t in test_count:
-        ascii_table.add_row(
-            t,
-            Pretty(test_count[t]['total']),
-            Pretty(test_count[t]['failed']),
-        )
-
-    return ascii_table
-
-
-def _show_summary(profiled_result, assertion_results, assertion_exceptions, dbt_test_results, table=None):
-    console = Console()
-    tables = profiled_result.get('tables', []) if table is None else [table]
-
-    # Prepare PipeRider Assertions Summary
-    ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta', box=box.SIMPLE_HEAVY)
-    ascii_table.add_column('Table Name', style='bold yellow')
-    ascii_table.add_column('#Columns Profiled', style='bold blue', justify='right')
-    ascii_table.add_column('#Tests Executed', style='bold blue', justify='right')
-    ascii_table.add_column('#Tests Failed', style='bold red', justify='right')
-
-    ascii_dbt_table = _show_dbt_test_result_summary(dbt_test_results)
-    for t in tables:
-        _show_table_summary(ascii_table, t, profiled_result, assertion_results)
-
-    if ascii_dbt_table:
-        # Display DBT Tests Summary
-        console.rule('dbt')
-        console.print(ascii_dbt_table)
-        _show_dbt_test_result(dbt_test_results, failed_only=True, title="Failed DBT Tests")
-        if ascii_table.rows:
-            console.rule('PipeRider')
-
-    # Display PipeRider Assertions Summary
-    if ascii_table.rows:
-        console.print(ascii_table)
-        _show_assertion_result(assertion_results, assertion_exceptions, failed_only=True,
-                               title='Failed Assertions')
-
-
-def _show_table_summary(ascii_table: Table, table: str, profiled_result, assertion_results):
-    profiled_rows = profiled_result['tables'][table].get('row_count')
-    profiled_columns = profiled_result['tables'][table].get('col_count')
-
-    # the table is not profiled, reset the profiled_columns to 0
-    if profiled_rows is None:
-        profiled_columns = 0
-
-    num_of_testcases = 0
-    num_of_failed_testcases = 0
-
-    if assertion_results:
-        for r in assertion_results:
-            if r.table == table:
-                num_of_testcases += 1
-                if not r.result.status():
-                    num_of_failed_testcases += 1
-
-    ascii_table.add_row(
-        table,
-        Pretty(profiled_columns),
-        Pretty(num_of_testcases),
-        Pretty(num_of_failed_testcases),
-    )
-
-
 def _transform_assertion_result(table: str, results):
     tests = []
     columns = {}
@@ -822,12 +724,8 @@ class Runner():
                 _show_assertion_result(assertion_results, assertion_exceptions)
                 run_result['tests'].extend([r.to_result_entry() for r in assertion_results])
 
-        console.rule('Summary')
-
         for t in run_result['tables']:
             _clean_up_profile_null_properties(run_result['tables'][t])
-        _show_summary(run_result, assertion_results, assertion_exceptions, dbt_test_results)
-        _show_recommended_assertion_notice_message(console, assertion_results)
 
         if dbt_config:
             dbtutil.append_descriptions(run_result, dbt_state_dir)

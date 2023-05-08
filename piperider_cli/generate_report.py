@@ -91,6 +91,7 @@ class GenerateReport:
             console.print(f'[bold red]Error: {run_json_path} is invalid[/bold red]')
             return
 
+        console.print('')
         console.print(f'[bold dark_orange]Generating reports from:[/bold dark_orange] {run_json_path}')
 
         def output_report(target_directory):
