@@ -618,7 +618,9 @@ def get_dbt_profile_subjects(dbt_state_dir, options, filter_fn):
 def get_dbt_state_dir(dbt_state_dir, dbt_config, ds, dbt_run_results):
     if not dbt_state_dir:
         dbt_project = dbtutil.load_dbt_project(dbt_config.get('projectDir'))
-        dbt_state_dir = os.path.join(dbt_config.get('projectDir'), dbt_project.get('target-path'))
+        dbt_state_dir = dbt_project.get('target-path')
+        if os.path.isabs(dbt_state_dir) is False:
+            dbt_state_dir = os.path.join(dbt_config.get('projectDir'), dbt_state_dir)
 
     if not dbtutil.is_dbt_state_ready(dbt_state_dir):
         return None, f"[bold red]Error:[/bold red] No available 'manifest.json' under '{dbt_state_dir}'"
