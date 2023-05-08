@@ -44,6 +44,15 @@ debug_option = [
     click.option('--debug', is_flag=True, help='Enable debug mode.')
 ]
 
+dbt_related_options = [
+    click.option('--dbt-project-dir', type=click.Path(exists=True),
+                 help='The path to the dbt project directory.'),
+    click.option('--dbt-profiles-dir', type=click.Path(exists=True), default=None,
+                 help='Directory to search for dbt profiles.yml.'),
+    click.option('--no-auto-search', type=click.BOOL, default=False, is_flag=True,
+                 help='Disable auto detection of dbt projects.')
+]
+
 
 def add_options(options):
     def _add_options(func):
@@ -93,12 +102,7 @@ def feedback():
 
 
 @cli.command(short_help='Initialize a PipeRider project.', cls=TrackCommand)
-@click.option('--no-auto-search', type=click.BOOL, default=False, is_flag=True,
-              help="Disable auto detection of dbt projects.")
-@click.option('--dbt-project-dir', type=click.Path(exists=True), default=None,
-              help='Directory to search for dbt_project.yml.')
-@click.option('--dbt-profiles-dir', type=click.Path(exists=True), default=None,
-              help='Directory to search for dbt profiles.yml.')
+@add_options(dbt_related_options)
 @add_options(debug_option)
 def init(**kwargs):
     'Initialize a PipeRider project in interactive mode. The configurations are saved in ".piperider".'
@@ -127,11 +131,22 @@ def init(**kwargs):
 
 
 @cli.command(short_help='Check project configuration.', cls=TrackCommand)
+@add_options(dbt_related_options)
 @add_options(debug_option)
 def diagnose(**kwargs):
     'Check project configuration, datasource, connections, and assertion configuration.'
 
     console = Console()
+
+    # Search dbt project config files
+    dbt_project_dir = kwargs.get('dbt_project_dir')
+    no_auto_search = kwargs.get('no_auto_search')
+    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search)
+    dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
+    if dbt_project_path:
+        # Only run initializer when dbt project path is provided
+        Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
+
     console.print('Diagnosing...')
 
     console.print(f'[bold dark_orange]PipeRider Version:[/bold dark_orange] {__version__}')
@@ -153,6 +168,7 @@ def diagnose(**kwargs):
 @click.option('--project', default=None, type=click.STRING, help='Specify the project name to upload.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
+@add_options(dbt_related_options)
 @add_options(debug_option)
 def run(**kwargs):
     'Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
@@ -176,6 +192,15 @@ def run(**kwargs):
         console.print("[bold red]Error:[/bold red] "
                       "['--table', '--dbt-list', '--dbt-run-results'] are mutually exclusive")
         sys.exit(1)
+
+    # Search dbt project config files
+    dbt_project_dir = kwargs.get('dbt_project_dir')
+    no_auto_search = kwargs.get('no_auto_search')
+    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search)
+    dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
+    if dbt_project_path:
+        # Only run initializer when dbt project path is provided
+        Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
 
     dbt_resources = None
     if dbt_list:
@@ -412,6 +437,7 @@ def cloud_compare_reports(**kwargs):
 @click.option('--project', default=None, type=click.STRING, metavar='PROJECT_NAME',
               help='Specify the default project name.')
 @click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
+@add_options(dbt_related_options)
 @add_options(debug_option)
 def compare_with_recipe(**kwargs):
     """
@@ -434,6 +460,15 @@ def compare_with_recipe(**kwargs):
             message='Please login to PipeRider Cloud first.',
             hint='Run "piprider cloud login" to login to PipeRider Cloud.'
         )
+
+    # Search dbt project config files
+    dbt_project_dir = kwargs.get('dbt_project_dir')
+    no_auto_search = kwargs.get('no_auto_search')
+    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search)
+    dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
+    if dbt_project_path:
+        # Only run initializer when dbt project path is provided
+        Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
 
     ret = 0
     try:
