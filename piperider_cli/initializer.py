@@ -17,6 +17,8 @@ from piperider_cli.datasource.survey import UserSurveyMockDataSource
 from piperider_cli.error import PipeRiderConfigError
 from piperider_cli.recipes.default_recipe_generator import generate_default_recipe, show_recipe_content
 
+console = Console()
+
 
 def _is_piperider_workspace_exist(workspace_path: str) -> bool:
     if not os.path.exists(workspace_path):
@@ -43,13 +45,11 @@ def _generate_piperider_workspace() -> bool:
 
 
 def _ask_user_update_credentials(ds: DataSource):
-    console = Console()
     console.print(f'\nPlease enter the following fields for {ds.type_name}')
     return ds.ask_credential()
 
 
 def _ask_user_input_datasource(config: Configuration = None):
-    console = Console()
     if config is None:
         cls, name = DataSource.ask()
         ds: DataSource = cls(name=name)
@@ -76,21 +76,27 @@ def _ask_user_input_datasource(config: Configuration = None):
     return config
 
 
-def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None):
+def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None, interactive=True):
     config = safe_load_yaml(PIPERIDER_CONFIG_PATH)
     if config and config.get('dataSources'):
-        console = Console()
-        console.print('[[bold yellow]Warning[/bold yellow]] Found existing configuration. Skip initialization.')
+        if interactive is True:
+            console.print('[[bold yellow]Warning[/bold yellow]] Found existing configuration. Skip initialization.')
         return config
 
     dbt_config = Configuration.from_dbt_project(dbt_project_path, dbt_profiles_dir)
     _generate_piperider_workspace()
     dbt_config.dump(PIPERIDER_CONFIG_PATH)
 
+    console.print(f'[[bold green] DBT [/bold green]] Use the existing dbt project file: {dbt_project_path}')
+    console.print(
+        "[[bold green] DBT [/bold green]] "
+        "By default, PipeRider will profile the models and metrics with 'piperider' tag\n"
+        "        Apply 'piperider' tag to your models or change the tag in '.piperider/config.yml'\n")
+
     return dbt_config
 
 
-def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None):
+def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None, interactive=True):
     """
     :param dbt_project_path:
     :return: Configuration object
@@ -101,34 +107,38 @@ def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None):
         config = None
     except Exception:
         config = None
-        console = Console()
         console.print('[[bold yellow]Warning[/bold yellow]] Invalid config.yml')
+
     if dbt_project_path is None:
+        # TODO: mark as deprecated in the future
         return _ask_user_input_datasource(config=config)
 
-    return _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir)
+    if config is not None:
+        if interactive:
+            console.print('[[bold yellow]Warning[/bold yellow]] Found existing configuration. Skip initialization.')
+        return config
+
+    return _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir, interactive)
 
 
 class Initializer():
     @staticmethod
-    def exec(working_dir=None, dbt_project_path=None, dbt_profiles_dir=None):
-        console = Console()
+    def exec(working_dir=None, dbt_project_path=None, dbt_profiles_dir=None, interactive=True):
         if working_dir is None:
             working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
 
-        if _is_piperider_workspace_exist(working_dir):
+        if _is_piperider_workspace_exist(working_dir) and interactive is True:
             console.print('[bold green]Piperider workspace already exist[/bold green] ')
 
         # get Configuration object from dbt or user created configuration
-        configuration = _generate_configuration(dbt_project_path, dbt_profiles_dir)
+        configuration = _generate_configuration(dbt_project_path, dbt_profiles_dir, interactive)
 
         # generate the default recipe
-        generate_default_recipe(dbt_project_path=dbt_project_path)
+        generate_default_recipe(dbt_project_path=dbt_project_path, interactive=interactive)
         return configuration
 
     @staticmethod
     def show_config():
-        console = Console()
 
         # show config.yml
         with open(PIPERIDER_CONFIG_PATH, 'r') as f:
@@ -142,7 +152,6 @@ class Initializer():
 
     @staticmethod
     def list(report_dir=None):
-        console = Console()
         working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
 
         if _is_piperider_workspace_exist(working_dir):
@@ -166,7 +175,6 @@ class Initializer():
 
     @staticmethod
     def delete(report_dir=None):
-        console = Console()
 
         config = Configuration.load()
         if config.dbt:
@@ -204,7 +212,6 @@ class Initializer():
 
     @staticmethod
     def add(report_dir=None):
-        console = Console()
         config = Configuration.load()
         if config.dbt:
             console.print('[bold yellow]You have connected with a dbt project. '
