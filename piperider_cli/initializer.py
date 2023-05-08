@@ -87,6 +87,12 @@ def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None
     _generate_piperider_workspace()
     dbt_config.dump(PIPERIDER_CONFIG_PATH)
 
+    console.print(f'[[bold green] DBT [/bold green]] Use the existing dbt project file: {dbt_project_path}')
+    console.print(
+        "[[bold green] DBT [/bold green]] "
+        "By default, PipeRider will profile the models and metrics with 'piperider' tag\n"
+        "        Apply 'piperider' tag to your models or change the tag in '.piperider/config.yml'\n")
+
     return dbt_config
 
 
@@ -103,14 +109,14 @@ def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None, intera
         config = None
         console.print('[[bold yellow]Warning[/bold yellow]] Invalid config.yml')
 
-    if config is not None:
-        if interactive == True:
-            console.print('[[bold yellow]Warning[/bold yellow]] Found existing configuration. Skip initialization.')
-        return config
-
     if dbt_project_path is None:
         # TODO: mark as deprecated in the future
         return _ask_user_input_datasource(config=config)
+
+    if config is not None:
+        if interactive:
+            console.print('[[bold yellow]Warning[/bold yellow]] Found existing configuration. Skip initialization.')
+        return config
 
     return _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir, interactive)
 

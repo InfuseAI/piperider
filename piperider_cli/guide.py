@@ -53,14 +53,6 @@ class Guide(object):
             self.show("Please execute command 'piperider run' to generate your second report")
             return
 
-        if command_name == 'run' and number_of_reports() == 1:
-            self.show("Please execute command 'piperider run' to generate your second report")
-            return
-
-        if command_name == 'run' and number_of_reports() == 2:
-            self.show("Please execute command 'piperider compare-reports' to get the comparison report")
-            return
-
         if command_name == 'generate-report' and number_of_reports() == 1:
             self.show("Please execute command 'piperider run' to generate your second report")
             return

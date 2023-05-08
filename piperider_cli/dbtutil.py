@@ -22,17 +22,10 @@ console = Console()
 
 def get_dbt_project_path(dbt_project_dir: str = None, no_auto_search: bool = False) -> str:
     dbt_project_path = None
-    if not no_auto_search:
-        if dbt_project_dir:
-            dbt_project_path = os.path.join(dbt_project_dir, "dbt_project.yml")
-        else:
-            dbt_project_path = search_dbt_project_path()
-    if dbt_project_path:
-        console.print(f'[[bold green] DBT [/bold green]] Use the existing dbt project file: {dbt_project_path}')
-        console.print(
-            "[[bold green] DBT [/bold green]] "
-            "By default, PipeRider will profile the models and metrics with 'piperider' tag\n"
-            "        Apply 'piperider' tag to your models or change the tag in '.piperider/config.yml'\n")
+    if dbt_project_dir:
+        dbt_project_path = os.path.join(dbt_project_dir, "dbt_project.yml")
+    if no_auto_search == False and dbt_project_path is None:
+        dbt_project_path = search_dbt_project_path()
     return dbt_project_path
 
 
