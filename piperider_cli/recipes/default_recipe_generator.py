@@ -78,7 +78,7 @@ def generate_default_recipe(overwrite_existing: bool = False,
     """
     recipe_path = DEFAULT_RECIPE_PATH
     if overwrite_existing is False and os.path.exists(recipe_path):
-        if interactive == True:
+        if interactive is True:
             console.print('[bold green]Piperider default recipe already exist[/bold green]')
         return 0
     base = _create_base_recipe(dbt_project_path)

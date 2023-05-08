@@ -79,7 +79,7 @@ def _ask_user_input_datasource(config: Configuration = None):
 def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None, interactive=True):
     config = safe_load_yaml(PIPERIDER_CONFIG_PATH)
     if config and config.get('dataSources'):
-        if interactive == True:
+        if interactive is True:
             console.print('[[bold yellow]Warning[/bold yellow]] Found existing configuration. Skip initialization.')
         return config
 
@@ -127,7 +127,7 @@ class Initializer():
         if working_dir is None:
             working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
 
-        if _is_piperider_workspace_exist(working_dir) and interactive == True:
+        if _is_piperider_workspace_exist(working_dir) and interactive is True:
             console.print('[bold green]Piperider workspace already exist[/bold green] ')
 
         # get Configuration object from dbt or user created configuration

@@ -25,7 +25,7 @@ def get_dbt_project_path(dbt_project_dir: str = None, no_auto_search: bool = Fal
     dbt_project_path = None
     if dbt_project_dir:
         dbt_project_path = os.path.join(dbt_project_dir, "dbt_project.yml")
-    if no_auto_search == False and dbt_project_path is None:
+    if no_auto_search is False and dbt_project_path is None:
         dbt_project_path = search_dbt_project_path(select_dbt_index)
     return dbt_project_path
 
