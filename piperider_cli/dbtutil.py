@@ -21,19 +21,22 @@ console = Console()
 
 
 def get_dbt_project_path(dbt_project_dir: str = None, no_auto_search: bool = False,
-                         select_dbt_index: int = None) -> str:
+                         recursive: bool = True) -> str:
     dbt_project_path = None
     if dbt_project_dir:
         dbt_project_path = os.path.join(dbt_project_dir, "dbt_project.yml")
     if no_auto_search is False and dbt_project_path is None:
-        dbt_project_path = search_dbt_project_path(select_dbt_index)
+        dbt_project_path = search_dbt_project_path(recursive)
     return dbt_project_path
 
 
-def search_dbt_project_path(select_dbt_index: int = None):
+def search_dbt_project_path(recursive: bool = True):
     exclude_patterns = ['site-packages', 'dbt_packages']
-    _warning_if_search_path_too_widely(os.getcwd())
-    paths = glob(os.path.join(os.getcwd(), '**', 'dbt_project.yml'), recursive=True)
+    segments = [os.getcwd()]
+    if recursive:
+        _warning_if_search_path_too_widely(os.getcwd())
+        segments.append('**')
+    paths = glob(os.path.join(*segments, 'dbt_project.yml'), recursive=True)
     for exclude_pattern in exclude_patterns:
         paths = list(filter(lambda x: exclude_pattern not in x, paths))
     dbt_project_path = None
@@ -44,8 +47,6 @@ def search_dbt_project_path(select_dbt_index: int = None):
     if len(paths) == 1:
         # Only one dbt project found, use it
         dbt_project_path = paths[0]
-    elif select_dbt_index is not None:
-        dbt_project_path = paths[select_dbt_index]
     else:
         # Multiple dbt projects found, ask user to select one
         paths = sorted(paths, key=len)
