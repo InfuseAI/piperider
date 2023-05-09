@@ -25,6 +25,9 @@ import { ColumnListAccordionPanel } from './ColumnListAccordionPanel';
 import { RoutableAccordionButton } from './RoutableAccordionButton';
 import { TableItemAccordionButton } from './TableItemAccordionButton';
 
+// const { assertionsOnly } = useReportStore.getState();
+// const { metadata } = assertionsOnly || {};
+
 interface Props extends Comparable {
   isTablesIndex?: boolean;
   initAsExpandedTables?: boolean;
@@ -223,12 +226,16 @@ export function MasterSideNav({
         <AccordionItem>
           <RoutableAccordionButton title="Metrics" path={BM_ROUTE_PATH} />
         </AccordionItem>
+
+        {/* Only show the Assertions Button when the report contain assertions result */}
+        {/* {Number(metadata?.base?.total) > 0 && ( */}
         <AccordionItem>
           <RoutableAccordionButton
             title="Assertions"
             path={ASSERTIONS_ROUTE_PATH}
           />
         </AccordionItem>
+        {/* )} */}
       </Accordion>
     </Box>
   );

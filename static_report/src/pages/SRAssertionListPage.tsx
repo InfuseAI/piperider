@@ -1,4 +1,13 @@
-import { Box, Flex, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Flex,
+  Text,
+  Alert,
+  AlertIcon,
+  AlertDescription,
+  AlertTitle,
+  Link,
+} from '@chakra-ui/react';
 import { useState } from 'react';
 import { AssertionPassFailCountLabel } from '../components/Assertions/AssertionPassFailCountLabel';
 import { SearchTextInput } from '../components/Common/SearchTextInput';
@@ -22,6 +31,24 @@ export function SRAssertionListPage() {
 
   return (
     <Box>
+      <Alert status="warning" mb={5}>
+        <AlertIcon />
+        <Box>
+          <AlertTitle>
+            The Assertions page will be deprecated in the future
+          </AlertTitle>
+          <AlertDescription fontSize="sm">
+            If you have a strong need for this page, please contact us by the{' '}
+            <Link
+              href="https://forms.gle/zyf7UZdnZRCJWQNd9"
+              style={{ textDecoration: 'underline' }}
+            >
+              feedback link
+            </Link>
+            . Your feedback is important to us. Thank you!
+          </AlertDescription>
+        </Box>
+      </Alert>
       <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
         Assertions
       </Text>

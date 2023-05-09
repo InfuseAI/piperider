@@ -1,4 +1,13 @@
-import { Box, Flex, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Flex,
+  Text,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Link,
+} from '@chakra-ui/react';
 import { useState } from 'react';
 import { SearchTextInput } from '../components/Common/SearchTextInput';
 import { TableListAssertionSummary } from '../components/Tables';
@@ -22,6 +31,24 @@ export function CRAssertionListPage() {
 
   return (
     <Box>
+      <Alert status="warning" mb={5}>
+        <AlertIcon />
+        <Box>
+          <AlertTitle>
+            The Assertions page will be deprecated in the future
+          </AlertTitle>
+          <AlertDescription fontSize="sm">
+            If you have a strong need for this page, please contact us by the{' '}
+            <Link
+              href="https://forms.gle/zyf7UZdnZRCJWQNd9"
+              style={{ textDecoration: 'underline' }}
+            >
+              feedback link
+            </Link>
+            . Your feedback is important to us. Thank you!
+          </AlertDescription>
+        </Box>
+      </Alert>
       <Flex w={'100%'}>
         <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
           Assertions
