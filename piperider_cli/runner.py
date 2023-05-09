@@ -523,7 +523,7 @@ def get_dbt_all_subjects(dbt_state_dir, options, filter_fn):
             result.append(ProfileSubject(table, schema, database, name))
         return result
 
-    subjects = as_subjects(dbtutil.get_dbt_state_candidate(dbt_state_dir, options, skip_chosen=True))
+    subjects = as_subjects(dbtutil.get_dbt_state_candidate(dbt_state_dir, options, select_for_metadata=True))
     Statistics().reset()
 
     tagged_subjects = as_subjects(dbtutil.get_dbt_state_candidate(dbt_state_dir, options))
