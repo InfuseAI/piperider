@@ -43,7 +43,7 @@ export interface ReportState {
    * Business Metrics (zipped 2D arrays to data column format)
    */
   BMOnly?: ComparableData<BusinessMetric[]>;
-  isCloud?: boolean;
+  isCloudReport?: boolean;
 }
 
 interface ReportSetters {
@@ -210,7 +210,7 @@ const getBusinessMetrics = (rawData: ComparableReport) => {
   return { base: baseBMValue, target: targetBMValue };
 };
 
-const getIsCloudFlag = (rawData: ComparableReport) => {
+const getIsCloudReport = (rawData: ComparableReport) => {
   const { base } = rawData;
   return base?.cloud ? true : false;
 };
@@ -236,8 +236,8 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
       const assertionsOnly = getAssertionsOnly(rawData);
       /** Report Business Metrics (BM) */
       const BMOnly = getBusinessMetrics(rawData);
-      /** Is Cloud Flag */
-      const isCloud = getIsCloudFlag(rawData);
+      /** Is Cloud Report */
+      const isCloudReport = getIsCloudReport(rawData);
 
       const resultState: ReportState = {
         rawData,
@@ -248,7 +248,7 @@ export const useReportStore = create<ReportState & ReportSetters>()(function (
         tableColumnsOnly,
         assertionsOnly,
         BMOnly,
-        isCloud,
+        isCloudReport,
       };
 
       // final setter
