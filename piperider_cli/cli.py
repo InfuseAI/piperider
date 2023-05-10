@@ -196,7 +196,7 @@ def run(**kwargs):
     # Search dbt project config files
     dbt_project_dir = kwargs.get('dbt_project_dir')
     no_auto_search = kwargs.get('no_auto_search')
-    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search, select_dbt_index=0)
+    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search, recursive=False)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     if dbt_project_path:
         # Only run initializer when dbt project path is provided
@@ -464,7 +464,7 @@ def compare_with_recipe(**kwargs):
     # Search dbt project config files
     dbt_project_dir = kwargs.get('dbt_project_dir')
     no_auto_search = kwargs.get('no_auto_search')
-    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search, select_dbt_index=0)
+    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search, recursive=False)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     if dbt_project_path:
         # Only run initializer when dbt project path is provided
