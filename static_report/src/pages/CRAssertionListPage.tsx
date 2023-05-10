@@ -16,6 +16,7 @@ import { useTrackOnMount } from '../hooks';
 import { EVENTS, CR_TYPE_LABEL } from '../utils';
 import { assertionListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
+import { FeedbackLinkFromLocalReport } from '../components/Common/HelpMenu';
 
 export function CRAssertionListPage() {
   useTrackOnMount({
@@ -40,7 +41,7 @@ export function CRAssertionListPage() {
           <AlertDescription fontSize="sm">
             If you have a strong need for this page, please contact us by the{' '}
             <Link
-              href="https://forms.gle/zyf7UZdnZRCJWQNd9"
+              href={FeedbackLinkFromLocalReport}
               style={{ textDecoration: 'underline' }}
             >
               feedback link

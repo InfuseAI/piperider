@@ -15,6 +15,7 @@ import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { useTrackOnMount } from '../hooks';
 import { EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
 import { assertionListWidth } from '../utils/layout';
+import { FeedbackLinkFromLocalReport } from '../components/Common/HelpMenu';
 
 export function SRAssertionListPage() {
   useTrackOnMount({
@@ -40,7 +41,7 @@ export function SRAssertionListPage() {
           <AlertDescription fontSize="sm">
             If you have a strong need for this page, please contact us by the{' '}
             <Link
-              href="https://forms.gle/zyf7UZdnZRCJWQNd9"
+              href={FeedbackLinkFromLocalReport}
               style={{ textDecoration: 'underline' }}
             >
               feedback link

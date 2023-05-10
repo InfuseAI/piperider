@@ -16,11 +16,14 @@ type Props = {
   feedbackLink?: string;
 };
 
+export const FeedbackLinkFromLocalReport =
+  'https://docs.google.com/forms/d/e/1FAIpQLSe0J8qC78lqMVxSAJFPub6QXx2NcVY8WLvIVEGthOeQcJHxFQ/viewform?usp=pp_url&entry.2024961102=PipeRider+Local+Reports';
+
 export function HelpMenu({
   githubLink = 'https://github.com/InfuseAI/piperider',
   discordLink = 'https://discord.gg/328QcXnkKD',
   docLink = 'https://docs.piperider.io/',
-  feedbackLink = 'https://forms.gle/zyf7UZdnZRCJWQNd9',
+  feedbackLink = FeedbackLinkFromLocalReport,
 }: Props) {
   return (
     <Menu>
