@@ -18,6 +18,8 @@ type Props = {
 
 export const FeedbackLinkFromLocalReport =
   'https://docs.google.com/forms/d/e/1FAIpQLSe0J8qC78lqMVxSAJFPub6QXx2NcVY8WLvIVEGthOeQcJHxFQ/viewform?usp=pp_url&entry.2024961102=PipeRider+Local+Reports';
+export const FeedbackLinkFromCloud =
+  'https://docs.google.com/forms/d/e/1FAIpQLSe0J8qC78lqMVxSAJFPub6QXx2NcVY8WLvIVEGthOeQcJHxFQ/viewform?usp=pp_url&entry.2024961102=PipeRider+Cloud';
 
 export function HelpMenu({
   githubLink = 'https://github.com/InfuseAI/piperider',

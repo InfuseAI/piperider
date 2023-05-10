@@ -15,7 +15,10 @@ import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { useTrackOnMount } from '../hooks';
 import { EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
 import { assertionListWidth } from '../utils/layout';
-import { FeedbackLinkFromLocalReport } from '../components/Common/HelpMenu';
+import {
+  FeedbackLinkFromLocalReport,
+  FeedbackLinkFromCloud,
+} from '../components/Common/HelpMenu';
 
 export function SRAssertionListPage() {
   useTrackOnMount({
@@ -27,7 +30,7 @@ export function SRAssertionListPage() {
   });
   const [filterString, setFilterString] = useState<string>('');
 
-  const { assertionsOnly } = useReportStore.getState();
+  const { assertionsOnly, isCloud } = useReportStore.getState();
   const { metadata } = assertionsOnly || {};
 
   return (
@@ -41,7 +44,9 @@ export function SRAssertionListPage() {
           <AlertDescription fontSize="sm">
             If you have a strong need for this page, please contact us by the{' '}
             <Link
-              href={FeedbackLinkFromLocalReport}
+              href={
+                isCloud ? FeedbackLinkFromCloud : FeedbackLinkFromLocalReport
+              }
               style={{ textDecoration: 'underline' }}
             >
               feedback link

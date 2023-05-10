@@ -38,7 +38,7 @@ export function ReportContextBar({
       <Flex gap={5}>
         {children}
         {showProjectInfo && (
-          <Flex gap={5}>
+          <Flex gap={5} zIndex={100}>
             <Flex alignItems={'center'} gap={2}>
               <BiPlug />
               <Text color={'gray.500'}>Source: {datasource}</Text>
