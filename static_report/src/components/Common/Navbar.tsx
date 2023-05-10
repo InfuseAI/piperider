@@ -46,7 +46,7 @@ export function Navbar({ isSingleReport }: Props) {
         </Text>
       </Flex>
 
-      <Flex position="absolute" right="96px" zIndex={100}>
+      <Flex position="absolute" right="96px" zIndex="modal">
         <HelpMenu feedbackLink={FeedbackLinkFromLocalReport} />
       </Flex>
     </Flex>
