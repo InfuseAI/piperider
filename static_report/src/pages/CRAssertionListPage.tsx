@@ -16,7 +16,10 @@ import { useTrackOnMount } from '../hooks';
 import { EVENTS, CR_TYPE_LABEL } from '../utils';
 import { assertionListWidth } from '../utils/layout';
 import { useReportStore } from '../utils/store';
-import { FeedbackLinkFromLocalReport } from '../components/Common/HelpMenu';
+import {
+  FeedbackLinkFromLocalReport,
+  FeedbackLinkFromCloud,
+} from '../components/Common/HelpMenu';
 
 export function CRAssertionListPage() {
   useTrackOnMount({
@@ -27,8 +30,11 @@ export function CRAssertionListPage() {
     },
   });
   const [filterString, setFilterString] = useState<string>('');
-  const { assertionsOnly } = useReportStore.getState();
+  const { assertionsOnly, isCloudReport } = useReportStore.getState();
   const { metadata } = assertionsOnly || {};
+  const feedBackLink = isCloudReport
+    ? FeedbackLinkFromCloud
+    : FeedbackLinkFromLocalReport;
 
   return (
     <Box>
@@ -40,10 +46,7 @@ export function CRAssertionListPage() {
           </AlertTitle>
           <AlertDescription fontSize="sm">
             If you have a strong need for this page, please contact us by the{' '}
-            <Link
-              href={FeedbackLinkFromLocalReport}
-              style={{ textDecoration: 'underline' }}
-            >
+            <Link href={feedBackLink} style={{ textDecoration: 'underline' }}>
               feedback link
             </Link>
             . Your feedback is important to us. Thank you!

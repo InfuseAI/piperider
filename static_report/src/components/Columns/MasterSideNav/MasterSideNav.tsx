@@ -228,7 +228,8 @@ export function MasterSideNav({
         </AccordionItem>
 
         {/* Only show the Assertions Button when the report contain assertions result */}
-        {Number(metadata?.base?.total) > 0 && (
+        {(Number(metadata?.base?.total) > 0 ||
+          Number(metadata?.target?.total) > 0) && (
           <AccordionItem>
             <RoutableAccordionButton
               title="Assertions"

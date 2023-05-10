@@ -37,7 +37,7 @@ export function Main({ children, isSingleReport, ...props }: Props) {
     >
       <Navbar isSingleReport={isSingleReport} />
 
-      <Box position={'sticky'} top={0} bg={bgColor[colorMode]}>
+      <Box position={'sticky'} top={0} bg={bgColor[colorMode]} zIndex="banner">
         <ReportContextBar
           datasource={fallback?.datasource.name}
           version={fallback?.version}
