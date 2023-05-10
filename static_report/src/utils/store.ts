@@ -212,8 +212,7 @@ const getBusinessMetrics = (rawData: ComparableReport) => {
 
 const getIsCloudFlag = (rawData: ComparableReport) => {
   const { base } = rawData;
-  const baseIsCloud = base?.cloud ? true : false;
-  return baseIsCloud;
+  return base?.cloud ? true : false;
 };
 
 export const useReportStore = create<ReportState & ReportSetters>()(function (
