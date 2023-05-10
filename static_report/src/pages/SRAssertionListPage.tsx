@@ -1,4 +1,13 @@
-import { Box, Flex, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Flex,
+  Text,
+  Alert,
+  AlertIcon,
+  AlertDescription,
+  AlertTitle,
+  Link,
+} from '@chakra-ui/react';
 import { useState } from 'react';
 import { AssertionPassFailCountLabel } from '../components/Assertions/AssertionPassFailCountLabel';
 import { SearchTextInput } from '../components/Common/SearchTextInput';
@@ -6,6 +15,7 @@ import { AssertionListWidget } from '../components/Widgets/AssertionListWidget';
 import { useTrackOnMount } from '../hooks';
 import { EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
 import { assertionListWidth } from '../utils/layout';
+import { FeedbackLinkFromLocalReport } from '../components/Common/HelpMenu';
 
 export function SRAssertionListPage() {
   useTrackOnMount({
@@ -22,6 +32,24 @@ export function SRAssertionListPage() {
 
   return (
     <Box>
+      <Alert status="warning" mb={5}>
+        <AlertIcon />
+        <Box>
+          <AlertTitle>
+            The Assertions page is deprecated and will be removed in the future
+          </AlertTitle>
+          <AlertDescription fontSize="sm">
+            If you have a strong need for this page, please contact us by the{' '}
+            <Link
+              href={FeedbackLinkFromLocalReport}
+              style={{ textDecoration: 'underline' }}
+            >
+              feedback link
+            </Link>
+            . Your feedback is important to us. Thank you!
+          </AlertDescription>
+        </Box>
+      </Alert>
       <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
         Assertions
       </Text>

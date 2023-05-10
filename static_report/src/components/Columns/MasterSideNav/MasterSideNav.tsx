@@ -13,7 +13,7 @@ import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import { useLocation, useRoute } from 'wouter';
 
 import { Comparable } from '../../../types';
-import { borderVal } from '../../../utils';
+import { borderVal, useReportStore } from '../../../utils';
 import {
   ASSERTIONS_ROUTE_PATH,
   BM_ROUTE_PATH,
@@ -49,6 +49,9 @@ export function MasterSideNav({
 
   const [matchTable, paramsTable] = useRoute(TABLE_DETAILS_ROUTE_PATH);
   const [matchColumn, paramsColumn] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
+
+  const { assertionsOnly } = useReportStore.getState();
+  const { metadata } = assertionsOnly || {};
 
   if (matchTable) {
     currentTable = paramsTable.tableName as string;
@@ -223,12 +226,16 @@ export function MasterSideNav({
         <AccordionItem>
           <RoutableAccordionButton title="Metrics" path={BM_ROUTE_PATH} />
         </AccordionItem>
-        <AccordionItem>
-          <RoutableAccordionButton
-            title="Assertions"
-            path={ASSERTIONS_ROUTE_PATH}
-          />
-        </AccordionItem>
+
+        {/* Only show the Assertions Button when the report contain assertions result */}
+        {Number(metadata?.base?.total) > 0 && (
+          <AccordionItem>
+            <RoutableAccordionButton
+              title="Assertions"
+              path={ASSERTIONS_ROUTE_PATH}
+            />
+          </AccordionItem>
+        )}
       </Accordion>
     </Box>
   );

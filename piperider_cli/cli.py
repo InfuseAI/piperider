@@ -242,7 +242,7 @@ def run(**kwargs):
     return ret
 
 
-@cli.command(short_help='Generate recommended assertions.', cls=TrackCommand)
+@cli.command(short_help='Generate recommended assertions. - Deprecated', cls=TrackCommand)
 @click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
 @click.option('--no-recommend', is_flag=True, help='Generate assertions templates only.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')

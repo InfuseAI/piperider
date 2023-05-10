@@ -39,13 +39,7 @@ PipeRider automatically compares your data to highlight the difference in impact
 
    You can find all supported data source connectors [here](https://docs.piperider.io/reference/supported-data-sources).
 
-1. **Initialize PipeRider**: Go to your dbt project, and initialize PipeRider.
-
-   ```bash
-   piperider init
-   ```
-
-1. **Add PipeRider tag on your model**:
+1. **Add PipeRider tag on your model**: Go to your dbt project, and add the PipeRider tag on the model you want to profile.
 
    ```sql
    --models/staging/stg_customers.sql
