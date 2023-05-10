@@ -113,7 +113,7 @@ def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None, intera
         # TODO: mark as deprecated in the future
         console.rule('Deprecated', style='bold red')
         console.print(
-            'Non-dbt project will be deprecated in the future. If you have a strong need for non-dbt project, please contact us by "piperider feedback".\n')
+            'Non-dbt project is deprecated and will be removed in the future. If you have a strong need for non-dbt project, please contact us by "piperider feedback".\n')
         return _ask_user_input_datasource(config=config)
 
     if config is not None:

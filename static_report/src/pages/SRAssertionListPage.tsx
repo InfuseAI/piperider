@@ -36,7 +36,7 @@ export function SRAssertionListPage() {
         <AlertIcon />
         <Box>
           <AlertTitle>
-            The Assertions page will be deprecated in the future
+            The Assertions page is deprecated and will be removed in the future
           </AlertTitle>
           <AlertDescription fontSize="sm">
             If you have a strong need for this page, please contact us by the{' '}

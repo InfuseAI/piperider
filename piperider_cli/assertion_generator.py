@@ -23,7 +23,7 @@ class AssertionGenerator():
     def exec(input_path=None, report_dir: str = None, no_recommend: bool = False, table: str = None):
         console.rule('Deprecated', style='bold red')
         console.print(
-            'Assertions Generator will be deprecated in the future. If you have a strong need for assertions, please contact us by "piperider feedback".\n')
+            'Assertions Generator is deprecated and will be removed in the future. If you have a strong need for assertions, please contact us by "piperider feedback".\n')
         filesystem = FileSystem(report_dir=report_dir)
         raise_exception_when_directory_not_writable(report_dir)
 
