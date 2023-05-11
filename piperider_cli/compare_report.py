@@ -349,8 +349,8 @@ class ComparisonData(object):
                     change_message_str = ', '.join(messages)
                     change_message_str = f"<br/>({change_message_str})"
 
-            rows_b, cols_b = (b.get('row_count', 0), b.get('col_count', 0)) if b else (None, None)
-            rows_t, cols_t = (t.get('row_count', 0), t.get('col_count', 0)) if t else (None, None)
+            rows_b, cols_b = (b.get('row_count'), b.get('col_count')) if b else (None, None)
+            rows_t, cols_t = (t.get('row_count'), t.get('col_count')) if t else (None, None)
 
             out.write(f"{self._value_with_annotation(table_name, annotation)} | ")
             out.write(f"{self._value_with_delta(rows_b, rows_t)} | ")
