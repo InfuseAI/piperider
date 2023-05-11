@@ -1,6 +1,15 @@
-import { DbtManifestSchema } from '../sdlc/dbt-manifest-schema';
-import { SaferSRSchema } from '../types/index';
-import _ from 'lodash';
+import {
+  CompColEntryItem,
+  CompTableColEntryItem,
+  ComparableReport,
+} from './store';
+import {
+  DbtManifestSchema,
+  ModelNode,
+  SourceDefinition,
+} from '../sdlc/dbt-manifest-schema';
+import { DbtNode, SaferSRSchema, SaferTableSchema } from '../types/index';
+import _, { uniqueId } from 'lodash';
 
 export interface SidebarTreeItem {
   name: string;
@@ -27,6 +36,59 @@ export interface SidebarTreeItem {
   expanded?: boolean;
   items?: SidebarTreeItem[];
 }
+
+export const buildDbtNodes = (run?: SaferSRSchema) => {
+  if (!run) {
+    return undefined;
+  }
+
+  const manifest = run?.dbt?.manifest as DbtManifestSchema;
+  const dbtNodes: {
+    [key: string]: DbtNode;
+  } = {};
+
+  /* Add the pseudo node for piperider table */
+  Object.values(run?.tables).forEach((table) => {
+    const uniqueId = `table.${table?.name}`;
+    dbtNodes[uniqueId] = {
+      name: table?.name ?? '',
+      unique_id: uniqueId,
+      resource_type: 'table',
+      __table: table,
+    };
+  });
+
+  /* Add all used dbt nodes and add `__table` for the piperider profiling data */
+  if (manifest) {
+    let nodes: any[] = ([] as any).concat(
+      Object.values(manifest?.sources),
+      Object.values(manifest?.nodes),
+    );
+
+    nodes.forEach((node) => {
+      const dbtNode: DbtNode = node;
+
+      if (node.resource_type === 'source' || node.resource_type === 'seed') {
+        dbtNode.__table = run.tables[node.name];
+      }
+
+      if (
+        node.resource_type === 'model' &&
+        node.config.materialized !== 'ephemeral'
+      ) {
+        dbtNode.__table = run.tables[node.name];
+      }
+    });
+
+    Object.assign(
+      dbtNodes,
+      manifest?.sources,
+      manifest?.metrics,
+      manifest?.nodes,
+    );
+  }
+  return dbtNodes;
+};
 
 export function findNodeByUniqueID(
   manifest: DbtManifestSchema,
@@ -55,47 +117,59 @@ export function findNodeByUniqueID(
   return null;
 }
 
-export function buildSourceTree(run?: SaferSRSchema): SidebarTreeItem[] {
-  let tree = {};
-  if (!run) return [];
+export function buildColumnTree(
+  itemsColumnComparison: CompColEntryItem[],
+  pathPrefix,
+): SidebarTreeItem[] {
+  let items: SidebarTreeItem[] = [];
+  itemsColumnComparison.forEach(([columnName, { base, target }]) => {
+    const fallback = target || base;
 
-  const manifest = run?.dbt?.manifest as DbtManifestSchema;
-  const tables = run?.tables;
-
-  _.each(manifest.sources, function (node) {
-    var sourceName = node.source_name;
-    var name = node.name;
-
-    if (!tree[sourceName]) {
-      tree[sourceName] = {
-        type: 'folder',
-        name: sourceName,
-        items: [],
-      };
-    }
-
-    let items: SidebarTreeItem[] = [];
-    let table = tables[node.name];
-    if (table) {
-      Object.entries(table?.columns).forEach(([name, column]) => {
-        if (column) {
-          let type = `column_${column?.type}` as any;
-          items.push({
-            type,
-            name: column.name,
-            path: `/sources/${node.unique_id}/columns/${column.name}`,
-          });
-        }
-      });
-    }
-
-    tree[sourceName].items.push({
-      type: 'source',
-      name: name,
-      path: `/sources/${node.unique_id}`,
-      items,
+    let type = `column_${fallback?.type}` as any;
+    items.push({
+      type,
+      name: columnName,
+      path: `${pathPrefix}/columns/${columnName}`,
     });
   });
+  return items;
+}
+
+export function buildSourceTree(
+  itemsNodeComparison: CompTableColEntryItem[],
+): SidebarTreeItem[] {
+  let tree = {};
+
+  _.each(
+    itemsNodeComparison,
+    function ([uniqueId, { base, target }, metadata]) {
+      if (!uniqueId.startsWith('source.')) {
+        return;
+      }
+
+      const fallback = target || base;
+      var sourceName = (fallback as any as SourceDefinition)?.source_name;
+      var name = fallback?.name;
+
+      if (!tree[sourceName]) {
+        tree[sourceName] = {
+          type: 'folder',
+          name: sourceName,
+          items: [],
+        };
+      }
+
+      const columns = fallback?.columns;
+      const path = `/sources/${fallback?.unique_id}`;
+
+      tree[sourceName].items.push({
+        type: 'source',
+        name: name,
+        path,
+        items: buildColumnTree(fallback!.__columns || [], path),
+      });
+    },
+  );
 
   // sort schemas
   let sources: SidebarTreeItem[] = _.sortBy(_.values(tree), 'name');
@@ -108,73 +182,40 @@ export function buildSourceTree(run?: SaferSRSchema): SidebarTreeItem[] {
   return sources;
 }
 
-export function buildExposureTree(run?: SaferSRSchema): SidebarTreeItem[] {
-  let tree = {};
-  if (!run) return [];
-
-  const manifest = run?.dbt?.manifest as DbtManifestSchema;
-
-  _.each(manifest.exposures, function (node) {
-    let type = node.type || 'Uncategorized';
-
-    if (!tree[type]) {
-      tree[type] = {
-        type: 'folder',
-        name: type,
-        items: [],
-      };
-    }
-
-    tree[type].items.push({
-      type: 'exposure',
-      name: node.label,
-      path: `/exposures/${node.unique_id}`,
-    });
-  });
-
-  // sort exposure types
-  let exposures: SidebarTreeItem[] = _.sortBy(_.values(tree), 'name');
-
-  // sort entries in the exposure folder
-  _.each(exposures, function (exposure) {
-    exposure.items = _.sortBy(exposure.items, 'name');
-  });
-
-  return exposures;
-}
-
 export function buildModelOrSeedTree(
-  run: SaferSRSchema,
-  resourceType: 'seed' | 'model',
+  itemsNodeComparison: CompTableColEntryItem[],
+  resourceType?: 'seed' | 'model',
 ): SidebarTreeItem[] {
   let tree = {};
-  if (!run) return [];
 
-  const manifest = run?.dbt?.manifest as DbtManifestSchema;
-  const tables = run?.tables;
-  const nodes = manifest.nodes;
+  _.each(itemsNodeComparison, ([uniqueId, { base, target }, metadata]) => {
+    const fallback = target || base;
 
-  _.each(nodes, (node) => {
     let pathParts;
-    if (node.resource_type !== resourceType) {
+    if (fallback?.resource_type !== resourceType) {
       return;
     }
 
-    if (node.original_file_path.indexOf('\\') !== -1) {
-      pathParts = node.original_file_path.split('\\');
+    const originalFilePath = fallback?.original_file_path || '';
+    if (originalFilePath.indexOf('\\') !== -1) {
+      pathParts = originalFilePath.split('\\');
     } else {
-      pathParts = node.original_file_path.split('/');
+      pathParts = originalFilePath.split('/');
     }
-    var path = [node.package_name].concat(_.slice(pathParts, 1));
-
-    var dirpath = _.initial(path);
-
-    let fname = _.last(path) ?? '';
+    let modifiedFilePath = [fallback?.package_name || ''].concat(
+      _.slice(pathParts, 1),
+    );
+    let dirpath = _.initial(modifiedFilePath || []);
+    let fname = _.last(modifiedFilePath) ?? '';
     let displayName;
-    if (node.resource_type === 'model' && node.version != null) {
-      displayName = node.name + '_v' + node.version;
+    if (
+      fallback?.resource_type === 'model' &&
+      (fallback as any as ModelNode)?.version != null
+    ) {
+      displayName =
+        fallback?.name + '_v' + (fallback as any as ModelNode)?.version;
     } else {
-      displayName = node.name;
+      displayName = fallback?.name;
     }
 
     var curDir = tree;
@@ -189,26 +230,12 @@ export function buildModelOrSeedTree(
       curDir = curDir[dir].items;
     });
 
-    let items: SidebarTreeItem[] = [];
-    let table = tables[node.name];
-    if (table) {
-      Object.entries(table?.columns).forEach(([name, column]) => {
-        if (column) {
-          let type = `column_${column?.type}` as any;
-          items.push({
-            type,
-            name: column.name,
-            path: `/${resourceType}s/${node.unique_id}/columns/${column.name}`,
-          });
-        }
-      });
-    }
-
+    const path = `/${resourceType}s/${fallback?.unique_id}`;
     curDir[fname] = {
-      type: node.resource_type,
+      type: resourceType,
       name: displayName,
-      path: `/${resourceType}s/${node.unique_id}`,
-      items,
+      path,
+      items: buildColumnTree(fallback!.__columns || [], path),
     };
   });
 
@@ -231,91 +258,57 @@ export function buildModelOrSeedTree(
   return recursiveFlattenItems(tree);
 }
 
-export function buildMetricTree(run?: SaferSRSchema): SidebarTreeItem[] {
-  if (!run) return [];
-
-  const manifest = run?.dbt?.manifest as DbtManifestSchema;
-  let tree = {};
-
-  _.each(manifest.metrics, function (metric) {
-    let project = metric.package_name;
-
-    if (!tree[project]) {
-      tree[project] = {
-        type: 'folder',
-        name: project,
-        items: [],
-      };
+export function buildLegacyTablesTree(
+  itemsNodeComparison: CompTableColEntryItem[],
+): SidebarTreeItem[] {
+  let itemsTable: SidebarTreeItem[] = [];
+  _.each(itemsNodeComparison, ([uniqueId, { base, target }, metadata]) => {
+    const fallback = target || base;
+    if (!fallback) {
+      return;
     }
 
-    tree[project].items.push({
-      type: 'metric',
-      name: metric.label,
-      path: `/metrics/${metric.unique_id}`,
-    });
-  });
+    if (fallback.resource_type !== 'table') {
+      return;
+    }
 
-  let metrics: SidebarTreeItem[] = _.sortBy(_.values(tree), 'name');
-
-  _.each(metrics, function (metric) {
-    metric.items = _.sortBy(metric.items, 'name');
-  });
-
-  return metrics;
-}
-
-export function buildLegacyTablesTree(run?: SaferSRSchema): SidebarTreeItem[] {
-  if (!run) return [];
-  let itemsTable: SidebarTreeItem[] = [];
-
-  _.each(run.tables, function (table) {
     const itemsColumns: SidebarTreeItem[] = [];
+    const path = `/tables/${fallback?.name}`;
     const itemTable: SidebarTreeItem = {
-      name: table?.name || '',
+      name: fallback?.name || '',
       type: 'table',
-      path: `/tables/${table?.name}`,
-      items: itemsColumns,
+      path,
+      items: buildColumnTree(fallback!.__columns || [], path),
     };
     itemsTable.push(itemTable);
-
-    _.each(table?.columns, function (column) {
-      let type = `column_${column?.type}` as any;
-
-      const itemsColumn: SidebarTreeItem = {
-        type,
-        name: column?.name || '',
-        path: `/tables/${table?.name}/columns/${column?.name}`,
-      };
-      itemsColumns.push(itemsColumn);
-    });
   });
 
   return itemsTable;
 }
 
-export function buildProjectTree(run?: SaferSRSchema): SidebarTreeItem[] {
-  if (!run) return [];
-
+export function buildProjectTree(
+  itemsNodeComparison: CompTableColEntryItem[],
+): SidebarTreeItem[] {
   const source: SidebarTreeItem = {
     name: 'Sources',
     type: 'folder',
-    items: buildSourceTree(run),
+    items: buildSourceTree(itemsNodeComparison),
   };
   const seed: SidebarTreeItem = {
     name: 'Seeds',
     type: 'folder',
-    items: buildModelOrSeedTree(run, 'seed'),
+    items: buildModelOrSeedTree(itemsNodeComparison, 'seed'),
   };
   const model: SidebarTreeItem = {
     name: 'Models',
     type: 'folder',
-    items: buildModelOrSeedTree(run, 'model'),
+    items: buildModelOrSeedTree(itemsNodeComparison, 'model'),
   };
   const table: SidebarTreeItem = {
     name: 'Tables',
     type: 'folder',
     path: `/tables`,
-    items: buildLegacyTablesTree(run),
+    items: buildLegacyTablesTree(itemsNodeComparison),
   };
   const metric: SidebarTreeItem = {
     name: 'Metrics',
@@ -328,28 +321,31 @@ export function buildProjectTree(run?: SaferSRSchema): SidebarTreeItem[] {
     path: `/tests`,
   };
 
-  return [source, seed, model, metric, test];
+  return [source, seed, model, table, metric, test];
 }
 
-export function buildDatabaseTree(run?: SaferSRSchema): SidebarTreeItem[] {
-  if (!run) return [];
+export function buildDatabaseTree(
+  itemsNodeComparison: CompTableColEntryItem[],
+): SidebarTreeItem[] {
+  let items: SidebarTreeItem[] = [];
+  const treeNodes: DbtNode[] = [];
 
-  const manifest = run?.dbt?.manifest as DbtManifestSchema;
-  const tables = run?.tables;
+  itemsNodeComparison.forEach(([key, { base, target }]) => {
+    const node = target || base;
 
-  let nodes: any[] = ([] as any).concat(
-    Object.values(manifest?.sources),
-    Object.values(manifest?.nodes),
-  );
-
-  var items: SidebarTreeItem[] = [];
-  var treeNodes = _.filter(nodes, function (node) {
-    if (node.resource_type === 'source' || node.resource_type === 'seed') {
-      return true;
+    if (!node) {
+      return;
     }
 
-    if (node.resource_type === 'model') {
-      return node.config.materialized !== 'ephemeral';
+    if (node.resource_type === 'source' || node.resource_type === 'seed') {
+      treeNodes.push(node as DbtNode);
+    }
+
+    if (
+      node.resource_type === 'model' &&
+      node.config?.materialized !== 'ephemeral'
+    ) {
+      treeNodes.push(node as DbtNode);
     }
   });
 
@@ -383,27 +379,15 @@ export function buildDatabaseTree(run?: SaferSRSchema): SidebarTreeItem[] {
       itemDatabase.items!.push(itemSchema);
 
       _.each(schema_nodes, function (node) {
+        const path = '/' + node.resource_type + 's/' + node.unique_id;
         let itemTable: SidebarTreeItem = {
-          type: node.resource_type,
+          type: node.resource_type as any,
           name: node.identifier || node.alias || node.name,
-          path: '/' + node.resource_type + 's/' + node.unique_id,
-          items: [],
+          path,
+          items: buildColumnTree(node.__columns || [], path),
         };
-        itemSchema.items!.push(itemTable);
 
-        let table = tables[node.name];
-        if (table) {
-          Object.entries(table?.columns).forEach(([name, column]) => {
-            if (column) {
-              let type = `column_${column?.type}` as any;
-              itemTable.items?.push({
-                type,
-                name: column.name,
-                path: `/${node.resource_type}s/${node.unique_id}/columns/${column.name}`,
-              });
-            }
-          });
-        }
+        itemSchema.items!.push(itemTable);
       });
     });
   });

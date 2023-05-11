@@ -1,3 +1,5 @@
+import { useRoute } from 'wouter';
+
 export const HOME_ROUTE_PATH = '/';
 export const TABLE_LIST_ROUTE_PATH = '/tables';
 export const TABLE_DETAILS_ROUTE_PATH = '/tables/:tableName';
@@ -23,3 +25,26 @@ export const SEED_COLUMN_DETAILS_ROUTE_PATH =
  * SSR is only happens in the PipeRider cloud. The server render the react tree in the server, and the client update the tree later.
  */
 export const SSR_ROUTE_PATH = `/ssr`;
+
+export function useTableRoute(): {
+  readonly tableName?: string;
+  readonly uniqueId?: string;
+  readonly columnName?: string;
+} {
+  const [matchTable, paramsTable] = useRoute(TABLE_DETAILS_ROUTE_PATH);
+  const [matchModel, paramsModel] = useRoute(MODEL_DETAILS_ROUTE_PATH);
+  const [matchSource, paramsSource] = useRoute(SOURCE_DETAILS_ROUTE_PATH);
+  const [matchSeed, paramsSeed] = useRoute(SEED_DETAILS_ROUTE_PATH);
+
+  if (matchTable) {
+    return paramsTable;
+  } else if (matchModel) {
+    return paramsModel;
+  } else if (matchSource) {
+    return paramsSource;
+  } else if (matchSeed) {
+    return paramsSeed;
+  } else {
+    return {};
+  }
+}

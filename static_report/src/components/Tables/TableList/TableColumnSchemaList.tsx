@@ -15,31 +15,22 @@ import {
 } from '@chakra-ui/react';
 import { FiChevronRight } from 'react-icons/fi';
 
-import { Comparable, TableSchema } from '../../../types';
+import { Comparable, SaferTableSchema, TableSchema } from '../../../types';
 import { NO_VALUE } from '../../Columns/constants';
-import { CompTableWithColEntryOverwrite } from '../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../../Common/constant';
 import { tableListWidth } from '../../../utils/layout';
+import { CompColEntryItem } from '../../../lib';
 
 interface Props extends Comparable {
-  baseTableEntryDatum?: CompTableWithColEntryOverwrite | TableSchema;
-  targetTableEntryDatum?: CompTableWithColEntryOverwrite | TableSchema;
+  columns?: CompColEntryItem[];
   visibleDetail?: boolean; //for reuse in other pages
 }
 export function TableColumnSchemaList({
-  baseTableEntryDatum,
-  targetTableEntryDatum,
+  columns,
   singleOnly,
   visibleDetail = false,
 }: Props) {
-  const fallbackTable = targetTableEntryDatum || baseTableEntryDatum;
-
   const isNotSingle = !singleOnly;
-
-  let columns = fallbackTable?.columns || [];
-  if (typeof columns === 'object') {
-    columns = Object.values(columns);
-  }
 
   return (
     <Box>

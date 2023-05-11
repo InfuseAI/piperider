@@ -27,9 +27,17 @@ export function TableGeneralStats({ tableDatum, ...props }: Props & BoxProps) {
     ['last_altered', 'Last Altered'],
     ['freshness', 'Freshness'],
   ];
-  const filteredMetakeyEntries = metakeyEntries.filter(([metakey]) =>
-    tableDatum?.hasOwnProperty(metakey as TableMetaKeys),
-  );
+  const filteredMetakeyEntries = metakeyEntries.filter(([metakey]) => {
+    if (!tableDatum?.hasOwnProperty(metakey as TableMetaKeys)) {
+      return false;
+    }
+
+    if (metakey === 'freshness' && typeof tableDatum?.freshness !== 'number') {
+      return false;
+    }
+
+    return true;
+  });
 
   const metricsList = transformSRTableMetricsInfoList(
     filteredMetakeyEntries,

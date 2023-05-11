@@ -74,7 +74,7 @@ export function SRTablesListPage() {
         {tableColsEntryId !== -1 && (
           <TableColumnSchemaList
             singleOnly
-            baseTableEntryDatum={tableColumnsOnly[tableColsEntryId][1].base}
+            columns={tableColumnsOnly[tableColsEntryId][1].base?.__columns}
           />
         )}
       </CommonModal>

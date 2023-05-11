@@ -9,13 +9,39 @@ import {
   SingleReportSchema,
   TableSchema,
 } from '../sdlc/single-report-schema';
+import {
+  DbtManifestSchema,
+  Metric,
+  ModelNode,
+  SeedNode,
+  SourceDefinition,
+} from '../sdlc/dbt-manifest-schema';
+import { CompColEntryItem } from '../lib';
 
 export * from '../sdlc';
+
+type TableNode = {
+  name: string;
+  unique_id?: string;
+  resource_type: 'table';
+};
+export type DbtNode = (
+  | DbtManifestSchema['nodes'][string]
+  | SourceDefinition
+  | TableNode
+  | Metric
+) & {
+  __table?: SaferTableSchema;
+  __columns?: CompColEntryItem[];
+  [key: string]: any;
+};
 
 export interface SaferSRSchema extends Omit<SingleReportSchema, 'tables'> {
   tables: { [k: string]: SaferTableSchema | undefined };
 }
-export interface SaferTableSchema extends Omit<TableSchema, 'columns'> {
+export interface SaferTableSchema
+  extends Omit<TableSchema, 'columns'>,
+    Omit<DbtNode, 'columns'> {
   columns: { [k: string]: ColumnSchema | undefined };
 }
 

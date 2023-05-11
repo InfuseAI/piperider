@@ -14,6 +14,7 @@ import {
 import {
   EVENTS,
   formatTitleCase,
+  SaferTableSchema,
   SR_TYPE_LABEL,
   useTrackOnMount,
 } from '../lib';
@@ -73,23 +74,17 @@ export default function SRColumnDetailPage() {
     rawData: { base: data },
   } = useReportStore.getState();
 
-  let tableKey;
-  if (uniqueId) {
-    const manifest = data?.dbt?.manifest as DbtManifestSchema;
-    const node = findNodeByUniqueID(manifest, uniqueId) as ModelNode;
-    if (node) {
-      tableKey = node.name;
-    }
-  } else if (tableName) {
-    tableKey = tableName;
-  }
-
-  if (!tableKey) {
-    return <NoData text={`No data found for '${tableKey}'`} />;
+  const tableKey = tableName || uniqueId;
+  if (tableKey === undefined) {
+    return <NoData text={`No data found for '${tableKey}.${columnName}'`} />;
   }
 
   const currentTableEntry = tableColumnsOnly.find(([key]) => key === tableKey);
-  const dataTable = data?.tables[tableKey];
+  if (!currentTableEntry) {
+    return <NoData text={`No data found for '${tableKey}.${columnName}'`} />;
+  }
+
+  const dataTable = currentTableEntry[1].base as any as SaferTableSchema;
   const dataColumns = dataTable?.columns;
   const columnDatum = dataColumns ? dataColumns[columnName] : undefined;
 

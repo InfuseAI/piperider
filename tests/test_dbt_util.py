@@ -202,9 +202,9 @@ class TestRunner(TestCase):
         profile_results = profiler.profile()
         dbtutil.append_descriptions(profile_results, self.dbt_state_dir)
 
-        self.assertEqual('The price data to today - via DBT',
+        self.assertEqual('The price data to today',
                          profile_results['tables']['PRICE_PRESENT']['description'])
-        self.assertEqual('The symbol name - via DBT',
+        self.assertEqual('The symbol name',
                          profile_results['tables']['PRICE_PRESENT']['columns']['symbol']['description'])
 
     def test_get_dbt_state_metrics_only_tag(self):

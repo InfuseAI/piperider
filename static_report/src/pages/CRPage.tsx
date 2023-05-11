@@ -14,6 +14,12 @@ import {
   SSR_ROUTE_PATH,
   TABLE_DETAILS_ROUTE_PATH,
   TABLE_LIST_ROUTE_PATH,
+  SOURCE_DETAILS_ROUTE_PATH,
+  SOURCE_COLUMN_DETAILS_ROUTE_PATH,
+  SEED_DETAILS_ROUTE_PATH,
+  SEED_COLUMN_DETAILS_ROUTE_PATH,
+  MODEL_DETAILS_ROUTE_PATH,
+  MODEL_COLUMN_DETAILS_ROUTE_PATH,
 } from '../utils/routes';
 import { CRAssertionListPage } from './CRAssertionListPage';
 import { CRBMPage } from './CRBMPage';
@@ -52,6 +58,27 @@ export function CRPage({ data, sideNavTop = '0px' }: Props) {
           </Route>
 
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
+            <CRColumnDetailPage />
+          </Route>
+
+          <Route path={SOURCE_DETAILS_ROUTE_PATH}>
+            <CRTableDetailPage />
+          </Route>
+          <Route path={SOURCE_COLUMN_DETAILS_ROUTE_PATH}>
+            <CRColumnDetailPage />
+          </Route>
+
+          <Route path={SEED_DETAILS_ROUTE_PATH}>
+            <CRTableDetailPage />
+          </Route>
+          <Route path={SEED_COLUMN_DETAILS_ROUTE_PATH}>
+            <CRColumnDetailPage />
+          </Route>
+
+          <Route path={MODEL_DETAILS_ROUTE_PATH}>
+            <CRTableDetailPage />
+          </Route>
+          <Route path={MODEL_COLUMN_DETAILS_ROUTE_PATH}>
             <CRColumnDetailPage />
           </Route>
 

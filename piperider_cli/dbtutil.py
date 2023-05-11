@@ -142,7 +142,7 @@ def append_descriptions(profile_result, dbt_state_dir):
         if model not in profile_result['tables']:
             continue
         if model_desc:
-            profile_result['tables'][model]['description'] = f"{model_desc} - via DBT"
+            profile_result['tables'][model]['description'] = f"{model_desc}"
 
         columns = node.get('columns', {})
         for column, v in columns.items():

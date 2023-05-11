@@ -406,7 +406,7 @@ def _append_descriptions_from_assertion(profile_result):
             continue
         table_desc = table_v.get('description', '')
         if table_desc:
-            profile_result['tables'][table_name]['description'] = f'{table_desc} - via PipeRider'
+            profile_result['tables'][table_name]['description'] = f'{table_desc}'
 
         columns_content = table_v.get('columns') if table_v.get('columns') else {}
         for column_name, column_v in columns_content.items():
@@ -415,7 +415,7 @@ def _append_descriptions_from_assertion(profile_result):
             column_desc = column_v.get('description', '')
             if column_desc:
                 profile_result['tables'][table_name]['columns'][column_name][
-                    'description'] = f'{column_desc} - via PipeRider'
+                    'description'] = f'{column_desc}'
 
 
 def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_results):

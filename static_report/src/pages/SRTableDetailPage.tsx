@@ -8,41 +8,12 @@ import {
   TableColumnSchemaList,
   TableGeneralStats,
   useTrackOnMount,
+  SaferTableSchema,
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useRoute } from 'wouter';
-import {
-  MODEL_DETAILS_ROUTE_PATH,
-  SEED_DETAILS_ROUTE_PATH,
-  SOURCE_DETAILS_ROUTE_PATH,
-  TABLE_DETAILS_ROUTE_PATH,
-} from '../utils/routes';
-import { DbtManifestSchema, ModelNode } from '../sdlc/dbt-manifest-schema';
-import { findNodeByUniqueID } from '../utils/dbt';
-
-function useTableRoute(): {
-  readonly tableName?: string;
-  readonly uniqueId?: string;
-  readonly columnName?: string;
-} {
-  const [matchTable, paramsTable] = useRoute(TABLE_DETAILS_ROUTE_PATH);
-  const [matchModel, paramsModel] = useRoute(MODEL_DETAILS_ROUTE_PATH);
-  const [matchSource, paramsSource] = useRoute(SOURCE_DETAILS_ROUTE_PATH);
-  const [matchSeed, paramsSeed] = useRoute(SEED_DETAILS_ROUTE_PATH);
-
-  if (matchTable) {
-    return paramsTable;
-  } else if (matchModel) {
-    return paramsModel;
-  } else if (matchSource) {
-    return paramsSource;
-  } else if (matchSeed) {
-    return paramsSeed;
-  } else {
-    return {};
-  }
-}
+import { useTableRoute } from '../utils/routes';
 
 export default function SRTableDetailPage() {
   let { tableName, uniqueId } = useTableRoute();
@@ -54,39 +25,27 @@ export default function SRTableDetailPage() {
     },
   });
 
-  const {
-    tableColumnsOnly = [],
-    rawData: { base: data },
-  } = useReportStore.getState();
+  const { tableColumnsOnly = [] } = useReportStore.getState();
 
-  // Find the node in the manifest
-  let tableKey;
-  if (uniqueId) {
-    const manifest = data?.dbt?.manifest as DbtManifestSchema;
-    const node = findNodeByUniqueID(manifest, uniqueId) as ModelNode;
-    if (node) {
-      tableKey = node.name;
-    }
-  } else if (tableName) {
-    tableKey = tableName;
-  }
-
-  if (!tableKey) {
+  const tableKey = tableName || uniqueId;
+  if (tableKey === undefined) {
     return <NoData text={`No data found for '${tableKey}'`} />;
   }
 
-  const dataTable = data?.tables[tableKey];
-  const currentTableEntry = tableColumnsOnly.find(([key]) => key === tableKey);
-
-  if (!dataTable || !currentTableEntry) {
+  const currentTableEntry = tableColumnsOnly.find(
+    ([key]) => key === tableName || uniqueId,
+  );
+  if (!currentTableEntry) {
     return <NoData text={`No data found for '${tableKey}'`} />;
   }
+  const dataTable = currentTableEntry[1].base as any as SaferTableSchema;
+
   return (
     <>
       <TableColumnHeader
-        title={dataTable.name}
+        title={dataTable!.name}
         subtitle={'Table'}
-        infoTip={dataTable.description}
+        infoTip={dataTable!.description}
         mb={5}
       />
       <Grid
@@ -109,7 +68,7 @@ export default function SRTableDetailPage() {
 
         <Divider orientation="vertical" />
         <TableColumnSchemaList
-          baseTableEntryDatum={currentTableEntry?.[1].base}
+          columns={currentTableEntry?.[1].base?.__columns}
           singleOnly
         />
       </Grid>
