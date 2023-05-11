@@ -48,3 +48,28 @@ export function useTableRoute(): {
     return {};
   }
 }
+
+export function useColumnRoute(): {
+  readonly tableName?: string;
+  readonly uniqueId?: string;
+  readonly columnName?: string;
+} {
+  const [matchTable, paramsTable] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
+  const [matchModel, paramsModel] = useRoute(MODEL_COLUMN_DETAILS_ROUTE_PATH);
+  const [matchSource, paramsSource] = useRoute(
+    SOURCE_COLUMN_DETAILS_ROUTE_PATH,
+  );
+  const [matchSeed, paramsSeed] = useRoute(SEED_COLUMN_DETAILS_ROUTE_PATH);
+
+  if (matchTable) {
+    return paramsTable;
+  } else if (matchModel) {
+    return paramsModel;
+  } else if (matchSource) {
+    return paramsSource;
+  } else if (matchSeed) {
+    return paramsSeed;
+  } else {
+    return {};
+  }
+}

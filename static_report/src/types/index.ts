@@ -12,8 +12,6 @@ import {
 import {
   DbtManifestSchema,
   Metric,
-  ModelNode,
-  SeedNode,
   SourceDefinition,
 } from '../sdlc/dbt-manifest-schema';
 import { CompColEntryItem } from '../lib';

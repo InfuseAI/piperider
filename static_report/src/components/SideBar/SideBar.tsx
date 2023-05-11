@@ -1,4 +1,5 @@
 import {
+  Box,
   Icon,
   Tab,
   TabList,
@@ -11,9 +12,11 @@ import { SideBarTree } from './SideBarTree';
 import { useEffect, useState } from 'react';
 import { FaDatabase, FaFolder } from 'react-icons/fa';
 import { useLocation } from 'wouter';
+import { Comparable } from '../../types';
 
-export function SideBar() {
-  const { projectTree, databaseTree, expandTreeForPath } = useReportStore();
+export function SideBar({ singleOnly }: Comparable) {
+  const { isLegacy, projectTree, databaseTree, expandTreeForPath } =
+    useReportStore();
   const [location] = useLocation();
   const [tabIndex, setTabIndex] = useState(-1);
   const handleTabChange = (index) => {
@@ -29,6 +32,14 @@ export function SideBar() {
     }
   }, [location, tabIndex, expandTreeForPath]);
 
+  if (isLegacy) {
+    return (
+      <Box mt={5}>
+        <SideBarTree items={projectTree} singleOnly={singleOnly} />
+      </Box>
+    );
+  }
+
   return (
     <Tabs isFitted index={tabIndex} onChange={handleTabChange}>
       <TabList>
@@ -43,10 +54,10 @@ export function SideBar() {
       </TabList>
       <TabPanels>
         <TabPanel>
-          <SideBarTree items={projectTree} />
+          <SideBarTree items={projectTree} singleOnly={singleOnly} />
         </TabPanel>
         <TabPanel>
-          <SideBarTree items={databaseTree} />
+          <SideBarTree items={databaseTree} singleOnly={singleOnly} />
         </TabPanel>
       </TabPanels>
     </Tabs>

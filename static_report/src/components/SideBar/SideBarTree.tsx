@@ -1,18 +1,19 @@
 import { SidebarTreeItem } from '../../utils/dbt';
 import React, { useState } from 'react';
-import { List, ListItem, ListIcon, Text } from '@chakra-ui/react';
+import { List, ListItem, ListIcon, Text, Flex } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { FaChartBar, FaFile } from 'react-icons/fa';
 import { getIconForColumnType } from '..';
 import { FiDatabase, FiFolder, FiGrid } from 'react-icons/fi';
 import { FiChevronDown, FiChevronRight, FiCheckCircle } from 'react-icons/fi';
+import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
+import { Comparable } from '../../types';
 
-interface Props {
+interface Props extends Comparable {
   items?: SidebarTreeItem[];
-  select?: string;
 }
 
-export function SideBarTree({ items, select }: Props) {
+export function SideBarTree({ items, singleOnly }: Props) {
   const [, setCounter] = useState(0);
   const [location, setLocation] = useLocation();
 
@@ -33,9 +34,25 @@ export function SideBarTree({ items, select }: Props) {
 
   const renderItem = (item: SidebarTreeItem) => {
     const { type, name, items } = item;
+
+    if (item.type === 'folder') {
+      if (!item.items || item.items.length === 0) {
+        return;
+      }
+    }
+
     const isExpanded = !!item.expanded;
     const isExpandable = items && items.length > 0;
     const iconChevron = isExpanded ? FiChevronDown : FiChevronRight;
+    let iconChangeStatus;
+    if (item.changeStatus === 'added') {
+      iconChangeStatus = VscDiffAdded;
+    } else if (item.changeStatus === 'changed') {
+      iconChangeStatus = VscDiffModified;
+    } else if (item.changeStatus === 'removed') {
+      iconChangeStatus = VscDiffRemoved;
+    }
+
     let icon = FiFolder;
     if (
       type === 'model' ||
@@ -66,8 +83,7 @@ export function SideBarTree({ items, select }: Props) {
 
     return (
       <ListItem key={name}>
-        <Text
-          px={2}
+        <Flex
           _hover={{ bg: isActive ? 'piperider.400' : 'gray.100' }}
           rounded="md"
           cursor="pointer"
@@ -77,14 +93,19 @@ export function SideBarTree({ items, select }: Props) {
           onClick={() => {
             onClick(item);
           }}
+          alignItems="center"
+          px={2}
         >
           <ListIcon
             as={iconChevron}
             visibility={isExpandable ? 'visible' : 'hidden'}
           />
-          <ListIcon as={icon} />
-          {name}
-        </Text>
+          <ListIcon as={icon} mr={1} />
+          <Text flex={1}>{name}</Text>
+          {!singleOnly && item.changeStatus && (
+            <ListIcon as={iconChangeStatus} />
+          )}
+        </Flex>
         {isExpanded && items && items.length > 0 && (
           <List ml={4} spacing={1} my={1}>
             {items.map((child) => renderItem(child))}

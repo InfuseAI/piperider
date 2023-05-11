@@ -20,45 +20,12 @@ import {
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { useRoute } from 'wouter';
-import {
-  COLUMN_DETAILS_ROUTE_PATH as TABLE_COLUMN_DETAILS_ROUTE_PATH,
-  MODEL_COLUMN_DETAILS_ROUTE_PATH,
-  SOURCE_COLUMN_DETAILS_ROUTE_PATH,
-  SEED_COLUMN_DETAILS_ROUTE_PATH,
-} from '../utils/routes';
-import { DbtManifestSchema, ModelNode } from '../sdlc/dbt-manifest-schema';
-import { findNodeByUniqueID } from '../utils/dbt';
-
-function useColumnRoute(): {
-  readonly tableName?: string;
-  readonly uniqueId?: string;
-  readonly columnName?: string;
-} {
-  const [matchTable, paramsTable] = useRoute(TABLE_COLUMN_DETAILS_ROUTE_PATH);
-  const [matchModel, paramsModel] = useRoute(MODEL_COLUMN_DETAILS_ROUTE_PATH);
-  const [matchSource, paramsSource] = useRoute(
-    SOURCE_COLUMN_DETAILS_ROUTE_PATH,
-  );
-  const [matchSeed, paramsSeed] = useRoute(SEED_COLUMN_DETAILS_ROUTE_PATH);
-
-  if (matchTable) {
-    return paramsTable;
-  } else if (matchModel) {
-    return paramsModel;
-  } else if (matchSource) {
-    return paramsSource;
-  } else if (matchSeed) {
-    return paramsSeed;
-  } else {
-    return {};
-  }
-}
+import { useColumnRoute } from '../utils/routes';
 
 export default function SRColumnDetailPage() {
   const params = useColumnRoute();
   const uniqueId = params?.uniqueId;
-  let tableName = decodeURIComponent(params?.tableName || '');
+  const tableName = decodeURIComponent(params?.tableName || '');
   const columnName = decodeURIComponent(params?.columnName || '');
 
   useTrackOnMount({
@@ -69,12 +36,9 @@ export default function SRColumnDetailPage() {
     },
   });
 
-  const {
-    tableColumnsOnly = [],
-    rawData: { base: data },
-  } = useReportStore.getState();
+  const { tableColumnsOnly = [] } = useReportStore.getState();
 
-  const tableKey = tableName || uniqueId;
+  const tableKey = uniqueId ? uniqueId : `table.${tableName}`;
   if (tableKey === undefined) {
     return <NoData text={`No data found for '${tableKey}.${columnName}'`} />;
   }
@@ -84,7 +48,8 @@ export default function SRColumnDetailPage() {
     return <NoData text={`No data found for '${tableKey}.${columnName}'`} />;
   }
 
-  const dataTable = currentTableEntry[1].base as any as SaferTableSchema;
+  const dataTable = currentTableEntry[1].base
+    ?.__table as any as SaferTableSchema;
   const dataColumns = dataTable?.columns;
   const columnDatum = dataColumns ? dataColumns[columnName] : undefined;
 

@@ -15,7 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { FiChevronRight } from 'react-icons/fi';
 
-import { Comparable, SaferTableSchema, TableSchema } from '../../../types';
+import { Comparable } from '../../../types';
 import { NO_VALUE } from '../../Columns/constants';
 import { NO_DESCRIPTION_MSG } from '../../Common/constant';
 import { tableListWidth } from '../../../utils/layout';

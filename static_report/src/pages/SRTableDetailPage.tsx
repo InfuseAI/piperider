@@ -12,7 +12,6 @@ import {
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { useRoute } from 'wouter';
 import { useTableRoute } from '../utils/routes';
 
 export default function SRTableDetailPage() {
@@ -32,9 +31,8 @@ export default function SRTableDetailPage() {
     return <NoData text={`No data found for '${tableKey}'`} />;
   }
 
-  const currentTableEntry = tableColumnsOnly.find(
-    ([key]) => key === tableName || uniqueId,
-  );
+  const nodeKey = uniqueId ? uniqueId : `table.${tableName}`;
+  const currentTableEntry = tableColumnsOnly.find(([key]) => key === nodeKey);
   if (!currentTableEntry) {
     return <NoData text={`No data found for '${tableKey}'`} />;
   }

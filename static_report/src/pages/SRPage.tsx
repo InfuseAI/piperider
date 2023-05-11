@@ -39,7 +39,7 @@ export function SRPage({ data, sideNavTop = '0px' }: Props) {
 
   return (
     <Router hook={useHashLocation as BaseLocationHook}>
-      <MasterDetailContainer sideNavTop={sideNavTop}>
+      <MasterDetailContainer sideNavTop={sideNavTop} singleOnly>
         <Switch>
           <Route path={HOME_ROUTE_PATH}>
             <SRHomePage />

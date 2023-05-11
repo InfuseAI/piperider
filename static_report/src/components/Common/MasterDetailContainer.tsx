@@ -11,7 +11,11 @@ interface Props extends Comparable {
 }
 
 //NOTE: Only for OSS usage. Reusable for Cloud?
-export function MasterDetailContainer({ children, sideNavTop = '0px' }: Props) {
+export function MasterDetailContainer({
+  children,
+  sideNavTop = '0px',
+  singleOnly,
+}: Props) {
   return (
     <Grid
       width={'100%'}
@@ -26,7 +30,7 @@ export function MasterDetailContainer({ children, sideNavTop = '0px' }: Props) {
         top={sideNavTop}
         maxHeight={`calc(100vh - ${sideNavTop})`}
       >
-        <SideBar />
+        <SideBar singleOnly={singleOnly} />
       </GridItem>
       <Divider orientation="vertical" />
       <GridItem maxHeight={mainContentAreaHeight} width="100%" h={'100%'} p={9}>

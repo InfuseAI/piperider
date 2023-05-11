@@ -1,15 +1,11 @@
-import {
-  CompColEntryItem,
-  CompTableColEntryItem,
-  ComparableReport,
-} from './store';
+import { CompColEntryItem, CompTableColEntryItem } from './store';
 import {
   DbtManifestSchema,
   ModelNode,
   SourceDefinition,
 } from '../sdlc/dbt-manifest-schema';
-import { DbtNode, SaferSRSchema, SaferTableSchema } from '../types/index';
-import _, { uniqueId } from 'lodash';
+import { DbtNode, SaferSRSchema } from '../types/index';
+import _ from 'lodash';
 
 export interface SidebarTreeItem {
   name: string;
@@ -35,6 +31,7 @@ export interface SidebarTreeItem {
   path?: string;
   expanded?: boolean;
   items?: SidebarTreeItem[];
+  changeStatus?: 'changed' | 'added' | 'removed';
 }
 
 export const buildDbtNodes = (run?: SaferSRSchema) => {
@@ -120,19 +117,35 @@ export function findNodeByUniqueID(
 export function buildColumnTree(
   itemsColumnComparison: CompColEntryItem[],
   pathPrefix,
-): SidebarTreeItem[] {
+): [SidebarTreeItem[], boolean] {
   let items: SidebarTreeItem[] = [];
+  let schemaChanged = false;
+
   itemsColumnComparison.forEach(([columnName, { base, target }]) => {
     const fallback = target || base;
 
     let type = `column_${fallback?.type}` as any;
+    let changeStatus;
+
+    if (!base) {
+      changeStatus = 'added';
+      schemaChanged = true;
+    } else if (!target) {
+      changeStatus = 'removed';
+      schemaChanged = true;
+    } else if (base.schema_type !== target.schema_type) {
+      changeStatus = 'changed';
+      schemaChanged = true;
+    }
+
     items.push({
       type,
       name: columnName,
       path: `${pathPrefix}/columns/${columnName}`,
+      changeStatus,
     });
   });
-  return items;
+  return [items, schemaChanged];
 }
 
 export function buildSourceTree(
@@ -156,17 +169,31 @@ export function buildSourceTree(
           type: 'folder',
           name: sourceName,
           items: [],
+          expanded: true,
         };
       }
 
-      const columns = fallback?.columns;
       const path = `/sources/${fallback?.unique_id}`;
+      const [columnItems, schemaChanged] = buildColumnTree(
+        fallback!.__columns || [],
+        path,
+      );
+
+      let changeStatus: SidebarTreeItem['changeStatus'];
+      if (!base) {
+        changeStatus = 'added';
+      } else if (!target) {
+        changeStatus = 'removed';
+      } else if (schemaChanged) {
+        changeStatus = 'changed';
+      }
 
       tree[sourceName].items.push({
         type: 'source',
         name: name,
         path,
-        items: buildColumnTree(fallback!.__columns || [], path),
+        items: columnItems,
+        changeStatus,
       });
     },
   );
@@ -225,17 +252,32 @@ export function buildModelOrSeedTree(
           type: 'folder',
           name: dir,
           items: {},
+          expanded: true,
         };
       }
       curDir = curDir[dir].items;
     });
 
     const path = `/${resourceType}s/${fallback?.unique_id}`;
+    const [columnItems, schemaChanged] = buildColumnTree(
+      fallback!.__columns || [],
+      path,
+    );
+    let changeStatus: SidebarTreeItem['changeStatus'];
+    if (!base) {
+      changeStatus = 'added';
+    } else if (!target) {
+      changeStatus = 'removed';
+    } else if (schemaChanged) {
+      changeStatus = 'changed';
+    }
+
     curDir[fname] = {
       type: resourceType,
       name: displayName,
       path,
-      items: buildColumnTree(fallback!.__columns || [], path),
+      items: columnItems,
+      changeStatus,
     };
   });
 
@@ -272,13 +314,26 @@ export function buildLegacyTablesTree(
       return;
     }
 
-    const itemsColumns: SidebarTreeItem[] = [];
     const path = `/tables/${fallback?.name}`;
+    const [columnItems, schemaChanged] = buildColumnTree(
+      fallback!.__columns || [],
+      path,
+    );
+    let changeStatus: SidebarTreeItem['changeStatus'];
+    if (!base) {
+      changeStatus = 'added';
+    } else if (!target) {
+      changeStatus = 'removed';
+    } else if (schemaChanged) {
+      changeStatus = 'changed';
+    }
+
     const itemTable: SidebarTreeItem = {
       name: fallback?.name || '',
       type: 'table',
       path,
-      items: buildColumnTree(fallback!.__columns || [], path),
+      items: columnItems,
+      changeStatus,
     };
     itemsTable.push(itemTable);
   });
@@ -288,27 +343,32 @@ export function buildLegacyTablesTree(
 
 export function buildProjectTree(
   itemsNodeComparison: CompTableColEntryItem[],
+  isLegacy: boolean = false,
 ): SidebarTreeItem[] {
   const source: SidebarTreeItem = {
     name: 'Sources',
     type: 'folder',
     items: buildSourceTree(itemsNodeComparison),
+    expanded: true,
   };
   const seed: SidebarTreeItem = {
     name: 'Seeds',
     type: 'folder',
     items: buildModelOrSeedTree(itemsNodeComparison, 'seed'),
+    expanded: true,
   };
   const model: SidebarTreeItem = {
     name: 'Models',
     type: 'folder',
     items: buildModelOrSeedTree(itemsNodeComparison, 'model'),
+    expanded: true,
   };
   const table: SidebarTreeItem = {
     name: 'Tables',
     type: 'folder',
     path: `/tables`,
     items: buildLegacyTablesTree(itemsNodeComparison),
+    expanded: true,
   };
   const metric: SidebarTreeItem = {
     name: 'Metrics',
@@ -321,7 +381,11 @@ export function buildProjectTree(
     path: `/tests`,
   };
 
-  return [source, seed, model, table, metric, test];
+  if (isLegacy) {
+    return [table, metric, test];
+  } else {
+    return [source, seed, model, metric, test];
+  }
 }
 
 export function buildDatabaseTree(
@@ -329,6 +393,8 @@ export function buildDatabaseTree(
 ): SidebarTreeItem[] {
   let items: SidebarTreeItem[] = [];
   const treeNodes: DbtNode[] = [];
+  const added: string[] = [];
+  const removed: string[] = [];
 
   itemsNodeComparison.forEach(([key, { base, target }]) => {
     const node = target || base;
@@ -346,6 +412,12 @@ export function buildDatabaseTree(
       node.config?.materialized !== 'ephemeral'
     ) {
       treeNodes.push(node as DbtNode);
+    }
+
+    if (!base) {
+      added.push(key);
+    } else if (!target) {
+      removed.push(key);
     }
   });
 
@@ -365,6 +437,7 @@ export function buildDatabaseTree(
       type: 'database',
       name: db,
       items: [],
+      expanded: true,
     };
     items.push(itemDatabase);
 
@@ -374,17 +447,33 @@ export function buildDatabaseTree(
         type: 'schema',
         name: schema,
         items: [],
+        expanded: true,
       };
 
       itemDatabase.items!.push(itemSchema);
 
       _.each(schema_nodes, function (node) {
         const path = '/' + node.resource_type + 's/' + node.unique_id;
+        const [columnItems, schemaChanged] = buildColumnTree(
+          node.__columns || [],
+          path,
+        );
+
+        let changeStatus: SidebarTreeItem['changeStatus'];
+        if (added.includes(node!.unique_id!)) {
+          changeStatus = 'added';
+        } else if (removed.includes(node!.unique_id!)) {
+          changeStatus = 'removed';
+        } else if (schemaChanged) {
+          changeStatus = 'changed';
+        }
+
         let itemTable: SidebarTreeItem = {
           type: node.resource_type as any,
           name: node.identifier || node.alias || node.name,
           path,
-          items: buildColumnTree(node.__columns || [], path),
+          items: columnItems,
+          changeStatus,
         };
 
         itemSchema.items!.push(itemTable);

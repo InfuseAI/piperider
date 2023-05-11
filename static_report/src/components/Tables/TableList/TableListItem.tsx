@@ -10,7 +10,11 @@ import { NoData } from '../../Common';
 import { AssertionPassFailCountLabel } from '../../Assertions/AssertionPassFailCountLabel';
 import { getAssertionStatusCountsFromList } from '../utils';
 import { tableListGridTempCols, tableListWidth } from '../../../utils/layout';
-import { CompTableColEntryItem, ReportState } from '../../../utils/store';
+import {
+  CompTableColEntryItem,
+  ReportState,
+  useReportStore,
+} from '../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../../Common/constant';
 import { getIconForColumnType } from '../../Columns';
 import { ColumnBadge } from './ColumnBadge';
@@ -28,12 +32,13 @@ export function TableListItem({
   singleOnly,
   onInfoClick,
 }: Props) {
-  const [tableName, tableValue] = combinedTableEntry || [];
+  const { expandTreeForPath } = useReportStore();
+  const [tableKey, tableValue] = combinedTableEntry || [];
   const filteredBaseTableTests = combinedAssertions?.base?.filter(
-    (v) => v?.table === tableName,
+    (v) => v?.table === tableKey,
   );
   const filteredTargetTableTests = combinedAssertions?.target?.filter(
-    (v) => v?.table === tableName,
+    (v) => v?.table === tableKey,
   );
   const { failed: baseFailed, total: baseTotal } =
     getAssertionStatusCountsFromList(filteredBaseTableTests || []);
@@ -55,7 +60,8 @@ export function TableListItem({
       mb={2}
       _hover={{ textDecoration: 'none' }}
       onClick={(event) => {
-        setLocation(`/tables/${tableName}`);
+        expandTreeForPath(`/tables/${fallbackTable?.name}`);
+        setLocation(`/tables/${fallbackTable?.name}`);
       }}
     >
       <TableWrapper>
@@ -63,7 +69,7 @@ export function TableListItem({
           {/* 1st Row */}
           <GridItem>
             <TableItemName
-              name={tableName || ''}
+              name={fallbackTable?.name || ''}
               description={description}
               onInfoClick={(event) => {
                 event.stopPropagation();
@@ -77,14 +83,14 @@ export function TableListItem({
               {singleOnly ? (
                 <Text>
                   {formatColumnValueWith(
-                    fallbackTable?.row_count,
+                    fallbackTable?.__table?.row_count,
                     formatNumber,
                   )}
                 </Text>
               ) : (
                 <TableRowColDeltaSummary
-                  baseCount={tableValue?.base?.row_count}
-                  targetCount={tableValue?.target?.row_count}
+                  baseCount={tableValue?.base?.__table?.row_count}
+                  targetCount={tableValue?.target?.__table?.row_count}
                 />
               )}
             </Flex>
@@ -146,8 +152,8 @@ export function TableListItem({
                 </Flex>
               ) : (
                 <TableRowColDeltaSummary
-                  baseCount={tableValue?.base?.col_count}
-                  targetCount={tableValue?.target?.col_count}
+                  baseCount={tableValue?.base?.__table?.col_count}
+                  targetCount={tableValue?.target?.__table?.col_count}
                 />
               )}
             </Flex>

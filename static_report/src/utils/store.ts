@@ -19,8 +19,6 @@ import {
   buildDbtNodes,
   buildProjectTree,
 } from './dbt';
-import { DbtManifestSchema } from '../sdlc/dbt-manifest-schema';
-import _ from 'lodash';
 
 export type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
 type ComparableMetadata = {
@@ -38,15 +36,19 @@ export type ComparedAssertionTestValue = Partial<AssertionTest> | null;
 
 export interface ReportState {
   rawData: ComparableReport;
+
+  /**
+   * Try if no dbt manfiest
+   */
+  isLegacy?: boolean;
+
+  /* Transformed data */
   reportTitle?: string;
   reportTime?: string;
   reportDisplayTime?: string;
   reportOnly?: ComparableData<Omit<SaferSRSchema, 'tables'>>;
   tableColumnsOnly?: CompTableColEntryItem[];
   assertionsOnly?: ComparableData<ComparedAssertionTestValue[]>;
-  /**
-   * Business Metrics (zipped 2D arrays to data column format)
-   */
   BMOnly?: ComparableData<BusinessMetric[]>;
   isCloudReport?: boolean;
   /**
@@ -232,6 +234,8 @@ export const useReportStore = create<ReportState & ReportSetters>()(
     /** Entry point to get transformed report entities */
     setReportRawData: (rawData) => {
       const tableColumnsOnly = getTableColumnsOnly(rawData);
+      const fallback = rawData.input || rawData.base;
+      const isLegacy = !fallback?.dbt?.manifest;
       const resultState: ReportState = {
         /**
          * Raw Report Data
@@ -239,6 +243,7 @@ export const useReportStore = create<ReportState & ReportSetters>()(
          * Comparison: {base: compareBase, target: compareTarget}
          */
         rawData,
+        isLegacy,
 
         /** Report Metadata */
         reportTime: getReportTime(rawData),
@@ -251,7 +256,7 @@ export const useReportStore = create<ReportState & ReportSetters>()(
         BMOnly: getBusinessMetrics(rawData),
         isCloudReport: getIsCloudReport(rawData),
         /* Sidebar Trees */
-        projectTree: buildProjectTree(tableColumnsOnly),
+        projectTree: buildProjectTree(tableColumnsOnly, isLegacy),
         databaseTree: buildDatabaseTree(tableColumnsOnly),
       };
 

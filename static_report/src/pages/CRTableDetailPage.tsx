@@ -14,14 +14,12 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import type { ComparisonReportSchema } from '../types';
 import { NoData } from '../components/Common/NoData';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useTrackOnMount } from '../hooks';
 import { EVENTS, CR_TYPE_LABEL } from '../utils';
-import { useRoute } from 'wouter';
-import { TABLE_DETAILS_ROUTE_PATH, useTableRoute } from '../utils/routes';
+import { useTableRoute } from '../utils/routes';
 import { NO_VALUE } from '../components/Columns/constants';
 import { TableGeneralStats } from '../components/Tables/TableMetrics/TableGeneralStats';
 import { DupedTableRowsWidget } from '../components/Widgets/DupedTableRowsWidget';
@@ -43,7 +41,7 @@ export default function CRTableDetailPage() {
 
   const currentTableEntry = tableColumnsOnly.find(([key]) => key === nodeKey);
   if (!currentTableEntry) {
-    return <NoData text={`No data found for table '${tableName}'`} />;
+    return <NoData text={`No data found for table '${nodeKey}'`} />;
   }
 
   const [, { base, target }] = currentTableEntry;
@@ -159,7 +157,7 @@ export default function CRTableDetailPage() {
   return (
     <Box>
       <TableColumnHeader
-        title={tableName}
+        title={(targetDataTable || baseDataTable)?.name}
         subtitle={'Table'}
         mb={5}
         infoTip={(targetDataTable || baseDataTable)?.description}
@@ -302,7 +300,7 @@ function TableColumnSchemaCompList({ tableEntry }) {
             </Tr>
           </Thead>
           <Tbody>
-            {fallbackTable?.columns.map(
+            {fallbackTable?.__columns.map(
               ([key, { base: baseColumn, target: targetColumn }, metadata]) => {
                 const column = baseColumn || targetColumn;
                 return (
