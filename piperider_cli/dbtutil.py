@@ -328,6 +328,10 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
     return metrics
 
 
+def get_dbt_manifest(dbt_state_dir: str):
+    return _get_state_manifest(dbt_state_dir)
+
+
 def load_dbt_project(path: str):
     """
     Load dbt project file and return the content of 'profile' and 'target-path' fields
