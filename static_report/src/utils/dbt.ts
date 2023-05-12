@@ -375,16 +375,16 @@ export function buildProjectTree(
     type: 'metric_list',
     path: `/metrics`,
   };
-  const test: SidebarTreeItem = {
-    name: 'Tests',
+  const assertion: SidebarTreeItem = {
+    name: 'Assertions',
     type: 'test_list',
-    path: `/tests`,
+    path: `/assertions`,
   };
 
   if (isLegacy) {
-    return [table, metric, test];
+    return [table, metric, assertion];
   } else {
-    return [source, seed, model, metric, test];
+    return [source, seed, model, metric, assertion];
   }
 }
 

@@ -8,7 +8,6 @@ import {
   TableColumnSchemaList,
   TableGeneralStats,
   useTrackOnMount,
-  SaferTableSchema,
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';

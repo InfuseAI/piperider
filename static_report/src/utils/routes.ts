@@ -5,7 +5,7 @@ export const TABLE_LIST_ROUTE_PATH = '/tables';
 export const TABLE_DETAILS_ROUTE_PATH = '/tables/:tableName';
 export const COLUMN_DETAILS_ROUTE_PATH =
   '/tables/:tableName/columns/:columnName';
-export const TESTS_ROUTE_PATH = `/tests`;
+export const ASSERTIONS_ROUTE_PATH = `/assertions`;
 export const METRICS_ROUTE_PATH = `/metrics`;
 
 export const SOURCE_DETAILS_ROUTE_PATH = '/sources/:uniqueId';

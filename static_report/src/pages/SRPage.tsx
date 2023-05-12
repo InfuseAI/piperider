@@ -7,7 +7,7 @@ import { useHashLocation } from '../hooks/useHashLcocation';
 import { SaferSRSchema } from '../types';
 import { useReportStore } from '../utils';
 import {
-  TESTS_ROUTE_PATH,
+  ASSERTIONS_ROUTE_PATH,
   METRICS_ROUTE_PATH,
   COLUMN_DETAILS_ROUTE_PATH,
   HOME_ROUTE_PATH,
@@ -77,7 +77,7 @@ export function SRPage({ data, sideNavTop = '0px' }: Props) {
             <SRColumnDetailPage />
           </Route>
 
-          <Route path={TESTS_ROUTE_PATH}>
+          <Route path={ASSERTIONS_ROUTE_PATH}>
             <SRAssertionListPage />
           </Route>
 

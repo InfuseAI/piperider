@@ -16,7 +16,7 @@ import { Comparable } from '../../types';
 import { borderVal } from '../../utils';
 
 import {
-  TESTS_ROUTE_PATH,
+  ASSERTIONS_ROUTE_PATH,
   METRICS_ROUTE_PATH,
   COLUMN_DETAILS_ROUTE_PATH,
   TABLE_DETAILS_ROUTE_PATH,
@@ -234,7 +234,7 @@ export function MasterSideNav({
           <AccordionItem>
             <RoutableAccordionButton
               title="Assertions"
-              path={TESTS_ROUTE_PATH}
+              path={ASSERTIONS_ROUTE_PATH}
             />
           </AccordionItem>
         )}
