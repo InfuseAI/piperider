@@ -297,98 +297,6 @@ def _show_assertion_result(results, exceptions, failed_only=False, single_table=
     pass
 
 
-def _show_recommended_assertion_notice_message(console: Console, results):
-    for assertion in results:
-        if assertion.result.status() is False and RECOMMENDED_ASSERTION_TAG in assertion.tags:
-            console.print(
-                f'\n[[bold yellow]Notice[/bold yellow]] You can use command '
-                f'"{os.path.basename(sys.argv[0])} generate-assertions" '
-                f'to re-generate recommended assertions with new profiling results.')
-            break
-
-
-def _show_dbt_test_result_summary(dbt_test_results, table: str = None):
-    if not dbt_test_results:
-        return None
-
-    # Prepare DBT Tests Summary
-    ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta', box=box.SIMPLE_HEAVY)
-    ascii_table.add_column('Table Name', style='bold yellow')
-    ascii_table.add_column('#DBT Tests Executed', style='bold blue', justify='right')
-    ascii_table.add_column('#DBT Tests Failed', style='bold red', justify='right')
-
-    test_count = {}
-    for r in dbt_test_results:
-        t = r.get('table')
-
-        if table is not None and t != table:
-            continue
-        if t not in test_count:
-            test_count[t] = dict(total=0, failed=0)
-
-        test_count[t]['total'] += 1
-        test_count[t]['failed'] += 1 if r.get('status') == 'failed' else 0
-
-    for t in test_count:
-        ascii_table.add_row(
-            t,
-            Pretty(test_count[t]['total']),
-            Pretty(test_count[t]['failed']),
-        )
-
-    return ascii_table
-
-
-def _show_summary(profiled_result, assertion_results, assertion_exceptions, dbt_test_results, table=None):
-    console = Console()
-    tables = profiled_result.get('tables', []) if table is None else [table]
-
-    # Prepare PipeRider Assertions Summary
-    ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta', box=box.SIMPLE_HEAVY)
-    ascii_table.add_column('Table Name', style='bold yellow')
-    ascii_table.add_column('#Columns Profiled', style='bold blue', justify='right')
-    ascii_table.add_column('#Tests Executed', style='bold blue', justify='right')
-    ascii_table.add_column('#Tests Failed', style='bold red', justify='right')
-
-    ascii_dbt_table = _show_dbt_test_result_summary(dbt_test_results)
-    for t in tables:
-        _show_table_summary(ascii_table, t, profiled_result, assertion_results)
-
-    if ascii_dbt_table:
-        # Display DBT Tests Summary
-        console.rule('dbt')
-        console.print(ascii_dbt_table)
-        _show_dbt_test_result(dbt_test_results, failed_only=True, title="Failed DBT Tests")
-        if ascii_table.rows:
-            console.rule('PipeRider')
-
-    # Display PipeRider Assertions Summary
-    if ascii_table.rows:
-        console.print(ascii_table)
-        _show_assertion_result(assertion_results, assertion_exceptions, failed_only=True,
-                               title='Failed Assertions')
-
-
-def _show_table_summary(ascii_table: Table, table: str, profiled_result, assertion_results):
-    profiled_columns = profiled_result['tables'][table].get('col_count')
-    num_of_testcases = 0
-    num_of_failed_testcases = 0
-
-    if assertion_results:
-        for r in assertion_results:
-            if r.table == table:
-                num_of_testcases += 1
-                if not r.result.status():
-                    num_of_failed_testcases += 1
-
-    ascii_table.add_row(
-        table,
-        Pretty(profiled_columns),
-        Pretty(num_of_testcases),
-        Pretty(num_of_failed_testcases),
-    )
-
-
 def _transform_assertion_result(table: str, results):
     tests = []
     columns = {}
@@ -518,7 +426,8 @@ def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_resu
     # Table info
     for t in tables:
         event_payload.columns.append(profiled_result['tables'][t]['col_count'])
-        event_payload.rows.append(profiled_result['tables'][t]['row_count'])
+        # null row_count when the table is not profiled
+        event_payload.rows.append(profiled_result['tables'][t].get('row_count'))
 
     # Count PipeRider assertions
     for r in assertion_results or []:
@@ -597,22 +506,39 @@ def check_dbt_manifest_compatibility(ds: DataSource, dbt_state_dir: str):
     return len([x for x in models if x.get('database') == database])
 
 
-def get_dbt_profile_subjects(dbt_state_dir, options, filter_fn):
-    subjects = []
-    candidate_nodes = dbtutil.get_dbt_state_candidate(dbt_state_dir, options)
-    for node in candidate_nodes:
-        name = node.get('name')
-        table = node.get('alias')
-        schema = node.get('schema')
-        database = node.get('database')
-        subjects.append(ProfileSubject(table, schema, database, name))
+def get_dbt_all_subjects(dbt_state_dir, options, filter_fn):
+    def as_subjects(nodes):
+        result = []
+        for node in nodes:
+            if "source" == node.get('resource_type'):
+                name = node.get('name')
+                table = node.get('name')  # there is no alias in the source definition
+                schema = node.get('schema')
+                database = node.get('database')
+            else:
+                name = node.get('name')
+                table = node.get('alias')
+                schema = node.get('schema')
+                database = node.get('database')
+            result.append(ProfileSubject(table, schema, database, name))
+        return result
 
-    total = len(subjects)
+    subjects = as_subjects(dbtutil.get_dbt_state_candidate(dbt_state_dir, options, select_for_metadata=True))
+    Statistics().reset()
+
+    tagged_subjects = as_subjects(dbtutil.get_dbt_state_candidate(dbt_state_dir, options))
+
+    total = len(tagged_subjects)
     if not options.get('dbt_resources') and options.get('tag') is None:
-        subjects = list(filter(filter_fn, subjects))
-        Statistics().add_field('filter', total - len(subjects))
+        tagged_subjects = list(filter(filter_fn, tagged_subjects))
+        Statistics().add_field('filter', total - len(tagged_subjects))
 
-    return subjects
+    return tagged_subjects, subjects
+
+
+def get_dbt_profile_subjects(dbt_state_dir, options, filter_fn):
+    tagged_subjects, _ = get_dbt_all_subjects(dbt_state_dir, options, filter_fn)
+    return tagged_subjects
 
 
 def get_dbt_state_dir(dbt_state_dir, dbt_config, ds, dbt_run_results):
@@ -715,12 +641,13 @@ class Runner():
                 return sys.exit(1)
         console.print('everything is OK.')
 
-        console.rule('Profiling')
+        console.rule('Metadata Collecting')
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
         engine = ds.get_engine_by_database()
 
         subjects: List[ProfileSubject]
+        dbt_metadata_subjects: List[ProfileSubject] = None
         dbt_test_results = None
         if table:
             if len(table.split('.')) == 2:
@@ -743,7 +670,7 @@ class Runner():
                     dbt_run_results=dbt_run_results,
                     tag=dbt_config.get('tag')
                 )
-                subjects = get_dbt_profile_subjects(dbt_state_dir, options, filter_fn)
+                subjects, dbt_metadata_subjects = get_dbt_all_subjects(dbt_state_dir, options, filter_fn)
             else:
                 table_names = inspect(engine).get_table_names()
                 if configuration.include_views:
@@ -754,10 +681,13 @@ class Runner():
 
         run_result = {}
         statistics = Statistics()
-        statistics.display_statistic('profile', 'model')
+
         profiler = Profiler(ds, RichProfilerEventHandler([subject.name for subject in subjects]), configuration)
         try:
-            profiler_result = profiler.profile(subjects)
+            profiler.collect_metadata(dbt_metadata_subjects, subjects)
+
+            console.rule('Profiling')
+            profiler_result = profiler.profile(subjects, metadata_subjects=dbt_metadata_subjects)
             run_result.update(profiler_result)
         except NoSuchTableError as e:
             console.print(f"[bold red]Error:[/bold red] No such table '{str(e)}'")
@@ -796,12 +726,8 @@ class Runner():
                 _show_assertion_result(assertion_results, assertion_exceptions)
                 run_result['tests'].extend([r.to_result_entry() for r in assertion_results])
 
-        console.rule('Summary')
-
         for t in run_result['tables']:
             _clean_up_profile_null_properties(run_result['tables'][t])
-        _show_summary(run_result, assertion_results, assertion_exceptions, dbt_test_results)
-        _show_recommended_assertion_notice_message(console, assertion_results)
 
         if dbt_config:
             dbtutil.append_descriptions(run_result, dbt_state_dir)

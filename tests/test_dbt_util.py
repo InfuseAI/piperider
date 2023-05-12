@@ -17,7 +17,8 @@ class TestRunner(TestCase):
                                                                           dbt_resources=None,
                                                                           dbt_run_results=None,
                                                                           tag=None))
-        self.assertEqual(len(tables), 6)
+
+        self.assertEqual(len(tables), 9)
         self.assertEqual(tables[0].get('name'), 'PRICE_PRESENT')
         self.assertEqual(tables[0].get('schema'), 'PUBLIC')
         self.assertEqual(tables[0].get('alias'), 'PRICE_PRESENT')
@@ -25,21 +26,28 @@ class TestRunner(TestCase):
         self.assertEqual(tables[2].get('name'), 'session')
         self.assertEqual(tables[3].get('name'), 'event_enhanced')
         self.assertEqual(tables[4].get('name'), 'user')
-        self.assertEqual(tables[5].get('name'), 'project')
+        self.assertEqual(tables[5].get('name'), 'project_block')  # seed
+        self.assertEqual(tables[6].get('name'), 'user_block')  # seed
+        self.assertEqual(tables[7].get('name'), 'user_internal')  # seed
+        self.assertEqual(tables[8].get('name'), 'project')
 
     def test_get_dbt_state_candidate_view_profile(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=True,
                                                                           dbt_resources=None,
                                                                           dbt_run_results=None,
                                                                           tag=None))
-        self.assertEqual(len(tables), 7)
+
+        self.assertEqual(len(tables), 10)
         self.assertEqual(tables[0].get('name'), 'PRICE_PRESENT')
         self.assertEqual(tables[1].get('name'), 'event_filtered')
         self.assertEqual(tables[2].get('name'), 'stg_event')
         self.assertEqual(tables[3].get('name'), 'session')
         self.assertEqual(tables[4].get('name'), 'event_enhanced')
         self.assertEqual(tables[5].get('name'), 'user')
-        self.assertEqual(tables[6].get('name'), 'project')
+        self.assertEqual(tables[6].get('name'), 'project_block')  # seed
+        self.assertEqual(tables[7].get('name'), 'user_block')  # seed
+        self.assertEqual(tables[8].get('name'), 'user_internal')  # seed
+        self.assertEqual(tables[9].get('name'), 'project')
 
     def test_get_dbt_state_candidate_run_results(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
@@ -71,7 +79,7 @@ class TestRunner(TestCase):
                                                                           dbt_resources=resources,
                                                                           dbt_run_results=None,
                                                                           tag=None))
-        self.assertEqual(len(tables), 0)
+        self.assertEqual(len(tables), 2)
 
     def test_get_dbt_state_candidate_resources_only_metrics(self):
         metrics = ['metric.infusetude.active_projects',
