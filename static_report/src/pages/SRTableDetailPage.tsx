@@ -36,7 +36,7 @@ export default function SRTableDetailPage() {
   if (!currentTableEntry) {
     return <NoData text={`No data found for '${tableKey}'`} />;
   }
-  const dataTable = currentTableEntry[1].base as any as SaferTableSchema;
+  const dataTable = currentTableEntry[1].base?.__table;
 
   return (
     <>
