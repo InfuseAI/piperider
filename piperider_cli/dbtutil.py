@@ -150,7 +150,7 @@ def append_descriptions(profile_result, dbt_state_dir):
                 continue
             column_desc = v.get('description')
             if column_desc:
-                profile_result['tables'][model]['columns'][column]['description'] = f"{column_desc} - via DBT"
+                profile_result['tables'][model]['columns'][column]['description'] = f"{column_desc}"
 
 
 def get_dbt_state_candidate(dbt_state_dir: str, options: dict, *, select_for_metadata: bool = False):
