@@ -195,7 +195,7 @@ class MetricEngine:
                 )
 
             return select(
-                date_spine_model.c.d,
+                func.cast(date_spine_model.c.d, Date),
                 metric_column.label(metric_column_name)
             ).select_from(
                 outerjoin(date_spine_model, agg_model, date_spine_model.c.d == agg_model.c.d)
