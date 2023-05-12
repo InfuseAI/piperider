@@ -21,7 +21,7 @@ import {
   COLUMN_DETAILS_ROUTE_PATH,
   TABLE_DETAILS_ROUTE_PATH,
 } from '../../utils/routes';
-import { CompTableColEntryItem } from '../../utils/store';
+import { CompTableColEntryItem, useReportStore } from '../../utils/store';
 import { ColumnListAccordionPanel } from './ColumnListAccordionPanel';
 import { RoutableAccordionButton } from './RoutableAccordionButton';
 import { TableItemAccordionButton } from './TableItemAccordionButton';
@@ -227,7 +227,6 @@ export function MasterSideNav({
         <AccordionItem>
           <RoutableAccordionButton title="Metrics" path={METRICS_ROUTE_PATH} />
         </AccordionItem>
-<<<<<<< HEAD:static_report/src/components/Columns/MasterSideNav/MasterSideNav.tsx
 
         {/* Only show the Assertions Button when the report contain assertions result */}
         {(Number(metadata?.base?.total) > 0 ||
@@ -235,15 +234,10 @@ export function MasterSideNav({
           <AccordionItem>
             <RoutableAccordionButton
               title="Assertions"
-              path={ASSERTIONS_ROUTE_PATH}
+              path={TESTS_ROUTE_PATH}
             />
           </AccordionItem>
         )}
-=======
-        <AccordionItem>
-          <RoutableAccordionButton title="Assertions" path={TESTS_ROUTE_PATH} />
-        </AccordionItem>
->>>>>>> 82320af0 (Add new sidbar navigation for dbt project):static_report/src/components/MasterSideNav/MasterSideNav.tsx
       </Accordion>
     </Box>
   );
