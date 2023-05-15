@@ -9,7 +9,7 @@ from piperider_cli.recipes.default_recipe_generator import generate_default_reci
 console = Console()
 
 
-class RecipeExecutor():
+class RecipeExecutor:
     @staticmethod
     def exec(recipe_name: str, auto_generate_default_recipe: bool = True, debug=False):
         recipe_path = select_recipe_file(recipe_name)
