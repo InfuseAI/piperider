@@ -11,6 +11,9 @@ export interface SingleReportSchema {
   };
   metrics?: BusinessMetric[];
   tests?: AssertionTest[];
+  dbt?: {
+    [k: string]: unknown;
+  };
   id: string;
   project_id?: string;
   user_id?: string;

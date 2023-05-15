@@ -1,15 +1,15 @@
 import { AccordionButton, Flex, Icon, Text, Tooltip } from '@chakra-ui/react';
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import { useRoute } from 'wouter';
-import { Comparable, ComparableData } from '../../../types';
-import { borderVal, CompTableWithColEntryOverwrite } from '../../../utils';
-import { TABLE_DETAILS_ROUTE_PATH } from '../../../utils/routes';
+import { Comparable, ComparableData } from '../../types';
+import { borderVal } from '../../utils';
+import { TABLE_DETAILS_ROUTE_PATH } from '../../utils/routes';
 
 /**
  * TableItem: Accordion UI parent
  */
 interface TableItemAccordionButtonProps extends Comparable {
-  compTableColItem: ComparableData<CompTableWithColEntryOverwrite>;
+  compTableColItem: ComparableData<any>;
   isActive: boolean;
   isExpanded: boolean;
   onToggle: (args: { tableName?: string; shouldNavigate?: boolean }) => void;

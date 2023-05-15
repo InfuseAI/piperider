@@ -14,21 +14,19 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import type { ComparisonReportSchema } from '../types';
 import { NoData } from '../components/Common/NoData';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useTrackOnMount } from '../hooks';
 import { EVENTS, CR_TYPE_LABEL } from '../utils';
-import { useRoute } from 'wouter';
-import { TABLE_DETAILS_ROUTE_PATH } from '../utils/routes';
+import { useTableRoute } from '../utils/routes';
 import { NO_VALUE } from '../components/Columns/constants';
 import { TableGeneralStats } from '../components/Tables/TableMetrics/TableGeneralStats';
 import { DupedTableRowsWidget } from '../components/Widgets/DupedTableRowsWidget';
 
 export default function CRTableDetailPage() {
-  const [, params] = useRoute(TABLE_DETAILS_ROUTE_PATH);
-  const tableName = decodeURIComponent(params?.tableName || '');
+  let { tableName, uniqueId } = useTableRoute();
+  tableName = decodeURIComponent(tableName || '');
 
   useTrackOnMount({
     eventName: EVENTS.PAGE_VIEW,
@@ -38,21 +36,18 @@ export default function CRTableDetailPage() {
     },
   });
 
-  const { tableColumnsOnly = [], rawData } = useReportStore.getState();
-  const {
-    base: { tables: baseTables },
-    input: { tables: targetTables },
-  } = rawData as ComparisonReportSchema;
-  const currentTableEntry = tableColumnsOnly.find(
-    ([tableKey]) => tableKey === tableName,
-  );
+  const { tableColumnsOnly = [] } = useReportStore.getState();
+  const nodeKey = uniqueId ? uniqueId : `table.${tableName}`;
 
-  if (!tableName || !baseTables || !targetTables || !currentTableEntry) {
-    return <NoData text={`No profile data found for table '${tableName}'`} />;
+  const currentTableEntry = tableColumnsOnly.find(([key]) => key === nodeKey);
+  if (!currentTableEntry) {
+    return <NoData text={`No data found for table '${nodeKey}'`} />;
   }
 
-  const baseDataTable = baseTables[tableName];
-  const targetDataTable = targetTables[tableName];
+  const [, { base, target }] = currentTableEntry;
+
+  const baseDataTable = base?.__table;
+  const targetDataTable = target?.__table;
 
   function SeparateView({
     title,
@@ -162,7 +157,7 @@ export default function CRTableDetailPage() {
   return (
     <Box>
       <TableColumnHeader
-        title={tableName}
+        title={(targetDataTable || baseDataTable)?.name}
         subtitle={'Table'}
         mb={5}
         infoTip={(targetDataTable || baseDataTable)?.description}
@@ -230,7 +225,7 @@ function TableColumnSchemaCompList({ tableEntry }) {
             </Tr>
           </Thead>
           <Tbody>
-            {fallbackTable?.columns.map(
+            {fallbackTable?.__columns.map(
               ([key, { base: baseColumn, target: targetColumn }, metadata]) => {
                 return (
                   <Tr
@@ -305,7 +300,7 @@ function TableColumnSchemaCompList({ tableEntry }) {
             </Tr>
           </Thead>
           <Tbody>
-            {fallbackTable?.columns.map(
+            {fallbackTable?.__columns.map(
               ([key, { base: baseColumn, target: targetColumn }, metadata]) => {
                 const column = baseColumn || targetColumn;
                 return (

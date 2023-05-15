@@ -14,16 +14,17 @@ import {
 import {
   EVENTS,
   formatTitleCase,
+  SaferTableSchema,
   SR_TYPE_LABEL,
   useTrackOnMount,
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { useRoute } from 'wouter';
-import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
+import { useColumnRoute } from '../utils/routes';
 
 export default function SRColumnDetailPage() {
-  const [, params] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
+  const params = useColumnRoute();
+  const uniqueId = params?.uniqueId;
   const tableName = decodeURIComponent(params?.tableName || '');
   const columnName = decodeURIComponent(params?.columnName || '');
 
@@ -35,25 +36,28 @@ export default function SRColumnDetailPage() {
     },
   });
 
-  const {
-    tableColumnsOnly = [],
-    rawData: { base: data },
-  } = useReportStore.getState();
-  const currentTableEntry = tableColumnsOnly.find(
-    ([tableKey]) => tableKey === tableName,
-  );
+  const { tableColumnsOnly = [] } = useReportStore.getState();
 
-  const dataTable = data?.tables[tableName];
+  const tableKey = uniqueId ? uniqueId : `table.${tableName}`;
+  if (tableKey === undefined) {
+    return <NoData text={`No data found for '${tableKey}.${columnName}'`} />;
+  }
+
+  const currentTableEntry = tableColumnsOnly.find(([key]) => key === tableKey);
+  if (!currentTableEntry) {
+    return <NoData text={`No data found for '${tableKey}.${columnName}'`} />;
+  }
+
+  const dataTable = currentTableEntry[1].base
+    ?.__table as any as SaferTableSchema;
   const dataColumns = dataTable?.columns;
   const columnDatum = dataColumns ? dataColumns[columnName] : undefined;
 
   const { type, histogram, schema_type } = columnDatum || {};
-  const { backgroundColor, icon } = getIconForColumnType(columnDatum);
+  const { backgroundColor, icon } = getIconForColumnType(columnDatum?.type);
 
-  if (!tableName || !dataTable || !currentTableEntry || !columnDatum) {
-    return (
-      <NoData text={`No profile data found for '${tableName}.${columnName}'`} />
-    );
+  if (!tableKey || !dataTable || !currentTableEntry || !columnDatum) {
+    return <NoData text={`No data found for '${tableKey}.${columnName}'`} />;
   }
 
   const hasQuantile = containsColumnQuantile(type);

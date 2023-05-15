@@ -17,23 +17,19 @@ import { FiChevronRight } from 'react-icons/fi';
 
 import { Comparable } from '../../../types';
 import { NO_VALUE } from '../../Columns/constants';
-import { CompTableWithColEntryOverwrite } from '../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../../Common/constant';
 import { tableListWidth } from '../../../utils/layout';
+import { CompColEntryItem } from '../../../lib';
 
 interface Props extends Comparable {
-  baseTableEntryDatum?: CompTableWithColEntryOverwrite;
-  targetTableEntryDatum?: CompTableWithColEntryOverwrite;
+  columns?: CompColEntryItem[];
   visibleDetail?: boolean; //for reuse in other pages
 }
 export function TableColumnSchemaList({
-  baseTableEntryDatum,
-  targetTableEntryDatum,
+  columns,
   singleOnly,
   visibleDetail = false,
 }: Props) {
-  const fallbackTable = targetTableEntryDatum || baseTableEntryDatum;
-
   const isNotSingle = !singleOnly;
 
   return (
@@ -62,7 +58,7 @@ export function TableColumnSchemaList({
               </Tr>
             </Thead>
             <Tbody>
-              {fallbackTable?.columns.map(
+              {columns?.map(
                 ([
                   key,
                   { base: baseColumn, target: targetColumn },

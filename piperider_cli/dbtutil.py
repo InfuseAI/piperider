@@ -142,7 +142,7 @@ def append_descriptions(profile_result, dbt_state_dir):
         if model not in profile_result['tables']:
             continue
         if model_desc:
-            profile_result['tables'][model]['description'] = f"{model_desc} - via DBT"
+            profile_result['tables'][model]['description'] = f"{model_desc}"
 
         columns = node.get('columns', {})
         for column, v in columns.items():
@@ -150,7 +150,7 @@ def append_descriptions(profile_result, dbt_state_dir):
                 continue
             column_desc = v.get('description')
             if column_desc:
-                profile_result['tables'][model]['columns'][column]['description'] = f"{column_desc} - via DBT"
+                profile_result['tables'][model]['columns'][column]['description'] = f"{column_desc}"
 
 
 def get_dbt_state_candidate(dbt_state_dir: str, options: dict, *, select_for_metadata: bool = False):
@@ -326,6 +326,10 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
                 metric.ref_metrics.append(metric_map.get(depends_on_metric))
 
     return metrics
+
+
+def get_dbt_manifest(dbt_state_dir: str):
+    return _get_state_manifest(dbt_state_dir)
 
 
 def load_dbt_project(path: str):

@@ -8,12 +8,18 @@ import { ComparisonReportSchema } from '../types';
 import { useReportStore } from '../utils';
 import {
   ASSERTIONS_ROUTE_PATH,
-  BM_ROUTE_PATH,
+  METRICS_ROUTE_PATH,
   COLUMN_DETAILS_ROUTE_PATH,
   HOME_ROUTE_PATH,
   SSR_ROUTE_PATH,
   TABLE_DETAILS_ROUTE_PATH,
   TABLE_LIST_ROUTE_PATH,
+  SOURCE_DETAILS_ROUTE_PATH,
+  SOURCE_COLUMN_DETAILS_ROUTE_PATH,
+  SEED_DETAILS_ROUTE_PATH,
+  SEED_COLUMN_DETAILS_ROUTE_PATH,
+  MODEL_DETAILS_ROUTE_PATH,
+  MODEL_COLUMN_DETAILS_ROUTE_PATH,
 } from '../utils/routes';
 import { CRAssertionListPage } from './CRAssertionListPage';
 import { CRBMPage } from './CRBMPage';
@@ -55,11 +61,32 @@ export function CRPage({ data, sideNavTop = '0px' }: Props) {
             <CRColumnDetailPage />
           </Route>
 
+          <Route path={SOURCE_DETAILS_ROUTE_PATH}>
+            <CRTableDetailPage />
+          </Route>
+          <Route path={SOURCE_COLUMN_DETAILS_ROUTE_PATH}>
+            <CRColumnDetailPage />
+          </Route>
+
+          <Route path={SEED_DETAILS_ROUTE_PATH}>
+            <CRTableDetailPage />
+          </Route>
+          <Route path={SEED_COLUMN_DETAILS_ROUTE_PATH}>
+            <CRColumnDetailPage />
+          </Route>
+
+          <Route path={MODEL_DETAILS_ROUTE_PATH}>
+            <CRTableDetailPage />
+          </Route>
+          <Route path={MODEL_COLUMN_DETAILS_ROUTE_PATH}>
+            <CRColumnDetailPage />
+          </Route>
+
           <Route path={ASSERTIONS_ROUTE_PATH}>
             <CRAssertionListPage />
           </Route>
 
-          <Route path={BM_ROUTE_PATH}>
+          <Route path={METRICS_ROUTE_PATH}>
             <CRBMPage />
           </Route>
 

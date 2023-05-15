@@ -1,12 +1,7 @@
 {
   "title": "SingleReportSchema",
   "type": "object",
-  "required": [
-    "tables",
-    "id",
-    "created_at",
-    "datasource"
-  ],
+  "required": ["tables", "id", "created_at", "datasource"],
   "additionalProperties": false,
   "properties": {
     "tables": {
@@ -14,10 +9,7 @@
         ".+": {
           "title": "TableSchema",
           "type": "object",
-          "required": [
-            "name",
-            "columns"
-          ],
+          "required": ["name", "columns"],
           "additionalProperties": false,
           "properties": {
             "name": {
@@ -72,11 +64,7 @@
                 ".+": {
                   "title": "ColumnSchema",
                   "type": "object",
-                  "required": [
-                    "name",
-                    "type",
-                    "schema_type"
-                  ],
+                  "required": ["name", "type", "schema_type"],
                   "additionalProperties": false,
                   "properties": {
                     "total": {
@@ -358,6 +346,9 @@
         "$ref": "#/definitions/assertion_test"
       }
     },
+    "dbt": {
+      "type": "object"
+    },
     "id": {
       "type": "string"
     },
@@ -379,10 +370,7 @@
     "datasource": {
       "title": "DataSource",
       "type": "object",
-      "required": [
-        "name",
-        "type"
-      ],
+      "required": ["name", "type"],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -403,11 +391,7 @@
     "histogram": {
       "title": "Histogram",
       "type": "object",
-      "required": [
-        "labels",
-        "counts",
-        "bin_edges"
-      ],
+      "required": ["labels", "counts", "bin_edges"],
       "additionalProperties": false,
       "properties": {
         "labels": {
@@ -448,10 +432,7 @@
       "description": "The most common or frequent value",
       "title": "Topk",
       "type": "object",
-      "required": [
-        "values",
-        "counts"
-      ],
+      "required": ["values", "counts"],
       "additionalProperties": false,
       "properties": {
         "values": {
@@ -613,10 +594,7 @@
           }
         },
         "status": {
-          "enum": [
-            "passed",
-            "failed"
-          ]
+          "enum": ["passed", "failed"]
         },
         "expected": {},
         "actual": {},

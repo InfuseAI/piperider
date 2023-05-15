@@ -11,13 +11,10 @@ import {
 } from '../lib';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
-import { useRoute } from 'wouter';
-import { TABLE_DETAILS_ROUTE_PATH } from '../utils/routes';
+import { useTableRoute } from '../utils/routes';
 
 export default function SRTableDetailPage() {
-  const [, params] = useRoute(TABLE_DETAILS_ROUTE_PATH);
-  const tableName = decodeURIComponent(params?.tableName || '');
-
+  let { tableName, uniqueId } = useTableRoute();
   useTrackOnMount({
     eventName: EVENTS.PAGE_VIEW,
     eventProperties: {
@@ -26,25 +23,26 @@ export default function SRTableDetailPage() {
     },
   });
 
-  const {
-    tableColumnsOnly = [],
-    rawData: { base: data },
-  } = useReportStore.getState();
-  const currentTableEntry = tableColumnsOnly.find(
-    ([tableKey]) => tableKey === tableName,
-  );
+  const { tableColumnsOnly = [] } = useReportStore.getState();
 
-  const dataTable = data?.tables[tableName];
-
-  if (!tableName || !dataTable || !currentTableEntry) {
-    return <NoData text={`No profile data found for '${tableName}'`} />;
+  const tableKey = tableName || uniqueId;
+  if (tableKey === undefined) {
+    return <NoData text={`No data found for '${tableKey}'`} />;
   }
+
+  const nodeKey = uniqueId ? uniqueId : `table.${tableName}`;
+  const currentTableEntry = tableColumnsOnly.find(([key]) => key === nodeKey);
+  if (!currentTableEntry) {
+    return <NoData text={`No data found for '${tableKey}'`} />;
+  }
+  const dataTable = currentTableEntry[1].base?.__table;
+
   return (
     <>
       <TableColumnHeader
-        title={dataTable.name}
+        title={dataTable!.name}
         subtitle={'Table'}
-        infoTip={dataTable.description}
+        infoTip={dataTable!.description}
         mb={5}
       />
       <Grid
@@ -67,7 +65,7 @@ export default function SRTableDetailPage() {
 
         <Divider orientation="vertical" />
         <TableColumnSchemaList
-          baseTableEntryDatum={currentTableEntry?.[1].base}
+          columns={currentTableEntry?.[1].base?.__columns}
           singleOnly
         />
       </Grid>

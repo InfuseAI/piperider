@@ -21,6 +21,12 @@ export function CRTablesListPage() {
   const [tableColsEntryId, setTableColsEntryId] = useState(-1);
   const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
 
+  let table;
+  if (tableColsEntryId !== -1) {
+    const [, { base, target }] = tableColumnsOnly[tableColsEntryId];
+    table = target || base;
+  }
+
   return (
     <>
       <Flex direction="column" w={'100%'} minHeight="650px">
@@ -62,7 +68,7 @@ export function CRTablesListPage() {
       <CommonModal
         {...modal}
         size="2xl"
-        title={tableColsEntryId !== -1 && tableColumnsOnly[tableColsEntryId][0]}
+        title={table?.name}
         onClose={() => {
           setTableColsEntryId(-1);
           modal.onClose();
@@ -70,16 +76,10 @@ export function CRTablesListPage() {
       >
         <Text fontSize="lg" mb={4}>
           Description:{' '}
-          {(tableColsEntryId !== -1 &&
-            tableColumnsOnly[tableColsEntryId][1].target?.description) ?? (
-            <Text as="i">No description provided.</Text>
-          )}
+          {table?.description ?? <Text as="i">No description provided.</Text>}
         </Text>
         {tableColsEntryId !== -1 && (
-          <TableColumnSchemaList
-            baseTableEntryDatum={tableColumnsOnly[tableColsEntryId][1].base}
-            targetTableEntryDatum={tableColumnsOnly[tableColsEntryId][1].target}
-          />
+          <TableColumnSchemaList columns={table?.__columns} />
         )}
       </CommonModal>
     </>

@@ -8,9 +8,15 @@ import { SaferSRSchema } from '../types';
 import { useReportStore } from '../utils';
 import {
   ASSERTIONS_ROUTE_PATH,
-  BM_ROUTE_PATH,
+  METRICS_ROUTE_PATH,
   COLUMN_DETAILS_ROUTE_PATH,
   HOME_ROUTE_PATH,
+  MODEL_COLUMN_DETAILS_ROUTE_PATH,
+  MODEL_DETAILS_ROUTE_PATH,
+  SEED_COLUMN_DETAILS_ROUTE_PATH,
+  SEED_DETAILS_ROUTE_PATH,
+  SOURCE_COLUMN_DETAILS_ROUTE_PATH,
+  SOURCE_DETAILS_ROUTE_PATH,
   SSR_ROUTE_PATH,
   TABLE_DETAILS_ROUTE_PATH,
   TABLE_LIST_ROUTE_PATH,
@@ -33,7 +39,7 @@ export function SRPage({ data, sideNavTop = '0px' }: Props) {
 
   return (
     <Router hook={useHashLocation as BaseLocationHook}>
-      <MasterDetailContainer sideNavTop={sideNavTop}>
+      <MasterDetailContainer sideNavTop={sideNavTop} singleOnly>
         <Switch>
           <Route path={HOME_ROUTE_PATH}>
             <SRHomePage />
@@ -46,8 +52,28 @@ export function SRPage({ data, sideNavTop = '0px' }: Props) {
           <Route path={TABLE_DETAILS_ROUTE_PATH}>
             <SRTableDetailPage />
           </Route>
-
           <Route path={COLUMN_DETAILS_ROUTE_PATH}>
+            <SRColumnDetailPage />
+          </Route>
+
+          <Route path={SOURCE_DETAILS_ROUTE_PATH}>
+            <SRTableDetailPage />
+          </Route>
+          <Route path={SOURCE_COLUMN_DETAILS_ROUTE_PATH}>
+            <SRColumnDetailPage />
+          </Route>
+
+          <Route path={SEED_DETAILS_ROUTE_PATH}>
+            <SRTableDetailPage />
+          </Route>
+          <Route path={SEED_COLUMN_DETAILS_ROUTE_PATH}>
+            <SRColumnDetailPage />
+          </Route>
+
+          <Route path={MODEL_DETAILS_ROUTE_PATH}>
+            <SRTableDetailPage />
+          </Route>
+          <Route path={MODEL_COLUMN_DETAILS_ROUTE_PATH}>
             <SRColumnDetailPage />
           </Route>
 
@@ -55,7 +81,7 @@ export function SRPage({ data, sideNavTop = '0px' }: Props) {
             <SRAssertionListPage />
           </Route>
 
-          <Route path={BM_ROUTE_PATH}>
+          <Route path={METRICS_ROUTE_PATH}>
             <SRBMPage />
           </Route>
 

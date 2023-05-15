@@ -406,7 +406,7 @@ def _append_descriptions_from_assertion(profile_result):
             continue
         table_desc = table_v.get('description', '')
         if table_desc:
-            profile_result['tables'][table_name]['description'] = f'{table_desc} - via PipeRider'
+            profile_result['tables'][table_name]['description'] = f'{table_desc}'
 
         columns_content = table_v.get('columns') if table_v.get('columns') else {}
         for column_name, column_v in columns_content.items():
@@ -415,7 +415,7 @@ def _append_descriptions_from_assertion(profile_result):
             column_desc = column_v.get('description', '')
             if column_desc:
                 profile_result['tables'][table_name]['columns'][column_name][
-                    'description'] = f'{column_desc} - via PipeRider'
+                    'description'] = f'{column_desc}'
 
 
 def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_results):
@@ -629,6 +629,7 @@ class Runner():
             return 1
 
         dbt_config = ds.args.get('dbt')
+        dbt_manifest = None
 
         if dbt_config:
             if not dbtutil.is_ready(dbt_config):
@@ -639,6 +640,7 @@ class Runner():
             if err_msg:
                 console.print(err_msg)
                 return sys.exit(1)
+            dbt_manifest = dbtutil.get_dbt_manifest(dbt_state_dir)
         console.print('everything is OK.')
 
         console.rule('Metadata Collecting')
@@ -680,6 +682,7 @@ class Runner():
                 subjects = list(filter(filter_fn, subjects))
 
         run_result = {}
+
         statistics = Statistics()
 
         profiler = Profiler(ds, RichProfilerEventHandler([subject.name for subject in subjects]), configuration)
@@ -726,6 +729,9 @@ class Runner():
                 _show_assertion_result(assertion_results, assertion_exceptions)
                 run_result['tests'].extend([r.to_result_entry() for r in assertion_results])
 
+        if dbt_manifest:
+            run_result['dbt'] = dict(manifest=dbt_manifest)
+
         for t in run_result['tables']:
             _clean_up_profile_null_properties(run_result['tables'][t])
 
@@ -736,6 +742,7 @@ class Runner():
         run_result['id'] = run_id
         run_result['created_at'] = datetime_to_str(created_at)
         run_result['datasource'] = dict(name=ds.name, type=ds.type_name)
+
         decorate_with_metadata(run_result)
 
         output_path = prepare_default_output_path(filesystem, created_at, ds)

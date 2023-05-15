@@ -5,6 +5,7 @@ import {
   ColumnSchema,
   ComparableData,
   ComparisonReportSchema,
+  DbtNode,
   SaferSRSchema,
   SaferTableSchema,
 } from '../types/index';
@@ -12,7 +13,14 @@ import create from 'zustand';
 import { transformAsNestedBaseTargetRecord } from './transformers';
 import { formatReportTime } from './formatters';
 import { getAssertionStatusCountsFromList } from '../components/Tables';
-type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
+import {
+  SidebarTreeItem,
+  buildDatabaseTree,
+  buildDbtNodes,
+  buildProjectTree,
+} from './dbt';
+
+export type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
 type ComparableMetadata = {
   added?: number;
   deleted?: number;
@@ -21,33 +29,38 @@ type ComparableMetadata = {
 };
 type EntryItem<T> = [string, T, ComparableMetadata];
 export type CompColEntryItem = EntryItem<ComparableData<Partial<ColumnSchema>>>;
-export type CompTableWithColEntryOverwrite = Omit<
-  Partial<SaferTableSchema>,
-  'columns'
-> & {
-  columns: CompColEntryItem[];
-};
-export type CompTableColEntryItem = EntryItem<
-  ComparableData<CompTableWithColEntryOverwrite>
->;
+
+export type CompTableColEntryItem = EntryItem<ComparableData<Partial<DbtNode>>>;
+
 export type ComparedAssertionTestValue = Partial<AssertionTest> | null;
+
 export interface ReportState {
   rawData: ComparableReport;
+
+  /**
+   * Try if no dbt manfiest
+   */
+  isLegacy?: boolean;
+
+  /* Transformed data */
   reportTitle?: string;
   reportTime?: string;
   reportDisplayTime?: string;
   reportOnly?: ComparableData<Omit<SaferSRSchema, 'tables'>>;
   tableColumnsOnly?: CompTableColEntryItem[];
   assertionsOnly?: ComparableData<ComparedAssertionTestValue[]>;
-  /**
-   * Business Metrics (zipped 2D arrays to data column format)
-   */
   BMOnly?: ComparableData<BusinessMetric[]>;
   isCloudReport?: boolean;
+  /**
+   * Sidebar trees
+   */
+  projectTree?: SidebarTreeItem[];
+  databaseTree?: SidebarTreeItem[];
 }
 
 interface ReportSetters {
   setReportRawData: (input: ComparableReport) => void;
+  expandTreeForPath: (path: string) => void;
 }
 
 const getReportOnly = (rawData: ComparableReport) => {
@@ -95,19 +108,21 @@ const getReportTitle = (rawData: ComparableReport) => {
  */
 const getTableColumnsOnly = (rawData: ComparableReport) => {
   const isComparison = Boolean(rawData.base && rawData.input);
+
   const { __meta__: tablesMetadata, ...comparableTables } =
-    transformAsNestedBaseTargetRecord<
-      SaferSRSchema['tables'],
-      SaferTableSchema
-    >(rawData?.base?.tables, rawData?.input?.tables, { metadata: true });
+    transformAsNestedBaseTargetRecord<{ [key: string]: DbtNode }, DbtNode>(
+      buildDbtNodes(rawData?.base),
+      buildDbtNodes(rawData?.input),
+      { metadata: true },
+    );
 
   const tableColumnsResult = Object.entries(comparableTables).map(
-    ([tableName, { base = {}, target = {} }]) => {
+    ([tableName, { base, target }]) => {
       const { __meta__: columnsMetadata, ...comparableColumns } =
         transformAsNestedBaseTargetRecord<
           SaferTableSchema['columns'],
           ColumnSchema
-        >(base?.columns, target?.columns, { metadata: true });
+        >(base?.__table?.columns, target?.__table?.columns, { metadata: true });
       const compColEntries = Object.entries(comparableColumns).map(
         ([colName, { base, target }]) => {
           return [
@@ -127,10 +142,8 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
       const entry: CompTableColEntryItem = [
         tableName,
         {
-          base: { ...base, columns: compColEntries },
-          target: target.name
-            ? { ...target, columns: compColEntries }
-            : undefined,
+          base: base ? { ...base, __columns: compColEntries } : undefined,
+          target: target ? { ...target, __columns: compColEntries } : undefined,
         },
         columnsMetadata,
       ];
@@ -215,44 +228,63 @@ const getIsCloudReport = (rawData: ComparableReport) => {
   return base?.cloud ? true : false;
 };
 
-export const useReportStore = create<ReportState & ReportSetters>()(function (
-  set,
-) {
-  return {
+export const useReportStore = create<ReportState & ReportSetters>()(
+  (set, get) => ({
     rawData: {},
     /** Entry point to get transformed report entities */
-    setReportRawData(rawData) {
-      /** Report */
-      const reportOnly = getReportOnly(rawData);
-      /** Report Display Time */
-      const reportDisplayTime = getReportDisplayTime(rawData);
-      /** Report Time */
-      const reportTime = getReportTime(rawData);
-      /** Report Title */
-      const reportTitle = getReportTitle(rawData);
-      /** Tables */
+    setReportRawData: (rawData) => {
       const tableColumnsOnly = getTableColumnsOnly(rawData);
-      /** Table-level Assertions (flattened) */
-      const assertionsOnly = getAssertionsOnly(rawData);
-      /** Report Business Metrics (BM) */
-      const BMOnly = getBusinessMetrics(rawData);
-      /** Is Cloud Report */
-      const isCloudReport = getIsCloudReport(rawData);
-
+      const fallback = rawData.input || rawData.base;
+      const isLegacy = !fallback?.dbt?.manifest;
       const resultState: ReportState = {
+        /**
+         * Raw Report Data
+         * Single:     {base: singleRun}
+         * Comparison: {base: compareBase, target: compareTarget}
+         */
         rawData,
-        reportOnly,
-        reportTime,
-        reportTitle,
-        reportDisplayTime,
+        isLegacy,
+
+        /** Report Metadata */
+        reportTime: getReportTime(rawData),
+        reportDisplayTime: getReportDisplayTime(rawData),
+        reportTitle: getReportTitle(rawData),
+        /*Report */
+        reportOnly: getReportOnly(rawData),
         tableColumnsOnly,
-        assertionsOnly,
-        BMOnly,
-        isCloudReport,
+        assertionsOnly: getAssertionsOnly(rawData),
+        BMOnly: getBusinessMetrics(rawData),
+        isCloudReport: getIsCloudReport(rawData),
+        /* Sidebar Trees */
+        projectTree: buildProjectTree(tableColumnsOnly, isLegacy),
+        databaseTree: buildDatabaseTree(tableColumnsOnly),
       };
 
       // final setter
       set(resultState);
     },
-  };
-});
+
+    expandTreeForPath: (path) => {
+      const { projectTree, databaseTree } = get();
+      function expandSelected(item: SidebarTreeItem) {
+        if (path && item.path === path) {
+          return true;
+        }
+        for (const child of item.items || []) {
+          const childrenSelected = expandSelected(child);
+          if (childrenSelected) {
+            item.expanded = true;
+            return true;
+          }
+        }
+        return false;
+      }
+      projectTree?.forEach((item) => {
+        expandSelected(item);
+      });
+      databaseTree?.forEach((item) => {
+        expandSelected(item);
+      });
+    },
+  }),
+);

@@ -6,7 +6,7 @@ import { borderVal } from '../utils/layout';
 import { DataSummaryWidget } from '../components/Widgets/DataSummaryWidget';
 import { QuantilesWidget } from '../components/Widgets/QuantilesWidget';
 
-import type { ComparisonReportSchema } from '../types';
+import type { SaferTableSchema } from '../types';
 import { NoData } from '../components/Common/NoData';
 import {
   containsDataSummary,
@@ -17,13 +17,13 @@ import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useTrackOnMount } from '../hooks';
 import { EVENTS, CR_TYPE_LABEL, formatTitleCase } from '../utils';
-import { COLUMN_DETAILS_ROUTE_PATH } from '../utils/routes';
-import { useRoute } from 'wouter';
+import { useColumnRoute } from '../utils/routes';
 import React from 'react';
 
 export default function CRColumnDetailPage() {
-  const [, params] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
-  const tableName = decodeURIComponent(params?.tableName || '');
+  const params = useColumnRoute();
+  const uniqueId = params?.uniqueId;
+  let tableName = decodeURIComponent(params?.tableName || '');
   const columnName = decodeURIComponent(params?.columnName || '');
 
   useTrackOnMount({
@@ -34,18 +34,32 @@ export default function CRColumnDetailPage() {
     },
   });
 
-  const { rawData } = useReportStore.getState();
-  const {
-    base: { tables: baseTables },
-    input: { tables: targetTables },
-  } = rawData as ComparisonReportSchema;
-  const baseDataTable = baseTables[tableName];
-  const targetDataTable = targetTables[tableName];
-  const baseDataColumns = baseDataTable?.columns || {};
-  const targetDataColumns = targetDataTable?.columns || {};
+  ///
+  const { tableColumnsOnly = [] } = useReportStore.getState();
 
-  const baseColumnDatum = baseDataColumns[columnName];
-  const targetColumnDatum = targetDataColumns[columnName];
+  const tableKey = uniqueId ? uniqueId : `table.${tableName}`;
+  if (tableKey === undefined) {
+    return <NoData text={`No data found for '${tableKey}.${columnName}'`} />;
+  }
+
+  const currentTableEntry = tableColumnsOnly.find(([key]) => key === tableKey);
+  if (!currentTableEntry) {
+    return <NoData text={`No data found for '${tableKey}.${columnName}'`} />;
+  }
+
+  const baseDataTable = currentTableEntry[1].base
+    ?.__table as any as SaferTableSchema;
+  const baseDataColumns = baseDataTable?.columns;
+  const baseColumnDatum = baseDataColumns
+    ? baseDataColumns[columnName]
+    : undefined;
+  const targetDataTable = currentTableEntry[1].target
+    ?.__table as any as SaferTableSchema;
+  const targetDataColumns = targetDataTable?.columns;
+  const targetColumnDatum = targetDataColumns
+    ? targetDataColumns[columnName]
+    : undefined;
+
   const fallbackColumnDatum = targetColumnDatum || baseColumnDatum;
   const { type: baseType } = baseColumnDatum || {};
   const { type: targetType } = targetColumnDatum || {};
@@ -131,7 +145,9 @@ export default function CRColumnDetailPage() {
     }
   }
 
-  const { backgroundColor, icon } = getIconForColumnType(fallbackColumnDatum);
+  const { backgroundColor, icon } = getIconForColumnType(
+    fallbackColumnDatum?.type,
+  );
   return (
     <>
       <TableColumnHeader
