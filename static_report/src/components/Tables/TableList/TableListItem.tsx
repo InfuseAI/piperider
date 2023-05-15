@@ -32,7 +32,7 @@ export function TableListItem({
   singleOnly,
   onInfoClick,
 }: Props) {
-  const { expandTreeForPath } = useReportStore();
+  const { expandTreeForPath } = useReportStore.getState();
   const [tableKey, tableValue] = combinedTableEntry || [];
   const filteredBaseTableTests = combinedAssertions?.base?.filter(
     (v) => v?.table === tableKey,

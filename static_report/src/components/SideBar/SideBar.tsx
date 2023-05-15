@@ -16,7 +16,7 @@ import { Comparable } from '../../types';
 
 export function SideBar({ singleOnly }: Comparable) {
   const { isLegacy, projectTree, databaseTree, expandTreeForPath } =
-    useReportStore();
+    useReportStore.getState();
   const [location] = useLocation();
   const [tabIndex, setTabIndex] = useState(-1);
   const handleTabChange = (index) => {
