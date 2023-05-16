@@ -187,7 +187,7 @@ class Profiler:
                 self.event_handler.handle_run_progress(result, table_count, table_index)
             self.event_handler.handle_run_end(result)
         else:
-            print("No table to profile")
+            print("No models, seeds, sources to profile")
 
         return result
 

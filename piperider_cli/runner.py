@@ -643,7 +643,7 @@ class Runner():
             dbt_manifest = dbtutil.get_dbt_manifest(dbt_state_dir)
         console.print('everything is OK.')
 
-        console.rule('Metadata Collecting')
+        console.rule('Collect metadata')
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
         engine = ds.get_engine_by_database()
@@ -684,12 +684,11 @@ class Runner():
         run_result = {}
 
         statistics = Statistics()
-
         profiler = Profiler(ds, RichProfilerEventHandler([subject.name for subject in subjects]), configuration)
         try:
             profiler.collect_metadata(dbt_metadata_subjects, subjects)
 
-            console.rule('Profiling')
+            console.rule('Profile statistics')
             profiler_result = profiler.profile(subjects, metadata_subjects=dbt_metadata_subjects)
             run_result.update(profiler_result)
         except NoSuchTableError as e:
@@ -703,7 +702,7 @@ class Runner():
         if dbt_config:
             metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, dbt_config.get('tag', 'piperider'), dbt_resources)
 
-        console.rule('Metrics')
+        console.rule('Query metrics')
         statistics.display_statistic('query', 'metric')
         if metrics:
             run_result['metrics'] = MetricEngine(
