@@ -66,7 +66,7 @@ def add_options(options):
 @click.group(name="piperider", invoke_without_command=True)
 @click.pass_context
 def cli(ctx: click.Context):
-    'An open-source toolkit for detecting data issues across pipelines that works with CI systems for continuous data quality assessment.'
+    'Code review for data in dbt'
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
         Guide().show_tips(ctx.command.name)
@@ -130,7 +130,7 @@ def init(**kwargs):
     Initializer.show_config()
 
 
-@cli.command(short_help='Check project configuration.', cls=TrackCommand)
+@cli.command(short_help='Check the configuraion and connection.', cls=TrackCommand)
 @add_options(dbt_related_options)
 @add_options(debug_option)
 def diagnose(**kwargs):
@@ -155,9 +155,10 @@ def diagnose(**kwargs):
         sys.exit(1)
 
 
-@cli.command(short_help='Profile data source, run assertions, and generate report(s).', cls=TrackCommand)
+@cli.command(short_help='Execute a piperider run.', cls=TrackCommand)
 @click.option('--datasource', default=None, type=click.STRING, help='Datasource to use.', metavar='DATASOURCE_NAME')
-@click.option('--table', default=None, type=click.STRING, help='Table to use.', metavar='TABLE_NAME')
+@click.option('--table', default=None, type=click.STRING, help='Specify the name of a model/seed/source to profile.',
+              metavar='TABLE_NAME')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
 @click.option('--dbt-state', default=None, help='Directory of the the dbt state.')
@@ -428,7 +429,7 @@ def cloud_compare_reports(**kwargs):
     return ret
 
 
-@cli.command(name='compare', short_help='Generate comparison report with the recipe.', cls=TrackCommand)
+@cli.command(name='compare', short_help='Compare the change for the current branch.', cls=TrackCommand)
 @click.option('--recipe', default=None, type=click.STRING, help='Select a different recipe.')
 @click.option('--upload', default=False, is_flag=True, help='Upload the report to PipeRider Cloud.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
@@ -441,7 +442,7 @@ def cloud_compare_reports(**kwargs):
 @add_options(debug_option)
 def compare_with_recipe(**kwargs):
     """
-    Generate comparison report with the recipe
+    Generate the comparison report for your branch.
     """
 
     recipe = kwargs.get('recipe')
