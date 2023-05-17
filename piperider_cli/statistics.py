@@ -24,10 +24,13 @@ class Statistics:
     def display_statistic(self, action, subject):
         console = Console()
         if self.statistic.get('total', 0) == 0:
-            console.print(f"no {subject} for {action}")
+            console.print(f"No {subject}s to {action}")
             return
         num_skip = sum(self.statistic.values()) - self.statistic['total']
-        if num_skip > 0:
+        if self.statistic['total'] - num_skip == 0:
+            console.print(f"No {subject}s to {action}")
+        elif num_skip > 0:
             subject = subject + 's' if num_skip > 1 else subject
             msg = ", ".join([f"{k}={v}" for k, v in self.statistic.items() if k != 'total' and v != 0])
-            console.print(f"{action} {self.statistic['total'] - num_skip} {subject}, skip {num_skip} {subject} ({msg})\n")
+            console.print(
+                f"{action} {self.statistic['total'] - num_skip} {subject}, skip {num_skip} {subject} ({msg})\n")
