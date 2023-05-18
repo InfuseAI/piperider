@@ -4,7 +4,7 @@ import os
 import shutil
 import sys
 from datetime import datetime, date
-from typing import List
+from typing import Dict, Iterable, List
 
 import inquirer
 import readchar
@@ -13,8 +13,12 @@ from rich.console import Console
 import piperider_cli.hack.inquirer as inquirer_hack
 from piperider_cli import datetime_to_str, str_to_datetime, clone_directory, \
     raise_exception_when_directory_not_writable, open_report_in_browser
+from piperider_cli.comparsion_summary import AlteredModels, DownstreamModels, DbtMetrics, Fraction, ComparisonSummary
+from piperider_cli.dbt.list_runner import DbtFunctions
+from piperider_cli.dbt.list_task import compare_models_between_manifests, load_manifest
 from piperider_cli.filesystem import FileSystem
 from piperider_cli.generate_report import setup_report_variables
+from piperider_cli.reports import Document
 
 
 class RunOutput(object):
@@ -141,7 +145,7 @@ class ComparisonData(object):
     STATE_DEL = 1
     STATE_MOD = 2
 
-    def __init__(self, base, target, tables_from):
+    def __init__(self, base: Dict, target: Dict, tables_from):
         self._id = datetime.now().strftime("%Y%m%d%H%M%S")
 
         if tables_from == 'target-only':
@@ -236,6 +240,142 @@ class ComparisonData(object):
         out.write(self._render_metrics_comparison_markdown(base, target))
 
         return out.getvalue()
+
+    def to_summary_markdown2(self):
+        # verify the report version compatibility
+        base_manifest_dict = self._base.get('dbt', {}).get('manifest')
+        target_manifest_dict = self._target.get('dbt', {}).get('manifest')
+
+        # TODO it'd be better to have a filename
+        if not base_manifest_dict:
+            raise Exception(f'The version is too old to generate summary for report[{self._base.get("id")}]')
+        if not target_manifest_dict:
+            raise Exception(f'The version is too old to generate summary for report[{self._target.get("id")}]')
+
+        base_manifest = load_manifest(base_manifest_dict)
+        target_manifest = load_manifest(target_manifest_dict)
+
+        with_downstream = compare_models_between_manifests(base_manifest, target_manifest, True)
+        altered_models = compare_models_between_manifests(base_manifest, target_manifest)
+
+        """
+        join it first
+        """
+        model_changes = self.get_model_changes(altered_models)
+        downstream_model_changes = self.get_model_changes(list(set(with_downstream) - set(altered_models)))
+
+        # TODO value changes are coming from profiled data, we will do it later
+        altered = AlteredModels(Fraction(n=len(model_changes), d=len(altered_models)), Fraction(n=2, d=6))
+        downstream = DownstreamModels(
+            Fraction(n=len(downstream_model_changes), d=abs(len(with_downstream) - len(altered_models))),
+            Fraction(n=1, d=24))
+
+        # TODO it denpends on profiled data, will do it later
+        dbt_metrics = DbtMetrics(Fraction(n=6, d=23))
+        doc = ComparisonSummary(altered, downstream, dbt_metrics)
+
+        # doc
+        # doc = ComparisonSummary.from_data(joined_tables, altered_models, with_downstream)
+
+        result = self.filter_tables_by_model_selectors(list(model_changes))
+        print(result)
+
+        # TODO we should check all kinds of cases
+        """
+        base        target
+        A -> B      edit A -> remove B
+
+        base -> target
+        modified: A
+        modified+: A, B?
+
+        target -> base
+        modified: A
+        modified+: A, B?
+        """
+        return doc.build()
+
+    def to_summary_markdown3(self):
+        # verify the report version compatibility
+        base_manifest_dict = self._base.get('dbt', {}).get('manifest')
+        target_manifest_dict = self._target.get('dbt', {}).get('manifest')
+
+        # TODO it'd be better to have a filename
+        if not base_manifest_dict:
+            raise Exception(f'The version is too old to generate summary for report[{self._base.get("id")}]')
+        if not target_manifest_dict:
+            raise Exception(f'The version is too old to generate summary for report[{self._target.get("id")}]')
+
+        base_manifest = load_manifest(base_manifest_dict)
+        target_manifest = load_manifest(target_manifest_dict)
+
+        with_downstream = compare_models_between_manifests(base_manifest, target_manifest, True)
+        altered_models = compare_models_between_manifests(base_manifest, target_manifest)
+        downstream_models = list(set(with_downstream) - set(altered_models))
+
+        doc = Document(base_manifest, target_manifest, altered_models, downstream_models,
+                       join(self._base.get('tables'), self._target.get('tables')))
+        return doc.build()
+
+    def get_model_changes(self, model_list: List[str]) -> set:
+        model_changes = {}
+        joined = join(self._base.get('tables'), self._target.get('tables'))
+
+        def as_table_names(selector_list: List[str]) -> Iterable[str]:
+            # selector from dbt will like xxx.yyy.zzz
+            # we only care the last part: zzz
+            for x in selector_list:
+                yield x.split(".")[-1]
+
+        model_changes = []
+        for table_name in as_table_names(model_list):
+            joined_table = joined[table_name]
+            columns_b = joined_table.get('base').get('columns') if joined_table.get('base') else None
+            columns_t = joined_table.get('target').get('columns') if joined_table.get('target') else None
+
+            state, result = self._render_table_summary_markdown(table_name, columns_b, columns_t)
+            if state is not None:
+                model_changes.append(table_name)
+
+        return set(model_changes)
+
+    def filter_tables_by_model_selectors(self, model_list: List[str]):
+
+        def as_table_names(selector_list: List[str]) -> Iterable[str]:
+            # selector from dbt will like xxx.yyy.zzz
+            # we only care the last part: zzz
+            for x in selector_list:
+                yield x.split(".")[-1]
+
+        # Per-table Comparison
+        base = self._base.get('tables')
+        target = self._target.get('tables')
+
+        states = {}
+        per_table_out = io.StringIO()
+        joined = join(base, target)
+        for table_name in as_table_names(model_list):
+            joined_table = joined[table_name]
+
+            columns_b = joined_table.get('base').get('columns') if joined_table.get('base') else None
+            columns_t = joined_table.get('target').get('columns') if joined_table.get('target') else None
+
+            state, result = self._render_table_summary_markdown(table_name, columns_b, columns_t)
+            if state == self.STATE_ADD:
+                if states.get('added') is None:
+                    states['added'] = 0
+                states['added'] += 1
+            elif state == self.STATE_DEL:
+                if states.get('deleted') is None:
+                    states['deleted'] = 0
+                states['deleted'] += 1
+            elif state == self.STATE_MOD:
+                if states.get('schema changed') is None:
+                    states['schema changed'] = 0
+                states['schema changed'] += 1
+            per_table_out.write(result)
+
+        return per_table_out.getvalue()
 
     @staticmethod
     def _value_with_annotation(key, annotation=None):
@@ -796,6 +936,7 @@ class CompareReport(object):
 
         data_id = comparison_data.id()
         summary_data = summary_data if summary_data else comparison_data.to_summary_markdown()
+        comparison_data.to_summary_markdown2()
         default_report_directory = prepare_default_output_path(filesystem, data_id)
         output_report(default_report_directory)
         output_summary(default_report_directory, summary_data)
