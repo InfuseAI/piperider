@@ -200,12 +200,10 @@ class InteractiveRecipeDecorator(AbstractRecipeUtils):
 
         if FANCY_USER_INPUT:
             import inquirer
-
-            return inquirer.confirm(f"We will execute '{command_line}'", default=True)
+            return inquirer.confirm(f"Execute '{command_line}'", default=True)
         else:
             from rich.prompt import Confirm
-
-            return Confirm.ask(f"We will execute '{command_line}'")
+            return Confirm.ask(f"Execute '{command_line}'")
 
 
 if __name__ == "__main__":
