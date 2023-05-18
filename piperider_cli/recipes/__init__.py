@@ -250,8 +250,8 @@ def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type=
         a_branch = model.branch
         b_branch = current_branch
         if a_branch != b_branch:
-            commit_hash = switch_merge_base_branch(a_branch, b_branch)
-            console.print(f"Switch git branch to: \[merge-base of {a_branch}...{b_branch} -> {commit_hash}]")
+            switch_merge_base_branch(a_branch, b_branch)
+
     else:
         working_branch = model.branch or current_branch
         if working_branch is not None:
@@ -299,6 +299,7 @@ def get_current_branch(cfg: RecipeConfiguration):
 
 def switch_merge_base_branch(a: str, b: str) -> str:
     base_commit = tool().git_merge_base(a, b)
+    console.print(f"Switch git branch to: \[merge-base of {a}...{b} -> {base_commit}]")
     tool().git_checkout_to(base_commit)
     return base_commit
 
