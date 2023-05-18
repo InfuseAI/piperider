@@ -124,6 +124,10 @@ export function buildColumnTree(
   itemsColumnComparison.forEach(([columnName, { base, target }]) => {
     const fallback = target || base;
 
+    if (base?.total === undefined && target?.total === undefined) {
+      return;
+    }
+
     let type = `column_${fallback?.type}` as any;
     let changeStatus;
 
