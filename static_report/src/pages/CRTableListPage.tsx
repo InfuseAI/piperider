@@ -8,6 +8,7 @@ import { TableColumnSchemaList } from '../components/Tables/TableList/TableColum
 import { useTrackOnMount } from '../hooks';
 import { EVENTS, CR_TYPE_LABEL } from '../utils/trackEvents';
 import { CommonModal } from '../components/Common/CommonModal';
+import _ from 'lodash';
 
 export function CRTablesListPage() {
   useTrackOnMount({
@@ -19,13 +20,25 @@ export function CRTablesListPage() {
   });
   const modal = useDisclosure();
   const [tableColsEntryId, setTableColsEntryId] = useState(-1);
-  const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
+  const {
+    tableColumnsOnly = [],
+    assertionsOnly,
+    isLegacy,
+  } = useReportStore.getState();
 
-  let table;
+  let selected;
   if (tableColsEntryId !== -1) {
     const [, { base, target }] = tableColumnsOnly[tableColsEntryId];
-    table = target || base;
+    selected = target ?? base;
   }
+
+  const tableColumnsSorted = _.sortBy(
+    tableColumnsOnly,
+    ([, { base, target }]) => {
+      const fallback = target ?? base;
+      return fallback?.__table?.name;
+    },
+  );
 
   return (
     <>
@@ -46,15 +59,23 @@ export function CRTablesListPage() {
           <Text>Assertions</Text>
         </Grid>
 
-        {tableColumnsOnly.map((tableColEntry, i) => {
+        {tableColumnsSorted.map((tableColsEntry, i) => {
+          const [, { base, target }] = tableColsEntry;
+          const fallback = base ?? target;
+          if (!fallback?.__table) {
+            return <></>;
+          }
+          if (!isLegacy) {
+            if (fallback?.resource_type === 'table') {
+              return <></>;
+            }
+          }
+
           return (
             <Flex key={i}>
               <TableListItem
                 combinedAssertions={assertionsOnly}
-                combinedTableEntry={tableColEntry}
-                // onSelect={() =>
-                //   setLocation(`/tables/${tableColEntry[0]}/columns/`)
-                // }
+                combinedTableEntry={tableColsEntry}
                 onInfoClick={() => {
                   setTableColsEntryId(i);
                   modal.onOpen();
@@ -68,7 +89,7 @@ export function CRTablesListPage() {
       <CommonModal
         {...modal}
         size="2xl"
-        title={table?.name}
+        title={selected?.__table?.name}
         onClose={() => {
           setTableColsEntryId(-1);
           modal.onClose();
@@ -76,10 +97,12 @@ export function CRTablesListPage() {
       >
         <Text fontSize="lg" mb={4}>
           Description:{' '}
-          {table?.description ?? <Text as="i">No description provided.</Text>}
+          {selected?.__table?.description || (
+            <Text as="i">No description provided.</Text>
+          )}
         </Text>
         {tableColsEntryId !== -1 && (
-          <TableColumnSchemaList columns={table?.__columns} />
+          <TableColumnSchemaList columns={selected?.__columns} />
         )}
       </CommonModal>
     </>

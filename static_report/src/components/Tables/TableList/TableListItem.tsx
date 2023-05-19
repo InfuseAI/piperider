@@ -33,19 +33,20 @@ export function TableListItem({
   onInfoClick,
 }: Props) {
   const { expandTreeForPath } = useReportStore.getState();
-  const [tableKey, tableValue] = combinedTableEntry || [];
+  const [, { base, target }] = combinedTableEntry || [undefined, {}];
+  const fallback = target ?? base;
+  const fallbackTable = fallback?.__table;
+
   const filteredBaseTableTests = combinedAssertions?.base?.filter(
-    (v) => v?.table === tableKey,
+    (v) => v?.table === fallbackTable?.name,
   );
   const filteredTargetTableTests = combinedAssertions?.target?.filter(
-    (v) => v?.table === tableKey,
+    (v) => v?.table === fallbackTable?.name,
   );
   const { failed: baseFailed, total: baseTotal } =
     getAssertionStatusCountsFromList(filteredBaseTableTests || []);
   const { failed: targetFailed, total: targetTotal } =
     getAssertionStatusCountsFromList(filteredTargetTableTests || []);
-
-  const fallbackTable = tableValue?.base || tableValue?.target;
 
   const description = fallbackTable?.description || NO_DESCRIPTION_MSG;
 
@@ -60,8 +61,14 @@ export function TableListItem({
       mb={2}
       _hover={{ textDecoration: 'none' }}
       onClick={(event) => {
-        expandTreeForPath(`/tables/${fallbackTable?.name}`);
-        setLocation(`/tables/${fallbackTable?.name}`);
+        const resourceType = fallback?.resource_type;
+        if (resourceType === 'table') {
+          expandTreeForPath(`/tables/${fallback?.name}`);
+          setLocation(`/tables/${fallback?.name}`);
+        } else {
+          expandTreeForPath(`/${resourceType}s/${fallback?.unique_id}`);
+          setLocation(`/${resourceType}s/${fallback?.unique_id}`);
+        }
       }}
     >
       <TableWrapper>
@@ -69,7 +76,7 @@ export function TableListItem({
           {/* 1st Row */}
           <GridItem>
             <TableItemName
-              name={fallbackTable?.name || ''}
+              name={fallback?.name || ''}
               description={description}
               onInfoClick={(event) => {
                 event.stopPropagation();
@@ -83,14 +90,14 @@ export function TableListItem({
               {singleOnly ? (
                 <Text>
                   {formatColumnValueWith(
-                    fallbackTable?.__table?.row_count,
+                    fallback?.__table?.row_count,
                     formatNumber,
                   )}
                 </Text>
               ) : (
                 <TableRowColDeltaSummary
-                  baseCount={tableValue?.base?.__table?.row_count}
-                  targetCount={tableValue?.target?.__table?.row_count}
+                  baseCount={base?.__table?.row_count}
+                  targetCount={target?.__table?.row_count}
                 />
               )}
             </Flex>
@@ -134,9 +141,10 @@ export function TableListItem({
                     },
                   }}
                 >
-                  {fallbackTable &&
-                    fallbackTable.columns?.length > 0 &&
-                    fallbackTable.columns.map(([colName, { base }]) => {
+                  {fallback &&
+                    fallback?.__columns &&
+                    fallback?.__columns?.length > 0 &&
+                    fallback?.__columns.map(([colName, { base }]) => {
                       const { backgroundColor, icon } = getIconForColumnType(
                         base?.type,
                       );
@@ -152,8 +160,8 @@ export function TableListItem({
                 </Flex>
               ) : (
                 <TableRowColDeltaSummary
-                  baseCount={tableValue?.base?.__table?.col_count}
-                  targetCount={tableValue?.target?.__table?.col_count}
+                  baseCount={base?.__table?.col_count}
+                  targetCount={target?.__table?.col_count}
                 />
               )}
             </Flex>

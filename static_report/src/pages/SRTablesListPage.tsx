@@ -8,11 +8,16 @@ import { TableColumnSchemaList } from '../components/Tables/TableList/TableColum
 import { useTrackOnMount } from '../hooks/useTrackOnMount';
 import { EVENTS, SR_TYPE_LABEL } from '../utils/trackEvents';
 import { CommonModal } from '../components/Common/CommonModal';
+import _ from 'lodash';
 
 export function SRTablesListPage() {
   const modal = useDisclosure();
   const [tableColsEntryId, setTableColsEntryId] = useState(-1);
-  const { tableColumnsOnly = [], assertionsOnly } = useReportStore.getState();
+  const {
+    tableColumnsOnly = [],
+    assertionsOnly,
+    isLegacy,
+  } = useReportStore.getState();
 
   useTrackOnMount({
     eventName: EVENTS.PAGE_VIEW,
@@ -21,6 +26,19 @@ export function SRTablesListPage() {
       page: 'table-list-page',
     },
   });
+
+  const tableColumnsSorted = _.sortBy(
+    tableColumnsOnly,
+    ([, { base, target }]) => {
+      const fallback = target ?? base;
+      return fallback?.__table?.name;
+    },
+  );
+
+  const selected =
+    tableColsEntryId !== -1
+      ? tableColumnsSorted[tableColsEntryId][1].base
+      : undefined;
 
   return (
     <>
@@ -39,7 +57,18 @@ export function SRTablesListPage() {
           <Text>Summary</Text>
           <Text>Assertions</Text>
         </Grid>
-        {tableColumnsOnly.map((tableColsEntry, i) => {
+        {tableColumnsSorted.map((tableColsEntry, i) => {
+          const [, { base, target }] = tableColsEntry;
+          const fallback = base ?? target;
+          if (!fallback?.__table) {
+            return <></>;
+          }
+          if (!isLegacy) {
+            if (fallback?.resource_type === 'table') {
+              return <></>;
+            }
+          }
+
           return (
             <TableListItem
               key={i}
@@ -58,7 +87,7 @@ export function SRTablesListPage() {
       <CommonModal
         {...modal}
         size="2xl"
-        title={tableColsEntryId !== -1 && tableColumnsOnly[tableColsEntryId][0]}
+        title={selected?.__table?.name ?? 'No title'}
         onClose={() => {
           setTableColsEntryId(-1);
           modal.onClose();
@@ -66,16 +95,12 @@ export function SRTablesListPage() {
       >
         <Text fontSize="lg" mb={4}>
           Description:{' '}
-          {(tableColsEntryId !== -1 &&
-            tableColumnsOnly[tableColsEntryId][1].base?.description) ?? (
+          {selected?.description || (
             <Text as="i">No description provided.</Text>
           )}
         </Text>
         {tableColsEntryId !== -1 && (
-          <TableColumnSchemaList
-            singleOnly
-            columns={tableColumnsOnly[tableColsEntryId][1].base?.__columns}
-          />
+          <TableColumnSchemaList singleOnly columns={selected?.__columns} />
         )}
       </CommonModal>
     </>
