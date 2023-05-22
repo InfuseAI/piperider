@@ -45,6 +45,7 @@ setup(name='piperider',
           'requests>=2.28.1',
           'requests_toolbelt>=0.9.1',
           'deepmerge',
+          'dbt-core>=1.2'
       ],
       extras_require={
           'snowflake': [
