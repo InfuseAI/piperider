@@ -541,7 +541,7 @@ def get_dbt_profile_subjects(dbt_state_dir, options, filter_fn):
     return tagged_subjects
 
 
-def get_dbt_state_dir(dbt_state_dir, dbt_config, ds, dbt_run_results):
+def get_dbt_state_dir(dbt_state_dir, dbt_config, ds):
     if not dbt_state_dir:
         dbt_project = dbtutil.load_dbt_project(dbt_config.get('projectDir'))
         dbt_state_dir = dbt_project.get('target-path')
@@ -555,17 +555,13 @@ def get_dbt_state_dir(dbt_state_dir, dbt_config, ds, dbt_run_results):
         if not check_dbt_manifest_compatibility(ds, dbt_state_dir):
             return None, f"[bold red]Error:[/bold red] Target mismatched. Please run 'dbt compile -t {dbt_config.get('target')}' to generate the new manifest, or set the environment variable 'PIPERIDER_SKIP_TARGET_CHECK=1' to skip the check."
 
-    if dbt_run_results:
-        if not dbtutil.is_dbt_run_results_ready(dbt_state_dir):
-            return None, f"[bold red]Error:[/bold red] No available 'run_results.json' under '{dbt_state_dir}'"
-
     return dbt_state_dir, None
 
 
 class Runner():
     @staticmethod
     def exec(datasource=None, table=None, output=None, skip_report=False, dbt_state_dir: str = None,
-             dbt_run_results: bool = False, dbt_resources: Optional[dict] = None, report_dir: str = None):
+             dbt_resources: Optional[dict] = None, report_dir: str = None):
         console = Console()
 
         raise_exception_when_directory_not_writable(output)
@@ -636,7 +632,7 @@ class Runner():
                 console.log(
                     '[bold red]ERROR:[/bold red] DBT configuration is not completed, please check the config.yml')
                 return sys.exit(1)
-            dbt_state_dir, err_msg = get_dbt_state_dir(dbt_state_dir, dbt_config, ds, dbt_run_results)
+            dbt_state_dir, err_msg = get_dbt_state_dir(dbt_state_dir, dbt_config, ds)
             if err_msg:
                 console.print(err_msg)
                 return sys.exit(1)
@@ -651,6 +647,11 @@ class Runner():
         subjects: List[ProfileSubject]
         dbt_metadata_subjects: List[ProfileSubject] = None
         dbt_test_results = None
+
+        if dbt_config:
+            if dbtutil.is_dbt_run_results_ready(dbt_state_dir):
+                dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir, table_filter=table)
+
         if table:
             if len(table.split('.')) == 2:
                 schema, table_name = table.split('.')
@@ -663,13 +664,10 @@ class Runner():
                 return _filter_subject(subject.name, configuration.includes, configuration.excludes)
 
             if dbt_config:
-                if dbt_run_results:
-                    dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir)
-
                 options = dict(
                     view_profile=configuration.include_views,
                     dbt_resources=dbt_resources,
-                    dbt_run_results=dbt_run_results,
+                    dbt_run_results=dbtutil.is_dbt_run_results_ready(dbt_state_dir),
                     tag=dbt_config.get('tag')
                 )
                 subjects, dbt_metadata_subjects = get_dbt_all_subjects(dbt_state_dir, options, filter_fn)

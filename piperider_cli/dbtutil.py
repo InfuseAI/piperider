@@ -222,7 +222,7 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict, *, select_for_met
     return candidate
 
 
-def get_dbt_state_tests_result(dbt_state_dir: str):
+def get_dbt_state_tests_result(dbt_state_dir: str, table_filter=None):
     output = []
     unique_tests = {}
 
@@ -260,6 +260,14 @@ def get_dbt_state_tests_result(dbt_state_dir: str):
 
         if table is None:
             continue
+
+        if table_filter is not None:
+            if len(table.split('.')) == 2:
+                _, table_name = table.split('.')
+            else:
+                table_name = table
+            if table_name != table_filter:
+                continue
 
         output.append(dict(
             id=unique_id,

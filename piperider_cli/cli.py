@@ -163,7 +163,6 @@ def diagnose(**kwargs):
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
 @click.option('--dbt-state', default=None, help='Directory of the the dbt state.')
 @click.option('--dbt-list', is_flag=True, help='Associate with dbt list format input.')
-@click.option('--dbt-run-results', is_flag=True, help='Associate with dbt run results.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
 @click.option('--project', default=None, type=click.STRING, help='Specify the project name to upload.')
@@ -182,16 +181,15 @@ def run(**kwargs):
     skip_report = kwargs.get('skip_report')
     dbt_state_dir = kwargs.get('dbt_state')
     dbt_list = kwargs.get('dbt_list')
-    dbt_run_results = kwargs.get('dbt_run_results')
     force_upload = kwargs.get('upload')
     project_name = kwargs.get('project')
 
     console = Console()
 
     # True -> 1, False -> 0
-    if sum([True if table else False, dbt_list, dbt_run_results]) > 1:
+    if sum([True if table else False, dbt_list]) > 1:
         console.print("[bold red]Error:[/bold red] "
-                      "['--table', '--dbt-list', '--dbt-run-results'] are mutually exclusive")
+                      "['--table', '--dbt-list'] are mutually exclusive")
         sys.exit(1)
 
     # Search dbt project config files
@@ -221,7 +219,6 @@ def run(**kwargs):
                       output=output,
                       skip_report=skip_report,
                       dbt_state_dir=dbt_state_dir,
-                      dbt_run_results=dbt_run_results,
                       dbt_resources=dbt_resources,
                       report_dir=kwargs.get('report_dir'))
     if ret in (0, EC_ERR_TEST_FAILED):
