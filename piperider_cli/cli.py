@@ -163,6 +163,8 @@ def diagnose(**kwargs):
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
 @click.option('--dbt-state', default=None, help='Directory of the the dbt state.')
 @click.option('--dbt-list', is_flag=True, help='Associate with dbt list format input.')
+@click.option('--dbt-run-results', is_flag=True, help='Associate with dbt run results.',
+              hidden=True)  # For backward compatibility
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
 @click.option('--project', default=None, type=click.STRING, help='Specify the project name to upload.')

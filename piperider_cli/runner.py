@@ -667,7 +667,6 @@ class Runner():
                 options = dict(
                     view_profile=configuration.include_views,
                     dbt_resources=dbt_resources,
-                    dbt_run_results=dbtutil.is_dbt_run_results_ready(dbt_state_dir),
                     tag=dbt_config.get('tag')
                 )
                 subjects, dbt_metadata_subjects = get_dbt_all_subjects(dbt_state_dir, options, filter_fn)
