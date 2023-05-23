@@ -32,6 +32,19 @@ export function SideBarTree({ items, singleOnly }: Props) {
     }
   };
 
+  const isChildrenChanged = (item: SidebarTreeItem) => {
+    for (const child of item?.items ?? []) {
+      if (child.changeStatus) {
+        return true;
+      }
+
+      if (isChildrenChanged(child)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const renderItem = (item: SidebarTreeItem) => {
     const { type, name, items } = item;
 
@@ -45,12 +58,22 @@ export function SideBarTree({ items, singleOnly }: Props) {
     const isExpandable = items && items.length > 0;
     const iconChevron = isExpanded ? FiChevronDown : FiChevronRight;
     let iconChangeStatus;
-    if (item.changeStatus === 'added') {
+    let changeStatus = item.changeStatus;
+    let isNoProfile = false;
+
+    if (changeStatus === 'added') {
       iconChangeStatus = VscDiffAdded;
-    } else if (item.changeStatus === 'changed') {
+    } else if (changeStatus === 'changed') {
       iconChangeStatus = VscDiffModified;
-    } else if (item.changeStatus === 'removed') {
+    } else if (changeStatus === 'removed') {
       iconChangeStatus = VscDiffRemoved;
+    }
+
+    if (!isExpanded && !changeStatus && isChildrenChanged(item)) {
+      // If the item is not expanded and has children that are changed, then
+      // we want to show the changed icon.
+      changeStatus = 'changed';
+      iconChangeStatus = VscDiffModified;
     }
 
     let icon = FiFolder;
@@ -61,6 +84,7 @@ export function SideBarTree({ items, singleOnly }: Props) {
       type === 'seed'
     ) {
       icon = FiGrid;
+      isNoProfile = (item.items ?? []).length === 0;
     } else if (type.startsWith('database')) {
       icon = FiDatabase;
     } else if (type.startsWith('schema')) {
@@ -88,7 +112,7 @@ export function SideBarTree({ items, singleOnly }: Props) {
           rounded="md"
           cursor="pointer"
           fontSize="sm"
-          color={isActive ? 'white' : 'inherit'}
+          color={isActive ? 'white' : isNoProfile ? 'gray' : 'inherit'}
           bg={isActive ? 'piperider.400' : 'inherit'}
           onClick={() => {
             onClick(item);
@@ -102,9 +126,7 @@ export function SideBarTree({ items, singleOnly }: Props) {
           />
           <ListIcon as={icon} mr={1} />
           <Text flex={1}>{name}</Text>
-          {!singleOnly && item.changeStatus && (
-            <ListIcon as={iconChangeStatus} />
-          )}
+          {!singleOnly && changeStatus && <ListIcon as={iconChangeStatus} />}
         </Flex>
         {isExpanded && items && items.length > 0 && (
           <List ml={4} spacing={1} my={1}>

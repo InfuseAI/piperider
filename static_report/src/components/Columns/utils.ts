@@ -18,7 +18,6 @@ import {
   formatIntervalMinMax,
   formatNumber,
 } from '../../utils/formatters';
-import { zeroAsFallbackHandler } from '../../utils/transformers';
 import { FlatStackedBarChartProps } from '../Charts/FlatStackedBarChart';
 import { MetricMetaKeys, MetricsInfoProps } from './ColumnMetrics';
 import {
@@ -32,6 +31,8 @@ import {
   POSITIVES,
   NO_VALUE,
 } from './constants';
+
+const zeroAsFallbackHandler = (v) => (v ? v : 0);
 
 /**
  * @param columnDatum

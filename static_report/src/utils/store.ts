@@ -7,10 +7,8 @@ import {
   ComparisonReportSchema,
   DbtNode,
   SaferSRSchema,
-  SaferTableSchema,
 } from '../types/index';
 import create from 'zustand';
-import { transformAsNestedBaseTargetRecord } from './transformers';
 import { formatReportTime } from './formatters';
 import { getAssertionStatusCountsFromList } from '../components/Tables';
 import {
@@ -107,51 +105,102 @@ const getReportTitle = (rawData: ComparableReport) => {
  * Currently Assertions is not added to metadata yet.
  */
 const getTableColumnsOnly = (rawData: ComparableReport) => {
-  const isComparison = Boolean(rawData.base && rawData.input);
+  const mergeKeys = (base: string[], target: string[]) => {
+    // Merge keys from base, target tables. Unlike default union, it preserves the order for column rename, added, removed.
 
-  const { __meta__: tablesMetadata, ...comparableTables } =
-    transformAsNestedBaseTargetRecord<{ [key: string]: DbtNode }, DbtNode>(
-      buildDbtNodes(rawData?.base),
-      buildDbtNodes(rawData?.input),
-      { metadata: true },
+    // return _.union(primary, secondary);
+
+    const results: string[] = [];
+    while (base.length > 0 && target.length > 0) {
+      if (base[0] === target[0]) {
+        results.push(base[0]);
+        base.shift();
+        target.shift();
+      } else if (target.includes(base[0])) {
+        const idx = target.indexOf(base[0]);
+        for (let i = 0; i < idx; i++) {
+          if (!results.includes(target[i])) {
+            results.push(target[i]);
+          }
+        }
+        results.push(base[0]);
+        base.shift();
+        target.splice(0, idx + 1);
+      } else {
+        results.push(base[0]);
+        base.shift();
+      }
+    }
+
+    base.forEach((key) => {
+      if (!results.includes(key)) {
+        results.push(key);
+      }
+    });
+
+    target.forEach((key) => {
+      if (!results.includes(key)) {
+        results.push(key);
+      }
+    });
+
+    return results;
+  };
+
+  const baseNodes = buildDbtNodes(rawData?.base) ?? {};
+  const targetNodes = buildDbtNodes(rawData?.input) ?? {};
+  const nodeKeys = mergeKeys(Object.keys(baseNodes), Object.keys(targetNodes));
+
+  return nodeKeys.map((nodeKey) => {
+    const base = baseNodes[nodeKey];
+    const target = targetNodes[nodeKey];
+    const baseColumns = base?.__table?.columns ?? {};
+    const targetColumns = target?.__table?.columns ?? {};
+    const keys = mergeKeys(
+      Object.keys(baseColumns),
+      Object.keys(targetColumns),
     );
+    let added = 0;
+    let deleted = 0;
+    let changed = 0;
 
-  const tableColumnsResult = Object.entries(comparableTables).map(
-    ([tableName, { base, target }]) => {
-      const { __meta__: columnsMetadata, ...comparableColumns } =
-        transformAsNestedBaseTargetRecord<
-          SaferTableSchema['columns'],
-          ColumnSchema
-        >(base?.__table?.columns, target?.__table?.columns, { metadata: true });
-      const compColEntries = Object.entries(comparableColumns).map(
-        ([colName, { base, target }]) => {
-          return [
-            colName,
-            { base, target },
-            {
-              mismatched: isComparison
-                ? base?.name !== target?.name ||
-                  base?.schema_type !== target?.schema_type
-                : false,
-            },
-          ] as CompColEntryItem;
-        },
-      );
+    const columns: CompColEntryItem[] = [];
+    keys.forEach((key) => {
+      const base = baseColumns[key];
+      const target = targetColumns[key];
+      let mismatched = false;
 
-      // table's columns are mirror
-      const entry: CompTableColEntryItem = [
-        tableName,
-        {
-          base: base ? { ...base, __columns: compColEntries } : undefined,
-          target: target ? { ...target, __columns: compColEntries } : undefined,
-        },
-        columnsMetadata,
-      ];
-      return entry;
-    },
-  );
+      if (!base) {
+        added += 1;
+        mismatched = true;
+      } else if (!target) {
+        deleted += 1;
+        mismatched = true;
+      } else if (
+        base.name !== target.name ||
+        base.schema_type !== target.schema_type
+      ) {
+        changed += 1;
+        mismatched = true;
+      }
 
-  return tableColumnsResult;
+      columns.push([key, { base, target }, { mismatched }]);
+    });
+
+    if (base) {
+      base.__columns = columns;
+    }
+
+    if (target) {
+      target.__columns = columns;
+    }
+
+    return [
+      nodeKey,
+      { base, target },
+      { added, deleted, changed },
+    ] as CompTableColEntryItem;
+  });
 };
 
 const getAssertionsOnly = (rawData: ComparableReport) => {

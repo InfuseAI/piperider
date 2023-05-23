@@ -26,12 +26,6 @@ export function CRTablesListPage() {
     isLegacy,
   } = useReportStore.getState();
 
-  let selected;
-  if (tableColsEntryId !== -1) {
-    const [, { base, target }] = tableColumnsOnly[tableColsEntryId];
-    selected = target ?? base;
-  }
-
   const tableColumnsSorted = _.sortBy(
     tableColumnsOnly,
     ([, { base, target }]) => {
@@ -39,6 +33,12 @@ export function CRTablesListPage() {
       return fallback?.__table?.name;
     },
   );
+
+  let selected;
+  if (tableColsEntryId !== -1) {
+    const [, { base, target }] = tableColumnsSorted[tableColsEntryId];
+    selected = target ?? base;
+  }
 
   return (
     <>

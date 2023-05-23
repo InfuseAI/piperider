@@ -124,6 +124,10 @@ export function buildColumnTree(
   itemsColumnComparison.forEach(([columnName, { base, target }]) => {
     const fallback = target || base;
 
+    if (base?.total === undefined && target?.total === undefined) {
+      return;
+    }
+
     let type = `column_${fallback?.type}` as any;
     let changeStatus;
 
@@ -287,9 +291,11 @@ export function buildModelOrSeedTree(
     let subtrees = _.values(tree);
     _.each(subtrees, function (subtree) {
       if (subtree.items) {
-        var flattened = recursiveFlattenItems(subtree.items);
-        var sorted = _.sortBy(flattened, 'name');
-        subtree.items = sorted;
+        let flattened = recursiveFlattenItems(subtree.items);
+        if (tree.type === 'folder') {
+          flattened = _.sortBy(flattened, 'name');
+        }
+        subtree.items = flattened;
       }
       res.push(subtree);
     });
