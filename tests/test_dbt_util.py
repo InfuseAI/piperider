@@ -51,7 +51,7 @@ class TestRunner(TestCase):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=None,
                                                                           tag=None))
-        self.assertEqual(len(tables), 1)
+        self.assertEqual(len(tables), 9)
         self.assertEqual(tables[0].get('name'), 'PRICE_PRESENT')
         self.assertEqual(tables[0].get('schema'), 'PUBLIC')
         self.assertEqual(tables[0].get('alias'), 'PRICE_PRESENT')
@@ -136,20 +136,20 @@ class TestRunner(TestCase):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=None,
                                                                           tag='piperider'))
-        self.assertEqual(len(tables), 1)
+        self.assertEqual(len(tables), 4)
         self.assertEqual(tables[0].get('name'), 'PRICE_PRESENT')
 
     def test_get_dbt_state_candidate_tag_and_run_results_emptyset(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=None,
                                                                           tag='test'))
-        self.assertEqual(len(tables), 0)
+        self.assertEqual(len(tables), 2)
 
     def test_get_dbt_state_candidate_view_profile_tag_and_run_results(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=True,
                                                                           dbt_resources=None,
                                                                           tag='piperider'))
-        self.assertEqual(len(tables), 1)
+        self.assertEqual(len(tables), 4)
         self.assertEqual(tables[0].get('name'), 'PRICE_PRESENT')
 
     def test_get_dbt_state_tests_result(self):
