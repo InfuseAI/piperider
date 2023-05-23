@@ -59,6 +59,7 @@ export function SideBarTree({ items, singleOnly }: Props) {
     const iconChevron = isExpanded ? FiChevronDown : FiChevronRight;
     let iconChangeStatus;
     let changeStatus = item.changeStatus;
+    let isNoProfile = false;
 
     if (changeStatus === 'added') {
       iconChangeStatus = VscDiffAdded;
@@ -83,6 +84,7 @@ export function SideBarTree({ items, singleOnly }: Props) {
       type === 'seed'
     ) {
       icon = FiGrid;
+      isNoProfile = (item.items ?? []).length === 0;
     } else if (type.startsWith('database')) {
       icon = FiDatabase;
     } else if (type.startsWith('schema')) {
@@ -110,7 +112,7 @@ export function SideBarTree({ items, singleOnly }: Props) {
           rounded="md"
           cursor="pointer"
           fontSize="sm"
-          color={isActive ? 'white' : 'inherit'}
+          color={isActive ? 'white' : isNoProfile ? 'gray' : 'inherit'}
           bg={isActive ? 'piperider.400' : 'inherit'}
           onClick={() => {
             onClick(item);
