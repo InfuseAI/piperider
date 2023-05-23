@@ -27,6 +27,7 @@ import SRColumnDetailPage from './SRColumnDetailPage';
 import SRTableDetailPage from './SRTableDetailPage';
 import { SRTablesListPage } from './SRTablesListPage';
 import { LineageGraph } from '../components/LineageGraph/LineageGraph';
+import { VisJsGraph } from '../components/LineageGraph/VisJsGraph';
 
 interface Props {
   data: SaferSRSchema;
@@ -87,6 +88,10 @@ export function SRPage({ data, sideNavTop = '0px' }: Props) {
 
           <Route path={'/graph'}>
             <LineageGraph />
+          </Route>
+
+          <Route path={'/vis'}>
+            <VisJsGraph />
           </Route>
 
           <Route path={SSR_ROUTE_PATH}>
