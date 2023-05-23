@@ -8,32 +8,48 @@ import { DbtNode, SaferSRSchema } from '../types/index';
 import _ from 'lodash';
 import { HOME_ROUTE_PATH } from './routes';
 
+export type ItemType =
+  | DbtManifestSchema['nodes'][string]['resource_type']
+  | DbtManifestSchema['sources'][string]['resource_type']
+  | DbtManifestSchema['metrics'][string]['resource_type']
+  | DbtManifestSchema['exposures'][string]['resource_type']
+  | 'overview'
+  | 'folder'
+  | 'database'
+  | 'schema'
+  | 'table'
+  | 'column_string'
+  | 'column_numeric'
+  | 'column_integer'
+  | 'column_datetime'
+  | 'column_boolean'
+  | 'column_other'
+  | 'metric_list'
+  | 'test_list'
+  | 'graph';
+
 export interface SidebarTreeItem {
   name: string;
-  type:
-    | 'overview'
-    | 'folder'
-    | 'model'
-    | 'metric'
-    | 'exposure'
-    | 'seed'
-    | 'source'
-    | 'analysis'
-    | 'database'
-    | 'schema'
-    | 'table'
-    | 'column_string'
-    | 'column_numeric'
-    | 'column_integer'
-    | 'column_datetime'
-    | 'column_boolean'
-    | 'column_other'
-    | 'metric_list'
-    | 'test_list';
+  type: ItemType;
   path?: string;
   expanded?: boolean;
   items?: SidebarTreeItem[];
   changeStatus?: 'changed' | 'added' | 'removed';
+}
+
+export interface LineageGraphItem {
+  name: string;
+  from: ('base' | 'target')[];
+  type: ItemType;
+  path?: string;
+  changeStatus?: 'changed' | 'added' | 'removed';
+  dependsOn: {
+    [key: string]: ('base' | 'target')[];
+  };
+}
+
+export interface LineageGraphData {
+  [key: string]: LineageGraphItem;
 }
 
 export const buildDbtNodes = (run?: SaferSRSchema) => {
@@ -395,10 +411,16 @@ export function buildProjectTree(
     path: `/assertions`,
   };
 
+  const graph: SidebarTreeItem = {
+    name: 'Lineage Graph',
+    type: 'graph',
+    path: `/graph`,
+  };
+
   if (isLegacy) {
     return [overview, table, metric, assertion];
   } else {
-    return [overview, source, seed, model, metric, assertion];
+    return [overview, source, seed, model, metric, assertion, graph];
   }
 }
 
@@ -496,4 +518,48 @@ export function buildDatabaseTree(
   });
 
   return items;
+}
+
+export function buildLineageGraph(
+  itemsNodeComparison: CompTableColEntryItem[],
+): LineageGraphData {
+  const data: LineageGraphData = {};
+
+  itemsNodeComparison.forEach(([key, { base, target }]) => {
+    const fallback = (target ?? base) as DbtNode;
+    const dependsOn = {};
+    const from: LineageGraphItem['from'] = [];
+    const item: LineageGraphItem = {
+      name: fallback?.name || '',
+      type: fallback!.resource_type!,
+      from,
+      dependsOn,
+    };
+
+    if (fallback.resource_type === 'table') {
+      return;
+    }
+
+    if (base) {
+      from.push('base');
+      (base.depends_on?.nodes || []).forEach((node) => {
+        dependsOn[node] = ['base'];
+      });
+    }
+
+    if (target) {
+      from.push('target');
+      (target.depends_on?.nodes || []).forEach((node) => {
+        if (dependsOn[node]) {
+          dependsOn[node].push('target');
+        } else {
+          dependsOn[node] = ['target'];
+        }
+      });
+    }
+
+    data[key] = item;
+  });
+
+  return data;
 }

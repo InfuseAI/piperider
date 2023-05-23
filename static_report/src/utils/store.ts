@@ -12,9 +12,11 @@ import create from 'zustand';
 import { formatReportTime } from './formatters';
 import { getAssertionStatusCountsFromList } from '../components/Tables';
 import {
+  LineageGraphData,
   SidebarTreeItem,
   buildDatabaseTree,
   buildDbtNodes,
+  buildLineageGraph,
   buildProjectTree,
 } from './dbt';
 
@@ -54,6 +56,10 @@ export interface ReportState {
    */
   projectTree?: SidebarTreeItem[];
   databaseTree?: SidebarTreeItem[];
+  /**
+   * Lineage graph
+   */
+  lineageGraph?: LineageGraphData;
 }
 
 interface ReportSetters {
@@ -307,6 +313,8 @@ export const useReportStore = create<ReportState & ReportSetters>()(
         /* Sidebar Trees */
         projectTree: buildProjectTree(tableColumnsOnly, isLegacy),
         databaseTree: buildDatabaseTree(tableColumnsOnly),
+        /* Lineage Graph */
+        lineageGraph: buildLineageGraph(tableColumnsOnly),
       };
 
       // final setter
