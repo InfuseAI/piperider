@@ -15,7 +15,6 @@ class TestRunner(TestCase):
     def test_get_dbt_state_candidate(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=None,
-                                                                          dbt_run_results=None,
                                                                           tag=None))
 
         self.assertEqual(len(tables), 9)
@@ -34,7 +33,6 @@ class TestRunner(TestCase):
     def test_get_dbt_state_candidate_view_profile(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=True,
                                                                           dbt_resources=None,
-                                                                          dbt_run_results=None,
                                                                           tag=None))
 
         self.assertEqual(len(tables), 10)
@@ -52,9 +50,8 @@ class TestRunner(TestCase):
     def test_get_dbt_state_candidate_run_results(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=None,
-                                                                          dbt_run_results=True,
                                                                           tag=None))
-        self.assertEqual(len(tables), 1)
+        self.assertEqual(len(tables), 9)
         self.assertEqual(tables[0].get('name'), 'PRICE_PRESENT')
         self.assertEqual(tables[0].get('schema'), 'PUBLIC')
         self.assertEqual(tables[0].get('alias'), 'PRICE_PRESENT')
@@ -65,7 +62,6 @@ class TestRunner(TestCase):
         resources = dict(models=models, metrics=[])
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=resources,
-                                                                          dbt_run_results=None,
                                                                           tag=None))
         self.assertEqual(len(tables), 2)
         self.assertEqual(tables[0].get('name'), 'session')
@@ -77,7 +73,6 @@ class TestRunner(TestCase):
         resources = dict(models=models, metrics=[])
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=resources,
-                                                                          dbt_run_results=None,
                                                                           tag=None))
         self.assertEqual(len(tables), 2)
 
@@ -91,7 +86,6 @@ class TestRunner(TestCase):
         resources = dict(models=[], metrics=metrics)
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=resources,
-                                                                          dbt_run_results=None,
                                                                           tag=None))
         self.assertEqual(len(tables), 0)
 
@@ -100,14 +94,12 @@ class TestRunner(TestCase):
         resources = dict(models=models, metrics=[])
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=resources,
-                                                                          dbt_run_results=None,
                                                                           tag=None))
         self.assertEqual(len(tables), 0)
 
         resources = dict(models=[], metrics=[])
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=resources,
-                                                                          dbt_run_results=None,
                                                                           tag=None))
         self.assertEqual(len(tables), 0)
 
@@ -118,7 +110,6 @@ class TestRunner(TestCase):
         resources = dict(models=models, metrics=[])
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=resources,
-                                                                          dbt_run_results=None,
                                                                           tag=None))
         self.assertEqual(len(tables), 3)
         self.assertEqual(tables[0].get('name'), 'stg_event')
@@ -128,7 +119,6 @@ class TestRunner(TestCase):
     def test_get_dbt_state_candidate_tag(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=None,
-                                                                          dbt_run_results=None,
                                                                           tag='test'))
         self.assertEqual(len(tables), 2)
         self.assertEqual(tables[0].get('name'), 'stg_event')
@@ -137,7 +127,6 @@ class TestRunner(TestCase):
     def test_get_dbt_state_candidate_tag_and_view(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=True,
                                                                           dbt_resources=None,
-                                                                          dbt_run_results=None,
                                                                           tag='test'))
         self.assertEqual(len(tables), 2)
         self.assertEqual(tables[0].get('name'), 'stg_event')
@@ -146,24 +135,21 @@ class TestRunner(TestCase):
     def test_get_dbt_state_candidate_tag_and_run_results(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=None,
-                                                                          dbt_run_results=True,
                                                                           tag='piperider'))
-        self.assertEqual(len(tables), 1)
+        self.assertEqual(len(tables), 4)
         self.assertEqual(tables[0].get('name'), 'PRICE_PRESENT')
 
     def test_get_dbt_state_candidate_tag_and_run_results_emptyset(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=None,
-                                                                          dbt_run_results=True,
                                                                           tag='test'))
-        self.assertEqual(len(tables), 0)
+        self.assertEqual(len(tables), 2)
 
     def test_get_dbt_state_candidate_view_profile_tag_and_run_results(self):
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=True,
                                                                           dbt_resources=None,
-                                                                          dbt_run_results=True,
                                                                           tag='piperider'))
-        self.assertEqual(len(tables), 1)
+        self.assertEqual(len(tables), 4)
         self.assertEqual(tables[0].get('name'), 'PRICE_PRESENT')
 
     def test_get_dbt_state_tests_result(self):

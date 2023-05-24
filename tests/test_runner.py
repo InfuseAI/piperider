@@ -1,8 +1,8 @@
 import os
 from unittest import TestCase
 
-from piperider_cli.runner import _filter_subject, get_dbt_profile_subjects
 from piperider_cli.profiler import ProfileSubject
+from piperider_cli.runner import _filter_subject, get_dbt_profile_subjects
 from piperider_cli.statistics import Statistics
 
 
@@ -27,7 +27,6 @@ class TestRunner(TestCase):
         options = dict(
             view_profile=False,
             dbt_resources=None,
-            dbt_run_results=None,
             tag='test'
         )
 
@@ -50,7 +49,6 @@ class TestRunner(TestCase):
                 models=['infusetude.amplitude.project'],
                 metrics=[]
             ),
-            dbt_run_results=None,
             tag=None
         )
 
@@ -69,7 +67,6 @@ class TestRunner(TestCase):
         options = dict(
             view_profile=None,
             dbt_resources=None,
-            dbt_run_results=None,
             tag=None
         )
 
@@ -89,7 +86,6 @@ class TestRunner(TestCase):
         options = dict(
             view_profile=None,
             dbt_resources=None,
-            dbt_run_results=None,
             tag=None
         )
 
@@ -109,7 +105,6 @@ class TestRunner(TestCase):
         options = dict(
             view_profile=True,
             dbt_resources=None,
-            dbt_run_results=None,
             tag=None
         )
 
@@ -128,7 +123,6 @@ class TestRunner(TestCase):
         options = dict(
             view_profile=False,
             dbt_resources=None,
-            dbt_run_results=None,
             tag=None
         )
 

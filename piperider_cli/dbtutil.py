@@ -161,20 +161,11 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict, *, select_for_met
         material_whitelist.append('view')
 
     tag = options.get('tag')
-    dbt_run_results = options.get('dbt_run_results')
     dbt_resources = options.get('dbt_resources')
 
     manifest = _get_state_manifest(dbt_state_dir)
     nodes = manifest.get('nodes')
     sources = manifest.get('sources')
-
-    run_results_ids = []
-    if dbt_run_results:
-        run_results = _get_state_run_results(dbt_state_dir)
-        for result in run_results.get('results'):
-            if result.get('status') != 'success':
-                continue
-            run_results_ids.append(result.get('unique_id'))
 
     def profiling_chosen_fn(key, node):
         statistics = Statistics()
@@ -184,9 +175,6 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict, *, select_for_met
                 statistics.add_field_one('filter')
             return chosen
         else:
-            if dbt_run_results and key not in run_results_ids:
-                statistics.add_field_one('norun')
-                return False
             if tag:
                 chosen = tag in node.get('tags', [])
                 if not chosen:
@@ -222,7 +210,7 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict, *, select_for_met
     return candidate
 
 
-def get_dbt_state_tests_result(dbt_state_dir: str):
+def get_dbt_state_tests_result(dbt_state_dir: str, table_filter=None):
     output = []
     unique_tests = {}
 
@@ -236,6 +224,10 @@ def get_dbt_state_tests_result(dbt_state_dir: str):
 
         node = nodes.get(unique_id)
         if node.get('resource_type') != 'test':
+            continue
+
+        # The test is just compiled, but not executed
+        if result.get('status') == 'success':
             continue
 
         unique_tests[unique_id] = dict(
@@ -260,6 +252,14 @@ def get_dbt_state_tests_result(dbt_state_dir: str):
 
         if table is None:
             continue
+
+        if table_filter is not None:
+            if len(table.split('.')) == 2:
+                _, table_name = table.split('.')
+            else:
+                table_name = table
+            if table_name != table_filter:
+                continue
 
         output.append(dict(
             id=unique_id,
