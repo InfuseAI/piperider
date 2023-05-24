@@ -238,20 +238,16 @@ class ColumnChangeView:
         if self.get_type() != target_view.get_type():
             reasons.append('Type Changed.')
 
-        if self.data.get('duplicates') != target_view.data.get('duplicates'):
-            delta = target_view.data.get('duplicates_p') - self.data.get('duplicates_p')
-            annotation = f"{delta:.1%}" + '↑' if delta > 0 else f"{delta:.1%}" + '↓'
-            reasons.append(f"{target_view.data.get('duplicates_p'):.1%} Duplicates ({annotation}).")
+        def add_reason_for(metric_name: str, display_label: str):
+            percentage = f"{metric_name}_p"
+            if self.data.get(metric_name) != target_view.data.get(metric_name):
+                delta = target_view.data.get(percentage) - self.data.get(percentage)
+                annotation = f"{delta:.1%}" + '↑' if delta > 0 else f"{delta:.1%}" + '↓'
+                reasons.append(f"{target_view.data.get(percentage):.1%} {display_label} ({annotation}).")
 
-        if self.data.get('nulls') != target_view.data.get('nulls'):
-            delta = target_view.data.get('nulls_p') - self.data.get('nulls_p')
-            annotation = f"{delta:.1%}" + '↑' if delta > 0 else f"{delta:.1%}" + '↓'
-            reasons.append(f"{target_view.data.get('nulls_p'):.1%} Missing ({annotation}).")
-
-        if self.data.get('invalids') != target_view.data.get('invalids'):
-            delta = target_view.data.get('invalids_p') - self.data.get('invalids_p')
-            annotation = f"{delta:.1%}" + '↑' if delta > 0 else f"{delta:.1%}" + '↓'
-            reasons.append(f"{target_view.data.get('invalids_p'):.1%} Invalid ({annotation}).")
+        add_reason_for("duplicates", "Duplicates")
+        add_reason_for("nulls", "Missing")
+        add_reason_for("invalids", "Invalid")
 
         return " ".join(reasons)
 
