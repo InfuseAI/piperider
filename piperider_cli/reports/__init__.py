@@ -181,21 +181,28 @@ class ColumnChangeView:
 
     @property
     def duplicates_p(self):
-        if self.data:
-            return f"{self.data.get('duplicates_p'):.1%}"
-        return "-"
+        if not self.data:
+            return "-"
+        if self.data.get('duplicates_p') is None:
+            return "-"
+        return f"{self.data.get('duplicates_p'):.1%}"
 
     @property
     def nulls_p(self):
-        if self.data:
-            return f"{self.data.get('nulls_p'):.1%}"
-        return "-"
+        if not self.data:
+            return "-"
+        if self.data.get('nulls_p') is None:
+            return "-"
+
+        return f"{self.data.get('nulls_p'):.1%}"
 
     @property
     def invalids_p(self):
-        if self.data:
-            return f"{self.data.get('invalids_p'):.1%}"
-        return "-"
+        if not self.data:
+            return "-"
+        if self.data.get('invalids_p') is None:
+            return "-"
+        return f"{self.data.get('invalids_p'):.1%}"
 
     def get_type(self, compared_type: str = None):
         if self.data is None:
