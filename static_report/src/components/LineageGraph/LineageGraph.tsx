@@ -3,7 +3,6 @@ import { Comparable } from '../../types';
 import CytoscapeComponent from 'react-cytoscapejs';
 
 import Cytoscape from 'cytoscape';
-import COSEBilkent from 'cytoscape-cose-bilkent';
 import dagre from 'cytoscape-dagre';
 
 Cytoscape.use(dagre);

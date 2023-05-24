@@ -1,8 +1,6 @@
-import { any } from 'zod';
 import { Comparable } from '../../types';
 import { useReportStore } from '../../utils/store';
 import Graph from 'react-graph-vis';
-import { tr } from 'date-fns/locale';
 
 export function VisJsGraph({ singleOnly }: Comparable) {
   const { lineageGraph = {} } = useReportStore.getState();

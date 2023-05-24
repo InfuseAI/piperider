@@ -413,8 +413,11 @@ export function buildProjectTree(
 
   const graph: SidebarTreeItem = {
     name: 'Lineage Graph',
-    type: 'graph',
-    path: `/graph`,
+    type: 'folder',
+    items: [
+      { name: 'Cytoscape.js', type: 'graph', path: '/graph' },
+      { name: 'Vis.js', type: 'graph', path: '/vis' },
+    ],
   };
 
   if (isLegacy) {

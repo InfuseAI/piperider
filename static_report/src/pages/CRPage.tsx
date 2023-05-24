@@ -27,6 +27,7 @@ import CRColumnDetailPage from './CRColumnDetailPage';
 import CRTableDetailPage from './CRTableDetailPage';
 import { CRTablesListPage } from './CRTableListPage';
 import { LineageGraph } from '../components/LineageGraph/LineageGraph';
+import { VisJsGraph } from '../components/LineageGraph/VisJsGraph';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -92,6 +93,10 @@ export function CRPage({ data, sideNavTop = '0px' }: Props) {
 
           <Route path={'/graph'}>
             <LineageGraph />
+          </Route>
+
+          <Route path={'/vis'}>
+            <VisJsGraph />
           </Route>
 
           <Route path={SSR_ROUTE_PATH}>
