@@ -821,8 +821,11 @@ class CompareReport(object):
         data_id = comparison_data.id()
         summary_data = summary_data if summary_data else comparison_data.to_summary_markdown()
 
-        # TODO we are working in progress (sc-31325)
-        comparison_data.to_summary_markdown_ng()
+        try:
+            # TODO we are working in progress (sc-31325)
+            comparison_data.to_summary_markdown_ng()
+        except BaseException:
+            pass
 
         default_report_directory = prepare_default_output_path(filesystem, data_id)
         output_report(default_report_directory)
