@@ -383,11 +383,11 @@ class ChangedColumnsTableElement(_Element):
         <th title="Field #5">Change</th>
         </tr></thead>
         <tbody>
-        
+
         {_build_list(children)}
-        
+
         </tbody></table>
-        
+
         * <em>Hover over <a href="#hover-for-info" title="On hover, change show additional values (like base and target counts and percentages)."><kbd>🔺changes</kbd></a> for more information.</em>
         """
 
@@ -686,15 +686,11 @@ class ModelElement(_Element):
             schema_type_b = self._get_metric_from_report(b, 'schema_type', None)
             schema_type_t = self._get_metric_from_report(t, 'schema_type', None)
 
-            annotation = None
             if b is None:
-                annotation = '+'
                 table_modified = True
             elif t is None:
-                annotation = '-'
                 table_modified = True
             elif schema_type_b != schema_type_t:
-                annotation = '!'
                 table_modified = True
 
         state = None
