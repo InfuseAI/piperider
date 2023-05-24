@@ -261,66 +261,6 @@ class ComparisonData(object):
                        join(self._base.get('tables'), self._target.get('tables')))
         return doc.build()
 
-    def get_model_changes(self, model_list: List[str]) -> set:
-        model_changes = {}
-        joined = join(self._base.get('tables'), self._target.get('tables'))
-
-        def as_table_names(selector_list: List[str]) -> Iterable[str]:
-            # selector from dbt will like xxx.yyy.zzz
-            # we only care the last part: zzz
-            for x in selector_list:
-                yield x.split(".")[-1]
-
-        model_changes = []
-        for table_name in as_table_names(model_list):
-            joined_table = joined[table_name]
-            columns_b = joined_table.get('base').get('columns') if joined_table.get('base') else None
-            columns_t = joined_table.get('target').get('columns') if joined_table.get('target') else None
-
-            state, result = self._render_table_summary_markdown(table_name, columns_b, columns_t)
-            if state is not None:
-                model_changes.append(table_name)
-
-        return set(model_changes)
-
-    def filter_tables_by_model_selectors(self, model_list: List[str]):
-
-        def as_table_names(selector_list: List[str]) -> Iterable[str]:
-            # selector from dbt will like xxx.yyy.zzz
-            # we only care the last part: zzz
-            for x in selector_list:
-                yield x.split(".")[-1]
-
-        # Per-table Comparison
-        base = self._base.get('tables')
-        target = self._target.get('tables')
-
-        states = {}
-        per_table_out = io.StringIO()
-        joined = join(base, target)
-        for table_name in as_table_names(model_list):
-            joined_table = joined[table_name]
-
-            columns_b = joined_table.get('base').get('columns') if joined_table.get('base') else None
-            columns_t = joined_table.get('target').get('columns') if joined_table.get('target') else None
-
-            state, result = self._render_table_summary_markdown(table_name, columns_b, columns_t)
-            if state == self.STATE_ADD:
-                if states.get('added') is None:
-                    states['added'] = 0
-                states['added'] += 1
-            elif state == self.STATE_DEL:
-                if states.get('deleted') is None:
-                    states['deleted'] = 0
-                states['deleted'] += 1
-            elif state == self.STATE_MOD:
-                if states.get('schema changed') is None:
-                    states['schema changed'] = 0
-                states['schema changed'] += 1
-            per_table_out.write(result)
-
-        return per_table_out.getvalue()
-
     @staticmethod
     def _value_with_annotation(key, annotation=None):
         annotation_str = f" ({annotation})" if annotation else ''
