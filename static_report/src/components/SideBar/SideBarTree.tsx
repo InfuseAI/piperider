@@ -2,7 +2,7 @@ import { SidebarTreeItem } from '../../utils/dbt';
 import React, { useState } from 'react';
 import { List, ListItem, ListIcon, Text, Flex } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
-import { FaChartBar, FaFile } from 'react-icons/fa';
+import { FaChartBar, FaFile, FaHome } from 'react-icons/fa';
 import { getIconForColumnType } from '..';
 import { FiDatabase, FiFolder, FiGrid } from 'react-icons/fi';
 import { FiChevronDown, FiChevronRight, FiCheckCircle } from 'react-icons/fi';
@@ -102,7 +102,10 @@ export function SideBarTree({ items, singleOnly }: Props) {
       icon = FiCheckCircle;
     } else if (type === 'exposure') {
       icon = FaFile;
+    } else if (type === 'overview') {
+      icon = FaHome;
     }
+
     const isActive = item.path === location;
 
     return (
