@@ -243,7 +243,9 @@ class ColumnChangeView:
             if self.data.get(metric_name) != target_view.data.get(metric_name):
                 delta = target_view.data.get(percentage) - self.data.get(percentage)
                 annotation = f"{delta:.1%}" + '↑' if delta > 0 else f"{delta:.1%}" + '↓'
-                reasons.append(f"{target_view.data.get(percentage):.1%} {display_label} ({annotation}).")
+                annotation = f"({annotation})".replace('%', '\%')
+                annotation = r'$\color{orange}{\text{ %s }}$' % annotation
+                reasons.append(f"{target_view.data.get(percentage):.1%} {display_label} {annotation}.")
 
         add_reason_for("duplicates", "Duplicates")
         add_reason_for("nulls", "Missing")
