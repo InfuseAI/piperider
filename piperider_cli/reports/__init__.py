@@ -333,9 +333,11 @@ class TotalColumnsTableEntryElement(_Element):
         if target_type is None:
             target_type = f"{self.base_view.get_type()}"
 
+        change_status = ColumnChangeView.create_change_status(self.base_view, self.target_view)
+
         result = f"""
         <tr>
-        <td>icon</td>
+        <td>{change_status.icon}</td>
         <td>{self.column_name}</td>
         <td>{target_type}</td>
         <td>{self.base_view.duplicates_p}</td>
