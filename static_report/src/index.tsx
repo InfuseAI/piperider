@@ -3,6 +3,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import 'inter-ui/inter-latin.css';
+import 'beautiful-react-diagrams/styles.css';
 import theme from './utils/theme';
 import reportWebVitals from './utils/reportWebVitals';
 

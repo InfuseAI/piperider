@@ -417,6 +417,11 @@ export function buildProjectTree(
     items: [
       { name: 'Cytoscape.js', type: 'graph', path: '/graph' },
       { name: 'Vis.js', type: 'graph', path: '/vis' },
+      {
+        name: 'Beautiful React Diagrams',
+        type: 'graph',
+        path: '/react-diagrams',
+      },
     ],
   };
 

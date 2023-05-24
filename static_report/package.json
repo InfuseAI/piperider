@@ -139,6 +139,7 @@
     "trailingComma": "all"
   },
   "dependencies": {
+    "beautiful-react-diagrams": "^0.5.1",
     "react-graph-vis": "^1.0.7",
     "vis-network": "^9.1.6"
   }
