@@ -13,8 +13,6 @@ from rich.console import Console
 import piperider_cli.hack.inquirer as inquirer_hack
 from piperider_cli import datetime_to_str, str_to_datetime, clone_directory, \
     raise_exception_when_directory_not_writable, open_report_in_browser
-from piperider_cli.comparsion_summary import AlteredModels, DownstreamModels, DbtMetrics, Fraction, ComparisonSummary
-from piperider_cli.dbt.list_runner import DbtFunctions
 from piperider_cli.dbt.list_task import compare_models_between_manifests, load_manifest
 from piperider_cli.filesystem import FileSystem
 from piperider_cli.generate_report import setup_report_variables
@@ -241,61 +239,7 @@ class ComparisonData(object):
 
         return out.getvalue()
 
-    def to_summary_markdown2(self):
-        # verify the report version compatibility
-        base_manifest_dict = self._base.get('dbt', {}).get('manifest')
-        target_manifest_dict = self._target.get('dbt', {}).get('manifest')
-
-        # TODO it'd be better to have a filename
-        if not base_manifest_dict:
-            raise Exception(f'The version is too old to generate summary for report[{self._base.get("id")}]')
-        if not target_manifest_dict:
-            raise Exception(f'The version is too old to generate summary for report[{self._target.get("id")}]')
-
-        base_manifest = load_manifest(base_manifest_dict)
-        target_manifest = load_manifest(target_manifest_dict)
-
-        with_downstream = compare_models_between_manifests(base_manifest, target_manifest, True)
-        altered_models = compare_models_between_manifests(base_manifest, target_manifest)
-
-        """
-        join it first
-        """
-        model_changes = self.get_model_changes(altered_models)
-        downstream_model_changes = self.get_model_changes(list(set(with_downstream) - set(altered_models)))
-
-        # TODO value changes are coming from profiled data, we will do it later
-        altered = AlteredModels(Fraction(n=len(model_changes), d=len(altered_models)), Fraction(n=2, d=6))
-        downstream = DownstreamModels(
-            Fraction(n=len(downstream_model_changes), d=abs(len(with_downstream) - len(altered_models))),
-            Fraction(n=1, d=24))
-
-        # TODO it denpends on profiled data, will do it later
-        dbt_metrics = DbtMetrics(Fraction(n=6, d=23))
-        doc = ComparisonSummary(altered, downstream, dbt_metrics)
-
-        # doc
-        # doc = ComparisonSummary.from_data(joined_tables, altered_models, with_downstream)
-
-        result = self.filter_tables_by_model_selectors(list(model_changes))
-        print(result)
-
-        # TODO we should check all kinds of cases
-        """
-        base        target
-        A -> B      edit A -> remove B
-
-        base -> target
-        modified: A
-        modified+: A, B?
-
-        target -> base
-        modified: A
-        modified+: A, B?
-        """
-        return doc.build()
-
-    def to_summary_markdown3(self):
+    def to_summary_markdown_ng(self):
         # verify the report version compatibility
         base_manifest_dict = self._base.get('dbt', {}).get('manifest')
         target_manifest_dict = self._target.get('dbt', {}).get('manifest')
