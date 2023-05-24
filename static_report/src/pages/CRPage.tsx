@@ -28,6 +28,8 @@ import CRTableDetailPage from './CRTableDetailPage';
 import { CRTablesListPage } from './CRTableListPage';
 import { LineageGraph } from '../components/LineageGraph/LineageGraph';
 import { VisJsGraph } from '../components/LineageGraph/VisJsGraph';
+import { ReactFlowGraph } from '../components/LineageGraph/ReactFlowGraph';
+import { BeautifulReactDiagramsGraph } from '../components/LineageGraph/BeatuifulReactDiagramGraph';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -91,12 +93,20 @@ export function CRPage({ data, sideNavTop = '0px' }: Props) {
             <CRBMPage />
           </Route>
 
-          <Route path={'/graph'}>
+          <Route path={'/graph/cytoscape'}>
             <LineageGraph />
           </Route>
 
-          <Route path={'/vis'}>
+          <Route path={'/graph/reactflow'}>
+            <ReactFlowGraph />
+          </Route>
+
+          <Route path={'/graph/vis'}>
             <VisJsGraph />
+          </Route>
+
+          <Route path={'/graph/react-diagrams'}>
+            <BeautifulReactDiagramsGraph />
           </Route>
 
           <Route path={SSR_ROUTE_PATH}>

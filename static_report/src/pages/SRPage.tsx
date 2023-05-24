@@ -29,6 +29,7 @@ import { SRTablesListPage } from './SRTablesListPage';
 import { LineageGraph } from '../components/LineageGraph/LineageGraph';
 import { VisJsGraph } from '../components/LineageGraph/VisJsGraph';
 import { BeautifulReactDiagramsGraph } from '../components/LineageGraph/BeatuifulReactDiagramGraph';
+import { ReactFlowGraph } from '../components/LineageGraph/ReactFlowGraph';
 
 interface Props {
   data: SaferSRSchema;
@@ -87,15 +88,19 @@ export function SRPage({ data, sideNavTop = '0px' }: Props) {
             <SRBMPage />
           </Route>
 
-          <Route path={'/graph'}>
+          <Route path={'/graph/cytoscape'}>
             <LineageGraph />
           </Route>
 
-          <Route path={'/vis'}>
+          <Route path={'/graph/reactflow'}>
+            <ReactFlowGraph />
+          </Route>
+
+          <Route path={'/graph/vis'}>
             <VisJsGraph />
           </Route>
 
-          <Route path={'/react-diagrams'}>
+          <Route path={'/graph/react-diagrams'}>
             <BeautifulReactDiagramsGraph />
           </Route>
 

@@ -140,7 +140,9 @@
   },
   "dependencies": {
     "beautiful-react-diagrams": "^0.5.1",
+    "dagre": "^0.8.5",
     "react-graph-vis": "^1.0.7",
+    "reactflow": "^11.7.2",
     "vis-network": "^9.1.6"
   }
 }

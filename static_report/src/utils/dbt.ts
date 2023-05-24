@@ -415,13 +415,14 @@ export function buildProjectTree(
     name: 'Lineage Graph',
     type: 'folder',
     items: [
-      { name: 'Cytoscape.js', type: 'graph', path: '/graph' },
-      { name: 'Vis.js', type: 'graph', path: '/vis' },
+      { name: 'Cytoscape.js', type: 'graph', path: '/graph/cytoscape' },
+      { name: 'Vis.js', type: 'graph', path: '/graph/vis' },
       {
         name: 'Beautiful React Diagrams',
         type: 'graph',
-        path: '/react-diagrams',
+        path: '/graph/react-diagrams',
       },
+      { name: 'React flow', type: 'graph', path: '/graph/reactflow' },
     ],
   };
 
@@ -537,12 +538,6 @@ export function buildLineageGraph(
     const fallback = (target ?? base) as DbtNode;
     const dependsOn = {};
     const from: LineageGraphItem['from'] = [];
-    const item: LineageGraphItem = {
-      name: fallback?.name || '',
-      type: fallback!.resource_type!,
-      from,
-      dependsOn,
-    };
 
     if (fallback.resource_type === 'table') {
       return;
@@ -566,7 +561,25 @@ export function buildLineageGraph(
       });
     }
 
-    data[key] = item;
+    const path = `/${fallback?.resource_type}s/${fallback?.unique_id}`;
+    const [, schemaChanged] = buildColumnTree(fallback!.__columns || [], path);
+    let changeStatus: SidebarTreeItem['changeStatus'];
+    if (!base) {
+      changeStatus = 'added';
+    } else if (!target) {
+      changeStatus = 'removed';
+    } else if (schemaChanged) {
+      changeStatus = 'changed';
+    }
+
+    data[key] = {
+      name: fallback?.name || '',
+      type: fallback!.resource_type!,
+      from,
+      path,
+      changeStatus,
+      dependsOn,
+    };
   });
 
   return data;
