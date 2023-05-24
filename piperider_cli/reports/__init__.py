@@ -1,4 +1,5 @@
 import abc
+from dataclasses import dataclass
 from typing import Dict, Iterable, List
 
 from dbt.contracts.graph.manifest import WritableManifest
@@ -153,6 +154,22 @@ class _Element(metaclass=abc.ABCMeta):
         return result
 
 
+@dataclass
+class ChangeStatus:
+    change_type: str
+    base_view: "ColumnChangeView"
+    target_view: "ColumnChangeView"
+    icon: str
+
+    def is_added_or_removed(self):
+        return self.change_type in ['Added.', 'Removed.']
+
+    def display(self):
+        if self.target_view is not None:
+            return self.target_view
+        return self.base_view
+
+
 class ColumnChangeView:
 
     def __init__(self, data: Dict):
@@ -238,6 +255,21 @@ class ColumnChangeView:
 
         return " ".join(reasons)
 
+    @classmethod
+    def create_change_status(cls, base_view: "ColumnChangeView", target_view: "ColumnChangeView") -> ChangeStatus:
+        if base_view.data is None and target_view.data is not None:
+            return ChangeStatus(change_type='Added.', base_view=base_view, target_view=target_view,
+                                icon=column_change_diff_plus)
+        if base_view.data is not None and target_view.data is None:
+            return ChangeStatus(change_type='Removed.', base_view=base_view, target_view=target_view,
+                                icon=column_change_diff_minus)
+        if base_view == target_view:
+            return ChangeStatus(change_type='No changes.', base_view=base_view, target_view=target_view,
+                                icon='')
+        else:
+            return ChangeStatus(change_type='Edited.', base_view=base_view, target_view=target_view,
+                                icon=column_change_diff_explicit)
+
 
 class ChangedColumnsTableEntryElement(_Element):
 
@@ -252,41 +284,19 @@ class ChangedColumnsTableEntryElement(_Element):
         self.changed = self.base_view != self.target_view
 
     def build(self):
-        """
-        <tr>
-        <td><img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-explicit%402x.png" width="18px"></td>
-        <td>delivery_date_est</td>
-        <td>varchar</td>
-        <td>date <a href="#hover-for-info" title="TODO..."><kbd>changed</kbd></a></td>
-        <td>Type Changed. 64% Duplicates <a href="#hover-for-info" title="TODO..."><kbd>🔺36%</kbd></a>. 3 Fails <a href="#hover-for-info" title="TODO..."><kbd>🔻2</kbd></a>.</td>
-        </tr>
-        """
-        # return f"{self.column_name}"
-
         # Check added or removed
         # added -> base is null and target is not null
         # removed -> base is not null and target is null
-
         # Edited -> types, duplicate, invalids, missing(nulls)
-
-        change_type = 'no-changes'
-
-        added_or_removed_display = None
-        if self.base_column_data is None and self.target_column_data is not None:
-            change_type = 'Added.'
-            added_or_removed_display = self.target_column_data
-        if self.base_column_data is not None and self.target_column_data is None:
-            change_type = 'Removed.'
-            added_or_removed_display = self.base_column_data
-
-        if added_or_removed_display:
+        change_status = ColumnChangeView.create_change_status(self.base_view, self.target_view)
+        if change_status.is_added_or_removed():
             result = f"""
                 <tr>
-                <td>{column_change_diff_plus if change_type == 'Added.' else column_change_diff_minus}</td>
+                <td>{change_status.icon}</td>
                 <td>{self.column_name}</td>
-                <td>{added_or_removed_display.get('type')}</td>
-                <td>{added_or_removed_display.get('type')}</td>
-                <td>{change_type}</td>
+                <td>{change_status.display().get_type()}</td>
+                <td>{change_status.display().get_type()}</td>
+                <td>{change_status.change_type}</td>
                 </tr>
                 """
             return self.add_indent(result, 8)
