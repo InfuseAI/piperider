@@ -356,12 +356,8 @@ class JoinedTables:
     def __init__(self, joined_tables: Dict):
         self.joined_tables = joined_tables
 
-    def columns_iterator(self, table_name) -> Iterable[ChangedColumnsTableEntryElement]:
-        table = self.joined_tables[table_name]
-        b = table.get('base', {}).get('columns')
-        t = table.get('target', {}).get('columns')
-
-        all_column_keys = sorted(set(list(b.keys()) + list(t.keys())))
+    def columns_changed_iterator(self, table_name) -> Iterable[ChangedColumnsTableEntryElement]:
+        all_column_keys, b, t = self.create_columns_and_their_metrics(table_name)
 
         for column_name in all_column_keys:
             elem = ChangedColumnsTableEntryElement(column_name, b.get(column_name), t.get(column_name))
@@ -370,14 +366,17 @@ class JoinedTables:
             yield elem
 
     def all_columns_iterator(self, table_name) -> Iterable[TotalColumnsTableEntryElement]:
-        table = self.joined_tables[table_name]
-        b = table.get('base', {}).get('columns')
-        t = table.get('target', {}).get('columns')
-
-        all_column_keys = sorted(set(list(b.keys()) + list(t.keys())))
+        all_column_keys, b, t = self.create_columns_and_their_metrics(table_name)
 
         for column_name in all_column_keys:
             yield TotalColumnsTableEntryElement(column_name, b.get(column_name), t.get(column_name))
+
+    def create_columns_and_their_metrics(self, table_name):
+        table = self.joined_tables[table_name]
+        b = table.get('base', {}).get('columns')
+        t = table.get('target', {}).get('columns')
+        all_column_keys = sorted(set(list(b.keys()) + list(t.keys())))
+        return all_column_keys, b, t
 
 
 class ChangedColumnsTableElement(_Element):
@@ -390,7 +389,7 @@ class ChangedColumnsTableElement(_Element):
     def build(self):
         name = self.find_table_name(self.model_selector)
         t = JoinedTables(self.joined_tables)
-        children = list(t.columns_iterator(name))
+        children = list(t.columns_changed_iterator(name))
         self.column_changes = len(children)
 
         return f"""
