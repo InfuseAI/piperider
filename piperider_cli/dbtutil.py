@@ -226,6 +226,10 @@ def get_dbt_state_tests_result(dbt_state_dir: str, table_filter=None):
         if node.get('resource_type') != 'test':
             continue
 
+        # The test is just compiled, but not executed
+        if result.get('status') == 'success':
+            continue
+
         unique_tests[unique_id] = dict(
             status=result.get('status'),
             failures=result.get('failures'),
