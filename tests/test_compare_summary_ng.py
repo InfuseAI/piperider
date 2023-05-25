@@ -31,8 +31,8 @@ class TestCompareSummaryNG(TestCase):
         run1 = self.manifest_dict("1_profiled.json")
         run2 = self.manifest_dict("2_profiled.json")
 
-        run1 = self.manifest_dict("1_metric.json")
-        run2 = self.manifest_dict("2_metric.json")
+        # run1 = self.manifest_dict("1_metric.json")
+        # run2 = self.manifest_dict("2_metric.json")
 
         data = ComparisonData(run1, run2, None)
         result = data.to_summary_markdown_ng()

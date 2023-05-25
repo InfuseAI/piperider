@@ -5,6 +5,19 @@ from datetime import datetime
 from typing import Dict, Iterable, List, Optional
 
 from dbt.contracts.graph.manifest import WritableManifest
+from enum import Enum
+
+
+class DataChangeState(Enum):
+    ADDED = "added"
+    REMOVED = "removed"
+    NO_CHANGES = "no_changes"
+    EDITED = "edited"
+    UNKNOWN = "unknown"
+
+    def to_path_state(self):
+        return self.value.capitalize()
+
 
 TRIANGLE_ICON = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-triangle-yellow%402x.png" width="18px">"""
 CHECKED_ICON = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-bs-check2-gray%402x.png" width="18px">"""
@@ -55,11 +68,17 @@ class _Element(metaclass=abc.ABCMeta):
         return indented_text
 
     def find_target_node(self, model_selector: str):
+        return self._find_node("target_manifest", model_selector)
+
+    def find_base_node(self, model_selector: str):
+        return self._find_node("base_manifest", model_selector)
+
+    def _find_node(self, by_manifest: str, model_selector: str):
         node = self
         while True:
-            if hasattr(node, "target_manifest"):
+            if hasattr(node, by_manifest):
                 selected = model_selector.split(".")
-                m: WritableManifest = node.target_manifest
+                m: WritableManifest = getattr(node, by_manifest)
                 for n in m.nodes.values():
                     if n.fqn == selected:
                         return n
@@ -70,11 +89,6 @@ class _Element(metaclass=abc.ABCMeta):
     def find_table_name(self, model_selector: str):
         # TODO do we need find it at base_manifest, too?
         return self.find_target_node(model_selector).name
-
-    def find_target_path(self, model_selector: str):
-        result = self.find_target_node(model_selector)
-        if result:
-            return f"Path: {result.path}, Name: {result.name}"
 
     def get_target_manifest(self):
         node = self
@@ -162,6 +176,7 @@ class ChangeStatus:
     change_type: str
     base_view: "ColumnChangeView"
     target_view: "ColumnChangeView"
+    state: DataChangeState
     icon: str
 
     def is_added_or_removed(self):
@@ -171,6 +186,9 @@ class ChangeStatus:
         if self.target_view is not None:
             return self.target_view
         return self.base_view
+
+    def name(self):
+        return self.display().data.get('name')
 
     @classmethod
     def count_added(cls, views: List["ChangeStatus"]):
@@ -283,6 +301,7 @@ class ColumnChangeView:
                 base_view=base_view,
                 target_view=target_view,
                 icon=column_change_diff_plus,
+                state=DataChangeState.ADDED
             )
         if base_view.data is not None and target_view.data is None:
             return ChangeStatus(
@@ -290,6 +309,7 @@ class ColumnChangeView:
                 base_view=base_view,
                 target_view=target_view,
                 icon=column_change_diff_minus,
+                state=DataChangeState.REMOVED
             )
         if base_view == target_view:
             return ChangeStatus(
@@ -297,6 +317,7 @@ class ColumnChangeView:
                 base_view=base_view,
                 target_view=target_view,
                 icon="",
+                state=DataChangeState.NO_CHANGES
             )
         else:
             return ChangeStatus(
@@ -304,6 +325,7 @@ class ColumnChangeView:
                 base_view=base_view,
                 target_view=target_view,
                 icon=column_change_diff_explicit,
+                state=DataChangeState.EDITED
             )
 
 
@@ -319,15 +341,16 @@ class ChangedColumnsTableEntryElement(_Element):
         self.base_view = ColumnChangeView(self.base_column_data)
         self.target_view = ColumnChangeView(self.target_column_data)
         self.changed = self.base_view != self.target_view
+        self.change_status = ColumnChangeView.create_change_status(
+            self.base_view, self.target_view
+        )
 
     def build(self):
         # Check added or removed
         # added -> base is null and target is not null
         # removed -> base is not null and target is null
         # Edited -> types, duplicate, invalids, missing(nulls)
-        change_status = ColumnChangeView.create_change_status(
-            self.base_view, self.target_view
-        )
+        change_status = self.change_status
         if change_status.is_added_or_removed():
             result = f"""
                 <tr>
@@ -439,10 +462,29 @@ class ChangedColumnsTableElement(_Element):
         self.model_selector = model_selector
         self.joined_tables = joined_tables
 
+    @staticmethod
+    def sort_func(m1: ChangedColumnsTableEntryElement, m2: ChangedColumnsTableEntryElement):
+        change_state_order = [
+            DataChangeState.EDITED,
+            DataChangeState.REMOVED,
+            DataChangeState.ADDED,
+            DataChangeState.NO_CHANGES,
+            DataChangeState.UNKNOWN,
+        ]
+        if m1.change_status.state == m2.change_status.state:
+            return (m1.change_status.name() > m2.change_status.name()) - (
+                    m1.change_status.name() < m2.change_status.name())
+        else:
+            return (
+                    change_state_order.index(m1.change_status.state)
+                    - change_state_order.index(m2.change_status.state)
+            )
+
     def build(self):
         name = self.find_table_name(self.model_selector)
         t = JoinedTables(self.joined_tables)
-        children = list(t.columns_changed_iterator(name))
+        from functools import cmp_to_key
+        children = sorted(list(t.columns_changed_iterator(name)), key=cmp_to_key(self.sort_func))
         self.column_changes = len(children)
 
         orange_changes = r'$\color{orange}{\text{(↑ changes)}}$'
@@ -509,20 +551,20 @@ class ModelEntryColumnsChangedElement(_Element):
         super().__init__(root)
         self.model_selector = model_selector
         self.joined_tables = joined_tables
-
-    def build(self):
-        element = ChangedColumnsTableElement(
+        self.element = ChangedColumnsTableElement(
             self.root, self.model_selector, self.joined_tables
         )
-        table_content = element.build()
+        self.table_content = self.element.build()
+        self.column_changes = self.element.column_changes
 
-        if element.column_changes == 0:
+    def build(self):
+        if self.column_changes == 0:
             return self.add_indent(
-                f"<details><summary>{element.column_changes} Columns Changed</summary></details>"
+                f"<details><summary>{self.column_changes} Columns Changed</summary></details>"
             )
 
         return self.add_indent(
-            f"<details><summary>{element.column_changes} Columns Changed</summary>{table_content}</details>"
+            f"<details><summary>{self.column_changes} Columns Changed</summary>{self.table_content}</details>"
         )
 
 
@@ -754,18 +796,43 @@ class ModelEntryElement(_Element):
         super().__init__(root)
         self.model_selector = model_selector
         self.joined_tables = joined_tables
+        self.change_state: DataChangeState = DataChangeState.UNKNOWN
+
+        # update model state
+        target_node = self.find_target_node(model_selector)
+        base_node = self.find_base_node(model_selector)
+        self.path = target_node.original_file_path if target_node else base_node.original_file_path
+        if target_node and base_node:
+            # it depends on columns changed
+            self.change_state = DataChangeState.UNKNOWN
+        elif target_node is not None:
+            self.change_state = DataChangeState.ADDED
+        elif base_node is not None:
+            self.change_state = DataChangeState.REMOVED
+
+        # update profiled state
+        self.profiled = False
+        for x in self.joined_tables.values():
+            self.profiled = x.get('base', {}).get('row_count') is not None
+            break
+
+        self.overview_element = ModelEntryOverviewElement(self, self.model_selector, self.joined_tables)
+        self.columns_changed_element = ModelEntryColumnsChangedElement(
+            self, self.model_selector, self.joined_tables
+        )
+        self.columns_in_total_element = ModelEntryColumnsInTotalElement(
+            self, self.model_selector, self.joined_tables
+        )
+        if self.columns_changed_element.column_changes != 0:
+            self.change_state = DataChangeState.EDITED
 
     def build(self):
-        path_line = self.find_target_path(self.model_selector)
-        children = [
-            ModelEntryOverviewElement(self, self.model_selector, self.joined_tables),
-            ModelEntryColumnsChangedElement(
-                self, self.model_selector, self.joined_tables
-            ),
-            ModelEntryColumnsInTotalElement(
-                self, self.model_selector, self.joined_tables
-            ),
-        ]
+        if self.profiled:
+            path_line = f"{self.path} - {self.change_state.to_path_state()} (Profiled)"
+        else:
+            path_line = f"{self.path} - {self.change_state.to_path_state()}"
+
+        children = [self.overview_element, self.columns_changed_element, self.columns_in_total_element]
         return f"\n* {path_line}\n{_build_list(children)}\n"
 
 
@@ -814,8 +881,32 @@ class ModelElement(_Element):
 
         return state
 
+    @staticmethod
+    def model_sort_func(m1: ModelEntryElement, m2: ModelEntryElement):
+        if m1.profiled and not m2.profiled:
+            return True
+        elif not m1.profiled and m2.profiled:
+            return False
+        else:
+            change_state_order = [
+                DataChangeState.EDITED,
+                DataChangeState.REMOVED,
+                DataChangeState.ADDED,
+                DataChangeState.NO_CHANGES,
+                DataChangeState.UNKNOWN,
+            ]
+            if m1.change_state == m2.change_state:
+                return m1.model_selector < m2.model_selector
+            else:
+                return (
+                        change_state_order.index(m1.change_state)
+                        < change_state_order.index(m2.change_state)
+                )
+
     def build(self):
         entries = [ModelEntryElement(self, x, self.joined_tables) for x in self.models]
+        from functools import cmp_to_key
+        entries = sorted(entries, key=cmp_to_key(self.model_sort_func))
 
         # TODO lacks of modified-state and profiled-state and icons
         # <path><model> <modified-state> <profiled-state>
