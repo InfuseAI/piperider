@@ -660,8 +660,8 @@ class CompareReport(object):
 
         if self.a and self.b:
             self.console.print('Selected reports:')
-            self.console.print(f'  Base:   {self.a.path}')
-            self.console.print(f'  Target: {self.b.path}')
+            self.console.print(f'  Base:   {self.a.path}', soft_wrap=True)
+            self.console.print(f'  Target: {self.b.path}', soft_wrap=True)
             return True
         return False
 
@@ -825,10 +825,10 @@ class CompareReport(object):
             summary_md_path = summary_file
 
         console.print()
-        console.print(f"Comparison report: {report_path}")
-        console.print(f"Comparison summary: {summary_md_path}")
+        console.print(f"Comparison report: {report_path}", soft_wrap=True)
+        console.print(f"Comparison summary: {summary_md_path}", soft_wrap=True)
         if report_url:
-            console.print(f"Comparison report URL: {report_url}")
+            console.print(f"Comparison report URL: {report_url}", soft_wrap=True)
 
         if open_report:
             if report_url:
