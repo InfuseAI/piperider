@@ -55,11 +55,10 @@ const layout = (nodes, edges, direction = 'LR') => {
   });
 };
 
-function Hello(options) {
-  // const [, setLocation] = useLocation();
-
-  const node = options as Node;
+function CustomNode(params) {
+  const node = params as Node;
   const data = node.data;
+  const singleOnly = data.singleOnly;
 
   // const onClick = () => {
   //   setLocation();
@@ -90,31 +89,31 @@ function Hello(options) {
 
   let iconChangeStatus;
   let changeStatus = data.changeStatus;
-
-  if (changeStatus === 'added') {
-    iconChangeStatus = VscDiffAdded;
-    style = {
-      ...style,
-      'border-color': '#080',
-      color: '#080',
-    };
-  } else if (changeStatus === 'changed') {
-    iconChangeStatus = VscDiffModified;
-    style = {
-      ...style,
-      'border-color': '#00f',
-      color: '#00f',
-    };
-  } else if (changeStatus === 'removed') {
-    iconChangeStatus = VscDiffRemoved;
-    style = {
-      ...style,
-      'border-color': '#f00',
-      color: '#f00',
-    };
+  if (!singleOnly) {
+    if (changeStatus === 'added') {
+      iconChangeStatus = VscDiffAdded;
+      // style = {
+      //   ...style,
+      //   'border-color': '#080',
+      //   color: '#080',
+      // };
+    } else if (changeStatus === 'changed') {
+      iconChangeStatus = VscDiffModified;
+      // style = {
+      //   ...style,
+      //   'border-color': '#00f',
+      //   color: '#00f',
+      // };
+    } else if (changeStatus === 'removed') {
+      iconChangeStatus = VscDiffRemoved;
+      style = {
+        ...style,
+        'border-style': 'dashed',
+        color: 'gray',
+      };
+    }
   }
 
-  const singleOnly = false;
   const name = node?.data?.name;
 
   return (
@@ -139,8 +138,13 @@ function Hello(options) {
 }
 
 const nodeTypes = {
-  hello: Hello,
+  customNode: CustomNode,
 };
+
+function logWithTimestamp(message) {
+  var timestamp = new Date().toLocaleTimeString();
+  console.log('[' + timestamp + '] ' + message);
+}
 
 export function ReactFlowGraph({ singleOnly }: Comparable) {
   const { lineageGraph = {} } = useReportStore.getState();
@@ -151,6 +155,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   useEffect(() => {
     const initialNodes: Node[] = [];
     const initialEdges: Edge[] = [];
+    console.log(Object.keys(lineageGraph).length);
 
     Object.entries(lineageGraph).forEach(([key, node]) => {
       if (node.type === 'test') return;
@@ -160,21 +165,21 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         position: { x: 0, y: 0 },
         data: {
           label: `${node.name}`,
+          singleOnly,
           ...node,
         },
         draggable: true,
-        type: 'hello',
+        type: 'customNode',
       });
 
       Object.entries(node.dependsOn).forEach(([dependsOnKey, from]) => {
         const style = {};
 
-        if (!from.includes('base')) {
-          style['stroke'] = 'green';
-        }
-
-        if (!from.includes('target')) {
-          style['stroke'] = 'red';
+        if (!singleOnly) {
+          if (!from.includes('target')) {
+            style['stroke'] = 'gray';
+            style['stroke-dasharray'] = '5';
+          }
         }
 
         initialEdges.push({
@@ -186,17 +191,14 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
       });
     });
 
+    logWithTimestamp('layout');
     layout(initialNodes, initialEdges, 'LR');
+    logWithTimestamp('layout complete');
 
     setNodes(initialNodes);
     setEdges(initialEdges);
-  }, [lineageGraph, setNodes, setEdges]);
+  }, [lineageGraph, setNodes, setEdges, singleOnly]);
 
-  // const initialNodes = [
-  //   { id: '1', position: { x: 0, y: 0 }, data: { label: '1' } },
-  //   { id: '2', position: { x: 0, y: 100 }, data: { label: '2' } },
-  // ];
-  // const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }];
   return (
     <div
       style={{
@@ -211,15 +213,10 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        minZoom={0.1}
       >
         <Controls />
-        <MiniMap
-          // nodeColor={nodeColor}
-          nodeStrokeWidth={3}
-          // nodeComponent={MiniMapNode}
-          zoomable
-          pannable
-        />
+        <MiniMap nodeStrokeWidth={3} zoomable pannable />
       </ReactFlow>
     </div>
   );

@@ -93,7 +93,7 @@ export function SRPage({ data, sideNavTop = '0px' }: Props) {
           </Route>
 
           <Route path={'/graph/reactflow'}>
-            <ReactFlowGraph />
+            <ReactFlowGraph singleOnly />
           </Route>
 
           <Route path={'/graph/vis'}>
