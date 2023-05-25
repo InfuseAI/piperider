@@ -7,6 +7,8 @@ from typing import Dict, Iterable, List, Optional
 from dbt.contracts.graph.manifest import WritableManifest
 from enum import Enum
 
+from piperider_cli.dbt.list_task import compare_models_between_manifests, load_manifest
+
 
 class DataChangeState(Enum):
     ADDED = "added"
@@ -1139,6 +1141,28 @@ class Document(_Element):
 
         self.base_run = base_run
         self.target_run = target_run
+
+    @staticmethod
+    def from_runs(base_run: Dict, target_run: Dict):
+        # verify the report version compatibility
+        base_manifest_dict = base_run.get('dbt', {}).get('manifest')
+        target_manifest_dict = target_run.get('dbt', {}).get('manifest')
+
+        if not base_manifest_dict:
+            raise Exception(f'The version is too old to generate summary for report[{base_run.get("id")}]')
+        if not target_manifest_dict:
+            raise Exception(f'The version is too old to generate summary for report[{target_run.get("id")}]')
+
+        base_manifest = load_manifest(base_manifest_dict)
+        target_manifest = load_manifest(target_manifest_dict)
+
+        with_downstream = compare_models_between_manifests(base_manifest, target_manifest, True)
+        altered_models = compare_models_between_manifests(base_manifest, target_manifest)
+        downstream_models = list(set(with_downstream) - set(altered_models))
+
+        doc = Document(base_manifest, target_manifest, altered_models, downstream_models,
+                       base_run, target_run)
+        return doc
 
     def build(self):
         children = []
