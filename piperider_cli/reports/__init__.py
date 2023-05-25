@@ -1,6 +1,7 @@
 import abc
 import collections
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Dict, Iterable, List, Optional
 
 from dbt.contracts.graph.manifest import WritableManifest
@@ -804,6 +805,7 @@ class MetricsChangeView:
         self.base_data: Optional[List] = None
         self.target_data: Optional[List] = None
         self.change_type = None
+        self.agg_data = None
 
     def update_status(self):
         # added, removed, edited, no changes
@@ -837,6 +839,66 @@ class MetricsChangeView:
         if self.change_type == "removed":
             return "Removed"
 
+    def aggregate_by_date(self):
+        agg_data = {}
+        base_data = {x[0]: x[1] for x in self.base_data}
+        target_data = {x[0]: x[1] for x in self.target_data}
+        all_dates = list(set(list(base_data.keys()) + list(target_data.keys())))
+
+        for date in sorted(all_dates, key=lambda x: datetime.fromisoformat(x)):
+            agg_data[date] = {
+                'base': base_data.get(date),
+                'target': target_data.get(date)
+            }
+
+        self.agg_data = agg_data
+
+
+class DbtMetricsWithChangesTableEntry(_Element):
+    def __init__(self, data: MetricsChangeView):
+        super().__init__(None)
+        self.data = data
+
+    def build(self):
+        content = ""
+        for date in self.data.agg_data:
+            content += f"""
+            <tr>
+                <td>Icon</td>
+                <td>{date}</td>
+                <td>{self.data.agg_data[date]['base']}</td>
+                <td>{self.data.agg_data[date]['target']}</td>
+                <td>{self.data.summary_for_change_type()}</td>
+            </tr>
+            """
+
+        return content
+
+
+class DbtMetricsWithChangesTable(_Element):
+    def __init__(self, data: MetricsChangeView):
+        super().__init__(None)
+        self.data = data
+
+    def build(self):
+        self.data.aggregate_by_date()
+        return f"""<details><summary>{self.data.name} ({self.data.update_status()}) </summary>
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>{self.data.header}</th>
+                    <th>Base</th>
+                    <th>Target</th>
+                    <th>Change</th>
+                </tr>
+            </thead>
+            <tbody>
+                {DbtMetricsWithChangesTableEntry(self.data).build()}
+            </tbody>
+        </table></details>
+        """
+
 
 class DbtMetricsWithChangesElement(_Element):
     def __init__(self, data: List[MetricsChangeView]):
@@ -853,12 +915,14 @@ class DbtMetricsWithChangesElement(_Element):
 
         content = "\n".join(lines)
         summary_line = f"\n* dbt Metrics with Changes: {len(self.data)}\n"
-        return summary_line + self.add_indent(
-            f"""
-        \n{content}\n
-        """,
-            4,
-        )
+        changed_metrics = [DbtMetricsWithChangesTable(x) for x in self.data]
+        return summary_line + self.add_indent(_build_list(changed_metrics), 4)
+        # return summary_line + self.add_indent(
+        #     f"""
+        # \n{content}\n
+        # """,
+        #     4,
+        # )
 
 
 class DbtMetricsChangeElement(_Element):
@@ -904,8 +968,6 @@ class DbtMetricsChangeElement(_Element):
         self.changes = len(
             [x for x in joined_metrics.values() if x.change_type != "no-changes"]
         )
-
-        pass
 
     def build(self):
         changeset = [
