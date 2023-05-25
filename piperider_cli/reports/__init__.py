@@ -826,8 +826,11 @@ class MetricsChangeView:
         return self.name
 
     def calculate_diff(self):
-        # TODO make a diff set
-        return f"Edited {implicit_icon}"
+        changes = 0
+        for date in self.agg_data:
+            if self.agg_data[date].get("base") != self.agg_data[date].get("target"):
+                changes += 1
+        return f"{changes}{implicit_icon}"
 
     def summary_for_change_type(self):
         if self.change_type == "no-changes":
@@ -862,13 +865,23 @@ class DbtMetricsWithChangesTableEntry(_Element):
     def build(self):
         content = ""
         for date in self.data.agg_data:
+            b = self.data.agg_data[date]['base']
+            t = self.data.agg_data[date]['target']
+            change = ""
+            if b != t and b is not None and t is not None:
+                change = "↑" if t > b else "↓"
+                if b == 0:
+                    change += "∞"
+                else:
+                    change += f"{(t - b) / b: .1%}"
+
             content += f"""
             <tr>
-                <td>Icon</td>
+                <td>{implicit_icon if change else ""}</td>
                 <td>{date}</td>
-                <td>{self.data.agg_data[date]['base']}</td>
-                <td>{self.data.agg_data[date]['target']}</td>
-                <td>{self.data.summary_for_change_type()}</td>
+                <td>{b}</td>
+                <td>{t}</td>
+                <td>{"(" + change + ")" if change else ""}</td>
             </tr>
             """
 
@@ -882,7 +895,7 @@ class DbtMetricsWithChangesTable(_Element):
 
     def build(self):
         self.data.aggregate_by_date()
-        return f"""<details><summary>{self.data.name} ({self.data.update_status()}) </summary>
+        return f"""<details><summary>{self.data.name} ({self.data.summary_for_change_type()}) </summary>
         <table>
             <thead>
                 <tr>
@@ -906,23 +919,9 @@ class DbtMetricsWithChangesElement(_Element):
         self.data = data
 
     def build(self):
-        lines = []
-        for x in self.data:
-            lines.append(
-                f"<details><summary>{x.summary()} ({x.summary_for_change_type()})</summary>"
-                f"</details>"
-            )
-
-        content = "\n".join(lines)
         summary_line = f"\n* dbt Metrics with Changes: {len(self.data)}\n"
         changed_metrics = [DbtMetricsWithChangesTable(x) for x in self.data]
         return summary_line + self.add_indent(_build_list(changed_metrics), 4)
-        # return summary_line + self.add_indent(
-        #     f"""
-        # \n{content}\n
-        # """,
-        #     4,
-        # )
 
 
 class DbtMetricsChangeElement(_Element):
