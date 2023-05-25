@@ -244,7 +244,7 @@ class ColumnChangeView:
                 delta = target_view.data.get(percentage) - self.data.get(percentage)
                 annotation = f"{delta:.1%}" + '↑' if delta > 0 else f"{delta:.1%}" + '↓'
                 annotation = f"({annotation})".replace('%', '\%')
-                annotation = r'$\color{orange}{\text{ %s }}$' % annotation
+                annotation = r'<span title="TODO">$\color{orange}{\text{ %s }}$</span>' % annotation
                 reasons.append(f"{target_view.data.get(percentage):.1%} {display_label} {annotation}.")
 
         add_reason_for("duplicates", "Duplicates")
