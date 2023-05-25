@@ -6,10 +6,12 @@ import {
 } from '../sdlc/dbt-manifest-schema';
 import { DbtNode, SaferSRSchema } from '../types/index';
 import _ from 'lodash';
+import { HOME_ROUTE_PATH } from './routes';
 
 export interface SidebarTreeItem {
   name: string;
   type:
+    | 'overview'
     | 'folder'
     | 'model'
     | 'metric'
@@ -351,6 +353,12 @@ export function buildProjectTree(
   itemsNodeComparison: CompTableColEntryItem[],
   isLegacy: boolean = false,
 ): SidebarTreeItem[] {
+  const overview: SidebarTreeItem = {
+    name: 'Overview',
+    type: 'overview',
+    path: HOME_ROUTE_PATH,
+  };
+
   const source: SidebarTreeItem = {
     name: 'Sources',
     type: 'folder',
@@ -388,9 +396,9 @@ export function buildProjectTree(
   };
 
   if (isLegacy) {
-    return [table, metric, assertion];
+    return [overview, table, metric, assertion];
   } else {
-    return [source, seed, model, metric, assertion];
+    return [overview, source, seed, model, metric, assertion];
   }
 }
 

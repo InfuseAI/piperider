@@ -24,7 +24,6 @@ import {
 import { SRAssertionListPage } from './SRAssertionListPage';
 import { SRBMPage } from './SRBMPage';
 import SRColumnDetailPage from './SRColumnDetailPage';
-import { SRHomePage } from './SRHomePage';
 import SRTableDetailPage from './SRTableDetailPage';
 import { SRTablesListPage } from './SRTablesListPage';
 
@@ -42,7 +41,7 @@ export function SRPage({ data, sideNavTop = '0px' }: Props) {
       <MasterDetailContainer sideNavTop={sideNavTop} singleOnly>
         <Switch>
           <Route path={HOME_ROUTE_PATH}>
-            <SRHomePage />
+            <SRTablesListPage />
           </Route>
 
           <Route path={TABLE_LIST_ROUTE_PATH}>
