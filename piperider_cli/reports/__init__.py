@@ -13,7 +13,7 @@ from piperider_cli.dbt.list_task import compare_models_between_manifests, load_m
 class DataChangeState(Enum):
     ADDED = "added"
     REMOVED = "removed"
-    NO_CHANGES = "no_changes"
+    NO_CHANGES = "no changes"
     EDITED = "edited"
     UNKNOWN = "unknown"
 
@@ -92,23 +92,23 @@ class _Element(metaclass=abc.ABCMeta):
         # TODO do we need find it at base_manifest, too?
         return self.find_target_node(model_selector).name
 
-    def get_target_manifest(self):
+    def _get_field(self, name: str):
         node = self
         while True:
-            if hasattr(node, "target_manifest"):
-                return node.target_manifest
+            if hasattr(node, name):
+                return getattr(node, name)
             node = node.root
             if node is None:
                 break
 
+    def get_target_manifest(self):
+        return self._get_field("target_manifest")
+
     def get_base_manifest(self):
-        node = self
-        while True:
-            if hasattr(node, "base_manifest"):
-                return node.base_manifest
-            node = node.root
-            if node is None:
-                break
+        return self._get_field("base_manifest")
+
+    def joined_tables(self) -> "JoinedTables":
+        return self._get_field("_joined_tables")
 
     def merge_keys(self, base: List[str], target: List[str]):
         """
@@ -424,12 +424,18 @@ class TotalColumnsTableEntryElement(_Element):
 
 class JoinedTables:
     def __init__(self, joined_tables: Dict):
-        self.joined_tables = joined_tables
+        self._joined_tables = joined_tables
+
+    def is_profiled(self):
+        for x in self._joined_tables.values():
+            if x.get('base', {}).get('row_count') is not None:
+                return True
+        return False
 
     def columns_changed_iterator(
             self, table_name
     ) -> Iterable[ChangedColumnsTableEntryElement]:
-        all_column_keys, b, t = self.create_columns_and_their_metrics(table_name)
+        all_column_keys, b, t = self._create_columns_and_their_metrics(table_name)
 
         for column_name in all_column_keys:
             elem = ChangedColumnsTableEntryElement(
@@ -442,15 +448,15 @@ class JoinedTables:
     def all_columns_iterator(
             self, table_name
     ) -> Iterable[TotalColumnsTableEntryElement]:
-        all_column_keys, b, t = self.create_columns_and_their_metrics(table_name)
+        all_column_keys, b, t = self._create_columns_and_their_metrics(table_name)
 
         for column_name in all_column_keys:
             yield TotalColumnsTableEntryElement(
                 column_name, b.get(column_name), t.get(column_name)
             )
 
-    def create_columns_and_their_metrics(self, table_name):
-        table = self.joined_tables[table_name]
+    def _create_columns_and_their_metrics(self, table_name):
+        table = self._joined_tables[table_name]
         b = table.get("base", {}).get("columns")
         t = table.get("target", {}).get("columns")
         all_column_keys = sorted(set(list(b.keys()) + list(t.keys())))
@@ -458,11 +464,10 @@ class JoinedTables:
 
 
 class ChangedColumnsTableElement(_Element):
-    def __init__(self, root: _Element, model_selector: str, joined_tables: Dict):
+    def __init__(self, root: _Element, model_selector: str):
         super().__init__(root)
         self.column_changes = 0
         self.model_selector = model_selector
-        self.joined_tables = joined_tables
 
     @staticmethod
     def sort_func(m1: ChangedColumnsTableEntryElement, m2: ChangedColumnsTableEntryElement):
@@ -484,7 +489,7 @@ class ChangedColumnsTableElement(_Element):
 
     def build(self):
         name = self.find_table_name(self.model_selector)
-        t = JoinedTables(self.joined_tables)
+        t = self.joined_tables()
         from functools import cmp_to_key
         children = sorted(list(t.columns_changed_iterator(name)), key=cmp_to_key(self.sort_func))
         self.column_changes = len(children)
@@ -510,15 +515,14 @@ class ChangedColumnsTableElement(_Element):
 
 
 class TotalColumnsTableElement(_Element):
-    def __init__(self, root: _Element, model_selector: str, joined_tables: Dict):
+    def __init__(self, root: _Element, model_selector: str):
         super().__init__(root)
         self.model_selector = model_selector
-        self.joined_tables = joined_tables
         self.columns = 0
 
     def build(self):
         name = self.find_table_name(self.model_selector)
-        t = JoinedTables(self.joined_tables)
+        t = self.joined_tables()
         children = list(t.all_columns_iterator(name))
         self.columns = len(children)
 
@@ -549,13 +553,10 @@ class TotalColumnsTableElement(_Element):
 
 
 class ModelEntryColumnsChangedElement(_Element):
-    def __init__(self, root: _Element, model_selector: str, joined_tables: Dict):
+    def __init__(self, root: _Element, model_selector: str):
         super().__init__(root)
         self.model_selector = model_selector
-        self.joined_tables = joined_tables
-        self.element = ChangedColumnsTableElement(
-            self.root, self.model_selector, self.joined_tables
-        )
+        self.element = ChangedColumnsTableElement(self.root, self.model_selector)
         self.table_content = self.element.build()
         self.column_changes = self.element.column_changes
 
@@ -571,15 +572,12 @@ class ModelEntryColumnsChangedElement(_Element):
 
 
 class ModelEntryColumnsInTotalElement(_Element):
-    def __init__(self, root: _Element, model_selector: str, joined_tables: Dict):
+    def __init__(self, root: _Element, model_selector: str):
         super().__init__(root)
         self.model_selector = model_selector
-        self.joined_tables = joined_tables
 
     def build(self):
-        element = TotalColumnsTableElement(
-            self.root, self.model_selector, self.joined_tables
-        )
+        element = TotalColumnsTableElement(self.root, self.model_selector)
         content = element.build()
         columns_total = element.columns
         return self.add_indent(
@@ -588,10 +586,9 @@ class ModelEntryColumnsInTotalElement(_Element):
 
 
 class ModelEntryOverviewElement(_Element):
-    def __init__(self, root: _Element, model_selector: str, joined_tables: Dict):
+    def __init__(self, root: _Element, model_selector: str):
         super().__init__(root)
         self.model_selector = model_selector
-        self.joined_tables = joined_tables
 
     def make_cols_stat(self, base_table_metrics, target_table_metrics):
         joined = self.join(
@@ -623,12 +620,12 @@ class ModelEntryOverviewElement(_Element):
         materialized = m.config.materialized
         name = m.name
 
-        t = JoinedTables(self.joined_tables)
+        t = self.joined_tables()
         column_change_views = list(t.all_columns_iterator(name))
-        # TODO
 
-        base_data = self.joined_tables.get(name, {}).get("base", {})
-        target_data = self.joined_tables.get(name, {}).get("target", {})
+        # TODO fix _joined_tables
+        base_data = t._joined_tables.get(name, {}).get("base", {})
+        target_data = t._joined_tables.get(name, {}).get("target", {})
         base_total_rows = base_data.get("row_count", "-")
         target_total_rows = target_data.get("row_count", "-")
         base_total_columns = base_data.get("col_count", "-")
@@ -671,9 +668,9 @@ class ModelEntryOverviewElement(_Element):
         stat = self.make_cols_stat(base_data, target_data)
 
         cols_descriptions = [
-            self.to_col_description2(stat, 0),
-            self.to_col_description2(stat, 1),
-            self.to_col_description2(stat, 2),
+            self.to_col_description(stat, 0),
+            self.to_col_description(stat, 1),
+            self.to_col_description(stat, 2),
         ]
 
         return f"""
@@ -728,55 +725,14 @@ class ModelEntryOverviewElement(_Element):
         <td><a href="#">{cols_descriptions[2][1]}</a></td>
     </tr>
 
-    <!--
-    <tr>
-        <td>{shield_icon}</td>
-        <td rowspan='1' colspan='3' >TESTS</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>Failed Model Tests</td>
-        <td>4 / 7</td>
-        <td>0 <kbd>🔻4</kbd> / 5 <kbd>🔻2</kbd></td>
-        <td>{CHECKED_ICON}</td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>Failed Column tests</td>
-        <td>7 / 11</td>
-        <td>5 <kbd>🔺1</kbd> / 11</td>
-        <td>{cross_shield_icon}</td>
-    </tr>
-    <tr>
-        <td rowspan='1' colspan='5' ></td>
-    </tr>
-    -->
-
     </table>
         """
 
-    def to_col_description(self, base_stat, target_stat, index):
-        result = ""
-        s = target_stat[index] - base_stat[index]
-        icon = f"{CHECKED_ICON}"
-
-        if s == 0:
-            result = "No changes"
-        if s > 0:
-            result = f"{s} Cols {TRIANGLE_ICON} ({self.to_p(base_stat, target_stat, index) :.1%})"
-            icon = TRIANGLE_ICON
-        if s < 0:
-            result = f"{-s} Cols {TRIANGLE_ICON} ({self.to_p(base_stat, target_stat, index) :.1%})"
-            icon = TRIANGLE_ICON
-        return result, icon
-
-    def to_col_description2(self, stat, index):
+    def to_col_description(self, stat, index):
         result = ""
         s = stat[index][0]
         denominator = stat[index][1]
         icon = f"{CHECKED_ICON}"
-
         ratio = s / denominator
 
         if s == 0:
@@ -789,15 +745,11 @@ class ModelEntryOverviewElement(_Element):
             icon = TRIANGLE_ICON
         return result, icon
 
-    def to_p(self, base_stat, target_stat, index):
-        return target_stat[index] / base_stat[index] - 1
-
 
 class ModelEntryElement(_Element):
-    def __init__(self, root: _Element, model_selector: str, joined_tables: Dict):
+    def __init__(self, root: _Element, model_selector: str):
         super().__init__(root)
         self.model_selector = model_selector
-        self.joined_tables = joined_tables
         self.change_state: DataChangeState = DataChangeState.UNKNOWN
 
         # update model state
@@ -813,20 +765,15 @@ class ModelEntryElement(_Element):
             self.change_state = DataChangeState.REMOVED
 
         # update profiled state
-        self.profiled = False
-        for x in self.joined_tables.values():
-            self.profiled = x.get('base', {}).get('row_count') is not None
-            break
+        self.profiled = self.joined_tables().is_profiled()
 
-        self.overview_element = ModelEntryOverviewElement(self, self.model_selector, self.joined_tables)
-        self.columns_changed_element = ModelEntryColumnsChangedElement(
-            self, self.model_selector, self.joined_tables
-        )
-        self.columns_in_total_element = ModelEntryColumnsInTotalElement(
-            self, self.model_selector, self.joined_tables
-        )
+        self.overview_element = ModelEntryOverviewElement(self, self.model_selector)
+        self.columns_changed_element = ModelEntryColumnsChangedElement(self, self.model_selector)
+        self.columns_in_total_element = ModelEntryColumnsInTotalElement(self, self.model_selector)
         if self.columns_changed_element.column_changes != 0:
             self.change_state = DataChangeState.EDITED
+        else:
+            self.change_state = DataChangeState.NO_CHANGES
 
     def build(self):
         if self.profiled:
@@ -838,18 +785,20 @@ class ModelEntryElement(_Element):
         return f"\n* {path_line}\n{_build_list(children)}\n"
 
 
+class ModelType(Enum):
+    ALTERED_MODELS = "Altered Models"
+    DOWNSTREAM_MODELS = "Downstream Models"
+
+
 class ModelElement(_Element):
     STATE_ADD = 0
     STATE_DEL = 1
     STATE_MOD = 2
 
-    def __init__(
-            self, root: _Element, summary_title: str, models: List[str], joined_tables: Dict
-    ):
+    def __init__(self, root: _Element, model_type: ModelType, models: List[str]):
         super().__init__(root)
-        self.summary_title = summary_title
+        self.model_type = model_type
         self.models = models
-        self.joined_tables = joined_tables
 
     @staticmethod
     def _get_metric_from_report(report, metric, default):
@@ -906,25 +855,16 @@ class ModelElement(_Element):
                 )
 
     def build(self):
-        entries = [ModelEntryElement(self, x, self.joined_tables) for x in self.models]
+        entries = [ModelEntryElement(self, x) for x in self.models]
         from functools import cmp_to_key
         entries = sorted(entries, key=cmp_to_key(self.model_sort_func))
 
-        # TODO lacks of modified-state and profiled-state and icons
-        # <path><model> <modified-state> <profiled-state>
-        # TODO show no changes model
-
-        return f"<details><summary>{self.summary_title}: {len(self.get_changed_tables())} of {len(self.models)}</summary>\n{_build_list(entries)}</details>"
+        return f"<details><summary>{self.model_type.value}: {len(self.get_changed_tables())} of {len(self.models)}</summary>\n{_build_list(entries)}</details>"
 
     def get_changed_tables(self):
         changed = []
         for table_name in model_selectors_to_table_names(self.models):
-            t = self.joined_tables[table_name]
-
-            columns_b = t.get("base").get("columns") if t.get("base") else None
-            columns_t = t.get("target").get("columns") if t.get("target") else None
-            state = self._get_changed_state(table_name, columns_b, columns_t)
-            if state is not None:
+            if list(self.joined_tables().columns_changed_iterator(table_name)):
                 changed.append(table_name)
         return set(changed)
 
@@ -1135,9 +1075,10 @@ class Document(_Element):
         self.target_manifest = target_manifest
         self.altered_models: List[str] = altered_models
         self.downstream_models: List[str] = downstream_models
-        self.joined_tables: Dict = self.join(
+        self.raw_joined_tables: Dict = self.join(
             base_run.get("tables"), target_run.get("tables")
         )
+        self._joined_tables = JoinedTables(self.raw_joined_tables)
 
         self.base_run = base_run
         self.target_run = target_run
@@ -1165,21 +1106,8 @@ class Document(_Element):
         return doc
 
     def build(self):
-        children = []
-        children.append(
-            ModelElement(
-                self, "Altered Models in PR", self.altered_models, self.joined_tables
-            )
-        )
-        children.append(
-            ModelElement(
-                self, "Downstream Models", self.downstream_models, self.joined_tables
-            )
-        )
-        children.append(
-            DbtMetricsChangeElement(
-                self, self.base_run.get("metrics"), self.target_run.get("metrics")
-            )
-        )
-
-        return _build_list(children)
+        return _build_list([ModelElement(self, ModelType.ALTERED_MODELS, self.altered_models),
+                            ModelElement(self, ModelType.DOWNSTREAM_MODELS, self.downstream_models),
+                            DbtMetricsChangeElement(
+                                self, self.base_run.get("metrics"), self.target_run.get("metrics")
+                            )])
