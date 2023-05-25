@@ -3,17 +3,16 @@ import json
 import os
 import shutil
 import sys
-from datetime import datetime, date
-from typing import Dict, Iterable, List
+from datetime import date, datetime
+from typing import Dict, List
 
 import inquirer
 import readchar
 from rich.console import Console
 
 import piperider_cli.hack.inquirer as inquirer_hack
-from piperider_cli import datetime_to_str, str_to_datetime, clone_directory, \
-    raise_exception_when_directory_not_writable, open_report_in_browser
-from piperider_cli.dbt.list_task import compare_models_between_manifests, load_manifest
+from piperider_cli import clone_directory, datetime_to_str, open_report_in_browser, \
+    raise_exception_when_directory_not_writable, str_to_datetime
 from piperider_cli.filesystem import FileSystem
 from piperider_cli.generate_report import setup_report_variables
 from piperider_cli.reports import Document
@@ -240,29 +239,7 @@ class ComparisonData(object):
         return out.getvalue()
 
     def to_summary_markdown_ng(self):
-        # verify the report version compatibility
-        base_manifest_dict = self._base.get('dbt', {}).get('manifest')
-        target_manifest_dict = self._target.get('dbt', {}).get('manifest')
-
-        # TODO it'd be better to have a filename
-        if not base_manifest_dict:
-            raise Exception(f'The version is too old to generate summary for report[{self._base.get("id")}]')
-        if not target_manifest_dict:
-            raise Exception(f'The version is too old to generate summary for report[{self._target.get("id")}]')
-
-        base_manifest = load_manifest(base_manifest_dict)
-        target_manifest = load_manifest(target_manifest_dict)
-
-        with_downstream = compare_models_between_manifests(base_manifest, target_manifest, True)
-        altered_models = compare_models_between_manifests(base_manifest, target_manifest)
-        downstream_models = list(set(with_downstream) - set(altered_models))
-
-        # doc = Document(base_manifest, target_manifest, altered_models, downstream_models,
-        #                join(self._base.get('tables'), self._target.get('tables')))
-
-        doc = Document(base_manifest, target_manifest, altered_models, downstream_models,
-                       self._base, self._target)
-        return doc.build()
+        return Document.from_runs(self._base, self._target).build()
 
     @staticmethod
     def _value_with_annotation(key, annotation=None):
