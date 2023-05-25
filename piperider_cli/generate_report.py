@@ -92,7 +92,7 @@ class GenerateReport:
             return
 
         console.print('')
-        console.print(f'Generating reports from: {run_json_path}')
+        console.print(f'Generating reports from: {run_json_path}', soft_wrap=True)
 
         def output_report(target_directory):
             clone_directory(report_template_dir, target_directory)
@@ -106,10 +106,10 @@ class GenerateReport:
             output_report(output)
             shutil.copyfile(run_json_path, os.path.join(output, os.path.basename(run_json_path)))
             console.print(
-                f"Report generated in: {os.path.join(output, 'index.html')}")
+                f"Report generated in: {os.path.join(output, 'index.html')}", soft_wrap=True)
         else:
             console.print(
-                f"Report generated in: {os.path.join(default_output_directory, 'index.html')}")
+                f"Report generated in: {os.path.join(default_output_directory, 'index.html')}", soft_wrap=True)
 
         # only open the local file report if auto-upload is OFF
         if open_report and not open_in_cloud:
