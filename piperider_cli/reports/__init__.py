@@ -668,9 +668,9 @@ class ModelEntryOverviewElement(_Element):
         stat = self.make_cols_stat(base_data, target_data)
 
         cols_descriptions = [
-            self.to_col_description2(stat, 0),
-            self.to_col_description2(stat, 1),
-            self.to_col_description2(stat, 2),
+            self.to_col_description(stat, 0),
+            self.to_col_description(stat, 1),
+            self.to_col_description(stat, 2),
         ]
 
         return f"""
@@ -725,55 +725,14 @@ class ModelEntryOverviewElement(_Element):
         <td><a href="#">{cols_descriptions[2][1]}</a></td>
     </tr>
 
-    <!--
-    <tr>
-        <td>{shield_icon}</td>
-        <td rowspan='1' colspan='3' >TESTS</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>Failed Model Tests</td>
-        <td>4 / 7</td>
-        <td>0 <kbd>🔻4</kbd> / 5 <kbd>🔻2</kbd></td>
-        <td>{CHECKED_ICON}</td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>Failed Column tests</td>
-        <td>7 / 11</td>
-        <td>5 <kbd>🔺1</kbd> / 11</td>
-        <td>{cross_shield_icon}</td>
-    </tr>
-    <tr>
-        <td rowspan='1' colspan='5' ></td>
-    </tr>
-    -->
-
     </table>
         """
 
-    def to_col_description(self, base_stat, target_stat, index):
-        result = ""
-        s = target_stat[index] - base_stat[index]
-        icon = f"{CHECKED_ICON}"
-
-        if s == 0:
-            result = "No changes"
-        if s > 0:
-            result = f"{s} Cols {TRIANGLE_ICON} ({self.to_p(base_stat, target_stat, index) :.1%})"
-            icon = TRIANGLE_ICON
-        if s < 0:
-            result = f"{-s} Cols {TRIANGLE_ICON} ({self.to_p(base_stat, target_stat, index) :.1%})"
-            icon = TRIANGLE_ICON
-        return result, icon
-
-    def to_col_description2(self, stat, index):
+    def to_col_description(self, stat, index):
         result = ""
         s = stat[index][0]
         denominator = stat[index][1]
         icon = f"{CHECKED_ICON}"
-
         ratio = s / denominator
 
         if s == 0:
@@ -785,9 +744,6 @@ class ModelEntryOverviewElement(_Element):
             result = f"{-s} Cols {TRIANGLE_ICON} ({ratio :.1%})"
             icon = TRIANGLE_ICON
         return result, icon
-
-    def to_p(self, base_stat, target_stat, index):
-        return target_stat[index] / base_stat[index] - 1
 
 
 class ModelEntryElement(_Element):
