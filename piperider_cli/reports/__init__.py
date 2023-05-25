@@ -172,6 +172,18 @@ class ChangeStatus:
             return self.target_view
         return self.base_view
 
+    @classmethod
+    def count_added(cls, views: List["ChangeStatus"]):
+        return len([x for x in views if x.change_type == "Added."])
+
+    @classmethod
+    def count_removed(cls, views: List["ChangeStatus"]):
+        return len([x for x in views if x.change_type == "Removed."])
+
+    @classmethod
+    def count_edited(cls, views: List["ChangeStatus"]):
+        return len([x for x in views if x.change_type == "Edited."])
+
 
 class ColumnChangeView:
     def __init__(self, data: Dict):
@@ -244,11 +256,12 @@ class ColumnChangeView:
             percentage = f"{metric_name}_p"
             if self.data.get(metric_name) != target_view.data.get(metric_name):
                 delta = target_view.data.get(percentage) - self.data.get(percentage)
+                title = f"B: {self.data.get(metric_name)}, T: {target_view.data.get(metric_name)}&#10;B: {self.data.get(percentage):.1%}, T: {target_view.data.get(percentage):.1%}"
                 annotation = f"{delta:.1%}" + "↑" if delta > 0 else f"{delta:.1%}" + "↓"
                 annotation = f"({annotation})".replace("%", "\%")
                 annotation = (
-                        r'<span title="TODO">$\color{orange}{\text{ %s }}$</span>'
-                        % annotation
+                        r'<span title="%s">$\color{orange}{\text{ %s }}$</span>'
+                        % (title, annotation)
                 )
                 reasons.append(
                     f"{target_view.data.get(percentage):.1%} {display_label} {annotation}."
@@ -360,9 +373,7 @@ class TotalColumnsTableEntryElement(_Element):
         if target_type is None:
             target_type = f"{self.base_view.get_type()}"
 
-        change_status = ColumnChangeView.create_change_status(
-            self.base_view, self.target_view
-        )
+        change_status = self.create_change_status()
 
         result = f"""
         <tr>
@@ -378,6 +389,12 @@ class TotalColumnsTableEntryElement(_Element):
         </tr>
         """
         return self.add_indent(result, 8)
+
+    def create_change_status(self):
+        change_status = ColumnChangeView.create_change_status(
+            self.base_view, self.target_view
+        )
+        return change_status
 
 
 class JoinedTables:
@@ -428,6 +445,8 @@ class ChangedColumnsTableElement(_Element):
         children = list(t.columns_changed_iterator(name))
         self.column_changes = len(children)
 
+        orange_changes = r'$\color{orange}{\text{(↑ changes)}}$'
+
         return f"""
         <table>
         <thead><tr><th title="Field #1">&nbsp;&nbsp;&nbsp;&nbsp;</th>
@@ -442,7 +461,7 @@ class ChangedColumnsTableElement(_Element):
 
         </tbody></table>
 
-        * <em>Hover over <a href="#hover-for-info" title="On hover, change show additional values (like base and target counts and percentages)."><kbd>🔺changes</kbd></a> for more information.</em>
+        <i>Hover over <span href="#hover-for-info" title="On hover, change show additional values (like base and target counts and percentages)."> {orange_changes} </span> for more information.</i>
         """
 
 
@@ -560,24 +579,50 @@ class ModelEntryOverviewElement(_Element):
         materialized = m.config.materialized
         name = m.name
 
+        t = JoinedTables(self.joined_tables)
+        column_change_views = list(t.all_columns_iterator(name))
         # TODO
 
         base_data = self.joined_tables.get(name, {}).get("base", {})
         target_data = self.joined_tables.get(name, {}).get("target", {})
-
         base_total_rows = base_data.get("row_count", "-")
         target_total_rows = target_data.get("row_count", "-")
-
         base_total_columns = base_data.get("col_count", "-")
         target_total_columns = target_data.get("col_count", "-")
 
-        value_diff_plus = 1
-        value_diff_minus = 2
-        value_diff_explicit = 1
+        value_diff_plus = ChangeStatus.count_added([x.create_change_status() for x in column_change_views])
+        value_diff_minus = ChangeStatus.count_removed([x.create_change_status() for x in column_change_views])
+        value_diff_explicit = ChangeStatus.count_edited([x.create_change_status() for x in column_change_views])
 
-        # TODO
-        total_rows_hover = """<a href="#hover-for-info" title="B: 2,678 ••• T: 3,310 (🔺632) (🔺24%)"><kbd>🔺24%</kbd></a>"""
-        total_columns_hover = f"""<a href="#hover-for-info" title="TODO..."><kbd>{value_diff_plus}{hover_diff_plus} {value_diff_minus}{hover_diff_minus} {value_diff_explicit}{hover_diff_explicit}</kbd>"""
+        def c(text):
+            if isinstance(text, str) and '%' in text:
+                text = text.replace('%', '\%')
+            return r'$\color{orange}{\text{ %s }}$' % str(text)
+
+        if target_total_rows == base_total_rows:
+            total_rows_hover = ""
+        elif target_total_rows > base_total_rows:
+            row_p = f"(↑ {target_total_rows / base_total_rows - 1:.1%})"
+            orange_row_p = c(row_p)
+            total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↑ {target_total_rows - base_total_rows}) {row_p}">{orange_row_p}</span>"""
+        else:
+            row_p = c(f"(↓ {abs(target_total_rows / base_total_rows - 1):.1%})")
+            orange_row_p = c(row_p)
+            total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↓ {base_total_rows - target_total_rows}) {row_p}">{orange_row_p}</span>"""
+
+        total_columns_params = dict()
+        total_columns_params['value_diff_plus'] = c('(' + str(value_diff_plus))
+        total_columns_params['hover_diff_plus'] = hover_diff_plus
+
+        total_columns_params['value_diff_minus'] = c(value_diff_minus)
+        total_columns_params['hover_diff_minus'] = hover_diff_minus
+
+        total_columns_params['value_diff_explicit'] = c(value_diff_explicit)
+        total_columns_params['hover_diff_explicit'] = hover_diff_explicit
+        total_columns_params['end'] = c(')')
+
+        total_columns_data = """%(value_diff_plus)s%(hover_diff_plus)s %(value_diff_minus)s%(hover_diff_minus)s %(value_diff_explicit)s%(hover_diff_explicit)s%(end)s""" % total_columns_params
+        total_columns_hover = r"<span>%s</span>" % total_columns_data
 
         stat = self.make_cols_stat(base_data, target_data)
 
@@ -599,13 +644,6 @@ class ModelEntryOverviewElement(_Element):
         <td></td>
         <td>Base</td>
         <td>Target</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>Total dbt Time (TBD)</td>
-        <td>5'21"</td>
-        <td>11'37" <a href="#hover-for-info" title="B: 5'21'' ••• T: 11'37'' (🔺6'16'') (🔺217%)"><kbd>🔺217%</kbd></a></td>
         <td></td>
     </tr>
     <tr>
@@ -931,6 +969,10 @@ class DbtMetricsChangeElement(_Element):
         super().__init__(root)
         self.base_metrics = base_metrics
         self.target_metrics = target_metrics
+        self.joined_metrics = None
+
+        if not self.base_metrics or not self.target_metrics:
+            return
 
         joined_metrics: Dict[str, MetricsChangeView] = collections.OrderedDict()
         metric_names = sorted(
@@ -969,6 +1011,9 @@ class DbtMetricsChangeElement(_Element):
         )
 
     def build(self):
+        if not self.joined_metrics:
+            return ""
+
         changeset = [
             x for x in self.joined_metrics.values() if x.change_type != "no-changes"
         ]
