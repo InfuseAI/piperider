@@ -1,6 +1,7 @@
 import abc
+import collections
 from dataclasses import dataclass
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 
 from dbt.contracts.graph.manifest import WritableManifest
 
@@ -14,6 +15,7 @@ remove_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets
 triangle_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-triangle%402x.png" width="18px">"""
 shield_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-bs-shield%402x.png" width="18px">"""
 cross_shield_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-bs-shield-cross-yellow%402x.png" width="18px">"""
+implicit_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-implicit%402x.png" width="18px">"""
 
 column_change_diff_plus = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-plus%402x.png" width="18px">"""
 column_change_diff_minus = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-minus%402x.png" width="18px">"""
@@ -24,6 +26,7 @@ hover_diff_minus = """<img src="https://raw.githubusercontent.com/HanleyInfuse/a
 hover_diff_explicit = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-explicit%402x.png" width="10px">"""
 
 
+#
 def model_selectors_to_table_names(selector_list: List[str]) -> Iterable[str]:
     # selector from dbt will like xxx.yyy.zzz
     # we only care the last part: zzz
@@ -37,7 +40,6 @@ def _build_list(elements: List["_Element"], line_sep="\n\n"):
 
 
 class _Element(metaclass=abc.ABCMeta):
-
     def __init__(self, root: "_Element"):
         self.root = root
 
@@ -46,15 +48,15 @@ class _Element(metaclass=abc.ABCMeta):
         ...
 
     def add_indent(self, text, indent=4):
-        lines = text.split('\n')
+        lines = text.split("\n")
         indented_lines = [f'{" " * indent}{line.strip()}' for line in lines]
-        indented_text = '\n'.join(indented_lines)
+        indented_text = "\n".join(indented_lines)
         return indented_text
 
     def find_target_node(self, model_selector: str):
         node = self
         while True:
-            if hasattr(node, 'target_manifest'):
+            if hasattr(node, "target_manifest"):
                 selected = model_selector.split(".")
                 m: WritableManifest = node.target_manifest
                 for n in m.nodes.values():
@@ -76,7 +78,7 @@ class _Element(metaclass=abc.ABCMeta):
     def get_target_manifest(self):
         node = self
         while True:
-            if hasattr(node, 'target_manifest'):
+            if hasattr(node, "target_manifest"):
                 return node.target_manifest
             node = node.root
             if node is None:
@@ -85,20 +87,20 @@ class _Element(metaclass=abc.ABCMeta):
     def get_base_manifest(self):
         node = self
         while True:
-            if hasattr(node, 'base_manifest'):
+            if hasattr(node, "base_manifest"):
                 return node.base_manifest
             node = node.root
             if node is None:
                 break
 
     def merge_keys(self, base: List[str], target: List[str]):
-        '''
+        """
         Merge keys from base, target tables. Unlike default union, it preserves the order for column rename, added, removed.
 
         :param base: keys for base table
         :param target: keys for base table
         :return: merged keys
-        '''
+        """
 
         result = []
         while base and target:
@@ -129,7 +131,7 @@ class _Element(metaclass=abc.ABCMeta):
         return result
 
     def join(self, base, target):
-        '''
+        """
         Join base and target to a dict which
 
         keys = (base keys) +  (target keys)
@@ -138,7 +140,7 @@ class _Element(metaclass=abc.ABCMeta):
         :param base:
         :param target:
         :return:
-        '''
+        """
         if not base:
             base = dict()
         if not target:
@@ -148,8 +150,8 @@ class _Element(metaclass=abc.ABCMeta):
         result = dict()
         for key in keys:
             value = dict()
-            value['base'] = base.get(key)
-            value['target'] = target.get(key)
+            value["base"] = base.get(key)
+            value["target"] = target.get(key)
             result[key] = value
         return result
 
@@ -162,7 +164,7 @@ class ChangeStatus:
     icon: str
 
     def is_added_or_removed(self):
-        return self.change_type in ['Added.', 'Removed.']
+        return self.change_type in ["Added.", "Removed."]
 
     def display(self):
         if self.target_view is not None:
@@ -171,7 +173,6 @@ class ChangeStatus:
 
 
 class ColumnChangeView:
-
     def __init__(self, data: Dict):
         self.data = data
 
@@ -182,16 +183,16 @@ class ColumnChangeView:
             return False
 
         # Edited -> types, duplicate, invalids, missing(nulls)
-        if self.data.get('type') != other.data.get('type'):
+        if self.data.get("type") != other.data.get("type"):
             return False
 
-        if self.data.get('duplicates') != other.data.get('duplicates'):
+        if self.data.get("duplicates") != other.data.get("duplicates"):
             return False
 
-        if self.data.get('invalids') != other.data.get('invalids'):
+        if self.data.get("invalids") != other.data.get("invalids"):
             return False
 
-        if self.data.get('nulls') != other.data.get('nulls'):
+        if self.data.get("nulls") != other.data.get("nulls"):
             return False
 
         return True
@@ -200,7 +201,7 @@ class ColumnChangeView:
     def duplicates_p(self):
         if not self.data:
             return "-"
-        if self.data.get('duplicates_p') is None:
+        if self.data.get("duplicates_p") is None:
             return "-"
         return f"{self.data.get('duplicates_p'):.1%}"
 
@@ -208,7 +209,7 @@ class ColumnChangeView:
     def nulls_p(self):
         if not self.data:
             return "-"
-        if self.data.get('nulls_p') is None:
+        if self.data.get("nulls_p") is None:
             return "-"
 
         return f"{self.data.get('nulls_p'):.1%}"
@@ -217,7 +218,7 @@ class ColumnChangeView:
     def invalids_p(self):
         if not self.data:
             return "-"
-        if self.data.get('invalids_p') is None:
+        if self.data.get("invalids_p") is None:
             return "-"
         return f"{self.data.get('invalids_p'):.1%}"
 
@@ -225,10 +226,10 @@ class ColumnChangeView:
         if self.data is None:
             return None
         if compared_type is not None:
-            if self.data.get('type') != compared_type:
+            if self.data.get("type") != compared_type:
                 return f"{self.data.get('type')} <kbd>changed</kbd>"
-            return self.data.get('type')
-        return self.data.get('type')
+            return self.data.get("type")
+        return self.data.get("type")
 
     def explain(self, target_view: "ColumnChangeView"):
         # assume self is base_view, another is target_view
@@ -236,16 +237,21 @@ class ColumnChangeView:
         # type, duplicate, missing, invalid
         reasons = []
         if self.get_type() != target_view.get_type():
-            reasons.append('Type Changed.')
+            reasons.append("Type Changed.")
 
         def add_reason_for(metric_name: str, display_label: str):
             percentage = f"{metric_name}_p"
             if self.data.get(metric_name) != target_view.data.get(metric_name):
                 delta = target_view.data.get(percentage) - self.data.get(percentage)
-                annotation = f"{delta:.1%}" + '↑' if delta > 0 else f"{delta:.1%}" + '↓'
-                annotation = f"({annotation})".replace('%', '\%')
-                annotation = r'<span title="TODO">$\color{orange}{\text{ %s }}$</span>' % annotation
-                reasons.append(f"{target_view.data.get(percentage):.1%} {display_label} {annotation}.")
+                annotation = f"{delta:.1%}" + "↑" if delta > 0 else f"{delta:.1%}" + "↓"
+                annotation = f"({annotation})".replace("%", "\%")
+                annotation = (
+                        r'<span title="TODO">$\color{orange}{\text{ %s }}$</span>'
+                        % annotation
+                )
+                reasons.append(
+                    f"{target_view.data.get(percentage):.1%} {display_label} {annotation}."
+                )
 
         add_reason_for("duplicates", "Duplicates")
         add_reason_for("nulls", "Missing")
@@ -254,24 +260,43 @@ class ColumnChangeView:
         return " ".join(reasons)
 
     @classmethod
-    def create_change_status(cls, base_view: "ColumnChangeView", target_view: "ColumnChangeView") -> ChangeStatus:
+    def create_change_status(
+            cls, base_view: "ColumnChangeView", target_view: "ColumnChangeView"
+    ) -> ChangeStatus:
         if base_view.data is None and target_view.data is not None:
-            return ChangeStatus(change_type='Added.', base_view=base_view, target_view=target_view,
-                                icon=column_change_diff_plus)
+            return ChangeStatus(
+                change_type="Added.",
+                base_view=base_view,
+                target_view=target_view,
+                icon=column_change_diff_plus,
+            )
         if base_view.data is not None and target_view.data is None:
-            return ChangeStatus(change_type='Removed.', base_view=base_view, target_view=target_view,
-                                icon=column_change_diff_minus)
+            return ChangeStatus(
+                change_type="Removed.",
+                base_view=base_view,
+                target_view=target_view,
+                icon=column_change_diff_minus,
+            )
         if base_view == target_view:
-            return ChangeStatus(change_type='No changes.', base_view=base_view, target_view=target_view,
-                                icon='')
+            return ChangeStatus(
+                change_type="No changes.",
+                base_view=base_view,
+                target_view=target_view,
+                icon="",
+            )
         else:
-            return ChangeStatus(change_type='Edited.', base_view=base_view, target_view=target_view,
-                                icon=column_change_diff_explicit)
+            return ChangeStatus(
+                change_type="Edited.",
+                base_view=base_view,
+                target_view=target_view,
+                icon=column_change_diff_explicit,
+            )
 
 
 class ChangedColumnsTableEntryElement(_Element):
-
-    def __init__(self, column_name: str, base_column_data: Dict, target_column_data: Dict):
+    def __init__(
+            self, column_name: str, base_column_data: Dict, target_column_data: Dict
+    ):
         super().__init__(None)
         self.column_name = column_name
         self.base_column_data = base_column_data
@@ -286,7 +311,9 @@ class ChangedColumnsTableEntryElement(_Element):
         # added -> base is null and target is not null
         # removed -> base is not null and target is null
         # Edited -> types, duplicate, invalids, missing(nulls)
-        change_status = ColumnChangeView.create_change_status(self.base_view, self.target_view)
+        change_status = ColumnChangeView.create_change_status(
+            self.base_view, self.target_view
+        )
         if change_status.is_added_or_removed():
             result = f"""
                 <tr>
@@ -316,8 +343,9 @@ class ChangedColumnsTableEntryElement(_Element):
 
 
 class TotalColumnsTableEntryElement(_Element):
-
-    def __init__(self, column_name: str, base_column_data: Dict, target_column_data: Dict):
+    def __init__(
+            self, column_name: str, base_column_data: Dict, target_column_data: Dict
+    ):
         super().__init__(None)
         self.column_name = column_name
         self.base_column_data = base_column_data
@@ -331,7 +359,9 @@ class TotalColumnsTableEntryElement(_Element):
         if target_type is None:
             target_type = f"{self.base_view.get_type()}"
 
-        change_status = ColumnChangeView.create_change_status(self.base_view, self.target_view)
+        change_status = ColumnChangeView.create_change_status(
+            self.base_view, self.target_view
+        )
 
         result = f"""
         <tr>
@@ -350,29 +380,36 @@ class TotalColumnsTableEntryElement(_Element):
 
 
 class JoinedTables:
-
     def __init__(self, joined_tables: Dict):
         self.joined_tables = joined_tables
 
-    def columns_changed_iterator(self, table_name) -> Iterable[ChangedColumnsTableEntryElement]:
+    def columns_changed_iterator(
+            self, table_name
+    ) -> Iterable[ChangedColumnsTableEntryElement]:
         all_column_keys, b, t = self.create_columns_and_their_metrics(table_name)
 
         for column_name in all_column_keys:
-            elem = ChangedColumnsTableEntryElement(column_name, b.get(column_name), t.get(column_name))
+            elem = ChangedColumnsTableEntryElement(
+                column_name, b.get(column_name), t.get(column_name)
+            )
             if not elem.changed:
                 continue
             yield elem
 
-    def all_columns_iterator(self, table_name) -> Iterable[TotalColumnsTableEntryElement]:
+    def all_columns_iterator(
+            self, table_name
+    ) -> Iterable[TotalColumnsTableEntryElement]:
         all_column_keys, b, t = self.create_columns_and_their_metrics(table_name)
 
         for column_name in all_column_keys:
-            yield TotalColumnsTableEntryElement(column_name, b.get(column_name), t.get(column_name))
+            yield TotalColumnsTableEntryElement(
+                column_name, b.get(column_name), t.get(column_name)
+            )
 
     def create_columns_and_their_metrics(self, table_name):
         table = self.joined_tables[table_name]
-        b = table.get('base', {}).get('columns')
-        t = table.get('target', {}).get('columns')
+        b = table.get("base", {}).get("columns")
+        t = table.get("target", {}).get("columns")
         all_column_keys = sorted(set(list(b.keys()) + list(t.keys())))
         return all_column_keys, b, t
 
@@ -409,7 +446,6 @@ class ChangedColumnsTableElement(_Element):
 
 
 class TotalColumnsTableElement(_Element):
-
     def __init__(self, root: _Element, model_selector: str, joined_tables: Dict):
         super().__init__(root)
         self.model_selector = model_selector
@@ -455,10 +491,19 @@ class ModelEntryColumnsChangedElement(_Element):
         self.joined_tables = joined_tables
 
     def build(self):
-        element = ChangedColumnsTableElement(self.root, self.model_selector, self.joined_tables)
+        element = ChangedColumnsTableElement(
+            self.root, self.model_selector, self.joined_tables
+        )
         table_content = element.build()
+
+        if element.column_changes == 0:
+            return self.add_indent(
+                f"<details><summary>{element.column_changes} Columns Changed</summary></details>"
+            )
+
         return self.add_indent(
-            f"<details><summary>{element.column_changes} Columns Changed</summary>{table_content}</details>")
+            f"<details><summary>{element.column_changes} Columns Changed</summary>{table_content}</details>"
+        )
 
 
 class ModelEntryColumnsInTotalElement(_Element):
@@ -468,11 +513,14 @@ class ModelEntryColumnsInTotalElement(_Element):
         self.joined_tables = joined_tables
 
     def build(self):
-        element = TotalColumnsTableElement(self.root, self.model_selector, self.joined_tables)
+        element = TotalColumnsTableElement(
+            self.root, self.model_selector, self.joined_tables
+        )
         content = element.build()
         columns_total = element.columns
         return self.add_indent(
-            f"<details><summary>{columns_total} Columns in Total</summary>{content}</details>")
+            f"<details><summary>{columns_total} Columns in Total</summary>{content}</details>"
+        )
 
 
 class ModelEntryOverviewElement(_Element):
@@ -482,27 +530,28 @@ class ModelEntryOverviewElement(_Element):
         self.joined_tables = joined_tables
 
     def make_cols_stat(self, base_table_metrics, target_table_metrics):
-
-        joined = self.join(base_table_metrics.get('columns'), target_table_metrics.get('columns'))
+        joined = self.join(
+            base_table_metrics.get("columns"), target_table_metrics.get("columns")
+        )
 
         # duplicate, invalid, missing
         stat = [0, 0, 0]
         for column_name in joined.keys():
             c = joined[column_name]
 
-            b = c.get('base')
-            t = c.get('target')
+            b = c.get("base")
+            t = c.get("target")
             if t is None or b is None:
                 stat[0] += 1
                 stat[1] += 1
                 stat[2] += 1
                 continue
 
-            for idx, m in enumerate(['duplicates', 'invalids', 'nulls']):
+            for idx, m in enumerate(["duplicates", "invalids", "nulls"]):
                 if b.get(m) != t.get(m):
                     stat[idx] += 1
 
-        value = target_table_metrics.get('col_count')
+        value = target_table_metrics.get("col_count")
         return [(x, value) for x in stat]
 
     def build(self):
@@ -512,14 +561,14 @@ class ModelEntryOverviewElement(_Element):
 
         # TODO
 
-        base_data = self.joined_tables.get(name, {}).get('base', {})
-        target_data = self.joined_tables.get(name, {}).get('target', {})
+        base_data = self.joined_tables.get(name, {}).get("base", {})
+        target_data = self.joined_tables.get(name, {}).get("target", {})
 
-        base_total_rows = base_data.get('row_count', '-')
-        target_total_rows = target_data.get('row_count', '-')
+        base_total_rows = base_data.get("row_count", "-")
+        target_total_rows = target_data.get("row_count", "-")
 
-        base_total_columns = base_data.get('col_count', '-')
-        target_total_columns = target_data.get('col_count', '-')
+        base_total_columns = base_data.get("col_count", "-")
+        target_total_columns = target_data.get("col_count", "-")
 
         value_diff_plus = 1
         value_diff_minus = 2
@@ -534,7 +583,7 @@ class ModelEntryOverviewElement(_Element):
         cols_descriptions = [
             self.to_col_description2(stat, 0),
             self.to_col_description2(stat, 1),
-            self.to_col_description2(stat, 2)
+            self.to_col_description2(stat, 2),
         ]
 
         return f"""
@@ -662,7 +711,6 @@ class ModelEntryOverviewElement(_Element):
 
 
 class ModelEntryElement(_Element):
-
     def __init__(self, root: _Element, model_selector: str, joined_tables: Dict):
         super().__init__(root)
         self.model_selector = model_selector
@@ -670,9 +718,15 @@ class ModelEntryElement(_Element):
 
     def build(self):
         path_line = self.find_target_path(self.model_selector)
-        children = [ModelEntryOverviewElement(self, self.model_selector, self.joined_tables),
-                    ModelEntryColumnsChangedElement(self, self.model_selector, self.joined_tables),
-                    ModelEntryColumnsInTotalElement(self, self.model_selector, self.joined_tables)]
+        children = [
+            ModelEntryOverviewElement(self, self.model_selector, self.joined_tables),
+            ModelEntryColumnsChangedElement(
+                self, self.model_selector, self.joined_tables
+            ),
+            ModelEntryColumnsInTotalElement(
+                self, self.model_selector, self.joined_tables
+            ),
+        ]
         return f"\n* {path_line}\n{_build_list(children)}\n"
 
 
@@ -681,7 +735,9 @@ class ModelElement(_Element):
     STATE_DEL = 1
     STATE_MOD = 2
 
-    def __init__(self, root: _Element, summary_title: str, models: List[str], joined_tables: Dict):
+    def __init__(
+            self, root: _Element, summary_title: str, models: List[str], joined_tables: Dict
+    ):
         super().__init__(root)
         self.summary_title = summary_title
         self.models = models
@@ -696,11 +752,11 @@ class ModelElement(_Element):
         table_modified = False
         for column_name in joined.keys():
             joined_column = joined[column_name]
-            b = joined_column.get('base')
-            t = joined_column.get('target')
+            b = joined_column.get("base")
+            t = joined_column.get("target")
 
-            schema_type_b = self._get_metric_from_report(b, 'schema_type', None)
-            schema_type_t = self._get_metric_from_report(t, 'schema_type', None)
+            schema_type_b = self._get_metric_from_report(b, "schema_type", None)
+            schema_type_t = self._get_metric_from_report(t, "schema_type", None)
 
             if b is None:
                 table_modified = True
@@ -729,36 +785,180 @@ class ModelElement(_Element):
         return f"<details><summary>{self.summary_title}: {len(self.get_changed_tables())} of {len(self.models)}</summary>\n{_build_list(entries)}</details>"
 
     def get_changed_tables(self):
-
         changed = []
         for table_name in model_selectors_to_table_names(self.models):
             t = self.joined_tables[table_name]
 
-            columns_b = t.get('base').get('columns') if t.get('base') else None
-            columns_t = t.get('target').get('columns') if t.get('target') else None
+            columns_b = t.get("base").get("columns") if t.get("base") else None
+            columns_t = t.get("target").get("columns") if t.get("target") else None
             state = self._get_changed_state(table_name, columns_b, columns_t)
             if state is not None:
                 changed.append(table_name)
         return set(changed)
 
 
-class Document(_Element):
+class MetricsChangeView:
+    def __init__(self, name: str):
+        self.name = name
+        self.header: str = "__unknown__"
+        self.base_data: Optional[List] = None
+        self.target_data: Optional[List] = None
+        self.change_type = None
 
-    def __init__(self, base_manifest: WritableManifest, target_manifest: WritableManifest,
-                 altered_models: List[str], downstream_models: List[str], joined_tables: Dict):
+    def update_status(self):
+        # added, removed, edited, no changes
+        if self.base_data is None and self.target_data is not None:
+            self.change_type = "added"
+            return
+
+        if self.base_data is not None and self.target_data is None:
+            self.change_type = "removed"
+            return
+
+        if self.base_data == self.target_data:
+            self.change_type = "no-changes"
+        else:
+            self.change_type = "edited"
+
+    def summary(self):
+        return self.name
+
+    def calculate_diff(self):
+        # TODO make a diff set
+        return f"Edited {implicit_icon}"
+
+    def summary_for_change_type(self):
+        if self.change_type == "no-changes":
+            return ""
+        if self.change_type == "edited":
+            return self.calculate_diff()
+        if self.change_type == "added":
+            return "Added"
+        if self.change_type == "removed":
+            return "Removed"
+
+
+class DbtMetricsWithChangesElement(_Element):
+    def __init__(self, data: List[MetricsChangeView]):
+        super().__init__(None)
+        self.data = data
+
+    def build(self):
+        lines = []
+        for x in self.data:
+            lines.append(
+                f"<details><summary>{x.summary()} ({x.summary_for_change_type()})</summary>"
+                f"</details>"
+            )
+
+        content = "\n".join(lines)
+        summary_line = f"\n* dbt Metrics with Changes: {len(self.data)}\n"
+        return summary_line + self.add_indent(
+            f"""
+        \n{content}\n
+        """,
+            4,
+        )
+
+
+class DbtMetricsChangeElement(_Element):
+    def __init__(
+            self, root: _Element, base_metrics: List[Dict], target_metrics: List[Dict]
+    ):
+        super().__init__(root)
+        self.base_metrics = base_metrics
+        self.target_metrics = target_metrics
+
+        joined_metrics: Dict[str, MetricsChangeView] = collections.OrderedDict()
+        metric_names = sorted(
+            list(
+                set(
+                    [x.get("name") for x in self.base_metrics]
+                    + [x.get("name") for x in self.target_metrics]
+                )
+            )
+        )
+
+        for name in metric_names:
+            joined_metrics[name] = MetricsChangeView(name)
+
+        for metric in self.base_metrics:
+            name = metric.get("name")
+            m: MetricsChangeView = joined_metrics[name]
+            m.header = metric.get("headers")[0]
+            m.base_data = metric.get("data")
+
+        for metric in self.target_metrics:
+            name = metric.get("name")
+            m: MetricsChangeView = joined_metrics[name]
+            m.header = metric.get("headers")[0]
+            m.target_data = metric.get("data")
+
+        self.total_metrics = len(metric_names)
+
+        # added, removed, edited, no changes
+        for m in joined_metrics.values():
+            m.update_status()
+
+        self.joined_metrics = joined_metrics
+        self.changes = len(
+            [x for x in joined_metrics.values() if x.change_type != "no-changes"]
+        )
+
+        pass
+
+    def build(self):
+        changeset = [
+            x for x in self.joined_metrics.values() if x.change_type != "no-changes"
+        ]
+        no_changeset = [
+            x for x in self.joined_metrics.values() if x.change_type == "no-changes"
+        ]
+        return (
+            f"<details><summary>dbt Metrics changes: {self.changes} of {self.total_metrics} dbt Metrics</summary>"
+            f"\n{DbtMetricsWithChangesElement(changeset).build()}\n"
+            f"</details>"
+        )
+
+
+class Document(_Element):
+    def __init__(
+            self,
+            base_manifest: WritableManifest,
+            target_manifest: WritableManifest,
+            altered_models: List[str],
+            downstream_models: List[str],
+            base_run: Dict,
+            target_run: Dict,
+    ):
         super().__init__(None)
         self.base_manifest = base_manifest
         self.target_manifest = target_manifest
         self.altered_models: List[str] = altered_models
         self.downstream_models: List[str] = downstream_models
-        self.joined_tables: Dict = joined_tables
+        self.joined_tables: Dict = self.join(
+            base_run.get("tables"), target_run.get("tables")
+        )
+
+        self.base_run = base_run
+        self.target_run = target_run
 
     def build(self):
         children = []
-        children.append(ModelElement(self, "Altered Models in PR", self.altered_models, self.joined_tables))
-        children.append(ModelElement(self, "Downstream Models", self.downstream_models, self.joined_tables))
-
-        # TODO add dbt-metrics
-        #
+        children.append(
+            ModelElement(
+                self, "Altered Models in PR", self.altered_models, self.joined_tables
+            )
+        )
+        children.append(
+            ModelElement(
+                self, "Downstream Models", self.downstream_models, self.joined_tables
+            )
+        )
+        children.append(
+            DbtMetricsChangeElement(
+                self, self.base_run.get("metrics"), self.target_run.get("metrics")
+            )
+        )
 
         return _build_list(children)

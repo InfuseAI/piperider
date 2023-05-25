@@ -251,8 +251,11 @@ class ComparisonData(object):
         altered_models = compare_models_between_manifests(base_manifest, target_manifest)
         downstream_models = list(set(with_downstream) - set(altered_models))
 
+        # doc = Document(base_manifest, target_manifest, altered_models, downstream_models,
+        #                join(self._base.get('tables'), self._target.get('tables')))
+
         doc = Document(base_manifest, target_manifest, altered_models, downstream_models,
-                       join(self._base.get('tables'), self._target.get('tables')))
+                       self._base, self._target)
         return doc.build()
 
     @staticmethod
