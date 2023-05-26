@@ -11,6 +11,7 @@ from dbt.contracts.connection import QueryComment
 from dbt.contracts.graph.manifest import Manifest, WritableManifest
 from dbt.contracts.project import PackageConfig, UserConfig
 from dbt.contracts.state import PreviousState
+from dbt.exceptions import EventCompilationError
 from dbt.node_types import NodeType
 from dbt.task.list import ListTask
 
@@ -334,4 +335,10 @@ def compare_models_between_manifests(
         setattr(dbt_flags, "select", ("state:modified+",))
     else:
         setattr(dbt_flags, "select", ("state:modified",))
-    return task.run()
+
+    try:
+        return task.run()
+    except EventCompilationError as e:
+        if "does not match any nodes" in e.msg:
+            return []
+        raise e
