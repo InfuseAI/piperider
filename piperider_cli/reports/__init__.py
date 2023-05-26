@@ -985,14 +985,31 @@ class DbtMetricsWithChangesTable(_Element):
 
 
 class DbtMetricsWithChangesElement(_Element):
+    def __init__(self, changes_data: List[MetricsChangeView], no_changes_data: List[MetricsChangeView]):
+        super().__init__(None)
+        self.changes_data = changes_data
+        self.no_changes_data = no_changes_data
+
+    def build(self):
+        changed_line = f"\n* dbt Metrics with Changes: {len(self.changes_data)}\n"
+        changed_metrics = [DbtMetricsWithChangesTable(x) for x in self.changes_data]
+
+        return changed_line + self.add_indent(_build_list(changed_metrics), 4) + DbtMetricsWithNoChangesElement(self.no_changes_data).build()
+
+
+class DbtMetricsWithNoChangesElement(_Element):
     def __init__(self, data: List[MetricsChangeView]):
         super().__init__(None)
         self.data = data
 
     def build(self):
-        summary_line = f"\n* dbt Metrics with Changes: {len(self.data)}\n"
-        changed_metrics = [DbtMetricsWithChangesTable(x) for x in self.data]
-        return summary_line + self.add_indent(_build_list(changed_metrics), 4)
+        metric_entries = ""
+        for metric in self.data:
+            metric_entries += f"\n* {metric.name}\n"
+
+        return f"\n* <details><summary>dbt Metrics with No Changes: {len(self.data)}</summary>\n" \
+               f"{self.add_indent(metric_entries)}" \
+               f"</details>"
 
 
 class DbtMetricsChangeElement(_Element):
@@ -1055,7 +1072,7 @@ class DbtMetricsChangeElement(_Element):
         ]
         return (
             f"<details><summary>dbt Metrics changes: {self.changes} of {self.total_metrics} dbt Metrics</summary>"
-            f"\n{DbtMetricsWithChangesElement(changeset).build()}\n"
+            f"\n{DbtMetricsWithChangesElement(changeset, no_changeset).build()}\n"
             f"</details>"
         )
 
