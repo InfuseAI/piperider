@@ -26,6 +26,7 @@ import { CRBMPage } from './CRBMPage';
 import CRColumnDetailPage from './CRColumnDetailPage';
 import CRTableDetailPage from './CRTableDetailPage';
 import { CRTablesListPage } from './CRTableListPage';
+import { ReactFlowGraph } from '../components/LineageGraph/ReactFlowGraph';
 
 interface Props {
   data: ComparisonReportSchema;
@@ -87,6 +88,10 @@ export function CRPage({ data, sideNavTop = '0px' }: Props) {
 
           <Route path={METRICS_ROUTE_PATH}>
             <CRBMPage />
+          </Route>
+
+          <Route path={'/graph/reactflow'}>
+            <ReactFlowGraph />
           </Route>
 
           <Route path={SSR_ROUTE_PATH}>
