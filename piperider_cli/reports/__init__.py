@@ -1,5 +1,6 @@
 import abc
 import collections
+import math
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, Iterable, List, Optional
@@ -23,9 +24,9 @@ class DataChangeState(Enum):
 
 TRIANGLE_ICON = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-triangle-yellow%402x.png" width="18px">"""
 CHECKED_ICON = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-bs-check2-gray%402x.png" width="18px">"""
-materialization_type = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/model-icon-view%402x.png" width="27px">"""
+
 add_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-plus%402x.png" width="27px">"""
-diff_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-explicit%402x.png" width="27px">"""
+# diff_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-explicit%402x.png" width="27px">"""
 remove_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-minus%402x.png" width="27px">"""
 
 triangle_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-triangle%402x.png" width="18px">"""
@@ -40,6 +41,92 @@ column_change_diff_explicit = """<img src="https://raw.githubusercontent.com/Han
 hover_diff_plus = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-plus%402x.png" width="10px">"""
 hover_diff_minus = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-minus%402x.png" width="10px">"""
 hover_diff_explicit = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-explicit%402x.png" width="10px">"""
+
+iconBaseUrl = 'https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons'
+
+
+class ModelType(Enum):
+    ALTERED_MODELS = "Altered Models"
+    DOWNSTREAM_MODELS = "Downstream Models"
+
+
+def change_rate(base: int, target: int):
+    if isinstance(base, str) or isinstance(target, str):
+        return math.nan
+    if base is not None and target is not None:
+        if base == 0:
+            return math.inf
+        else:
+            return (target - base) / base
+    return math.nan
+
+
+def latex_orange(text):
+    if text is None:
+        return ""
+    if isinstance(text, str) and '%' in text:
+        text = text.replace('%', '\%')
+    return r'$\color{orange}{\text{ %s }}$' % str(text)
+
+
+def latex_grey(text):
+    if text is None:
+        return ""
+    if isinstance(text, str) and '%' in text:
+        text = text.replace('%', '\%')
+    return r'$\color{grey}{\text{ %s }}$' % str(text)
+
+
+def latex_black(text):
+    if text is None:
+        return ""
+    if isinstance(text, str) and '%' in text:
+        text = text.replace('%', '\%')
+    return r'$\color{black}{\text{ %s }}$' % str(text)
+
+
+class Image:
+    class ModelOverView:
+        # materialization
+        table = f"""<img src="{iconBaseUrl}/model-icon-table%402x.png" width="27px">"""
+        view = f"""<img src="{iconBaseUrl}/model-icon-view%402x.png" width="27px">"""
+        incremental = f"""<img src="{iconBaseUrl}/model-icon-incremental%402x.png" width="27px">"""
+        ephemeral = f"""<img src="{iconBaseUrl}/model-icon-ephemeral%402x.png" width="27px">"""
+
+        # diff-type
+        explicit = f"""<img src="{iconBaseUrl}/icon-diff-delta-explicit%402x.png" width="27px">"""
+        implicit = f"""<img src="{iconBaseUrl}/icon-diff-delta-implicit%402x.png" width="27px">"""
+
+        # change icons
+        triangle = f"""<img src="{iconBaseUrl}/icon-triangle-yellow%402x.png" width="18px">"""
+        checked = f"""<img src="{iconBaseUrl}/icon-bs-check2-gray%402x.png" width="18px">"""
+
+        @classmethod
+        def materialization(cls, materialization_type: str):
+            try:
+                return getattr(cls, materialization_type)
+            except:
+                return ""
+
+        @classmethod
+        def diff_icon(cls, model_type: ModelType):
+            if model_type == ModelType.ALTERED_MODELS:
+                return cls.explicit
+            if model_type == ModelType.DOWNSTREAM_MODELS:
+                return cls.implicit
+            return ""
+
+        @classmethod
+        def change_of_total_rows(cls, b: int, t: int):
+            if abs(change_rate(b, t)) > 0.05:
+                return cls.triangle
+            return ""
+
+        @classmethod
+        def change_of_total_columns(cls, b: int, t: int):
+            if b != t:
+                return cls.triangle
+            return cls.checked
 
 
 #
@@ -109,6 +196,9 @@ class _Element(metaclass=abc.ABCMeta):
 
     def joined_tables(self) -> "JoinedTables":
         return self._get_field("_joined_tables")
+
+    def get_model_type(self):
+        return self._get_field("model_type")
 
     def merge_keys(self, base: List[str], target: List[str]):
         """
@@ -275,10 +365,18 @@ class ColumnChangeView:
         def add_reason_for(metric_name: str, display_label: str):
             percentage = f"{metric_name}_p"
             if self.data.get(metric_name) != target_view.data.get(metric_name):
-                delta = target_view.data.get(percentage) - self.data.get(percentage)
+                delta = change_rate(self.data.get(percentage), target_view.data.get(percentage))
+                if delta == math.inf:
+                    delta = "∞↑"
+                elif delta > 0:
+                    delta = f"{delta:.1%}" + "↑"
+                elif delta < 0:
+                    delta = f"{delta:.1%}" + "↓"
+                else:
+                    delta = ""
+
                 title = f"B: {self.data.get(metric_name)}, T: {target_view.data.get(metric_name)}&#10;B: {self.data.get(percentage):.1%}, T: {target_view.data.get(percentage):.1%}"
-                annotation = f"{delta:.1%}" + "↑" if delta > 0 else f"{delta:.1%}" + "↓"
-                annotation = f"({annotation})".replace("%", "\%")
+                annotation = f"({delta})".replace("%", "\%")
                 annotation = (
                         r'<span title="%s">$\color{orange}{\text{ %s }}$</span>'
                         % (title, annotation)
@@ -353,13 +451,19 @@ class ChangedColumnsTableEntryElement(_Element):
         # removed -> base is not null and target is null
         # Edited -> types, duplicate, invalids, missing(nulls)
         change_status = self.change_status
+
         if change_status.is_added_or_removed():
+
+            display_type = change_status.target_view.get_type()
+            if display_type is None:
+                display_type = change_status.base_view.get_type()
+
             result = f"""
                 <tr>
                 <td>{change_status.icon}</td>
                 <td>{self.column_name}</td>
-                <td>{change_status.display().get_type()}</td>
-                <td>{change_status.display().get_type()}</td>
+                <td>{latex_grey(display_type)}</td>
+                <td>{latex_grey(display_type)}</td>
                 <td>{change_status.change_type}</td>
                 </tr>
                 """
@@ -368,12 +472,21 @@ class ChangedColumnsTableEntryElement(_Element):
         if not self.changed:
             return ""
 
+        base_type = self.base_view.get_type()
+        target_type = self.target_view.get_type(self.base_view.get_type())
+        if base_type == target_type:
+            base_type = latex_grey(base_type)
+            target_type = latex_grey(target_type)
+        else:
+            base_type = latex_black(base_type)
+            target_type = latex_black(target_type)
+
         result = f"""
             <tr>
             <td>{column_change_diff_explicit}</td>
             <td>{self.column_name}</td>
-            <td>{self.base_view.get_type()}</td>
-            <td>{self.target_view.get_type(self.base_view.get_type())}</td>
+            <td>{base_type}</td>
+            <td>{target_type}</td>
             <td>{self.base_view.explain(self.target_view)}</td>
             </tr>
             """
@@ -397,20 +510,30 @@ class TotalColumnsTableEntryElement(_Element):
         target_type = self.target_view.get_type()
         if target_type is None:
             target_type = f"{self.base_view.get_type()}"
+        # TODO check schema type change
 
         change_status = self.create_change_status()
+
+        def td(v1, v2):
+            if v1 == v2:
+                return f"""
+                <td>{latex_grey(v1)}</td>
+                <td>{latex_grey(v2)}</td>
+                """
+            else:
+                return f"""
+                <td>{latex_orange(v1)}</td>
+                <td>{latex_orange(v2)}</td>
+                """
 
         result = f"""
         <tr>
         <td>{change_status.icon}</td>
         <td>{self.column_name}</td>
-        <td>{target_type}</td>
-        <td>{self.base_view.duplicates_p}</td>
-        <td>{self.target_view.duplicates_p}</td>
-        <td>{self.base_view.invalids_p}</td>
-        <td>{self.target_view.invalids_p}</td>
-        <td>{self.base_view.nulls_p}</td>
-        <td>{self.target_view.nulls_p}</td>
+        <td>{latex_grey(target_type)}</td>
+        {td(self.base_view.duplicates_p, self.target_view.duplicates_p)}
+        {td(self.base_view.invalids_p, self.target_view.invalids_p)}
+        {td(self.base_view.nulls_p, self.target_view.nulls_p)}
         </tr>
         """
         return self.add_indent(result, 8)
@@ -635,32 +758,27 @@ class ModelEntryOverviewElement(_Element):
         value_diff_minus = ChangeStatus.count_removed([x.create_change_status() for x in column_change_views])
         value_diff_explicit = ChangeStatus.count_edited([x.create_change_status() for x in column_change_views])
 
-        def c(text):
-            if isinstance(text, str) and '%' in text:
-                text = text.replace('%', '\%')
-            return r'$\color{orange}{\text{ %s }}$' % str(text)
-
         if target_total_rows == base_total_rows:
             total_rows_hover = ""
         elif target_total_rows > base_total_rows:
-            row_p = f"(↑ {target_total_rows / base_total_rows - 1:.1%})"
-            orange_row_p = c(row_p)
+            row_p = f"(↑ {change_rate(base_total_rows, target_total_rows):.1%})"
+            orange_row_p = latex_orange(row_p)
             total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↑ {target_total_rows - base_total_rows}) {row_p}">{orange_row_p}</span>"""
         else:
-            row_p = c(f"(↓ {abs(target_total_rows / base_total_rows - 1):.1%})")
-            orange_row_p = c(row_p)
+            row_p = latex_orange(f"(↓ {change_rate(base_total_rows, target_total_rows):.1%})")
+            orange_row_p = latex_orange(row_p)
             total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↓ {base_total_rows - target_total_rows}) {row_p}">{orange_row_p}</span>"""
 
         total_columns_params = dict()
-        total_columns_params['value_diff_plus'] = c('(' + str(value_diff_plus))
+        total_columns_params['value_diff_plus'] = latex_orange('(' + str(value_diff_plus))
         total_columns_params['hover_diff_plus'] = hover_diff_plus
 
-        total_columns_params['value_diff_minus'] = c(value_diff_minus)
+        total_columns_params['value_diff_minus'] = latex_orange(value_diff_minus)
         total_columns_params['hover_diff_minus'] = hover_diff_minus
 
-        total_columns_params['value_diff_explicit'] = c(value_diff_explicit)
+        total_columns_params['value_diff_explicit'] = latex_orange(value_diff_explicit)
         total_columns_params['hover_diff_explicit'] = hover_diff_explicit
-        total_columns_params['end'] = c(')')
+        total_columns_params['end'] = latex_orange(')')
 
         total_columns_data = """%(value_diff_plus)s%(hover_diff_plus)s %(value_diff_minus)s%(hover_diff_minus)s %(value_diff_explicit)s%(hover_diff_explicit)s%(end)s""" % total_columns_params
         total_columns_hover = r"<span>%s</span>" % total_columns_data
@@ -673,12 +791,13 @@ class ModelEntryOverviewElement(_Element):
             self.to_col_description(stat, 2),
         ]
 
+        materialization_type = Image.ModelOverView.materialization(materialized)
         return f"""
    <table>
     <tr>
         <th>{materialization_type}</th>
         <th colspan='3' >{name} ({materialized})</th>
-        <th>{diff_icon}</th>
+        <th>{Image.ModelOverView.diff_icon(self.get_model_type())}</th>
     </tr>
     <tr>
         <td></td>
@@ -692,19 +811,18 @@ class ModelEntryOverviewElement(_Element):
         <td>Total Rows</td>
         <td>{base_total_rows}</td>
         <td>{target_total_rows} {total_rows_hover}</td>
-        <td></td>
+        <td>{Image.ModelOverView.change_of_total_rows(base_total_rows, target_total_rows)}</td>
     </tr>
     <tr>
         <td></td>
         <td>Total Columns</td>
         <td>{base_total_columns}</td>
         <td>{target_total_columns} {total_columns_hover}</td>
-        <td>{TRIANGLE_ICON}</td>
+        <td>{Image.ModelOverView.change_of_total_columns(base_total_columns, target_total_columns)}</td>
     </tr>
     <tr>
-        <td>{triangle_icon}</td>
-        <td rowspan='1' colspan='3' >CHANGES IN VALUES</td>
         <td></td>
+        <td rowspan='1' colspan='4' ><b>CHANGES IN VALUES</b></td>
     </tr>
     <tr>
         <td></td>
@@ -783,11 +901,6 @@ class ModelEntryElement(_Element):
 
         children = [self.overview_element, self.columns_changed_element, self.columns_in_total_element]
         return f"\n* {path_line}\n{_build_list(children)}\n"
-
-
-class ModelType(Enum):
-    ALTERED_MODELS = "Altered Models"
-    DOWNSTREAM_MODELS = "Downstream Models"
 
 
 class ModelElement(_Element):
@@ -994,7 +1107,8 @@ class DbtMetricsWithChangesElement(_Element):
         changed_line = f"\n* dbt Metrics with Changes: {len(self.changes_data)}\n"
         changed_metrics = [DbtMetricsWithChangesTable(x) for x in self.changes_data]
 
-        return changed_line + self.add_indent(_build_list(changed_metrics), 4) + DbtMetricsWithNoChangesElement(self.no_changes_data).build()
+        return changed_line + self.add_indent(_build_list(changed_metrics), 4) + DbtMetricsWithNoChangesElement(
+            self.no_changes_data).build()
 
 
 class DbtMetricsWithNoChangesElement(_Element):
