@@ -38,6 +38,7 @@ export interface SidebarTreeItem {
 }
 
 export interface LineageGraphItem {
+  uniqueId: string;
   name: string;
   from: ('base' | 'target')[];
   type: ItemType;
@@ -564,6 +565,7 @@ export function buildLineageGraph(
     }
 
     data[key] = {
+      uniqueId: key,
       name: fallback?.name || '',
       type: fallback!.resource_type!,
       from,

@@ -39,65 +39,72 @@ export function SRPage({ data, sideNavTop = '0px' }: Props) {
 
   return (
     <Router hook={useHashLocation as BaseLocationHook}>
-      <MasterDetailContainer sideNavTop={sideNavTop} singleOnly>
-        <Switch>
-          <Route path={HOME_ROUTE_PATH}>
-            <SRTablesListPage />
-          </Route>
+      <Switch>
+        <Route path={'/graph/reactflow'}>
+          <ReactFlowGraph singleOnly />
+        </Route>
+        <Route>
+          <MasterDetailContainer sideNavTop={sideNavTop} singleOnly>
+            <Switch>
+              <Route path={HOME_ROUTE_PATH}>
+                <SRTablesListPage />
+              </Route>
 
-          <Route path={TABLE_LIST_ROUTE_PATH}>
-            <SRTablesListPage />
-          </Route>
+              <Route path={TABLE_LIST_ROUTE_PATH}>
+                <SRTablesListPage />
+              </Route>
 
-          <Route path={TABLE_DETAILS_ROUTE_PATH}>
-            <SRTableDetailPage />
-          </Route>
-          <Route path={COLUMN_DETAILS_ROUTE_PATH}>
-            <SRColumnDetailPage />
-          </Route>
+              <Route path={TABLE_DETAILS_ROUTE_PATH}>
+                <SRTableDetailPage />
+              </Route>
+              <Route path={COLUMN_DETAILS_ROUTE_PATH}>
+                <SRColumnDetailPage />
+              </Route>
 
-          <Route path={SOURCE_DETAILS_ROUTE_PATH}>
-            <SRTableDetailPage />
-          </Route>
-          <Route path={SOURCE_COLUMN_DETAILS_ROUTE_PATH}>
-            <SRColumnDetailPage />
-          </Route>
+              <Route path={SOURCE_DETAILS_ROUTE_PATH}>
+                <SRTableDetailPage />
+              </Route>
+              <Route path={SOURCE_COLUMN_DETAILS_ROUTE_PATH}>
+                <SRColumnDetailPage />
+              </Route>
 
-          <Route path={SEED_DETAILS_ROUTE_PATH}>
-            <SRTableDetailPage />
-          </Route>
-          <Route path={SEED_COLUMN_DETAILS_ROUTE_PATH}>
-            <SRColumnDetailPage />
-          </Route>
+              <Route path={SEED_DETAILS_ROUTE_PATH}>
+                <SRTableDetailPage />
+              </Route>
+              <Route path={SEED_COLUMN_DETAILS_ROUTE_PATH}>
+                <SRColumnDetailPage />
+              </Route>
 
-          <Route path={MODEL_DETAILS_ROUTE_PATH}>
-            <SRTableDetailPage />
-          </Route>
-          <Route path={MODEL_COLUMN_DETAILS_ROUTE_PATH}>
-            <SRColumnDetailPage />
-          </Route>
+              <Route path={MODEL_DETAILS_ROUTE_PATH}>
+                <SRTableDetailPage />
+              </Route>
+              <Route path={MODEL_COLUMN_DETAILS_ROUTE_PATH}>
+                <SRColumnDetailPage />
+              </Route>
 
-          <Route path={ASSERTIONS_ROUTE_PATH}>
-            <SRAssertionListPage />
-          </Route>
+              <Route path={ASSERTIONS_ROUTE_PATH}>
+                <SRAssertionListPage />
+              </Route>
 
-          <Route path={METRICS_ROUTE_PATH}>
-            <SRBMPage />
-          </Route>
+              <Route path={METRICS_ROUTE_PATH}>
+                <SRBMPage />
+              </Route>
 
-          <Route path={'/graph/reactflow'}>
-            <ReactFlowGraph singleOnly />
-          </Route>
+              <Route path={'/graph/reactflow'}>
+                <ReactFlowGraph singleOnly />
+              </Route>
 
-          <Route path={SSR_ROUTE_PATH}>
-            <Loading />
-          </Route>
+              <Route path={SSR_ROUTE_PATH}>
+                <Loading />
+              </Route>
 
-          <Route>
-            <NotFound />
-          </Route>
-        </Switch>
-      </MasterDetailContainer>
+              <Route>
+                <NotFound />
+              </Route>
+            </Switch>
+          </MasterDetailContainer>
+        </Route>
+      </Switch>
     </Router>
   );
 }
