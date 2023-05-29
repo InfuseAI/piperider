@@ -1,7 +1,7 @@
 import { useReportStore } from '../../utils/store';
 import { Comparable } from '../../types';
 
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import ReactFlow, {
   Controls,
   Edge,
@@ -15,9 +15,23 @@ import ReactFlow, {
 import dagre from 'dagre';
 
 import 'reactflow/dist/style.css';
-import { Box, Flex, Icon } from '@chakra-ui/react';
+import {
+  Box,
+  Divider,
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerOverlay,
+  Flex,
+  Icon,
+  useDisclosure,
+} from '@chakra-ui/react';
 import { Link } from 'wouter';
 import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
+import React from 'react';
+import { LineageGraphItem } from '../../utils/dbt';
+import { FaLink } from 'react-icons/fa';
+import TableSummary from './TableSummary';
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -59,10 +73,7 @@ function CustomNode(params) {
   const node = params as Node;
   const data = node.data;
   const singleOnly = data.singleOnly;
-
-  // const onClick = () => {
-  //   setLocation();
-  // };
+  const onClick = data.onClick;
 
   let style: any = {
     'background-color': 'rgb(203 246 253)',
@@ -127,8 +138,14 @@ function CustomNode(params) {
       px={5}
     >
       <Handle type="target" position={Position.Left} />
-      <Box width="100%">
-        <Link href={node?.data?.path}>{name}</Link>
+      <Box
+        width="100%"
+        onClick={() => {
+          onClick(node?.data);
+        }}
+      >
+        {/* <Link href={node?.data?.path}>{name}</Link> */}
+        {name}
       </Box>
       {!singleOnly && changeStatus && <Icon as={iconChangeStatus} />}
 
@@ -152,6 +169,25 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selected, setSelected] = useState<LineageGraphItem>();
+
+  const onClick = useCallback(
+    (item: LineageGraphItem) => {
+      if (
+        item.type !== 'source' &&
+        item.type !== 'seed' &&
+        item.type !== 'model'
+      ) {
+        return;
+      }
+
+      setSelected(item);
+      onOpen();
+    },
+    [setSelected, onOpen],
+  );
+
   useEffect(() => {
     const initialNodes: Node[] = [];
     const initialEdges: Edge[] = [];
@@ -166,6 +202,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         data: {
           label: `${node.name}`,
           singleOnly,
+          onClick,
           ...node,
         },
         draggable: true,
@@ -197,7 +234,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
 
     setNodes(initialNodes);
     setEdges(initialEdges);
-  }, [lineageGraph, setNodes, setEdges, singleOnly]);
+  }, [lineageGraph, setNodes, setEdges, singleOnly, onClick]);
 
   return (
     <div
@@ -207,6 +244,24 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         border: '5 solid black',
       }}
     >
+      <Drawer isOpen={isOpen} placement="right" onClose={onClose} size="md">
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerBody>
+            <Box>
+              {selected?.type}: {selected?.name}{' '}
+              <Link href={selected?.path || ''}>
+                <Icon as={FaLink} />
+              </Link>
+            </Box>
+            <Divider></Divider>
+            <TableSummary
+              uniqueId={selected?.uniqueId || ''}
+              singleOnly={singleOnly}
+            ></TableSummary>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
       <ReactFlow
         nodes={nodes}
         edges={edges}
