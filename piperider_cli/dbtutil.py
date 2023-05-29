@@ -299,7 +299,12 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
             schema = None
             database = None
         else:
-            depends_on_node = metric.get('depends_on').get('nodes')[0]
+            nodes = metric.get('depends_on').get('nodes', [])
+            # Note: In "metrics" definition, if "model" value doesn't use `ref()` function,
+            #       the "depends_on.nodes" will be empty in the generated metrics manifest
+            if len(nodes) == 0:
+                continue
+            depends_on_node = nodes[0]
             table = manifest.get('nodes').get(depends_on_node).get('alias')
             schema = manifest.get('nodes').get(depends_on_node).get('schema')
             database = manifest.get('nodes').get(depends_on_node).get('database')
