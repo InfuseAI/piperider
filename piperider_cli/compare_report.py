@@ -151,8 +151,11 @@ class ComparisonData(object):
 
             base['tables'] = {table_name: base['tables'][table_name] for table_name in base['tables'] if
                               table_name in target_run_tables}
-            base['metrics'] = [metric for metric in base['metrics'] if metric.get('name') in target_run_metrics]
-            base['tests'] = [test for test in base['tests'] if test.get('id') in target_run_tests]
+            if 'metrics' in base:
+                base['metrics'] = [metric for metric in base['metrics'] if metric.get('name') in target_run_metrics]
+
+            if 'tests' in base:
+                base['tests'] = [test for test in base['tests'] if test.get('id') in target_run_tests]
         elif tables_from == 'base-only':
             base_run_tables = base.get('tables', {}).keys()
             base_run_metrics = {metric.get('name') for metric in base.get('metrics', [])}
@@ -160,8 +163,11 @@ class ComparisonData(object):
 
             target['tables'] = {table_name: target['tables'][table_name] for table_name in target['tables'] if
                                 table_name in base_run_tables}
-            target['metrics'] = [metric for metric in target['metrics'] if metric.get('name') in base_run_metrics]
-            target['tests'] = [test for test in target['tests'] if test.get('id') in base_run_tests]
+            if 'metrics' in target:
+                target['metrics'] = [metric for metric in target['metrics'] if metric.get('name') in base_run_metrics]
+
+            if 'tests' in target:
+                target['tests'] = [test for test in target['tests'] if test.get('id') in base_run_tests]
 
         self._base = base
         self._target = target
