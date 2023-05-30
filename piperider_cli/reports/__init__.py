@@ -1046,28 +1046,79 @@ class DbtMetricsWithChangesTableEntry(_Element):
         super().__init__(None)
         self.data = data
 
+    @staticmethod
+    def is_adjacency(idx, equal_index):
+        return idx + 1 in equal_index or idx - 1 in equal_index
+
     def build(self):
         content = ""
-        for date in self.data.agg_data:
+        dates = list(self.data.agg_data.keys())
+        # dummy value to make sure we don't go out of bounds
+        diff_status = [0]
+        for x in self.data.agg_data:
+            if self.data.agg_data[x]['base'] != self.data.agg_data[x]['target']:
+                diff_status.append(1)
+            else:
+                diff_status.append(0)
+        # dummy value to make sure we don't go out of bounds
+        diff_status.append(0)
+
+        display_index = []
+        equal_index = []
+        for idx in range(1, 1 + len(dates)):
+            if diff_status[idx] == 1:
+                display_index.append(idx-1)
+            if diff_status[idx] == 0 and (diff_status[idx] != diff_status[idx + 1] or diff_status[idx] != diff_status[idx - 1]):
+                equal_index.append(idx-1)
+
+        hide_adjacent = False
+        for idx, date in enumerate(dates):
             b = self.data.agg_data[date]['base']
             t = self.data.agg_data[date]['target']
-            change = ""
-            if b != t and b is not None and t is not None:
-                change = "↑" if t > b else "↓"
-                if b == 0:
-                    change += "∞"
-                else:
-                    change += f"{(t - b) / b: .1%}"
 
-            content += f"""
-            <tr>
-                <td>{implicit_icon if change else ""}</td>
-                <td>{date}</td>
-                <td>{b}</td>
-                <td>{t}</td>
-                <td>{"(" + change + ")" if change else ""}</td>
-            </tr>
-            """
+            if idx in display_index:
+                change = ""
+                if b is not None and t is not None:
+                    change = "↑" if t > b else "↓"
+                    if b == 0:
+                        change += "∞"
+                    else:
+                        change += f"{(t - b) / b: .1%}"
+
+                content += f"""
+                <tr>
+                    <td>{implicit_icon}</td>
+                    <td>{latex_orange(date)}</td>
+                    <td>{latex_orange(b) if b is not None else latex_orange('-')}</td>
+                    <td>{latex_orange(t) if t is not None else latex_orange('-')}</td>
+                    <td>{latex_orange("(" + change + ")") if change else ""}</td>
+                </tr>
+                """
+                hide_adjacent = False
+            elif idx in equal_index:
+                content += f"""
+                <tr>
+                    <td></td>
+                    <td>{latex_grey(date)}</td>
+                    <td>{latex_grey(b) if b is not None else latex_grey('-')}</td>
+                    <td>{latex_grey(t) if t is not None else latex_grey('-')}</td>
+                    <td></td>
+                </tr>
+                """
+                hide_adjacent = False
+            elif self.is_adjacency(idx, equal_index):
+                if hide_adjacent:
+                    continue
+                content += f"""
+                <tr>
+                    <td></td>
+                    <td>{latex_grey('...')}</td>
+                    <td>{latex_grey('...')}</td>
+                    <td>{latex_grey('...')}</td>
+                    <td></td>
+                </tr>
+                """
+                hide_adjacent = True
 
         return content
 
@@ -1185,7 +1236,7 @@ class DbtMetricsChangeElement(_Element):
             x for x in self.joined_metrics.values() if x.change_type == "no-changes"
         ]
         return (
-            f"<details><summary>dbt Metrics changes: {self.changes} of {self.total_metrics} dbt Metrics</summary>"
+            f"<details><summary>dbt Metrics changes: {self.changes} {triangle_icon if self.changes > 0 else ''} of {self.total_metrics} dbt Metrics</summary>"
             f"\n{DbtMetricsWithChangesElement(changeset, no_changeset).build()}\n"
             f"</details>"
         )
