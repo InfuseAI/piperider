@@ -5,39 +5,25 @@ import { useCallback, useEffect, useState } from 'react';
 import ReactFlow, {
   Controls,
   Edge,
-  Handle,
   MiniMap,
   Node,
-  Position,
   useEdgesState,
   useNodesState,
 } from 'reactflow';
 import dagre from 'dagre';
 
 import 'reactflow/dist/style.css';
-import {
-  Box,
-  Divider,
-  Drawer,
-  DrawerBody,
-  DrawerContent,
-  DrawerOverlay,
-  Flex,
-  Icon,
-  useDisclosure,
-} from '@chakra-ui/react';
-import { Link } from 'wouter';
-import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
-import React from 'react';
+import { Box, Select, useDisclosure } from '@chakra-ui/react';
+import { useLocation } from 'wouter';
 import { LineageGraphItem } from '../../utils/dbt';
-import { FaLink } from 'react-icons/fa';
 import TableSummary from './TableSummary';
+import { GraphNode } from './GraphNode';
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-const nodeWidth = 172;
-const nodeHeight = 36;
+const nodeWidth = 300;
+const nodeHeight = 60;
 
 const layout = (nodes, edges, direction = 'LR') => {
   const isHorizontal = direction === 'LR';
@@ -69,93 +55,8 @@ const layout = (nodes, edges, direction = 'LR') => {
   });
 };
 
-function CustomNode(params) {
-  const node = params as Node;
-  const data = node.data;
-  const singleOnly = data.singleOnly;
-  const onClick = data.onClick;
-
-  let style: any = {
-    'background-color': 'rgb(203 246 253)',
-    'border-color': '#0094b3',
-  };
-  let resourceType = node?.data?.type;
-
-  if (resourceType === 'source') {
-    style = {
-      'background-color': 'rgb(214 255 188)',
-      'border-color': '#5fb825',
-    };
-  } else if (resourceType === 'explosure') {
-    style = {
-      'background-color': '#ff694b',
-      'border-color': '#ff694b',
-    };
-  } else if (resourceType === 'metric') {
-    style = {
-      'background-color': 'rgb(255 230 238)',
-      'border-color': '#ff5688',
-    };
-  }
-
-  let iconChangeStatus;
-  let changeStatus = data.changeStatus;
-  if (!singleOnly) {
-    if (changeStatus === 'added') {
-      iconChangeStatus = VscDiffAdded;
-      // style = {
-      //   ...style,
-      //   'border-color': '#080',
-      //   color: '#080',
-      // };
-    } else if (changeStatus === 'changed') {
-      iconChangeStatus = VscDiffModified;
-      // style = {
-      //   ...style,
-      //   'border-color': '#00f',
-      //   color: '#00f',
-      // };
-    } else if (changeStatus === 'removed') {
-      iconChangeStatus = VscDiffRemoved;
-      style = {
-        ...style,
-        'border-style': 'dashed',
-        color: 'gray',
-      };
-    }
-  }
-
-  const name = node?.data?.name;
-
-  return (
-    <Flex
-      className="react-flow__node-default"
-      // style={{ backgroundColor }}
-      style={style}
-      _hover={{ bg: 'gray.100' }}
-      alignItems="center"
-      width="172px"
-      px={5}
-    >
-      <Handle type="target" position={Position.Left} />
-      <Box
-        width="100%"
-        onClick={() => {
-          onClick(node?.data);
-        }}
-      >
-        {/* <Link href={node?.data?.path}>{name}</Link> */}
-        {name}
-      </Box>
-      {!singleOnly && changeStatus && <Icon as={iconChangeStatus} />}
-
-      <Handle type="source" position={Position.Right} />
-    </Flex>
-  );
-}
-
 const nodeTypes = {
-  customNode: CustomNode,
+  customNode: GraphNode,
 };
 
 function logWithTimestamp(message) {
@@ -169,11 +70,16 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { onOpen } = useDisclosure();
   const [selected, setSelected] = useState<LineageGraphItem>();
+  const [, setLocation] = useLocation();
 
   const onClick = useCallback(
     (item: LineageGraphItem) => {
+      if (item?.path) {
+        setLocation(item?.path || '');
+      }
+
       if (
         item.type !== 'source' &&
         item.type !== 'seed' &&
@@ -185,6 +91,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
       setSelected(item);
       onOpen();
     },
+    // eslint-disable-next-line
     [setSelected, onOpen],
   );
 
@@ -244,24 +151,6 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         border: '5 solid black',
       }}
     >
-      <Drawer isOpen={isOpen} placement="right" onClose={onClose} size="md">
-        <DrawerOverlay />
-        <DrawerContent>
-          <DrawerBody>
-            <Box>
-              {selected?.type}: {selected?.name}{' '}
-              <Link href={selected?.path || ''}>
-                <Icon as={FaLink} />
-              </Link>
-            </Box>
-            <Divider></Divider>
-            <TableSummary
-              uniqueId={selected?.uniqueId || ''}
-              singleOnly={singleOnly}
-            ></TableSummary>
-          </DrawerBody>
-        </DrawerContent>
-      </Drawer>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -273,6 +162,26 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         <Controls />
         <MiniMap nodeStrokeWidth={3} zoomable pannable />
       </ReactFlow>
+      <Box
+        style={{
+          position: 'absolute',
+          background: 'white',
+          top: 0,
+          left: 0,
+        }}
+      >
+        <Select variant="outline" size="sm">
+          <option>Row count</option>
+          <option>No stats</option>
+          <option>Execution time</option>
+          <option>Metric total</option>
+        </Select>
+      </Box>
+
+      <TableSummary
+        uniqueId={selected?.uniqueId || ''}
+        singleOnly={singleOnly}
+      ></TableSummary>
     </div>
   );
 }

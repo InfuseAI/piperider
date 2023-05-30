@@ -47,6 +47,10 @@ export interface LineageGraphItem {
   dependsOn: {
     [key: string]: ('base' | 'target')[];
   };
+  stat?: {
+    base?: number;
+    target?: number;
+  };
 }
 
 export interface LineageGraphData {
@@ -530,6 +534,7 @@ export function buildLineageGraph(
     const fallback = (target ?? base) as DbtNode;
     const dependsOn = {};
     const from: LineageGraphItem['from'] = [];
+    const stat: LineageGraphItem['stat'] = {};
 
     if (fallback.resource_type === 'table') {
       return;
@@ -540,6 +545,7 @@ export function buildLineageGraph(
       (base.depends_on?.nodes || []).forEach((node) => {
         dependsOn[node] = ['base'];
       });
+      stat.base = base?.__table?.row_count;
     }
 
     if (target) {
@@ -551,6 +557,7 @@ export function buildLineageGraph(
           dependsOn[node] = ['target'];
         }
       });
+      stat.target = target?.__table?.row_count;
     }
 
     const path = `/${fallback?.resource_type}s/${fallback?.unique_id}`;
@@ -573,6 +580,10 @@ export function buildLineageGraph(
       changeStatus,
       dependsOn,
     };
+
+    if (stat.base !== undefined && stat.target !== undefined) {
+      data[key].stat = stat;
+    }
   });
 
   return data;
