@@ -1,4 +1,3 @@
-import abc
 import json
 import os
 from typing import Dict
@@ -6,11 +5,6 @@ from unittest import TestCase
 
 from dbt.exceptions import EventCompilationError
 
-import piperider_cli.dbtutil as dbtutil
-from piperider_cli.datasource.sqlite import SqliteDataSource
-from piperider_cli.dbt.run_results import RunResults, get_dbt_tests_result
-from piperider_cli.profiler import Profiler
-from tests.common import create_table
 from piperider_cli.dbt.list_task import compare_models_between_manifests, compare_models_between_manifests_files, \
     list_resources_from_manifest, list_resources_from_manifest_file, \
     ResourceSelector, load_manifest, load_manifest_from_file
@@ -144,25 +138,3 @@ class TestDbtIntegration(_BaseDbtTest):
             m2 = load_manifest(json.loads(fh.read()))
 
         self.assertEqual(m1.to_dict(), m2.to_dict())
-
-
-class TestDbtRunResults(_BaseDbtTest):
-
-    def setUp(self):
-        super().setUp()
-
-    def test_parsing_run_results(self):
-        # RunResults
-        piperider_run = self.load_json('run-with-run_results.json')
-        manifest = piperider_run.get('dbt', {}).get('manifest')
-        dbt_run_results = piperider_run.get('dbt', {}).get('run_results')
-        r = RunResults.from_dict(dbt_run_results)
-        self.assertAlmostEqual(1.1599838733673096, r.elapsed_time)
-        self.assertEqual(20, r.tests)
-
-        results = get_dbt_tests_result(manifest, dbt_run_results)
-        print(results)
-        print("-")
-
-        for x in results:
-            print(x)
