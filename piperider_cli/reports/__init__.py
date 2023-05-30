@@ -2,7 +2,7 @@ import abc
 import collections
 import math
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Iterable, List, Optional
 
 from dbt.contracts.graph.manifest import WritableManifest
@@ -127,7 +127,7 @@ class Image:
             return ""
 
         @classmethod
-        def change_of_total_rows(cls, b: int, t: int):
+        def change_of_total_rows_or_execution_time(cls, b: int, t: int):
             if abs(change_rate(b, t)) > 0.05:
                 return cls.triangle
             return ""
@@ -203,6 +203,12 @@ class _Element(metaclass=abc.ABCMeta):
 
     def get_base_manifest(self):
         return self._get_field("base_manifest")
+
+    def get_base_run_results(self):
+        return self._get_field("base_run_results")
+
+    def get_target_run_results(self):
+        return self._get_field("target_run_results")
 
     def joined_tables(self) -> "JoinedTables":
         return self._get_field("_joined_tables")
@@ -801,6 +807,32 @@ class ModelEntryOverviewElement(_Element):
             self.to_col_description(stat, 2),
         ]
 
+        def total_dbt_time(manifest, run_results: Dict):
+            model_id = m.unique_id
+            related_test_ids = []
+
+            # find test ids
+            for n in manifest.nodes.values():
+                if n.resource_type.value != 'test':
+                    continue
+                if model_id in n.depends_on.nodes:
+                    related_test_ids.append(n.unique_id)
+
+            # get execution time -> all tests + model
+            results = run_results.get('results', [])
+            results = [x.get('execution_time') for x in results if
+                       x.get('unique_id') in x.get('unique_id') in (related_test_ids + [model_id])]
+
+            execution_time = sum(results)
+            tests = len(related_test_ids)
+            return execution_time, tests
+
+        def to_human_readable(seconds: float):
+            return str(timedelta(seconds=seconds))[:-4]
+
+        base_execution_time, base_tests = total_dbt_time(self.get_base_manifest(), self.get_base_run_results())
+        target_execution_time, target_tests = total_dbt_time(self.get_target_manifest(), self.get_target_run_results())
+
         materialization_type = Image.ModelOverView.materialization(materialized)
         return f"""
    <table>
@@ -818,10 +850,24 @@ class ModelEntryOverviewElement(_Element):
     </tr>
     <tr>
         <td></td>
+        <td>Total dbt Time</td>
+        <td>{to_human_readable(base_execution_time)}</td>
+        <td>{to_human_readable(target_execution_time)}</td>
+        <td>{Image.ModelOverView.change_of_total_rows_or_execution_time(base_execution_time, target_execution_time)}</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>Total Tests</td>
+        <td>{base_tests}</td>
+        <td>{target_tests} {change_rate(base_tests, target_tests)} (TBD)</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td></td>
         <td>Total Rows</td>
         <td>{base_total_rows}</td>
         <td>{target_total_rows} {total_rows_hover}</td>
-        <td>{Image.ModelOverView.change_of_total_rows(base_total_rows, target_total_rows)}</td>
+        <td>{Image.ModelOverView.change_of_total_rows_or_execution_time(base_total_rows, target_total_rows)}</td>
     </tr>
     <tr>
         <td></td>
@@ -1255,14 +1301,23 @@ class DbtMetricsChangeElement(_Element):
 class Document(_Element):
     def __init__(
             self,
-            base_manifest: WritableManifest,
-            target_manifest: WritableManifest,
-            altered_models: List[str],
-            downstream_models: List[str],
             base_run: Dict,
             target_run: Dict,
     ):
         super().__init__(None)
+
+        base_manifest_dict = base_run.get('dbt', {}).get('manifest')
+        base_run_results = base_run.get('dbt', {}).get('run_results')
+        target_manifest_dict = target_run.get('dbt', {}).get('manifest')
+        target_run_results = target_run.get('dbt', {}).get('run_results')
+
+        base_manifest = load_manifest(base_manifest_dict)
+        target_manifest = load_manifest(target_manifest_dict)
+
+        with_downstream = compare_models_between_manifests(base_manifest, target_manifest, True)
+        altered_models = compare_models_between_manifests(base_manifest, target_manifest)
+        downstream_models = list(set(with_downstream) - set(altered_models))
+
         self.base_manifest = base_manifest
         self.target_manifest = target_manifest
         self.altered_models: List[str] = altered_models
@@ -1273,7 +1328,10 @@ class Document(_Element):
         self._joined_tables = JoinedTables(self.raw_joined_tables)
 
         self.base_run = base_run
+        self.base_run_results = base_run_results
+
         self.target_run = target_run
+        self.target_run_results = target_run_results
 
     @staticmethod
     def from_runs(base_run: Dict, target_run: Dict):
@@ -1286,15 +1344,7 @@ class Document(_Element):
         if not target_manifest_dict:
             raise Exception(f'The version is too old to generate summary for report[{target_run.get("id")}]')
 
-        base_manifest = load_manifest(base_manifest_dict)
-        target_manifest = load_manifest(target_manifest_dict)
-
-        with_downstream = compare_models_between_manifests(base_manifest, target_manifest, True)
-        altered_models = compare_models_between_manifests(base_manifest, target_manifest)
-        downstream_models = list(set(with_downstream) - set(altered_models))
-
-        doc = Document(base_manifest, target_manifest, altered_models, downstream_models,
-                       base_run, target_run)
+        doc = Document(base_run, target_run)
         return doc
 
     def build(self):

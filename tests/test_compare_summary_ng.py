@@ -36,7 +36,7 @@ class TestCompareSummaryNG(TestCase):
 
         data = ComparisonData(run1, run2, None)
         result = data.to_summary_markdown_ng()
-        print(result)
+        # print(result)
 
         with open("output.md", "w") as fh:
             fh.write(result)
