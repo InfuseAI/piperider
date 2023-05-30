@@ -9,6 +9,8 @@ import ReactFlow, {
   Node,
   useEdgesState,
   useNodesState,
+  EdgeChange,
+  NodeChange,
 } from 'reactflow';
 import dagre from 'dagre';
 
@@ -24,6 +26,18 @@ dagreGraph.setDefaultEdgeLabel(() => ({}));
 
 const nodeWidth = 300;
 const nodeHeight = 60;
+
+const getRelatedNodes = (lineageGraph, key) => {
+  const node = lineageGraph[key];
+  const relatedNodes = [key];
+
+  if (Object.keys(node.dependsOn).length > 0) {
+    Object.keys(node.dependsOn).forEach((dependsOnKey) => {
+      relatedNodes.push(...getRelatedNodes(lineageGraph, dependsOnKey));
+    });
+  }
+  return relatedNodes;
+};
 
 const layout = (nodes, edges, direction = 'LR') => {
   const isHorizontal = direction === 'LR';
@@ -110,6 +124,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
           label: `${node.name}`,
           singleOnly,
           onClick,
+          isHighlighted: false,
           ...node,
         },
         draggable: true,
@@ -143,6 +158,103 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
     setEdges(initialEdges);
   }, [lineageGraph, setNodes, setEdges, singleOnly, onClick]);
 
+  function highlightPath(node: Node) {
+    const relatedNodes = getRelatedNodes(lineageGraph, node.id);
+    const relatedEdges = edges.filter((edge) => {
+      return (
+        relatedNodes.includes(edge.source) && relatedNodes.includes(edge.target)
+      );
+    });
+
+    setEdges(
+      edges.map((edge) => {
+        if (relatedEdges.includes(edge)) {
+          return {
+            ...edge,
+            style: {
+              ...edge.style,
+              stroke: 'darkorange',
+              strokeWidth: 2,
+            },
+          };
+        } else {
+          return edge;
+        }
+      }),
+    );
+
+    setNodes(
+      nodes.map((node) => {
+        if (relatedNodes.includes(node.id)) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              isHighlighted: true,
+            },
+          };
+        } else {
+          return node;
+        }
+      }),
+    );
+  }
+
+  function resetHighlightPath() {
+    setEdges(
+      edges.map((edge) => {
+        return {
+          ...edge,
+          style: {
+            ...edge.style,
+            stroke: 'gray',
+            strokeWidth: 1,
+          },
+        };
+      }),
+    );
+    setNodes(
+      nodes.map((node) => {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            isHighlighted: false,
+          },
+        };
+      }),
+    );
+  }
+
+  // function onEdgesSelect(edgeChanges: EdgeChange[]) {
+  //   edgeChanges.forEach((edgeChange) => {
+  //     if (edgeChange.type === 'select') {
+  //       const [to, from] = edgeChange.id.split(' -> ');
+  //       if (edgeChange.selected) {
+  //         setMessage(
+  //           `Selected Edge: ${from.split('.').pop()} -> ${to.split('.').pop()}`,
+  //         );
+  //         // console.log(findRelatedNodes(lineageGraph, to));
+  //         console.log(edges);
+  //       }
+  //     }
+  //   });
+  //   onEdgesChange(edgeChanges);
+  // }
+
+  // function onNodesSelect(nodeChanges: NodeChange[]) {
+  //   nodeChanges.forEach((nodeChange) => {
+  //     if (nodeChange.type === 'select') {
+  //       if (nodeChange.selected) {
+  //         setMessage(`Selected Node: ${nodeChange.id}`);
+  //         nodes[0].selected = true;
+  //         console.log(nodes);
+  //       }
+  //     }
+  //   });
+  //   onNodesChange(nodeChanges);
+  // }
+
   return (
     <div
       style={{
@@ -155,8 +267,10 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
+        // onNodesChange={onNodesSelect}
+        // onEdgesChange={onEdgesSelect}
+        onNodeMouseEnter={(_event, node) => highlightPath(node)}
+        onNodeMouseLeave={() => resetHighlightPath()}
         minZoom={0.1}
       >
         <Controls />

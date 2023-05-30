@@ -13,6 +13,7 @@ export function GraphNode(params) {
 
   const [location] = useLocation();
   const isActive = data.path === location;
+  const isHighlighted: boolean = (data as any).isHighlighted || false;
 
   let style: any = {
     width: '300px',
@@ -78,6 +79,14 @@ export function GraphNode(params) {
       };
     }
   }
+
+  if (isHighlighted) {
+    style = {
+      ...style,
+      'border-color': 'darkorange',
+    };
+  }
+
   const name = node?.data?.name;
   const statValue = singleOnly
     ? data?.stat?.target || 0
