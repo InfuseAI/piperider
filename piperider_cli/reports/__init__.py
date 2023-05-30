@@ -85,6 +85,16 @@ def latex_black(text):
     return r'$\color{black}{\text{ %s }}$' % str(text)
 
 
+def html_bold(text):
+    if text is None:
+        return ""
+    return "<b>" + str(text) + "</b>"
+
+
+def html_grey(text):
+    return text
+
+
 class Image:
     class ModelOverView:
         # materialization
@@ -1083,15 +1093,15 @@ class DbtMetricsWithChangesTableEntry(_Element):
                     if b == 0:
                         change += "∞"
                     else:
-                        change += f"{(t - b) / b: .1%}"
+                        change += f"{abs((t - b) / b): .1%}"
 
                 content += f"""
                 <tr>
                     <td>{implicit_icon}</td>
-                    <td>{latex_orange(date)}</td>
-                    <td>{latex_orange(b) if b is not None else latex_orange('-')}</td>
-                    <td>{latex_orange(t) if t is not None else latex_orange('-')}</td>
-                    <td>{latex_orange("(" + change + ")") if change else ""}</td>
+                    <td>{html_bold(date)}</td>
+                    <td>{html_bold(b) if b is not None else html_bold('-')}</td>
+                    <td>{html_bold(t) if t is not None else html_bold('-')}</td>
+                    <td>{html_bold("(" + change + ")") if change else ""}</td>
                 </tr>
                 """
                 hide_adjacent = False
@@ -1099,9 +1109,9 @@ class DbtMetricsWithChangesTableEntry(_Element):
                 content += f"""
                 <tr>
                     <td></td>
-                    <td>{latex_grey(date)}</td>
-                    <td>{latex_grey(b) if b is not None else latex_grey('-')}</td>
-                    <td>{latex_grey(t) if t is not None else latex_grey('-')}</td>
+                    <td>{html_grey(date)}</td>
+                    <td>{html_grey(b) if b is not None else html_grey('-')}</td>
+                    <td>{html_grey(t) if t is not None else html_grey('-')}</td>
                     <td></td>
                 </tr>
                 """
@@ -1112,9 +1122,9 @@ class DbtMetricsWithChangesTableEntry(_Element):
                 content += f"""
                 <tr>
                     <td></td>
-                    <td>{latex_grey('...')}</td>
-                    <td>{latex_grey('...')}</td>
-                    <td>{latex_grey('...')}</td>
+                    <td>{html_grey('...')}</td>
+                    <td>{html_grey('...')}</td>
+                    <td>{html_grey('...')}</td>
                     <td></td>
                 </tr>
                 """
