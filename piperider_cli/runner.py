@@ -728,8 +728,9 @@ class Runner():
                 _show_assertion_result(assertion_results, assertion_exceptions)
                 run_result['tests'].extend([r.to_result_entry() for r in assertion_results])
 
-        if dbt_manifest:
-            run_result['dbt'] = dict(manifest=dbt_manifest)
+        if not table:
+            if dbt_manifest:
+                run_result['dbt'] = dict(manifest=dbt_manifest)
 
         for t in run_result['tables']:
             _clean_up_profile_null_properties(run_result['tables'][t])
