@@ -267,8 +267,8 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        // onNodesChange={onNodesSelect}
-        // onEdgesChange={onEdgesSelect}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
         onNodeMouseEnter={(_event, node) => highlightPath(node)}
         onNodeMouseLeave={() => resetHighlightPath()}
         minZoom={0.1}
