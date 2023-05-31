@@ -1,5 +1,6 @@
 import {
   Box,
+  CloseButton,
   Flex,
   Icon,
   Menu,
@@ -35,7 +36,8 @@ import { useState } from 'react';
 import { getStatDiff } from './util';
 
 interface Props extends Comparable {
-  uniqueId: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const statList: [string, string, 'decimal' | 'percent'][] = [
@@ -97,11 +99,15 @@ function ColumnStatCell({
   );
 }
 
-export default function TableSummary({ singleOnly }: Props) {
+export default function TableSummary({ singleOnly, isOpen, onClose }: Props) {
   const { tableColumnsOnly = [] } = useReportStore.getState();
   let { uniqueId } = useTableRoute();
   const [stat, setStat] = useState(statList[0][0]);
   const statName = statList.find(([key]) => key === stat)?.[1];
+
+  if (!isOpen) {
+    return <></>;
+  }
 
   const tableEntry = tableColumnsOnly.find(([key]) => key === uniqueId);
   if (!tableEntry) {
@@ -130,6 +136,11 @@ export default function TableSummary({ singleOnly }: Props) {
         overflow: 'scroll',
       }}
     >
+      <CloseButton
+        onClick={() => {
+          if (onClose) onClose();
+        }}
+      />
       <TableContainer width="100%">
         <Table variant="simple" size="sm">
           <Thead>

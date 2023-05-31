@@ -84,7 +84,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const { onOpen } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const [selected, setSelected] = useState<LineageGraphItem>();
   const [, setLocation] = useLocation();
 
@@ -293,8 +293,9 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
       </Box>
 
       <TableSummary
-        uniqueId={selected?.uniqueId || ''}
         singleOnly={singleOnly}
+        isOpen={isOpen}
+        onClose={onClose}
       ></TableSummary>
     </div>
   );
