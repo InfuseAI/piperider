@@ -818,16 +818,22 @@ class ModelEntryOverviewElement(_Element):
                 if model_id in n.depends_on.nodes:
                     related_test_ids.append(n.unique_id)
 
+            num_tests = len(related_test_ids)
+
+            if run_results is None:
+                return None, num_tests
+
             # get execution time -> all tests + model
             results = run_results.get('results', [])
             results = [x.get('execution_time') for x in results if
                        x.get('unique_id') in x.get('unique_id') in (related_test_ids + [model_id])]
 
             execution_time = sum(results)
-            tests = len(related_test_ids)
-            return execution_time, tests
+            return execution_time, num_tests
 
         def to_human_readable(seconds: float):
+            if seconds is None:
+                return "-"
             return str(timedelta(seconds=seconds))[:-4]
 
         base_execution_time, base_tests = total_dbt_time(self.get_base_manifest(), self.get_base_run_results())
