@@ -22,26 +22,6 @@ class DataChangeState(Enum):
         return self.value.capitalize()
 
 
-TRIANGLE_ICON = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-triangle-yellow%402x.png" width="18px">"""
-CHECKED_ICON = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-bs-check2-gray%402x.png" width="18px">"""
-
-add_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-plus%402x.png" width="27px">"""
-# diff_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-explicit%402x.png" width="27px">"""
-remove_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-minus%402x.png" width="27px">"""
-
-triangle_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-triangle%402x.png" width="18px">"""
-shield_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-bs-shield%402x.png" width="18px">"""
-cross_shield_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-bs-shield-cross-yellow%402x.png" width="18px">"""
-implicit_icon = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-implicit%402x.png" width="18px">"""
-
-column_change_diff_plus = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-plus%402x.png" width="18px">"""
-column_change_diff_minus = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-minus%402x.png" width="18px">"""
-column_change_diff_explicit = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-explicit%402x.png" width="18px">"""
-
-hover_diff_plus = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-plus%402x.png" width="10px">"""
-hover_diff_minus = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-minus%402x.png" width="10px">"""
-hover_diff_explicit = """<img src="https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons/icon-diff-delta-explicit%402x.png" width="10px">"""
-
 iconBaseUrl = 'https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons'
 
 
@@ -138,6 +118,22 @@ class Image:
                 return cls.triangle
             return cls.checked
 
+    class ModelOverviewStat:
+        hover_diff_plus = f"""<img src="{iconBaseUrl}/icon-diff-delta-plus%402x.png" width="10px">"""
+        hover_diff_minus = f"""<img src="{iconBaseUrl}/icon-diff-delta-minus%402x.png" width="10px">"""
+        hover_diff_explicit = f"""<img src="{iconBaseUrl}/icon-diff-delta-explicit%402x.png" width="10px">"""
+
+    class ColumnChangeView:
+        column_change_diff_plus = f"""<img src="{iconBaseUrl}/icon-diff-delta-plus%402x.png" width="18px">"""
+        column_change_diff_minus = f"""<img src="{iconBaseUrl}/icon-diff-delta-minus%402x.png" width="18px">"""
+        column_change_diff_explicit = f"""<img src="{iconBaseUrl}/icon-diff-delta-explicit%402x.png" width="18px">"""
+
+    class DbtMetric:
+        triangle_icon = f"""<img src="{iconBaseUrl}/icon-triangle-yellow%402x.png" width="18px">"""
+        shield_icon = f"""<img src="{iconBaseUrl}/icon-bs-shield%402x.png" width="18px">"""
+        cross_shield_icon = f"""<img src="{iconBaseUrl}/icon-bs-shield-cross-yellow%402x.png" width="18px">"""
+        implicit_icon = f"""<img src="{iconBaseUrl}/icon-diff-delta-implicit%402x.png" width="18px">"""
+
 
 #
 def model_selectors_to_table_names(selector_list: List[str]) -> Iterable[str]:
@@ -216,68 +212,6 @@ class _Element(metaclass=abc.ABCMeta):
     def get_model_type(self):
         return self._get_field("model_type")
 
-    def merge_keys(self, base: List[str], target: List[str]):
-        """
-        Merge keys from base, target tables. Unlike default union, it preserves the order for column rename, added, removed.
-
-        :param base: keys for base table
-        :param target: keys for base table
-        :return: merged keys
-        """
-
-        result = []
-        while base and target:
-            if base[0] == target[0]:
-                result.append(base[0])
-                base.pop(0)
-                target.pop(0)
-            elif base[0] in target:
-                idx = target.index(base[0])
-                for i in target[0:idx]:
-                    if i not in result:
-                        result.append(i)
-                result.append(base[0])
-                base.pop(0)
-                target = target[idx + 1:]
-            else:
-                result.append(base[0])
-                base.pop(0)
-
-        for c in base:
-            if c not in result:
-                result.append(c)
-
-        for c in target:
-            if c not in result:
-                result.append(c)
-
-        return result
-
-    def join(self, base, target):
-        """
-        Join base and target to a dict which
-
-        keys = (base keys) +  (target keys)
-        result[keys] = {base: {...}, target: {...}
-
-        :param base:
-        :param target:
-        :return:
-        """
-        if not base:
-            base = dict()
-        if not target:
-            target = dict()
-
-        keys = self.merge_keys(list(base.keys()), list(target.keys()))
-        result = dict()
-        for key in keys:
-            value = dict()
-            value["base"] = base.get(key)
-            value["target"] = target.get(key)
-            result[key] = value
-        return result
-
 
 @dataclass
 class ChangeStatus:
@@ -345,6 +279,12 @@ class ColumnChangeView:
         return f"{self.data.get('duplicates_p'):.1%}"
 
     @property
+    def duplicates(self):
+        if not self.data:
+            return None
+        return self.data.get("duplicates")
+
+    @property
     def nulls_p(self):
         if not self.data:
             return "-"
@@ -352,6 +292,12 @@ class ColumnChangeView:
             return "-"
 
         return f"{self.data.get('nulls_p'):.1%}"
+
+    @property
+    def nulls(self):
+        if not self.data:
+            return None
+        return self.data.get("nulls")
 
     @property
     def invalids_p(self):
@@ -416,7 +362,7 @@ class ColumnChangeView:
                 change_type="Added.",
                 base_view=base_view,
                 target_view=target_view,
-                icon=column_change_diff_plus,
+                icon=Image.ColumnChangeView.column_change_diff_plus,
                 state=DataChangeState.ADDED
             )
         if base_view.data is not None and target_view.data is None:
@@ -424,7 +370,7 @@ class ColumnChangeView:
                 change_type="Removed.",
                 base_view=base_view,
                 target_view=target_view,
-                icon=column_change_diff_minus,
+                icon=Image.ColumnChangeView.column_change_diff_minus,
                 state=DataChangeState.REMOVED
             )
         if base_view == target_view:
@@ -440,7 +386,7 @@ class ColumnChangeView:
                 change_type="Edited.",
                 base_view=base_view,
                 target_view=target_view,
-                icon=column_change_diff_explicit,
+                icon=Image.ColumnChangeView.column_change_diff_explicit,
                 state=DataChangeState.EDITED
             )
 
@@ -499,7 +445,7 @@ class ChangedColumnsTableEntryElement(_Element):
 
         result = f"""
             <tr>
-            <td>{column_change_diff_explicit}</td>
+            <td>{Image.ColumnChangeView.column_change_diff_explicit}</td>
             <td>{self.column_name}</td>
             <td>{base_type}</td>
             <td>{target_type}</td>
@@ -562,8 +508,70 @@ class TotalColumnsTableEntryElement(_Element):
 
 
 class JoinedTables:
-    def __init__(self, joined_tables: Dict):
-        self._joined_tables = joined_tables
+    def __init__(self, base_run: Dict, target_run: Dict):
+        self._joined_tables = self._join(base_run.get('tables'), target_run.get('tables'))
+
+    def _merge_keys(self, base: List[str], target: List[str]):
+        """
+        Merge keys from base, target tables. Unlike default union, it preserves the order for column rename, added, removed.
+
+        :param base: keys for base table
+        :param target: keys for base table
+        :return: merged keys
+        """
+
+        result = []
+        while base and target:
+            if base[0] == target[0]:
+                result.append(base[0])
+                base.pop(0)
+                target.pop(0)
+            elif base[0] in target:
+                idx = target.index(base[0])
+                for i in target[0:idx]:
+                    if i not in result:
+                        result.append(i)
+                result.append(base[0])
+                base.pop(0)
+                target = target[idx + 1:]
+            else:
+                result.append(base[0])
+                base.pop(0)
+
+        for c in base:
+            if c not in result:
+                result.append(c)
+
+        for c in target:
+            if c not in result:
+                result.append(c)
+
+        return result
+
+    def _join(self, base, target):
+        """
+        Join base and target to a dict which
+
+        keys = (base keys) +  (target keys)
+        result[keys] = {base: {...}, target: {...}
+
+        :param base:
+        :param target:
+        :return:
+        """
+        if not base:
+            base = dict()
+        if not target:
+            target = dict()
+
+        keys = self._merge_keys(list(base.keys()), list(target.keys()))
+        result = dict()
+        for key in keys:
+            value = dict()
+            value["base"] = base.get(key)
+            value["target"] = target.get(key)
+            result[key] = value
+        return result
 
     def is_profiled(self):
         for x in self._joined_tables.values():
@@ -600,6 +608,18 @@ class JoinedTables:
         t = table.get("target", {}).get("columns")
         all_column_keys = sorted(set(list(b.keys()) + list(t.keys())))
         return all_column_keys, b, t
+
+    def row_counts(self, table_name):
+        table = self._joined_tables[table_name]
+        b = table.get("base", {}).get("row_count")
+        t = table.get("target", {}).get("row_count")
+        return b, t
+
+    def column_counts(self, table_name):
+        table = self._joined_tables[table_name]
+        b = table.get("base", {}).get("col_count")
+        t = table.get("target", {}).get("col_count")
+        return b, t
 
 
 class ChangedColumnsTableElement(_Element):
@@ -729,31 +749,6 @@ class ModelEntryOverviewElement(_Element):
         super().__init__(root)
         self.model_selector = model_selector
 
-    def make_cols_stat(self, base_table_metrics, target_table_metrics):
-        joined = self.join(
-            base_table_metrics.get("columns"), target_table_metrics.get("columns")
-        )
-
-        # duplicate, invalid, missing
-        stat = [0, 0, 0]
-        for column_name in joined.keys():
-            c = joined[column_name]
-
-            b = c.get("base")
-            t = c.get("target")
-            if t is None or b is None:
-                stat[0] += 1
-                stat[1] += 1
-                stat[2] += 1
-                continue
-
-            for idx, m in enumerate(["duplicates", "invalids", "nulls"]):
-                if b.get(m) != t.get(m):
-                    stat[idx] += 1
-
-        value = target_table_metrics.get("col_count")
-        return [(x, value) for x in stat]
-
     def build(self):
         m = self.find_target_node(self.model_selector)
         materialized = m.config.materialized
@@ -762,51 +757,37 @@ class ModelEntryOverviewElement(_Element):
         t = self.joined_tables()
         column_change_views = list(t.all_columns_iterator(name))
 
-        # TODO fix _joined_tables
-        base_data = t._joined_tables.get(name, {}).get("base", {})
-        target_data = t._joined_tables.get(name, {}).get("target", {})
-        base_total_rows = base_data.get("row_count", "-")
-        target_total_rows = target_data.get("row_count", "-")
-        base_total_columns = base_data.get("col_count", "-")
-        target_total_columns = target_data.get("col_count", "-")
+        materialization_type = Image.ModelOverView.materialization(materialized)
 
-        value_diff_plus = ChangeStatus.count_added([x.create_change_status() for x in column_change_views])
-        value_diff_minus = ChangeStatus.count_removed([x.create_change_status() for x in column_change_views])
-        value_diff_explicit = ChangeStatus.count_edited([x.create_change_status() for x in column_change_views])
+        return self.add_indent(f"""
+    <table>
+         <tr>
+             <th>{materialization_type}</th>
+             <th colspan='3' >{name} ({materialized})</th>
+             <th>{Image.ModelOverView.diff_icon(self.get_model_type())}</th>
+         </tr>
+         <tr>
+             <td></td>
+             <td></td>
+             <td>Base</td>
+             <td>Target</td>
+             <td></td>
+         </tr>
+         {self.build_dbt_info(m)}
+         {self.build_rows(m)}
+         {self.build_columns(m)}
+         
+         <tr>
+             <td></td>
+             <td rowspan='1' colspan='4' ><b>CHANGES IN VALUES</b></td>
+         </tr>
+         
+        {self.build_column_stats(m)}
+        
+         </table>
+             """)
 
-        if target_total_rows == base_total_rows:
-            total_rows_hover = ""
-        elif target_total_rows > base_total_rows:
-            row_p = f"(↑ {change_rate(base_total_rows, target_total_rows):.1%})"
-            orange_row_p = latex_orange(row_p)
-            total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↑ {target_total_rows - base_total_rows}) {row_p}">{orange_row_p}</span>"""
-        else:
-            row_p = latex_orange(f"(↓ {change_rate(base_total_rows, target_total_rows):.1%})")
-            orange_row_p = latex_orange(row_p)
-            total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↓ {base_total_rows - target_total_rows}) {row_p}">{orange_row_p}</span>"""
-
-        total_columns_params = dict()
-        total_columns_params['value_diff_plus'] = latex_orange('(' + str(value_diff_plus))
-        total_columns_params['hover_diff_plus'] = hover_diff_plus
-
-        total_columns_params['value_diff_minus'] = latex_orange(value_diff_minus)
-        total_columns_params['hover_diff_minus'] = hover_diff_minus
-
-        total_columns_params['value_diff_explicit'] = latex_orange(value_diff_explicit)
-        total_columns_params['hover_diff_explicit'] = hover_diff_explicit
-        total_columns_params['end'] = latex_orange(')')
-
-        total_columns_data = """%(value_diff_plus)s%(hover_diff_plus)s %(value_diff_minus)s%(hover_diff_minus)s %(value_diff_explicit)s%(hover_diff_explicit)s%(end)s""" % total_columns_params
-        total_columns_hover = r"<span>%s</span>" % total_columns_data
-
-        stat = self.make_cols_stat(base_data, target_data)
-
-        cols_descriptions = [
-            self.to_col_description(stat, 0),
-            self.to_col_description(stat, 1),
-            self.to_col_description(stat, 2),
-        ]
-
+    def build_dbt_info(self, m):
         def total_dbt_time(manifest, run_results: Dict):
             model_id = m.unique_id
             related_test_ids = []
@@ -847,91 +828,134 @@ class ModelEntryOverviewElement(_Element):
                 return f"{t} (↑ {t - b})"
             return f"{t} (↑ {b - t})"
 
-        materialization_type = Image.ModelOverView.materialization(materialized)
-        return f"""
-   <table>
-    <tr>
-        <th>{materialization_type}</th>
-        <th colspan='3' >{name} ({materialized})</th>
-        <th>{Image.ModelOverView.diff_icon(self.get_model_type())}</th>
-    </tr>
-    <tr>
-        <td></td>
-        <td></td>
-        <td>Base</td>
-        <td>Target</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>Total dbt Time</td>
-        <td>{to_human_readable(base_execution_time)}</td>
-        <td>{to_human_readable(target_execution_time)}</td>
-        <td>{Image.ModelOverView.change_of_total_rows_or_execution_time(base_execution_time, target_execution_time)}</td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>Total Tests</td>
-        <td>{base_tests}</td>
-        <td>{tests_changes(base_tests, target_tests)}</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>Total Rows</td>
-        <td>{base_total_rows}</td>
-        <td>{target_total_rows} {total_rows_hover}</td>
-        <td>{Image.ModelOverView.change_of_total_rows_or_execution_time(base_total_rows, target_total_rows)}</td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>Total Columns</td>
-        <td>{base_total_columns}</td>
-        <td>{target_total_columns} {total_columns_hover}</td>
-        <td>{Image.ModelOverView.change_of_total_columns(base_total_columns, target_total_columns)}</td>
-    </tr>
-    <tr>
-        <td></td>
-        <td rowspan='1' colspan='4' ><b>CHANGES IN VALUES</b></td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>Duplicate col. values</td>
-        <td rowspan='1' colspan='2' >{cols_descriptions[0][0]}</td>
-        <td>{cols_descriptions[0][1]}</td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>Invalid col. values</td>
-        <td rowspan='1' colspan='2' >{cols_descriptions[1][0]}</td>
-        <td>{cols_descriptions[1][1]}</td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>Missing col. values</td>
-        <td rowspan='1' colspan='2' >{cols_descriptions[2][0]}</td>
-        <td><a href="#">{cols_descriptions[2][1]}</a></td>
-    </tr>
+        # return base_execution_time, base_tests, target_execution_time, target_tests, tests_changes, to_human_readable
+        return self.add_indent(f"""
+        <tr>
+             <td></td>
+             <td>Total dbt Time</td>
+             <td>{to_human_readable(base_execution_time)}</td>
+             <td>{to_human_readable(target_execution_time)}</td>
+             <td>{Image.ModelOverView.change_of_total_rows_or_execution_time(base_execution_time, target_execution_time)}</td>
+         </tr>
+         <tr>
+             <td></td>
+             <td>Total Tests</td>
+             <td>{base_tests}</td>
+             <td>{tests_changes(base_tests, target_tests)}</td>
+             <td></td>
+         </tr>
+        """, 8)
 
-    </table>
-        """
+    def build_rows(self, m):
+        base_total_rows, target_total_rows = self.joined_tables().row_counts(m.name)
 
-    def to_col_description(self, stat, index):
-        result = ""
-        s = stat[index][0]
-        denominator = stat[index][1]
-        icon = f"{CHECKED_ICON}"
-        ratio = s / denominator
+        if target_total_rows == base_total_rows:
+            total_rows_hover = ""
+        elif target_total_rows > base_total_rows:
+            row_p = f"(↑ {change_rate(base_total_rows, target_total_rows):.1%})"
+            orange_row_p = latex_orange(row_p)
+            total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↑ {target_total_rows - base_total_rows}) {row_p}">{orange_row_p}</span>"""
+        else:
+            row_p = latex_orange(f"(↓ {change_rate(base_total_rows, target_total_rows):.1%})")
+            orange_row_p = latex_orange(row_p)
+            total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↓ {base_total_rows - target_total_rows}) {row_p}">{orange_row_p}</span>"""
 
-        if s == 0:
-            result = "No changes"
-        if s > 0:
-            result = f"{s} Cols {TRIANGLE_ICON} ({ratio :.1%})"
-            icon = TRIANGLE_ICON
-        if s < 0:
-            result = f"{-s} Cols {TRIANGLE_ICON} ({ratio :.1%})"
-            icon = TRIANGLE_ICON
-        return result, icon
+        return self.add_indent(f"""
+        <tr>
+            <td></td>
+            <td>Total Rows</td>
+            <td>{base_total_rows}</td>
+            <td>{target_total_rows} {total_rows_hover}</td>
+            <td>{Image.ModelOverView.change_of_total_rows_or_execution_time(base_total_rows, target_total_rows)}</td>
+        </tr>
+        """, 8)
+
+    def build_columns(self, m):
+        base_total_columns, target_total_columns = self.joined_tables().column_counts(m.name)
+
+        column_change_views = list(self.joined_tables().all_columns_iterator(m.name))
+        value_diff_plus = ChangeStatus.count_added([x.create_change_status() for x in column_change_views])
+        value_diff_minus = ChangeStatus.count_removed([x.create_change_status() for x in column_change_views])
+        value_diff_explicit = ChangeStatus.count_edited([x.create_change_status() for x in column_change_views])
+
+        total_columns_params = dict()
+        total_columns_params['value_diff_plus'] = latex_orange('(' + str(value_diff_plus))
+        total_columns_params['hover_diff_plus'] = Image.ModelOverviewStat.hover_diff_plus
+
+        total_columns_params['value_diff_minus'] = latex_orange(value_diff_minus)
+        total_columns_params['hover_diff_minus'] = Image.ModelOverviewStat.hover_diff_minus
+
+        total_columns_params['value_diff_explicit'] = latex_orange(value_diff_explicit)
+        total_columns_params['hover_diff_explicit'] = Image.ModelOverviewStat.hover_diff_explicit
+        total_columns_params['end'] = latex_orange(')')
+
+        total_columns_data = """%(value_diff_plus)s%(hover_diff_plus)s %(value_diff_minus)s%(hover_diff_minus)s %(value_diff_explicit)s%(hover_diff_explicit)s%(end)s""" % total_columns_params
+        total_columns_hover = r"<span>%s</span>" % total_columns_data
+
+        return self.add_indent(f"""
+        <tr>
+            <td></td>
+            <td>Total Columns</td>
+            <td>{base_total_columns}</td>
+            <td>{target_total_columns} {total_columns_hover}</td>
+            <td>{Image.ModelOverView.change_of_total_columns(base_total_columns, target_total_columns)}</td>
+        </tr>
+        """, 8)
+
+    def build_column_stats(self, m):
+        changed_columns = list(self.joined_tables().columns_changed_iterator(m.name))
+
+        duplicate_cols = [change_rate(x.base_view.duplicates, x.target_view.duplicates)
+                          for x in changed_columns if x.base_view.duplicates != x.target_view.duplicates]
+        duplicate_cols = [x for x in duplicate_cols if not math.isnan(x)]
+
+        nulls_cols = [change_rate(x.base_view.nulls, x.target_view.nulls)
+                      for x in changed_columns if x.base_view.nulls != x.target_view.nulls]
+        nulls_cols = [x for x in nulls_cols if not math.isnan(x)]
+
+        def _show_change(change_rate):
+            arrow = "↑" if change_rate > 0 else "↓"
+            rate = abs(change_rate)
+            if rate == math.inf:
+                rate = "∞"
+            else:
+                rate = f"{rate:.1%}"
+            return f"{arrow}{rate}"
+
+        def build_status(change_list: List):
+            description = ""
+            icon = ""
+            if len(change_list) == 0:
+                pass
+            elif len(change_list) == 1:
+                description = _show_change(change_list[0])
+            else:
+                description = f"{_show_change(min(change_list))} to {_show_change(max(change_list))}"
+
+            if description == "":
+                icon = Image.ModelOverView.checked
+            else:
+                icon = Image.ModelOverView.triangle
+                description = latex_orange(f"({description})")
+            return icon, description
+
+        duplicate_change_icon, duplicate_description = build_status(duplicate_cols)
+        missing_icon, missing_description = build_status(nulls_cols)
+
+        return self.add_indent(f"""
+        <tr>
+          <td></td>
+          <td>Duplicate col. values</td>
+          <td rowspan="1" colspan="2">{len(duplicate_cols)} {duplicate_description}</td>
+          <td>{duplicate_change_icon}</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Missing col. values</td>
+          <td rowspan="1" colspan="2">{len(nulls_cols)} {missing_description}</td>
+          <td>{missing_icon}</td>
+        </tr>
+        """, 8)
 
 
 class ModelEntryElement(_Element):
@@ -1084,7 +1108,7 @@ class MetricsChangeView:
         for date in self.agg_data:
             if self.agg_data[date].get("base") != self.agg_data[date].get("target"):
                 changes += 1
-        return f"{changes}{implicit_icon}"
+        return f"{changes}{Image.DbtMetric.implicit_icon}"
 
     def summary_for_change_type(self):
         if self.change_type == "no-changes":
@@ -1158,7 +1182,7 @@ class DbtMetricsWithChangesTableEntry(_Element):
 
                 content += f"""
                 <tr>
-                    <td>{implicit_icon}</td>
+                    <td>{Image.DbtMetric.implicit_icon}</td>
                     <td>{html_bold(date)}</td>
                     <td>{html_bold(b) if b is not None else html_bold('-')}</td>
                     <td>{html_bold(t) if t is not None else html_bold('-')}</td>
@@ -1307,7 +1331,7 @@ class DbtMetricsChangeElement(_Element):
             x for x in self.joined_metrics.values() if x.change_type == "no-changes"
         ]
         return (
-            f"<details><summary>dbt Metrics changes: {self.changes} {triangle_icon if self.changes > 0 else ''} of {self.total_metrics} dbt Metrics</summary>"
+            f"<details><summary>dbt Metrics changes: {self.changes} {Image.DbtMetric.triangle_icon if self.changes > 0 else ''} of {self.total_metrics} dbt Metrics</summary>"
             f"\n{DbtMetricsWithChangesElement(changeset, no_changeset).build()}\n"
             f"</details>"
         )
@@ -1337,10 +1361,7 @@ class Document(_Element):
         self.target_manifest = target_manifest
         self.altered_models: List[str] = altered_models
         self.downstream_models: List[str] = downstream_models
-        self.raw_joined_tables: Dict = self.join(
-            base_run.get("tables"), target_run.get("tables")
-        )
-        self._joined_tables = JoinedTables(self.raw_joined_tables)
+        self._joined_tables = JoinedTables(base_run, target_run)
 
         self.base_run = base_run
         self.base_run_results = base_run_results
