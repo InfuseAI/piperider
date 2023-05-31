@@ -77,6 +77,7 @@
     "analyze": "npx cra-bundle-analyzer",
     "extract:metadata": "node src/sdlc/extract-schema-metadata",
     "setup": "run-s typing:dts typing:dbt-manifest typing:dbt-run-results extract:metadata embed:html lint:fix",
+    "setup:report-data": "node src/sdlc/check-report-data",
     "serve:single": "dotenv -e ./build-env/.env.single craco start",
     "serve:comparison": "dotenv -e ./build-env/.env.comparison craco start",
     "start:single": "run-s setup serve:single",
