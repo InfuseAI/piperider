@@ -6,9 +6,9 @@ from rich.console import Console
 from rich.syntax import Syntax
 
 from piperider_cli.dbtutil import load_dbt_project
-from piperider_cli.recipes import DEFAULT_RECIPE_PATH, RecipeConfiguration, RecipeModel, RecipeDbtField, \
-    RecipePiperiderField
-from piperider_cli.recipes.utils import git_branch
+from piperider_cli.recipes import (DEFAULT_RECIPE_PATH, RecipeConfiguration,
+                                   RecipeDbtField, RecipeModel,
+                                   RecipePiperiderField, tool)
 
 console = Console()
 
@@ -30,7 +30,7 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
     """
     base = RecipeModel()
 
-    if git_branch() is not None:
+    if tool().git_branch() is not None:
         base.branch = 'main'
 
     dbt_project = _read_dbt_project_file(dbt_project_path)

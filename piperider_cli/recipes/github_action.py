@@ -1,9 +1,39 @@
 import json
 import os
+import shlex
+import subprocess
 import sys
+from subprocess import Popen
+from typing import Dict
 
+from piperider_cli.error import RecipeException
 from piperider_cli.recipes import RecipeConfiguration, select_recipe_file
-from piperider_cli.recipes.utils import git_switch_to
+
+
+def git_switch_to(branch_name):
+    outs, errs, exit_code = run_external_command(f"git switch {branch_name}")
+    if exit_code != 0:
+        raise RecipeException(errs)
+
+
+def run_external_command(command_line, env: Dict = None):
+    cmd = shlex.split(command_line)
+    proc = None
+    try:
+        proc = Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env or os.environ.copy())
+        outs, errs = proc.communicate()
+    except BaseException as e:
+        if proc:
+            proc.kill()
+            outs, errs = proc.communicate()
+        else:
+            return None, e, 1
+
+    if outs is not None:
+        outs = outs.decode().strip()
+    if errs is not None:
+        errs = errs.decode().strip()
+    return outs, errs, proc.returncode
 
 
 def prepare_for_action(recipe_name: str = None):

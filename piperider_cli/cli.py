@@ -20,7 +20,7 @@ from piperider_cli.generate_report import GenerateReport
 from piperider_cli.guide import Guide
 from piperider_cli.initializer import Initializer
 from piperider_cli.recipe_executor import RecipeExecutor
-from piperider_cli.recipes import RecipeConfiguration
+from piperider_cli.recipes import RecipeConfiguration, configure_recipe_execution_flags, is_recipe_dry_run
 from piperider_cli.runner import Runner
 from piperider_cli.validator import Validator
 
@@ -437,6 +437,9 @@ def cloud_compare_reports(**kwargs):
 @click.option('--project', default=None, type=click.STRING, metavar='PROJECT_NAME',
               help='Specify the default project name.')
 @click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
+@click.option('--dry-run', is_flag=True, default=False, help='Display the run details without actually executing it')
+@click.option('--interactive', is_flag=True, default=False,
+              help='Prompt for confirmation to proceed with the run (Y/N)')
 @add_options(dbt_related_options)
 @add_options(debug_option)
 def compare_with_recipe(**kwargs):
@@ -451,6 +454,9 @@ def compare_with_recipe(**kwargs):
     open_report = kwargs.get('open')
     project_name = kwargs.get('project')
     debug = kwargs.get('debug', False)
+
+    # reconfigure recipe global flags
+    configure_recipe_execution_flags(dry_run=kwargs.get('dry_run'), interactive=kwargs.get('interactive'))
 
     if enable_share:
         force_upload = True
@@ -471,6 +477,7 @@ def compare_with_recipe(**kwargs):
         Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
     ret = 0
     try:
+        # note: dry-run and interactive are set by configure_recipe_execution_flags
         recipe_config: RecipeConfiguration = RecipeExecutor.exec(recipe_name=recipe, debug=debug)
         last = False
         base = target = None
@@ -480,15 +487,16 @@ def compare_with_recipe(**kwargs):
             base = recipe_config.base.get_run_report()
             target = recipe_config.target.get_run_report()
 
-        CompareReport.exec(a=base, b=target, last=last, datasource=None,
-                           output=kwargs.get('output'), tables_from="all",
-                           summary_file=summary_file,
-                           force_upload=force_upload,
-                           enable_share=enable_share,
-                           open_report=open_report,
-                           project_name=project_name,
-                           show_progress=True,
-                           debug=debug)
+        if not is_recipe_dry_run():
+            CompareReport.exec(a=base, b=target, last=last, datasource=None,
+                               output=kwargs.get('output'), tables_from="all",
+                               summary_file=summary_file,
+                               force_upload=force_upload,
+                               enable_share=enable_share,
+                               open_report=open_report,
+                               project_name=project_name,
+                               show_progress=True,
+                               debug=debug)
     except Exception as e:
         raise e
 

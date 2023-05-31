@@ -1,18 +1,19 @@
 import os
 import sys
 from abc import ABCMeta
-from typing import Dict, List
+from dataclasses import dataclass
+from typing import Any, Dict, List
 
 import jsonschema
 from jsonschema.exceptions import ValidationError
 from rich.console import Console
 from ruamel import yaml
 
-from piperider_cli import load_json, load_jinja_template, get_run_json_path
+from piperider_cli import get_run_json_path, load_jinja_template, load_json
 from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
 from piperider_cli.error import RecipeConfigException
 from piperider_cli.filesystem import FileSystem
-from piperider_cli.recipes.utils import git_checkout_to
+from piperider_cli.recipes.utils import InteractiveStopException
 
 PIPERIDER_RECIPES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'recipe_schema.json')
 PIPERIDER_RECIPES_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'compare')
@@ -210,8 +211,7 @@ def verify_git_dependencies(cfg: RecipeConfiguration):
         # nobody set the git branch, skip the verification
         return
 
-    from piperider_cli.recipes.utils import ensure_git_ready
-    ensure_git_ready()
+    tool().ensure_git_ready()
 
 
 def verify_dbt_dependencies(cfg: RecipeConfiguration):
@@ -231,8 +231,7 @@ def verify_dbt_dependencies(cfg: RecipeConfiguration):
         return
 
     # check the dbt by executing it
-    from piperider_cli.recipes.utils import check_dbt_command
-    check_dbt_command()
+    tool().check_dbt_command()
 
 
 def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type='base'):
@@ -251,20 +250,18 @@ def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type=
         a_branch = model.branch
         b_branch = current_branch
         if a_branch != b_branch:
-            commit_hash = switch_merge_base_branch(a_branch, b_branch)
-            console.print(f"Switch git branch to: \[merge-base of {a_branch}...{b_branch} -> {commit_hash}]")
+            switch_merge_base_branch(a_branch, b_branch)
+
     else:
         working_branch = model.branch or current_branch
         if working_branch is not None:
             console.print(f"Switch git branch to: \[{working_branch}]")
             switch_branch(working_branch)
 
-    from piperider_cli.recipes.utils import execute_command
-
     # model.dbt.commands
     for cmd in model.dbt.commands or []:
         console.print(f"Run: \[{cmd}]")
-        exit_code = execute_command(cmd, model.dbt.envs())
+        exit_code = tool().execute_command_with_showing_output(cmd, model.dbt.envs())
         if debug:
             console.print(f"Exit code: {exit_code}")
         if exit_code != 0:
@@ -276,7 +273,7 @@ def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type=
     # model.piperider.commands
     for cmd in model.piperider.commands or []:
         console.print(f"Run: \[{cmd}]")
-        exit_code = execute_command(cmd, model.piperider.envs())
+        exit_code = tool().execute_command_with_showing_output(cmd, model.piperider.envs())
         if debug:
             console.print(f"Exit code: {exit_code}")
         if exit_code != 0:
@@ -295,22 +292,20 @@ def get_current_branch(cfg: RecipeConfiguration):
         # We don't care the current branch, because we won't change it
         return None
 
-    from piperider_cli.recipes.utils import git_branch
-    original_branch = git_branch()
+    original_branch = tool().git_branch()
 
     return original_branch
 
 
 def switch_merge_base_branch(a: str, b: str) -> str:
-    from piperider_cli.recipes.utils import git_checkout_to, git_merge_base
-    base_commit = git_merge_base(a, b)
-    git_checkout_to(base_commit)
+    base_commit = tool().git_merge_base(a, b)
+    console.print(f"Switch git branch to: \[merge-base of {a}...{b} -> {base_commit}]")
+    tool().git_checkout_to(base_commit)
     return base_commit
 
 
 def switch_branch(branch_name):
-    from piperider_cli.recipes.utils import git_switch_to
-    git_checkout_to(branch_name)
+    tool().git_checkout_to(branch_name)
 
 
 def execute_configuration(cfg: RecipeConfiguration, debug=False):
@@ -323,6 +318,7 @@ def execute_configuration(cfg: RecipeConfiguration, debug=False):
 
     current_branch = get_current_branch(cfg)
 
+    skip_finally = False
     try:
         console.rule("Recipe executor: base phase")
         target_branch = cfg.target.branch or current_branch
@@ -331,10 +327,15 @@ def execute_configuration(cfg: RecipeConfiguration, debug=False):
         console.rule("Recipe executor: target phase")
         execute_recipe(cfg.target, current_branch, recipe_type='target', debug=debug)
     except Exception as e:
-        console.rule("Recipe executor: error occurred", style="red")
-        raise e
+        if isinstance(e, InteractiveStopException):
+            skip_finally = True
+            console.rule("Recipe executor: interrupted by the user", style="red")
+            sys.exit(0)
+        else:
+            console.rule("Recipe executor: error occurred", style="red")
+            raise e
     finally:
-        if current_branch is not None:
+        if not skip_finally and current_branch is not None:
             # switch back to the original branch
             console.print(f"Switch git branch back to: \[{current_branch}]")
             switch_branch(current_branch)
@@ -354,6 +355,64 @@ def select_recipe_file(name: str = None):
             )
 
     return recipe_path
+
+
+@dataclass
+class ExecutionFlags:
+    dry_run: bool
+    interactive: bool
+
+
+_execution_flags = ExecutionFlags(dry_run=False, interactive=False)
+
+
+def is_recipe_dry_run():
+    global _execution_flags
+    return _execution_flags.dry_run
+
+
+def is_recipe_interactive():
+    global _execution_flags
+    return _execution_flags.interactive
+
+
+def configure_recipe_execution_flags(dry_run: bool, interactive: bool):
+    global _execution_flags, console
+    _execution_flags = ExecutionFlags(dry_run=dry_run is True, interactive=interactive is True)
+    if _execution_flags.dry_run:
+        console = Console()
+        console.original_print = console.print
+
+        def dry_run_print(*objects: Any):
+            if objects:
+                if isinstance(objects[0], str):
+                    console.original_print("\[dry-run]", end=' ')
+                console.original_print(*objects)
+            else:
+                console.original_print()
+
+        console.print = dry_run_print
+    else:
+        console = Console()
+
+    if is_recipe_dry_run() and is_recipe_interactive():
+        console.print("[yellow]Warnings[/yellow]: in dry-run mode, we will ignore --interactive.")
+
+
+configure_recipe_execution_flags(dry_run=False, interactive=False)
+
+
+def tool():
+    from piperider_cli.recipes.utils import (DryRunRecipeUtils,
+                                             InteractiveRecipeDecorator,
+                                             RecipeUtils)
+    if is_recipe_dry_run():
+        return DryRunRecipeUtils(console)
+    else:
+        if is_recipe_interactive():
+            return InteractiveRecipeDecorator(RecipeUtils(console))
+        else:
+            return RecipeUtils(console)
 
 
 if __name__ == '__main__':
