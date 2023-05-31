@@ -239,6 +239,11 @@ class ComparisonData(object):
         return out.getvalue()
 
     def to_summary_markdown_ng(self):
+        if self._base.get('dbt') is None or self._target.get('dbt') is None:
+            console = Console()
+            console.print("[bold yellow]Warning: [/bold yellow]'summary.md' report is not generated.")
+            console.print("To generate 'summary.md', please make sure you use dbt project and the latest piperider version")
+            return ""
         return Document.from_runs(self._base, self._target).build()
 
     @staticmethod
@@ -799,17 +804,12 @@ class CompareReport(object):
                 f.write(summary_data)
 
         data_id = comparison_data.id()
-        summary_data = summary_data if summary_data else comparison_data.to_summary_markdown()
-
-        try:
-            # TODO we are working in progress (sc-31325)
-            comparison_data.to_summary_markdown_ng()
-        except BaseException:
-            pass
+        summary_data = summary_data if summary_data else comparison_data.to_summary_markdown_ng()
 
         default_report_directory = prepare_default_output_path(filesystem, data_id)
         output_report(default_report_directory)
-        output_summary(default_report_directory, summary_data)
+        if summary_data:
+            output_summary(default_report_directory, summary_data)
 
         comparison_dir = filesystem.get_comparison_dir()
         report_path = os.path.join(comparison_dir, 'latest', 'index.html')
@@ -842,8 +842,9 @@ class CompareReport(object):
             summary_md_path = summary_file
 
         console.print()
-        console.print(f"Comparison report: {report_path}", soft_wrap=True)
-        console.print(f"Comparison summary: {summary_md_path}", soft_wrap=True)
+        console.print(f"Comparison report: {report_path}")
+        if summary_data:
+            console.print(f"Comparison summary: {summary_md_path}")
         if report_url:
             console.print(f"Comparison report URL: {report_url}", soft_wrap=True)
 
