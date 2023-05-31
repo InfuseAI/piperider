@@ -833,6 +833,14 @@ class ModelEntryOverviewElement(_Element):
         base_execution_time, base_tests = total_dbt_time(self.get_base_manifest(), self.get_base_run_results())
         target_execution_time, target_tests = total_dbt_time(self.get_target_manifest(), self.get_target_run_results())
 
+        def tests_changes(b, t):
+            if b == t:
+                return str(t)
+
+            if t > b:
+                return f"{t} (↑ {t - b})"
+            return f"{t} (↑ {b - t})"
+
         materialization_type = Image.ModelOverView.materialization(materialized)
         return f"""
    <table>
@@ -859,7 +867,7 @@ class ModelEntryOverviewElement(_Element):
         <td></td>
         <td>Total Tests</td>
         <td>{base_tests}</td>
-        <td>{target_tests} {change_rate(base_tests, target_tests)} (TBD)</td>
+        <td>{tests_changes(base_tests, target_tests)}</td>
         <td></td>
     </tr>
     <tr>
@@ -1123,9 +1131,10 @@ class DbtMetricsWithChangesTableEntry(_Element):
         equal_index = []
         for idx in range(1, 1 + len(dates)):
             if diff_status[idx] == 1:
-                display_index.append(idx-1)
-            if diff_status[idx] == 0 and (diff_status[idx] != diff_status[idx + 1] or diff_status[idx] != diff_status[idx - 1]):
-                equal_index.append(idx-1)
+                display_index.append(idx - 1)
+            if diff_status[idx] == 0 and (
+                    diff_status[idx] != diff_status[idx + 1] or diff_status[idx] != diff_status[idx - 1]):
+                equal_index.append(idx - 1)
 
         hide_adjacent = False
         for idx, date in enumerate(dates):
