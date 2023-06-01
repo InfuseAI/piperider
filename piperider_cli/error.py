@@ -116,7 +116,7 @@ class DbtProjectNotFoundError(DbtError):
         if dbt_project_path:
             self.message = f"No DBT project found in '{dbt_project_path}'"
         else:
-            self.message = "No DBT project found  in current path"
+            self.message = "No DBT project found in current path"
 
     hint = "Please follow the Quick Start guide on https://docs.piperider.io/get-started/quick-start to set up your first PipeRider project."
 
