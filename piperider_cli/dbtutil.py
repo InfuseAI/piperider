@@ -337,6 +337,10 @@ def get_dbt_manifest(dbt_state_dir: str):
     return _get_state_manifest(dbt_state_dir)
 
 
+def get_dbt_run_results(dbt_state_dir: str):
+    return _get_state_run_results(dbt_state_dir) if is_dbt_run_results_ready(dbt_state_dir) else None
+
+
 def load_dbt_project(path: str):
     """
     Load dbt project file and return the content of 'profile' and 'target-path' fields

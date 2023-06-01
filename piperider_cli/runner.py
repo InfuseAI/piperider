@@ -621,6 +621,7 @@ class Runner():
 
         dbt_config = ds.args.get('dbt')
         dbt_manifest = None
+        dbt_run_results = None
 
         if dbt_config:
             if not dbtutil.is_ready(dbt_config):
@@ -632,6 +633,7 @@ class Runner():
                 console.print(err_msg)
                 return sys.exit(1)
             dbt_manifest = dbtutil.get_dbt_manifest(dbt_state_dir)
+            dbt_run_results = dbtutil.get_dbt_run_results(dbt_state_dir)
         console.print('everything is OK.')
 
         console.rule('Collect metadata')
@@ -721,8 +723,8 @@ class Runner():
                 run_result['tests'].extend([r.to_result_entry() for r in assertion_results])
 
         if not table:
-            if dbt_manifest:
-                run_result['dbt'] = dict(manifest=dbt_manifest)
+            if dbt_config:
+                run_result['dbt'] = dict(manifest=dbt_manifest, run_results=dbt_run_results)
 
         for t in run_result['tables']:
             _clean_up_profile_null_properties(run_result['tables'][t])
