@@ -36,9 +36,7 @@ const SRPage = lazy(() => import('./pages/SRPage'));
 const CRPage = lazy(() => import('./pages/CRPage'));
 
 function AppSingle() {
-  const data = process.env.REACT_APP_SINGLE_REPORT_DATA_JSON
-    ? JSON.parse(process.env.REACT_APP_SINGLE_REPORT_DATA_JSON)
-    : window.PIPERIDER_SINGLE_REPORT_DATA || {};
+  const data = window.PIPERIDER_SINGLE_REPORT_DATA || {};
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
   return (
@@ -51,9 +49,7 @@ function AppSingle() {
 }
 
 function AppComparison() {
-  const data = process.env.REACT_APP_COMPARISON_REPORT_DATA_JSON
-    ? JSON.parse(process.env.REACT_APP_COMPARISON_REPORT_DATA_JSON)
-    : window.PIPERIDER_COMPARISON_REPORT_DATA || {};
+  const data = window.PIPERIDER_COMPARISON_REPORT_DATA || {};
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData(data);
   return (
