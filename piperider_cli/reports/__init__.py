@@ -3,6 +3,7 @@ import collections
 import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from functools import cmp_to_key
 from typing import Dict, Iterable, List, Optional
 
 from dbt.contracts.graph.manifest import WritableManifest
@@ -52,12 +53,18 @@ class Styles:
         return r'$\color{orange}{\text{ %s }}$' % str(text)
 
     @staticmethod
+    def all_columns_highlight(text):
+        return f"💡 <b>{text}</b>"
+
+    @staticmethod
     def latex_grey(text):
-        if text is None:
-            return ""
-        if isinstance(text, str) and '%' in text:
-            text = text.replace('%', '\%')
-        return r'$\color{grey}{\text{ %s }}$' % str(text)
+        # if text is None:
+        #     return ""
+        # if isinstance(text, str) and '%' in text:
+        #     text = text.replace('%', '\%')
+        # return r'$\color{grey}{\text{ %s }}$' % str(text)
+        # return f"<code>{text}</code>"
+        return f"{text}"
 
     @staticmethod
     def latex_black(text):
@@ -228,7 +235,7 @@ class ChangeStatus:
         return self.change_type in ["Added.", "Removed."]
 
     def display(self):
-        if self.target_view is not None:
+        if self.target_view is not None and self.target_view.data is not None:
             return self.target_view
         return self.base_view
 
@@ -246,6 +253,28 @@ class ChangeStatus:
     @classmethod
     def count_edited(cls, views: List["ChangeStatus"]):
         return len([x for x in views if x.change_type == "Edited."])
+
+    @staticmethod
+    def _sort_func(m1: "ChangeStatus", m2: "ChangeStatus"):
+        change_state_order = [
+            DataChangeState.EDITED,
+            DataChangeState.REMOVED,
+            DataChangeState.ADDED,
+            DataChangeState.NO_CHANGES,
+            DataChangeState.UNKNOWN,
+        ]
+        if m1.state == m2.state:
+            return (m1.name() > m2.name()) - (
+                    m1.name() < m2.name())
+        else:
+            return (
+                    change_state_order.index(m1.state)
+                    - change_state_order.index(m2.state)
+            )
+
+    @classmethod
+    def sorted(cls, change_status_list: List["ChangeStatus"]):
+        return sorted(change_status_list, key=cmp_to_key(cls._sort_func))
 
 
 class ColumnChangeView:
@@ -332,11 +361,11 @@ class ColumnChangeView:
             if self.data.get(metric_name) != target_view.data.get(metric_name):
                 delta = change_rate(self.data.get(percentage), target_view.data.get(percentage))
                 if delta == math.inf:
-                    delta = "∞↑"
+                    delta = "↑∞"
                 elif delta > 0:
-                    delta = f"{delta:.1%}" + "↑"
+                    delta = f"↑{delta:.1%}"
                 elif delta < 0:
-                    delta = f"{delta:.1%}" + "↓"
+                    delta = f"↓{delta:.1%}"
                 else:
                     delta = ""
 
@@ -409,6 +438,28 @@ class ChangedColumnsTableEntryElement(_Element):
         self.change_status = ColumnChangeView.create_change_status(
             self.base_view, self.target_view
         )
+
+    @staticmethod
+    def _sort_func(m1: "ChangedColumnsTableEntryElement", m2: "ChangedColumnsTableEntryElement"):
+        change_state_order = [
+            DataChangeState.EDITED,
+            DataChangeState.REMOVED,
+            DataChangeState.ADDED,
+            DataChangeState.NO_CHANGES,
+            DataChangeState.UNKNOWN,
+        ]
+        if m1.change_status.state == m2.change_status.state:
+            return (m1.change_status.name() > m2.change_status.name()) - (
+                    m1.change_status.name() < m2.change_status.name())
+        else:
+            return (
+                    change_state_order.index(m1.change_status.state)
+                    - change_state_order.index(m2.change_status.state)
+            )
+
+    @classmethod
+    def sorted(cls, elements: List["ChangedColumnsTableEntryElement"]):
+        return sorted(elements, key=cmp_to_key(cls._sort_func))
 
     def build(self):
         # Check added or removed
@@ -487,8 +538,8 @@ class TotalColumnsTableEntryElement(_Element):
                 """
             else:
                 return f"""
-                <td>{Styles.latex_orange(v1)}</td>
-                <td>{Styles.latex_orange(v2)}</td>
+                <td>{Styles.latex_grey(v1)}</td>
+                <td>{Styles.all_columns_highlight(v2)}</td>
                 """
 
         result = f"""
@@ -631,29 +682,11 @@ class ChangedColumnsTableElement(_Element):
         self.column_changes = 0
         self.model_selector = model_selector
 
-    @staticmethod
-    def sort_func(m1: ChangedColumnsTableEntryElement, m2: ChangedColumnsTableEntryElement):
-        change_state_order = [
-            DataChangeState.EDITED,
-            DataChangeState.REMOVED,
-            DataChangeState.ADDED,
-            DataChangeState.NO_CHANGES,
-            DataChangeState.UNKNOWN,
-        ]
-        if m1.change_status.state == m2.change_status.state:
-            return (m1.change_status.name() > m2.change_status.name()) - (
-                    m1.change_status.name() < m2.change_status.name())
-        else:
-            return (
-                    change_state_order.index(m1.change_status.state)
-                    - change_state_order.index(m2.change_status.state)
-            )
-
     def build(self):
         name = self.find_table_name(self.model_selector)
         t = self.joined_tables()
         from functools import cmp_to_key
-        children = sorted(list(t.columns_changed_iterator(name)), key=cmp_to_key(self.sort_func))
+        children = ChangedColumnsTableEntryElement.sorted(list(t.columns_changed_iterator(name)))
         self.column_changes = len(children)
 
         orange_changes = Styles.latex_orange('↑ changes')
@@ -877,9 +910,15 @@ class ModelEntryOverviewElement(_Element):
         base_total_columns, target_total_columns = self.joined_tables().column_counts(m.name)
 
         column_change_views = list(self.joined_tables().all_columns_iterator(m.name))
-        value_diff_plus = ChangeStatus.count_added([x.create_change_status() for x in column_change_views])
-        value_diff_minus = ChangeStatus.count_removed([x.create_change_status() for x in column_change_views])
-        value_diff_explicit = ChangeStatus.count_edited([x.create_change_status() for x in column_change_views])
+        changes_status_list = [x.create_change_status() for x in column_change_views]
+        value_diff_plus = ChangeStatus.count_added(changes_status_list)
+        value_diff_minus = ChangeStatus.count_removed(changes_status_list)
+        value_diff_explicit = ChangeStatus.count_edited(changes_status_list)
+
+        info = ChangeStatus.sorted([x for x in changes_status_list if
+                                    x.state != DataChangeState.NO_CHANGES or x.state != DataChangeState.UNKNOWN])
+
+        title = "&#10;".join([f"{x.name()} ({x.state.value})" for x in info])
 
         total_columns_params = dict()
         total_columns_params['value_diff_plus'] = Styles.latex_orange('(' + str(value_diff_plus))
@@ -893,7 +932,7 @@ class ModelEntryOverviewElement(_Element):
         total_columns_params['end'] = Styles.latex_orange(')')
 
         total_columns_data = """%(value_diff_plus)s%(hover_diff_plus)s %(value_diff_minus)s%(hover_diff_minus)s %(value_diff_explicit)s%(hover_diff_explicit)s%(end)s""" % total_columns_params
-        total_columns_hover = r"<span>%s</span>" % total_columns_data
+        total_columns_hover = r'<span title="%s">%s</span>' % (title, total_columns_data)
 
         return self.add_indent(f"""
         <tr>
@@ -990,6 +1029,32 @@ class ModelEntryElement(_Element):
         else:
             self.change_state = DataChangeState.NO_CHANGES
 
+    @staticmethod
+    def _sort_func(m1: "ModelEntryElement", m2: "ModelEntryElement"):
+        if m1.profiled and not m2.profiled:
+            return True
+        elif not m1.profiled and m2.profiled:
+            return False
+        else:
+            change_state_order = [
+                DataChangeState.EDITED,
+                DataChangeState.REMOVED,
+                DataChangeState.ADDED,
+                DataChangeState.NO_CHANGES,
+                DataChangeState.UNKNOWN,
+            ]
+            if m1.change_state == m2.change_state:
+                return m1.model_selector < m2.model_selector
+            else:
+                return (
+                        change_state_order.index(m1.change_state)
+                        < change_state_order.index(m2.change_state)
+                )
+
+    @classmethod
+    def sorted(cls, elements: List["ModelEntryElement"]):
+        return sorted(elements, key=cmp_to_key(cls._sort_func))
+
     def build(self):
         if self.profiled:
             path_line = f"{self.path} - {self.change_state.to_path_state()} (Profiled)"
@@ -1042,33 +1107,8 @@ class ModelElement(_Element):
 
         return state
 
-    @staticmethod
-    def model_sort_func(m1: ModelEntryElement, m2: ModelEntryElement):
-        if m1.profiled and not m2.profiled:
-            return True
-        elif not m1.profiled and m2.profiled:
-            return False
-        else:
-            change_state_order = [
-                DataChangeState.EDITED,
-                DataChangeState.REMOVED,
-                DataChangeState.ADDED,
-                DataChangeState.NO_CHANGES,
-                DataChangeState.UNKNOWN,
-            ]
-            if m1.change_state == m2.change_state:
-                return m1.model_selector < m2.model_selector
-            else:
-                return (
-                        change_state_order.index(m1.change_state)
-                        < change_state_order.index(m2.change_state)
-                )
-
     def build(self):
-        entries = [ModelEntryElement(self, x) for x in self.models]
-        from functools import cmp_to_key
-        entries = sorted(entries, key=cmp_to_key(self.model_sort_func))
-
+        entries = ModelEntryElement.sorted([ModelEntryElement(self, x) for x in self.models])
         return f"<details><summary>{self.model_type.value}: {len(self.get_changed_tables())} of {len(self.models)}</summary>\n{_build_list(entries)}</details>"
 
     def get_changed_tables(self):
