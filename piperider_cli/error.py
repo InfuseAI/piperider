@@ -21,8 +21,8 @@ class PipeRiderConfigError(PipeRiderError):
         self.config_file = config_file
         pass
 
-    message = "Piperider is not initialized."
-    hint = "Please execute command 'piperider init' to move forward."
+    message = "PipeRider configuration file not found."
+    hint = "Please follow the Quick Start guide on https://docs.piperider.io/get-started/quick-start to set up your first PipeRider project."
 
 
 class PipeRiderConfigTypeError(PipeRiderError):
@@ -111,11 +111,14 @@ class DbtError(PipeRiderError):
 
 
 class DbtProjectNotFoundError(DbtError):
-    def __init__(self, dbt_project_path):
+    def __init__(self, dbt_project_path=None):
         self.dbt_project_path = dbt_project_path
-        self.message = f"Cannot find dbt project at '{dbt_project_path}'."
+        if dbt_project_path:
+            self.message = f"No DBT project found in '{dbt_project_path}'"
+        else:
+            self.message = "No DBT project found in current path"
 
-    hint = "Please make sure the dbt project is in the same directory with the piperider config file."
+    hint = "Please follow the Quick Start guide on https://docs.piperider.io/get-started/quick-start to set up your first PipeRider project."
 
 
 class DbtProjectInvalidError(DbtError):

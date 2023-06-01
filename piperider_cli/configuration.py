@@ -27,6 +27,15 @@ DBT_PROFILES_DIR_DEFAULT = '~/.dbt/'
 DBT_PROFILE_FILE = 'profiles.yml'
 
 
+def is_piperider_workspace_exist(workspace_path: str = PIPERIDER_WORKSPACE_PATH) -> bool:
+    if not os.path.exists(workspace_path):
+        return False
+    elif not os.path.exists(os.path.join(workspace_path, 'config.yml')):
+        return False
+
+    return True
+
+
 class Configuration(object):
     """
     Configuration represents the config file in the piperider project
