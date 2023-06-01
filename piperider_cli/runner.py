@@ -539,7 +539,7 @@ def get_dbt_profile_subjects(dbt_state_dir, options, filter_fn):
 def get_dbt_state_dir(dbt_state_dir, dbt_config, ds):
     if not dbt_state_dir:
         dbt_project = dbtutil.load_dbt_project(dbt_config.get('projectDir'))
-        dbt_state_dir = dbt_project.get('target-path')
+        dbt_state_dir = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
         if os.path.isabs(dbt_state_dir) is False:
             dbt_state_dir = os.path.join(dbt_config.get('projectDir'), dbt_state_dir)
 
