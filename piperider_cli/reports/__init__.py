@@ -54,7 +54,7 @@ class Styles:
 
     @staticmethod
     def all_columns_highlight(text):
-        return f"💡 <b>{text}</b>"
+        return f"⚠️ <b>{text}</b>"
 
     @staticmethod
     def latex_grey(text):
@@ -339,6 +339,12 @@ class ColumnChangeView:
             return "-"
         return f"{self.data.get('invalids_p'):.1%}"
 
+    @property
+    def invalids(self):
+        if not self.data:
+            return None
+        return self.data.get("invalids")
+
     def get_type(self, compared_type: str = None):
         if self.data is None:
             return None
@@ -530,26 +536,59 @@ class TotalColumnsTableEntryElement(_Element):
 
         change_status = self.create_change_status()
 
-        def td(v1, v2):
+        def to_title_str(base_value, base_rate, target_value, target_rate):
+            if base_value is None:
+                title = [f"T: {target_value}",
+                         f"T: {target_rate}"]
+                return "&#10;".join(title)
+            if target_value is None:
+                title = [f"B: {base_value}",
+                         f"B: {base_rate}"]
+                return "&#10;".join(title)
+
+            diff_value = abs(target_value - base_value)
+            rate = abs(change_rate(base_value, target_value))
+            if math.inf == rate:
+                rate = "∞"
+           
+            diff_sign = "↑" if target_value > base_value else "↓"
+            title = [f"B: {base_value} ••• T: {target_value} ({diff_sign}{diff_value})",
+                     f"B: {base_rate} ••• T: {target_rate} ({diff_sign}{rate})"]
+            return "&#10;".join(title)
+
+        def td2(prop: str):
+            v1 = getattr(self.base_view, f"{prop}_p")
+            v2 = getattr(self.target_view, f"{prop}_p")
+
             if v1 == v2:
                 return f"""
                 <td>{Styles.latex_grey(v1)}</td>
                 <td>{Styles.latex_grey(v2)}</td>
                 """
-            else:
-                return f"""
-                <td>{Styles.latex_grey(v1)}</td>
-                <td>{Styles.all_columns_highlight(v2)}</td>
-                """
+
+            # if v1 is None or v2 is None:
+            #     return f"""
+            #     <td>{Styles.latex_grey(v1)}</td>
+            #     <td>{Styles.all_columns_highlight(v2)}</td>
+            #     """
+
+            v1v = getattr(self.base_view, f"{prop}")
+            v2v = getattr(self.target_view, f"{prop}")
+            hover = '<span title="%s">%s</span>' % (to_title_str(v1v, v1, v2v, v2), Styles.all_columns_highlight(v2))
+
+            return f"""
+            <td>{Styles.latex_grey(v1)}</td>
+            <td>{hover}</td>
+            """
 
         result = f"""
         <tr>
         <td>{change_status.icon}</td>
         <td>{self.column_name}</td>
         <td>{Styles.latex_grey(target_type)}</td>
-        {td(self.base_view.duplicates_p, self.target_view.duplicates_p)}
-        {td(self.base_view.invalids_p, self.target_view.invalids_p)}
-        {td(self.base_view.nulls_p, self.target_view.nulls_p)}
+        {td2("duplicates")}
+        {td2("invalids")}
+        {td2("nulls")}
         </tr>
         """
         return self.add_indent(result, 8)
@@ -862,7 +901,7 @@ class ModelEntryOverviewElement(_Element):
 
             if t > b:
                 return f"{t} (↑ {t - b})"
-            return f"{t} (↑ {b - t})"
+            return f"{t} (↓ {b - t})"
 
         # return base_execution_time, base_tests, target_execution_time, target_tests, tests_changes, to_human_readable
         return self.add_indent(f"""
