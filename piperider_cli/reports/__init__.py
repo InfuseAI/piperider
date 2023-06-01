@@ -41,38 +41,41 @@ def change_rate(base: int, target: int):
     return math.nan
 
 
-def latex_orange(text):
-    if text is None:
-        return ""
-    if isinstance(text, str) and '%' in text:
-        text = text.replace('%', '\%')
-    return r'$\color{orange}{\text{ %s }}$' % str(text)
+class Styles:
 
+    @staticmethod
+    def latex_orange(text):
+        if text is None:
+            return ""
+        if isinstance(text, str) and '%' in text:
+            text = text.replace('%', '\%')
+        return r'$\color{orange}{\text{ %s }}$' % str(text)
 
-def latex_grey(text):
-    if text is None:
-        return ""
-    if isinstance(text, str) and '%' in text:
-        text = text.replace('%', '\%')
-    return r'$\color{grey}{\text{ %s }}$' % str(text)
+    @staticmethod
+    def latex_grey(text):
+        if text is None:
+            return ""
+        if isinstance(text, str) and '%' in text:
+            text = text.replace('%', '\%')
+        return r'$\color{grey}{\text{ %s }}$' % str(text)
 
+    @staticmethod
+    def latex_black(text):
+        if text is None:
+            return ""
+        if isinstance(text, str) and '%' in text:
+            text = text.replace('%', '\%')
+        return r'$\color{black}{\text{ %s }}$' % str(text)
 
-def latex_black(text):
-    if text is None:
-        return ""
-    if isinstance(text, str) and '%' in text:
-        text = text.replace('%', '\%')
-    return r'$\color{black}{\text{ %s }}$' % str(text)
+    @staticmethod
+    def html_bold(text):
+        if text is None:
+            return ""
+        return "<b>" + str(text) + "</b>"
 
-
-def html_bold(text):
-    if text is None:
-        return ""
-    return "<b>" + str(text) + "</b>"
-
-
-def html_grey(text):
-    return text
+    @staticmethod
+    def html_grey(text):
+        return text
 
 
 class Image:
@@ -338,10 +341,10 @@ class ColumnChangeView:
                     delta = ""
 
                 title = f"B: {self.data.get(metric_name)}, T: {target_view.data.get(metric_name)}&#10;B: {self.data.get(percentage):.1%}, T: {target_view.data.get(percentage):.1%}"
-                annotation = f"({delta})".replace("%", "\%")
+                annotation = f"({delta})"
                 annotation = (
-                        r'<span title="%s">$\color{orange}{\text{ %s }}$</span>'
-                        % (title, annotation)
+                        r'<span title="%s">%s</span>'
+                        % (title, Styles.latex_orange(annotation))
                 )
                 reasons.append(
                     f"{target_view.data.get(percentage):.1%} {display_label} {annotation}."
@@ -424,8 +427,8 @@ class ChangedColumnsTableEntryElement(_Element):
                 <tr>
                 <td>{change_status.icon}</td>
                 <td>{self.column_name}</td>
-                <td>{latex_grey(display_type)}</td>
-                <td>{latex_grey(display_type)}</td>
+                <td>{Styles.latex_grey(display_type)}</td>
+                <td>{Styles.latex_grey(display_type)}</td>
                 <td>{change_status.change_type}</td>
                 </tr>
                 """
@@ -437,11 +440,11 @@ class ChangedColumnsTableEntryElement(_Element):
         base_type = self.base_view.get_type()
         target_type = self.target_view.get_type(self.base_view.get_type())
         if base_type == target_type:
-            base_type = latex_grey(base_type)
-            target_type = latex_grey(target_type)
+            base_type = Styles.latex_grey(base_type)
+            target_type = Styles.latex_grey(target_type)
         else:
-            base_type = latex_black(base_type)
-            target_type = latex_black(target_type)
+            base_type = Styles.latex_black(base_type)
+            target_type = Styles.latex_black(target_type)
 
         result = f"""
             <tr>
@@ -479,20 +482,20 @@ class TotalColumnsTableEntryElement(_Element):
         def td(v1, v2):
             if v1 == v2:
                 return f"""
-                <td>{latex_grey(v1)}</td>
-                <td>{latex_grey(v2)}</td>
+                <td>{Styles.latex_grey(v1)}</td>
+                <td>{Styles.latex_grey(v2)}</td>
                 """
             else:
                 return f"""
-                <td>{latex_orange(v1)}</td>
-                <td>{latex_orange(v2)}</td>
+                <td>{Styles.latex_orange(v1)}</td>
+                <td>{Styles.latex_orange(v2)}</td>
                 """
 
         result = f"""
         <tr>
         <td>{change_status.icon}</td>
         <td>{self.column_name}</td>
-        <td>{latex_grey(target_type)}</td>
+        <td>{Styles.latex_grey(target_type)}</td>
         {td(self.base_view.duplicates_p, self.target_view.duplicates_p)}
         {td(self.base_view.invalids_p, self.target_view.invalids_p)}
         {td(self.base_view.nulls_p, self.target_view.nulls_p)}
@@ -653,7 +656,7 @@ class ChangedColumnsTableElement(_Element):
         children = sorted(list(t.columns_changed_iterator(name)), key=cmp_to_key(self.sort_func))
         self.column_changes = len(children)
 
-        orange_changes = r'$\color{orange}{\text{(↑ changes)}}$'
+        orange_changes = Styles.latex_orange('↑ changes')
 
         return f"""
         <table>
@@ -853,11 +856,11 @@ class ModelEntryOverviewElement(_Element):
             total_rows_hover = ""
         elif target_total_rows > base_total_rows:
             row_p = f"(↑ {change_rate(base_total_rows, target_total_rows):.1%})"
-            orange_row_p = latex_orange(row_p)
+            orange_row_p = Styles.latex_orange(row_p)
             total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↑ {target_total_rows - base_total_rows}) {row_p}">{orange_row_p}</span>"""
         else:
-            row_p = latex_orange(f"(↓ {change_rate(base_total_rows, target_total_rows):.1%})")
-            orange_row_p = latex_orange(row_p)
+            row_p = Styles.latex_orange(f"(↓ {change_rate(base_total_rows, target_total_rows):.1%})")
+            orange_row_p = Styles.latex_orange(row_p)
             total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↓ {base_total_rows - target_total_rows}) {row_p}">{orange_row_p}</span>"""
 
         return self.add_indent(f"""
@@ -879,15 +882,15 @@ class ModelEntryOverviewElement(_Element):
         value_diff_explicit = ChangeStatus.count_edited([x.create_change_status() for x in column_change_views])
 
         total_columns_params = dict()
-        total_columns_params['value_diff_plus'] = latex_orange('(' + str(value_diff_plus))
+        total_columns_params['value_diff_plus'] = Styles.latex_orange('(' + str(value_diff_plus))
         total_columns_params['hover_diff_plus'] = Image.ModelOverviewStat.hover_diff_plus
 
-        total_columns_params['value_diff_minus'] = latex_orange(value_diff_minus)
+        total_columns_params['value_diff_minus'] = Styles.latex_orange(value_diff_minus)
         total_columns_params['hover_diff_minus'] = Image.ModelOverviewStat.hover_diff_minus
 
-        total_columns_params['value_diff_explicit'] = latex_orange(value_diff_explicit)
+        total_columns_params['value_diff_explicit'] = Styles.latex_orange(value_diff_explicit)
         total_columns_params['hover_diff_explicit'] = Image.ModelOverviewStat.hover_diff_explicit
-        total_columns_params['end'] = latex_orange(')')
+        total_columns_params['end'] = Styles.latex_orange(')')
 
         total_columns_data = """%(value_diff_plus)s%(hover_diff_plus)s %(value_diff_minus)s%(hover_diff_minus)s %(value_diff_explicit)s%(hover_diff_explicit)s%(end)s""" % total_columns_params
         total_columns_hover = r"<span>%s</span>" % total_columns_data
@@ -936,7 +939,7 @@ class ModelEntryOverviewElement(_Element):
                 icon = Image.ModelOverView.checked
             else:
                 icon = Image.ModelOverView.triangle
-                description = latex_orange(f"({description})")
+                description = Styles.latex_orange(f"({description})")
             return icon, description
 
         duplicate_change_icon, duplicate_description = build_status(duplicate_cols)
@@ -1183,10 +1186,10 @@ class DbtMetricsWithChangesTableEntry(_Element):
                 content += f"""
                 <tr>
                     <td>{Image.DbtMetric.implicit_icon}</td>
-                    <td>{html_bold(date)}</td>
-                    <td>{html_bold(b) if b is not None else html_bold('-')}</td>
-                    <td>{html_bold(t) if t is not None else html_bold('-')}</td>
-                    <td>{html_bold("(" + change + ")") if change else ""}</td>
+                    <td>{Styles.html_bold(date)}</td>
+                    <td>{Styles.html_bold(b) if b is not None else Styles.html_bold('-')}</td>
+                    <td>{Styles.html_bold(t) if t is not None else Styles.html_bold('-')}</td>
+                    <td>{Styles.html_bold("(" + change + ")") if change else ""}</td>
                 </tr>
                 """
                 hide_adjacent = False
@@ -1194,9 +1197,9 @@ class DbtMetricsWithChangesTableEntry(_Element):
                 content += f"""
                 <tr>
                     <td></td>
-                    <td>{html_grey(date)}</td>
-                    <td>{html_grey(b) if b is not None else html_grey('-')}</td>
-                    <td>{html_grey(t) if t is not None else html_grey('-')}</td>
+                    <td>{Styles.html_grey(date)}</td>
+                    <td>{Styles.html_grey(b) if b is not None else Styles.html_grey('-')}</td>
+                    <td>{Styles.html_grey(t) if t is not None else Styles.html_grey('-')}</td>
                     <td></td>
                 </tr>
                 """
@@ -1207,9 +1210,9 @@ class DbtMetricsWithChangesTableEntry(_Element):
                 content += f"""
                 <tr>
                     <td></td>
-                    <td>{html_grey('...')}</td>
-                    <td>{html_grey('...')}</td>
-                    <td>{html_grey('...')}</td>
+                    <td>{Styles.html_grey('...')}</td>
+                    <td>{Styles.html_grey('...')}</td>
+                    <td>{Styles.html_grey('...')}</td>
                     <td></td>
                 </tr>
                 """
