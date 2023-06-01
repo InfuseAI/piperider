@@ -15,9 +15,15 @@ import ReactFlow, {
 import dagre from 'dagre';
 
 import 'reactflow/dist/style.css';
-import { Box, Select, useDisclosure } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  ButtonGroup,
+  Select,
+  useDisclosure,
+} from '@chakra-ui/react';
 import { useLocation } from 'wouter';
-import { LineageGraphItem } from '../../utils/dbt';
+import { LineageGraphData, LineageGraphItem } from '../../utils/dbt';
 import TableSummary from './TableSummary';
 import { GraphNode } from './GraphNode';
 
@@ -27,15 +33,28 @@ dagreGraph.setDefaultEdgeLabel(() => ({}));
 const nodeWidth = 300;
 const nodeHeight = 60;
 
-const getRelatedNodes = (lineageGraph, key) => {
+const getUpstreamNodes = (lineageGraph, key) => {
   const node = lineageGraph[key];
   const relatedNodes = [key];
 
   if (Object.keys(node.dependsOn).length > 0) {
     Object.keys(node.dependsOn).forEach((dependsOnKey) => {
-      relatedNodes.push(...getRelatedNodes(lineageGraph, dependsOnKey));
+      relatedNodes.push(...getUpstreamNodes(lineageGraph, dependsOnKey));
     });
   }
+  return relatedNodes;
+};
+
+const getDownstreamNodes = (edges: Edge[], key) => {
+  const relatedNodes: string[] = [];
+
+  Object.entries(edges).forEach(([_, edge]) => {
+    if (edge.source === key) {
+      relatedNodes.push(edge.target);
+      relatedNodes.push(...getDownstreamNodes(edges, edge.target));
+    }
+  });
+
   return relatedNodes;
 };
 
@@ -109,6 +128,54 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
     [setSelected, onOpen],
   );
 
+  const onFocusClick = useCallback(() => {
+    const selectedItem = selected;
+    console.log(selectedItem);
+    const relatedNodes = [
+      ...getUpstreamNodes(lineageGraph, selectedItem?.uniqueId),
+      ...getDownstreamNodes(edges, selectedItem?.uniqueId),
+    ];
+    const relatedEdges = edges.filter((edge) => {
+      return (
+        relatedNodes.includes(edge.source) && relatedNodes.includes(edge.target)
+      );
+    });
+
+    setNodes((nodes) =>
+      nodes.map((node) => {
+        if (!relatedNodes.includes(node.id)) {
+          return {
+            ...node,
+            hidden: true,
+          };
+        } else {
+          return node;
+        }
+      }),
+    );
+    setEdges((edges) =>
+      edges.map((edge) => {
+        if (!relatedEdges.includes(edge)) {
+          return {
+            ...edge,
+            hidden: true,
+          };
+        } else {
+          return edge;
+        }
+      }),
+    );
+  }, [selected, lineageGraph, setNodes, setEdges, edges]);
+
+  const onFullGraphClick = useCallback(() => {
+    const hide = (hidden: boolean) => (nodeOrEdge) => {
+      nodeOrEdge.hidden = hidden;
+      return nodeOrEdge;
+    };
+    setNodes((nodes) => nodes.map(hide(false)));
+    setEdges((edges) => edges.map(hide(false)));
+  }, [setNodes, setEdges]);
+
   useEffect(() => {
     const initialNodes: Node[] = [];
     const initialEdges: Edge[] = [];
@@ -159,7 +226,10 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   }, [lineageGraph, setNodes, setEdges, singleOnly, onClick]);
 
   function highlightPath(node: Node) {
-    const relatedNodes = getRelatedNodes(lineageGraph, node.id);
+    const relatedNodes = [
+      ...getUpstreamNodes(lineageGraph, node.id),
+      ...getDownstreamNodes(edges, node.id),
+    ];
     const relatedEdges = edges.filter((edge) => {
       return (
         relatedNodes.includes(edge.source) && relatedNodes.includes(edge.target)
@@ -297,6 +367,17 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         isOpen={isOpen}
         onClose={onClose}
       ></TableSummary>
+      <ButtonGroup gap="2">
+        <Button colorScheme="orange" size="sm" onClick={onFullGraphClick}>
+          Full graph
+        </Button>
+        <Button colorScheme="orange" size="sm" onClick={onFocusClick}>
+          Focus on selected
+        </Button>
+        <Button colorScheme="orange" size="sm">
+          Change only
+        </Button>
+      </ButtonGroup>
     </div>
   );
 }
