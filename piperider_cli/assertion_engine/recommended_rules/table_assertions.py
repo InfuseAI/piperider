@@ -8,7 +8,10 @@ def recommended_table_row_count_assertion(table, column, profiling_result) -> Re
     if column is not None:
         return None
 
-    row_count = profiling_result['tables'][table]['row_count']
+    row_count = profiling_result['tables'][table].get('row_count')
+    if row_count is None:
+        return None
+
     test_metric_name = 'row_count'
     assertion_values = {
         'gte': int(row_count * 0.9),
@@ -21,7 +24,10 @@ def recommended_column_schema_type_assertion(table, column, profiling_result) ->
     if column is None:
         return None
 
-    schema_type = profiling_result['tables'][table]['columns'][column]['schema_type']
+    schema_type = profiling_result['tables'][table]['columns'][column].get('schema_type')
+    if schema_type is None:
+        return None
+
     test_function_name = 'assert_column_schema_type'
     assertion_values = {
         'schema_type': schema_type
@@ -37,7 +43,7 @@ def recommended_column_min_assertion(table, column, profiling_result) -> Recomme
     column_metric = profiling_result['tables'][table]['columns'][column]
     column_type = column_metric['type']
     if column_type == 'numeric':
-        valids = column_metric['valids']
+        valids = column_metric.get('valids')
         if not valids:
             return None
 
@@ -68,7 +74,7 @@ def recommended_column_max_assertion(table, column, profiling_result) -> Recomme
     column_metric = profiling_result['tables'][table]['columns'][column]
     column_type = column_metric['type']
     if column_type == 'numeric':
-        valids = column_metric['valids']
+        valids = column_metric.get('valids')
         if not valids:
             return None
 
@@ -100,7 +106,7 @@ def recommended_column_value_assertion(table, column, profiling_result) -> Optio
     column_type = column_metric['type']
     assert_name = 'assert_column_value'
     if column_type == 'numeric':
-        valids = column_metric['valids']
+        valids = column_metric.get('valids')
         if not valids:
             return None
 
@@ -131,6 +137,9 @@ def recommended_column_value_assertion(table, column, profiling_result) -> Optio
             return RecommendedAssertion(assert_name, None, assertion_values)
     elif column_type == 'string':
         distinct = column_metric.get('distinct')
+        if distinct is None:
+            return None
+
         topk = []
         if column_metric.get('topk'):
             topk = column_metric.get('topk').get('values', [])
@@ -149,10 +158,16 @@ def recommended_column_unique_assertion(table, column, profiling_result) -> Reco
         return None
 
     column_metric = profiling_result['tables'][table]['columns'][column]
-    column_type = column_metric['type']
+    column_type = column_metric.get('type')
+    if column_type is None:
+        return None
+
     if column_type == 'string':
-        valids = column_metric['valids']
-        distinct = column_metric['distinct']
+        valids = column_metric.get('valids')
+        distinct = column_metric.get('distinct')
+
+        if valids is None or distinct is None:
+            return None
 
         if valids > 0 and distinct == valids:
             test_function_name = 'assert_column_unique'
@@ -167,7 +182,10 @@ def recommended_column_not_null_assertion(table, column, profiling_result) -> Re
         return None
 
     column_metric = profiling_result['tables'][table]['columns'][column]
-    non_nulls = column_metric['non_nulls']
+    non_nulls = column_metric.get('non_nulls')
+    if non_nulls is None:
+        return
+
     total = column_metric['total']
 
     if total > 0 and non_nulls == total:
