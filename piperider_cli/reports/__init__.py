@@ -550,7 +550,7 @@ class TotalColumnsTableEntryElement(_Element):
             rate = abs(change_rate(base_value, target_value))
             if math.inf == rate:
                 rate = "∞"
-           
+
             diff_sign = "↑" if target_value > base_value else "↓"
             title = [f"B: {base_value} ••• T: {target_value} ({diff_sign}{diff_value})",
                      f"B: {base_rate} ••• T: {target_rate} ({diff_sign}{rate})"]
@@ -565,12 +565,6 @@ class TotalColumnsTableEntryElement(_Element):
                 <td>{Styles.latex_grey(v1)}</td>
                 <td>{Styles.latex_grey(v2)}</td>
                 """
-
-            # if v1 is None or v2 is None:
-            #     return f"""
-            #     <td>{Styles.latex_grey(v1)}</td>
-            #     <td>{Styles.all_columns_highlight(v2)}</td>
-            #     """
 
             v1v = getattr(self.base_view, f"{prop}")
             v2v = getattr(self.target_view, f"{prop}")
@@ -986,24 +980,28 @@ class ModelEntryOverviewElement(_Element):
     def build_column_stats(self, m):
         changed_columns = list(self.joined_tables().columns_changed_iterator(m.name))
 
-        duplicate_cols = [change_rate(x.base_view.duplicates, x.target_view.duplicates)
-                          for x in changed_columns if x.base_view.duplicates != x.target_view.duplicates]
-        duplicate_cols = [x for x in duplicate_cols if not math.isnan(x)]
+        duplicate_cols = {x.column_name: change_rate(x.base_view.duplicates, x.target_view.duplicates)
+                          for x in changed_columns if x.base_view.duplicates != x.target_view.duplicates}
 
-        nulls_cols = [change_rate(x.base_view.nulls, x.target_view.nulls)
-                      for x in changed_columns if x.base_view.nulls != x.target_view.nulls]
-        nulls_cols = [x for x in nulls_cols if not math.isnan(x)]
+        duplicate_cols = {k: v for k, v in duplicate_cols.items() if
+                          not math.isnan(v)}
 
-        def _show_change(change_rate):
-            arrow = "↑" if change_rate > 0 else "↓"
-            rate = abs(change_rate)
+        nulls_cols = {x.column_name: change_rate(x.base_view.nulls, x.target_view.nulls)
+                      for x in changed_columns if x.base_view.nulls != x.target_view.nulls}
+        nulls_cols = {k: v for k, v in nulls_cols.items() if
+                      not math.isnan(v)}
+
+        def _show_change(rate):
+            arrow = "↑" if rate > 0 else "↓"
+            rate = abs(rate)
             if rate == math.inf:
                 rate = "∞"
             else:
-                rate = f"{rate:.1%}"
+                rate = f"{rate / 100:.1%}"
             return f"{arrow}{rate}"
 
-        def build_status(change_list: List):
+        def build_status(data: Dict):
+            change_list = list(data.values())
             description = ""
             icon = ""
             if len(change_list) == 0:
@@ -1018,6 +1016,11 @@ class ModelEntryOverviewElement(_Element):
             else:
                 icon = Image.ModelOverView.triangle
                 description = Styles.latex_orange(f"({description})")
+
+            title = ["%s = %s" % (k, "∞" if v == math.inf else f"{v / 100:.1%}") for k, v in data.items()]
+            title = "&#10;".join(title)
+            description = '<span title="%s">%s</span>' % (title, description)
+
             return icon, description
 
         duplicate_change_icon, duplicate_description = build_status(duplicate_cols)
