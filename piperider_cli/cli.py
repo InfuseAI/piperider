@@ -10,8 +10,8 @@ from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
-from piperider_cli.configuration import PIPERIDER_WORKSPACE_PATH
-from piperider_cli.error import RecipeConfigException
+from piperider_cli.configuration import PIPERIDER_WORKSPACE_PATH, is_piperider_workspace_exist
+from piperider_cli.error import RecipeConfigException, DbtProjectNotFoundError
 from piperider_cli.event import UserProfileConfigurator
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
@@ -146,6 +146,8 @@ def diagnose(**kwargs):
     if dbt_project_path:
         # Only run initializer when dbt project path is provided
         Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
+    elif is_piperider_workspace_exist() is False:
+        raise DbtProjectNotFoundError()
 
     console.print('Diagnosing...')
 
@@ -202,6 +204,8 @@ def run(**kwargs):
     if dbt_project_path:
         # Only run initializer when dbt project path is provided
         Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
+    elif is_piperider_workspace_exist() is False:
+        raise DbtProjectNotFoundError()
 
     dbt_resources = None
     if dbt_list:
@@ -475,6 +479,9 @@ def compare_with_recipe(**kwargs):
     if dbt_project_path:
         # Only run initializer when dbt project path is provided
         Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
+    elif is_piperider_workspace_exist() is False:
+        raise DbtProjectNotFoundError()
+
     ret = 0
     try:
         # note: dry-run and interactive are set by configure_recipe_execution_flags
