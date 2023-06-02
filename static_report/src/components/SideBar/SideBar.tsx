@@ -79,7 +79,7 @@ export function SideBar({ singleOnly }: Comparable) {
       </Button>
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
-        <ModalContent maxW="calc(100vw - 200px)">
+        <ModalContent maxW="calc(100vw - 200px)" backgroundColor="#f6f6f6">
           <ModalCloseButton />
           <ModalBody>
             <ReactFlowGraph singleOnly={singleOnly} />

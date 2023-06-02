@@ -355,8 +355,8 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         }}
       >
         <Select variant="outline" size="sm">
-          <option>Row count</option>
           <option>No stats</option>
+          <option>Row count</option>
           <option>Execution time</option>
           <option>Metric total</option>
         </Select>

@@ -10,7 +10,7 @@ export function getStatDiff(
   base?: object,
   target?: object,
   key: string = '',
-  style: 'percent' | 'decimal' = 'decimal',
+  style: 'percent' | 'decimal' | 'duration' = 'decimal',
 ): {
   statValue?: number;
   statValueF?: string;

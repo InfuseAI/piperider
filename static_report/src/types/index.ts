@@ -15,6 +15,7 @@ import {
   SourceDefinition,
 } from '../sdlc/dbt-manifest-schema';
 import { CompColEntryItem } from '../lib';
+import { RunResultOutput } from '../sdlc/dbt-run-results-schema';
 
 export * from '../sdlc';
 
@@ -31,6 +32,7 @@ export type DbtNode = (
 ) & {
   __table?: SaferTableSchema;
   __columns?: CompColEntryItem[];
+  __runResult?: RunResultOutput;
   [key: string]: any;
 };
 

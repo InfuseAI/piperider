@@ -7,6 +7,7 @@ import {
 import { DbtNode, SaferSRSchema } from '../types/index';
 import _ from 'lodash';
 import { HOME_ROUTE_PATH } from './routes';
+import { DbtRunResultsSchema } from '../sdlc/dbt-run-results-schema';
 
 export type ItemType =
   | DbtManifestSchema['nodes'][string]['resource_type']
@@ -48,6 +49,8 @@ export interface LineageGraphItem {
     [key: string]: ('base' | 'target')[];
   };
   stat?: {
+    name: string;
+    type: 'number' | 'duration';
     base?: number;
     target?: number;
   };
@@ -63,6 +66,8 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
   }
 
   const manifest = run?.dbt?.manifest as DbtManifestSchema;
+  const runResults = run?.dbt?.run_results as DbtRunResultsSchema;
+
   const dbtNodes: {
     [key: string]: DbtNode;
   } = {};
@@ -107,6 +112,16 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
       manifest?.nodes,
     );
   }
+
+  if (runResults) {
+    runResults.results.forEach((result) => {
+      const uniqueId = result.unique_id;
+      if (dbtNodes[uniqueId]) {
+        dbtNodes[uniqueId].__runResult = result;
+      }
+    });
+  }
+
   return dbtNodes;
 };
 
@@ -416,16 +431,10 @@ export function buildProjectTree(
     path: `/assertions`,
   };
 
-  const graph: SidebarTreeItem = {
-    name: 'Lineage Graph',
-    type: 'folder',
-    items: [{ name: 'React flow', type: 'graph', path: '/graph/reactflow' }],
-  };
-
   if (isLegacy) {
     return [overview, table, metric, assertion];
   } else {
-    return [overview, source, seed, model, metric, assertion, graph];
+    return [overview, source, seed, model, metric, assertion];
   }
 }
 
@@ -525,16 +534,43 @@ export function buildDatabaseTree(
   return items;
 }
 
+function _get_stat(
+  tableEntry: CompTableColEntryItem,
+  stat = 'execution_time',
+): LineageGraphItem['stat'] | undefined {
+  const [, { base, target }] = tableEntry;
+  const result: LineageGraphItem['stat'] = {
+    name: stat,
+    type: 'number',
+  };
+
+  if (stat === 'execution_time') {
+    result.type = 'duration';
+    result.base = base?.__runResult?.execution_time;
+    result.target = target?.__runResult?.execution_time;
+  } else {
+    result.type = 'number';
+    result.base = base?.__table?.row_count;
+    result.target = target?.__table?.row_count;
+  }
+
+  if (result.base == null && result.target == null) {
+    return undefined;
+  }
+
+  return result;
+}
+
 export function buildLineageGraph(
   itemsNodeComparison: CompTableColEntryItem[],
 ): LineageGraphData {
   const data: LineageGraphData = {};
 
-  itemsNodeComparison.forEach(([key, { base, target }]) => {
+  itemsNodeComparison.forEach((tableEntry) => {
+    const [key, { base, target }] = tableEntry;
     const fallback = (target ?? base) as DbtNode;
     const dependsOn = {};
     const from: LineageGraphItem['from'] = [];
-    const stat: LineageGraphItem['stat'] = {};
 
     if (fallback.resource_type === 'table') {
       return;
@@ -545,7 +581,6 @@ export function buildLineageGraph(
       (base.depends_on?.nodes || []).forEach((node) => {
         dependsOn[node] = ['base'];
       });
-      stat.base = base?.__table?.row_count;
     }
 
     if (target) {
@@ -557,7 +592,6 @@ export function buildLineageGraph(
           dependsOn[node] = ['target'];
         }
       });
-      stat.target = target?.__table?.row_count;
     }
 
     const path = `/${fallback?.resource_type}s/${fallback?.unique_id}`;
@@ -581,8 +615,9 @@ export function buildLineageGraph(
       dependsOn,
     };
 
-    if (stat.base !== undefined && stat.target !== undefined) {
-      data[key].stat = stat;
+    const stat = _get_stat(tableEntry);
+    if (stat) {
+      data[key].stat = _get_stat(tableEntry);
     }
   });
 
