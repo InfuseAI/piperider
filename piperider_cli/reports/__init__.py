@@ -23,7 +23,7 @@ class DataChangeState(Enum):
         return self.value.capitalize()
 
 
-iconBaseUrl = 'https://raw.githubusercontent.com/HanleyInfuse/assets/main/icons'
+iconBaseUrl = 'https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons'
 
 
 class ModelType(Enum):
