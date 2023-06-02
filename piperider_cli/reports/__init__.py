@@ -855,7 +855,6 @@ class ModelEntryOverviewElement(_Element):
     def build(self):
         m = self.find_target_node(self.model_selector)
         materialized = m.config.materialized
-        name = m.name
         materialization_type = Image.ModelOverView.materialization(materialized)
 
         return self.add_indent(f"""
