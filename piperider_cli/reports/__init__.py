@@ -105,7 +105,7 @@ class Image:
         def materialization(cls, materialization_type: str):
             try:
                 return getattr(cls, materialization_type)
-            except:
+            except Exception:
                 return ""
 
         @classmethod
@@ -268,8 +268,7 @@ class ChangeStatus:
                     m1.name() < m2.name())
         else:
             return (
-                    change_state_order.index(m1.state)
-                    - change_state_order.index(m2.state)
+                    change_state_order.index(m1.state) - change_state_order.index(m2.state)
             )
 
     @classmethod
@@ -459,8 +458,7 @@ class ChangedColumnsTableEntryElement(_Element):
                     m1.change_status.name() < m2.change_status.name())
         else:
             return (
-                    change_state_order.index(m1.change_status.state)
-                    - change_state_order.index(m2.change_status.state)
+                    change_state_order.index(m1.change_status.state) - change_state_order.index(m2.change_status.state)
             )
 
     @classmethod
@@ -822,10 +820,6 @@ class ModelEntryOverviewElement(_Element):
         m = self.find_target_node(self.model_selector)
         materialized = m.config.materialized
         name = m.name
-
-        t = self.joined_tables()
-        column_change_views = list(t.all_columns_iterator(name))
-
         materialization_type = Image.ModelOverView.materialization(materialized)
 
         return self.add_indent(f"""
@@ -845,14 +839,14 @@ class ModelEntryOverviewElement(_Element):
          {self.build_dbt_info(m)}
          {self.build_rows(m)}
          {self.build_columns(m)}
-         
+
          <tr>
              <td></td>
              <td rowspan='1' colspan='4' ><b>CHANGES IN VALUES</b></td>
          </tr>
-         
+
         {self.build_column_stats(m)}
-        
+
          </table>
              """)
 
@@ -1096,8 +1090,7 @@ class ModelEntryElement(_Element):
                 return m1.model_selector < m2.model_selector
             else:
                 return (
-                        change_state_order.index(m1.change_state)
-                        < change_state_order.index(m2.change_state)
+                        change_state_order.index(m1.change_state) < change_state_order.index(m2.change_state)
                 )
 
     @classmethod
@@ -1380,8 +1373,7 @@ class DbtMetricsChangeElement(_Element):
         metric_names = sorted(
             list(
                 set(
-                    [x.get("name") for x in self.base_metrics]
-                    + [x.get("name") for x in self.target_metrics]
+                    [x.get("name") for x in self.base_metrics] + [x.get("name") for x in self.target_metrics]
                 )
             )
         )
