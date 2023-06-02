@@ -33,9 +33,9 @@ export interface BaseArtifactMetadata {
  */
 export interface RunResultOutput {
   status:
-    | ("success" | "error" | "skipped")
-    | ("pass" | "error" | "fail" | "warn" | "skipped")
-    | ("pass" | "warn" | "error" | "runtime error");
+    | ('success' | 'error' | 'skipped')
+    | ('pass' | 'error' | 'fail' | 'warn' | 'skipped')
+    | ('pass' | 'warn' | 'error' | 'runtime error');
   timing: TimingInfo[];
   thread_id: string;
   execution_time: number;

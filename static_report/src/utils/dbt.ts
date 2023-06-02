@@ -48,6 +48,9 @@ export interface LineageGraphItem {
   dependsOn: {
     [key: string]: ('base' | 'target')[];
   };
+  children: {
+    [key: string]: ('base' | 'target')[];
+  };
   stat?: {
     name: string;
     type: 'number' | 'duration';
@@ -566,6 +569,19 @@ export function buildLineageGraph(
 ): LineageGraphData {
   const data: LineageGraphData = {};
 
+  function linkLineageGraphItemChildren(
+    data: LineageGraphData,
+  ): LineageGraphData {
+    Object.entries(data).forEach(([key, item]) => {
+      Object.entries(item.dependsOn).forEach(([node, from]) => {
+        if (data[node]) {
+          data[node].children[key] = from;
+        }
+      });
+    });
+    return data;
+  }
+
   itemsNodeComparison.forEach((tableEntry) => {
     const [key, { base, target }] = tableEntry;
     const fallback = (target ?? base) as DbtNode;
@@ -613,6 +629,7 @@ export function buildLineageGraph(
       path,
       changeStatus,
       dependsOn,
+      children: {},
     };
 
     const stat = _get_stat(tableEntry);
@@ -621,5 +638,5 @@ export function buildLineageGraph(
     }
   });
 
-  return data;
+  return linkLineageGraphItemChildren(data);
 }

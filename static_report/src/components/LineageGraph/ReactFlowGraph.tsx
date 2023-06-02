@@ -33,6 +33,61 @@ dagreGraph.setDefaultEdgeLabel(() => ({}));
 const nodeWidth = 300;
 const nodeHeight = 60;
 
+const buildReactFlowNodesAndEdges = (
+  lineageGraph: LineageGraphData,
+  isLayout: boolean = true,
+  options: {
+    singleOnly: boolean;
+    isHighlighted: boolean;
+    onClick: (item: LineageGraphItem) => void;
+  },
+) => {
+  const nodes: Node[] = [];
+  const edges: Edge[] = [];
+
+  Object.entries(lineageGraph).forEach(([key, node]) => {
+    if (node.type === 'test') return;
+
+    nodes.push({
+      id: key,
+      position: { x: 0, y: 0 },
+      data: {
+        label: `${node.name}`,
+        ...node,
+        ...options,
+      },
+      draggable: true,
+      type: 'customNode',
+    });
+
+    Object.entries(node.dependsOn).forEach(([dependsOnKey, from]) => {
+      const style = {};
+
+      if (!options.singleOnly) {
+        if (!from.includes('target')) {
+          style['stroke'] = 'gray';
+          style['stroke-dasharray'] = '5';
+        }
+      }
+
+      edges.push({
+        source: dependsOnKey,
+        target: key,
+        id: `${key} -> ${dependsOnKey}`,
+        style,
+      });
+    });
+
+    if (isLayout) {
+      logWithTimestamp('layout');
+      layout(nodes, edges, 'LR');
+      logWithTimestamp('layout complete');
+    }
+  });
+
+  return { nodes, edges };
+};
+
 const getUpstreamNodes = (lineageGraph, key) => {
   const node = lineageGraph[key];
   const relatedNodes = [key];
@@ -177,52 +232,16 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   }, [setNodes, setEdges]);
 
   useEffect(() => {
-    const initialNodes: Node[] = [];
-    const initialEdges: Edge[] = [];
     console.log(Object.keys(lineageGraph).length);
 
-    Object.entries(lineageGraph).forEach(([key, node]) => {
-      if (node.type === 'test') return;
-
-      initialNodes.push({
-        id: key,
-        position: { x: 0, y: 0 },
-        data: {
-          label: `${node.name}`,
-          singleOnly,
-          onClick,
-          isHighlighted: false,
-          ...node,
-        },
-        draggable: true,
-        type: 'customNode',
-      });
-
-      Object.entries(node.dependsOn).forEach(([dependsOnKey, from]) => {
-        const style = {};
-
-        if (!singleOnly) {
-          if (!from.includes('target')) {
-            style['stroke'] = 'gray';
-            style['stroke-dasharray'] = '5';
-          }
-        }
-
-        initialEdges.push({
-          source: dependsOnKey,
-          target: key,
-          id: `${key} -> ${dependsOnKey}`,
-          style,
-        });
-      });
+    const { nodes, edges } = buildReactFlowNodesAndEdges(lineageGraph, true, {
+      singleOnly: singleOnly || false,
+      isHighlighted: false,
+      onClick,
     });
 
-    logWithTimestamp('layout');
-    layout(initialNodes, initialEdges, 'LR');
-    logWithTimestamp('layout complete');
-
-    setNodes(initialNodes);
-    setEdges(initialEdges);
+    setNodes(nodes);
+    setEdges(edges);
   }, [lineageGraph, setNodes, setEdges, singleOnly, onClick]);
 
   function highlightPath(node: Node) {
