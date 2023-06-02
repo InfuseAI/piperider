@@ -242,7 +242,8 @@ class ComparisonData(object):
         if self._base.get('dbt') is None or self._target.get('dbt') is None:
             console = Console()
             console.print("[bold yellow]Warning: [/bold yellow]'summary.md' report is not generated.")
-            console.print("To generate 'summary.md', please make sure you use dbt project and the latest piperider version")
+            console.print("To generate a summary.md file, please run the 'piperider run' command in a dbt project "
+                          "and use the latest version of piperider.")
             return ""
         return Document.from_runs(self._base, self._target).build()
 
