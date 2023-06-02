@@ -4,7 +4,7 @@ import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import cmp_to_key
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 
 from dbt.contracts.graph.manifest import WritableManifest
 from enum import Enum
@@ -980,16 +980,11 @@ class ModelEntryOverviewElement(_Element):
     def build_column_stats(self, m):
         changed_columns = list(self.joined_tables().columns_changed_iterator(m.name))
 
-        duplicate_cols = {x.column_name: change_rate(x.base_view.duplicates, x.target_view.duplicates)
+        duplicate_cols = {x.column_name: (x.base_view.duplicates, x.target_view.duplicates)
                           for x in changed_columns if x.base_view.duplicates != x.target_view.duplicates}
 
-        duplicate_cols = {k: v for k, v in duplicate_cols.items() if
-                          not math.isnan(v)}
-
-        nulls_cols = {x.column_name: change_rate(x.base_view.nulls, x.target_view.nulls)
+        nulls_cols = {x.column_name: (x.base_view.nulls, x.target_view.nulls)
                       for x in changed_columns if x.base_view.nulls != x.target_view.nulls}
-        nulls_cols = {k: v for k, v in nulls_cols.items() if
-                      not math.isnan(v)}
 
         def _show_change(rate):
             arrow = "↑" if rate > 0 else "↓"
@@ -1000,8 +995,15 @@ class ModelEntryOverviewElement(_Element):
                 rate = f"{rate / 100:.1%}"
             return f"{arrow}{rate}"
 
-        def build_status(data: Dict):
-            change_list = list(data.values())
+        def build_status(input_data: Dict):
+            """
+            input_data:
+                key: column_name
+                value: (base value, target value)
+            """
+            data = {k: v for k, v in input_data.items() if not math.isnan(change_rate(v[0], v[1]))}
+
+            change_list = list([change_rate(b, t) for b, t in data.values()])
             description = ""
             icon = ""
             if len(change_list) == 0:
@@ -1017,7 +1019,12 @@ class ModelEntryOverviewElement(_Element):
                 icon = Image.ModelOverView.triangle
                 description = Styles.latex_orange(f"({description})")
 
-            title = ["%s = %s" % (k, "∞" if v == math.inf else f"{v / 100:.1%}") for k, v in data.items()]
+            def _column_description(v: Tuple):
+                result = "∞" if change_rate(*v) == math.inf else f"{change_rate(*v) / 100:.1%}"
+                origin_value = f"B: {v[0]}, T: {v[1]}"
+                return f"{result} ••• {origin_value}"
+
+            title = ["%s = %s" % (k, _column_description(v)) for k, v in data.items()]
             title = "&#10;".join(title)
             description = '<span title="%s">%s</span>' % (title, description)
 
