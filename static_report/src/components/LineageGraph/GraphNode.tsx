@@ -1,24 +1,32 @@
 import { Box, Flex, Icon, Text, VStack } from '@chakra-ui/react';
 import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
-import { Handle, Node, Position } from 'reactflow';
+import { Handle, Node, NodeProps, Position } from 'reactflow';
 import { useLocation } from 'wouter';
-import { LineageGraphItem } from '../../utils/dbt';
+import { LineageGraphNode } from '../../utils/dbt';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { getStatDiff } from './util';
 import { FiGrid } from 'react-icons/fi';
 import { CSSProperties } from 'react';
+import {
+  COLOR_ADDED,
+  COLOR_CHANGED,
+  COLOR_HIGHLIGHT,
+  COLOR_REMOVED,
+  COLOR_UNCHANGED,
+} from './style';
 
-export function GraphNode(params) {
-  const node = params as Node;
-  const data = node.data as LineageGraphItem;
+interface GraphNodeProps extends NodeProps {
+  data: LineageGraphNode;
+}
+
+export function GraphNode({ data }: GraphNodeProps) {
   const singleOnly = (data as any).singleOnly;
-  const onClick = (data as any).onClick;
 
   const [location] = useLocation();
   const isActive = data.path === location;
   const isHighlighted: boolean = (data as any).isHighlighted || false;
 
-  let resourceType = node?.data?.type;
+  let resourceType = data?.type;
 
   // resource background color
   let resourceColor: CSSProperties['color'] = 'inherit';
@@ -34,14 +42,6 @@ export function GraphNode(params) {
     resourceColor = 'rgb(255 230 238)';
   }
 
-  // border width and color
-  let borderWidth = 1;
-  let borderColor = 'black';
-  //   if (isActive || isHighlighted) {
-  //     borderWidth = 1;
-  //     borderColor = 'darkorange';
-  //   }
-
   // text color, icon
   let iconChangeStatus;
   let changeStatus = data.changeStatus;
@@ -51,19 +51,32 @@ export function GraphNode(params) {
     if (changeStatus === 'added') {
       iconChangeStatus = VscDiffAdded;
       color = '#1a7f37';
+      color = COLOR_ADDED;
       fontWeight = 600;
     } else if (changeStatus === 'changed') {
       iconChangeStatus = VscDiffModified;
       color = '#9a6700';
+      color = COLOR_CHANGED;
       fontWeight = 600;
     } else if (changeStatus === 'removed') {
       iconChangeStatus = VscDiffRemoved;
+      color = COLOR_REMOVED;
       color = '#cf222e';
       fontWeight = 600;
+    } else {
+      color = COLOR_UNCHANGED;
     }
   }
 
-  const name = node?.data?.name;
+  // border width and color
+  let borderWidth = 1;
+  let borderColor = color;
+  if (isActive || isHighlighted) {
+    borderWidth = 1;
+    borderColor = COLOR_HIGHLIGHT;
+  }
+
+  const name = data?.name;
 
   getStatDiff();
   const statValue = singleOnly
@@ -84,9 +97,6 @@ export function GraphNode(params) {
       borderWidth={borderWidth}
       backgroundColor="white"
       borderRadius={3}
-      onClick={() => {
-        onClick(node?.data);
-      }}
       padding={0}
     >
       <Handle type="target" position={Position.Left} />

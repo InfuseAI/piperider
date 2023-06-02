@@ -38,7 +38,7 @@ export interface SidebarTreeItem {
   changeStatus?: 'changed' | 'added' | 'removed';
 }
 
-export interface LineageGraphItem {
+export interface LineageGraphNode {
   uniqueId: string;
   name: string;
   from: ('base' | 'target')[];
@@ -46,10 +46,10 @@ export interface LineageGraphItem {
   path?: string;
   changeStatus?: 'changed' | 'added' | 'removed';
   dependsOn: {
-    [key: string]: ('base' | 'target')[];
+    [key: string]: LineageGraphEdge;
   };
   children: {
-    [key: string]: ('base' | 'target')[];
+    [key: string]: LineageGraphEdge;
   };
   stat?: {
     name: string;
@@ -59,8 +59,16 @@ export interface LineageGraphItem {
   };
 }
 
+export interface LineageGraphEdge {
+  source: string;
+  target: string;
+  from: ('base' | 'target')[];
+  singleOnly?: boolean;
+  isHighlighted?: boolean;
+}
+
 export interface LineageGraphData {
-  [key: string]: LineageGraphItem;
+  [key: string]: LineageGraphNode;
 }
 
 export const buildDbtNodes = (run?: SaferSRSchema) => {
@@ -540,9 +548,9 @@ export function buildDatabaseTree(
 function _get_stat(
   tableEntry: CompTableColEntryItem,
   stat = 'execution_time',
-): LineageGraphItem['stat'] | undefined {
+): LineageGraphNode['stat'] | undefined {
   const [, { base, target }] = tableEntry;
-  const result: LineageGraphItem['stat'] = {
+  const result: LineageGraphNode['stat'] = {
     name: stat,
     type: 'number',
   };
@@ -585,8 +593,8 @@ export function buildLineageGraph(
   itemsNodeComparison.forEach((tableEntry) => {
     const [key, { base, target }] = tableEntry;
     const fallback = (target ?? base) as DbtNode;
-    const dependsOn = {};
-    const from: LineageGraphItem['from'] = [];
+    const dependsOn: LineageGraphNode['dependsOn'] = {};
+    const from: LineageGraphNode['from'] = [];
 
     if (fallback.resource_type === 'table') {
       return;
@@ -595,7 +603,11 @@ export function buildLineageGraph(
     if (base) {
       from.push('base');
       (base.depends_on?.nodes || []).forEach((node) => {
-        dependsOn[node] = ['base'];
+        dependsOn[node] = {
+          source: key,
+          target: node,
+          from: ['base'],
+        };
       });
     }
 
@@ -603,9 +615,13 @@ export function buildLineageGraph(
       from.push('target');
       (target.depends_on?.nodes || []).forEach((node) => {
         if (dependsOn[node]) {
-          dependsOn[node].push('target');
+          dependsOn[node].from.push('target');
         } else {
-          dependsOn[node] = ['target'];
+          dependsOn[node] = {
+            source: key,
+            target: node,
+            from: ['target'],
+          };
         }
       });
     }

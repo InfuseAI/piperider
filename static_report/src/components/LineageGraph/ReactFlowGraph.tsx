@@ -9,8 +9,6 @@ import ReactFlow, {
   Node,
   useEdgesState,
   useNodesState,
-  EdgeChange,
-  NodeChange,
 } from 'reactflow';
 import dagre from 'dagre';
 
@@ -23,9 +21,10 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
-import { LineageGraphData, LineageGraphItem } from '../../utils/dbt';
+import { LineageGraphData, LineageGraphNode } from '../../utils/dbt';
 import TableSummary from './TableSummary';
 import { GraphNode } from './GraphNode';
+import GraphEdge from './GraphEdge';
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -39,42 +38,32 @@ const buildReactFlowNodesAndEdges = (
   options: {
     singleOnly: boolean;
     isHighlighted: boolean;
-    onClick: (item: LineageGraphItem) => void;
   },
 ) => {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
-  Object.entries(lineageGraph).forEach(([key, node]) => {
-    if (node.type === 'test') return;
+  Object.entries(lineageGraph).forEach(([key, nodeData]) => {
+    if (nodeData.type === 'test') return;
 
     nodes.push({
       id: key,
       position: { x: 0, y: 0 },
       data: {
-        label: `${node.name}`,
-        ...node,
+        ...nodeData,
         ...options,
       },
       draggable: true,
       type: 'customNode',
     });
 
-    Object.entries(node.dependsOn).forEach(([dependsOnKey, from]) => {
-      const style = {};
-
-      if (!options.singleOnly) {
-        if (!from.includes('target')) {
-          style['stroke'] = 'gray';
-          style['stroke-dasharray'] = '5';
-        }
-      }
-
+    Object.entries(nodeData.dependsOn).forEach(([dependsOnKey, edgeData]) => {
       edges.push({
         source: dependsOnKey,
         target: key,
         id: `${key} -> ${dependsOnKey}`,
-        style,
+        type: 'customEdge',
+        data: edgeData,
       });
     });
 
@@ -147,6 +136,10 @@ const nodeTypes = {
   customNode: GraphNode,
 };
 
+const edgeTypes = {
+  customEdge: GraphEdge,
+};
+
 function logWithTimestamp(message) {
   var timestamp = new Date().toLocaleTimeString();
   console.log('[' + timestamp + '] ' + message);
@@ -159,11 +152,12 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [selected, setSelected] = useState<LineageGraphItem>();
+  const [selected, setSelected] = useState<LineageGraphNode>();
   const [, setLocation] = useLocation();
 
-  const onClick = useCallback(
-    (item: LineageGraphItem) => {
+  const onNodeClick = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      const item = node.data as LineageGraphNode;
       if (item?.path) {
         setLocation(item?.path || '');
       }
@@ -237,12 +231,11 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
     const { nodes, edges } = buildReactFlowNodesAndEdges(lineageGraph, true, {
       singleOnly: singleOnly || false,
       isHighlighted: false,
-      onClick,
     });
 
     setNodes(nodes);
     setEdges(edges);
-  }, [lineageGraph, setNodes, setEdges, singleOnly, onClick]);
+  }, [lineageGraph, setNodes, setEdges, singleOnly]);
 
   function highlightPath(node: Node) {
     const relatedNodes = [
@@ -260,10 +253,9 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         if (relatedEdges.includes(edge)) {
           return {
             ...edge,
-            style: {
-              ...edge.style,
-              stroke: 'darkorange',
-              strokeWidth: 2,
+            data: {
+              ...edge.data,
+              isHighlighted: true,
             },
           };
         } else {
@@ -294,10 +286,9 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
       edges.map((edge) => {
         return {
           ...edge,
-          style: {
-            ...edge.style,
-            stroke: 'gray',
-            strokeWidth: 1,
+          data: {
+            ...edge.data,
+            isHighlighted: false,
           },
         };
       }),
@@ -315,35 +306,6 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
     );
   }
 
-  // function onEdgesSelect(edgeChanges: EdgeChange[]) {
-  //   edgeChanges.forEach((edgeChange) => {
-  //     if (edgeChange.type === 'select') {
-  //       const [to, from] = edgeChange.id.split(' -> ');
-  //       if (edgeChange.selected) {
-  //         setMessage(
-  //           `Selected Edge: ${from.split('.').pop()} -> ${to.split('.').pop()}`,
-  //         );
-  //         // console.log(findRelatedNodes(lineageGraph, to));
-  //         console.log(edges);
-  //       }
-  //     }
-  //   });
-  //   onEdgesChange(edgeChanges);
-  // }
-
-  // function onNodesSelect(nodeChanges: NodeChange[]) {
-  //   nodeChanges.forEach((nodeChange) => {
-  //     if (nodeChange.type === 'select') {
-  //       if (nodeChange.selected) {
-  //         setMessage(`Selected Node: ${nodeChange.id}`);
-  //         nodes[0].selected = true;
-  //         console.log(nodes);
-  //       }
-  //     }
-  //   });
-  //   onNodesChange(nodeChanges);
-  // }
-
   return (
     <div
       style={{
@@ -356,30 +318,17 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeClick={onNodeClick}
         onNodeMouseEnter={(_event, node) => highlightPath(node)}
         onNodeMouseLeave={() => resetHighlightPath()}
         minZoom={0.1}
       >
-        <Controls />
+        <Controls showInteractive={false} />
         <MiniMap nodeStrokeWidth={3} zoomable pannable />
       </ReactFlow>
-      <Box
-        style={{
-          position: 'absolute',
-          background: 'white',
-          top: 0,
-          left: 0,
-        }}
-      >
-        <Select variant="outline" size="sm">
-          <option>No stats</option>
-          <option>Row count</option>
-          <option>Execution time</option>
-          <option>Metric total</option>
-        </Select>
-      </Box>
 
       <TableSummary
         singleOnly={singleOnly}
