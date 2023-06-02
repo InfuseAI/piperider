@@ -1,6 +1,7 @@
 import abc
 import collections
 import math
+import urllib.parse
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import cmp_to_key
@@ -9,7 +10,34 @@ from typing import Dict, Iterable, List, Optional, Tuple
 from dbt.contracts.graph.manifest import WritableManifest
 from enum import Enum
 
-from piperider_cli.dbt.list_task import compare_models_between_manifests, load_manifest
+
+def embed_url_cli(url: str, unique_id: str, resource_type: str, table_name: str, column_name: str = None):
+    if column_name is None:
+        # table
+        return table_name
+    else:
+        # column
+        return column_name
+
+
+def embed_url_cloud(url: str, unique_id: str, resource_type: str, table_name: str, column_name: str = None):
+    if column_name is None:
+        # table
+        return f'<a href="{url}#/{resource_type}s/{urllib.parse.quote(unique_id)}">{table_name}</a>'
+    else:
+        # column
+        return f'<a href="{url}#/{resource_type}s/{urllib.parse.quote(unique_id)}/columns/{urllib.parse.quote(column_name)}">{column_name}</a>'
+
+
+embed_url = None
+try:
+    from web import patch_sys_path_for_piperider_cli
+    patch_sys_path_for_piperider_cli()
+    from piperider_cli.dbt.list_task import load_manifest, compare_models_between_manifests
+    embed_url = embed_url_cloud
+except ImportError:
+    from piperider_cli.dbt.list_task import load_manifest, compare_models_between_manifests
+    embed_url = embed_url_cli
 
 
 class DataChangeState(Enum):
@@ -222,6 +250,12 @@ class _Element(metaclass=abc.ABCMeta):
     def get_model_type(self):
         return self._get_field("model_type")
 
+    def get_model_selector(self):
+        return self._get_field("model_selector")
+
+    def get_url(self):
+        return self._get_field("url")
+
 
 @dataclass
 class ChangeStatus:
@@ -430,9 +464,9 @@ class ColumnChangeView:
 
 class ChangedColumnsTableEntryElement(_Element):
     def __init__(
-            self, column_name: str, base_column_data: Dict, target_column_data: Dict
+        self, root: _Element, column_name: str, base_column_data: Dict, target_column_data: Dict
     ):
-        super().__init__(None)
+        super().__init__(root)
         self.column_name = column_name
         self.base_column_data = base_column_data
         self.target_column_data = target_column_data
@@ -471,6 +505,7 @@ class ChangedColumnsTableEntryElement(_Element):
         # removed -> base is not null and target is null
         # Edited -> types, duplicate, invalids, missing(nulls)
         change_status = self.change_status
+        m = self.find_target_node(self.get_model_selector())
 
         if change_status.is_added_or_removed():
 
@@ -481,7 +516,7 @@ class ChangedColumnsTableEntryElement(_Element):
             result = f"""
                 <tr>
                 <td>{change_status.icon}</td>
-                <td>{self.column_name}</td>
+                <td>{embed_url(self.get_url(), m.unique_id, m.resource_type, m.name, self.column_name)}</td>
                 <td>{Styles.latex_grey(display_type)}</td>
                 <td>{Styles.latex_grey(display_type)}</td>
                 <td>{change_status.change_type}</td>
@@ -504,7 +539,7 @@ class ChangedColumnsTableEntryElement(_Element):
         result = f"""
             <tr>
             <td>{Image.ColumnChangeView.column_change_diff_explicit}</td>
-            <td>{self.column_name}</td>
+            <td>{embed_url(self.get_url(), m.unique_id, m.resource_type, m.name, self.column_name)}</td>
             <td>{base_type}</td>
             <td>{target_type}</td>
             <td>{self.base_view.explain(self.target_view)}</td>
@@ -516,9 +551,9 @@ class ChangedColumnsTableEntryElement(_Element):
 
 class TotalColumnsTableEntryElement(_Element):
     def __init__(
-            self, column_name: str, base_column_data: Dict, target_column_data: Dict
+        self, root: _Element, column_name: str, base_column_data: Dict, target_column_data: Dict
     ):
-        super().__init__(None)
+        super().__init__(root)
         self.column_name = column_name
         self.base_column_data = base_column_data
         self.target_column_data = target_column_data
@@ -533,6 +568,7 @@ class TotalColumnsTableEntryElement(_Element):
         # TODO check schema type change
 
         change_status = self.create_change_status()
+        m = self.find_target_node(self.get_model_selector())
 
         def to_title_str(base_value, base_rate, target_value, target_rate):
             if base_value is None:
@@ -576,7 +612,7 @@ class TotalColumnsTableEntryElement(_Element):
         result = f"""
         <tr>
         <td>{change_status.icon}</td>
-        <td>{self.column_name}</td>
+        <td>{embed_url(self.get_url(), m.unique_id, m.resource_type, m.name, self.column_name)}</td>
         <td>{Styles.latex_grey(target_type)}</td>
         {td2("duplicates")}
         {td2("invalids")}
@@ -665,26 +701,26 @@ class JoinedTables:
         return False
 
     def columns_changed_iterator(
-            self, table_name
+        self, root: _Element, table_name: str
     ) -> Iterable[ChangedColumnsTableEntryElement]:
         all_column_keys, b, t = self._create_columns_and_their_metrics(table_name)
 
         for column_name in all_column_keys:
             elem = ChangedColumnsTableEntryElement(
-                column_name, b.get(column_name), t.get(column_name)
+                root, column_name, b.get(column_name), t.get(column_name)
             )
             if not elem.changed:
                 continue
             yield elem
 
     def all_columns_iterator(
-            self, table_name
+        self, root: _Element, table_name
     ) -> Iterable[TotalColumnsTableEntryElement]:
         all_column_keys, b, t = self._create_columns_and_their_metrics(table_name)
 
         for column_name in all_column_keys:
             yield TotalColumnsTableEntryElement(
-                column_name, b.get(column_name), t.get(column_name)
+                root, column_name, b.get(column_name), t.get(column_name)
             )
 
     def _create_columns_and_their_metrics(self, table_name):
@@ -717,7 +753,7 @@ class ChangedColumnsTableElement(_Element):
         name = self.find_table_name(self.model_selector)
         t = self.joined_tables()
         from functools import cmp_to_key
-        children = ChangedColumnsTableEntryElement.sorted(list(t.columns_changed_iterator(name)))
+        children = ChangedColumnsTableEntryElement.sorted(list(t.columns_changed_iterator(self, name)))
         self.column_changes = len(children)
 
         orange_changes = Styles.latex_orange('↑ changes')
@@ -749,7 +785,7 @@ class TotalColumnsTableElement(_Element):
     def build(self):
         name = self.find_table_name(self.model_selector)
         t = self.joined_tables()
-        children = list(t.all_columns_iterator(name))
+        children = list(t.all_columns_iterator(self, name))
         self.columns = len(children)
 
         return f"""
@@ -826,7 +862,7 @@ class ModelEntryOverviewElement(_Element):
     <table>
          <tr>
              <th>{materialization_type}</th>
-             <th colspan='3' >{name} ({materialized})</th>
+             <th colspan='3' >{embed_url(self.get_url(), m.unique_id, m.resource_type, m.name)} ({materialized}) </th>
              <th>{Image.ModelOverView.diff_icon(self.get_model_type())}</th>
          </tr>
          <tr>
@@ -936,7 +972,7 @@ class ModelEntryOverviewElement(_Element):
     def build_columns(self, m):
         base_total_columns, target_total_columns = self.joined_tables().column_counts(m.name)
 
-        column_change_views = list(self.joined_tables().all_columns_iterator(m.name))
+        column_change_views = list(self.joined_tables().all_columns_iterator(self, m.name))
         changes_status_list = [x.create_change_status() for x in column_change_views]
         value_diff_plus = ChangeStatus.count_added(changes_status_list)
         value_diff_minus = ChangeStatus.count_removed(changes_status_list)
@@ -972,7 +1008,7 @@ class ModelEntryOverviewElement(_Element):
         """, 8)
 
     def build_column_stats(self, m):
-        changed_columns = list(self.joined_tables().columns_changed_iterator(m.name))
+        changed_columns = list(self.joined_tables().columns_changed_iterator(self, m.name))
 
         duplicate_cols = {x.column_name: (x.base_view.duplicates, x.target_view.duplicates)
                           for x in changed_columns if x.base_view.duplicates != x.target_view.duplicates}
@@ -1156,7 +1192,7 @@ class ModelElement(_Element):
     def get_changed_tables(self):
         changed = []
         for table_name in model_selectors_to_table_names(self.models):
-            if list(self.joined_tables().columns_changed_iterator(table_name)):
+            if list(self.joined_tables().columns_changed_iterator(self, table_name)):
                 changed.append(table_name)
         return set(changed)
 
@@ -1426,8 +1462,10 @@ class Document(_Element):
             self,
             base_run: Dict,
             target_run: Dict,
+            url: str = None,
     ):
         super().__init__(None)
+        self.url = url
 
         base_manifest_dict = base_run.get('dbt', {}).get('manifest')
         base_run_results = base_run.get('dbt', {}).get('run_results')
@@ -1454,7 +1492,7 @@ class Document(_Element):
         self.target_run_results = target_run_results
 
     @staticmethod
-    def from_runs(base_run: Dict, target_run: Dict):
+    def from_runs(base_run: Dict, target_run: Dict, url: str = None):
         # verify the report version compatibility
         base_manifest_dict = base_run.get('dbt', {}).get('manifest')
         target_manifest_dict = target_run.get('dbt', {}).get('manifest')
@@ -1464,7 +1502,7 @@ class Document(_Element):
         if not target_manifest_dict:
             raise Exception(f'The version is too old to generate summary for report[{target_run.get("id")}]')
 
-        doc = Document(base_run, target_run)
+        doc = Document(base_run, target_run, url)
         return doc
 
     def build(self):
