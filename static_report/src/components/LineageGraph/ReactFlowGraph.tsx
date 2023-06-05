@@ -13,13 +13,7 @@ import ReactFlow, {
 import dagre from 'dagre';
 
 import 'reactflow/dist/style.css';
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  Select,
-  useDisclosure,
-} from '@chakra-ui/react';
+import { Button, ButtonGroup, useDisclosure } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { LineageGraphData, LineageGraphNode } from '../../utils/dbt';
 import TableSummary from './TableSummary';

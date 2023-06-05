@@ -51,12 +51,8 @@ export interface LineageGraphNode {
   children: {
     [key: string]: LineageGraphEdge;
   };
-  stat?: {
-    name: string;
-    type: 'number' | 'duration';
-    base?: number;
-    target?: number;
-  };
+  base?: DbtNode;
+  target?: DbtNode;
 }
 
 export interface LineageGraphEdge {
@@ -545,33 +541,6 @@ export function buildDatabaseTree(
   return items;
 }
 
-function _get_stat(
-  tableEntry: CompTableColEntryItem,
-  stat = 'execution_time',
-): LineageGraphNode['stat'] | undefined {
-  const [, { base, target }] = tableEntry;
-  const result: LineageGraphNode['stat'] = {
-    name: stat,
-    type: 'number',
-  };
-
-  if (stat === 'execution_time') {
-    result.type = 'duration';
-    result.base = base?.__runResult?.execution_time;
-    result.target = target?.__runResult?.execution_time;
-  } else {
-    result.type = 'number';
-    result.base = base?.__table?.row_count;
-    result.target = target?.__table?.row_count;
-  }
-
-  if (result.base == null && result.target == null) {
-    return undefined;
-  }
-
-  return result;
-}
-
 export function buildLineageGraph(
   itemsNodeComparison: CompTableColEntryItem[],
 ): LineageGraphData {
@@ -644,14 +613,11 @@ export function buildLineageGraph(
       from,
       path,
       changeStatus,
+      base: base as DbtNode,
+      target: target as DbtNode,
       dependsOn,
       children: {},
     };
-
-    const stat = _get_stat(tableEntry);
-    if (stat) {
-      data[key].stat = _get_stat(tableEntry);
-    }
   });
 
   return linkLineageGraphItemChildren(data);

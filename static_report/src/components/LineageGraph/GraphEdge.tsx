@@ -1,12 +1,6 @@
-import { is } from 'date-fns/locale';
 import { BaseEdge, EdgeProps, getBezierPath } from 'reactflow';
 import { LineageGraphEdge } from '../../utils/dbt';
 import { COLOR_ADDED, COLOR_HIGHLIGHT, COLOR_REMOVED } from './style';
-
-const onEdgeClick = (evt, id) => {
-  evt.stopPropagation();
-  alert(`remove ${id}`);
-};
 
 interface GraphEdgeProps extends EdgeProps {
   data?: LineageGraphEdge;
@@ -14,7 +8,6 @@ interface GraphEdgeProps extends EdgeProps {
 
 export default function GraphEdge(props: GraphEdgeProps) {
   const {
-    id,
     sourceX,
     sourceY,
     targetX,
@@ -45,7 +38,7 @@ export default function GraphEdge(props: GraphEdgeProps) {
     style['stroke'] = COLOR_HIGHLIGHT;
   }
 
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath] = getBezierPath({
     sourceX,
     sourceY,
     sourcePosition,

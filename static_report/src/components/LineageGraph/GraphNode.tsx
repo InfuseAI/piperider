@@ -1,10 +1,8 @@
-import { Box, Flex, Icon, Text, VStack } from '@chakra-ui/react';
+import { Box, Flex, Icon, VStack, Text } from '@chakra-ui/react';
 import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
-import { Handle, Node, NodeProps, Position } from 'reactflow';
+import { Handle, NodeProps, Position } from 'reactflow';
 import { useLocation } from 'wouter';
 import { LineageGraphNode } from '../../utils/dbt';
-import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
-import { getStatDiff } from './util';
 import { FiGrid } from 'react-icons/fi';
 import { CSSProperties } from 'react';
 import {
@@ -14,6 +12,8 @@ import {
   COLOR_REMOVED,
   COLOR_UNCHANGED,
 } from './style';
+import { getStatDiff } from './util';
+import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 
 interface GraphNodeProps extends NodeProps {
   data: LineageGraphNode;
@@ -47,22 +47,26 @@ export function GraphNode({ data }: GraphNodeProps) {
   let changeStatus = data.changeStatus;
   let color = 'inherit';
   let fontWeight: CSSProperties['fontWeight'] = 'inherit';
+  let borderStyle = 'solid';
   if (!singleOnly) {
     if (changeStatus === 'added') {
       iconChangeStatus = VscDiffAdded;
       color = '#1a7f37';
       color = COLOR_ADDED;
       fontWeight = 600;
+      borderStyle = 'dashed';
     } else if (changeStatus === 'changed') {
       iconChangeStatus = VscDiffModified;
       color = '#9a6700';
       color = COLOR_CHANGED;
       fontWeight = 600;
+      borderStyle = 'dashed';
     } else if (changeStatus === 'removed') {
       iconChangeStatus = VscDiffRemoved;
       color = COLOR_REMOVED;
       color = '#cf222e';
       fontWeight = 600;
+      borderStyle = 'dashed';
     } else {
       color = COLOR_UNCHANGED;
     }
@@ -71,81 +75,81 @@ export function GraphNode({ data }: GraphNodeProps) {
   // border width and color
   let borderWidth = 1;
   let borderColor = color;
+
   if (isActive || isHighlighted) {
     borderWidth = 1;
     borderColor = COLOR_HIGHLIGHT;
   }
 
   const name = data?.name;
-
-  getStatDiff();
-  const statValue = singleOnly
-    ? data?.stat?.target || 0
-    : data?.stat?.base || 0;
-  const statChange =
-    data?.stat?.target !== undefined && data?.stat?.base !== undefined
-      ? data?.stat?.target - data?.stat?.base
-      : undefined;
+  const fallback = data?.target || data?.base;
+  const { statValue, statValueF, statChange, statChangeP } = getStatDiff(
+    data?.base?.__runResult,
+    data?.target?.__runResult,
+    'execution_time',
+    'decimal',
+  );
 
   return (
-    <Flex
-      //   className="react-flow__node-default"
-      width="300px"
-      _hover={{ bg: 'gray.100' }}
-      alignItems="center"
-      borderColor={borderColor}
-      borderWidth={borderWidth}
-      backgroundColor="white"
-      borderRadius={3}
-      padding={0}
-    >
-      <Handle type="target" position={Position.Left} />
-
+    <>
       <Flex
-        backgroundColor={resourceColor}
-        padding={2}
-        borderRightWidth={borderWidth}
+        width="300px"
+        _hover={{ bg: 'gray.100' }}
         borderColor={borderColor}
-        alignItems="center"
+        borderWidth={borderWidth}
+        borderStyle={borderStyle}
+        backgroundColor="white"
+        borderRadius={3}
+        padding={0}
       >
-        <Icon as={FiGrid} />
-      </Flex>
+        <Flex
+          backgroundColor={resourceColor}
+          padding={2}
+          borderRightWidth={borderWidth}
+          borderColor={borderColor}
+          borderStyle={borderStyle}
+          alignItems="top"
+        >
+          <Icon as={FiGrid} />
+        </Flex>
 
-      <Box
-        width="100%"
-        textAlign="left"
-        flex="1"
-        color={color}
-        fontWeight={fontWeight}
-        ml={2}
-      >
-        {/* <Link href={node?.data?.path}>{name}</Link> */}
-        <Box>{name}</Box>
-      </Box>
-      {!singleOnly && changeStatus && (
-        <Icon
-          color={color}
-          as={iconChangeStatus}
-          mr={2}
-          fontWeight={fontWeight}
-        />
-      )}
+        <VStack flex="1" mx="1">
+          <Flex
+            width="100%"
+            textAlign="left"
+            flex="1"
+            color={color}
+            fontWeight={fontWeight}
+            ml={2}
+            alignItems="center"
+          >
+            <Box flex="1">{name}</Box>
+            {!singleOnly && changeStatus && (
+              <Icon
+                color={color}
+                as={iconChangeStatus}
+                fontWeight={fontWeight}
+                flex="0 0 20px"
+              />
+            )}
+          </Flex>
 
-      {/* {data?.stat && (
-        <VStack flex="0 1 60px" alignItems="flex-end" spacing={0}>
-          <Text fontWeight="bold" textAlign="right">
-            {statValue}
-          </Text>
-          {statChange !== undefined && (
-            <Box textAlign="right" color={statChange < 0 ? 'red' : 'green'}>
-              {statChange < 0 ? <TriangleDownIcon /> : <TriangleUpIcon />}
-              {statChange}%
-            </Box>
-          )}
+          <Box width="100%">
+            <Text fontWeight="bold" textAlign="right" fontSize="sm">
+              {statValueF}&nbsp;
+              {statChange !== undefined && (
+                <Text as="span" color={statChange < 0 ? 'red' : 'green'}>
+                  {statChange < 0 ? <TriangleDownIcon /> : <TriangleUpIcon />}
+                  {statChangeP}
+                </Text>
+              )}
+            </Text>
+          </Box>
         </VStack>
-      )} */}
 
-      <Handle type="source" position={Position.Right} />
-    </Flex>
+        <Handle type="target" position={Position.Left} />
+        <Handle type="source" position={Position.Right} />
+      </Flex>
+    </>
   );
 }
