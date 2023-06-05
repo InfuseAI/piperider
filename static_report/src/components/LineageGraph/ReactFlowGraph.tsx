@@ -32,10 +32,16 @@ const buildReactFlowNodesAndEdges = (
   options: {
     singleOnly: boolean;
     isHighlighted: boolean;
+    groupBy?: string;
   },
 ) => {
+  const groups: Node[] = [];
   const nodes: Node[] = [];
   const edges: Edge[] = [];
+
+  if (options.groupBy === 'path') {
+    // TODO: group by path
+  }
 
   Object.entries(lineageGraph).forEach(([key, nodeData]) => {
     if (nodeData.type === 'test') return;
@@ -73,7 +79,7 @@ const buildReactFlowNodesAndEdges = (
 
 const getUpstreamNodes = (lineageGraph, key) => {
   const node = lineageGraph[key];
-  const relatedNodes = [key];
+  const relatedNodes: string[] = [key];
 
   if (Object.keys(node.dependsOn).length > 0) {
     Object.keys(node.dependsOn).forEach((dependsOnKey) => {
@@ -83,16 +89,23 @@ const getUpstreamNodes = (lineageGraph, key) => {
   return relatedNodes;
 };
 
-const getDownstreamNodes = (edges: Edge[], key) => {
+const getDownstreamNodes = (
+  lineageGraph,
+  key,
+  isDownStreamNode: boolean = false,
+) => {
+  const node = lineageGraph[key];
   const relatedNodes: string[] = [];
 
-  Object.entries(edges).forEach(([_, edge]) => {
-    if (edge.source === key) {
-      relatedNodes.push(edge.target);
-      relatedNodes.push(...getDownstreamNodes(edges, edge.target));
-    }
-  });
+  if (isDownStreamNode) {
+    relatedNodes.push(key);
+  }
 
+  if (Object.keys(node.children).length > 0) {
+    Object.keys(node.children).forEach((childKey) => {
+      relatedNodes.push(...getDownstreamNodes(lineageGraph, childKey, true));
+    });
+  }
   return relatedNodes;
 };
 
@@ -176,7 +189,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
     console.log(selectedItem);
     const relatedNodes = [
       ...getUpstreamNodes(lineageGraph, selectedItem?.uniqueId),
-      ...getDownstreamNodes(edges, selectedItem?.uniqueId),
+      ...getDownstreamNodes(lineageGraph, selectedItem?.uniqueId),
     ];
     const relatedEdges = edges.filter((edge) => {
       return (
@@ -234,7 +247,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   function highlightPath(node: Node) {
     const relatedNodes = [
       ...getUpstreamNodes(lineageGraph, node.id),
-      ...getDownstreamNodes(edges, node.id),
+      ...getDownstreamNodes(lineageGraph, node.id),
     ];
     const relatedEdges = edges.filter((edge) => {
       return (
