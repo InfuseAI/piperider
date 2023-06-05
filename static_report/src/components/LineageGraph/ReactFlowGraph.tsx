@@ -66,13 +66,13 @@ const buildReactFlowNodesAndEdges = (
         data: edgeData,
       });
     });
-
-    if (isLayout) {
-      logWithTimestamp('layout');
-      layout(nodes, edges, 'LR');
-      logWithTimestamp('layout complete');
-    }
   });
+
+  if (isLayout) {
+    logWithTimestamp('layout');
+    layout(nodes, edges, 'LR');
+    logWithTimestamp('layout complete');
+  }
 
   return { nodes, edges };
 };
