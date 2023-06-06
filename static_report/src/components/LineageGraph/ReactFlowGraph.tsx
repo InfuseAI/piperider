@@ -31,6 +31,7 @@ import TableSummary from './TableSummary';
 import { GraphNode } from './GraphNode';
 import GraphEdge from './GraphEdge';
 import { set } from 'lodash';
+import { useTableRoute } from '../../utils/routes';
 
 const nodeWidth = 300;
 const nodeHeight = 60;
@@ -354,7 +355,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [selected, setSelected] = useState<LineageGraphNode>();
+  let { uniqueId: selected } = useTableRoute();
   const [, setLocation] = useLocation();
 
   const onNodeClick = useCallback(
@@ -372,11 +373,10 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         return;
       }
 
-      setSelected(item);
       onOpen();
     },
     // eslint-disable-next-line
-    [setSelected, onOpen],
+    [onOpen],
   );
 
   const onChangeOnlyClick = useCallback(() => {
@@ -414,35 +414,30 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
 
     setNodes((nodes) =>
       nodes.map((node) => {
-        if (!relatedNodes.includes(node.id)) {
-          return {
-            ...node,
-            hidden: true,
-          };
-        } else {
-          return node;
-        }
+        return {
+          ...node,
+          hidden: !relatedNodes.includes(node.id),
+        };
       }),
     );
     setEdges((edges) =>
       edges.map((edge) => {
-        if (!relatedEdges.includes(edge)) {
-          return {
-            ...edge,
-            hidden: true,
-          };
-        } else {
-          return edge;
-        }
+        return {
+          ...edge,
+          hidden: !relatedEdges.includes(edge),
+        };
       }),
     );
-  }, [selected, lineageGraph, setNodes, setEdges, edges]);
+  }, [lineageGraph, setNodes, setEdges, edges]);
 
   const onFocusClick = useCallback(() => {
-    const selectedItem = selected;
+    if (!selected) {
+      return;
+    }
+
     const relatedNodes = [
-      ...getUpstreamNodes(lineageGraph, selectedItem?.uniqueId),
-      ...getDownstreamNodes(lineageGraph, selectedItem?.uniqueId),
+      ...getUpstreamNodes(lineageGraph, selected),
+      ...getDownstreamNodes(lineageGraph, selected),
     ];
     const relatedEdges = edges.filter((edge) => {
       return (
@@ -452,26 +447,18 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
 
     setNodes((nodes) =>
       nodes.map((node) => {
-        if (!relatedNodes.includes(node.id)) {
-          return {
-            ...node,
-            hidden: true,
-          };
-        } else {
-          return node;
-        }
+        return {
+          ...node,
+          hidden: !relatedNodes.includes(node.id),
+        };
       }),
     );
     setEdges((edges) =>
       edges.map((edge) => {
-        if (!relatedEdges.includes(edge)) {
-          return {
-            ...edge,
-            hidden: true,
-          };
-        } else {
-          return edge;
-        }
+        return {
+          ...edge,
+          hidden: !relatedEdges.includes(edge),
+        };
       }),
     );
   }, [selected, lineageGraph, setNodes, setEdges, edges]);
@@ -484,6 +471,21 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
     setNodes((nodes) => nodes.map(hide(false)));
     setEdges((edges) => edges.map(hide(false)));
   }, [setNodes, setEdges]);
+
+  const onChangeDisplayNodes = useCallback(
+    (event) => {
+      const value = event.target.value as string;
+      if (value == 'selected') {
+        onFocusClick();
+      } else if (value == 'changed') {
+        onChangeOnlyClick();
+      } else {
+        onFullGraphClick();
+      }
+    },
+
+    [onFocusClick, onChangeOnlyClick, onFullGraphClick],
+  );
 
   const onChangeStat = useCallback(
     (event) => {
@@ -638,6 +640,20 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
       >
         <Box p={2}>
           <Text fontSize="sm" color="gray">
+            Display nodes
+          </Text>
+          <Select
+            fontSize="sm"
+            variant="unstyled"
+            onChange={onChangeDisplayNodes}
+          >
+            <option value="">All nodes</option>
+            <option value="changed">Change only</option>
+            {/* <option value="selected">Selected</option> */}
+          </Select>
+        </Box>
+        <Box p={2}>
+          <Text fontSize="sm" color="gray">
             Stats
           </Text>
           <Select fontSize="sm" variant="unstyled" onChange={onChangeStat}>
@@ -661,17 +677,6 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
             <option value={'tag:piperider'}>Tag: Piperider</option>
           </Select>
         </Box>
-        <Spacer />
-
-        <Button variant="ghost" size="sm" onClick={onFullGraphClick}>
-          Full graph
-        </Button>
-        <Button variant="ghost" size="sm" onClick={onFocusClick}>
-          Focus on selected
-        </Button>
-        <Button variant="ghost" size="sm" onClick={onChangeOnlyClick}>
-          Change only
-        </Button>
       </Flex>
     </Flex>
   );

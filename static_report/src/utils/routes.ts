@@ -20,6 +20,8 @@ export const SEED_DETAILS_ROUTE_PATH = '/seeds/:uniqueId';
 export const SEED_COLUMN_DETAILS_ROUTE_PATH =
   '/seeds/:uniqueId/columns/:columnName';
 
+export const METRIC_DETAILS_ROUTE_PATH = '/metrics/:uniqueId';
+
 /**
  * Server side render. Because in the SSR, there is no hash path. We need to use a different path to indicate it is rendered in SSR.
  * SSR is only happens in the PipeRider cloud. The server render the react tree in the server, and the client update the tree later.
@@ -35,6 +37,7 @@ export function useTableRoute(): {
   const [matchModel, paramsModel] = useRoute(MODEL_DETAILS_ROUTE_PATH);
   const [matchSource, paramsSource] = useRoute(SOURCE_DETAILS_ROUTE_PATH);
   const [matchSeed, paramsSeed] = useRoute(SEED_DETAILS_ROUTE_PATH);
+  const [matchMetric, paramsMetric] = useRoute(METRIC_DETAILS_ROUTE_PATH);
 
   if (matchTable) {
     return paramsTable;
@@ -44,6 +47,8 @@ export function useTableRoute(): {
     return paramsSource;
   } else if (matchSeed) {
     return paramsSeed;
+  } else if (matchMetric) {
+    return paramsMetric;
   } else {
     return {};
   }
