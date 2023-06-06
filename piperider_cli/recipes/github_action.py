@@ -38,14 +38,13 @@ def run_external_command(command_line, env: Dict = None):
 
 def prepare_for_action(recipe_name: str = None):
     recipe_path = select_recipe_file(None if not recipe_name else recipe_name)
-    if recipe_path is None:
-        raise FileNotFoundError(f"Cannot find the recipe '{recipe_name}'")
-    cfg = RecipeConfiguration.load(recipe_path)
+    if recipe_path is not None:
+        cfg = RecipeConfiguration.load(recipe_path)
 
-    if cfg.base.branch:
-        git_switch_to(cfg.base.branch)
-    if cfg.target.branch:
-        git_switch_to(cfg.target.branch)
+        if cfg.base.branch:
+            git_switch_to(cfg.base.branch)
+        if cfg.target.branch:
+            git_switch_to(cfg.target.branch)
 
     ref_name = os.environ.get('GITHUB_HEAD_REF')
     print(f'switch to GITHUB_HEAD_REF: {ref_name}')
