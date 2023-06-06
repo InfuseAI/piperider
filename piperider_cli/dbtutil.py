@@ -3,7 +3,7 @@ import os
 import sys
 import io
 from glob import glob
-from typing import Optional
+from typing import Optional, Union
 
 import inquirer
 from rich.console import Console
@@ -402,7 +402,7 @@ def load_credential_from_dbt_profile(dbt_profile, profile_name, target_name):
     return credential
 
 
-def read_dbt_resources(source: str | io.TextIOWrapper):
+def read_dbt_resources(source: Union[str, io.TextIOWrapper]):
     if isinstance(source, io.TextIOWrapper):
         lines = source.readlines()
     else:
