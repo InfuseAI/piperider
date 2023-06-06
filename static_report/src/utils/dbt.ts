@@ -44,6 +44,7 @@ export interface LineageGraphNode {
   from: ('base' | 'target')[];
   type: ItemType;
   path?: string;
+  packageName?: string;
   changeStatus?: 'changed' | 'added' | 'removed';
   dependsOn: {
     [key: string]: LineageGraphEdge;
@@ -596,6 +597,7 @@ export function buildLineageGraph(
     }
 
     const path = `/${fallback?.resource_type}s/${fallback?.unique_id}`;
+    const packageName = fallback?.package_name;
     const [, schemaChanged] = buildColumnTree(fallback!.__columns || [], path);
     let changeStatus: SidebarTreeItem['changeStatus'];
     if (!base) {
@@ -612,6 +614,7 @@ export function buildLineageGraph(
       type: fallback!.resource_type!,
       from,
       path,
+      packageName,
       changeStatus,
       base: base as DbtNode,
       target: target as DbtNode,

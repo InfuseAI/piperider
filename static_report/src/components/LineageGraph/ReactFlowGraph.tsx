@@ -11,7 +11,6 @@ import ReactFlow, {
   ReactFlowProvider,
   useEdgesState,
   useNodesState,
-  useReactFlow,
 } from 'reactflow';
 import dagre from 'dagre';
 
@@ -74,6 +73,12 @@ const buildReactFlowNodesAndEdges = (
           groupId = `group-${nodeData.type}`;
           groupName = nodeData.type;
           break;
+        case 'package':
+          if (nodeData.packageName) {
+            groupId = `group-${nodeData.packageName}`;
+            groupName = nodeData.packageName;
+          }
+          break;
       }
 
       if (groupId && groupName) {
@@ -86,11 +91,13 @@ const buildReactFlowNodesAndEdges = (
             },
             type: 'group',
           });
+          console.log('group', groupId, groupName);
         }
 
         node.parentNode = groupId;
         node.extent = 'parent';
         node.expandParent = true;
+        node.draggable = false;
       }
     }
     nodes.push(node);
@@ -212,9 +219,9 @@ const layoutByGroups = (
     const groupWidth =
       Math.max(...nodesInGroup.map((node) => node.position.x + nodeWidth)) +
       groupMargin;
-    const groupHeight = Math.max(
-      ...nodesInGroup.map((node) => node.position.y + nodeHeight),
-    );
+    const groupHeight =
+      Math.max(...nodesInGroup.map((node) => node.position.y + nodeHeight)) +
+      groupMargin;
     dagreGraph.setNode(group.id, { width: groupWidth, height: groupHeight });
     group.style = {
       width: groupWidth,
@@ -225,6 +232,8 @@ const layoutByGroups = (
     edges.forEach((edge) => {
       if (edgesInGroup.includes(edge)) {
         edge.data['group'] = group.id;
+      } else {
+        edge.data['group'] = undefined;
       }
     });
   });
@@ -246,6 +255,8 @@ const layoutByGroups = (
       nodes.find((node) => node.id === edge.source)?.parentNode || edge.source;
     const target =
       nodes.find((node) => node.id === edge.target)?.parentNode || edge.target;
+
+    console.log('Group edge', source, target);
     dagreGraph.setEdge(source, target);
   });
 
@@ -253,6 +264,9 @@ const layoutByGroups = (
 
   groups.forEach((group) => {
     const groupWithPosition = dagreGraph.node(group.id);
+    group.targetPosition = isHorizontal ? Position.Left : Position.Top;
+    group.sourcePosition = isHorizontal ? Position.Right : Position.Bottom;
+
     group.position = {
       x: groupWithPosition.x - groupWithPosition.width / 2,
       y: groupWithPosition.y - groupWithPosition.height / 2,
@@ -335,7 +349,6 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selected, setSelected] = useState<LineageGraphNode>();
   const [, setLocation] = useLocation();
-  const { fitView } = useReactFlow();
 
   const onNodeClick = useCallback(
     (event: React.MouseEvent, node: Node) => {
@@ -551,6 +564,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         <Box width={'20%'}>
           <Select placeholder="None" size="sm" onChange={onChangeGroupBy}>
             <option value="type">Type</option>
+            <option value="package">Package</option>
           </Select>
         </Box>
       </Flex>
