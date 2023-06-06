@@ -379,9 +379,67 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
     [setSelected, onOpen],
   );
 
+  const onChangeOnlyClick = useCallback(() => {
+    const changeSet = new Set<string>();
+    const upstreamSet = new Set<string>();
+    const downstreamSet = new Set<string>();
+
+    Object.entries(lineageGraph).forEach(([uniqueId, node]) => {
+      if (node.changeStatus !== undefined) {
+        changeSet.add(uniqueId);
+
+        for (const upstream of getUpstreamNodes(lineageGraph, uniqueId)) {
+          upstreamSet.add(upstream);
+        }
+
+        for (const downstream of getDownstreamNodes(lineageGraph, uniqueId)) {
+          downstreamSet.add(downstream);
+        }
+      }
+    });
+
+    [...upstreamSet]
+      .filter((uniqueId) => downstreamSet.has(uniqueId))
+      .forEach((uniqueId) => {
+        changeSet.add(uniqueId);
+      });
+
+    const relatedNodes = [...changeSet];
+
+    const relatedEdges = edges.filter((edge) => {
+      return (
+        relatedNodes.includes(edge.source) && relatedNodes.includes(edge.target)
+      );
+    });
+
+    setNodes((nodes) =>
+      nodes.map((node) => {
+        if (!relatedNodes.includes(node.id)) {
+          return {
+            ...node,
+            hidden: true,
+          };
+        } else {
+          return node;
+        }
+      }),
+    );
+    setEdges((edges) =>
+      edges.map((edge) => {
+        if (!relatedEdges.includes(edge)) {
+          return {
+            ...edge,
+            hidden: true,
+          };
+        } else {
+          return edge;
+        }
+      }),
+    );
+  }, [selected, lineageGraph, setNodes, setEdges, edges]);
+
   const onFocusClick = useCallback(() => {
     const selectedItem = selected;
-    console.log(selectedItem);
     const relatedNodes = [
       ...getUpstreamNodes(lineageGraph, selectedItem?.uniqueId),
       ...getDownstreamNodes(lineageGraph, selectedItem?.uniqueId),
@@ -611,7 +669,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         <Button variant="ghost" size="sm" onClick={onFocusClick}>
           Focus on selected
         </Button>
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" onClick={onChangeOnlyClick}>
           Change only
         </Button>
       </Flex>
