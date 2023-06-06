@@ -40,75 +40,70 @@ export function CRPage({ data, sideNavTop = '0px' }: Props) {
   return (
     <Router hook={useHashLocation as BaseLocationHook}>
       <Switch>
-        <Route path={'/graph/reactflow'}>
-          <ReactFlowGraphProvider />
-        </Route>
-        <Route>
-          <MasterDetailContainer sideNavTop={sideNavTop}>
-            <Switch>
-              <Route path={HOME_ROUTE_PATH}>
-                <CRTablesListPage />
-              </Route>
+        <MasterDetailContainer sideNavTop={sideNavTop}>
+          <Switch>
+            <Route path={HOME_ROUTE_PATH}>
+              <CRTablesListPage />
+            </Route>
 
-              <Route path={TABLE_LIST_ROUTE_PATH}>
-                <CRTablesListPage />
-              </Route>
+            <Route path={TABLE_LIST_ROUTE_PATH}>
+              <CRTablesListPage />
+            </Route>
 
-              <Route path={TABLE_LIST_ROUTE_PATH}>
-                <CRTablesListPage />
-              </Route>
+            <Route path={TABLE_LIST_ROUTE_PATH}>
+              <CRTablesListPage />
+            </Route>
 
-              <Route path={TABLE_DETAILS_ROUTE_PATH}>
-                <CRTableDetailPage />
-              </Route>
+            <Route path={TABLE_DETAILS_ROUTE_PATH}>
+              <CRTableDetailPage />
+            </Route>
 
-              <Route path={COLUMN_DETAILS_ROUTE_PATH}>
-                <CRColumnDetailPage />
-              </Route>
+            <Route path={COLUMN_DETAILS_ROUTE_PATH}>
+              <CRColumnDetailPage />
+            </Route>
 
-              <Route path={SOURCE_DETAILS_ROUTE_PATH}>
-                <CRTableDetailPage />
-              </Route>
-              <Route path={SOURCE_COLUMN_DETAILS_ROUTE_PATH}>
-                <CRColumnDetailPage />
-              </Route>
+            <Route path={SOURCE_DETAILS_ROUTE_PATH}>
+              <CRTableDetailPage />
+            </Route>
+            <Route path={SOURCE_COLUMN_DETAILS_ROUTE_PATH}>
+              <CRColumnDetailPage />
+            </Route>
 
-              <Route path={SEED_DETAILS_ROUTE_PATH}>
-                <CRTableDetailPage />
-              </Route>
-              <Route path={SEED_COLUMN_DETAILS_ROUTE_PATH}>
-                <CRColumnDetailPage />
-              </Route>
+            <Route path={SEED_DETAILS_ROUTE_PATH}>
+              <CRTableDetailPage />
+            </Route>
+            <Route path={SEED_COLUMN_DETAILS_ROUTE_PATH}>
+              <CRColumnDetailPage />
+            </Route>
 
-              <Route path={MODEL_DETAILS_ROUTE_PATH}>
-                <CRTableDetailPage />
-              </Route>
-              <Route path={MODEL_COLUMN_DETAILS_ROUTE_PATH}>
-                <CRColumnDetailPage />
-              </Route>
+            <Route path={MODEL_DETAILS_ROUTE_PATH}>
+              <CRTableDetailPage />
+            </Route>
+            <Route path={MODEL_COLUMN_DETAILS_ROUTE_PATH}>
+              <CRColumnDetailPage />
+            </Route>
 
-              <Route path={ASSERTIONS_ROUTE_PATH}>
-                <CRAssertionListPage />
-              </Route>
+            <Route path={ASSERTIONS_ROUTE_PATH}>
+              <CRAssertionListPage />
+            </Route>
 
-              <Route path={METRICS_ROUTE_PATH}>
-                <CRBMPage />
-              </Route>
+            <Route path={METRICS_ROUTE_PATH}>
+              <CRBMPage />
+            </Route>
 
-              <Route path={'/graph/reactflow'}>
-                <ReactFlowGraphProvider />
-              </Route>
+            <Route path={'/graph/reactflow'}>
+              <ReactFlowGraphProvider />
+            </Route>
 
-              <Route path={SSR_ROUTE_PATH}>
-                <Loading />
-              </Route>
+            <Route path={SSR_ROUTE_PATH}>
+              <Loading />
+            </Route>
 
-              <Route>
-                <NotFound />
-              </Route>
-            </Switch>
-          </MasterDetailContainer>
-        </Route>
+            <Route>
+              <NotFound />
+            </Route>
+          </Switch>
+        </MasterDetailContainer>
       </Switch>
     </Router>
   );

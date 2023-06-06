@@ -20,8 +20,7 @@ interface GraphNodeProps extends NodeProps {
 }
 
 export function GraphNode({ data }: GraphNodeProps) {
-  const [stat, setStat] = useState('row_count');
-  const singleOnly = (data as any).singleOnly;
+  const { singleOnly, stat } = data;
 
   const [location] = useLocation();
   const isActive = data.path === location;

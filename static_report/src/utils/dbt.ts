@@ -55,6 +55,8 @@ export interface LineageGraphNode {
   base?: DbtNode;
   target?: DbtNode;
   tags: string[];
+  singleOnly?: boolean;
+  stat?: string;
 }
 
 export interface LineageGraphEdge {

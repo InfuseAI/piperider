@@ -40,9 +40,10 @@ const buildReactFlowNodesAndEdges = (
   lineageGraph: LineageGraphData,
   isLayout: boolean = true,
   options: {
-    singleOnly: boolean;
-    isHighlighted: boolean;
+    singleOnly?: boolean;
+    isHighlighted?: boolean;
     groupBy?: string;
+    stat?: string;
   },
 ) => {
   const groups: Node[] = [];
@@ -426,6 +427,20 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
     setEdges((edges) => edges.map(hide(false)));
   }, [setNodes, setEdges]);
 
+  const onChangeStat = useCallback(
+    (event) => {
+      const stat = event.target.value as string;
+      const { nodes, edges } = buildReactFlowNodesAndEdges(lineageGraph, true, {
+        stat,
+      });
+
+      setNodes(nodes);
+      setEdges(edges);
+    },
+
+    [setNodes, lineageGraph, singleOnly],
+  );
+
   const onChangeGroupBy = useCallback(
     (event) => {
       const groupedBy = event.target.value;
@@ -523,63 +538,89 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   }
 
   return (
-    <div
+    <Flex
+      flexDirection="column"
       style={{
         width: '100%',
         height: 'calc(100vh - 160px)',
-        border: '5 solid black',
       }}
     >
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onNodeClick={onNodeClick}
-        onNodeMouseEnter={(_event, node) => highlightPath(node)}
-        onNodeMouseLeave={() => resetHighlightPath()}
-        minZoom={0.1}
-      >
-        <Controls showInteractive={false} />
-        <MiniMap nodeStrokeWidth={3} zoomable pannable />
-      </ReactFlow>
+      <Flex flex="1">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeClick={onNodeClick}
+          onNodeMouseEnter={(_event, node) => highlightPath(node)}
+          onNodeMouseLeave={() => resetHighlightPath()}
+          minZoom={0.1}
+        >
+          <Controls showInteractive={false} />
+          <MiniMap nodeStrokeWidth={3} zoomable pannable />
+        </ReactFlow>
 
-      <TableSummary
-        singleOnly={singleOnly}
-        isOpen={isOpen}
-        onClose={onClose}
-      ></TableSummary>
-      <Flex>
-        <Box>
-          <ButtonGroup gap="2">
-            <Button colorScheme="orange" size="sm" onClick={onFullGraphClick}>
-              Full graph
-            </Button>
-            <Button colorScheme="orange" size="sm" onClick={onFocusClick}>
-              Focus on selected
-            </Button>
-            <Button colorScheme="orange" size="sm">
-              Change only
-            </Button>
-          </ButtonGroup>
+        <TableSummary
+          singleOnly={singleOnly}
+          isOpen={isOpen}
+          onClose={onClose}
+        ></TableSummary>
+      </Flex>
+      <Flex
+        flex="0 0 60px"
+        bg="gray.100"
+        gap={3}
+        px={10}
+        py={2}
+        border="0px solid lightgray"
+        borderTopWidth={1}
+        alignItems="center"
+      >
+        <Box p={2}>
+          <Text fontSize="sm" color="gray">
+            Stats
+          </Text>
+          <Select fontSize="sm" variant="unstyled" onChange={onChangeStat}>
+            <option value="">No stat</option>
+            <option value="execution_time">Execution time</option>
+            <option value="row_count">Row count</option>
+          </Select>
         </Box>
-        <Spacer />
-        <Text>Group by: </Text>
-        <Box width={'20%'}>
-          <Select placeholder="None" size="sm" onChange={onChangeGroupBy}>
+        <Box p={2}>
+          <Text fontSize="sm" color="gray">
+            Group by
+          </Text>
+          <Select
+            placeholder="None"
+            fontSize="sm"
+            onChange={onChangeGroupBy}
+            variant="unstyled"
+          >
             <option value="type">Type</option>
             <option value="package">Package</option>
             <option value={'tag:piperider'}>Tag: Piperider</option>
           </Select>
         </Box>
+        <Spacer />
+
+        <Button variant="ghost" size="sm" onClick={onFullGraphClick}>
+          Full graph
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onFocusClick}>
+          Focus on selected
+        </Button>
+        <Button variant="ghost" size="sm">
+          Change only
+        </Button>
       </Flex>
-    </div>
+    </Flex>
   );
 }
 
 export function ReactFlowGraphProvider(props) {
+  //
   return (
     <ReactFlowProvider>
       <ReactFlowGraph {...props} />

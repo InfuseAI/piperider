@@ -126,14 +126,9 @@ export default function TableSummary({ singleOnly, isOpen, onClose }: Props) {
       direction="column"
       width="100%"
       style={{
-        position: 'absolute',
         background: 'white',
-        top: 0,
-        right: 0,
-        bottom: 0,
         width: '600px',
         borderLeft: '1px solid lightgray',
-        overflow: 'scroll',
       }}
     >
       <CloseButton

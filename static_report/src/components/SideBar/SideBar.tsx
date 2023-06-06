@@ -6,6 +6,7 @@ import {
   ModalBody,
   ModalCloseButton,
   ModalContent,
+  ModalHeader,
   ModalOverlay,
   Tab,
   TabList,
@@ -13,6 +14,8 @@ import {
   TabPanels,
   Tabs,
   useDisclosure,
+  Text,
+  Divider,
 } from '@chakra-ui/react';
 import { useReportStore } from '../../utils/store';
 import { SideBarTree } from './SideBarTree';
@@ -80,8 +83,16 @@ export function SideBar({ singleOnly }: Comparable) {
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent maxW="calc(100vw - 200px)" backgroundColor="#f6f6f6">
-          <ModalCloseButton />
-          <ModalBody>
+          <ModalHeader
+            borderBottom={2}
+            backgroundColor={'gray.100'}
+            border="0 solid lightgray"
+            borderBottomWidth={1}
+          >
+            <Text fontSize="sm">Lineage Graph</Text>
+            <ModalCloseButton />
+          </ModalHeader>
+          <ModalBody p={0}>
             <ReactFlowGraphProvider singleOnly={singleOnly} />
           </ModalBody>
         </ModalContent>
