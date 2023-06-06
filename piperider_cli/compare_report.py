@@ -3,18 +3,19 @@ import json
 import os
 import shutil
 import sys
-from datetime import datetime, date
-from typing import List
+from datetime import date, datetime
+from typing import Dict, List
 
 import inquirer
 import readchar
 from rich.console import Console
 
 import piperider_cli.hack.inquirer as inquirer_hack
-from piperider_cli import datetime_to_str, str_to_datetime, clone_directory, \
-    raise_exception_when_directory_not_writable, open_report_in_browser
+from piperider_cli import clone_directory, datetime_to_str, open_report_in_browser, \
+    raise_exception_when_directory_not_writable, str_to_datetime
 from piperider_cli.filesystem import FileSystem
 from piperider_cli.generate_report import setup_report_variables
+from piperider_cli.reports import Document
 
 
 class RunOutput(object):
@@ -141,7 +142,7 @@ class ComparisonData(object):
     STATE_DEL = 1
     STATE_MOD = 2
 
-    def __init__(self, base, target, tables_from):
+    def __init__(self, base: Dict, target: Dict, tables_from):
         self._id = datetime.now().strftime("%Y%m%d%H%M%S")
 
         if tables_from == 'target-only':
@@ -236,6 +237,15 @@ class ComparisonData(object):
         out.write(self._render_metrics_comparison_markdown(base, target))
 
         return out.getvalue()
+
+    def to_summary_markdown_ng(self):
+        if self._base.get('dbt') is None or self._target.get('dbt') is None:
+            console = Console()
+            console.print("[bold yellow]Warning: [/bold yellow]'summary.md' report is not generated.")
+            console.print("To generate a summary.md file, please run the 'piperider run' command in a dbt project "
+                          "and use the latest version of piperider.")
+            return ""
+        return Document.from_runs(self._base, self._target).build()
 
     @staticmethod
     def _value_with_annotation(key, annotation=None):
@@ -795,10 +805,12 @@ class CompareReport(object):
                 f.write(summary_data)
 
         data_id = comparison_data.id()
-        summary_data = summary_data if summary_data else comparison_data.to_summary_markdown()
+        summary_data = summary_data if summary_data else comparison_data.to_summary_markdown_ng()
+
         default_report_directory = prepare_default_output_path(filesystem, data_id)
         output_report(default_report_directory)
-        output_summary(default_report_directory, summary_data)
+        if summary_data:
+            output_summary(default_report_directory, summary_data)
 
         comparison_dir = filesystem.get_comparison_dir()
         report_path = os.path.join(comparison_dir, 'latest', 'index.html')
@@ -831,8 +843,9 @@ class CompareReport(object):
             summary_md_path = summary_file
 
         console.print()
-        console.print(f"Comparison report: {report_path}", soft_wrap=True)
-        console.print(f"Comparison summary: {summary_md_path}", soft_wrap=True)
+        console.print(f"Comparison report: {report_path}")
+        if summary_data:
+            console.print(f"Comparison summary: {summary_md_path}")
         if report_url:
             console.print(f"Comparison report URL: {report_url}", soft_wrap=True)
 
