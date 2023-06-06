@@ -79,6 +79,12 @@ const buildReactFlowNodesAndEdges = (
             groupName = nodeData.packageName;
           }
           break;
+        case 'tag:piperider':
+          if (nodeData.tags.includes('piperider')) {
+            groupId = `group-piperider`;
+            groupName = 'piperider';
+          }
+          break;
       }
 
       if (groupId && groupName) {
@@ -565,6 +571,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
           <Select placeholder="None" size="sm" onChange={onChangeGroupBy}>
             <option value="type">Type</option>
             <option value="package">Package</option>
+            <option value={'tag:piperider'}>Tag: Piperider</option>
           </Select>
         </Box>
       </Flex>

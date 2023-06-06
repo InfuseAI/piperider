@@ -54,6 +54,7 @@ export interface LineageGraphNode {
   };
   base?: DbtNode;
   target?: DbtNode;
+  tags: string[];
 }
 
 export interface LineageGraphEdge {
@@ -598,6 +599,7 @@ export function buildLineageGraph(
 
     const path = `/${fallback?.resource_type}s/${fallback?.unique_id}`;
     const packageName = fallback?.package_name;
+    const tags = fallback?.tags || [];
     const [, schemaChanged] = buildColumnTree(fallback!.__columns || [], path);
     let changeStatus: SidebarTreeItem['changeStatus'];
     if (!base) {
@@ -620,6 +622,7 @@ export function buildLineageGraph(
       target: target as DbtNode,
       dependsOn,
       children: {},
+      tags,
     };
   });
 
