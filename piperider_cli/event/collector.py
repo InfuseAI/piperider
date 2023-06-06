@@ -9,10 +9,6 @@ import portalocker
 import requests
 
 from piperider_cli import __version__
-from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
-
-PIPERIDER_WORKING_DIR = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
-PIPERIDER_EVENT_PATH = os.path.join(PIPERIDER_WORKING_DIR, '.unsend_events.json')
 
 
 def _is_executed_manually() -> bool:
@@ -37,12 +33,10 @@ class Collector:
         self._api_key = None
         self._user_id = None
 
-        self._unsend_events_file = PIPERIDER_EVENT_PATH
+        self._unsend_events_file = None
         self._delete_threshold = 1000
         self._upload_threshold = 10
         self._manual: bool = _is_executed_manually()
-
-        self._check_required_files()
 
     def is_ready(self):
         if self._api_key is None or self._user_id is None:
@@ -54,6 +48,10 @@ class Collector:
 
     def set_user_id(self, user_id):
         self._user_id = user_id
+
+    def set_unsend_events_file(self, unsend_events_file):
+        self._unsend_events_file = unsend_events_file
+        self._check_required_files()
 
     def log_event(self, prop, event_type):
         # Use local timezone
@@ -89,8 +87,9 @@ class Collector:
         self._cleanup_unsend_events()
 
     def _check_required_files(self):
-        if not os.path.exists(PIPERIDER_WORKING_DIR):
-            os.makedirs(PIPERIDER_WORKING_DIR, exist_ok=True)
+        user_home = os.path.dirname(self._unsend_events_file)
+        if not os.path.exists(user_home):
+            os.makedirs(user_home, exist_ok=True)
         if not os.path.exists(self._unsend_events_file):
             with portalocker.Lock(self._unsend_events_file, 'w+', timeout=5) as f:
                 f.write(json.dumps({'unsend_events': []}))
