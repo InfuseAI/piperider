@@ -390,7 +390,7 @@ class ColumnChangeView:
                 elif delta > 0:
                     delta = f"↑{delta:.1%}"
                 elif delta < 0:
-                    delta = f"↓{delta:.1%}"
+                    delta = f"↓{abs(delta):.1%}"
                 else:
                     delta = ""
 
@@ -935,7 +935,7 @@ class ModelEntryOverviewElement(_Element):
             orange_row_p = Styles.latex_orange(row_p)
             total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↑ {target_total_rows - base_total_rows}) {row_p}">{orange_row_p}</span>"""
         else:
-            row_p = Styles.latex_orange(f"(↓ {change_rate(base_total_rows, target_total_rows):.1%})")
+            row_p = f"(↓ {change_rate(base_total_rows, target_total_rows):.1%})"
             orange_row_p = Styles.latex_orange(row_p)
             total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↓ {base_total_rows - target_total_rows}) {row_p}">{orange_row_p}</span>"""
 

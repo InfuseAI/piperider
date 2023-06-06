@@ -28,11 +28,8 @@ class TestCompareSummaryNG(TestCase):
             return json.loads(fh.read())
 
     def test_in_memory_compare_with_manifests(self):
-        run1 = self.manifest_dict("1_profiled.json")
-        run2 = self.manifest_dict("2_profiled.json")
-
-        # run1 = self.manifest_dict("1_metric.json")
-        # run2 = self.manifest_dict("2_metric.json")
+        run1 = self.manifest_dict("jaffle_shop_base.json")
+        run2 = self.manifest_dict("jaffle_shop_target.json")
 
         data = ComparisonData(run1, run2, None)
         result = data.to_summary_markdown_ng()
