@@ -32,11 +32,14 @@ def embed_url_cloud(url: str, unique_id: str, resource_type: str, table_name: st
 embed_url = None
 try:
     from web import patch_sys_path_for_piperider_cli
+
     patch_sys_path_for_piperider_cli()
     from piperider_cli.dbt.list_task import load_manifest, compare_models_between_manifests
+
     embed_url = embed_url_cloud
 except ImportError:
     from piperider_cli.dbt.list_task import load_manifest, compare_models_between_manifests
+
     embed_url = embed_url_cli
 
 
@@ -320,14 +323,11 @@ class ColumnChangeView:
         if other.data is None:
             return False
 
-        # Edited -> types, duplicate, invalids, missing(nulls)
+        # Edited -> types, duplicate, missing(nulls)
         if self.data.get("type") != other.data.get("type"):
             return False
 
         if self.data.get("duplicates") != other.data.get("duplicates"):
-            return False
-
-        if self.data.get("invalids") != other.data.get("invalids"):
             return False
 
         if self.data.get("nulls") != other.data.get("nulls"):
@@ -363,20 +363,6 @@ class ColumnChangeView:
         if not self.data:
             return None
         return self.data.get("nulls")
-
-    @property
-    def invalids_p(self):
-        if not self.data:
-            return "-"
-        if self.data.get("invalids_p") is None:
-            return "-"
-        return f"{self.data.get('invalids_p'):.1%}"
-
-    @property
-    def invalids(self):
-        if not self.data:
-            return None
-        return self.data.get("invalids")
 
     def get_type(self, compared_type: str = None):
         if self.data is None:
@@ -420,7 +406,6 @@ class ColumnChangeView:
 
         add_reason_for("duplicates", "Duplicates")
         add_reason_for("nulls", "Missing")
-        add_reason_for("invalids", "Invalid")
 
         return " ".join(reasons)
 
@@ -464,7 +449,7 @@ class ColumnChangeView:
 
 class ChangedColumnsTableEntryElement(_Element):
     def __init__(
-        self, root: _Element, column_name: str, base_column_data: Dict, target_column_data: Dict
+            self, root: _Element, column_name: str, base_column_data: Dict, target_column_data: Dict
     ):
         super().__init__(root)
         self.column_name = column_name
@@ -503,7 +488,7 @@ class ChangedColumnsTableEntryElement(_Element):
         # Check added or removed
         # added -> base is null and target is not null
         # removed -> base is not null and target is null
-        # Edited -> types, duplicate, invalids, missing(nulls)
+        # Edited -> types, duplicate, missing(nulls)
         change_status = self.change_status
         m = self.find_target_node(self.get_model_selector())
 
@@ -551,7 +536,7 @@ class ChangedColumnsTableEntryElement(_Element):
 
 class TotalColumnsTableEntryElement(_Element):
     def __init__(
-        self, root: _Element, column_name: str, base_column_data: Dict, target_column_data: Dict
+            self, root: _Element, column_name: str, base_column_data: Dict, target_column_data: Dict
     ):
         super().__init__(root)
         self.column_name = column_name
@@ -615,7 +600,6 @@ class TotalColumnsTableEntryElement(_Element):
         <td>{embed_url(self.get_url(), m.unique_id, m.resource_type, m.name, self.column_name)}</td>
         <td>{Styles.latex_grey(target_type)}</td>
         {td2("duplicates")}
-        {td2("invalids")}
         {td2("nulls")}
         </tr>
         """
@@ -701,7 +685,7 @@ class JoinedTables:
         return False
 
     def columns_changed_iterator(
-        self, root: _Element, table_name: str
+            self, root: _Element, table_name: str
     ) -> Iterable[ChangedColumnsTableEntryElement]:
         all_column_keys, b, t = self._create_columns_and_their_metrics(table_name)
 
@@ -714,7 +698,7 @@ class JoinedTables:
             yield elem
 
     def all_columns_iterator(
-        self, root: _Element, table_name
+            self, root: _Element, table_name
     ) -> Iterable[TotalColumnsTableEntryElement]:
         all_column_keys, b, t = self._create_columns_and_their_metrics(table_name)
 
@@ -795,12 +779,9 @@ class TotalColumnsTableElement(_Element):
         <th title="Field #2" rowspan='2'>Column</th>
         <th title="Field #3" rowspan='2'>Target Type</th>
         <th title="Field #6" colspan='2'>Duplicate</th>
-        <th title="Field #8" colspan='2'>Invalid</th>
         <th title="Field #10" colspan='2'>Missing</th>
         </tr>
         <tr>
-        <td>Base</td>
-        <td>Target</td>
         <td>Base</td>
         <td>Target</td>
         <td>Base</td>
