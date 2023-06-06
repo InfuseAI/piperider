@@ -25,7 +25,12 @@ import {
   getIconForColumnType,
   useReportStore,
 } from '../../lib';
-import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
+import {
+  VscDiffAdded,
+  VscDiffModified,
+  VscDiffRemoved,
+  VscDiffRenamed,
+} from 'react-icons/vsc';
 import { useTableRoute } from '../../utils/routes';
 import {
   ChevronDownIcon,
@@ -34,6 +39,8 @@ import {
 } from '@chakra-ui/icons';
 import { useState } from 'react';
 import { getStatDiff } from './util';
+import { compareColumn } from '../../utils/dbt';
+import { COLOR_ADDED, COLOR_CHANGED, COLOR_REMOVED } from './style';
 
 interface Props extends Comparable {
   isOpen: boolean;
@@ -90,7 +97,7 @@ function ColumnStatCell({
     <VStack flex="0 1 60px" alignItems="flex-end" spacing={0} fontSize={'xs'}>
       <Text textAlign="right">{statValueF}</Text>
       {statDiff !== undefined && (
-        <Box textAlign="right" color={statDiff < 0 ? 'red' : 'green'}>
+        <Box textAlign="right">
           {statDiff < 0 ? <TriangleDownIcon /> : <TriangleUpIcon />}
           {statDiffF}
         </Box>
@@ -196,17 +203,16 @@ export default function TableSummary({ singleOnly, isOpen, onClose }: Props) {
                 let color: any;
 
                 if (!singleOnly) {
-                  if (!baseColumn) {
+                  const changeStatus = compareColumn(baseColumn, targetColumn);
+                  if (changeStatus === 'added') {
                     iconChangeStatus = VscDiffAdded;
-                    color = 'green.500';
-                  } else if (!targetColumn) {
+                    color = COLOR_ADDED;
+                  } else if (changeStatus === 'removed') {
                     iconChangeStatus = VscDiffRemoved;
-                    color = 'red.500';
-                  } else if (
-                    baseColumn.schema_type !== targetColumn.schema_type
-                  ) {
-                    iconChangeStatus = VscDiffModified;
-                    color = 'red.500';
+                    color = COLOR_REMOVED;
+                  } else if (changeStatus === 'implicit') {
+                    iconChangeStatus = VscDiffRenamed;
+                    color = COLOR_CHANGED;
                   } else {
                     color = 'inherit';
                   }

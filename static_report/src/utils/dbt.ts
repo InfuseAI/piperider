@@ -4,7 +4,7 @@ import {
   ModelNode,
   SourceDefinition,
 } from '../sdlc/dbt-manifest-schema';
-import { DbtNode, SaferSRSchema } from '../types/index';
+import { ColumnSchema, DbtNode, SaferSRSchema } from '../types/index';
 import _ from 'lodash';
 import { HOME_ROUTE_PATH } from './routes';
 import { DbtRunResultsSchema } from '../sdlc/dbt-run-results-schema';
@@ -29,13 +29,15 @@ export type ItemType =
   | 'test_list'
   | 'graph';
 
+type ChangeStatus = 'changed' | 'added' | 'removed' | 'implicit';
+
 export interface SidebarTreeItem {
   name: string;
   type: ItemType;
   path?: string;
   expanded?: boolean;
   items?: SidebarTreeItem[];
-  changeStatus?: 'changed' | 'added' | 'removed';
+  changeStatus?: ChangeStatus;
 }
 
 export interface LineageGraphNode {
@@ -45,7 +47,7 @@ export interface LineageGraphNode {
   type: ItemType;
   path?: string;
   packageName?: string;
-  changeStatus?: 'changed' | 'added' | 'removed';
+  changeStatus?: ChangeStatus;
   dependsOn: {
     [key: string]: LineageGraphEdge;
   };
@@ -136,6 +138,67 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
   return dbtNodes;
 };
 
+function compareDbtNode(
+  base?: Partial<DbtNode>,
+  target?: Partial<DbtNode>,
+): ChangeStatus | undefined {
+  if (base === undefined && target === undefined) {
+    return undefined;
+  }
+
+  if (!base) {
+    return 'added';
+  }
+
+  if (!target) {
+    return 'removed';
+  }
+
+  // code change
+  if (base?.raw_code && base?.raw_code !== target?.raw_code) {
+    return 'changed';
+  }
+
+  // value change
+  if (
+    base?.__table?.row_count !== undefined &&
+    target.__table?.row_count !== undefined
+  ) {
+    if (base.__table.row_count != target.__table.row_count) {
+      return 'implicit';
+    }
+  }
+
+  return undefined;
+}
+
+export function compareColumn(
+  base?: Partial<ColumnSchema>,
+  target?: Partial<ColumnSchema>,
+): ChangeStatus | undefined {
+  // schema change
+  if (!base) {
+    return 'added';
+  } else if (!target) {
+    return 'removed';
+  } else if (base.schema_type !== target?.schema_type) {
+    return 'implicit';
+  }
+
+  // value change
+  if (base?.nulls !== target?.nulls) {
+    return 'implicit';
+  }
+
+  if (base?.distinct !== target?.distinct) {
+    return 'implicit';
+  }
+
+  if (base?.duplicates !== target?.duplicates) {
+    return 'implicit';
+  }
+}
+
 export function findNodeByUniqueID(
   manifest: DbtManifestSchema,
   uniqueId: string,
@@ -166,9 +229,9 @@ export function findNodeByUniqueID(
 export function buildColumnTree(
   itemsColumnComparison: CompColEntryItem[],
   pathPrefix,
-): [SidebarTreeItem[], boolean] {
+): [SidebarTreeItem[], ChangeStatus | undefined] {
   let items: SidebarTreeItem[] = [];
-  let schemaChanged = false;
+  let resultChangeStatus: ChangeStatus | undefined = undefined;
 
   itemsColumnComparison.forEach(([columnName, { base, target }]) => {
     const fallback = target || base;
@@ -178,17 +241,9 @@ export function buildColumnTree(
     }
 
     let type = `column_${fallback?.type}` as any;
-    let changeStatus;
-
-    if (!base) {
-      changeStatus = 'added';
-      schemaChanged = true;
-    } else if (!target) {
-      changeStatus = 'removed';
-      schemaChanged = true;
-    } else if (base.schema_type !== target.schema_type) {
-      changeStatus = 'changed';
-      schemaChanged = true;
+    let changeStatus = compareColumn(base, target);
+    if (changeStatus) {
+      resultChangeStatus = 'implicit';
     }
 
     items.push({
@@ -198,7 +253,7 @@ export function buildColumnTree(
       changeStatus,
     });
   });
-  return [items, schemaChanged];
+  return [items, resultChangeStatus];
 }
 
 export function buildSourceTree(
@@ -227,20 +282,12 @@ export function buildSourceTree(
       }
 
       const path = `/sources/${fallback?.unique_id}`;
-      const [columnItems, schemaChanged] = buildColumnTree(
+      const [columnItems, columnChangeStatus] = buildColumnTree(
         fallback!.__columns || [],
         path,
       );
 
-      let changeStatus: SidebarTreeItem['changeStatus'];
-      if (!base) {
-        changeStatus = 'added';
-      } else if (!target) {
-        changeStatus = 'removed';
-      } else if (schemaChanged) {
-        changeStatus = 'changed';
-      }
-
+      const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
       tree[sourceName].items.push({
         type: 'source',
         name: name,
@@ -312,18 +359,11 @@ export function buildModelOrSeedTree(
     });
 
     const path = `/${resourceType}s/${fallback?.unique_id}`;
-    const [columnItems, schemaChanged] = buildColumnTree(
+    const [columnItems, columnChangeStatus] = buildColumnTree(
       fallback!.__columns || [],
       path,
     );
-    let changeStatus: SidebarTreeItem['changeStatus'];
-    if (!base) {
-      changeStatus = 'added';
-    } else if (!target) {
-      changeStatus = 'removed';
-    } else if (schemaChanged) {
-      changeStatus = 'changed';
-    }
+    const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
 
     curDir[fname] = {
       type: resourceType,
@@ -370,18 +410,11 @@ export function buildLegacyTablesTree(
     }
 
     const path = `/tables/${fallback?.name}`;
-    const [columnItems, schemaChanged] = buildColumnTree(
+    const [columnItems, columnChangeStatus] = buildColumnTree(
       fallback!.__columns || [],
       path,
     );
-    let changeStatus: SidebarTreeItem['changeStatus'];
-    if (!base) {
-      changeStatus = 'added';
-    } else if (!target) {
-      changeStatus = 'removed';
-    } else if (schemaChanged) {
-      changeStatus = 'changed';
-    }
+    const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
 
     const itemTable: SidebarTreeItem = {
       name: fallback?.name || '',
@@ -454,8 +487,7 @@ export function buildDatabaseTree(
 ): SidebarTreeItem[] {
   let items: SidebarTreeItem[] = [];
   const treeNodes: DbtNode[] = [];
-  const added: string[] = [];
-  const removed: string[] = [];
+  const changeStatuses: { [key: string]: ChangeStatus | undefined } = {};
 
   itemsNodeComparison.forEach(([key, { base, target }]) => {
     const node = target || base;
@@ -475,11 +507,7 @@ export function buildDatabaseTree(
       treeNodes.push(node as DbtNode);
     }
 
-    if (!base) {
-      added.push(key);
-    } else if (!target) {
-      removed.push(key);
-    }
+    changeStatuses[key] = compareDbtNode(base, target);
   });
 
   var treeNodesSorted = _.sortBy(treeNodes, function (node) {
@@ -515,20 +543,13 @@ export function buildDatabaseTree(
 
       _.each(schema_nodes, function (node) {
         const path = '/' + node.resource_type + 's/' + node.unique_id;
-        const [columnItems, schemaChanged] = buildColumnTree(
+        const [columnItems, columnChangeStatus] = buildColumnTree(
           node.__columns || [],
           path,
         );
 
-        let changeStatus: SidebarTreeItem['changeStatus'];
-        if (added.includes(node!.unique_id!)) {
-          changeStatus = 'added';
-        } else if (removed.includes(node!.unique_id!)) {
-          changeStatus = 'removed';
-        } else if (schemaChanged) {
-          changeStatus = 'changed';
-        }
-
+        const changeStatus =
+          changeStatuses[node!.unique_id!] ?? columnChangeStatus;
         let itemTable: SidebarTreeItem = {
           type: node.resource_type as any,
           name: node.identifier || node.alias || node.name,
@@ -602,15 +623,11 @@ export function buildLineageGraph(
     const path = `/${fallback?.resource_type}s/${fallback?.unique_id}`;
     const packageName = fallback?.package_name;
     const tags = fallback?.tags || [];
-    const [, schemaChanged] = buildColumnTree(fallback!.__columns || [], path);
-    let changeStatus: SidebarTreeItem['changeStatus'];
-    if (!base) {
-      changeStatus = 'added';
-    } else if (!target) {
-      changeStatus = 'removed';
-    } else if (schemaChanged) {
-      changeStatus = 'changed';
-    }
+    const [, columnChangeStatus] = buildColumnTree(
+      fallback!.__columns || [],
+      path,
+    );
+    const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
 
     data[key] = {
       uniqueId: key,

@@ -1,5 +1,10 @@
 import { Box, Flex, Icon, VStack, Text } from '@chakra-ui/react';
-import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
+import {
+  VscDiffAdded,
+  VscDiffModified,
+  VscDiffRemoved,
+  VscDiffRenamed,
+} from 'react-icons/vsc';
 import { Handle, NodeProps, Position } from 'reactflow';
 import { useLocation } from 'wouter';
 import { LineageGraphNode } from '../../utils/dbt';
@@ -9,6 +14,7 @@ import {
   COLOR_ADDED,
   COLOR_CHANGED,
   COLOR_HIGHLIGHT,
+  COLOR_NOPROFILED,
   COLOR_REMOVED,
   COLOR_UNCHANGED,
 } from './style';
@@ -27,6 +33,7 @@ export function GraphNode({ data }: GraphNodeProps) {
   const isHighlighted: boolean = (data as any).isHighlighted || false;
 
   let resourceType = data?.type;
+  let isNoProfile = false;
 
   // resource background color
   let resourceColor: CSSProperties['color'] = 'inherit';
@@ -36,6 +43,7 @@ export function GraphNode({ data }: GraphNodeProps) {
     resourceType === 'model'
   ) {
     resourceColor = '#c0eafd';
+    isNoProfile = (data.target ?? data.base)?.__table?.row_count === undefined;
   } else if (resourceType === 'exposure' || resourceType === 'analysis') {
     resourceColor = '#f6e3ff';
   } else if (resourceType === 'metric') {
@@ -61,12 +69,20 @@ export function GraphNode({ data }: GraphNodeProps) {
       color = COLOR_CHANGED;
       fontWeight = 600;
       borderStyle = 'dashed';
+    } else if (changeStatus === 'implicit') {
+      iconChangeStatus = VscDiffRenamed;
+      color = '#9a6700';
+      color = COLOR_CHANGED;
+      fontWeight = 600;
+      borderStyle = 'dashed';
     } else if (changeStatus === 'removed') {
       iconChangeStatus = VscDiffRemoved;
       color = COLOR_REMOVED;
       color = '#cf222e';
       fontWeight = 600;
       borderStyle = 'dashed';
+    } else if (isNoProfile) {
+      color = COLOR_NOPROFILED;
     } else {
       color = COLOR_UNCHANGED;
     }

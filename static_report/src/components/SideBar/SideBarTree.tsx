@@ -6,7 +6,12 @@ import { FaChartBar, FaFile, FaHome } from 'react-icons/fa';
 import { getIconForColumnType } from '..';
 import { FiDatabase, FiFolder, FiGrid } from 'react-icons/fi';
 import { FiChevronDown, FiChevronRight, FiCheckCircle } from 'react-icons/fi';
-import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
+import {
+  VscDiffAdded,
+  VscDiffModified,
+  VscDiffRemoved,
+  VscDiffRenamed,
+} from 'react-icons/vsc';
 import { Comparable } from '../../types';
 
 interface Props extends Comparable {
@@ -63,10 +68,12 @@ export function SideBarTree({ items, singleOnly }: Props) {
 
     if (changeStatus === 'added') {
       iconChangeStatus = VscDiffAdded;
-    } else if (changeStatus === 'changed') {
-      iconChangeStatus = VscDiffModified;
     } else if (changeStatus === 'removed') {
       iconChangeStatus = VscDiffRemoved;
+    } else if (changeStatus === 'changed') {
+      iconChangeStatus = VscDiffModified;
+    } else if (changeStatus === 'implicit') {
+      iconChangeStatus = VscDiffRenamed;
     }
 
     if (!isExpanded && !changeStatus && isChildrenChanged(item)) {
