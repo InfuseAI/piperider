@@ -653,9 +653,13 @@ class CompareReport(object):
             return None, None
         return outputs[-2:]
 
-    def select_reports(self, use_last_two=None):
+    def select_reports(self, use_last_two=None, reverse=False):
         if use_last_two:
-            self.a, self.b = self.get_the_last_two_reports()
+            first, second = self.get_the_last_two_reports()
+            if reverse:
+                self.a, self.b = second, first
+            else:
+                self.a, self.b = first, second
         elif self.a is None and self.b is None:
             self.a, self.b = self.select_two_reports()
         elif self.a and self.b is None:
@@ -742,7 +746,7 @@ class CompareReport(object):
     @staticmethod
     def exec(*, a=None, b=None, last=None, datasource=None, report_dir=None, output=None, tables_from='all',
              summary_file=None, force_upload=False, enable_share=False, open_report=False, project_name: str = None,
-             debug=False, show_progress=False):
+             debug=False, show_progress=False, reverse_last=False):
         console = Console()
         console.rule('Comparison report', style='bold blue')
 
@@ -750,7 +754,7 @@ class CompareReport(object):
         raise_exception_when_directory_not_writable(output)
 
         report = CompareReport(filesystem.get_output_dir(), a, b, datasource=datasource)
-        if not report.select_reports(use_last_two=last):
+        if not report.select_reports(use_last_two=last, reverse=reverse_last):
             raise Exception('No valid reports found')
 
         from piperider_cli.cloud_connector import CloudConnector

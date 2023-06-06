@@ -189,9 +189,10 @@ def run(**kwargs):
     project_name = kwargs.get('project')
 
     console = Console()
+    env_dbt_resources = os.environ.get('PIPERIDER_DBT_RESOURCES')
 
     # True -> 1, False -> 0
-    if sum([True if table else False, dbt_list]) > 1:
+    if sum([True if table else False, dbt_list, env_dbt_resources is not None]) > 1:
         console.print("[bold red]Error:[/bold red] "
                       "['--table', '--dbt-list'] are mutually exclusive")
         sys.exit(1)
@@ -209,16 +210,9 @@ def run(**kwargs):
 
     dbt_resources = None
     if dbt_list:
-        metrics = []
-        models = []
-        for dbt_resource in sys.stdin:
-            if dbt_resource.startswith('source:'):
-                continue
-            elif dbt_resource.startswith('metric:'):
-                metrics.append(dbt_resource.rstrip().replace('metric:', 'metric.'))
-            else:
-                models.append(dbt_resource.rstrip())
-        dbt_resources = dict(metrics=metrics, models=models)
+        dbt_resources = dbtutil.read_dbt_resources(sys.stdin)
+    if env_dbt_resources is not None:
+        dbt_resources = dbtutil.read_dbt_resources(env_dbt_resources)
 
     ret = Runner.exec(datasource=datasource,
                       table=table,
@@ -503,6 +497,7 @@ def compare_with_recipe(**kwargs):
                                open_report=open_report,
                                project_name=project_name,
                                show_progress=True,
+                               reverse_last=True,
                                debug=debug)
     except Exception as e:
         raise e
