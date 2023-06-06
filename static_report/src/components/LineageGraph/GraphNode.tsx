@@ -4,7 +4,7 @@ import { Handle, NodeProps, Position } from 'reactflow';
 import { useLocation } from 'wouter';
 import { LineageGraphNode } from '../../utils/dbt';
 import { FiGrid } from 'react-icons/fi';
-import { CSSProperties } from 'react';
+import { CSSProperties, useState } from 'react';
 import {
   COLOR_ADDED,
   COLOR_CHANGED,
@@ -20,6 +20,7 @@ interface GraphNodeProps extends NodeProps {
 }
 
 export function GraphNode({ data }: GraphNodeProps) {
+  const [stat, setStat] = useState('row_count');
   const singleOnly = (data as any).singleOnly;
 
   const [location] = useLocation();
@@ -83,13 +84,25 @@ export function GraphNode({ data }: GraphNodeProps) {
 
   const name = data?.name;
   const fallback = data?.target || data?.base;
-  const { statValue, statValueF, statChange, statChangeP } = getStatDiff(
-    data?.base?.__runResult,
-    data?.target?.__runResult,
-    'execution_time',
-    'decimal',
-  );
 
+  let statResult: ReturnType<typeof getStatDiff> = {};
+  if (stat === 'execution_time') {
+    statResult = getStatDiff(
+      data?.base?.__runResult,
+      data?.target?.__runResult,
+      'execution_time',
+      'duration',
+    );
+  } else if (stat == 'row_count') {
+    statResult = getStatDiff(
+      data?.base?.__table,
+      data?.target?.__table,
+      'row_count',
+      'decimal',
+    );
+  }
+
+  const { statValue, statValueF, statDiff, statDiffF } = statResult;
   return (
     <>
       <Flex
@@ -134,17 +147,19 @@ export function GraphNode({ data }: GraphNodeProps) {
             )}
           </Flex>
 
-          <Box width="100%">
-            <Text fontWeight="bold" textAlign="right" fontSize="sm">
-              {statValueF}&nbsp;
-              {statChange !== undefined && (
-                <Text as="span" color={statChange < 0 ? 'red' : 'green'}>
-                  {statChange < 0 ? <TriangleDownIcon /> : <TriangleUpIcon />}
-                  {statChangeP}
-                </Text>
-              )}
-            </Text>
-          </Box>
+          {stat && statValue !== undefined && (
+            <Box width="100%">
+              <Text fontWeight="bold" textAlign="right" fontSize="sm">
+                {statValueF}&nbsp;
+                {statDiff !== undefined && (
+                  <Text as="span" color={statDiff < 0 ? 'red' : 'green'}>
+                    {statDiff < 0 ? <TriangleDownIcon /> : <TriangleUpIcon />}
+                    {statDiffF}
+                  </Text>
+                )}
+              </Text>
+            </Box>
+          )}
         </VStack>
 
         <Handle type="target" position={Position.Left} />

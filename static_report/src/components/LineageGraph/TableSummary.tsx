@@ -79,7 +79,7 @@ function ColumnStatCell({
     'decimal',
   ];
 
-  const { statValueF, statChange, statChangeP } = getStatDiff(
+  const { statValueF, statDiff, statDiffF } = getStatDiff(
     baseColumn,
     targetColumn,
     stat,
@@ -89,10 +89,10 @@ function ColumnStatCell({
   return (
     <VStack flex="0 1 60px" alignItems="flex-end" spacing={0} fontSize={'xs'}>
       <Text textAlign="right">{statValueF}</Text>
-      {statChange !== undefined && (
-        <Box textAlign="right" color={statChange < 0 ? 'red' : 'green'}>
-          {statChange < 0 ? <TriangleDownIcon /> : <TriangleUpIcon />}
-          {statChangeP}
+      {statDiff !== undefined && (
+        <Box textAlign="right" color={statDiff < 0 ? 'red' : 'green'}>
+          {statDiff < 0 ? <TriangleDownIcon /> : <TriangleUpIcon />}
+          {statDiffF}
         </Box>
       )}
     </VStack>
