@@ -26,7 +26,7 @@ import { SRBMPage } from './SRBMPage';
 import SRColumnDetailPage from './SRColumnDetailPage';
 import SRTableDetailPage from './SRTableDetailPage';
 import { SRTablesListPage } from './SRTablesListPage';
-import { ReactFlowGraph } from '../components/LineageGraph/ReactFlowGraph';
+import { ReactFlowGraphProvider } from '../components/LineageGraph/ReactFlowGraph';
 
 interface Props {
   data: SaferSRSchema;
@@ -41,7 +41,7 @@ export function SRPage({ data, sideNavTop = '0px' }: Props) {
     <Router hook={useHashLocation as BaseLocationHook}>
       <Switch>
         <Route path={'/graph/reactflow'}>
-          <ReactFlowGraph singleOnly />
+          <ReactFlowGraphProvider singleOnly />
         </Route>
         <Route>
           <MasterDetailContainer sideNavTop={sideNavTop} singleOnly>
@@ -91,7 +91,7 @@ export function SRPage({ data, sideNavTop = '0px' }: Props) {
               </Route>
 
               <Route path={'/graph/reactflow'}>
-                <ReactFlowGraph singleOnly />
+                <ReactFlowGraphProvider singleOnly />
               </Route>
 
               <Route path={SSR_ROUTE_PATH}>
