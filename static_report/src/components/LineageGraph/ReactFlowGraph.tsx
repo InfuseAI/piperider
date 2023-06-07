@@ -125,6 +125,9 @@ const buildReactFlowNodesAndEdges = async (
         layout(nodes, edges, 'LR');
       }
       nodesAndEdges = { nodes: groups.concat(nodes), edges };
+    } else if (layoutLibrary === 'subflow') {
+      layout(nodes, edges, 'LR');
+      groupBySubFlow(groups, nodes);
     } else if (layoutLibrary === 'elk') {
       let result: { elkNodes; elkEdges };
       if (groups.length > 0) {
@@ -439,7 +442,7 @@ const layoutByElkWithGroups = async (
   }
 };
 
-const layoutGroups = (groups: Node[], nodes: Node[]) => {
+const groupBySubFlow = (groups: Node[], nodes: Node[]) => {
   groups.forEach((group) => {
     group.position.x =
       Math.min(
@@ -830,6 +833,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
             }
           >
             <option value="dagre">Dagre</option>
+            <option value="subflow">Dagre with Sub Flow</option>
             <option value="elk">ELK Layered</option>
           </Select>
         </Box>
