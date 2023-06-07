@@ -20,6 +20,7 @@ import {
   SEED_COLUMN_DETAILS_ROUTE_PATH,
   MODEL_DETAILS_ROUTE_PATH,
   MODEL_COLUMN_DETAILS_ROUTE_PATH,
+  METRIC_DETAILS_ROUTE_PATH,
 } from '../utils/routes';
 import { CRAssertionListPage } from './CRAssertionListPage';
 import { CRBMPage } from './CRBMPage';
@@ -91,8 +92,8 @@ export function CRPage({ data, sideNavTop = '0px' }: Props) {
               <CRBMPage />
             </Route>
 
-            <Route path={'/graph/reactflow'}>
-              <ReactFlowGraphProvider />
+            <Route path={METRIC_DETAILS_ROUTE_PATH}>
+              <CRBMPage />
             </Route>
 
             <Route path={SSR_ROUTE_PATH}>

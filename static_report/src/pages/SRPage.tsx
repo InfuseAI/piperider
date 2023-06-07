@@ -20,6 +20,7 @@ import {
   SSR_ROUTE_PATH,
   TABLE_DETAILS_ROUTE_PATH,
   TABLE_LIST_ROUTE_PATH,
+  METRIC_DETAILS_ROUTE_PATH,
 } from '../utils/routes';
 import { SRAssertionListPage } from './SRAssertionListPage';
 import { SRBMPage } from './SRBMPage';
@@ -86,8 +87,8 @@ export function SRPage({ data, sideNavTop = '0px' }: Props) {
               <SRBMPage />
             </Route>
 
-            <Route path={'/graph/reactflow'}>
-              <ReactFlowGraphProvider singleOnly />
+            <Route path={METRIC_DETAILS_ROUTE_PATH}>
+              <SRBMPage />
             </Route>
 
             <Route path={SSR_ROUTE_PATH}>

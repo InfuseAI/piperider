@@ -5,6 +5,7 @@ import {
   tableSchemaSchema,
 } from './../sdlc/single-report-schema.z';
 import {
+  BusinessMetric,
   ColumnSchema,
   SingleReportSchema,
   TableSchema,
@@ -31,6 +32,7 @@ export type DbtNode = (
   | Metric
 ) & {
   __table?: SaferTableSchema;
+  __queries?: BusinessMetric[];
   __columns?: CompColEntryItem[];
   __runResult?: RunResultOutput;
   [key: string]: any;

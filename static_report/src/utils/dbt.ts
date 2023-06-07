@@ -4,7 +4,12 @@ import {
   ModelNode,
   SourceDefinition,
 } from '../sdlc/dbt-manifest-schema';
-import { ColumnSchema, DbtNode, SaferSRSchema } from '../types/index';
+import {
+  BusinessMetric,
+  ColumnSchema,
+  DbtNode,
+  SaferSRSchema,
+} from '../types/index';
 import _ from 'lodash';
 import { HOME_ROUTE_PATH } from './routes';
 import { DbtRunResultsSchema } from '../sdlc/dbt-run-results-schema';
@@ -118,6 +123,17 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
       }
     });
 
+    Object.values(manifest?.metrics ?? {}).forEach((metric) => {
+      const dbtNode: DbtNode = metric;
+      const queries = (run?.metrics ?? []).filter((m) =>
+        m.name.startsWith(metric.name),
+      );
+
+      if (queries.length > 0) {
+        dbtNode.__queries = queries;
+      }
+    });
+
     Object.assign(
       dbtNodes,
       manifest?.sources,
@@ -155,7 +171,7 @@ function compareDbtNode(
   }
 
   // code change
-  if (base?.raw_code && base?.raw_code !== target?.raw_code) {
+  if (target?.raw_code && base?.raw_code !== target?.raw_code) {
     return 'changed';
   }
 
@@ -165,6 +181,12 @@ function compareDbtNode(
     target.__table?.row_count !== undefined
   ) {
     if (base.__table.row_count != target.__table.row_count) {
+      return 'implicit';
+    }
+  }
+
+  if (base?.__queries !== undefined && target.__queries !== undefined) {
+    if (compareQueries(base, target)) {
       return 'implicit';
     }
   }
@@ -197,6 +219,65 @@ export function compareColumn(
   if (base?.duplicates !== target?.duplicates) {
     return 'implicit';
   }
+}
+
+export function compareQuery(
+  base?: Partial<BusinessMetric>,
+  target?: Partial<BusinessMetric>,
+): ChangeStatus | undefined {
+  if (!base?.data) {
+    return 'added';
+  } else if (!target?.data) {
+    return 'removed';
+  }
+
+  // value change
+  if (base.data.length != target.data.length) {
+    return 'implicit';
+  }
+
+  for (let i = 0; i < base.data?.length; i++) {
+    if (base.data[i][1] !== target.data[i][1]) {
+      return 'implicit';
+    }
+  }
+
+  return undefined;
+}
+
+export function compareQueries(
+  base?: Partial<DbtNode>,
+  target?: Partial<DbtNode>,
+): ChangeStatus | undefined {
+  if (base?.__queries === undefined) {
+    return undefined;
+  }
+
+  if (target?.__queries === undefined) {
+    return undefined;
+  }
+
+  let valueChange = false;
+  target?.__queries.forEach((targetQuery) => {
+    if (valueChange) {
+      return;
+    }
+
+    const baseQuery = _.find(
+      base?.__queries,
+      (q) => q.name === targetQuery.name,
+    );
+
+    if (compareQuery(baseQuery, targetQuery)) {
+      valueChange = true;
+    }
+  });
+
+  if (valueChange) {
+    return 'implicit';
+  }
+
+  return undefined;
 }
 
 export function findNodeByUniqueID(
