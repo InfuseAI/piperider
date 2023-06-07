@@ -9,8 +9,9 @@ from jsonschema.exceptions import ValidationError
 from rich.console import Console
 from ruamel import yaml
 
+import piperider_cli.dbtutil as dbtutil
 from piperider_cli import get_run_json_path, load_jinja_template, load_json
-from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
+from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME, Configuration
 from piperider_cli.error import RecipeConfigException
 from piperider_cli.filesystem import FileSystem
 from piperider_cli.recipes.utils import InteractiveStopException
@@ -282,6 +283,11 @@ def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type=
             sys.exit(exit_code)
         console.print()
 
+    if recipe_type == 'target':
+        config = Configuration.load()
+        fqn_list = dbtutil.get_fqn_list_by_tag(config.dbt.get('tag'), config.dbt.get('projectDir'))
+        model.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(fqn_list)
+
 
 def get_current_branch(cfg: RecipeConfiguration):
     """
@@ -320,12 +326,15 @@ def execute_configuration(cfg: RecipeConfiguration, debug=False):
 
     skip_finally = False
     try:
-        console.rule("Recipe executor: base phase")
-        target_branch = cfg.target.branch or current_branch
-        execute_recipe(cfg.base, target_branch, recipe_type='base', debug=debug)
-
         console.rule("Recipe executor: target phase")
-        execute_recipe(cfg.target, current_branch, recipe_type='target', debug=debug)
+        target_branch = cfg.target.branch or current_branch
+        execute_recipe(cfg.target, target_branch, recipe_type='target', debug=debug)
+
+        console.rule("Recipe executor: base phase")
+        target_dbt_resources = cfg.target.piperider.environments.get('PIPERIDER_DBT_RESOURCES')
+        if target_dbt_resources:
+            cfg.base.piperider.environments['PIPERIDER_DBT_RESOURCES'] = target_dbt_resources
+        execute_recipe(cfg.base, current_branch, recipe_type='base', debug=debug)
     except Exception as e:
         if isinstance(e, InteractiveStopException):
             skip_finally = True

@@ -1,8 +1,9 @@
 import json
 import os
 import sys
+import io
 from glob import glob
-from typing import Optional
+from typing import Optional, Union
 
 import inquirer
 from rich.console import Console
@@ -399,3 +400,43 @@ def load_credential_from_dbt_profile(dbt_profile, profile_name, target_name):
         dbname = credential.get('dbname')
         credential['endpoint'] = f'{host}:{port}/{dbname}'
     return credential
+
+
+def read_dbt_resources(source: Union[str, io.TextIOWrapper]):
+    if isinstance(source, io.TextIOWrapper):
+        lines = source.readlines()
+    else:
+        lines = source.split('\n')
+    metrics = []
+    models = []
+    for dbt_resource in lines:
+        if dbt_resource.startswith('source:'):
+            continue
+        elif dbt_resource.startswith('metric:'):
+            metrics.append(dbt_resource.rstrip().replace('metric:', 'metric.'))
+        else:
+            models.append(dbt_resource.rstrip())
+    return dict(metrics=metrics, models=models)
+
+
+def get_fqn_list_by_tag(tag: str, project_dir: str):
+    dbt_project = load_dbt_project(project_dir)
+    dbt_state_dir = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
+    if os.path.isabs(dbt_state_dir) is False:
+        dbt_state_dir = os.path.join(project_dir, dbt_state_dir)
+
+    path = os.path.join(dbt_state_dir, 'manifest.json')
+    with open(path) as f:
+        manifest = json.load(f)
+
+    fqn_list = []
+    for key, item in manifest.get('nodes', {}).items():
+        if item.get('resource_type') in ['model', 'seed'] and tag in item.get('tags'):
+            fqn_list.append('.'.join(item.get('fqn', [])))
+    for key, item in manifest.get('sources', {}).items():
+        if tag in item.get('tags'):
+            fqn_list.append('source:' + '.'.join(item.get('fqn', [])))
+    for key, item in manifest.get('metrics', {}).items():
+        if tag in item.get('tags'):
+            fqn_list.append('metric:' + '.'.join(item.get('fqn', [])))
+    return fqn_list
