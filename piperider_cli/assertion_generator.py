@@ -5,8 +5,8 @@ from rich.console import Console
 
 from piperider_cli import raise_exception_when_directory_not_writable, get_run_json_path
 from piperider_cli.assertion_engine import AssertionEngine
+from piperider_cli.configuration import Configuration
 from piperider_cli.error import PipeRiderNoProfilingResultError
-from piperider_cli.filesystem import FileSystem
 
 console = Console()
 
@@ -24,7 +24,7 @@ class AssertionGenerator():
         console.rule('Deprecated', style='bold red')
         console.print(
             'Assertions Generator is deprecated and will be removed in the future. If you have a strong need for assertions, please contact us by "piperider feedback".\n')
-        filesystem = FileSystem(report_dir=report_dir)
+        filesystem = Configuration.instance().activate_report_directory(report_dir=report_dir)
         raise_exception_when_directory_not_writable(report_dir)
 
         run_json_path = get_run_json_path(filesystem.get_output_dir(), input_path)

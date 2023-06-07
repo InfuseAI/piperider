@@ -8,7 +8,7 @@ from rich.console import Console
 from ruamel import yaml
 from ruamel.yaml import CommentedMap, CommentedSeq
 
-from piperider_cli import round_trip_load_yaml, safe_load_yaml, dbtutil
+from piperider_cli import raise_exception_when_directory_not_writable, round_trip_load_yaml, safe_load_yaml, dbtutil
 from piperider_cli.datasource import DATASOURCE_PROVIDERS, DataSource
 from piperider_cli.error import \
     PipeRiderConfigError, \
@@ -25,6 +25,42 @@ PIPERIDER_CREDENTIALS_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'credentials
 # ref: https://docs.getdbt.com/dbt-cli/configure-your-profile
 DBT_PROFILES_DIR_DEFAULT = '~/.dbt/'
 DBT_PROFILE_FILE = 'profiles.yml'
+
+piperider_default_report_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
+
+
+class ReportDirectory:
+
+    def __init__(self, config: "Configuration", **kwargs):
+        self.report_dir = config.report_dir
+        if kwargs.get('report_dir', None) is not None:
+            self.report_dir = self.normalize_report_dir(kwargs.get('report_dir'))
+
+        raise_exception_when_directory_not_writable(self.report_dir)
+
+    @staticmethod
+    def normalize_report_dir(dirname: str):
+        """
+        the "." always refer to `.piperider` not the current working directory
+        """
+        if dirname is None or dirname.strip() == '':
+            dirname = '.'
+        if dirname.startswith('.'):
+            return os.path.abspath(os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, dirname))
+        return os.path.abspath(dirname)
+
+    def get_output_dir(self):
+        if self.report_dir is None:
+            return os.path.join(piperider_default_report_dir, 'outputs')
+        return os.path.join(self.report_dir, 'outputs')
+
+    def get_comparison_dir(self):
+        if self.report_dir is None:
+            return os.path.join(piperider_default_report_dir, 'comparisons')
+        return os.path.join(self.report_dir, 'comparisons')
+
+    def get_report_dir(self):
+        return self.report_dir
 
 
 def is_piperider_workspace_exist(workspace_path: str = PIPERIDER_WORKSPACE_PATH) -> bool:
@@ -53,7 +89,8 @@ class Configuration(object):
         self.include_views = kwargs.get('include_views', False)
         self.tables = kwargs.get('tables', {})
         self.telemetry_id = kwargs.get('telemetry_id', None)
-        self.report_dir = self._to_report_dir(kwargs.get('report_dir', '.'))
+        self.report_dir = ReportDirectory.normalize_report_dir(kwargs.get('report_dir', '.'))
+        self.report_directory_filesystem: Optional[ReportDirectory] = None
 
         self._verify_input_config()
         self.includes = [str(t) for t in self.includes] if self.includes else self.includes
@@ -61,13 +98,6 @@ class Configuration(object):
 
         # global dbt config
         self.dbt = kwargs.get('dbt', None)
-
-    def _to_report_dir(self, dirname: str):
-        if dirname is None or dirname.strip() == '':
-            dirname = '.'
-        if dirname.startswith('.'):
-            return os.path.abspath(os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, dirname))
-        return os.path.abspath(dirname)
 
     def _verify_input_config(self):
         if self.profiler_config:
@@ -89,6 +119,14 @@ class Configuration(object):
 
     def get_telemetry_id(self):
         return self.telemetry_id
+
+    def activate_report_directory(self, report_dir: str = None) -> ReportDirectory:
+        if self.report_directory_filesystem is not None:
+            return self.report_directory_filesystem
+
+        fs = ReportDirectory(self, report_dir=report_dir)
+        self.report_directory_filesystem = fs
+        return self.report_directory_filesystem
 
     @classmethod
     def from_dbt_project(cls, dbt_project_path, dbt_profiles_dir=None):
