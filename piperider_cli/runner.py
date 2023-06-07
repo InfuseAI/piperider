@@ -506,8 +506,11 @@ def get_dbt_all_subjects(dbt_state_dir, options, filter_fn):
         result = []
         for node in nodes:
             if "source" == node.get('resource_type'):
+                # NOTE: In manifest.json, the source definition will include the 'identifier' field.
+                #       If users do not specify an additional 'identifier' in dbt source schema,
+                #       its value will be the same as the "name" field.
                 name = node.get('name')
-                table = node.get('name')  # there is no alias in the source definition
+                table = node.get('identifier')  # there is no alias in the source definition
                 schema = node.get('schema')
                 database = node.get('database')
             else:
