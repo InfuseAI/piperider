@@ -51,6 +51,7 @@ export interface LineageGraphNode {
   from: ('base' | 'target')[];
   type: ItemType;
   path?: string;
+  filePath: string;
   packageName?: string;
   changeStatus?: ChangeStatus;
   dependsOn: {
@@ -703,6 +704,7 @@ export function buildLineageGraph(
 
     const path = `/${fallback?.resource_type}s/${fallback?.unique_id}`;
     const packageName = fallback?.package_name;
+    const filePath = fallback?.original_file_path.replace(/^models\//, '');
     const tags = fallback?.tags || [];
     const [, columnChangeStatus] = buildColumnTree(
       fallback!.__columns || [],
@@ -716,6 +718,7 @@ export function buildLineageGraph(
       type: fallback!.resource_type!,
       from,
       path,
+      filePath,
       packageName,
       changeStatus,
       base: base as DbtNode,

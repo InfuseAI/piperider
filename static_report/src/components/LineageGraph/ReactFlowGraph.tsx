@@ -83,6 +83,18 @@ const buildReactFlowNodesAndEdges = async (
             groupName = 'piperider';
           }
           break;
+        case 'filepath':
+          if (
+            nodeData.filePath &&
+            nodeData.filePath.split('/').length > 1 &&
+            nodeData.type === 'model'
+          ) {
+            // Only get the first layer of the file path
+            const folder = nodeData.filePath.split('/')[0];
+            groupId = `group-${folder}`;
+            groupName = folder;
+          }
+          break;
       }
 
       if (groupId && groupName) {
@@ -91,7 +103,7 @@ const buildReactFlowNodesAndEdges = async (
             id: groupId,
             position: { x: 0, y: 0 },
             data: {
-              label: `Group: ${nodeData.type}`,
+              label: `Group: ${groupName}`,
             },
             type: groupType,
           });
@@ -508,7 +520,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   let { uniqueId: selected } = useTableRoute();
   const [, setLocation] = useLocation();
-  const [layoutAlgorithm, setLayoutAlgorithm] = useState('elk');
+  const [layoutAlgorithm, setLayoutAlgorithm] = useState('dagre');
   const [stat, setStat] = useState('');
   const [groupBy, setGroupBy] = useState('');
 
@@ -820,6 +832,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
             }}
             variant="unstyled"
           >
+            <option value="filepath">DBT Model Folder Structure</option>
             <option value="type">Type</option>
             <option value="package">Package</option>
             <option value="tag:piperider">Tag: Piperider</option>
