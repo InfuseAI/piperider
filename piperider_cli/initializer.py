@@ -102,7 +102,7 @@ def _generate_configuration(dbt_project_path=None, dbt_profiles_dir=None, intera
     :return: Configuration object
     """
     try:
-        config = Configuration.load()
+        config = Configuration.instance()
     except PipeRiderConfigError:
         config = None
     except Exception:
@@ -158,7 +158,7 @@ class Initializer():
         working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
 
         if _is_piperider_workspace_exist(working_dir):
-            config = Configuration.load()
+            config = Configuration.instance()
             list_table = Table(show_header=True, show_edge=True, box=box.SIMPLE_HEAVY)
             list_table.add_column("Datasource", style="cyan", no_wrap=True)
             list_table.add_column("Description", style="magenta", no_wrap=True)
@@ -179,7 +179,7 @@ class Initializer():
     @staticmethod
     def delete(report_dir=None):
 
-        config = Configuration.load()
+        config = Configuration.instance()
         if config.dbt:
             console.print('[bold yellow]You have connected with a dbt project. '
                           'Please add datasource in the dbt profile directly. [/bold yellow]')
@@ -215,7 +215,7 @@ class Initializer():
 
     @staticmethod
     def add(report_dir=None):
-        config = Configuration.load()
+        config = Configuration.instance()
         if config.dbt:
             console.print('[bold yellow]You have connected with a dbt project. '
                           'Please add datasource in the dbt profile directly. [/bold yellow]')

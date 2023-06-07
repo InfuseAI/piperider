@@ -459,7 +459,7 @@ def decorate_with_metadata(profile_result: dict):
     from piperider_cli import __version__
     from piperider_cli.profiler.version import schema_version
 
-    configuration = Configuration.load()
+    configuration = Configuration.instance()
     project_id = configuration.get_telemetry_id()
 
     profile_result['version'] = __version__
@@ -564,7 +564,7 @@ class Runner():
 
         raise_exception_when_directory_not_writable(output)
 
-        configuration = Configuration.load()
+        configuration = Configuration.instance()
         filesystem = FileSystem(report_dir=report_dir)
         datasources = {}
         datasource_names = []

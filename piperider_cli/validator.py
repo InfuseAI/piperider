@@ -36,7 +36,7 @@ class CheckingHandler(object):
     def execute(self):
         if not self.configurator:
             try:
-                self.configurator = Configuration.load()
+                self.configurator = Configuration.instance()
             except Exception:
                 pass
 

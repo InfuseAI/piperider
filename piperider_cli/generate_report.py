@@ -14,7 +14,7 @@ from piperider_cli.filesystem import FileSystem
 
 
 def prepare_piperider_metadata():
-    configuration = Configuration.load()
+    configuration = Configuration.instance()
     project_id = configuration.get_telemetry_id()
     metadata = {
         'name': 'PipeRider',

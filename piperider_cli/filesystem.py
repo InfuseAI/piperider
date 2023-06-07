@@ -9,7 +9,7 @@ piperider_default_report_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAM
 class FileSystem:
 
     def __init__(self, **kwargs):
-        config = Configuration.load()
+        config = Configuration.instance()
         self.report_dir = config.report_dir
         if kwargs.get('report_dir', None) is not None:
             self.report_dir = self._to_report_dir(kwargs.get('report_dir'))

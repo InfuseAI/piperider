@@ -1,7 +1,7 @@
 import os
 import sys
 import uuid
-from typing import List
+from typing import List, Optional
 
 import inquirer
 from rich.console import Console
@@ -34,6 +34,9 @@ def is_piperider_workspace_exist(workspace_path: str = PIPERIDER_WORKSPACE_PATH)
         return False
 
     return True
+
+
+configuration_instance: Optional["Configuration"] = None
 
 
 class Configuration(object):
@@ -153,7 +156,15 @@ class Configuration(object):
         return cls(dataSources=[datasource])
 
     @classmethod
-    def load(cls, piperider_config_path=PIPERIDER_CONFIG_PATH):
+    def instance(cls, piperider_config_path=PIPERIDER_CONFIG_PATH):
+        global configuration_instance
+        if configuration_instance is not None:
+            return configuration_instance
+        configuration_instance = cls._load(piperider_config_path)
+        return configuration_instance
+
+    @classmethod
+    def _load(cls, piperider_config_path=PIPERIDER_CONFIG_PATH):
         """
         load from the existing configuration
 
