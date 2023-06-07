@@ -241,6 +241,20 @@ class PipeRiderCloud:
 
         return response.json()
 
+    def get_datasource_id(self, project: PipeRiderProject):
+        if not self.available:
+            self.raise_error()
+
+        url = self.service.url(f'/api/v2/workspaces/{project.workspace_name}/projects/{project.name}/runs/latest')
+        headers = self.service.auth_headers()
+        response = requests.get(url, headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        content = response.json()
+        return content.get('datasource_id')
+
     def upload_run(self, file_path, show_progress=True, project: PipeRiderProject = None):
         # TODO validate project name
         if not self.available:

@@ -1,7 +1,9 @@
+import json
 import os
 import sys
+import time
 import uuid
-from typing import List, Optional
+from typing import Callable, Dict, List, Optional
 
 import inquirer
 from rich.console import Console
@@ -72,6 +74,90 @@ def is_piperider_workspace_exist(workspace_path: str = PIPERIDER_WORKSPACE_PATH)
     return True
 
 
+class TelemetryIdResolver:
+
+    def __init__(self):
+        self.telemetry_id = None
+        self.resolvers = [
+            self.resolve_from_local_state,
+            self.resolve_from_cloud_state,
+            self.resolve_from_legacy_config,
+            self.resolve_by_new_id,
+        ]
+        self.show_debug_message = os.environ.get('SHOW_PIPERIDER_TELEMETRY_ID_RESOLVED_TIME') is not None
+
+    def resolve(self, configuration: "Configuration") -> str:
+        if self.telemetry_id is not None:
+            return self.telemetry_id
+
+        def _execute():
+            for r in self.resolvers:
+                callback: Callable[["Configuration"], str] = r
+                telemetry_id = None
+                try:
+                    telemetry_id = callback(configuration)
+                    if self.show_debug_message and telemetry_id is not None:
+                        print(f"resolve telemetry-id by: {callback}")
+                        print(f"telemetry-id: {telemetry_id}")
+                except BaseException:
+                    pass
+                if telemetry_id is None:
+                    continue
+
+                self.telemetry_id = telemetry_id
+                return self.telemetry_id
+
+        t1 = time.time()
+        try:
+            return _execute()
+        finally:
+            t2 = time.time()
+            if self.show_debug_message:
+                print(f"resolve telemetry-id in {t2 - t1:.1} seconds")
+
+    @staticmethod
+    def resolve_from_local_state(configuration: "Configuration"):
+        if configuration.report_directory_filesystem is None:
+            return
+        output_dir = configuration.report_directory_filesystem.get_output_dir()
+
+        def _extract_id(run_json_file: str):
+            with open(run_json_file) as fh:
+                content: Dict = json.loads(fh.read())
+                project_id = content.get('project_id')
+                if project_id:
+                    return project_id
+
+        def _resolve_id_from_report_dir(directory):
+            target_file = 'run.json'
+
+            for root, dirs, files in os.walk(directory):
+                if target_file in files:
+                    file_path = os.path.join(root, target_file)
+                    telemetry_id = _extract_id(file_path)
+                    if telemetry_id:
+                        return telemetry_id
+
+        return _resolve_id_from_report_dir(output_dir)
+
+    @staticmethod
+    def resolve_from_cloud_state(configuration: "Configuration"):
+        from piperider_cli.cloud_connector import CloudConnector, piperider_cloud
+        if CloudConnector.is_login():
+            default_project = piperider_cloud.get_default_project()
+            datasource_id = piperider_cloud.get_datasource_id(default_project)
+            if datasource_id:
+                return datasource_id
+
+    @staticmethod
+    def resolve_from_legacy_config(configuration: "Configuration"):
+        return configuration.telemetry_id
+
+    @staticmethod
+    def resolve_by_new_id(configuration: "Configuration"):
+        return uuid.uuid4().hex
+
+
 configuration_instance: Optional["Configuration"] = None
 
 
@@ -88,6 +174,8 @@ class Configuration(object):
         self.excludes = kwargs.get('excludes', None)
         self.include_views = kwargs.get('include_views', False)
         self.tables = kwargs.get('tables', {})
+
+        # only the legacy project will set telemetry_id from config
         self.telemetry_id = kwargs.get('telemetry_id', None)
         self.report_dir = ReportDirectory.normalize_report_dir(kwargs.get('report_dir', '.'))
         self.report_directory_filesystem: Optional[ReportDirectory] = None
@@ -98,6 +186,7 @@ class Configuration(object):
 
         # global dbt config
         self.dbt = kwargs.get('dbt', None)
+        self.telemetry_resolver = TelemetryIdResolver()
 
     def _verify_input_config(self):
         if self.profiler_config:
@@ -118,6 +207,11 @@ class Configuration(object):
                 raise PipeRiderConfigTypeError("'excludes' should be a list of tables' name")
 
     def get_telemetry_id(self):
+        if self.telemetry_id is not None:
+            return self.telemetry_id
+
+        self.telemetry_id = self.telemetry_resolver.resolve(self)
+        assert self.telemetry_id is not None
         return self.telemetry_id
 
     def activate_report_directory(self, report_dir: str = None) -> ReportDirectory:
@@ -374,14 +468,10 @@ class Configuration(object):
         :return:
         """
 
-        if self.telemetry_id is None:
-            self.telemetry_id = uuid.uuid4().hex
-
         config = dict(
             dataSources=[],
             dbt=None,
             profiler=None,
-            telemetry=dict(id=self.telemetry_id)
         )
 
         d = self.dataSources[0]
