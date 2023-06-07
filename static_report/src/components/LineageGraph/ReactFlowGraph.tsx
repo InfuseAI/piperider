@@ -22,11 +22,13 @@ import { LineageGraphData, LineageGraphNode } from '../../utils/dbt';
 import TableSummary from './TableSummary';
 import { GraphNode } from './GraphNode';
 import GraphEdge from './GraphEdge';
+import { GraphGroup } from './GraphGroup';
 import { useTableRoute } from '../../utils/routes';
 
 const nodeWidth = 300;
 const nodeHeight = 60;
 const groupMargin = 20;
+const groupType = 'customGroup';
 
 const buildReactFlowNodesAndEdges = async (
   lineageGraph: LineageGraphData,
@@ -91,7 +93,7 @@ const buildReactFlowNodesAndEdges = async (
             data: {
               label: `Group: ${nodeData.type}`,
             },
-            type: 'group',
+            type: groupType,
           });
         }
 
@@ -404,7 +406,7 @@ const layoutByElkWithGroups = async (
     const nodes: Node[] = [];
     const groups: Node[] = [];
     layoutGraph.children?.forEach((child: any) => {
-      if (child.type === 'group') {
+      if (child.type === groupType) {
         groups.push({
           id: child.id,
           data: child.data,
@@ -485,6 +487,7 @@ const groupBySubFlow = (groups: Node[], nodes: Node[]) => {
 
 const nodeTypes = {
   customNode: GraphNode,
+  customGroup: GraphGroup,
 };
 
 const edgeTypes = {
@@ -751,6 +754,7 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
           onNodeMouseEnter={(_event, node) => highlightPath(node)}
           onNodeMouseLeave={() => resetHighlightPath()}
           minZoom={0.1}
+          fitView
         >
           <Controls showInteractive={false} />
           <MiniMap nodeStrokeWidth={3} zoomable pannable />
