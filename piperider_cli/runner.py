@@ -724,7 +724,11 @@ class Runner():
 
         if not table:
             if dbt_config:
-                run_result['dbt'] = dict(manifest=dbt_manifest, run_results=dbt_run_results)
+                run_result['dbt'] = dict()
+                if dbt_manifest:
+                    run_result['dbt']['manifest'] = dbt_manifest
+                if dbt_run_results:
+                    run_result['dbt']['run_results'] = dbt_run_results
 
         for t in run_result['tables']:
             _clean_up_profile_null_properties(run_result['tables'][t])
