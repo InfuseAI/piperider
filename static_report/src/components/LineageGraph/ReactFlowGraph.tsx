@@ -22,9 +22,7 @@ import { LineageGraphData, LineageGraphNode } from '../../utils/dbt';
 import TableSummary from './TableSummary';
 import { GraphNode } from './GraphNode';
 import GraphEdge from './GraphEdge';
-import { set } from 'lodash';
 import { useTableRoute } from '../../utils/routes';
-import { group } from 'console';
 
 const nodeWidth = 300;
 const nodeHeight = 60;
@@ -504,6 +502,9 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   let { uniqueId: selected } = useTableRoute();
   const [, setLocation] = useLocation();
+  const [layoutAlgorithm, setLayoutAlgorithm] = useState('elk');
+  const [stat, setStat] = useState('');
+  const [groupBy, setGroupBy] = useState('');
 
   const onNodeClick = useCallback(
     (event: React.MouseEvent, node: Node) => {
@@ -622,9 +623,9 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
   const onChangeDisplayNodes = useCallback(
     (event) => {
       const value = event.target.value as string;
-      if (value == 'selected') {
+      if (value === 'selected') {
         onFocusClick();
-      } else if (value == 'changed') {
+      } else if (value === 'changed') {
         onChangeOnlyClick();
       } else {
         onFullGraphClick();
@@ -634,48 +635,29 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
     [onFocusClick, onChangeOnlyClick, onFullGraphClick],
   );
 
-  const onChangeStat = useCallback(
-    async (event) => {
-      const stat = event.target.value as string;
-      const { nodes, edges } = await buildReactFlowNodesAndEdges(lineageGraph, {
-        stat,
-      });
-
-      setNodes(nodes);
-      setEdges(edges);
-    },
-
-    [setNodes, setEdges, lineageGraph],
-  );
-
-  const onChangeGroupBy = useCallback(
-    async (event) => {
-      const groupedBy = event.target.value;
-
-      const { nodes, edges } = await buildReactFlowNodesAndEdges(lineageGraph, {
-        singleOnly: singleOnly || false,
-        isHighlighted: false,
-        groupBy: groupedBy || undefined,
-      });
-
-      setNodes(nodes);
-      setEdges(edges);
-    },
-    [setNodes, setEdges, lineageGraph, singleOnly],
-  );
-
   useEffect(() => {
     const renderGraph = async () => {
       console.log(Object.keys(lineageGraph).length);
       const { nodes, edges } = await buildReactFlowNodesAndEdges(lineageGraph, {
         singleOnly: singleOnly || false,
         isHighlighted: false,
+        layoutLibrary: layoutAlgorithm,
+        groupBy: groupBy || undefined,
+        stat: stat || undefined,
       });
       setNodes(nodes);
       setEdges(edges);
     };
     renderGraph();
-  }, [lineageGraph, setNodes, setEdges, singleOnly]);
+  }, [
+    lineageGraph,
+    setNodes,
+    setEdges,
+    singleOnly,
+    layoutAlgorithm,
+    groupBy,
+    stat,
+  ]);
 
   function highlightPath(node: Node) {
     const relatedNodes = [
@@ -803,9 +785,16 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         </Box>
         <Box p={2}>
           <Text fontSize="sm" color="gray">
-            Stats
+            Stat
           </Text>
-          <Select fontSize="sm" variant="unstyled" onChange={onChangeStat}>
+          <Select
+            fontSize="sm"
+            variant="unstyled"
+            onChange={(event) => {
+              const value = event.target.value || '';
+              setStat(value);
+            }}
+          >
             <option value="">No stat</option>
             <option value="execution_time">Execution time</option>
             <option value="row_count">Row count</option>
@@ -818,12 +807,30 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
           <Select
             placeholder="None"
             fontSize="sm"
-            onChange={onChangeGroupBy}
+            onChange={(event) => {
+              const value = event.target.value || '';
+              setGroupBy(value);
+            }}
             variant="unstyled"
           >
             <option value="type">Type</option>
             <option value="package">Package</option>
-            <option value={'tag:piperider'}>Tag: Piperider</option>
+            <option value="tag:piperider">Tag: Piperider</option>
+          </Select>
+        </Box>
+        <Box p={2}>
+          <Text fontSize="sm" color="gray">
+            Layout algorithm
+          </Text>
+          <Select
+            value={layoutAlgorithm}
+            fontSize="sm"
+            onChange={(event) =>
+              setLayoutAlgorithm(event.target.value as string)
+            }
+          >
+            <option value="dagre">Dagre</option>
+            <option value="elk">ELK Layered</option>
           </Select>
         </Box>
       </Flex>
