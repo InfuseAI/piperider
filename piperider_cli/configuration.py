@@ -471,7 +471,6 @@ class Configuration(object):
         config = dict(
             dataSources=[],
             dbt=None,
-            profiler=None,
         )
 
         d = self.dataSources[0]
@@ -486,17 +485,7 @@ class Configuration(object):
             config.pop('dbt')
             config['dataSources'].append(datasource)
 
-        template = '''  table:
-    # the maximum row count to profile. (Default unlimited)
-    limit: 1000000
-    duplicateRows: false
-
-'''
-
         config_yaml = CommentedMap(config)
-
-        config_yaml.yaml_set_comment_before_after_key('profiler', before='\n')
-        config_yaml.yaml_set_comment_before_after_key('telemetry', before=template)
 
         with open(path, 'w') as fd:
             yaml.YAML().dump(config_yaml, fd)
