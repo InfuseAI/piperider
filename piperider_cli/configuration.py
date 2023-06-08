@@ -24,18 +24,41 @@ DBT_PROFILES_DIR_DEFAULT = '~/.dbt/'
 DBT_PROFILE_FILE = 'profiles.yml'
 
 
-class FileSystem:
-    PIPERIDER_WORKSPACE_NAME = '.piperider'
-    PIPERIDER_WORKSPACE_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
-    PIPERIDER_CONFIG_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'config.yml')
-    PIPERIDER_CREDENTIALS_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'credentials.yml')
+class _FileSystem:
 
-    # Assertion Engine
-    PIPERIDER_ASSERTION_SEARCH_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'assertions')
-    PIPERIDER_ASSERTION_PLUGIN_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'plugins')
+    def __init__(self):
+        pass
 
-    piperider_default_report_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
-    pass
+    @property
+    def PIPERIDER_WORKSPACE_NAME(self):
+        return '.piperider'
+
+    @property
+    def PIPERIDER_WORKSPACE_PATH(self):
+        return os.path.join(os.getcwd(), self.PIPERIDER_WORKSPACE_NAME)
+
+    @property
+    def PIPERIDER_CONFIG_PATH(self):
+        return os.path.join(self.PIPERIDER_WORKSPACE_PATH, 'config.yml')
+
+    @property
+    def PIPERIDER_CREDENTIALS_PATH(self):
+        return os.path.join(self.PIPERIDER_WORKSPACE_PATH, 'credentials.yml')
+
+    @property
+    def PIPERIDER_ASSERTION_SEARCH_PATH(self):
+        return os.path.join(self.PIPERIDER_WORKSPACE_PATH, 'assertions')
+
+    @property
+    def PIPERIDER_ASSERTION_PLUGIN_PATH(self):
+        return os.path.join(self.PIPERIDER_WORKSPACE_PATH, 'plugins')
+
+    @property
+    def piperider_default_report_dir(self):
+        return os.path.join(os.getcwd(), self.PIPERIDER_WORKSPACE_NAME)
+
+
+FileSystem = _FileSystem()
 
 
 class ReportDirectory:
@@ -72,7 +95,8 @@ class ReportDirectory:
         return self.report_dir
 
 
-def is_piperider_workspace_exist(workspace_path: str = FileSystem.PIPERIDER_WORKSPACE_PATH) -> bool:
+def is_piperider_workspace_exist(workspace_path: str = None) -> bool:
+    workspace_path = workspace_path or FileSystem.PIPERIDER_WORKSPACE_PATH
     if not os.path.exists(workspace_path):
         return False
     elif not os.path.exists(os.path.join(workspace_path, 'config.yml')):
@@ -295,7 +319,8 @@ class Configuration(object):
         return cls(dataSources=[datasource])
 
     @classmethod
-    def instance(cls, piperider_config_path=FileSystem.PIPERIDER_CONFIG_PATH):
+    def instance(cls, piperider_config_path=None):
+        piperider_config_path = piperider_config_path or FileSystem.PIPERIDER_CONFIG_PATH
         global configuration_instance
         if configuration_instance is not None:
             return configuration_instance
@@ -303,13 +328,14 @@ class Configuration(object):
         return configuration_instance
 
     @classmethod
-    def _load(cls, piperider_config_path=FileSystem.PIPERIDER_CONFIG_PATH):
+    def _load(cls, piperider_config_path=None):
         """
         load from the existing configuration
 
         :return:
         """
         credentials = None
+        piperider_config_path = piperider_config_path or FileSystem.PIPERIDER_CONFIG_PATH
 
         config = safe_load_yaml(piperider_config_path)
         if config is None:

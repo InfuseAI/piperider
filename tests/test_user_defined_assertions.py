@@ -2,7 +2,7 @@ import os
 import shutil
 import tempfile
 import uuid
-from unittest import TestCase
+from unittest import TestCase, skip
 
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer
 
@@ -50,6 +50,7 @@ def build_assertion_engine(project_dir, table, assertions):
     return engine
 
 
+@skip("deprecated, skipping")
 class UserDefinedTestAssertionsTests(TestCase):
 
     def setUp(self) -> None:

@@ -407,10 +407,10 @@ class AssertionEngine:
     """
     PIPERIDER_ASSERTION_SUPPORT_METRICS = ['distribution', 'range', 'missing_value']
 
-    def __init__(self, engine: Engine, assertion_search_path=FileSystem.PIPERIDER_ASSERTION_SEARCH_PATH,
+    def __init__(self, engine: Engine, assertion_search_path=None,
                  event_handler: AssertionEventHandler = DefaultAssertionEventHandler()):
         self.engine = engine
-        self.assertion_search_path = assertion_search_path
+        self.assertion_search_path = assertion_search_path or FileSystem.PIPERIDER_ASSERTION_SEARCH_PATH
         self.assertions_content: Dict = {}
         self.assertions: List[AssertionContext] = []
         self.recommender: AssertionRecommender = AssertionRecommender()
@@ -421,15 +421,16 @@ class AssertionEngine:
             self.default_plugins_dir = None
 
     @staticmethod
-    def check_assertions_syntax(assertion_search_path=FileSystem.PIPERIDER_ASSERTION_SEARCH_PATH):
+    def check_assertions_syntax(assertion_search_path=None):
         """
         This method is used to check the syntax of the assertion.
         :param assertion_search_path:
         :return:
         """
+        assertion_search_path = assertion_search_path or FileSystem.PIPERIDER_ASSERTION_SEARCH_PATH
         return load_yaml_configs(assertion_search_path)
 
-    def load_assertions(self, profiler_result=None, config_path=FileSystem.PIPERIDER_CONFIG_PATH):
+    def load_assertions(self, profiler_result=None, config_path=None):
         """
         This method is used to load assertions from the specific path.
         :param assertion_search_path:
@@ -439,6 +440,8 @@ class AssertionEngine:
         Example:
         {'nodes': {'tests': [], 'columns': {'uid': {'tests': []}, 'type': {'tests': []}, 'name': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'metadata': {'tests': []}}}, 'edges': {'tests': [], 'columns': {'n1_uid': {'tests': []}, 'n2_uid': {'tests': []}, 'created_at': {'tests': []}, 'updated_at': {'tests': []}, 'type': {'tests': []}, 'metadata': {'tests': []}}}}
         """
+        config_path = config_path or FileSystem.PIPERIDER_CONFIG_PATH
+
         self.assertions = []
         self.load_assertion_content(config_path)
 
@@ -490,7 +493,8 @@ class AssertionEngine:
 
         return passed_assertion_files, failed_assertion_files
 
-    def load_assertion_content(self, config_path=FileSystem.PIPERIDER_CONFIG_PATH):
+    def load_assertion_content(self, config_path=None):
+        config_path = config_path or FileSystem.PIPERIDER_CONFIG_PATH
         passed_assertion_files, failed_assertion_files, self.assertions_content = load_yaml_configs(
             self.assertion_search_path, config_path)
 
