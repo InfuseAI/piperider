@@ -64,6 +64,7 @@ export interface LineageGraphNode {
   target?: DbtNode;
   tags: string[];
   singleOnly?: boolean;
+  isHighlighted?: boolean;
   stat?: string;
 }
 

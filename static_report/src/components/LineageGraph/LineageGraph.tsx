@@ -15,7 +15,21 @@ import dagre from 'dagre';
 import ELK from 'elkjs/lib/elk.bundled.js';
 
 import 'reactflow/dist/style.css';
-import { Text, Flex, Box, Select, useDisclosure } from '@chakra-ui/react';
+import {
+  Text,
+  Flex,
+  Box,
+  Select,
+  useDisclosure,
+  Spacer,
+  ButtonGroup,
+  Button,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+} from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { LineageGraphData, LineageGraphNode } from '../../utils/dbt';
 import TableSummary from './TableSummary';
@@ -23,21 +37,21 @@ import { GraphNode } from './GraphNode';
 import GraphEdge from './GraphEdge';
 import { GraphGroup } from './GraphGroup';
 import { useTableRoute } from '../../utils/routes';
+import { ChevronDownIcon } from '@chakra-ui/icons';
 
 const nodeWidth = 300;
 const nodeHeight = 60;
 const groupMargin = 20;
 const groupType = 'customGroup';
 
-const buildReactFlowNodesAndEdges = async (
+const buildNodesAndEdges = async (
   lineageGraph: LineageGraphData,
   options: {
-    singleOnly?: boolean;
-    isHighlighted?: boolean;
     groupBy?: string;
     stat?: string;
     isLayout?: boolean;
     layoutLibrary?: string;
+    nodeOverrides?: Partial<LineageGraphNode>;
   },
 ) => {
   const groups: Node[] = [];
@@ -48,13 +62,12 @@ const buildReactFlowNodesAndEdges = async (
 
   Object.entries(lineageGraph).forEach(([key, nodeData]) => {
     if (nodeData.type === 'test') return;
-
     const node: Node = {
       id: key,
       position: { x: 0, y: 0 },
       data: {
         ...nodeData,
-        ...options,
+        ...options.nodeOverrides,
       },
       draggable: true,
       type: 'customNode',
@@ -509,7 +522,6 @@ function logWithTimestamp(message) {
   var timestamp = new Date().toLocaleTimeString();
   console.log('[' + timestamp + '] ' + message);
 }
-
 export function LineageGraph({ singleOnly }: Comparable) {
   const { lineageGraph = {} } = useReportStore.getState();
 
@@ -637,27 +649,23 @@ export function LineageGraph({ singleOnly }: Comparable) {
     setEdges((edges) => edges.map(hide(false)));
   }, [setNodes, setEdges]);
 
-  const onChangeDisplayNodes = useCallback(
-    (event) => {
-      const value = event.target.value as string;
-      if (value === 'selected') {
-        onFocusClick();
-      } else if (value === 'changed') {
-        onChangeOnlyClick();
-      } else {
-        onFullGraphClick();
-      }
-    },
-
-    [onFocusClick, onChangeOnlyClick, onFullGraphClick],
-  );
+  const onResetClick = useCallback(() => {
+    if (singleOnly) {
+      onFullGraphClick();
+    } else {
+      onChangeOnlyClick();
+    }
+  }, [singleOnly, onFocusClick, onFullGraphClick]);
 
   useEffect(() => {
     const renderGraph = async () => {
       console.log(Object.keys(lineageGraph).length);
-      const { nodes, edges } = await buildReactFlowNodesAndEdges(lineageGraph, {
-        singleOnly: singleOnly || false,
-        isHighlighted: false,
+      const { nodes, edges } = await buildNodesAndEdges(lineageGraph, {
+        nodeOverrides: {
+          singleOnly: singleOnly || false,
+          isHighlighted: false,
+          stat,
+        },
         layoutLibrary: layoutAlgorithm,
         groupBy: groupBy || undefined,
         stat: stat || undefined,
@@ -793,20 +801,6 @@ export function LineageGraph({ singleOnly }: Comparable) {
       >
         <Box p={2}>
           <Text fontSize="sm" color="gray">
-            Display nodes
-          </Text>
-          <Select
-            fontSize="sm"
-            variant="unstyled"
-            onChange={onChangeDisplayNodes}
-          >
-            <option value="">All nodes</option>
-            <option value="changed">Change only</option>
-            <option value="selected">Selected</option>
-          </Select>
-        </Box>
-        <Box p={2}>
-          <Text fontSize="sm" color="gray">
             Stat
           </Text>
           <Select
@@ -858,6 +852,36 @@ export function LineageGraph({ singleOnly }: Comparable) {
             <option value="elk">ELK Layered</option>
           </Select>
         </Box>
+        <Spacer />
+        <ButtonGroup
+          size="sm"
+          isAttached
+          variant="outline"
+          borderRadius="md"
+          borderWidth="1px"
+        >
+          <Button _hover={{ bg: 'gray.200' }} onClick={onResetClick}>
+            Reset
+          </Button>
+          <Menu>
+            <MenuButton
+              as={IconButton}
+              icon={<ChevronDownIcon />}
+              _hover={{ bg: 'gray.200' }}
+            />
+            <MenuList>
+              <MenuItem fontSize="sm" onClick={onFullGraphClick}>
+                All nodes
+              </MenuItem>
+              <MenuItem fontSize="sm" onClick={onChangeOnlyClick}>
+                Change only
+              </MenuItem>
+              <MenuItem fontSize="sm" onClick={onFocusClick}>
+                Focus active
+              </MenuItem>
+            </MenuList>
+          </Menu>
+        </ButtonGroup>
       </Flex>
     </Flex>
   );
