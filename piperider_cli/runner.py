@@ -23,10 +23,9 @@ from piperider_cli import convert_to_tzlocal, datetime_to_str, clone_directory, 
 from piperider_cli import event
 from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
-from piperider_cli.configuration import Configuration
+from piperider_cli.configuration import Configuration, ReportDirectory
 from piperider_cli.datasource import DataSource
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
-from piperider_cli.filesystem import FileSystem
 from piperider_cli.metrics_engine import MetricEngine, MetricEventHandler
 from piperider_cli.profiler import Profiler, ProfilerEventHandler, ProfileSubject
 from piperider_cli.statistics import Statistics
@@ -333,7 +332,7 @@ def _validate_assertions(console: Console):
     return False
 
 
-def prepare_default_output_path(filesystem: FileSystem, created_at, ds):
+def prepare_default_output_path(filesystem: ReportDirectory, created_at, ds):
     latest_symlink_path = os.path.join(filesystem.get_output_dir(), 'latest')
     latest_source = f"{ds.name}-{convert_to_tzlocal(created_at).strftime('%Y%m%d%H%M%S')}"
     output_path = os.path.join(filesystem.get_output_dir(), latest_source)
@@ -459,7 +458,7 @@ def decorate_with_metadata(profile_result: dict):
     from piperider_cli import __version__
     from piperider_cli.profiler.version import schema_version
 
-    configuration = Configuration.load()
+    configuration = Configuration.instance()
     project_id = configuration.get_telemetry_id()
 
     profile_result['version'] = __version__
@@ -564,8 +563,8 @@ class Runner():
 
         raise_exception_when_directory_not_writable(output)
 
-        configuration = Configuration.load()
-        filesystem = FileSystem(report_dir=report_dir)
+        configuration = Configuration.instance()
+        filesystem = configuration.activate_report_directory(report_dir=report_dir)
         datasources = {}
         datasource_names = []
         for ds in configuration.dataSources:

@@ -13,7 +13,7 @@ from rich.console import Console
 import piperider_cli.hack.inquirer as inquirer_hack
 from piperider_cli import clone_directory, datetime_to_str, open_report_in_browser, \
     raise_exception_when_directory_not_writable, str_to_datetime
-from piperider_cli.filesystem import FileSystem
+from piperider_cli.configuration import Configuration, ReportDirectory
 from piperider_cli.generate_report import setup_report_variables
 from piperider_cli.reports import Document
 
@@ -585,7 +585,7 @@ class ComparisonData(object):
         return out.getvalue()
 
 
-def prepare_default_output_path(filesystem: FileSystem, created_at):
+def prepare_default_output_path(filesystem: ReportDirectory, created_at):
     latest_symlink_path = os.path.join(filesystem.get_comparison_dir(), 'latest')
     latest_source = created_at
     comparison_path = os.path.join(filesystem.get_comparison_dir(), created_at)
@@ -760,7 +760,7 @@ class CompareReport(object):
         console = Console()
         console.rule('Comparison report', style='bold blue')
 
-        filesystem = FileSystem(report_dir=report_dir)
+        filesystem = Configuration.instance().activate_report_directory(report_dir=report_dir)
         raise_exception_when_directory_not_writable(output)
 
         report = CompareReport(filesystem.get_output_dir(), a, b, datasource=datasource)

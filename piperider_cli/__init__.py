@@ -172,7 +172,6 @@ def load_json(file_path):
 
 
 def _init_jinja_env(env):
-
     def env_var(var, default=None):
         return os.getenv(var, default)
 
@@ -245,4 +244,4 @@ def get_run_json_path(output_dir: str, input=None):
                     latest_report_dir_ctime = os.path.getctime(de)
                     latest_report_dir = de.path
             run_json = os.path.join(output_dir, latest_report_dir, 'run.json')
-    return run_json
+    return os.path.abspath(run_json)

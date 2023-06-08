@@ -16,7 +16,7 @@ class RecipeExecutor:
 
         if recipe_path is None:
             if auto_generate_default_recipe:
-                config = Configuration.load()
+                config = Configuration.instance()
                 dbt_project_path = None
                 if config.dataSources and config.dataSources[0].args.get('dbt'):
                     dbt_project_path = os.path.relpath(config.dataSources[0].args.get('dbt', {}).get('projectDir'))

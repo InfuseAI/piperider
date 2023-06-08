@@ -10,11 +10,10 @@ from piperider_cli import __version__, open_report_in_browser, sentry_dns, sentr
 from piperider_cli import clone_directory, raise_exception_when_directory_not_writable
 from piperider_cli.configuration import Configuration
 from piperider_cli.error import PipeRiderNoProfilingResultError
-from piperider_cli.filesystem import FileSystem
 
 
 def prepare_piperider_metadata():
-    configuration = Configuration.load()
+    configuration = Configuration.instance()
     project_id = configuration.get_telemetry_id()
     metadata = {
         'name': 'PipeRider',
@@ -68,7 +67,7 @@ def _generate_static_html(result, html, output_path):
 class GenerateReport:
     @staticmethod
     def exec(input=None, report_dir=None, output=None, open_report=None, open_in_cloud=None):
-        filesystem = FileSystem(report_dir=report_dir)
+        filesystem = Configuration.instance().activate_report_directory(report_dir)
         raise_exception_when_directory_not_writable(output)
 
         console = Console()

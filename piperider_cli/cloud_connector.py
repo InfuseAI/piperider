@@ -14,8 +14,8 @@ from rich.table import Table
 from piperider_cli import datetime_to_str, open_report_in_browser, str_to_datetime, get_run_json_path
 from piperider_cli.cloud import PipeRiderCloud, PipeRiderProject
 from piperider_cli.compare_report import CompareReport, RunOutput
+from piperider_cli.configuration import Configuration
 from piperider_cli.datasource import FANCY_USER_INPUT
-from piperider_cli.filesystem import FileSystem
 
 console = Console()
 piperider_cloud = PipeRiderCloud()
@@ -176,7 +176,7 @@ def setup_cloud_default_config(options: dict = None):
 
 
 def select_reports(report_dir=None, datasource=None) -> List[RunOutput]:
-    filesystem = FileSystem(report_dir=report_dir)
+    filesystem = Configuration.instance().activate_report_directory(report_dir=report_dir)
     selector = CompareReport(filesystem.get_output_dir(), None, None, datasource=datasource)
     console.rule('Select Reports to Upload')
     return selector.select_multiple_reports(action='upload')
@@ -359,7 +359,7 @@ class CloudConnector:
     @staticmethod
     def upload_latest_report(report_dir=None, debug=False, open_report=False, enable_share=False,
                              project_name: str = None) -> int:
-        filesystem = FileSystem(report_dir=report_dir)
+        filesystem = Configuration.instance().activate_report_directory(report_dir=report_dir)
         latest_report_path = get_run_json_path(filesystem.get_output_dir())
         return CloudConnector.upload_report(latest_report_path, debug=debug, open_report=open_report,
                                             enable_share=enable_share, project_name=project_name)

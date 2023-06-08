@@ -73,7 +73,7 @@ def _obtain_project_info(datasource=None):
     try:
         datasource_types = []
         project_type = '-'
-        configuration = Configuration.load()
+        configuration = Configuration.instance()
         for ds in configuration.dataSources:
             if datasource and ds.name != datasource:
                 continue
