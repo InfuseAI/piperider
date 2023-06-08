@@ -25,11 +25,10 @@ interface GraphNodeProps extends NodeProps {
 }
 
 export function GraphNode({ data }: GraphNodeProps) {
-  const { singleOnly, stat } = data;
+  const { singleOnly, stat, isHighlighted } = data;
 
   const [location] = useLocation();
   const isActive = data.path === location;
-  const isHighlighted: boolean = (data as any).isHighlighted || false;
 
   let resourceType = data?.type;
   let isNoProfile = false;
