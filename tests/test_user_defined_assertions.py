@@ -33,6 +33,8 @@ def build_assertion_engine(project_dir, table, assertions):
     assertion_file = f'{uuid.uuid4().hex}.yml'
     assertion_path = os.path.join(f'{project_dir}/{AssertionEngine.PIPERIDER_WORKSPACE_NAME}/assertions',
                                   assertion_file)
+    if not os.path.exists(os.path.dirname(assertion_path)):
+        os.makedirs(os.path.dirname(assertion_path))
 
     with open(assertion_path, 'w') as fh:
         fh.write(assertions)
@@ -56,6 +58,9 @@ class UserDefinedTestAssertionsTests(TestCase):
         AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH = os.path.join(f'{self.project_dir}',
                                                                        AssertionEngine.PIPERIDER_WORKSPACE_NAME,
                                                                        'plugins')
+
+        if not os.path.exists(AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH):
+            os.makedirs(AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH)
 
         self.current_module_name = '_user_defined_assertion_functions.py'
         self.custom_asertions = os.path.join(os.path.dirname(__file__), self.current_module_name)
