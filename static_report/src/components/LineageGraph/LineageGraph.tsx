@@ -8,7 +8,6 @@ import ReactFlow, {
   MiniMap,
   Node,
   Position,
-  ReactFlowProvider,
   useEdgesState,
   useNodesState,
 } from 'reactflow';
@@ -511,7 +510,7 @@ function logWithTimestamp(message) {
   console.log('[' + timestamp + '] ' + message);
 }
 
-export function ReactFlowGraph({ singleOnly }: Comparable) {
+export function LineageGraph({ singleOnly }: Comparable) {
   const { lineageGraph = {} } = useReportStore.getState();
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -856,14 +855,5 @@ export function ReactFlowGraph({ singleOnly }: Comparable) {
         </Box>
       </Flex>
     </Flex>
-  );
-}
-
-export function ReactFlowGraphProvider(props) {
-  //
-  return (
-    <ReactFlowProvider>
-      <ReactFlowGraph {...props} />
-    </ReactFlowProvider>
   );
 }

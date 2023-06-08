@@ -22,7 +22,7 @@ import { useEffect, useState } from 'react';
 import { FaDatabase, FaFolder } from 'react-icons/fa';
 import { useLocation } from 'wouter';
 import { Comparable } from '../../types';
-import { ReactFlowGraphProvider } from '../LineageGraph/ReactFlowGraph';
+import { LineageGraph } from '../LineageGraph/LineageGraph';
 
 export function SideBar({ singleOnly }: Comparable) {
   const { isLegacy, projectTree, databaseTree, expandTreeForPath } =
@@ -92,7 +92,7 @@ export function SideBar({ singleOnly }: Comparable) {
             <ModalCloseButton />
           </ModalHeader>
           <ModalBody p={0}>
-            <ReactFlowGraphProvider singleOnly={singleOnly} />
+            <LineageGraph singleOnly={singleOnly} />
           </ModalBody>
         </ModalContent>
       </Modal>
