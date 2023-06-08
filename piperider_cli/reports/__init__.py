@@ -383,25 +383,41 @@ class ColumnChangeView:
 
         def add_reason_for(metric_name: str, display_label: str):
             percentage = f"{metric_name}_p"
-            if self.data.get(metric_name) != target_view.data.get(metric_name):
-                delta = change_rate(self.data.get(percentage), target_view.data.get(percentage))
-                if delta == math.inf:
+            metric_base_value = self.data.get(metric_name, math.nan)
+            metric_target_value = target_view.data.get(metric_name, math.nan)
+            if metric_base_value is math.nan:
+                if 'base is not profiled' not in reasons:
+                    reasons.append('base is not profiled')
+                return
+            if metric_target_value is math.nan:
+                if 'target is not profiled' not in reasons:
+                    reasons.append('target is not profiled')
+                return
+
+            if metric_base_value != metric_target_value:
+                metric_base_p = self.data.get(percentage, math.nan)
+                metric_target_p = target_view.data.get(percentage, math.nan)
+
+                delta = change_rate(metric_base_p, metric_target_p)
+                if delta is math.inf:
                     delta = "↑∞"
                 elif delta > 0:
                     delta = f"↑{delta:.1%}"
                 elif delta < 0:
                     delta = f"↓{abs(delta):.1%}"
+                elif delta is math.nan:
+                    delta = "nan"
                 else:
                     delta = ""
 
-                title = f"B: {self.data.get(metric_name)}, T: {target_view.data.get(metric_name)}&#10;B: {self.data.get(percentage):.1%}, T: {target_view.data.get(percentage):.1%}"
+                title = f"B: {metric_base_value}, T: {metric_target_value}&#10;B: {metric_base_p :.1%}, T: {metric_target_p :.1%}"
                 annotation = f"({delta})"
                 annotation = (
                         r'<span title="%s">%s</span>'
                         % (title, Styles.latex_orange(annotation))
                 )
                 reasons.append(
-                    f"{target_view.data.get(percentage):.1%} {display_label} {annotation}."
+                    f"{metric_target_p :.1%} {display_label} {annotation}."
                 )
 
         add_reason_for("duplicates", "Duplicates")
@@ -716,8 +732,8 @@ class JoinedTables:
 
     def row_counts(self, table_name):
         table = self._joined_tables[table_name]
-        b = table.get("base", {}).get("row_count")
-        t = table.get("target", {}).get("row_count")
+        b = table.get("base", {}).get("row_count", math.nan)
+        t = table.get("target", {}).get("row_count", math.nan)
         return b, t
 
     def column_counts(self, table_name):
@@ -934,10 +950,17 @@ class ModelEntryOverviewElement(_Element):
             row_p = f"(↑ {change_rate(base_total_rows, target_total_rows):.1%})"
             orange_row_p = Styles.latex_orange(row_p)
             total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↑ {target_total_rows - base_total_rows}) {row_p}">{orange_row_p}</span>"""
-        else:
+        elif target_total_rows < base_total_rows:
             row_p = f"(↓ {change_rate(base_total_rows, target_total_rows):.1%})"
             orange_row_p = Styles.latex_orange(row_p)
             total_rows_hover = f"""<span title="B: {base_total_rows} ••• T: {target_total_rows} (↓ {base_total_rows - target_total_rows}) {row_p}">{orange_row_p}</span>"""
+        else:
+            total_rows_hover = ""
+
+        if base_total_rows is math.nan:
+            base_total_rows = "no profiled"
+        if target_total_rows is math.nan:
+            target_total_rows = "no profiled"
 
         return self.add_indent(f"""
         <tr>

@@ -33,7 +33,26 @@ class TestCompareSummaryNG(TestCase):
 
         data = ComparisonData(run1, run2, None)
         result = data.to_summary_markdown_ng()
-        # print(result)
+
+        with open("output.md", "w") as fh:
+            fh.write(result)
+
+    def test_in_memory_compare_with_manifests_base_not_profiled(self):
+        run1 = self.manifest_dict("case_base_not_profiled_1.json")
+        run2 = self.manifest_dict("case_base_not_profiled_2.json")
+
+        data = ComparisonData(run1, run2, None)
+        result = data.to_summary_markdown_ng()
+
+        with open("output.md", "w") as fh:
+            fh.write(result)
+
+    def test_in_memory_compare_with_manifests_target_not_profiled(self):
+        run1 = self.manifest_dict("case_base_not_profiled_1.json")
+        run2 = self.manifest_dict("case_base_not_profiled_2.json")
+
+        data = ComparisonData(run2, run1, None)
+        result = data.to_summary_markdown_ng()
 
         with open("output.md", "w") as fh:
             fh.write(result)
