@@ -6,7 +6,7 @@ from rich.markup import escape
 
 from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
 from piperider_cli.cloud import PipeRiderCloud
-from piperider_cli.configuration import Configuration, PIPERIDER_CONFIG_PATH
+from piperider_cli.configuration import Configuration, FileSystem
 from piperider_cli.error import PipeRiderError
 
 CONSOLE_MSG_PASS = '[bold green]✅ PASS[/bold green]\n'
@@ -63,9 +63,9 @@ class CheckingHandler(object):
 class CheckConfiguration(AbstractChecker):
     def check_function(self, configurator: Configuration) -> (bool, str):
         if not configurator:
-            self.console.print(f'  {PIPERIDER_CONFIG_PATH}: [[bold red]FAILED[/bold red]]')
+            self.console.print(f'  {FileSystem.PIPERIDER_CONFIG_PATH}: [[bold red]FAILED[/bold red]]')
             return False, 'No configuration found'
-        self.console.print(f'  {PIPERIDER_CONFIG_PATH}: [[bold green]OK[/bold green]]')
+        self.console.print(f'  {FileSystem.PIPERIDER_CONFIG_PATH}: [[bold green]OK[/bold green]]')
         return True, ''
 
 

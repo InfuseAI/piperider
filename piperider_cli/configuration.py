@@ -19,16 +19,23 @@ from piperider_cli.error import \
     DbtProjectNotFoundError, \
     DbtProfileNotFoundError
 
-PIPERIDER_WORKSPACE_NAME = '.piperider'
-PIPERIDER_WORKSPACE_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
-PIPERIDER_CONFIG_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'config.yml')
-PIPERIDER_CREDENTIALS_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'credentials.yml')
-
 # ref: https://docs.getdbt.com/dbt-cli/configure-your-profile
 DBT_PROFILES_DIR_DEFAULT = '~/.dbt/'
 DBT_PROFILE_FILE = 'profiles.yml'
 
-piperider_default_report_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
+
+class FileSystem:
+    PIPERIDER_WORKSPACE_NAME = '.piperider'
+    PIPERIDER_WORKSPACE_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
+    PIPERIDER_CONFIG_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'config.yml')
+    PIPERIDER_CREDENTIALS_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'credentials.yml')
+
+    # Assertion Engine
+    PIPERIDER_ASSERTION_SEARCH_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'assertions')
+    PIPERIDER_ASSERTION_PLUGIN_PATH = os.path.join(PIPERIDER_WORKSPACE_PATH, 'plugins')
+
+    piperider_default_report_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
+    pass
 
 
 class ReportDirectory:
@@ -48,24 +55,24 @@ class ReportDirectory:
         if dirname is None or dirname.strip() == '':
             dirname = '.'
         if dirname.startswith('.'):
-            return os.path.abspath(os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, dirname))
+            return os.path.abspath(os.path.join(os.getcwd(), FileSystem.PIPERIDER_WORKSPACE_NAME, dirname))
         return os.path.abspath(dirname)
 
     def get_output_dir(self):
         if self.report_dir is None:
-            return os.path.join(piperider_default_report_dir, 'outputs')
+            return os.path.join(FileSystem.piperider_default_report_dir, 'outputs')
         return os.path.join(self.report_dir, 'outputs')
 
     def get_comparison_dir(self):
         if self.report_dir is None:
-            return os.path.join(piperider_default_report_dir, 'comparisons')
+            return os.path.join(FileSystem.piperider_default_report_dir, 'comparisons')
         return os.path.join(self.report_dir, 'comparisons')
 
     def get_report_dir(self):
         return self.report_dir
 
 
-def is_piperider_workspace_exist(workspace_path: str = PIPERIDER_WORKSPACE_PATH) -> bool:
+def is_piperider_workspace_exist(workspace_path: str = FileSystem.PIPERIDER_WORKSPACE_PATH) -> bool:
     if not os.path.exists(workspace_path):
         return False
     elif not os.path.exists(os.path.join(workspace_path, 'config.yml')):
@@ -288,7 +295,7 @@ class Configuration(object):
         return cls(dataSources=[datasource])
 
     @classmethod
-    def instance(cls, piperider_config_path=PIPERIDER_CONFIG_PATH):
+    def instance(cls, piperider_config_path=FileSystem.PIPERIDER_CONFIG_PATH):
         global configuration_instance
         if configuration_instance is not None:
             return configuration_instance
@@ -296,7 +303,7 @@ class Configuration(object):
         return configuration_instance
 
     @classmethod
-    def _load(cls, piperider_config_path=PIPERIDER_CONFIG_PATH):
+    def _load(cls, piperider_config_path=FileSystem.PIPERIDER_CONFIG_PATH):
         """
         load from the existing configuration
 
@@ -347,7 +354,7 @@ class Configuration(object):
                 data_source = datasource_class(name=ds.get('name'), dbt=dbt, credential=credential)
             else:
                 try:
-                    with open(PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
+                    with open(FileSystem.PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
                         credentials = yaml.safe_load(fd)
                         credential.update(credentials.get(ds.get('name'), {}))
                 except FileNotFoundError:

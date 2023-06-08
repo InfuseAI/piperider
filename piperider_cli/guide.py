@@ -2,10 +2,10 @@ import os
 
 from rich.console import Console
 
-from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
+from piperider_cli.configuration import FileSystem
 
-piperider_config = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
-report_directory = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
+piperider_config = os.path.join(os.getcwd(), FileSystem.PIPERIDER_WORKSPACE_NAME, 'config.yml')
+report_directory = os.path.join(os.getcwd(), FileSystem.PIPERIDER_WORKSPACE_NAME, 'outputs')
 
 
 def piperider_initialized() -> bool:

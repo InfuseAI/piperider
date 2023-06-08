@@ -11,12 +11,12 @@ from ruamel import yaml
 
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli import get_run_json_path, load_jinja_template, load_json
-from piperider_cli.configuration import Configuration, PIPERIDER_WORKSPACE_NAME
+from piperider_cli.configuration import Configuration, FileSystem
 from piperider_cli.error import RecipeConfigException
 from piperider_cli.recipes.utils import InteractiveStopException
 
 PIPERIDER_RECIPES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'recipe_schema.json')
-PIPERIDER_RECIPES_PATH = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'compare')
+PIPERIDER_RECIPES_PATH = os.path.join(os.getcwd(), FileSystem.PIPERIDER_WORKSPACE_NAME, 'compare')
 DEFAULT_RECIPE_PATH = os.path.join(PIPERIDER_RECIPES_PATH, "default.yml")
 
 console = Console()
