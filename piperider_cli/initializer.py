@@ -15,7 +15,6 @@ from piperider_cli.configuration import Configuration, \
 from piperider_cli.datasource import DataSource, FANCY_USER_INPUT
 from piperider_cli.datasource.survey import UserSurveyMockDataSource
 from piperider_cli.error import PipeRiderConfigError
-from piperider_cli.recipes.default_recipe_generator import generate_default_recipe, show_recipe_content
 
 console = Console()
 
@@ -136,8 +135,6 @@ class Initializer():
         # get Configuration object from dbt or user created configuration
         configuration = _generate_configuration(dbt_project_path, dbt_profiles_dir, interactive)
 
-        # generate the default recipe
-        generate_default_recipe(dbt_project_path=dbt_project_path, interactive=interactive)
         return configuration
 
     @staticmethod
@@ -149,9 +146,6 @@ class Initializer():
             config = Syntax(f.read(), "yaml", theme="monokai", line_numbers=True)
             console.print(config)
             console.rule('End of .piperider/config.yml')
-
-        # show default recipe
-        show_recipe_content()
 
     @staticmethod
     def list(report_dir=None):

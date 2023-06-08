@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 from jsonschema.exceptions import ValidationError
 from rich.console import Console
@@ -86,31 +85,25 @@ def generate_default_recipe(overwrite_existing: bool = False,
     recipe = RecipeConfiguration(base=base, target=target)
 
     try:
-        Path(recipe_path).parent.mkdir(parents=True, exist_ok=True)
-        recipe.dump(recipe_path)
+        recipe.validate(recipe.__dict__())
     except ValidationError as e:
         console.print(f'[[bold red]Error[/bold red]] Recipe syntax error: {e}')
-        return 1
+        return None
     except Exception as e:
         console.print(f'[[bold red]Error[/bold red]] {e}')
-        return 1
+        return None
 
-    return 0
+    return recipe
 
 
-def show_recipe_content(recipe_path=DEFAULT_RECIPE_PATH):
+def show_recipe_content(recipe: RecipeConfiguration):
     """
     Display the recipe content
     """
-    if not os.path.exists(recipe_path):
-        # Skip if the recipe does not exist
-        return
 
-    with open(recipe_path, 'r') as f:
-        console.rule(f'Recipe: {os.path.relpath(recipe_path)}')
-        yaml_output = Syntax(f.read(), 'yaml', theme='monokai', line_numbers=True)
-        console.print(yaml_output)
-        console.rule('End of Recipe')
+    yaml_output = Syntax(recipe.dump(), 'yaml', theme='monokai', line_numbers=True)
+    console.print(yaml_output)
+    console.rule('End of Recipe')
 
 
 if __name__ == '__main__':

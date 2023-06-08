@@ -10,6 +10,7 @@ from piperider_cli.event.collector import Collector
 
 PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
 PIPERIDER_USER_PROFILE = os.path.join(PIPERIDER_USER_HOME, 'profile.yml')
+PIPERIDER_USER_EVENT_PATH = os.path.join(PIPERIDER_USER_HOME, '.unsend_events.json')
 PIPERIDER_FLUSH_EVENTS_WHITELIST = ['init', 'run', 'generate-report', 'compare-reports']
 
 _collector = Collector()
@@ -22,6 +23,7 @@ def init():
 
     _collector.set_api_key(api_key)
     _collector.set_user_id(user_profile.get('user_id'))
+    _collector.set_unsend_events_file(PIPERIDER_USER_EVENT_PATH)
 
 
 def load_user_profile():

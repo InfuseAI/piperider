@@ -3,6 +3,7 @@ import os.path
 from rich.console import Console
 
 from piperider_cli.configuration import Configuration
+from piperider_cli.error import RecipeConfigException
 from piperider_cli.recipes import select_recipe_file, RecipeConfiguration, execute_configuration, DEFAULT_RECIPE_PATH
 from piperider_cli.recipes.default_recipe_generator import generate_default_recipe, show_recipe_content
 
@@ -22,12 +23,17 @@ class RecipeExecutor:
                     dbt_project_path = os.path.relpath(config.dataSources[0].args.get('dbt', {}).get('projectDir'))
                 # generate a default recipe
                 console.rule("Recipe executor: generate default recipe")
-                generate_default_recipe(dbt_project_path=dbt_project_path)
-                recipe_path = DEFAULT_RECIPE_PATH
-                show_recipe_content(recipe_path)
+                recipe = generate_default_recipe(dbt_project_path=dbt_project_path)
+                if recipe is None:
+                    raise RecipeConfigException(
+                        message='Default recipe generation failed.',
+                        hint='Please provide a recipe file or feedback an issue to us'
+                    )
+                show_recipe_content(recipe)
             else:
                 raise FileNotFoundError(f"Cannot find the recipe '{recipe_name}'")
-        cfg = RecipeConfiguration.load(recipe_path)
-        execute_configuration(cfg, debug=debug)
+        else:
+            recipe = RecipeConfiguration.load(recipe_path)
+        execute_configuration(recipe, debug=debug)
 
-        return cfg
+        return recipe
