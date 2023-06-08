@@ -283,7 +283,7 @@ def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type=
         console.print()
 
     if recipe_type == 'target':
-        config = Configuration.load()
+        config = Configuration.instance()
         fqn_list = dbtutil.get_fqn_list_by_tag(config.dbt.get('tag'), config.dbt.get('projectDir'))
         model.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(fqn_list)
 
