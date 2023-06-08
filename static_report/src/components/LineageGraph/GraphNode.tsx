@@ -18,6 +18,7 @@ import {
 } from './style';
 import { getStatDiff } from './util';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
+import { FaChartBar } from 'react-icons/fa';
 
 interface GraphNodeProps extends NodeProps {
   data: LineageGraphNode;
@@ -35,6 +36,7 @@ export function GraphNode({ data }: GraphNodeProps) {
 
   // resource background color
   let resourceColor: CSSProperties['color'] = 'inherit';
+  let resourceIcon = FiGrid;
   if (
     resourceType === 'source' ||
     resourceType === 'seed' ||
@@ -42,10 +44,13 @@ export function GraphNode({ data }: GraphNodeProps) {
   ) {
     resourceColor = '#c0eafd';
     isNoProfile = (data.target ?? data.base)?.__table?.row_count === undefined;
-  } else if (resourceType === 'exposure' || resourceType === 'analysis') {
-    resourceColor = '#f6e3ff';
-  } else if (resourceType === 'metric') {
+  } else if (
+    resourceType === 'metric' ||
+    resourceType === 'exposure' ||
+    resourceType === 'analysis'
+  ) {
     resourceColor = 'rgb(255 230 238)';
+    resourceIcon = FaChartBar;
   }
 
   // text color, icon
@@ -89,10 +94,19 @@ export function GraphNode({ data }: GraphNodeProps) {
   // border width and color
   let borderWidth = 1;
   let borderColor = color;
+  let backgroundColor = 'white';
+  let boxShadow = 'unset';
 
-  if (isActive || isHighlighted) {
+  if (isActive) {
     borderWidth = 1;
     borderColor = COLOR_HIGHLIGHT;
+    backgroundColor = 'piperider.400';
+    color = 'white';
+  }
+  if (isHighlighted) {
+    borderWidth = 1;
+    borderColor = COLOR_HIGHLIGHT;
+    boxShadow = '0px 5px 15px #00000040';
   }
 
   const name = data?.name;
@@ -119,12 +133,13 @@ export function GraphNode({ data }: GraphNodeProps) {
     <>
       <Flex
         width="300px"
-        _hover={{ bg: 'gray.100' }}
+        _hover={{ backgroundColor: isActive ? backgroundColor : 'gray.100' }}
         borderColor={borderColor}
         borderWidth={borderWidth}
         borderStyle={borderStyle}
-        backgroundColor="white"
+        backgroundColor={backgroundColor}
         borderRadius={3}
+        boxShadow={boxShadow}
         padding={0}
       >
         <Flex
@@ -135,15 +150,14 @@ export function GraphNode({ data }: GraphNodeProps) {
           borderStyle={borderStyle}
           alignItems="top"
         >
-          <Icon as={FiGrid} />
+          <Icon as={resourceIcon} />
         </Flex>
 
-        <VStack flex="1" mx="1">
+        <VStack flex="1" mx="1" color={color}>
           <Flex
             width="100%"
             textAlign="left"
             flex="1"
-            color={color}
             fontWeight={fontWeight}
             ml={2}
             alignItems="center"
@@ -164,7 +178,18 @@ export function GraphNode({ data }: GraphNodeProps) {
               <Text fontWeight="bold" textAlign="right" fontSize="sm">
                 {statValueF}&nbsp;
                 {statDiff !== undefined && (
-                  <Text as="span" color={statDiff < 0 ? 'red' : 'green'}>
+                  <Text
+                    as="span"
+                    color={
+                      statDiff < 0
+                        ? isActive
+                          ? 'white'
+                          : 'red.500'
+                        : isActive
+                        ? 'green.200'
+                        : 'green.500'
+                    }
+                  >
                     {statDiff < 0 ? <TriangleDownIcon /> : <TriangleUpIcon />}
                     {statDiffF}
                   </Text>
@@ -174,8 +199,12 @@ export function GraphNode({ data }: GraphNodeProps) {
           )}
         </VStack>
 
-        <Handle type="target" position={Position.Left} />
-        <Handle type="source" position={Position.Right} />
+        {Object.keys(data?.dependsOn ?? {}).length > 0 && (
+          <Handle type="target" position={Position.Left} />
+        )}
+        {Object.keys(data?.children ?? {}).length > 0 && (
+          <Handle type="source" position={Position.Right} />
+        )}
       </Flex>
     </>
   );

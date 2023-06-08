@@ -538,10 +538,10 @@ export function LineageGraph({ singleOnly }: Comparable) {
         return;
       }
 
-      onOpen();
+      // onOpen();
     },
     // eslint-disable-next-line
-    [onOpen],
+    [],
   );
 
   const onChangeOnlyClick = useCallback(() => {
@@ -764,6 +764,10 @@ export function LineageGraph({ singleOnly }: Comparable) {
           onNodeClick={onNodeClick}
           onNodeMouseEnter={(_event, node) => highlightPath(node)}
           onNodeMouseLeave={() => resetHighlightPath()}
+          onNodeContextMenu={(event, node) => {
+            event.preventDefault();
+            console.log('context menu');
+          }}
           minZoom={0.1}
           fitView
         >
@@ -798,7 +802,7 @@ export function LineageGraph({ singleOnly }: Comparable) {
           >
             <option value="">All nodes</option>
             <option value="changed">Change only</option>
-            {/* <option value="selected">Selected</option> */}
+            <option value="selected">Selected</option>
           </Select>
         </Box>
         <Box p={2}>
@@ -844,6 +848,7 @@ export function LineageGraph({ singleOnly }: Comparable) {
           <Select
             value={layoutAlgorithm}
             fontSize="sm"
+            variant="unstyled"
             onChange={(event) =>
               setLayoutAlgorithm(event.target.value as string)
             }
