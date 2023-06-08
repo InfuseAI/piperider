@@ -224,6 +224,9 @@ def get_dbt_state_tests_result(dbt_state_dir: str, table_filter=None):
         unique_id = result.get('unique_id')
 
         node = nodes.get(unique_id)
+        if not node:
+            continue
+
         if node.get('resource_type') != 'test':
             continue
 
