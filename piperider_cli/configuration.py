@@ -27,7 +27,13 @@ DBT_PROFILE_FILE = 'profiles.yml'
 class _FileSystem:
 
     def __init__(self):
-        pass
+        self.working_directory = os.getcwd()
+
+    def set_working_directory(self, working_directory: str):
+        if os.path.exists(working_directory):
+            self.working_directory = working_directory
+        else:
+            raise FileNotFoundError(f'the directory[{working_directory}] is not existing.')
 
     @property
     def PIPERIDER_WORKSPACE_NAME(self):
@@ -35,7 +41,7 @@ class _FileSystem:
 
     @property
     def PIPERIDER_WORKSPACE_PATH(self):
-        return os.path.join(os.getcwd(), self.PIPERIDER_WORKSPACE_NAME)
+        return os.path.join(self.working_directory, self.PIPERIDER_WORKSPACE_NAME)
 
     @property
     def PIPERIDER_CONFIG_PATH(self):
