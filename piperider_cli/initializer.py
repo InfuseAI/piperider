@@ -28,7 +28,7 @@ def _is_piperider_workspace_exist(workspace_path: str) -> bool:
 def _generate_piperider_workspace() -> bool:
     from piperider_cli import data
     init_template_dir = os.path.join(os.path.dirname(data.__file__), 'piperider-init-template')
-    working_dir = os.path.join(os.getcwd(), FileSystem.PIPERIDER_WORKSPACE_NAME)
+    working_dir = FileSystem.PIPERIDER_WORKSPACE_PATH
 
     if not _is_piperider_workspace_exist(working_dir):
         clone_directory(init_template_dir, working_dir)
@@ -124,7 +124,7 @@ class Initializer():
     @staticmethod
     def exec(working_dir=None, dbt_project_path=None, dbt_profiles_dir=None, interactive=True):
         if working_dir is None:
-            working_dir = os.path.join(os.getcwd(), FileSystem.PIPERIDER_WORKSPACE_NAME)
+            working_dir = FileSystem.PIPERIDER_WORKSPACE_PATH
 
         if _is_piperider_workspace_exist(working_dir) and interactive is True:
             console.print('[bold green]Piperider workspace already exist[/bold green] ')
@@ -146,7 +146,7 @@ class Initializer():
 
     @staticmethod
     def list(report_dir=None):
-        working_dir = os.path.join(os.getcwd(), FileSystem.PIPERIDER_WORKSPACE_NAME)
+        working_dir = FileSystem.PIPERIDER_WORKSPACE_PATH
 
         if _is_piperider_workspace_exist(working_dir):
             config = Configuration.instance()

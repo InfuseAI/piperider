@@ -275,6 +275,8 @@ class Configuration(object):
             profile_dir = dbt_profiles_dir
         elif os.getenv('DBT_PROFILES_DIR'):
             profile_dir = os.getenv('DBT_PROFILES_DIR')
+        elif os.path.exists(os.path.join(dbt_project_path, DBT_PROFILE_FILE)):
+            profile_dir = dbt_project_path
         elif os.path.exists(os.path.join(os.getcwd(), DBT_PROFILE_FILE)):
             profile_dir = os.getcwd()
         else:
@@ -304,7 +306,7 @@ class Configuration(object):
         credential = dbtutil.load_credential_from_dbt_profile(dbt_profile, profile_name, target_name)
         type_name = credential.get('type')
         dbt = {
-            'projectDir': os.path.relpath(os.path.dirname(dbt_project_path), os.getcwd()),
+            'projectDir': os.path.relpath(dbt_project_path, FileSystem.working_directory),
             'tag': 'piperider',
         }
 
@@ -409,6 +411,8 @@ class Configuration(object):
                 profile_dir = dbt.get('profilesDir')
             elif os.getenv('DBT_PROFILES_DIR'):
                 profile_dir = os.getenv('DBT_PROFILES_DIR')
+            elif not os.path.isabs(project_dir) and os.path.exists(os.path.join(FileSystem.working_directory, project_dir, DBT_PROFILE_FILE)):
+                profile_dir = os.path.abspath(os.path.join(FileSystem.working_directory, project_dir))
             elif os.path.exists(os.path.join(project_dir, DBT_PROFILE_FILE)):
                 profile_dir = project_dir
             else:

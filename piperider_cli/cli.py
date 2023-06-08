@@ -203,6 +203,7 @@ def run(**kwargs):
     dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search, recursive=False)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     if dbt_project_path:
+        FileSystem.set_working_directory(dbt_project_path)
         # Only run initializer when dbt project path is provided
         Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
     elif is_piperider_workspace_exist() is False:

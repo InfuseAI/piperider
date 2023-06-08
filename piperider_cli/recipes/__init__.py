@@ -16,7 +16,7 @@ from piperider_cli.error import RecipeConfigException
 from piperider_cli.recipes.utils import InteractiveStopException
 
 PIPERIDER_RECIPES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'recipe_schema.json')
-PIPERIDER_RECIPES_PATH = os.path.join(os.getcwd(), FileSystem.PIPERIDER_WORKSPACE_NAME, 'compare')
+PIPERIDER_RECIPES_PATH = os.path.join(FileSystem.PIPERIDER_WORKSPACE_PATH, 'compare')
 DEFAULT_RECIPE_PATH = os.path.join(PIPERIDER_RECIPES_PATH, "default.yml")
 
 console = Console()

@@ -9,8 +9,10 @@ import inquirer
 from rich.console import Console
 from rich.table import Table
 from ruamel import yaml
+from dbt.cli.resolvers import default_project_dir
 
 from piperider_cli import load_jinja_template, load_jinja_string_template
+from piperider_cli.configuration import FileSystem
 from piperider_cli.error import \
     DbtProjectInvalidError, \
     DbtProfileInvalidError, \
@@ -26,8 +28,9 @@ def get_dbt_project_path(dbt_project_dir: str = None, no_auto_search: bool = Fal
     dbt_project_path = None
     if dbt_project_dir:
         dbt_project_path = os.path.join(dbt_project_dir, "dbt_project.yml")
-    if no_auto_search is False and dbt_project_path is None:
-        dbt_project_path = search_dbt_project_path(recursive)
+    else:
+        dbt_project_path = str(default_project_dir())
+
     return dbt_project_path
 
 
@@ -351,6 +354,9 @@ def load_dbt_project(path: str):
     """
     if not path.endswith('dbt_project.yml'):
         path = os.path.join(path, 'dbt_project.yml')
+
+    if not os.path.isabs(path):
+        path = os.path.join(FileSystem.working_directory, path)
 
     with open(path, 'r') as fd:
         try:
