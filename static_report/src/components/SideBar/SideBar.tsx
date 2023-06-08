@@ -15,7 +15,6 @@ import {
   Tabs,
   useDisclosure,
   Text,
-  Divider,
 } from '@chakra-ui/react';
 import { useReportStore } from '../../utils/store';
 import { SideBarTree } from './SideBarTree';

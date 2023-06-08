@@ -1,15 +1,5 @@
-import { formatDuration, intervalToDuration, subSeconds } from 'date-fns';
-
-function _getStat(data?: object, key: string = ''): number | undefined {
-  if (data === undefined || data.hasOwnProperty(key) === false) {
-    return undefined;
-  }
-
-  return data[key];
-}
-
 function _formatValue(value?: number, formatStyle: string = 'decimal') {
-  if (value == undefined) {
+  if (value === undefined) {
     return undefined;
   }
 

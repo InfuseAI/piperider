@@ -27,7 +27,6 @@ import { SRBMPage } from './SRBMPage';
 import SRColumnDetailPage from './SRColumnDetailPage';
 import SRTableDetailPage from './SRTableDetailPage';
 import { SRTablesListPage } from './SRTablesListPage';
-import { ReactFlowGraphProvider } from '../components/LineageGraph/ReactFlowGraph';
 
 interface Props {
   data: SaferSRSchema;

@@ -1,15 +1,13 @@
 import { Box, Flex, Icon, VStack, Text } from '@chakra-ui/react';
-import {
-  VscDiffAdded,
-  VscDiffModified,
-  VscDiffRemoved,
-  VscDiffRenamed,
-} from 'react-icons/vsc';
+import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
+
+import { RxDotFilled } from 'react-icons/rx';
+
 import { Handle, NodeProps, Position } from 'reactflow';
 import { useLocation } from 'wouter';
 import { LineageGraphNode } from '../../utils/dbt';
 import { FiGrid } from 'react-icons/fi';
-import { CSSProperties, useState } from 'react';
+import { CSSProperties } from 'react';
 import {
   COLOR_ADDED,
   COLOR_CHANGED,
@@ -70,7 +68,7 @@ export function GraphNode({ data }: GraphNodeProps) {
       fontWeight = 600;
       borderStyle = 'dashed';
     } else if (changeStatus === 'implicit') {
-      iconChangeStatus = VscDiffRenamed;
+      iconChangeStatus = RxDotFilled;
       color = '#9a6700';
       color = COLOR_CHANGED;
       fontWeight = 600;
@@ -98,7 +96,6 @@ export function GraphNode({ data }: GraphNodeProps) {
   }
 
   const name = data?.name;
-  const fallback = data?.target || data?.base;
 
   let statResult: ReturnType<typeof getStatDiff> = {};
   if (stat === 'execution_time') {
@@ -108,7 +105,7 @@ export function GraphNode({ data }: GraphNodeProps) {
       'execution_time',
       'duration',
     );
-  } else if (stat == 'row_count') {
+  } else if (stat === 'row_count') {
     statResult = getStatDiff(
       data?.base?.__table,
       data?.target?.__table,

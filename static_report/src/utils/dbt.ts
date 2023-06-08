@@ -181,7 +181,7 @@ function compareDbtNode(
     base?.__table?.row_count !== undefined &&
     target.__table?.row_count !== undefined
   ) {
-    if (base.__table.row_count != target.__table.row_count) {
+    if (base.__table.row_count !== target.__table.row_count) {
       return 'implicit';
     }
   }
@@ -233,7 +233,7 @@ export function compareQuery(
   }
 
   // value change
-  if (base.data.length != target.data.length) {
+  if (base.data.length !== target.data.length) {
     return 'implicit';
   }
 

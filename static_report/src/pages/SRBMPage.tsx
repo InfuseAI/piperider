@@ -1,6 +1,5 @@
 import { Box, Grid, GridItem, Text } from '@chakra-ui/react';
 import _ from 'lodash';
-import { zip } from 'lodash';
 import { useRoute } from 'wouter';
 import { NoData } from '../components';
 import { BMWidget } from '../components/Widgets/BMWidget';
@@ -26,7 +25,7 @@ export function SRBMPage() {
     const uniqueId = paramMetric?.uniqueId;
     const entry = _.find(tableColumnsOnly, ([key]) => key === uniqueId);
     if (entry) {
-      const [, { base, target }] = entry;
+      const [, { base }] = entry;
       queries = base?.__queries || [];
     }
   }

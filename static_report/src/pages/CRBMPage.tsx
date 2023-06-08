@@ -1,10 +1,9 @@
 import { Box, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
-import _, { zip } from 'lodash';
+import _ from 'lodash';
 import { useRoute } from 'wouter';
 import { NoData } from '../components';
 import { BMWidget } from '../components/Widgets/BMWidget';
 import { useTrackOnMount } from '../hooks';
-import { BusinessMetric } from '../types';
 import { EVENTS, CR_TYPE_LABEL, useReportStore } from '../utils';
 import { METRIC_DETAILS_ROUTE_PATH } from '../utils/routes';
 

@@ -25,12 +25,7 @@ import {
   getIconForColumnType,
   useReportStore,
 } from '../../lib';
-import {
-  VscDiffAdded,
-  VscDiffModified,
-  VscDiffRemoved,
-  VscDiffRenamed,
-} from 'react-icons/vsc';
+import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
 import { useTableRoute } from '../../utils/routes';
 import {
   ChevronDownIcon,
@@ -211,7 +206,7 @@ export default function TableSummary({ singleOnly, isOpen, onClose }: Props) {
                     iconChangeStatus = VscDiffRemoved;
                     color = COLOR_REMOVED;
                   } else if (changeStatus === 'implicit') {
-                    iconChangeStatus = VscDiffRenamed;
+                    iconChangeStatus = VscDiffModified;
                     color = COLOR_CHANGED;
                   } else {
                     color = 'inherit';

@@ -27,7 +27,6 @@ import { CRBMPage } from './CRBMPage';
 import CRColumnDetailPage from './CRColumnDetailPage';
 import CRTableDetailPage from './CRTableDetailPage';
 import { CRTablesListPage } from './CRTableListPage';
-import { ReactFlowGraphProvider } from '../components/LineageGraph/ReactFlowGraph';
 
 interface Props {
   data: ComparisonReportSchema;
