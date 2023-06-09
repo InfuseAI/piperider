@@ -30,17 +30,18 @@ import { SRTablesListPage } from './SRTablesListPage';
 
 interface Props {
   data: SaferSRSchema;
+  cloud?: boolean;
   sideNavTop?: string;
 }
 
-export function SRPage({ data, sideNavTop = '0px' }: Props) {
+export function SRPage({ data, cloud, sideNavTop = '0px' }: Props) {
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
 
   return (
     <Router hook={useHashLocation as BaseLocationHook}>
       <Switch>
-        <MasterDetailContainer sideNavTop={sideNavTop} singleOnly>
+        <MasterDetailContainer sideNavTop={sideNavTop} cloud={cloud} singleOnly>
           <Switch>
             <Route path={HOME_ROUTE_PATH}>
               <SRTablesListPage />

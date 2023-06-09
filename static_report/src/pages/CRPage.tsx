@@ -30,17 +30,18 @@ import { CRTablesListPage } from './CRTableListPage';
 
 interface Props {
   data: ComparisonReportSchema;
+  cloud?: boolean;
   sideNavTop?: string;
 }
 
-export function CRPage({ data, sideNavTop = '0px' }: Props) {
+export function CRPage({ data, cloud, sideNavTop = '0px' }: Props) {
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData(data);
 
   return (
     <Router hook={useHashLocation as BaseLocationHook}>
       <Switch>
-        <MasterDetailContainer sideNavTop={sideNavTop}>
+        <MasterDetailContainer cloud={cloud} sideNavTop={sideNavTop}>
           <Switch>
             <Route path={HOME_ROUTE_PATH}>
               <CRTablesListPage />

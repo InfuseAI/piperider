@@ -23,6 +23,7 @@ import { FaDatabase, FaFolder } from 'react-icons/fa';
 import { useLocation } from 'wouter';
 import { Comparable } from '../../types';
 import { LineageGraph } from '../LineageGraph/LineageGraph';
+import { useCloudReport } from '../../utils/cloud';
 
 export function SideBar({ singleOnly }: Comparable) {
   const { isLegacy, projectTree, databaseTree, expandTreeForPath } =
@@ -30,6 +31,8 @@ export function SideBar({ singleOnly }: Comparable) {
   const [location] = useLocation();
   const [tabIndex, setTabIndex] = useState(-1);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const isCloud = useCloudReport();
+
   const handleTabChange = (index) => {
     expandTreeForPath(location);
     setTabIndex(index);
@@ -73,12 +76,14 @@ export function SideBar({ singleOnly }: Comparable) {
           </TabPanel>
         </TabPanels>
       </Tabs>
-      <Button
-        style={{ position: 'fixed', bottom: 0, right: 0 }}
-        onClick={onOpen}
-      >
-        Show Graph
-      </Button>
+      {isCloud && (
+        <Button
+          style={{ position: 'fixed', bottom: 0, right: 0 }}
+          onClick={onOpen}
+        >
+          Show Graph
+        </Button>
+      )}
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent maxW="calc(100vw - 200px)" backgroundColor="#f6f6f6">
