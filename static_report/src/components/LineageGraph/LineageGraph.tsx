@@ -179,12 +179,11 @@ export function LineageGraph({ singleOnly }: Comparable) {
   }, [setNodes, setEdges]);
 
   const onResetClick = useCallback(() => {
-    if (singleOnly) {
-      onFullGraphClick();
-    } else {
-      onChangeOnlyClick();
-    }
-  }, [singleOnly, onChangeOnlyClick, onFullGraphClick]);
+    onFullGraphClick();
+    setStat('');
+    setLayoutAlgorithm('dagre');
+    setGroupBy('');
+  }, [onFullGraphClick]);
 
   useEffect(() => {
     const renderGraph = async () => {
@@ -331,6 +330,7 @@ export function LineageGraph({ singleOnly }: Comparable) {
             Stat
           </Text>
           <Select
+            value={stat}
             fontSize="sm"
             variant="unstyled"
             onChange={(event) => {
@@ -348,6 +348,7 @@ export function LineageGraph({ singleOnly }: Comparable) {
             Group by
           </Text>
           <Select
+            value={groupBy}
             placeholder="None"
             fontSize="sm"
             onChange={(event) => {
