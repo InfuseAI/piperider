@@ -2,16 +2,7 @@ import json
 import os
 from unittest import TestCase
 
-from dbt.exceptions import EventCompilationError
-
-import piperider_cli.dbtutil as dbtutil
 from piperider_cli.compare_report import ComparisonData
-from piperider_cli.datasource.sqlite import SqliteDataSource
-from piperider_cli.profiler import Profiler
-from tests.common import create_table
-from piperider_cli.dbt.list_task import compare_models_between_manifests, compare_models_between_manifests_files, \
-    list_resources_from_manifest, list_resources_from_manifest_file, \
-    ResourceSelector, load_manifest, load_manifest_from_file
 
 
 class TestCompareSummaryNG(TestCase):

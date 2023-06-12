@@ -16,13 +16,6 @@ from dbt.node_types import NodeType
 from dbt.task.list import ListTask
 
 
-def load_manifest_from_file(manifest_path: str):
-    """
-    TODO deprecated
-    """
-    return WritableManifest.read_and_check_versions(manifest_path)
-
-
 def load_manifest(manifest: Dict):
     from dbt import version
     if version.__version__.startswith('1.4.'):
@@ -249,11 +242,6 @@ class _DbtListTask(ListTask):
         return self.node_results
 
 
-class _PreviousState(PreviousState):
-    def __init__(self, manifest_path: str):
-        self.manifest = load_manifest_from_file(manifest_path)
-
-
 class _InMemoryPreviousState(PreviousState):
     def __init__(self, manifest: Manifest):
         self.manifest = manifest
@@ -289,14 +277,6 @@ class ResourceSelector:
         )
 
 
-def list_resources_from_manifest_file(
-        manifest_file: str, selector: ResourceSelector = None
-):
-    return list_resources_from_manifest(
-        load_manifest_from_file(manifest_file), selector
-    )
-
-
 def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector = None):
     task = _DbtListTask()
     task.manifest = manifest
@@ -312,31 +292,6 @@ def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector 
 
     setattr(dbt_flags, "selector", None)
     setattr(dbt_flags, "select", None)
-    return task.run()
-
-
-def compare_models_between_manifests_files(
-        base_manifest_file: str,
-        altered_manifest_file: str,
-        include_downstream: bool = False,
-):
-    task = _DbtListTask()
-    task.manifest = load_manifest_from_file(base_manifest_file)
-
-    dbt_flags = flags_module.get_flags()
-    setattr(dbt_flags, "state", None)
-    setattr(dbt_flags, "models", None)
-
-    setattr(dbt_flags, "output", "selector")
-    setattr(dbt_flags, "resource_types", {NodeType.Model})
-
-    setattr(dbt_flags, "selector", None)
-
-    task.previous_state = _PreviousState(altered_manifest_file)
-    if include_downstream:
-        setattr(dbt_flags, "select", ("state:modified+",))
-    else:
-        setattr(dbt_flags, "select", ("state:modified",))
     return task.run()
 
 

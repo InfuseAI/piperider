@@ -5,9 +5,23 @@ from unittest import TestCase
 
 from dbt.exceptions import EventCompilationError
 
-from piperider_cli.dbt.list_task import compare_models_between_manifests, compare_models_between_manifests_files, \
-    list_resources_from_manifest, list_resources_from_manifest_file, \
-    ResourceSelector, load_manifest, load_manifest_from_file
+from piperider_cli.dbt.list_task import compare_models_between_manifests, \
+    list_resources_from_manifest, \
+    ResourceSelector, load_manifest
+
+
+def list_resources_from_manifest_file(filepath: str, selector=None):
+    with open(filepath) as f1:
+        d1 = json.loads(f1.read())
+    return list_resources_from_manifest(load_manifest(d1), selector)
+
+
+def compare_models_between_manifests_files(file1: str, file2: str, include_downstream: bool = False):
+    with open(file1) as f1:
+        d1 = json.loads(f1.read())
+    with open(file2) as f2:
+        d2 = json.loads(f2.read())
+    return compare_models_between_manifests(load_manifest(d1), load_manifest(d2), include_downstream)
 
 
 class _BaseDbtTest(TestCase):
@@ -131,10 +145,3 @@ class TestDbtIntegration(_BaseDbtTest):
             self.manifest_object("dbt-list-base-manifest.json"), self.manifest_object("dbt-list-altered-manifest.json"))
 
         self.assertEqual(result1, result2)
-
-    def test_load_manifests(self):
-        m1 = load_manifest_from_file(self.fake_data_path("dbt-list-base-manifest.json"))
-        with open(self.fake_data_path("dbt-list-base-manifest.json")) as fh:
-            m2 = load_manifest(json.loads(fh.read()))
-
-        self.assertEqual(m1.to_dict(), m2.to_dict())
