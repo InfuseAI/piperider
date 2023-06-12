@@ -17,10 +17,37 @@ from dbt.task.list import ListTask
 
 
 def load_manifest_from_file(manifest_path: str):
+    """
+    TODO deprecated
+    """
     return WritableManifest.read_and_check_versions(manifest_path)
 
 
 def load_manifest(manifest: Dict):
+    from dbt import version
+    if version.__version__.startswith('1.4.'):
+        return _load_manifest_version_14(manifest)
+
+    # TODO ensure it is after v1.5.x
+    return _load_manifest_version_15(manifest)
+
+
+def get_manifest_schema_version(dct: dict) -> int:
+    schema_version = dct.get("metadata", {}).get("dbt_schema_version", None)
+    if not schema_version:
+        raise ValueError("Manifest doesn't have schema version")
+    return int(schema_version.split(".")[-2][-1])
+
+
+def _load_manifest_version_14(data: Dict):
+    from dbt.contracts.util import upgrade_manifest_json
+    if get_manifest_schema_version(data) <= 7:
+        data = upgrade_manifest_json(data)
+
+    return WritableManifest.from_dict(data)  # type: ignore
+
+
+def _load_manifest_version_15(manifest: Dict):
     from dbt.exceptions import IncompatibleSchemaError
 
     # return WritableManifest.read_and_check_versions(manifest_path)
@@ -67,7 +94,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def rename_relation(
-        self, from_relation: BaseRelation, to_relation: BaseRelation
+            self, from_relation: BaseRelation, to_relation: BaseRelation
     ) -> None:
         pass
 
@@ -78,7 +105,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def list_relations_without_caching(
-        self, schema_relation: BaseRelation
+            self, schema_relation: BaseRelation
     ) -> List[BaseRelation]:
         pass
 
@@ -263,7 +290,7 @@ class ResourceSelector:
 
 
 def list_resources_from_manifest_file(
-    manifest_file: str, selector: ResourceSelector = None
+        manifest_file: str, selector: ResourceSelector = None
 ):
     return list_resources_from_manifest(
         load_manifest_from_file(manifest_file), selector
@@ -289,9 +316,9 @@ def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector 
 
 
 def compare_models_between_manifests_files(
-    base_manifest_file: str,
-    altered_manifest_file: str,
-    include_downstream: bool = False,
+        base_manifest_file: str,
+        altered_manifest_file: str,
+        include_downstream: bool = False,
 ):
     task = _DbtListTask()
     task.manifest = load_manifest_from_file(base_manifest_file)
@@ -314,9 +341,9 @@ def compare_models_between_manifests_files(
 
 
 def compare_models_between_manifests(
-    base_manifest: Manifest,
-    altered_manifest: Manifest,
-    include_downstream: bool = False,
+        base_manifest: Manifest,
+        altered_manifest: Manifest,
+        include_downstream: bool = False,
 ):
     task = _DbtListTask()
     task.manifest = base_manifest
