@@ -5,7 +5,6 @@ from rich.console import Console
 from piperider_cli.configuration import FileSystem
 
 
-
 def piperider_initialized() -> bool:
     return os.path.exists(FileSystem.PIPERIDER_CONFIG_PATH)
 
