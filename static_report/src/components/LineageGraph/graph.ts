@@ -13,9 +13,13 @@ const nodeHeight = 60;
 const groupMargin = 20;
 const groupType = 'customGroup';
 
+export type FilterBy = 'changed' | 'selected' | undefined;
+
 export const buildNodesAndEdges = async (
   lineageGraph: LineageGraphData,
   options: {
+    filterBy?: FilterBy;
+    selected?: string;
     groupBy?: string;
     isLayout?: boolean;
     layoutLibrary?: string;
@@ -23,14 +27,31 @@ export const buildNodesAndEdges = async (
     edgeOverrides?: Partial<LineageGraphEdge>;
   },
 ) => {
+  let nodeSet: Set<String>;
   const groups: Node[] = [];
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   const isLayout = options.isLayout || true;
   const layoutLibrary = options.layoutLibrary || 'dagre';
 
+  // nodes
+  if (options.filterBy === 'selected' && options.selected) {
+    nodeSet = new Set(filterBySelected(lineageGraph, options.selected));
+  } else if (options.filterBy === 'changed') {
+    nodeSet = new Set(filterByChanged(lineageGraph));
+  } else {
+    nodeSet = new Set(Object.keys(lineageGraph));
+  }
+
   Object.entries(lineageGraph).forEach(([key, nodeData]) => {
-    if (nodeData.type === 'test') return;
+    if (!nodeSet.has(key)) {
+      return;
+    }
+
+    if (nodeData.type === 'test') {
+      return;
+    }
+
     const node: Node = {
       id: key,
       position: { x: 0, y: 0 },
@@ -42,7 +63,35 @@ export const buildNodesAndEdges = async (
       type: 'customNode',
     };
 
-    if (options.groupBy) {
+    nodes.push(node);
+  });
+
+  //edges
+  nodes.forEach((node) => {
+    const nodeData = node.data as LineageGraphNode;
+    Object.entries(nodeData.dependsOn).forEach(([dependsOnKey, edgeData]) => {
+      if (!nodeSet.has(dependsOnKey)) {
+        return;
+      }
+
+      edges.push({
+        source: dependsOnKey,
+        target: nodeData.uniqueId,
+        id: `${nodeData.uniqueId} -> ${dependsOnKey}`,
+        type: 'customEdge',
+        data: {
+          ...edgeData,
+          ...options.edgeOverrides,
+        },
+      });
+    });
+  });
+
+  // groups
+  if (options.groupBy) {
+    nodes.forEach((node) => {
+      const nodeData = node.data;
+
       // TODO: group by type
       let groupId: string | undefined = undefined;
       let groupName: string | undefined = undefined;
@@ -95,22 +144,8 @@ export const buildNodesAndEdges = async (
         node.expandParent = true;
         node.draggable = false;
       }
-    }
-    nodes.push(node);
-
-    Object.entries(nodeData.dependsOn).forEach(([dependsOnKey, edgeData]) => {
-      edges.push({
-        source: dependsOnKey,
-        target: key,
-        id: `${key} -> ${dependsOnKey}`,
-        type: 'customEdge',
-        data: {
-          ...edgeData,
-          ...options.edgeOverrides,
-        },
-      });
     });
-  });
+  }
 
   let nodesAndEdges = { nodes: groups.concat(nodes), edges };
 
@@ -133,7 +168,10 @@ export const buildNodesAndEdges = async (
   return nodesAndEdges;
 };
 
-export const getUpstreamNodes = (lineageGraph, key) => {
+export const getUpstreamNodes = (
+  lineageGraph: LineageGraphData,
+  key: string,
+) => {
   const node = lineageGraph[key];
   const relatedNodes: string[] = [key];
 
@@ -146,8 +184,8 @@ export const getUpstreamNodes = (lineageGraph, key) => {
 };
 
 export const getDownstreamNodes = (
-  lineageGraph,
-  key,
+  lineageGraph: LineageGraphData,
+  key: string,
   isDownStreamNode: boolean = false,
 ) => {
   const node = lineageGraph[key];
@@ -163,6 +201,47 @@ export const getDownstreamNodes = (
     });
   }
   return relatedNodes;
+};
+
+/* The changed nodes and their intermedia nodes */
+const filterByChanged = (lineageGraph: LineageGraphData) => {
+  const changeSet = new Set<string>();
+  const upstreamSet = new Set<string>();
+  const downstreamSet = new Set<string>();
+
+  Object.entries(lineageGraph).forEach(([uniqueId, node]) => {
+    if (node.changeStatus !== undefined) {
+      changeSet.add(uniqueId);
+
+      for (const upstream of getUpstreamNodes(lineageGraph, uniqueId)) {
+        upstreamSet.add(upstream);
+      }
+
+      for (const downstream of getDownstreamNodes(lineageGraph, uniqueId)) {
+        downstreamSet.add(downstream);
+      }
+    }
+  });
+
+  // Add all (<change upstream> & <change downstream>) to changeSet
+  const isDownAndUpSet = [...upstreamSet].filter((uniqueId) =>
+    downstreamSet.has(uniqueId),
+  );
+
+  // union of changeSet and isDownAndUpSet
+  isDownAndUpSet.forEach((uniqueId) => {
+    changeSet.add(uniqueId);
+  });
+
+  return [...changeSet];
+};
+
+/* The selected node and its upstream and downstream */
+const filterBySelected = (lineageGraph: LineageGraphData, selected: string) => {
+  return [
+    ...getUpstreamNodes(lineageGraph, selected),
+    ...getDownstreamNodes(lineageGraph, selected),
+  ];
 };
 
 const layout = (nodes, edges, direction = 'LR', margin = 0) => {

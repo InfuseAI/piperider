@@ -38,6 +38,7 @@ import { useTableRoute } from '../../utils/routes';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import {
   buildNodesAndEdges,
+  FilterBy,
   getDownstreamNodes,
   getUpstreamNodes,
 } from './graph';
@@ -58,8 +59,10 @@ function _LineageGraph({ singleOnly }: Comparable) {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  let { uniqueId: selected } = useTableRoute();
+  let { uniqueId } = useTableRoute();
   const [, setLocation] = useLocation();
+  const [filterBy, setFilterBy] = useState<FilterBy>(undefined);
+  const [selected, setSelected] = useState<string | undefined>(uniqueId);
   const [layoutAlgorithm, setLayoutAlgorithm] = useState('dagre');
   const [stat, setStat] = useState('');
   const [groupBy, setGroupBy] = useState('');
@@ -89,103 +92,20 @@ function _LineageGraph({ singleOnly }: Comparable) {
   );
 
   const onChangeOnlyClick = useCallback(() => {
-    const changeSet = new Set<string>();
-    const upstreamSet = new Set<string>();
-    const downstreamSet = new Set<string>();
-
-    Object.entries(lineageGraph).forEach(([uniqueId, node]) => {
-      if (node.changeStatus !== undefined) {
-        changeSet.add(uniqueId);
-
-        for (const upstream of getUpstreamNodes(lineageGraph, uniqueId)) {
-          upstreamSet.add(upstream);
-        }
-
-        for (const downstream of getDownstreamNodes(lineageGraph, uniqueId)) {
-          downstreamSet.add(downstream);
-        }
-      }
-    });
-
-    [...upstreamSet]
-      .filter((uniqueId) => downstreamSet.has(uniqueId))
-      .forEach((uniqueId) => {
-        changeSet.add(uniqueId);
-      });
-
-    const relatedNodes = [...changeSet];
-
-    const relatedEdges = edges.filter((edge) => {
-      return (
-        relatedNodes.includes(edge.source) && relatedNodes.includes(edge.target)
-      );
-    });
-
-    setNodes((nodes) =>
-      nodes.map((node) => {
-        return {
-          ...node,
-          hidden: !relatedNodes.includes(node.id),
-        };
-      }),
-    );
-    setEdges((edges) =>
-      edges.map((edge) => {
-        return {
-          ...edge,
-          hidden: !relatedEdges.includes(edge),
-        };
-      }),
-    );
-    reactflow.fitView();
-  }, [lineageGraph, setNodes, setEdges, edges]);
+    setFilterBy('changed');
+  }, [setFilterBy]);
 
   const onFocusClick = useCallback(() => {
-    if (!selected) {
-      return;
-    }
-
-    const relatedNodes = [
-      ...getUpstreamNodes(lineageGraph, selected),
-      ...getDownstreamNodes(lineageGraph, selected),
-    ];
-    const relatedEdges = edges.filter((edge) => {
-      return (
-        relatedNodes.includes(edge.source) && relatedNodes.includes(edge.target)
-      );
-    });
-
-    setNodes((nodes) =>
-      nodes.map((node) => {
-        return {
-          ...node,
-          hidden: !relatedNodes.includes(node.id),
-        };
-      }),
-    );
-    setEdges((edges) =>
-      edges.map((edge) => {
-        return {
-          ...edge,
-          hidden: !relatedEdges.includes(edge),
-        };
-      }),
-    );
-    reactflow.fitView();
-  }, [selected, lineageGraph, setNodes, setEdges, edges]);
+    setSelected(uniqueId);
+    setFilterBy('selected');
+  }, [uniqueId, setSelected, setFilterBy]);
 
   const onFullGraphClick = useCallback(() => {
-    const hide = (hidden: boolean) => (nodeOrEdge) => {
-      nodeOrEdge.hidden = hidden;
-      return nodeOrEdge;
-    };
-    setNodes((nodes) => nodes.map(hide(false)));
-    setEdges((edges) => edges.map(hide(false)));
-    reactflow.fitView();
-  }, [setNodes, setEdges]);
+    setFilterBy(undefined);
+  }, [setFilterBy]);
 
   const onResetClick = useCallback(() => {
-    onFullGraphClick();
+    setFilterBy(undefined);
     setStat('');
     setLayoutAlgorithm('dagre');
     setGroupBy('');
@@ -205,6 +125,8 @@ function _LineageGraph({ singleOnly }: Comparable) {
           singleOnly: singleOnly || false,
         },
         layoutLibrary: layoutAlgorithm,
+        filterBy,
+        selected,
         groupBy: groupBy || undefined,
       });
       setNodes(nodes);
@@ -219,6 +141,8 @@ function _LineageGraph({ singleOnly }: Comparable) {
     layoutAlgorithm,
     groupBy,
     stat,
+    filterBy,
+    selected,
   ]);
 
   function highlightPath(node: Node) {
