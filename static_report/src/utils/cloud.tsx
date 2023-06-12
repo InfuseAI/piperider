@@ -1,6 +1,4 @@
-import { InfoIcon } from '@chakra-ui/icons';
-import { Switch, Tooltip } from '@chakra-ui/react';
-import React, { Children, createContext, useContext, useState } from 'react';
+import React, { createContext, useContext } from 'react';
 
 const CloudReportContext = createContext(false);
 
