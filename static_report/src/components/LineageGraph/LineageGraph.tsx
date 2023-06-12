@@ -51,7 +51,7 @@ const edgeTypes = {
   customEdge: GraphEdge,
 };
 
-function _LineageGraph({ singleOnly }: Comparable) {
+function LineageGraphWrapped({ singleOnly }: Comparable) {
   const reactflow = useReactFlow();
   const { lineageGraph = {} } = useReportStore.getState();
 
@@ -110,7 +110,7 @@ function _LineageGraph({ singleOnly }: Comparable) {
     setLayoutAlgorithm('dagre');
     setGroupBy('');
     reactflow.fitView();
-  }, [onFullGraphClick]);
+  }, [setFilterBy, setStat, setLayoutAlgorithm, setGroupBy, reactflow]);
 
   useEffect(() => {
     const renderGraph = async () => {
@@ -131,6 +131,8 @@ function _LineageGraph({ singleOnly }: Comparable) {
       });
       setNodes(nodes);
       setEdges(edges);
+
+      setTimeout(() => reactflow.fitView({ maxZoom: 1 }), 0);
     };
     renderGraph();
   }, [
@@ -143,6 +145,7 @@ function _LineageGraph({ singleOnly }: Comparable) {
     stat,
     filterBy,
     selected,
+    reactflow,
   ]);
 
   function highlightPath(node: Node) {
@@ -353,7 +356,7 @@ function _LineageGraph({ singleOnly }: Comparable) {
 export function LineageGraph({ singleOnly }: Comparable) {
   return (
     <ReactFlowProvider>
-      <_LineageGraph singleOnly={singleOnly} />
+      <LineageGraphWrapped singleOnly={singleOnly} />
     </ReactFlowProvider>
   );
 }
