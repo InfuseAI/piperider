@@ -1,6 +1,5 @@
 import { Edge, Node, Position } from 'reactflow';
 import dagre from 'dagre';
-import ELK from 'elkjs/lib/elk.bundled.js';
 
 import 'reactflow/dist/style.css';
 import { LineageGraphData, LineageGraphNode } from '../../utils/dbt';
@@ -23,7 +22,7 @@ export const buildNodesAndEdges = async (
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   const isLayout = options.isLayout || true;
-  const layoutLibrary = options.layoutLibrary || 'elk';
+  const layoutLibrary = options.layoutLibrary || 'dagre';
 
   Object.entries(lineageGraph).forEach(([key, nodeData]) => {
     if (nodeData.type === 'test') return;
@@ -119,14 +118,6 @@ export const buildNodesAndEdges = async (
     } else if (layoutLibrary === 'subflow') {
       layout(nodes, edges, 'LR');
       groupBySubFlow(groups, nodes);
-    } else if (layoutLibrary === 'elk') {
-      let result: { elkNodes; elkEdges };
-      if (groups.length > 0) {
-        result = await layoutByElkWithGroups(groups, nodes, edges);
-      } else {
-        result = await layoutByElk(nodes, edges);
-      }
-      nodesAndEdges = { nodes: result.elkNodes, edges: result.elkEdges };
     }
     logWithTimestamp('layout complete');
   }
@@ -289,148 +280,6 @@ const layoutWithGroups = (
       y: nodeWithPosition.y - nodeHeight / 2,
     };
   });
-};
-
-const layoutByElk = async (nodes, edges, direction = 'RIGHT', margin = 0) => {
-  const isHorizontal = direction === 'RIGHT';
-  const elk = new ELK();
-  const options = {
-    'elk.algorithm': 'layered',
-    'elk.layered.spacing.nodeNodeBetweenLayers': '100',
-    'elk.spacing.nodeNode': '80',
-    'elk.direction': direction,
-  };
-  const transformToElkNode = (node: Node) => ({
-    ...node,
-    // Adjust the target and source handle positions based on the layout
-    // direction.
-    targetPosition: isHorizontal ? 'left' : 'top',
-    sourcePosition: isHorizontal ? 'right' : 'bottom',
-
-    // Hardcode a width and height for elk to use when layouting.
-    width: nodeWidth,
-    height: nodeHeight,
-  });
-  const graph = {
-    id: 'root',
-    layoutOptions: options,
-    children: nodes.map(transformToElkNode),
-    edges: edges,
-  };
-
-  try {
-    // Perform the layout using ELK
-    const layoutGraph = await elk.layout(graph);
-    return {
-      elkNodes: layoutGraph.children?.map((node) => ({
-        ...node,
-        // React Flow expects a position property on the node instead of `x`
-        // and `y` fields.
-        position: { x: node.x, y: node.y },
-      })),
-      elkEdges: layoutGraph.edges,
-    };
-    // Process the layout result as needed
-  } catch (error) {
-    return { elkNodes: nodes, elkEdges: edges };
-  }
-};
-
-const layoutByElkWithGroups = async (
-  groups,
-  nodes,
-  edges,
-  direction = 'RIGHT',
-  margin = 0,
-) => {
-  const isHorizontal = direction === 'RIGHT';
-  const elk = new ELK();
-  const options = {
-    'elk.algorithm': 'layered',
-    'elk.layered.spacing.nodeNodeBetweenLayers': '100',
-    'elk.spacing.nodeNode': '80',
-    'elk.direction': direction,
-  };
-  const transformToElkNode = (node: Node) => ({
-    ...node,
-    // Adjust the target and source handle positions based on the layout
-    // direction.
-    targetPosition: isHorizontal ? 'left' : 'top',
-    sourcePosition: isHorizontal ? 'right' : 'bottom',
-
-    // Hardcode a width and height for elk to use when layouting.
-    width: nodeWidth,
-    height: nodeHeight,
-  });
-
-  // Add the groups to the root
-  const children = groups.map((group) => ({
-    ...group,
-    layoutOptions: {
-      'org.eclipse.elk.layered.nodePlacement.bk.fixedAlignment': 'BALANCED',
-    },
-    targetPosition: isHorizontal ? 'left' : 'top',
-    sourcePosition: isHorizontal ? 'right' : 'bottom',
-    children: nodes
-      .filter((node) => node.parentNode === group.id)
-      .map(transformToElkNode),
-  }));
-  // Add the nodes without group to the root
-  children.push(
-    ...nodes
-      .filter((node) => node.parentNode === undefined)
-      .map(transformToElkNode),
-  );
-
-  const graph = {
-    id: 'root',
-    layoutOptions: options,
-    edges: edges,
-    children: children,
-  };
-
-  try {
-    // Perform the layout using ELK
-    const layoutGraph = await elk.layout(graph);
-    const nodes: Node[] = [];
-    const groups: Node[] = [];
-    layoutGraph.children?.forEach((child: any) => {
-      if (child.type === groupType) {
-        groups.push({
-          id: child.id,
-          data: child.data,
-          position: { x: child.x, y: child.y },
-          style: {
-            width: child.width,
-            height: child.height,
-          },
-          type: child.type,
-        });
-
-        // Add the children of the group to the nodes array
-        nodes.push(
-          ...child.children.map((node) => ({
-            ...node,
-            position: { x: node.x, y: node.y },
-          })),
-        );
-      } else {
-        // Add ungrouped nodes to the nodes array
-        nodes.push({
-          ...child,
-          position: { x: child.x, y: child.y },
-        });
-      }
-    });
-
-    return {
-      elkNodes: groups.concat(nodes),
-      elkEdges: layoutGraph.edges,
-    };
-    // Process the layout result as needed
-  } catch (error) {
-    return { elkNodes: groups.concat(nodes), elkEdges: edges };
-  }
 };
 
 const groupBySubFlow = (groups: Node[], nodes: Node[]) => {

@@ -343,7 +343,7 @@ export function LineageGraph({ singleOnly }: Comparable) {
             <option value="row_count">Row count</option>
           </Select>
         </Box>
-        <Box p={2}>
+        {/* <Box p={2}>
           <Text fontSize="sm" color="gray">
             Group by
           </Text>
@@ -377,9 +377,8 @@ export function LineageGraph({ singleOnly }: Comparable) {
           >
             <option value="dagre">Dagre</option>
             <option value="subflow">Dagre with Sub Flow</option>
-            <option value="elk">ELK Layered</option>
           </Select>
-        </Box>
+        </Box> */}
         <Spacer />
         <ButtonGroup
           size="sm"

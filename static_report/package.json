@@ -134,8 +134,5 @@
     "semi": true,
     "singleQuote": true,
     "trailingComma": "all"
-  },
-  "dependencies": {
-    "elkjs": "^0.8.2"
   }
 }
