@@ -1,4 +1,4 @@
-import { Box, Flex, Icon, VStack, Text } from '@chakra-ui/react';
+import { Box, Flex, Icon, VStack, Text, Tooltip } from '@chakra-ui/react';
 import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
 
 import { RxDotFilled } from 'react-icons/rx';
@@ -152,16 +152,24 @@ export function GraphNode({ data }: GraphNodeProps) {
           <Icon as={resourceIcon} />
         </Flex>
 
-        <VStack flex="1" mx="1" color={color}>
+        <VStack flex="1 0 auto" mx="1" color={color} width="100px">
           <Flex
             width="100%"
             textAlign="left"
             flex="1"
             fontWeight={fontWeight}
-            ml={2}
+            mx={2}
             alignItems="center"
           >
-            <Box flex="1">{name}</Box>
+            <Box
+              flex="1"
+              overflow="hidden"
+              textOverflow="ellipsis"
+              whiteSpace="nowrap"
+            >
+              <Tooltip label={name}>{name}</Tooltip>
+            </Box>
+
             {!singleOnly && changeStatus && (
               <Icon
                 color={color}
@@ -170,9 +178,14 @@ export function GraphNode({ data }: GraphNodeProps) {
                 flex="0 0 20px"
               />
             )}
+            {singleOnly && stat && statValue !== undefined && (
+              <Text fontWeight="bold" textAlign="right" fontSize="sm">
+                {statValueF}
+              </Text>
+            )}
           </Flex>
 
-          {stat && statValue !== undefined && (
+          {!singleOnly && stat && statValue !== undefined && (
             <Box width="100%">
               <Text fontWeight="bold" textAlign="right" fontSize="sm">
                 {statValueF}&nbsp;

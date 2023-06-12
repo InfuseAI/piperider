@@ -2,7 +2,11 @@ import { Edge, Node, Position } from 'reactflow';
 import dagre from 'dagre';
 
 import 'reactflow/dist/style.css';
-import { LineageGraphData, LineageGraphNode } from '../../utils/dbt';
+import {
+  LineageGraphData,
+  LineageGraphEdge,
+  LineageGraphNode,
+} from '../../utils/dbt';
 
 const nodeWidth = 300;
 const nodeHeight = 60;
@@ -16,6 +20,7 @@ export const buildNodesAndEdges = async (
     isLayout?: boolean;
     layoutLibrary?: string;
     nodeOverrides?: Partial<LineageGraphNode>;
+    edgeOverrides?: Partial<LineageGraphEdge>;
   },
 ) => {
   const groups: Node[] = [];
@@ -99,7 +104,10 @@ export const buildNodesAndEdges = async (
         target: key,
         id: `${key} -> ${dependsOnKey}`,
         type: 'customEdge',
-        data: edgeData,
+        data: {
+          ...edgeData,
+          ...options.edgeOverrides,
+        },
       });
     });
   });

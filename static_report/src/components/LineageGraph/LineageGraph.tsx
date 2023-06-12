@@ -6,8 +6,10 @@ import ReactFlow, {
   Controls,
   MiniMap,
   Node,
+  ReactFlowProvider,
   useEdgesState,
   useNodesState,
+  useReactFlow,
 } from 'reactflow';
 
 import 'reactflow/dist/style.css';
@@ -48,7 +50,8 @@ const edgeTypes = {
   customEdge: GraphEdge,
 };
 
-export function LineageGraph({ singleOnly }: Comparable) {
+function _LineageGraph({ singleOnly }: Comparable) {
+  const reactflow = useReactFlow();
   const { lineageGraph = {} } = useReportStore.getState();
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -134,6 +137,7 @@ export function LineageGraph({ singleOnly }: Comparable) {
         };
       }),
     );
+    reactflow.fitView();
   }, [lineageGraph, setNodes, setEdges, edges]);
 
   const onFocusClick = useCallback(() => {
@@ -167,6 +171,7 @@ export function LineageGraph({ singleOnly }: Comparable) {
         };
       }),
     );
+    reactflow.fitView();
   }, [selected, lineageGraph, setNodes, setEdges, edges]);
 
   const onFullGraphClick = useCallback(() => {
@@ -176,6 +181,7 @@ export function LineageGraph({ singleOnly }: Comparable) {
     };
     setNodes((nodes) => nodes.map(hide(false)));
     setEdges((edges) => edges.map(hide(false)));
+    reactflow.fitView();
   }, [setNodes, setEdges]);
 
   const onResetClick = useCallback(() => {
@@ -183,6 +189,7 @@ export function LineageGraph({ singleOnly }: Comparable) {
     setStat('');
     setLayoutAlgorithm('dagre');
     setGroupBy('');
+    reactflow.fitView();
   }, [onFullGraphClick]);
 
   useEffect(() => {
@@ -193,6 +200,9 @@ export function LineageGraph({ singleOnly }: Comparable) {
           singleOnly: singleOnly || false,
           isHighlighted: false,
           stat,
+        },
+        edgeOverrides: {
+          singleOnly: singleOnly || false,
         },
         layoutLibrary: layoutAlgorithm,
         groupBy: groupBy || undefined,
@@ -400,9 +410,11 @@ export function LineageGraph({ singleOnly }: Comparable) {
               <MenuItem fontSize="sm" onClick={onFullGraphClick}>
                 All nodes
               </MenuItem>
-              <MenuItem fontSize="sm" onClick={onChangeOnlyClick}>
-                Change only
-              </MenuItem>
+              {!singleOnly && (
+                <MenuItem fontSize="sm" onClick={onChangeOnlyClick}>
+                  Change only
+                </MenuItem>
+              )}
               <MenuItem fontSize="sm" onClick={onFocusClick}>
                 Focus active
               </MenuItem>
@@ -411,5 +423,13 @@ export function LineageGraph({ singleOnly }: Comparable) {
         </ButtonGroup>
       </Flex>
     </Flex>
+  );
+}
+
+export function LineageGraph({ singleOnly }: Comparable) {
+  return (
+    <ReactFlowProvider>
+      <_LineageGraph singleOnly={singleOnly} />
+    </ReactFlowProvider>
   );
 }
