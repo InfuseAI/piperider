@@ -206,7 +206,8 @@ class _DbtListTask(ListTask):
         self.config = _RuntimeConfig()
         self.args = flags_module.get_flag_obj()
         self.previous_state = None
-        flags_module.set_flags(self.args)
+        self.args.__setattr__("PROFILES_DIR", "/tmp/test-dbt")
+        flags_module.set_from_args(self.args, {})
 
         # The graph compiler tries to make directories when it initialized itself
         setattr(self.args, "target_path", "/tmp/piperider-list-task/target_path")
@@ -281,7 +282,7 @@ def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector 
     task = _DbtListTask()
     task.manifest = manifest
 
-    dbt_flags = flags_module.get_flags()
+    dbt_flags = task.args
     setattr(dbt_flags, "state", None)
     setattr(dbt_flags, "models", None)
 
@@ -303,7 +304,7 @@ def compare_models_between_manifests(
     task = _DbtListTask()
     task.manifest = base_manifest
 
-    dbt_flags = flags_module.get_flags()
+    dbt_flags = task.args
     setattr(dbt_flags, "state", None)
     setattr(dbt_flags, "models", None)
 
