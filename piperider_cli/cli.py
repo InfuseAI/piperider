@@ -235,6 +235,10 @@ def run(**kwargs):
             ret = CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
                                                       open_report=open_report, enable_share=enable_share,
                                                       project_name=project_name)
+        elif not CloudConnector.is_login() and is_cloud_view:
+            console = Console()
+            console.print('[bold yellow]Warning: [/bold yellow]The report is not uploaded due to not logged in.')
+
     if ret != 0:
         sys.exit(ret)
     return ret
@@ -303,11 +307,10 @@ def compare_reports(**kwargs):
     if enable_share or CloudConnector.is_auto_upload():
         force_upload = True
 
-    if force_upload is True and CloudConnector.is_login() is False:
-        raise RecipeConfigException(
-            message='Please login to PipeRider Cloud first.',
-            hint='Run "piprider cloud login" to login to PipeRider Cloud.'
-        )
+    if force_upload and not CloudConnector.is_login():
+        force_upload = False
+        console = Console()
+        console.print('[bold yellow]Warning: [/bold yellow]Reports will not be uploaded due to not logged in.')
 
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
                        report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), summary_file=summary_file,
