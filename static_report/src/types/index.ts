@@ -5,6 +5,7 @@ import {
   tableSchemaSchema,
 } from './../sdlc/single-report-schema.z';
 import {
+  BusinessMetric,
   ColumnSchema,
   SingleReportSchema,
   TableSchema,
@@ -15,6 +16,7 @@ import {
   SourceDefinition,
 } from '../sdlc/dbt-manifest-schema';
 import { CompColEntryItem } from '../lib';
+import { RunResultOutput } from '../sdlc/dbt-run-results-schema';
 
 export * from '../sdlc';
 
@@ -30,7 +32,9 @@ export type DbtNode = (
   | Metric
 ) & {
   __table?: SaferTableSchema;
+  __queries?: BusinessMetric[];
   __columns?: CompColEntryItem[];
+  __runResult?: RunResultOutput;
   [key: string]: any;
 };
 

@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/browser';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { BrowserTracing } from '@sentry/tracing';
 
 import { Loading } from './components/Common';
@@ -12,6 +12,8 @@ import {
   WARNING_TYPE_LABEL,
 } from './utils';
 import { Main } from './components/Common/Main';
+import { Switch, Tooltip } from '@chakra-ui/react';
+import { InfoIcon } from '@chakra-ui/icons';
 
 const sentryDns = window.PIPERIDER_METADATA.sentry_dns;
 if (sentryDns && process.env.NODE_ENV !== 'development') {
@@ -35,27 +37,27 @@ if (sentryDns && process.env.NODE_ENV !== 'development') {
 const SRPage = lazy(() => import('./pages/SRPage'));
 const CRPage = lazy(() => import('./pages/CRPage'));
 
-function AppSingle() {
+function AppSingle({ cloud }: { cloud: boolean }) {
   const data = window.PIPERIDER_SINGLE_REPORT_DATA || {};
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
   return (
     <Suspense fallback={<Loading />}>
       <Main isSingleReport>
-        <SRPage data={data} sideNavTop="46px" />
+        <SRPage data={data} sideNavTop="46px" cloud={cloud} />
       </Main>
     </Suspense>
   );
 }
 
-function AppComparison() {
+function AppComparison({ cloud }: { cloud: boolean }) {
   const data = window.PIPERIDER_COMPARISON_REPORT_DATA || {};
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData(data);
   return (
     <Suspense fallback={<Loading />}>
       <Main isSingleReport={false}>
-        <CRPage data={data} sideNavTop="46px" />
+        <CRPage data={data} sideNavTop="46px" cloud={cloud} />
       </Main>
     </Suspense>
   );
@@ -81,6 +83,8 @@ function MobileDeviceWarning() {
 
 function App() {
   useDocumentTitle();
+  const [cloud, setCloud] = useState(false);
+
   const setTracker = useTrackerStore((state) => state.setTracker);
   const tracker = {
     track: amplitudeTrack,
@@ -101,8 +105,35 @@ function App() {
 
   const isSingleReport: boolean =
     process.env.REACT_APP_SINGLE_REPORT === 'true';
+  const isDevelopmentMode = process.env.NODE_ENV === 'development';
 
-  return <>{isSingleReport ? <AppSingle /> : <AppComparison />}</>;
+  return (
+    <>
+      {isSingleReport ? (
+        <AppSingle cloud={cloud} />
+      ) : (
+        <AppComparison cloud={cloud} />
+      )}
+      {isDevelopmentMode && (
+        <div>
+          <div style={{ position: 'absolute', top: '0px', left: '0px' }}>
+            Cloud
+            <Tooltip label="Devlop the cloud mode. It would enable the lineage graph.">
+              <InfoIcon />
+            </Tooltip>
+            <br />
+            <Switch
+              isChecked={cloud}
+              onChange={() => {
+                console.log(`change: ${cloud}`);
+                setCloud(!cloud);
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 export default App;

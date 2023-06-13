@@ -17,6 +17,7 @@ import { Line } from 'react-chartjs-2';
 import { BLACK_COLOR, colorMap, BusinessMetric, skipped } from '../../lib';
 
 import 'chartjs-adapter-date-fns';
+import { zip } from 'lodash';
 /**
  * A line chart variant to visualize dbt processed business metrics, based on the dimension and time grain provided via Piperider CLI's report `metrics` property.
  */
@@ -53,7 +54,7 @@ export function BMLineChart({
   // for each BMGroup, map its chart dataset (base, value, ...dimensions?)
   data.forEach((d, i) => {
     const { data = [] } = d ?? {};
-    const [labels, dataValues = []] = data;
+    const [labels, dataValues = []] = zip(...data);
 
     //use {x, y} for dynamic date range (rather than data.cat-labels)
     const chartXYDataset: ChartDataset<'line'>['data'] = dataValues.map(

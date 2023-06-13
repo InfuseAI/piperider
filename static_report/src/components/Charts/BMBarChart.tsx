@@ -13,6 +13,7 @@ import { Bar } from 'react-chartjs-2';
 import { BLACK_COLOR, colorMap, BusinessMetric } from '../../lib';
 
 import 'chartjs-adapter-date-fns';
+import { zip } from 'lodash';
 /**
  * A bar chart variant to visualize dbt processed business metrics, based on the dimension and time grain provided via Piperider CLI's report `metrics` property.
  */
@@ -39,7 +40,7 @@ export function BMBarChart({
   // for each BMGroup, map its chart dataset
   data.forEach((d, i) => {
     const { data = [] } = d ?? {};
-    const [labels, dataValues = []] = data;
+    const [labels, dataValues = []] = zip(...data);
 
     //NOTE: tight-coupling of label indexes, since fixed categorical label (order: target > base)
     labelVal = labelVal ?? labels;

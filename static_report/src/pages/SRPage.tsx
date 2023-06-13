@@ -20,6 +20,7 @@ import {
   SSR_ROUTE_PATH,
   TABLE_DETAILS_ROUTE_PATH,
   TABLE_LIST_ROUTE_PATH,
+  METRIC_DETAILS_ROUTE_PATH,
 } from '../utils/routes';
 import { SRAssertionListPage } from './SRAssertionListPage';
 import { SRBMPage } from './SRBMPage';
@@ -29,70 +30,77 @@ import { SRTablesListPage } from './SRTablesListPage';
 
 interface Props {
   data: SaferSRSchema;
+  cloud?: boolean;
   sideNavTop?: string;
 }
 
-export function SRPage({ data, sideNavTop = '0px' }: Props) {
+export function SRPage({ data, cloud, sideNavTop = '0px' }: Props) {
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData({ base: data });
 
   return (
     <Router hook={useHashLocation as BaseLocationHook}>
-      <MasterDetailContainer sideNavTop={sideNavTop} singleOnly>
-        <Switch>
-          <Route path={HOME_ROUTE_PATH}>
-            <SRTablesListPage />
-          </Route>
+      <Switch>
+        <MasterDetailContainer sideNavTop={sideNavTop} cloud={cloud} singleOnly>
+          <Switch>
+            <Route path={HOME_ROUTE_PATH}>
+              <SRTablesListPage />
+            </Route>
 
-          <Route path={TABLE_LIST_ROUTE_PATH}>
-            <SRTablesListPage />
-          </Route>
+            <Route path={TABLE_LIST_ROUTE_PATH}>
+              <SRTablesListPage />
+            </Route>
 
-          <Route path={TABLE_DETAILS_ROUTE_PATH}>
-            <SRTableDetailPage />
-          </Route>
-          <Route path={COLUMN_DETAILS_ROUTE_PATH}>
-            <SRColumnDetailPage />
-          </Route>
+            <Route path={TABLE_DETAILS_ROUTE_PATH}>
+              <SRTableDetailPage />
+            </Route>
+            <Route path={COLUMN_DETAILS_ROUTE_PATH}>
+              <SRColumnDetailPage />
+            </Route>
 
-          <Route path={SOURCE_DETAILS_ROUTE_PATH}>
-            <SRTableDetailPage />
-          </Route>
-          <Route path={SOURCE_COLUMN_DETAILS_ROUTE_PATH}>
-            <SRColumnDetailPage />
-          </Route>
+            <Route path={SOURCE_DETAILS_ROUTE_PATH}>
+              <SRTableDetailPage />
+            </Route>
+            <Route path={SOURCE_COLUMN_DETAILS_ROUTE_PATH}>
+              <SRColumnDetailPage />
+            </Route>
 
-          <Route path={SEED_DETAILS_ROUTE_PATH}>
-            <SRTableDetailPage />
-          </Route>
-          <Route path={SEED_COLUMN_DETAILS_ROUTE_PATH}>
-            <SRColumnDetailPage />
-          </Route>
+            <Route path={SEED_DETAILS_ROUTE_PATH}>
+              <SRTableDetailPage />
+            </Route>
+            <Route path={SEED_COLUMN_DETAILS_ROUTE_PATH}>
+              <SRColumnDetailPage />
+            </Route>
 
-          <Route path={MODEL_DETAILS_ROUTE_PATH}>
-            <SRTableDetailPage />
-          </Route>
-          <Route path={MODEL_COLUMN_DETAILS_ROUTE_PATH}>
-            <SRColumnDetailPage />
-          </Route>
+            <Route path={MODEL_DETAILS_ROUTE_PATH}>
+              <SRTableDetailPage />
+            </Route>
+            <Route path={MODEL_COLUMN_DETAILS_ROUTE_PATH}>
+              <SRColumnDetailPage />
+            </Route>
 
-          <Route path={ASSERTIONS_ROUTE_PATH}>
-            <SRAssertionListPage />
-          </Route>
+            <Route path={ASSERTIONS_ROUTE_PATH}>
+              <SRAssertionListPage />
+            </Route>
 
-          <Route path={METRICS_ROUTE_PATH}>
-            <SRBMPage />
-          </Route>
+            <Route path={METRICS_ROUTE_PATH}>
+              <SRBMPage />
+            </Route>
 
-          <Route path={SSR_ROUTE_PATH}>
-            <Loading />
-          </Route>
+            <Route path={METRIC_DETAILS_ROUTE_PATH}>
+              <SRBMPage />
+            </Route>
 
-          <Route>
-            <NotFound />
-          </Route>
-        </Switch>
-      </MasterDetailContainer>
+            <Route path={SSR_ROUTE_PATH}>
+              <Loading />
+            </Route>
+
+            <Route>
+              <NotFound />
+            </Route>
+          </Switch>
+        </MasterDetailContainer>
+      </Switch>
     </Router>
   );
 }

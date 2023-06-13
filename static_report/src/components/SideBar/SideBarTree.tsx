@@ -8,6 +8,7 @@ import { FiDatabase, FiFolder, FiGrid } from 'react-icons/fi';
 import { FiChevronDown, FiChevronRight, FiCheckCircle } from 'react-icons/fi';
 import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
 import { Comparable } from '../../types';
+import { RxDotFilled } from 'react-icons/rx';
 
 interface Props extends Comparable {
   items?: SidebarTreeItem[];
@@ -63,10 +64,12 @@ export function SideBarTree({ items, singleOnly }: Props) {
 
     if (changeStatus === 'added') {
       iconChangeStatus = VscDiffAdded;
-    } else if (changeStatus === 'changed') {
-      iconChangeStatus = VscDiffModified;
     } else if (changeStatus === 'removed') {
       iconChangeStatus = VscDiffRemoved;
+    } else if (changeStatus === 'changed') {
+      iconChangeStatus = VscDiffModified;
+    } else if (changeStatus === 'implicit') {
+      iconChangeStatus = RxDotFilled;
     }
 
     if (!isExpanded && !changeStatus && isChildrenChanged(item)) {

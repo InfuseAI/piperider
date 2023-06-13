@@ -8,3 +8,5 @@ npm-debug.log*
 piperider-metadata.json
 !lib/
 !pnpm-lock.yaml
+run.json
+comparison_data.json

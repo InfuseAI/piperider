@@ -20,6 +20,7 @@ import {
   SEED_COLUMN_DETAILS_ROUTE_PATH,
   MODEL_DETAILS_ROUTE_PATH,
   MODEL_COLUMN_DETAILS_ROUTE_PATH,
+  METRIC_DETAILS_ROUTE_PATH,
 } from '../utils/routes';
 import { CRAssertionListPage } from './CRAssertionListPage';
 import { CRBMPage } from './CRBMPage';
@@ -29,75 +30,82 @@ import { CRTablesListPage } from './CRTableListPage';
 
 interface Props {
   data: ComparisonReportSchema;
+  cloud?: boolean;
   sideNavTop?: string;
 }
 
-export function CRPage({ data, sideNavTop = '0px' }: Props) {
+export function CRPage({ data, cloud, sideNavTop = '0px' }: Props) {
   const setReportData = useReportStore((s) => s.setReportRawData);
   setReportData(data);
 
   return (
     <Router hook={useHashLocation as BaseLocationHook}>
-      <MasterDetailContainer sideNavTop={sideNavTop}>
-        <Switch>
-          <Route path={HOME_ROUTE_PATH}>
-            <CRTablesListPage />
-          </Route>
+      <Switch>
+        <MasterDetailContainer cloud={cloud} sideNavTop={sideNavTop}>
+          <Switch>
+            <Route path={HOME_ROUTE_PATH}>
+              <CRTablesListPage />
+            </Route>
 
-          <Route path={TABLE_LIST_ROUTE_PATH}>
-            <CRTablesListPage />
-          </Route>
+            <Route path={TABLE_LIST_ROUTE_PATH}>
+              <CRTablesListPage />
+            </Route>
 
-          <Route path={TABLE_LIST_ROUTE_PATH}>
-            <CRTablesListPage />
-          </Route>
+            <Route path={TABLE_LIST_ROUTE_PATH}>
+              <CRTablesListPage />
+            </Route>
 
-          <Route path={TABLE_DETAILS_ROUTE_PATH}>
-            <CRTableDetailPage />
-          </Route>
+            <Route path={TABLE_DETAILS_ROUTE_PATH}>
+              <CRTableDetailPage />
+            </Route>
 
-          <Route path={COLUMN_DETAILS_ROUTE_PATH}>
-            <CRColumnDetailPage />
-          </Route>
+            <Route path={COLUMN_DETAILS_ROUTE_PATH}>
+              <CRColumnDetailPage />
+            </Route>
 
-          <Route path={SOURCE_DETAILS_ROUTE_PATH}>
-            <CRTableDetailPage />
-          </Route>
-          <Route path={SOURCE_COLUMN_DETAILS_ROUTE_PATH}>
-            <CRColumnDetailPage />
-          </Route>
+            <Route path={SOURCE_DETAILS_ROUTE_PATH}>
+              <CRTableDetailPage />
+            </Route>
+            <Route path={SOURCE_COLUMN_DETAILS_ROUTE_PATH}>
+              <CRColumnDetailPage />
+            </Route>
 
-          <Route path={SEED_DETAILS_ROUTE_PATH}>
-            <CRTableDetailPage />
-          </Route>
-          <Route path={SEED_COLUMN_DETAILS_ROUTE_PATH}>
-            <CRColumnDetailPage />
-          </Route>
+            <Route path={SEED_DETAILS_ROUTE_PATH}>
+              <CRTableDetailPage />
+            </Route>
+            <Route path={SEED_COLUMN_DETAILS_ROUTE_PATH}>
+              <CRColumnDetailPage />
+            </Route>
 
-          <Route path={MODEL_DETAILS_ROUTE_PATH}>
-            <CRTableDetailPage />
-          </Route>
-          <Route path={MODEL_COLUMN_DETAILS_ROUTE_PATH}>
-            <CRColumnDetailPage />
-          </Route>
+            <Route path={MODEL_DETAILS_ROUTE_PATH}>
+              <CRTableDetailPage />
+            </Route>
+            <Route path={MODEL_COLUMN_DETAILS_ROUTE_PATH}>
+              <CRColumnDetailPage />
+            </Route>
 
-          <Route path={ASSERTIONS_ROUTE_PATH}>
-            <CRAssertionListPage />
-          </Route>
+            <Route path={ASSERTIONS_ROUTE_PATH}>
+              <CRAssertionListPage />
+            </Route>
 
-          <Route path={METRICS_ROUTE_PATH}>
-            <CRBMPage />
-          </Route>
+            <Route path={METRICS_ROUTE_PATH}>
+              <CRBMPage />
+            </Route>
 
-          <Route path={SSR_ROUTE_PATH}>
-            <Loading />
-          </Route>
+            <Route path={METRIC_DETAILS_ROUTE_PATH}>
+              <CRBMPage />
+            </Route>
 
-          <Route>
-            <NotFound />
-          </Route>
-        </Switch>
-      </MasterDetailContainer>
+            <Route path={SSR_ROUTE_PATH}>
+              <Loading />
+            </Route>
+
+            <Route>
+              <NotFound />
+            </Route>
+          </Switch>
+        </MasterDetailContainer>
+      </Switch>
     </Router>
   );
 }

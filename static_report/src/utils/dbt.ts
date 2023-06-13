@@ -4,36 +4,80 @@ import {
   ModelNode,
   SourceDefinition,
 } from '../sdlc/dbt-manifest-schema';
-import { DbtNode, SaferSRSchema } from '../types/index';
+import {
+  BusinessMetric,
+  ColumnSchema,
+  DbtNode,
+  SaferSRSchema,
+} from '../types/index';
 import _ from 'lodash';
 import { HOME_ROUTE_PATH } from './routes';
+import { DbtRunResultsSchema } from '../sdlc/dbt-run-results-schema';
+
+export type ItemType =
+  | DbtManifestSchema['nodes'][string]['resource_type']
+  | DbtManifestSchema['sources'][string]['resource_type']
+  | DbtManifestSchema['metrics'][string]['resource_type']
+  | DbtManifestSchema['exposures'][string]['resource_type']
+  | 'overview'
+  | 'folder'
+  | 'database'
+  | 'schema'
+  | 'table'
+  | 'column_string'
+  | 'column_numeric'
+  | 'column_integer'
+  | 'column_datetime'
+  | 'column_boolean'
+  | 'column_other'
+  | 'metric_list'
+  | 'test_list'
+  | 'graph';
+
+type ChangeStatus = 'changed' | 'added' | 'removed' | 'implicit';
 
 export interface SidebarTreeItem {
   name: string;
-  type:
-    | 'overview'
-    | 'folder'
-    | 'model'
-    | 'metric'
-    | 'exposure'
-    | 'seed'
-    | 'source'
-    | 'analysis'
-    | 'database'
-    | 'schema'
-    | 'table'
-    | 'column_string'
-    | 'column_numeric'
-    | 'column_integer'
-    | 'column_datetime'
-    | 'column_boolean'
-    | 'column_other'
-    | 'metric_list'
-    | 'test_list';
+  type: ItemType;
   path?: string;
   expanded?: boolean;
   items?: SidebarTreeItem[];
-  changeStatus?: 'changed' | 'added' | 'removed';
+  changeStatus?: ChangeStatus;
+}
+
+export interface LineageGraphNode {
+  uniqueId: string;
+  name: string;
+  from: ('base' | 'target')[];
+  type: ItemType;
+  path?: string;
+  filePath: string;
+  packageName?: string;
+  changeStatus?: ChangeStatus;
+  dependsOn: {
+    [key: string]: LineageGraphEdge;
+  };
+  children: {
+    [key: string]: LineageGraphEdge;
+  };
+  base?: DbtNode;
+  target?: DbtNode;
+  tags: string[];
+  singleOnly?: boolean;
+  isHighlighted?: boolean;
+  stat?: string;
+}
+
+export interface LineageGraphEdge {
+  source: string;
+  target: string;
+  from: ('base' | 'target')[];
+  singleOnly?: boolean;
+  isHighlighted?: boolean;
+}
+
+export interface LineageGraphData {
+  [key: string]: LineageGraphNode;
 }
 
 export const buildDbtNodes = (run?: SaferSRSchema) => {
@@ -42,6 +86,8 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
   }
 
   const manifest = run?.dbt?.manifest as DbtManifestSchema;
+  const runResults = run?.dbt?.run_results as DbtRunResultsSchema;
+
   const dbtNodes: {
     [key: string]: DbtNode;
   } = {};
@@ -79,6 +125,17 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
       }
     });
 
+    Object.values(manifest?.metrics ?? {}).forEach((metric) => {
+      const dbtNode: DbtNode = metric;
+      const queries = (run?.metrics ?? []).filter((m) =>
+        m.name.startsWith(metric.name),
+      );
+
+      if (queries.length > 0) {
+        dbtNode.__queries = queries;
+      }
+    });
+
     Object.assign(
       dbtNodes,
       manifest?.sources,
@@ -86,8 +143,144 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
       manifest?.nodes,
     );
   }
+
+  if (runResults) {
+    runResults.results.forEach((result) => {
+      const uniqueId = result.unique_id;
+      if (dbtNodes[uniqueId]) {
+        dbtNodes[uniqueId].__runResult = result;
+      }
+    });
+  }
+
   return dbtNodes;
 };
+
+function compareDbtNode(
+  base?: Partial<DbtNode>,
+  target?: Partial<DbtNode>,
+): ChangeStatus | undefined {
+  if (base === undefined && target === undefined) {
+    return undefined;
+  }
+
+  if (!base) {
+    return 'added';
+  }
+
+  if (!target) {
+    return 'removed';
+  }
+
+  // code change
+  if (target?.raw_code && base?.raw_code !== target?.raw_code) {
+    return 'changed';
+  }
+
+  // value change
+  if (
+    base?.__table?.row_count !== undefined &&
+    target.__table?.row_count !== undefined
+  ) {
+    if (base.__table.row_count !== target.__table.row_count) {
+      return 'implicit';
+    }
+  }
+
+  if (base?.__queries !== undefined && target.__queries !== undefined) {
+    if (compareQueries(base, target)) {
+      return 'implicit';
+    }
+  }
+
+  return undefined;
+}
+
+export function compareColumn(
+  base?: Partial<ColumnSchema>,
+  target?: Partial<ColumnSchema>,
+): ChangeStatus | undefined {
+  // schema change
+  if (!base) {
+    return 'added';
+  } else if (!target) {
+    return 'removed';
+  } else if (base.schema_type !== target?.schema_type) {
+    return 'implicit';
+  }
+
+  // value change
+  if (base?.nulls !== target?.nulls) {
+    return 'implicit';
+  }
+
+  if (base?.distinct !== target?.distinct) {
+    return 'implicit';
+  }
+
+  if (base?.duplicates !== target?.duplicates) {
+    return 'implicit';
+  }
+}
+
+export function compareQuery(
+  base?: Partial<BusinessMetric>,
+  target?: Partial<BusinessMetric>,
+): ChangeStatus | undefined {
+  if (!base?.data) {
+    return 'added';
+  } else if (!target?.data) {
+    return 'removed';
+  }
+
+  // value change
+  if (base.data.length !== target.data.length) {
+    return 'implicit';
+  }
+
+  for (let i = 0; i < base.data?.length; i++) {
+    if (base.data[i][1] !== target.data[i][1]) {
+      return 'implicit';
+    }
+  }
+
+  return undefined;
+}
+
+export function compareQueries(
+  base?: Partial<DbtNode>,
+  target?: Partial<DbtNode>,
+): ChangeStatus | undefined {
+  if (base?.__queries === undefined) {
+    return undefined;
+  }
+
+  if (target?.__queries === undefined) {
+    return undefined;
+  }
+
+  let valueChange = false;
+  target?.__queries.forEach((targetQuery) => {
+    if (valueChange) {
+      return;
+    }
+
+    const baseQuery = _.find(
+      base?.__queries,
+      (q) => q.name === targetQuery.name,
+    );
+
+    if (compareQuery(baseQuery, targetQuery)) {
+      valueChange = true;
+    }
+  });
+
+  if (valueChange) {
+    return 'implicit';
+  }
+
+  return undefined;
+}
 
 export function findNodeByUniqueID(
   manifest: DbtManifestSchema,
@@ -119,9 +312,9 @@ export function findNodeByUniqueID(
 export function buildColumnTree(
   itemsColumnComparison: CompColEntryItem[],
   pathPrefix,
-): [SidebarTreeItem[], boolean] {
+): [SidebarTreeItem[], ChangeStatus | undefined] {
   let items: SidebarTreeItem[] = [];
-  let schemaChanged = false;
+  let resultChangeStatus: ChangeStatus | undefined = undefined;
 
   itemsColumnComparison.forEach(([columnName, { base, target }]) => {
     const fallback = target || base;
@@ -131,17 +324,9 @@ export function buildColumnTree(
     }
 
     let type = `column_${fallback?.type}` as any;
-    let changeStatus;
-
-    if (!base) {
-      changeStatus = 'added';
-      schemaChanged = true;
-    } else if (!target) {
-      changeStatus = 'removed';
-      schemaChanged = true;
-    } else if (base.schema_type !== target.schema_type) {
-      changeStatus = 'changed';
-      schemaChanged = true;
+    let changeStatus = compareColumn(base, target);
+    if (changeStatus) {
+      resultChangeStatus = 'implicit';
     }
 
     items.push({
@@ -151,7 +336,7 @@ export function buildColumnTree(
       changeStatus,
     });
   });
-  return [items, schemaChanged];
+  return [items, resultChangeStatus];
 }
 
 export function buildSourceTree(
@@ -180,20 +365,12 @@ export function buildSourceTree(
       }
 
       const path = `/sources/${fallback?.unique_id}`;
-      const [columnItems, schemaChanged] = buildColumnTree(
+      const [columnItems, columnChangeStatus] = buildColumnTree(
         fallback!.__columns || [],
         path,
       );
 
-      let changeStatus: SidebarTreeItem['changeStatus'];
-      if (!base) {
-        changeStatus = 'added';
-      } else if (!target) {
-        changeStatus = 'removed';
-      } else if (schemaChanged) {
-        changeStatus = 'changed';
-      }
-
+      const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
       tree[sourceName].items.push({
         type: 'source',
         name: name,
@@ -265,18 +442,11 @@ export function buildModelOrSeedTree(
     });
 
     const path = `/${resourceType}s/${fallback?.unique_id}`;
-    const [columnItems, schemaChanged] = buildColumnTree(
+    const [columnItems, columnChangeStatus] = buildColumnTree(
       fallback!.__columns || [],
       path,
     );
-    let changeStatus: SidebarTreeItem['changeStatus'];
-    if (!base) {
-      changeStatus = 'added';
-    } else if (!target) {
-      changeStatus = 'removed';
-    } else if (schemaChanged) {
-      changeStatus = 'changed';
-    }
+    const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
 
     curDir[fname] = {
       type: resourceType,
@@ -323,18 +493,11 @@ export function buildLegacyTablesTree(
     }
 
     const path = `/tables/${fallback?.name}`;
-    const [columnItems, schemaChanged] = buildColumnTree(
+    const [columnItems, columnChangeStatus] = buildColumnTree(
       fallback!.__columns || [],
       path,
     );
-    let changeStatus: SidebarTreeItem['changeStatus'];
-    if (!base) {
-      changeStatus = 'added';
-    } else if (!target) {
-      changeStatus = 'removed';
-    } else if (schemaChanged) {
-      changeStatus = 'changed';
-    }
+    const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
 
     const itemTable: SidebarTreeItem = {
       name: fallback?.name || '',
@@ -407,8 +570,7 @@ export function buildDatabaseTree(
 ): SidebarTreeItem[] {
   let items: SidebarTreeItem[] = [];
   const treeNodes: DbtNode[] = [];
-  const added: string[] = [];
-  const removed: string[] = [];
+  const changeStatuses: { [key: string]: ChangeStatus | undefined } = {};
 
   itemsNodeComparison.forEach(([key, { base, target }]) => {
     const node = target || base;
@@ -428,11 +590,7 @@ export function buildDatabaseTree(
       treeNodes.push(node as DbtNode);
     }
 
-    if (!base) {
-      added.push(key);
-    } else if (!target) {
-      removed.push(key);
-    }
+    changeStatuses[key] = compareDbtNode(base, target);
   });
 
   var treeNodesSorted = _.sortBy(treeNodes, function (node) {
@@ -468,20 +626,13 @@ export function buildDatabaseTree(
 
       _.each(schema_nodes, function (node) {
         const path = '/' + node.resource_type + 's/' + node.unique_id;
-        const [columnItems, schemaChanged] = buildColumnTree(
+        const [columnItems, columnChangeStatus] = buildColumnTree(
           node.__columns || [],
           path,
         );
 
-        let changeStatus: SidebarTreeItem['changeStatus'];
-        if (added.includes(node!.unique_id!)) {
-          changeStatus = 'added';
-        } else if (removed.includes(node!.unique_id!)) {
-          changeStatus = 'removed';
-        } else if (schemaChanged) {
-          changeStatus = 'changed';
-        }
-
+        const changeStatus =
+          changeStatuses[node!.unique_id!] ?? columnChangeStatus;
         let itemTable: SidebarTreeItem = {
           type: node.resource_type as any,
           name: node.identifier || node.alias || node.name,
@@ -496,4 +647,88 @@ export function buildDatabaseTree(
   });
 
   return items;
+}
+
+export function buildLineageGraph(
+  itemsNodeComparison: CompTableColEntryItem[],
+): LineageGraphData {
+  const data: LineageGraphData = {};
+
+  function linkLineageGraphItemChildren(
+    data: LineageGraphData,
+  ): LineageGraphData {
+    Object.entries(data).forEach(([key, item]) => {
+      Object.entries(item.dependsOn).forEach(([node, from]) => {
+        if (data[node]) {
+          data[node].children[key] = from;
+        }
+      });
+    });
+    return data;
+  }
+
+  itemsNodeComparison.forEach((tableEntry) => {
+    const [key, { base, target }] = tableEntry;
+    const fallback = (target ?? base) as DbtNode;
+    const dependsOn: LineageGraphNode['dependsOn'] = {};
+    const from: LineageGraphNode['from'] = [];
+
+    if (fallback.resource_type === 'table') {
+      return;
+    }
+
+    if (base) {
+      from.push('base');
+      (base.depends_on?.nodes || []).forEach((node) => {
+        dependsOn[node] = {
+          source: key,
+          target: node,
+          from: ['base'],
+        };
+      });
+    }
+
+    if (target) {
+      from.push('target');
+      (target.depends_on?.nodes || []).forEach((node) => {
+        if (dependsOn[node]) {
+          dependsOn[node].from.push('target');
+        } else {
+          dependsOn[node] = {
+            source: key,
+            target: node,
+            from: ['target'],
+          };
+        }
+      });
+    }
+
+    const path = `/${fallback?.resource_type}s/${fallback?.unique_id}`;
+    const packageName = fallback?.package_name;
+    const filePath = fallback?.original_file_path.replace(/^models\//, '');
+    const tags = fallback?.tags || [];
+    const [, columnChangeStatus] = buildColumnTree(
+      fallback!.__columns || [],
+      path,
+    );
+    const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
+
+    data[key] = {
+      uniqueId: key,
+      name: fallback?.name || '',
+      type: fallback!.resource_type!,
+      from,
+      path,
+      filePath,
+      packageName,
+      changeStatus,
+      base: base as DbtNode,
+      target: target as DbtNode,
+      dependsOn,
+      children: {},
+      tags,
+    };
+  });
+
+  return linkLineageGraphItemChildren(data);
 }
