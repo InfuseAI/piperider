@@ -689,8 +689,8 @@ class JoinedTables:
         result = dict()
         for key in keys:
             value = dict()
-            value["base"] = base.get(key)
-            value["target"] = target.get(key)
+            value["base"] = base.get(key, {})
+            value["target"] = target.get(key, {})
             result[key] = value
         return result
 
@@ -725,8 +725,8 @@ class JoinedTables:
 
     def _create_columns_and_their_metrics(self, table_name):
         table = self._joined_tables[table_name]
-        b = table.get("base", {}).get("columns")
-        t = table.get("target", {}).get("columns")
+        b = table.get("base", {}).get("columns", {})
+        t = table.get("target", {}).get("columns", {})
         all_column_keys = sorted(set(list(b.keys()) + list(t.keys())))
         return all_column_keys, b, t
 
