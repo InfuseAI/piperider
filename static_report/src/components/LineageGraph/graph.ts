@@ -35,7 +35,7 @@ export const buildNodesAndEdges = async (
   const layoutLibrary = options.layoutLibrary || 'dagre';
 
   // nodes
-  if (options.filterBy === 'selected' && options.selected) {
+  if (options.filterBy === 'selected') {
     nodeSet = new Set(filterBySelected(lineageGraph, options.selected));
   } else if (options.filterBy === 'changed') {
     nodeSet = new Set(filterByChanged(lineageGraph));
@@ -237,7 +237,14 @@ const filterByChanged = (lineageGraph: LineageGraphData) => {
 };
 
 /* The selected node and its upstream and downstream */
-const filterBySelected = (lineageGraph: LineageGraphData, selected: string) => {
+const filterBySelected = (
+  lineageGraph: LineageGraphData,
+  selected?: string,
+) => {
+  if (!selected) {
+    return [];
+  }
+
   return [
     ...getUpstreamNodes(lineageGraph, selected),
     ...getDownstreamNodes(lineageGraph, selected),

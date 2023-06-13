@@ -6,6 +6,7 @@ import ReactFlow, {
   Controls,
   MiniMap,
   Node,
+  Panel,
   ReactFlowProvider,
   useEdgesState,
   useNodesState,
@@ -27,6 +28,7 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  Link,
 } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { LineageGraphNode } from '../../utils/dbt';
@@ -63,7 +65,9 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   let { uniqueId } = useTableRoute();
   const [, setLocation] = useLocation();
-  const [filterBy, setFilterBy] = useState<FilterBy>(undefined);
+  const [filterBy, setFilterBy] = useState<FilterBy>(
+    singleOnly ? undefined : 'changed',
+  );
   const [selected, setSelected] = useState<string | undefined>(uniqueId);
   const [layoutAlgorithm, setLayoutAlgorithm] = useState('dagre');
   const [stat, setStat] = useState('');
@@ -115,12 +119,19 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
   }, [setFilterBy]);
 
   const onResetClick = useCallback(() => {
-    setFilterBy(undefined);
+    setFilterBy(singleOnly ? undefined : 'changed');
     setStat('');
     setLayoutAlgorithm('dagre');
     setGroupBy('');
-    reactflow.fitView();
-  }, [setFilterBy, setStat, setLayoutAlgorithm, setGroupBy, reactflow]);
+    reactflow.fitView({ maxZoom: 1 });
+  }, [
+    setFilterBy,
+    setStat,
+    setLayoutAlgorithm,
+    setGroupBy,
+    reactflow,
+    singleOnly,
+  ]);
 
   useEffect(() => {
     const renderGraph = async () => {
@@ -140,6 +151,9 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
       });
       setNodes(nodes);
       setEdges(edges);
+
+      // setNodes([]);
+      // setEdges([]);
 
       setTimeout(() => reactflow.fitView({ maxZoom: 1 }), 0);
     };
@@ -253,6 +267,22 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
         >
           <Controls showInteractive={false} />
           <MiniMap nodeStrokeWidth={3} zoomable pannable />
+          {nodes.length === 0 && (
+            <Panel position="top-left">
+              <Text fontSize="sm">
+                {filterBy === 'selected' && 'No active node.'}
+                {filterBy === 'changed' && 'No changed nodes found.'}{' '}
+                <Link
+                  color="blue"
+                  onClick={() => {
+                    onFullGraphClick();
+                  }}
+                >
+                  Show all nodes
+                </Link>
+              </Text>
+            </Panel>
+          )}
         </ReactFlow>
 
         <TableSummary
