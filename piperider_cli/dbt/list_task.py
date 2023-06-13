@@ -3,8 +3,7 @@ from typing import Dict, List
 
 import agate
 import dbt.flags as flags_module
-from dbt.adapters.base import BaseAdapter, BaseRelation
-from dbt.adapters.base import Column as BaseColumn
+from dbt.adapters.base import BaseAdapter, BaseRelation, Column as BaseColumn
 from dbt.config.project import VarProvider
 from dbt.config.runtime import RuntimeConfig
 from dbt.contracts.connection import QueryComment
@@ -13,12 +12,39 @@ from dbt.contracts.project import PackageConfig, UserConfig
 from dbt.contracts.state import PreviousState
 from dbt.exceptions import EventCompilationError
 from dbt.node_types import NodeType
+
 from dbt.task.list import ListTask
 
 
-def load_manifest(manifest: Dict):
+def dbt_version():
     from dbt import version
-    if version.__version__.startswith('1.4.'):
+    try:
+        version_string = ".".join(version.__version__.split(".")[0:2])
+        return version_string
+    except BaseException:
+        return "unknown"
+
+
+def dbt_version_obj():
+    from packaging import version as v
+    from dbt import version as dbt_version
+    return v.parse(dbt_version.__version__)
+
+
+def is_v1_4():
+    from packaging import version as v
+    dbt_v = dbt_version_obj()
+    return v.parse('1.4.0') <= dbt_v < v.parse('v1.5.0')
+
+
+def is_v1_5():
+    from packaging import version as v
+    dbt_v = dbt_version_obj()
+    return v.parse('1.5.0') <= dbt_v < v.parse('v1.6.0')
+
+
+def load_manifest(manifest: Dict):
+    if dbt_version() == '1.4':
         return _load_manifest_version_14(manifest)
 
     # TODO ensure it is after v1.5.x
@@ -206,7 +232,9 @@ class _DbtListTask(ListTask):
         self.config = _RuntimeConfig()
         self.args = flags_module.get_flag_obj()
         self.previous_state = None
-        flags_module.set_flags(self.args)
+
+        if is_v1_5() and hasattr(flags_module, 'set_flags'):
+            flags_module.set_flags(self.args)
 
         # The graph compiler tries to make directories when it initialized itself
         setattr(self.args, "target_path", "/tmp/piperider-list-task/target_path")
@@ -219,6 +247,8 @@ class _DbtListTask(ListTask):
         # Args for ListTask
         setattr(self.args, "WRITE_JSON", None)
         setattr(self.args, "exclude", None)
+        setattr(self.args, "output", "selector")
+        setattr(self.args, "models", None)
         setattr(self.args, "INDIRECT_SELECTION", "eager")
         setattr(self.args, "WARN_ERROR", True)
         self.args.args = argparse.Namespace()
@@ -240,6 +270,12 @@ class _DbtListTask(ListTask):
         for result in results:
             self.node_results.append(result)
         return self.node_results
+
+    def load_manifest(self):
+        adapter = _Adapter(self.args)
+        compiler = adapter.get_compiler()
+        self.graph = compiler.compile(self.manifest)
+        return
 
 
 class _InMemoryPreviousState(PreviousState):
@@ -281,12 +317,16 @@ def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector 
     task = _DbtListTask()
     task.manifest = manifest
 
-    dbt_flags = flags_module.get_flags()
+    dbt_flags = task.args
     setattr(dbt_flags, "state", None)
     setattr(dbt_flags, "models", None)
 
+    if is_v1_4():
+        flags_module.INDIRECT_SELECTION = 'eager'
+
     setattr(dbt_flags, "output", "selector")
-    setattr(dbt_flags, "resource_types", None)
+    setattr(dbt_flags, "selector_name", None)
+    setattr(dbt_flags, "resource_types", [])
     if selector is not None:
         setattr(dbt_flags, "resource_types", selector.build_selected_set())
 
@@ -303,10 +343,16 @@ def compare_models_between_manifests(
     task = _DbtListTask()
     task.manifest = base_manifest
 
-    dbt_flags = flags_module.get_flags()
+    #
+    if is_v1_5() and hasattr(flags_module, 'get_flags'):
+        dbt_flags = flags_module.get_flags()
+    else:
+        dbt_flags = task.args
+        flags_module.INDIRECT_SELECTION = 'eager'
+
     setattr(dbt_flags, "state", None)
     setattr(dbt_flags, "models", None)
-
+    setattr(dbt_flags, "selector_name", None)
     setattr(dbt_flags, "output", "selector")
     setattr(dbt_flags, "resource_types", {NodeType.Model})
 
