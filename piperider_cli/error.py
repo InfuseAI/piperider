@@ -199,3 +199,9 @@ class RecipeConfigException(PipeRiderError):
     def __init__(self, message, hint=None):
         self.message = message
         self.hint = hint
+
+
+class CloudReportError(PipeRiderError):
+    def __init__(self, error_msg):
+        self.message = error_msg
+        pass
