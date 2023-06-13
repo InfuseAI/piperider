@@ -1,15 +1,15 @@
+import io
 import json
 import os
 import sys
-import io
 from glob import glob
+from pathlib import Path
 from typing import Optional, Union
 
 import inquirer
 from rich.console import Console
 from rich.table import Table
 from ruamel import yaml
-from dbt.cli.resolvers import default_project_dir
 
 from piperider_cli import load_jinja_template, load_jinja_string_template
 from piperider_cli.configuration import FileSystem
@@ -23,18 +23,25 @@ from piperider_cli.statistics import Statistics
 console = Console()
 
 
+def search_dbt_project_path() -> str:
+    paths = list(Path.cwd().parents)
+    paths.insert(0, Path.cwd())
+    return next((str(x) for x in paths if (x / "dbt_project.yml").exists()), None)
+
+
 def get_dbt_project_path(dbt_project_dir: str = None, no_auto_search: bool = False,
                          recursive: bool = True) -> str:
     dbt_project_path = None
     if dbt_project_dir:
         dbt_project_path = os.path.join(dbt_project_dir, "dbt_project.yml")
     else:
-        dbt_project_path = str(default_project_dir())
+        dbt_project_path = search_dbt_project_path()
 
     return dbt_project_path
 
 
-def search_dbt_project_path(recursive: bool = True):
+# Deprecated due to we will search parent directory for dbt_project.yml, not subdirectory ref: SC-31557
+def _search_dbt_project_path(recursive: bool = True):
     exclude_patterns = ['site-packages', 'dbt_packages']
     segments = [os.getcwd()]
     if recursive:
@@ -356,7 +363,8 @@ def load_dbt_project(path: str):
         path = os.path.join(path, 'dbt_project.yml')
 
     if not os.path.isabs(path):
-        path = os.path.join(FileSystem.working_directory, path)
+        from piperider_cli.configuration import FileSystem
+        path = os.path.join(FileSystem.WORKING_DIRECTORY, path)
 
     with open(path, 'r') as fd:
         try:
@@ -432,7 +440,7 @@ def get_fqn_list_by_tag(tag: str, project_dir: str):
     dbt_project = load_dbt_project(project_dir)
     dbt_state_dir = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
     if os.path.isabs(dbt_state_dir) is False:
-        dbt_state_dir = os.path.join(project_dir, dbt_state_dir)
+        dbt_state_dir = os.path.join(FileSystem.WORKING_DIRECTORY, project_dir, dbt_state_dir)
 
     path = os.path.join(dbt_state_dir, 'manifest.json')
     with open(path) as f:

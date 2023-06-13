@@ -16,8 +16,6 @@ from piperider_cli.error import RecipeConfigException
 from piperider_cli.recipes.utils import InteractiveStopException
 
 PIPERIDER_RECIPES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'recipe_schema.json')
-PIPERIDER_RECIPES_PATH = os.path.join(FileSystem.PIPERIDER_WORKSPACE_PATH, 'compare')
-DEFAULT_RECIPE_PATH = os.path.join(PIPERIDER_RECIPES_PATH, "default.yml")
 
 console = Console()
 
@@ -351,8 +349,7 @@ def execute_configuration(cfg: RecipeConfiguration, debug=False):
 def select_recipe_file(name: str = None):
     if name is None:
         name = "default"
-
-    recipe_path = os.path.join(PIPERIDER_RECIPES_PATH, f"{name}.yml")
+    recipe_path = os.path.join(FileSystem.PIPERIDER_RECIPES_PATH, f"{name}.yml")
     if not os.path.exists(recipe_path):
         if name == "default":
             return None

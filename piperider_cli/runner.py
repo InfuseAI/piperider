@@ -544,7 +544,8 @@ def get_dbt_state_dir(dbt_state_dir, dbt_config, ds):
         dbt_project = dbtutil.load_dbt_project(project_dir)
         dbt_state_dir = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
         if os.path.isabs(dbt_state_dir) is False:
-            parent = project_dir if os.path.isabs(project_dir) else os.path.join(FileSystem.working_directory, project_dir)
+            parent = project_dir if os.path.isabs(project_dir) else os.path.join(FileSystem.WORKING_DIRECTORY,
+                                                                                 project_dir)
             dbt_state_dir = os.path.join(parent, dbt_state_dir)
 
     if not dbtutil.is_dbt_state_ready(dbt_state_dir):

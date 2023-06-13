@@ -31,7 +31,8 @@ class SqliteDataSource(DataSource):
 
     def to_database_url(self, database):
         credential = self.credential
-        dbpath = credential.get('dbpath')
+        from piperider_cli.configuration import FileSystem
+        dbpath = os.path.join(FileSystem.WORKING_DIRECTORY, credential.get('dbpath'))
         if dbpath is None:
             return "sqlite://"
         else:
