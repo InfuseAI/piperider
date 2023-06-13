@@ -37,10 +37,6 @@ class Guide(object):
         if command_name == 'version':
             return
 
-        if command_name != 'init' and not piperider_initialized():
-            self.show("Piperider is not initialized. Please execute command 'piperider init' to move forward.")
-            return
-
         if command_name == 'init':
             self.show("Please execute command 'piperider diagnose' to verify configuration")
             return
