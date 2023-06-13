@@ -365,7 +365,15 @@ def compare_models_between_manifests(
         setattr(dbt_flags, "select", ("state:modified",))
 
     try:
-        return task.run()
+        # silence the dbt event logger
+        import dbt.compilation as compilation
+        original_print_compile_stats = compilation.print_compile_stats
+        compilation.print_compile_stats = lambda x: None
+
+        result = task.run()
+        compilation.print_compile_stats = original_print_compile_stats
+
+        return result
     except EventCompilationError as e:
         if "does not match any nodes" in e.msg:
             return []
