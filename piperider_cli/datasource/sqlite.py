@@ -32,10 +32,12 @@ class SqliteDataSource(DataSource):
     def to_database_url(self, database):
         credential = self.credential
         from piperider_cli.configuration import FileSystem
-        dbpath = os.path.join(FileSystem.WORKING_DIRECTORY, credential.get('dbpath'))
+        dbpath = credential.get('dbpath')
         if dbpath is None:
             return "sqlite://"
         else:
+            if os.path.isabs(dbpath) is False:
+                dbpath = os.path.join(FileSystem.get_current_project_path(), dbpath)
             sqlite_file = os.path.abspath(dbpath)
             if not os.path.exists(sqlite_file):
                 raise ValueError(f'Cannot find the sqlite at {sqlite_file}')
