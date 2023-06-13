@@ -224,7 +224,7 @@ const filterByChanged = (lineageGraph: LineageGraphData) => {
   });
 
   // Add all (<change upstream> & <change downstream>) to changeSet
-  const isDownAndUpSet = [...upstreamSet].filter((uniqueId) =>
+  const isDownAndUpSet = Array.from(upstreamSet).filter((uniqueId) =>
     downstreamSet.has(uniqueId),
   );
 
@@ -233,7 +233,7 @@ const filterByChanged = (lineageGraph: LineageGraphData) => {
     changeSet.add(uniqueId);
   });
 
-  return [...changeSet];
+  return Array.from(changeSet);
 };
 
 /* The selected node and its upstream and downstream */
