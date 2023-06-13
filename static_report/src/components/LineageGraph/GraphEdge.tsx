@@ -27,10 +27,10 @@ export default function GraphEdge(props: GraphEdgeProps) {
   if (!data?.singleOnly) {
     if (!data?.from.includes('target')) {
       style['stroke'] = COLOR_REMOVED;
-      style['stroke-dasharray'] = '5';
+      style['strokeDasharray'] = '5';
     } else if (!data?.from.includes('base')) {
       style['stroke'] = COLOR_ADDED;
-      style['stroke-dasharray'] = '5';
+      style['strokeDasharray'] = '5';
     }
   }
 

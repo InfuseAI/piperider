@@ -42,6 +42,8 @@ import {
   getDownstreamNodes,
   getUpstreamNodes,
 } from './graph';
+import { useTrackOnMount } from '../../hooks/useTrackOnMount';
+import { CR_TYPE_LABEL, EVENTS, SR_TYPE_LABEL } from '../../utils/trackEvents';
 
 const nodeTypes = {
   customNode: GraphNode,
@@ -66,6 +68,14 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
   const [layoutAlgorithm, setLayoutAlgorithm] = useState('dagre');
   const [stat, setStat] = useState('');
   const [groupBy, setGroupBy] = useState('');
+
+  useTrackOnMount({
+    eventName: EVENTS.PAGE_VIEW,
+    eventProperties: {
+      type: singleOnly ? SR_TYPE_LABEL : CR_TYPE_LABEL,
+      page: 'lineage-graph',
+    },
+  });
 
   const onNodeClick = useCallback(
     (event: React.MouseEvent, node: Node) => {
@@ -114,7 +124,6 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
 
   useEffect(() => {
     const renderGraph = async () => {
-      console.log(Object.keys(lineageGraph).length);
       const { nodes, edges } = await buildNodesAndEdges(lineageGraph, {
         nodeOverrides: {
           singleOnly: singleOnly || false,

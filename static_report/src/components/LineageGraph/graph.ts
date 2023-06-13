@@ -150,7 +150,7 @@ export const buildNodesAndEdges = async (
   let nodesAndEdges = { nodes: groups.concat(nodes), edges };
 
   if (isLayout) {
-    logWithTimestamp(`layout by ${layoutLibrary}`);
+    // logWithTimestamp(`layout by ${layoutLibrary}`);
     if (layoutLibrary === 'dagre') {
       if (groups.length > 0) {
         layoutWithGroups(groups, nodes, edges, 'LR');
@@ -162,7 +162,7 @@ export const buildNodesAndEdges = async (
       layout(nodes, edges, 'LR');
       groupBySubFlow(groups, nodes);
     }
-    logWithTimestamp('layout complete');
+    // logWithTimestamp('layout complete');
   }
 
   return nodesAndEdges;
@@ -410,7 +410,7 @@ const groupBySubFlow = (groups: Node[], nodes: Node[]) => {
   });
 };
 
-function logWithTimestamp(message) {
-  var timestamp = new Date().toLocaleTimeString();
-  console.log('[' + timestamp + '] ' + message);
-}
+// function logWithTimestamp(message) {
+//   var timestamp = new Date().toLocaleTimeString();
+//   console.log('[' + timestamp + '] ' + message);
+// }
