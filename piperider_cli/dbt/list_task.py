@@ -319,7 +319,7 @@ def compare_models_between_manifests(
     include_downstream: bool = False,
 ):
     task = _DbtListTask()
-    task.manifest = base_manifest
+    task.manifest = altered_manifest
 
     dbt_flags = flags_module.get_flags()
     setattr(dbt_flags, "state", None)
@@ -330,7 +330,7 @@ def compare_models_between_manifests(
 
     setattr(dbt_flags, "selector", None)
 
-    task.previous_state = _InMemoryPreviousState(altered_manifest)
+    task.previous_state = _InMemoryPreviousState(base_manifest)
     if include_downstream:
         setattr(dbt_flags, "select", ("state:modified+",))
     else:
