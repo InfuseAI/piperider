@@ -12,7 +12,6 @@ from rich.table import Table
 from ruamel import yaml
 
 from piperider_cli import load_jinja_template, load_jinja_string_template
-from piperider_cli.configuration import FileSystem
 from piperider_cli.error import \
     DbtProjectInvalidError, \
     DbtProfileInvalidError, \
@@ -440,6 +439,7 @@ def get_fqn_list_by_tag(tag: str, project_dir: str):
     dbt_project = load_dbt_project(project_dir)
     dbt_state_dir = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
     if os.path.isabs(dbt_state_dir) is False:
+        from piperider_cli.configuration import FileSystem
         dbt_state_dir = os.path.join(FileSystem.WORKING_DIRECTORY, project_dir, dbt_state_dir)
 
     path = os.path.join(dbt_state_dir, 'manifest.json')
