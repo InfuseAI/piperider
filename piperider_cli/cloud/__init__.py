@@ -8,7 +8,7 @@ from rich.progress import Progress, TextColumn, BarColumn, DownloadColumn, TimeE
 from ruamel import yaml
 
 from piperider_cli import __version__
-from piperider_cli.error import PipeRiderNoDefaultProjectError
+from piperider_cli.error import PipeRiderNoDefaultProjectError, CloudReportError
 from piperider_cli.event import load_user_profile, update_user_profile
 
 PIPERIDER_CLOUD_SERVICE = 'https://cloud.piperider.io/'
@@ -305,7 +305,7 @@ class PipeRiderCloud:
         response = requests.post(url, headers=headers)
 
         if response.status_code != 200:
-            return None
+            self.raise_error(response.reason)
 
         return response.json()
 
@@ -319,7 +319,7 @@ class PipeRiderCloud:
         response = requests.post(url, data=json.dumps({'tables_from': tables_from}), headers=headers)
 
         if response.status_code != 200:
-            return None
+            self.raise_error(response.reason)
 
         return response.json()
 
@@ -333,12 +333,12 @@ class PipeRiderCloud:
         response = requests.post(url, headers=headers)
 
         if response.status_code != 200:
-            return None
+            self.raise_error(response.reason)
 
         return response.json()
 
-    def raise_error(self):
-        raise ValueError("Service not available or configuration invalid")
+    def raise_error(self, message="Service not available or configuration invalid"):
+        raise CloudReportError(message)
 
     def has_configured(self):
         return self.service.api_token is not None

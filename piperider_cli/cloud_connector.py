@@ -16,6 +16,7 @@ from piperider_cli.cloud import PipeRiderCloud, PipeRiderProject
 from piperider_cli.compare_report import CompareReport, RunOutput
 from piperider_cli.configuration import Configuration
 from piperider_cli.datasource import FANCY_USER_INPUT
+from piperider_cli.error import CloudReportError
 
 console = Console()
 piperider_cloud = PipeRiderCloud()
@@ -456,9 +457,8 @@ class CloudConnector:
             else:
                 project = piperider_cloud.get_default_project()
             return _generate_legacy_compare_report_url(base_id, target_id, project=project)
-        except Exception as e:
-            if debug:
-                console.print(f'[[bold red]Error[/bold red]] {e}')
+        except CloudReportError as e:
+            console.print(f'[[bold red]Error[/bold red]] Cannot generate compare report in the cloud: {e.message}')
             return None
 
     @staticmethod
