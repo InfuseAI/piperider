@@ -321,4 +321,4 @@ piperider-getting-started
 *.db
 
 .envrc
-output.md
+tests/output*.md
