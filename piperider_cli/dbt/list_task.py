@@ -15,6 +15,8 @@ from dbt.node_types import NodeType
 
 from dbt.task.list import ListTask
 
+from piperider_cli.dbt import disable_dbt_compile_stats
+
 
 def dbt_version():
     from dbt import version
@@ -332,7 +334,8 @@ def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector 
 
     setattr(dbt_flags, "selector", None)
     setattr(dbt_flags, "select", None)
-    return task.run()
+    with disable_dbt_compile_stats():
+        return task.run()
 
 
 def compare_models_between_manifests(
@@ -365,15 +368,8 @@ def compare_models_between_manifests(
         setattr(dbt_flags, "select", ("state:modified",))
 
     try:
-        # silence the dbt event logger
-        import dbt.compilation as compilation
-        original_print_compile_stats = compilation.print_compile_stats
-        compilation.print_compile_stats = lambda x: None
-
-        result = task.run()
-        compilation.print_compile_stats = original_print_compile_stats
-
-        return result
+        with disable_dbt_compile_stats():
+            return task.run()
     except EventCompilationError as e:
         if "does not match any nodes" in e.msg:
             return []

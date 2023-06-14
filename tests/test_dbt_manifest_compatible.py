@@ -3,6 +3,7 @@ import os
 
 import pytest
 
+from piperider_cli.dbt import disable_dbt_compile_stats
 from piperider_cli.dbt.list_task import load_manifest
 
 
@@ -29,3 +30,9 @@ def test_load_dbt_14(dbt_1_4):
 
 def test_load_dbt_15(dbt_1_5):
     load_manifest(dbt_1_5)
+
+
+def test_log_functions():
+    with disable_dbt_compile_stats():
+        # make sure this not breaking in all dbt versions
+        pass
