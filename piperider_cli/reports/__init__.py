@@ -544,6 +544,12 @@ class ChangedColumnsTableEntryElement(_Element):
         change_status = self.change_status
         m = self.find_target_node(self.get_model_selector())
 
+        if CapControl().cap_control_level == CapControlLevel.HIGH:
+            result = f"""
+                * {embed_url(self.get_url(), m.unique_id, m.resource_type, m.name, self.column_name)}
+            """
+            return self.add_indent(result, 8)
+
         if change_status.is_added_or_removed():
 
             display_type = change_status.target_view.get_type()
@@ -606,6 +612,12 @@ class TotalColumnsTableEntryElement(_Element):
 
         change_status = self.create_change_status()
         m = self.find_target_node(self.get_model_selector())
+
+        if CapControl().cap_control_level >= CapControlLevel.LOW:
+            result = f"""
+                * {embed_url(self.get_url(), m.unique_id, m.resource_type, m.name, self.column_name)}
+            """
+            return self.add_indent(result, 8)
 
         def to_title_str(base_value, base_rate, target_value, target_rate):
             if base_value is None:
@@ -792,7 +804,9 @@ class ChangedColumnsTableElement(_Element):
         self.column_changes = len(children)
 
         if CapControl().cap_control_level == CapControlLevel.HIGH:
-            return ""
+            return f"""
+            {_build_list(children)}
+            """
 
         orange_changes = Styles.latex_orange('↑ changes')
 
@@ -827,7 +841,9 @@ class TotalColumnsTableElement(_Element):
         self.columns = len(children)
 
         if CapControl().cap_control_level >= CapControlLevel.LOW:
-            return ""
+            return f"""
+            {_build_list(children)}
+            """
 
         return f"""
         <table>
@@ -1384,16 +1400,16 @@ class DbtMetricsWithChangesTableEntry(_Element):
 
 
 class DbtMetricsWithChangesTable(_Element):
-    def __init__(self, data: MetricsChangeView):
-        super().__init__(None)
+    def __init__(self, root: _Element, data: MetricsChangeView):
+        super().__init__(root)
         self.data = data
 
     def build(self):
         self.data.aggregate_by_date()
         if CapControl().cap_control_level == CapControlLevel.HIGH:
-            return f"""<details><summary>{self.data.name} ({self.data.summary_for_change_type()}) </summary></details>"""
+            return f"""* {embed_url(self.get_url(), '', 'metric', self.data.name)} ({self.data.summary_for_change_type()})"""
 
-        return f"""<details><summary>{self.data.name} ({self.data.summary_for_change_type()}) </summary>
+        return f"""<details><summary>{embed_url(self.get_url(), '', 'metric', self.data.name)} ({self.data.summary_for_change_type()}) </summary>
         <table>
             <thead>
                 <tr>
@@ -1412,29 +1428,26 @@ class DbtMetricsWithChangesTable(_Element):
 
 
 class DbtMetricsWithChangesElement(_Element):
-    def __init__(self, changes_data: List[MetricsChangeView], no_changes_data: List[MetricsChangeView]):
-        super().__init__(None)
+    def __init__(self, root: _Element, changes_data: List[MetricsChangeView], no_changes_data: List[MetricsChangeView]):
+        super().__init__(root)
         self.changes_data = changes_data
         self.no_changes_data = no_changes_data
 
     def build(self):
         changed_line = f"\n* dbt Metrics with Changes: {len(self.changes_data)}\n"
-        changed_metrics = [DbtMetricsWithChangesTable(x) for x in self.changes_data]
+        changed_metrics = [DbtMetricsWithChangesTable(self, x) for x in self.changes_data]
 
-        return changed_line + self.add_indent(_build_list(changed_metrics), 4) + DbtMetricsWithNoChangesElement(
+        return changed_line + self.add_indent(_build_list(changed_metrics), 4) + DbtMetricsWithNoChangesElement(self,
             self.no_changes_data).build()
 
 
 class DbtMetricsWithNoChangesElement(_Element):
-    def __init__(self, data: List[MetricsChangeView]):
-        super().__init__(None)
+    def __init__(self, root: _Element, data: List[MetricsChangeView]):
+        super().__init__(root)
         self.data = data
 
     def build(self):
         metric_entries = ""
-        if CapControl().cap_control_level >= CapControlLevel.LOW:
-            return f"\n* <details><summary>dbt Metrics with No Changes: {len(self.data)}</summary></details>\n"
-
         for metric in self.data:
             metric_entries += f"\n* {metric.name}\n"
 
@@ -1502,7 +1515,7 @@ class DbtMetricsChangeElement(_Element):
         ]
         return (
             f"<details><summary>dbt Metrics changes: {self.changes} {Image.DbtMetric.triangle_icon if self.changes > 0 else ''} of {self.total_metrics} dbt Metrics</summary>"
-            f"\n{DbtMetricsWithChangesElement(changeset, no_changeset).build()}\n"
+            f"\n{DbtMetricsWithChangesElement(self, changeset, no_changeset).build()}\n"
             f"</details>"
         )
 
