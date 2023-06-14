@@ -10,6 +10,8 @@ from typing import Dict, Iterable, List, Optional, Tuple
 from dbt.contracts.graph.manifest import WritableManifest
 from enum import Enum
 
+from piperider_cli import is_executed_manually
+
 
 @total_ordering
 class CapControlLevel(Enum):
@@ -23,7 +25,6 @@ class CapControlLevel(Enum):
         if self.__class__ is other.__class__:
             return self.value < other.value
         return NotImplemented
-
 
 
 @dataclass
@@ -787,9 +788,11 @@ class ChangedColumnsTableElement(_Element):
     def build(self):
         name = self.find_table_name(self.model_selector)
         t = self.joined_tables()
-        from functools import cmp_to_key
         children = ChangedColumnsTableEntryElement.sorted(list(t.columns_changed_iterator(self, name)))
         self.column_changes = len(children)
+
+        if CapControl().cap_control_level == CapControlLevel.HIGH:
+            return ""
 
         orange_changes = Styles.latex_orange('↑ changes')
 
@@ -1387,6 +1390,9 @@ class DbtMetricsWithChangesTable(_Element):
 
     def build(self):
         self.data.aggregate_by_date()
+        if CapControl().cap_control_level == CapControlLevel.HIGH:
+            return f"""<details><summary>{self.data.name} ({self.data.summary_for_change_type()}) </summary></details>"""
+
         return f"""<details><summary>{self.data.name} ({self.data.summary_for_change_type()}) </summary>
         <table>
             <thead>
@@ -1426,9 +1432,11 @@ class DbtMetricsWithNoChangesElement(_Element):
 
     def build(self):
         metric_entries = ""
-        if CapControl().cap_control_level == CapControlLevel.NONE:
-            for metric in self.data:
-                metric_entries += f"\n* {metric.name}\n"
+        if CapControl().cap_control_level >= CapControlLevel.LOW:
+            return f"\n* <details><summary>dbt Metrics with No Changes: {len(self.data)}</summary></details>\n"
+
+        for metric in self.data:
+            metric_entries += f"\n* {metric.name}\n"
 
         return f"\n* <details><summary>dbt Metrics with No Changes: {len(self.data)}</summary>\n" \
                f"{self.add_indent(metric_entries)}" \
@@ -1548,6 +1556,13 @@ class Document(_Element):
         return doc
 
     def build(self):
+        if is_executed_manually():
+            return _build_list([ModelElement(self, ModelType.ALTERED_MODELS, self.altered_models),
+                               ModelElement(self, ModelType.DOWNSTREAM_MODELS, self.downstream_models),
+                               DbtMetricsChangeElement(self, self.base_run.get("metrics"),
+                                                       self.target_run.get("metrics"))])
+
+        # PipeRider Compare Action: There is a text limit to the comment that get published to GitHub actions
         control = CapControl()
         for level in CapControlLevel:
             control.cap_control_level = level
@@ -1559,3 +1574,8 @@ class Document(_Element):
             print(len(doc))
             if len(doc) < control.max_summary_report_length:
                 return doc
+
+        return """
+        Comparison summary is too long to be generated.
+        Please feedback us to help us improve the report and provide most useful information to you.
+        """

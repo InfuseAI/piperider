@@ -8,23 +8,7 @@ from datetime import datetime
 import portalocker
 import requests
 
-from piperider_cli import __version__
-
-
-def _is_executed_manually() -> bool:
-    # some CI service puts the "CI" var
-    if os.environ.get('CI', 'false') == 'true':
-        return False
-
-    # For CiecleCI exceptions
-    if os.environ.get('CIRCLECI', 'false') == 'true':
-        return False
-
-    # if not tty, it probably runs automatically
-    if not sys.stdout.isatty():
-        return False
-
-    return True
+from piperider_cli import __version__, is_executed_manually
 
 
 class Collector:
@@ -36,7 +20,7 @@ class Collector:
         self._unsend_events_file = None
         self._delete_threshold = 1000
         self._upload_threshold = 10
-        self._manual: bool = _is_executed_manually()
+        self._manual: bool = is_executed_manually()
 
     def is_ready(self):
         if self._api_key is None or self._user_id is None:

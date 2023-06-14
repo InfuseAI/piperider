@@ -32,6 +32,22 @@ def create_logger(name) -> logging.Logger:
     return log
 
 
+def is_executed_manually() -> bool:
+    # some CI service puts the "CI" var
+    if os.environ.get('CI', 'false') == 'true':
+        return False
+
+    # For CiecleCI exceptions
+    if os.environ.get('CIRCLECI', 'false') == 'true':
+        return False
+
+    # if not tty, it probably runs automatically
+    if not sys.stdout.isatty():
+        return False
+
+    return True
+
+
 def get_assertion_dir():
     return os.environ.get('PIPERIDER_CUSTOM_ASSERTIONS_PATH', '')
 
