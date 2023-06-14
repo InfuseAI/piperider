@@ -47,6 +47,7 @@ setup(name='piperider',
           'deepmerge',
           'dbt-core>=1.2'
       ],
+      tests_require=['pytest'],
       extras_require={
           'snowflake': [
               'snowflake-sqlalchemy'

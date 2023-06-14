@@ -3,8 +3,7 @@ from typing import Dict, List
 
 import agate
 import dbt.flags as flags_module
-from dbt.adapters.base import BaseAdapter, BaseRelation
-from dbt.adapters.base import Column as BaseColumn
+from dbt.adapters.base import BaseAdapter, BaseRelation, Column as BaseColumn
 from dbt.config.project import VarProvider
 from dbt.config.runtime import RuntimeConfig
 from dbt.contracts.connection import QueryComment
@@ -13,14 +12,63 @@ from dbt.contracts.project import PackageConfig, UserConfig
 from dbt.contracts.state import PreviousState
 from dbt.exceptions import EventCompilationError
 from dbt.node_types import NodeType
+
 from dbt.task.list import ListTask
 
+from piperider_cli.dbt import disable_dbt_compile_stats
 
-def load_manifest_from_file(manifest_path: str):
-    return WritableManifest.read_and_check_versions(manifest_path)
+
+def dbt_version():
+    from dbt import version
+    try:
+        version_string = ".".join(version.__version__.split(".")[0:2])
+        return version_string
+    except BaseException:
+        return "unknown"
+
+
+def dbt_version_obj():
+    from packaging import version as v
+    from dbt import version as dbt_version
+    return v.parse(dbt_version.__version__)
+
+
+def is_v1_4():
+    from packaging import version as v
+    dbt_v = dbt_version_obj()
+    return v.parse('1.4.0') <= dbt_v < v.parse('v1.5.0')
+
+
+def is_v1_5():
+    from packaging import version as v
+    dbt_v = dbt_version_obj()
+    return v.parse('1.5.0') <= dbt_v < v.parse('v1.6.0')
 
 
 def load_manifest(manifest: Dict):
+    if dbt_version() == '1.4':
+        return _load_manifest_version_14(manifest)
+
+    # TODO ensure it is after v1.5.x
+    return _load_manifest_version_15(manifest)
+
+
+def get_manifest_schema_version(dct: dict) -> int:
+    schema_version = dct.get("metadata", {}).get("dbt_schema_version", None)
+    if not schema_version:
+        raise ValueError("Manifest doesn't have schema version")
+    return int(schema_version.split(".")[-2][-1])
+
+
+def _load_manifest_version_14(data: Dict):
+    from dbt.contracts.util import upgrade_manifest_json
+    if get_manifest_schema_version(data) <= 7:
+        data = upgrade_manifest_json(data)
+
+    return WritableManifest.from_dict(data)  # type: ignore
+
+
+def _load_manifest_version_15(manifest: Dict):
     from dbt.exceptions import IncompatibleSchemaError
 
     # return WritableManifest.read_and_check_versions(manifest_path)
@@ -67,7 +115,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def rename_relation(
-        self, from_relation: BaseRelation, to_relation: BaseRelation
+            self, from_relation: BaseRelation, to_relation: BaseRelation
     ) -> None:
         pass
 
@@ -78,7 +126,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def list_relations_without_caching(
-        self, schema_relation: BaseRelation
+            self, schema_relation: BaseRelation
     ) -> List[BaseRelation]:
         pass
 
@@ -186,7 +234,9 @@ class _DbtListTask(ListTask):
         self.config = _RuntimeConfig()
         self.args = flags_module.get_flag_obj()
         self.previous_state = None
-        flags_module.set_flags(self.args)
+
+        if is_v1_5() and hasattr(flags_module, 'set_flags'):
+            flags_module.set_flags(self.args)
 
         # The graph compiler tries to make directories when it initialized itself
         setattr(self.args, "target_path", "/tmp/piperider-list-task/target_path")
@@ -199,6 +249,8 @@ class _DbtListTask(ListTask):
         # Args for ListTask
         setattr(self.args, "WRITE_JSON", None)
         setattr(self.args, "exclude", None)
+        setattr(self.args, "output", "selector")
+        setattr(self.args, "models", None)
         setattr(self.args, "INDIRECT_SELECTION", "eager")
         setattr(self.args, "WARN_ERROR", True)
         self.args.args = argparse.Namespace()
@@ -221,10 +273,11 @@ class _DbtListTask(ListTask):
             self.node_results.append(result)
         return self.node_results
 
-
-class _PreviousState(PreviousState):
-    def __init__(self, manifest_path: str):
-        self.manifest = load_manifest_from_file(manifest_path)
+    def load_manifest(self):
+        adapter = _Adapter(self.args)
+        compiler = adapter.get_compiler()
+        self.graph = compiler.compile(self.manifest)
+        return
 
 
 class _InMemoryPreviousState(PreviousState):
@@ -262,69 +315,47 @@ class ResourceSelector:
         )
 
 
-def list_resources_from_manifest_file(
-    manifest_file: str, selector: ResourceSelector = None
-):
-    return list_resources_from_manifest(
-        load_manifest_from_file(manifest_file), selector
-    )
-
-
 def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector = None):
     task = _DbtListTask()
     task.manifest = manifest
 
-    dbt_flags = flags_module.get_flags()
+    dbt_flags = task.args
     setattr(dbt_flags, "state", None)
     setattr(dbt_flags, "models", None)
 
+    if is_v1_4():
+        flags_module.INDIRECT_SELECTION = 'eager'
+
     setattr(dbt_flags, "output", "selector")
-    setattr(dbt_flags, "resource_types", None)
+    setattr(dbt_flags, "selector_name", None)
+    setattr(dbt_flags, "resource_types", [])
     if selector is not None:
         setattr(dbt_flags, "resource_types", selector.build_selected_set())
 
     setattr(dbt_flags, "selector", None)
     setattr(dbt_flags, "select", None)
-    return task.run()
-
-
-def compare_models_between_manifests_files(
-    base_manifest_file: str,
-    altered_manifest_file: str,
-    include_downstream: bool = False,
-):
-    task = _DbtListTask()
-    task.manifest = load_manifest_from_file(base_manifest_file)
-
-    dbt_flags = flags_module.get_flags()
-    setattr(dbt_flags, "state", None)
-    setattr(dbt_flags, "models", None)
-
-    setattr(dbt_flags, "output", "selector")
-    setattr(dbt_flags, "resource_types", {NodeType.Model})
-
-    setattr(dbt_flags, "selector", None)
-
-    task.previous_state = _PreviousState(altered_manifest_file)
-    if include_downstream:
-        setattr(dbt_flags, "select", ("state:modified+",))
-    else:
-        setattr(dbt_flags, "select", ("state:modified",))
-    return task.run()
+    with disable_dbt_compile_stats():
+        return task.run()
 
 
 def compare_models_between_manifests(
-    base_manifest: Manifest,
-    altered_manifest: Manifest,
-    include_downstream: bool = False,
+        base_manifest: Manifest,
+        altered_manifest: Manifest,
+        include_downstream: bool = False,
 ):
     task = _DbtListTask()
     task.manifest = altered_manifest
 
-    dbt_flags = flags_module.get_flags()
+    #
+    if is_v1_5() and hasattr(flags_module, 'get_flags'):
+        dbt_flags = flags_module.get_flags()
+    else:
+        dbt_flags = task.args
+        flags_module.INDIRECT_SELECTION = 'eager'
+
     setattr(dbt_flags, "state", None)
     setattr(dbt_flags, "models", None)
-
+    setattr(dbt_flags, "selector_name", None)
     setattr(dbt_flags, "output", "selector")
     setattr(dbt_flags, "resource_types", {NodeType.Model})
 
@@ -337,7 +368,8 @@ def compare_models_between_manifests(
         setattr(dbt_flags, "select", ("state:modified",))
 
     try:
-        return task.run()
+        with disable_dbt_compile_stats():
+            return task.run()
     except EventCompilationError as e:
         if "does not match any nodes" in e.msg:
             return []
