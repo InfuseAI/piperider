@@ -4,7 +4,7 @@ import os
 import sys
 from glob import glob
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 
 import inquirer
 from rich.console import Console
@@ -12,6 +12,7 @@ from rich.table import Table
 from ruamel import yaml
 
 from piperider_cli import load_jinja_template, load_jinja_string_template
+from piperider_cli.dbt.list_task import load_manifest, list_resources_from_manifest
 from piperider_cli.error import \
     DbtProjectInvalidError, \
     DbtProfileInvalidError, \
@@ -350,6 +351,11 @@ def get_dbt_manifest(dbt_state_dir: str):
     return _get_state_manifest(dbt_state_dir)
 
 
+def get_dbt_resources(dbt_manifest: Dict, select: tuple = None):
+    list_resources = list_resources_from_manifest(load_manifest(dbt_manifest), select=select)
+    return read_dbt_resources(list_resources)
+
+
 def get_dbt_run_results(dbt_state_dir: str):
     return _get_state_run_results(dbt_state_dir) if is_dbt_run_results_ready(dbt_state_dir) else None
 
@@ -418,11 +424,14 @@ def load_credential_from_dbt_profile(dbt_profile, profile_name, target_name):
     return credential
 
 
-def read_dbt_resources(source: Union[str, io.TextIOWrapper]):
+def read_dbt_resources(source: Union[str, io.TextIOWrapper, list]):
     if isinstance(source, io.TextIOWrapper):
         lines = source.readlines()
-    else:
+    elif isinstance(source, str):
         lines = source.split('\n')
+    else:
+        lines = source
+
     metrics = []
     models = []
     for dbt_resource in lines:
