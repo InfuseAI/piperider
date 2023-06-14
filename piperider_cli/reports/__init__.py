@@ -4,11 +4,46 @@ import math
 import urllib.parse
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from functools import cmp_to_key
+from functools import cmp_to_key, total_ordering
 from typing import Dict, Iterable, List, Optional, Tuple
 
 from dbt.contracts.graph.manifest import WritableManifest
 from enum import Enum
+
+
+@total_ordering
+class CapControlLevel(Enum):
+    NONE = 0
+    LOW = 1
+    HIGH = 2
+
+    # __eq__ is provided by Enum
+
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value < other.value
+        return NotImplemented
+
+
+
+@dataclass
+class CapControl:
+    """A singleton dataclass."""
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super().__new__(cls, *args, **kwargs)
+            cls._instance._initialized = False
+        return cls._instance
+
+    def __init__(self):
+        if self._initialized:
+            return
+        self._initialized = True
+        self.max_summary_report_length = 65535
+        self.cap_control_level = CapControlLevel.NONE
 
 
 def embed_url_cli(url: str, unique_id: str, resource_type: str, table_name: str, column_name: str = None):
@@ -788,6 +823,9 @@ class TotalColumnsTableElement(_Element):
         children = list(t.all_columns_iterator(self, name))
         self.columns = len(children)
 
+        if CapControl().cap_control_level >= CapControlLevel.LOW:
+            return ""
+
         return f"""
         <table>
         <thead>
@@ -1388,8 +1426,9 @@ class DbtMetricsWithNoChangesElement(_Element):
 
     def build(self):
         metric_entries = ""
-        for metric in self.data:
-            metric_entries += f"\n* {metric.name}\n"
+        if CapControl().cap_control_level == CapControlLevel.NONE:
+            for metric in self.data:
+                metric_entries += f"\n* {metric.name}\n"
 
         return f"\n* <details><summary>dbt Metrics with No Changes: {len(self.data)}</summary>\n" \
                f"{self.add_indent(metric_entries)}" \
@@ -1509,8 +1548,14 @@ class Document(_Element):
         return doc
 
     def build(self):
-        return _build_list([ModelElement(self, ModelType.ALTERED_MODELS, self.altered_models),
-                            ModelElement(self, ModelType.DOWNSTREAM_MODELS, self.downstream_models),
-                            DbtMetricsChangeElement(
-                                self, self.base_run.get("metrics"), self.target_run.get("metrics")
-                            )])
+        control = CapControl()
+        for level in CapControlLevel:
+            control.cap_control_level = level
+            doc = _build_list([ModelElement(self, ModelType.ALTERED_MODELS, self.altered_models),
+                               ModelElement(self, ModelType.DOWNSTREAM_MODELS, self.downstream_models),
+                               DbtMetricsChangeElement(self, self.base_run.get("metrics"),
+                                                       self.target_run.get("metrics"))])
+
+            print(len(doc))
+            if len(doc) < control.max_summary_report_length:
+                return doc
