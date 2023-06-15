@@ -12,7 +12,7 @@ console = Console()
 
 class RecipeExecutor:
     @staticmethod
-    def exec(recipe_name: str, auto_generate_default_recipe: bool = True, debug=False):
+    def exec(recipe_name: str, auto_generate_default_recipe: bool = True, select=None, debug=False):
         recipe_path = select_recipe_file(recipe_name)
 
         if recipe_path is None:
@@ -23,7 +23,11 @@ class RecipeExecutor:
                     dbt_project_path = os.path.relpath(config.dataSources[0].args.get('dbt', {}).get('projectDir'))
                 # generate a default recipe
                 console.rule("Recipe executor: generate default recipe")
-                recipe = generate_default_recipe(dbt_project_path=dbt_project_path)
+                options = None
+                if select is not None:
+                    options = {}
+                    options['select'] = select
+                recipe = generate_default_recipe(dbt_project_path=dbt_project_path, options=options)
                 if recipe is None:
                     raise RecipeConfigException(
                         message='Default recipe generation failed.',

@@ -229,11 +229,10 @@ def run(**kwargs):
         raise DbtProjectNotFoundError()
 
     dbt_resources = None
-    if select and (dbt_list or env_dbt_resources is not None):
+    if select and dbt_list is True:
         raise PipeRiderConflictOptionsError(
-            'Cannot use options "--select" with "--dbt-list" or environment variable "PIPERIDER_DBT_RESOURCES"',
-            hint='Remove "--select" option and use "--dbt-list" or environment variable "PIPERIDER_DBT_RESOURCES" '
-                 'instead.'
+            'Cannot use options "--select" with "--dbt-list"',
+            hint='Remove "--select" option and use "--dbt-list" instead.'
         )
 
     if dbt_list:
@@ -469,6 +468,7 @@ def cloud_compare_reports(**kwargs):
 @click.option('--dry-run', is_flag=True, default=False, help='Display the run details without actually executing it')
 @click.option('--interactive', is_flag=True, default=False,
               help='Prompt for confirmation to proceed with the run (Y/N)')
+@add_options([dbt_select_option_builder()])
 @add_options(dbt_related_options)
 @add_options(debug_option)
 def compare_with_recipe(**kwargs):
@@ -482,6 +482,7 @@ def compare_with_recipe(**kwargs):
     enable_share = kwargs.get('share')
     open_report = kwargs.get('open')
     project_name = kwargs.get('project')
+    select = kwargs.get('select')
     debug = kwargs.get('debug', False)
 
     # reconfigure recipe global flags
@@ -511,7 +512,7 @@ def compare_with_recipe(**kwargs):
     ret = 0
     try:
         # note: dry-run and interactive are set by configure_recipe_execution_flags
-        recipe_config: RecipeConfiguration = RecipeExecutor.exec(recipe_name=recipe, debug=debug)
+        recipe_config: RecipeConfiguration = RecipeExecutor.exec(recipe_name=recipe, select=select, debug=debug)
         last = False
         base = target = None
         if not recipe_config.base.is_file_specified() and not recipe_config.target.is_file_specified():

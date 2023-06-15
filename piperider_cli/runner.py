@@ -640,6 +640,7 @@ class Runner():
             dbt_manifest = dbtutil.get_dbt_manifest(dbt_state_dir)
             dbt_run_results = dbtutil.get_dbt_run_results(dbt_state_dir)
             if dbt_select:
+                # If the dbt_resources were already provided by environment variable PIPERIDER_DBT_RESOURCES, skip the dbt select
                 dbt_resources = dbt_resources if dbt_resources else dbtutil.get_dbt_resources(dbt_manifest,
                                                                                               select=dbt_select)
         console.print('everything is OK.')
