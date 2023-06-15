@@ -14,8 +14,14 @@ class RecipeExecutor:
     @staticmethod
     def exec(recipe_name: str, auto_generate_default_recipe: bool = True, select=None, debug=False):
         recipe_path = select_recipe_file(recipe_name)
-
-        if recipe_path is None:
+        if select:
+            if recipe_name:
+                console.print(
+                    "[[bold yellow]Warning[/bold yellow]] The recipe will be ignored when --select is provided."
+                )
+            console.print(
+                f"[[bold green]Select[/bold green]] Manually select the dbt nodes to run by '{','.join(select)}'")
+        if recipe_path is None or select is not None:
             if auto_generate_default_recipe:
                 config = Configuration.instance()
                 dbt_project_path = None
@@ -24,7 +30,7 @@ class RecipeExecutor:
                 # generate a default recipe
                 console.rule("Recipe executor: generate default recipe")
                 options = None
-                if select is not None:
+                if select:
                     options = {}
                     options['select'] = select
                 recipe = generate_default_recipe(dbt_project_path=dbt_project_path, options=options)
