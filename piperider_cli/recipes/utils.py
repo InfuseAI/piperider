@@ -8,6 +8,7 @@ from typing import Dict, Tuple
 
 from rich.console import Console
 
+from piperider_cli.configuration import FileSystem
 from piperider_cli.error import PipeRiderError, RecipeException
 
 
@@ -70,7 +71,7 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
         proc = None
 
         try:
-            proc = Popen(cmd, env=env or os.environ.copy())
+            proc = Popen(cmd, env=env or os.environ.copy(), cwd=FileSystem.WORKING_DIRECTORY)
             proc.communicate()
         except BaseException:
             if proc:

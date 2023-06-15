@@ -4,7 +4,7 @@ from rich.console import Console
 
 from piperider_cli.configuration import Configuration
 from piperider_cli.error import RecipeConfigException
-from piperider_cli.recipes import select_recipe_file, RecipeConfiguration, execute_configuration, DEFAULT_RECIPE_PATH
+from piperider_cli.recipes import select_recipe_file, RecipeConfiguration, execute_configuration
 from piperider_cli.recipes.default_recipe_generator import generate_default_recipe, show_recipe_content
 
 console = Console()

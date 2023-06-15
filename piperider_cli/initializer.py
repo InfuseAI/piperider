@@ -8,10 +8,7 @@ from rich.syntax import Syntax
 from rich.table import Table
 
 from piperider_cli import clone_directory, safe_load_yaml
-from piperider_cli.configuration import Configuration, \
-    PIPERIDER_WORKSPACE_NAME, \
-    PIPERIDER_CONFIG_PATH, \
-    PIPERIDER_CREDENTIALS_PATH
+from piperider_cli.configuration import Configuration, FileSystem
 from piperider_cli.datasource import DataSource, FANCY_USER_INPUT
 from piperider_cli.datasource.survey import UserSurveyMockDataSource
 from piperider_cli.error import PipeRiderConfigError
@@ -31,7 +28,7 @@ def _is_piperider_workspace_exist(workspace_path: str) -> bool:
 def _generate_piperider_workspace() -> bool:
     from piperider_cli import data
     init_template_dir = os.path.join(os.path.dirname(data.__file__), 'piperider-init-template')
-    working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
+    working_dir = FileSystem.PIPERIDER_WORKSPACE_PATH
 
     if not _is_piperider_workspace_exist(working_dir):
         clone_directory(init_template_dir, working_dir)
@@ -55,8 +52,8 @@ def _ask_user_input_datasource(config: Configuration = None):
         config = Configuration([ds])
         if _ask_user_update_credentials(ds):
             _generate_piperider_workspace()
-            config.dump(PIPERIDER_CONFIG_PATH)
-            config.dump_credentials(PIPERIDER_CREDENTIALS_PATH, after_init_config=True)
+            config.dump(FileSystem.PIPERIDER_CONFIG_PATH)
+            config.dump_credentials(FileSystem.PIPERIDER_CREDENTIALS_PATH, after_init_config=True)
     else:
         if len(config.dataSources) == 1:
             ds = config.dataSources[0]
@@ -66,7 +63,7 @@ def _ask_user_input_datasource(config: Configuration = None):
             console.print(
                 f'[[bold yellow]Warning[/bold yellow]] No credential found for \'{ds.type_name}\' datasource \'{ds.name}\'')
             if _ask_user_update_credentials(ds):
-                config.dump_credentials(PIPERIDER_CREDENTIALS_PATH)
+                config.dump_credentials(FileSystem.PIPERIDER_CREDENTIALS_PATH)
 
     ds.show_installation_information()
     if isinstance(ds, UserSurveyMockDataSource):
@@ -76,7 +73,7 @@ def _ask_user_input_datasource(config: Configuration = None):
 
 
 def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None, interactive=True):
-    config = safe_load_yaml(PIPERIDER_CONFIG_PATH)
+    config = safe_load_yaml(FileSystem.PIPERIDER_CONFIG_PATH)
     if config and config.get('dataSources'):
         if interactive is True:
             console.print('[[bold yellow]Warning[/bold yellow]] Found existing configuration. Skip initialization.')
@@ -84,7 +81,7 @@ def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None
 
     dbt_config = Configuration.from_dbt_project(dbt_project_path, dbt_profiles_dir)
     _generate_piperider_workspace()
-    dbt_config.dump(PIPERIDER_CONFIG_PATH)
+    dbt_config.dump(FileSystem.PIPERIDER_CONFIG_PATH)
 
     console.print(f'[[bold green] DBT [/bold green]] Use the existing dbt project file: {dbt_project_path}')
     console.print(
@@ -127,7 +124,7 @@ class Initializer():
     @staticmethod
     def exec(working_dir=None, dbt_project_path=None, dbt_profiles_dir=None, interactive=True):
         if working_dir is None:
-            working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
+            working_dir = FileSystem.PIPERIDER_WORKSPACE_PATH
 
         if _is_piperider_workspace_exist(working_dir) and interactive is True:
             console.print('[bold green]Piperider workspace already exist[/bold green] ')
@@ -141,7 +138,7 @@ class Initializer():
     def show_config():
 
         # show config.yml
-        with open(PIPERIDER_CONFIG_PATH, 'r') as f:
+        with open(FileSystem.PIPERIDER_CONFIG_PATH, 'r') as f:
             console.rule('.piperider/config.yml')
             config = Syntax(f.read(), "yaml", theme="monokai", line_numbers=True)
             console.print(config)
@@ -149,7 +146,7 @@ class Initializer():
 
     @staticmethod
     def list(report_dir=None):
-        working_dir = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME)
+        working_dir = FileSystem.PIPERIDER_WORKSPACE_PATH
 
         if _is_piperider_workspace_exist(working_dir):
             config = Configuration.instance()
@@ -204,7 +201,7 @@ class Initializer():
             return
 
         config.delete_datasource(answers['datasource'])
-        config.flush_datasource(PIPERIDER_CONFIG_PATH)
+        config.flush_datasource(FileSystem.PIPERIDER_CONFIG_PATH)
         console.rule('Datasource deleted')
 
     @staticmethod
@@ -220,8 +217,8 @@ class Initializer():
         config.dataSources.append(ds)
         if _ask_user_update_credentials(ds):
             _generate_piperider_workspace()
-            config.flush_datasource(PIPERIDER_CONFIG_PATH)
-            config.dump_credentials(PIPERIDER_CREDENTIALS_PATH, after_init_config=True)
+            config.flush_datasource(FileSystem.PIPERIDER_CONFIG_PATH)
+            config.dump_credentials(FileSystem.PIPERIDER_CREDENTIALS_PATH, after_init_config=True)
             console.rule('Datasource added')
         else:
             console.rule('Abort to add datasource', style='red')

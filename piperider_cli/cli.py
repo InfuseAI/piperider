@@ -10,7 +10,7 @@ from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
-from piperider_cli.configuration import PIPERIDER_WORKSPACE_PATH, is_piperider_workspace_exist
+from piperider_cli.configuration import FileSystem, is_piperider_workspace_exist
 from piperider_cli.error import RecipeConfigException, DbtProjectNotFoundError
 from piperider_cli.event import UserProfileConfigurator
 from piperider_cli.event.track import TrackCommand
@@ -109,14 +109,16 @@ def init(**kwargs):
 
     console = Console()
 
-    # TODO show the process and message to users
-    console.print(f'Initialize piperider to path {PIPERIDER_WORKSPACE_PATH}')
-
     # Search dbt project config files
     dbt_project_dir = kwargs.get('dbt_project_dir')
     no_auto_search = kwargs.get('no_auto_search')
     dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
+    if dbt_project_path:
+        FileSystem.set_working_directory(dbt_project_path)
+
+    # TODO show the process and message to users
+    console.print(f'Initialize piperider to path {FileSystem.PIPERIDER_WORKSPACE_PATH}')
 
     config = Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir)
     if kwargs.get('debug'):
@@ -144,6 +146,7 @@ def diagnose(**kwargs):
     dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     if dbt_project_path:
+        FileSystem.set_working_directory(dbt_project_path)
         # Only run initializer when dbt project path is provided
         Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
     elif is_piperider_workspace_exist() is False:
@@ -203,6 +206,7 @@ def run(**kwargs):
     dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search, recursive=False)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     if dbt_project_path:
+        FileSystem.set_working_directory(dbt_project_path)
         # Only run initializer when dbt project path is provided
         Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
     elif is_piperider_workspace_exist() is False:
@@ -474,6 +478,7 @@ def compare_with_recipe(**kwargs):
     dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search, recursive=False)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     if dbt_project_path:
+        FileSystem.set_working_directory(dbt_project_path)
         # Only run initializer when dbt project path is provided
         Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
     elif is_piperider_workspace_exist() is False:

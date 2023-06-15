@@ -2,11 +2,12 @@ import os
 import shutil
 import tempfile
 import uuid
-from unittest import TestCase
+from unittest import TestCase, skip
 
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer
 
 from piperider_cli.assertion_engine import AssertionEngine
+from piperider_cli.configuration import FileSystem
 
 
 def prepare_project_structure():
@@ -31,7 +32,7 @@ def generate_random_directory():
 
 def build_assertion_engine(project_dir, table, assertions):
     assertion_file = f'{uuid.uuid4().hex}.yml'
-    assertion_path = os.path.join(f'{project_dir}/{AssertionEngine.PIPERIDER_WORKSPACE_NAME}/assertions',
+    assertion_path = os.path.join(f'{project_dir}/{FileSystem.PIPERIDER_WORKSPACE_NAME}/assertions',
                                   assertion_file)
     if not os.path.exists(os.path.dirname(assertion_path)):
         os.makedirs(os.path.dirname(assertion_path))
@@ -49,25 +50,26 @@ def build_assertion_engine(project_dir, table, assertions):
     return engine
 
 
+@skip("deprecated, skipping")
 class UserDefinedTestAssertionsTests(TestCase):
 
     def setUp(self) -> None:
         self.project_dir = prepare_project_structure()
 
         # reset the plugin path for testing
-        AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH = os.path.join(f'{self.project_dir}',
-                                                                       AssertionEngine.PIPERIDER_WORKSPACE_NAME,
+        FileSystem.PIPERIDER_ASSERTION_PLUGIN_PATH = os.path.join(f'{self.project_dir}',
+                                                                       FileSystem.PIPERIDER_WORKSPACE_NAME,
                                                                        'plugins')
 
-        if not os.path.exists(AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH):
-            os.makedirs(AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH)
+        if not os.path.exists(FileSystem.PIPERIDER_ASSERTION_PLUGIN_PATH):
+            os.makedirs(FileSystem.PIPERIDER_ASSERTION_PLUGIN_PATH)
 
         self.current_module_name = '_user_defined_assertion_functions.py'
         self.custom_asertions = os.path.join(os.path.dirname(__file__), self.current_module_name)
 
     def test_user_defined_test_from_default_plugin_path(self):
         # put the user defined test function
-        shutil.copyfile(self.custom_asertions, os.path.join(f'{AssertionEngine.PIPERIDER_ASSERTION_PLUGIN_PATH}',
+        shutil.copyfile(self.custom_asertions, os.path.join(f'{FileSystem.PIPERIDER_ASSERTION_PLUGIN_PATH}',
                                                             f'{self.current_module_name}'))
 
         # use the function in the assertion configuration

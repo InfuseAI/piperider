@@ -2,17 +2,15 @@ import os
 
 from rich.console import Console
 
-from piperider_cli.configuration import PIPERIDER_WORKSPACE_NAME
-
-piperider_config = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'config.yml')
-report_directory = os.path.join(os.getcwd(), PIPERIDER_WORKSPACE_NAME, 'outputs')
+from piperider_cli.configuration import FileSystem
 
 
 def piperider_initialized() -> bool:
-    return os.path.exists(piperider_config)
+    return os.path.exists(FileSystem.PIPERIDER_CONFIG_PATH)
 
 
 def number_of_reports():
+    report_directory = os.path.join(FileSystem.PIPERIDER_WORKSPACE_PATH, 'outputs')
     if not os.path.exists(report_directory):
         return 0
     return len([x for x in os.listdir(report_directory) if x != 'latest'])

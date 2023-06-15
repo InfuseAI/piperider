@@ -4,8 +4,9 @@ from jsonschema.exceptions import ValidationError
 from rich.console import Console
 from rich.syntax import Syntax
 
+from piperider_cli.configuration import FileSystem
 from piperider_cli.dbtutil import load_dbt_project
-from piperider_cli.recipes import (DEFAULT_RECIPE_PATH, RecipeConfiguration,
+from piperider_cli.recipes import (RecipeConfiguration,
                                    RecipeDbtField, RecipeModel,
                                    RecipePiperiderField, tool)
 
@@ -75,7 +76,7 @@ def generate_default_recipe(overwrite_existing: bool = False,
     """
     Generate the default recipe
     """
-    recipe_path = DEFAULT_RECIPE_PATH
+    recipe_path = FileSystem.DEFAULT_RECIPE_PATH
     if overwrite_existing is False and os.path.exists(recipe_path):
         if interactive is True:
             console.print('[bold green]Piperider default recipe already exist[/bold green]')
