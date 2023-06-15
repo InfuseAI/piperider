@@ -94,8 +94,8 @@ iconBaseUrl = 'https://raw.githubusercontent.com/InfuseAI/piperider/main/images/
 
 
 class ModelType(Enum):
-    ALTERED_MODELS = "Altered Models"
-    DOWNSTREAM_MODELS = "Downstream Models"
+    EXPLICT_CHANGED_MODELS = "Explicit Changed Models"
+    IMPLICIT_CHANGED_MODELS = "Implicit Changed Models"
 
 
 def change_rate(base: int, target: int):
@@ -177,9 +177,9 @@ class Image:
 
         @classmethod
         def diff_icon(cls, model_type: ModelType):
-            if model_type == ModelType.ALTERED_MODELS:
+            if model_type == ModelType.EXPLICT_CHANGED_MODELS:
                 return cls.explicit
-            if model_type == ModelType.DOWNSTREAM_MODELS:
+            if model_type == ModelType.IMPLICIT_CHANGED_MODELS:
                 return cls.implicit
             return ""
 
@@ -1570,21 +1570,20 @@ class Document(_Element):
 
     def build(self):
         if is_executed_manually():
-            return _build_list([ModelElement(self, ModelType.ALTERED_MODELS, self.altered_models),
-                               ModelElement(self, ModelType.DOWNSTREAM_MODELS, self.downstream_models),
-                               DbtMetricsChangeElement(self, self.base_run.get("metrics"),
-                                                       self.target_run.get("metrics"))])
+            return _build_list([ModelElement(self, ModelType.EXPLICT_CHANGED_MODELS, self.altered_models),
+                                ModelElement(self, ModelType.IMPLICIT_CHANGED_MODELS, self.downstream_models),
+                                DbtMetricsChangeElement(self, self.base_run.get("metrics"),
+                                                        self.target_run.get("metrics"))])
 
         # PipeRider Compare Action: There is a text limit to the comment that get published to GitHub actions
         control = CapControl()
         for level in CapControlLevel:
             control.cap_control_level = level
-            doc = _build_list([ModelElement(self, ModelType.ALTERED_MODELS, self.altered_models),
-                               ModelElement(self, ModelType.DOWNSTREAM_MODELS, self.downstream_models),
+            doc = _build_list([ModelElement(self, ModelType.EXPLICT_CHANGED_MODELS, self.altered_models),
+                               ModelElement(self, ModelType.IMPLICIT_CHANGED_MODELS, self.downstream_models),
                                DbtMetricsChangeElement(self, self.base_run.get("metrics"),
                                                        self.target_run.get("metrics"))])
 
-            print(len(doc))
             if len(doc) < control.max_summary_report_length:
                 return doc
 
