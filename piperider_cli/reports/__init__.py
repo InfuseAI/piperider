@@ -18,6 +18,7 @@ class CapControlLevel(Enum):
     NONE = 0
     LOW = 1
     HIGH = 2
+    EXTREME = 3
 
     # __eq__ is provided by Enum
 
@@ -544,7 +545,7 @@ class ChangedColumnsTableEntryElement(_Element):
         change_status = self.change_status
         m = self.find_target_node(self.get_model_selector())
 
-        if CapControl().cap_control_level == CapControlLevel.HIGH:
+        if CapControl().cap_control_level >= CapControlLevel.HIGH:
             result = f"""
                 * {embed_url(self.get_url(), m.unique_id, m.resource_type, m.name, self.column_name)}
             """
@@ -803,7 +804,7 @@ class ChangedColumnsTableElement(_Element):
         children = ChangedColumnsTableEntryElement.sorted(list(t.columns_changed_iterator(self, name)))
         self.column_changes = len(children)
 
-        if CapControl().cap_control_level == CapControlLevel.HIGH:
+        if CapControl().cap_control_level >= CapControlLevel.HIGH:
             return f"""
             {_build_list(children)}
             """
@@ -896,6 +897,10 @@ class ModelEntryColumnsInTotalElement(_Element):
         element = TotalColumnsTableElement(self.root, self.model_selector)
         content = element.build()
         columns_total = element.columns
+
+        if CapControl().cap_control_level >= CapControlLevel.EXTREME:
+            return ""
+
         return self.add_indent(
             f"<details><summary>{columns_total} Columns in Total</summary>{content}</details>"
         )
@@ -910,6 +915,27 @@ class ModelEntryOverviewElement(_Element):
         m = self.find_target_node(self.model_selector)
         materialized = m.config.materialized
         materialization_type = Image.ModelOverView.materialization(materialized)
+
+        if CapControl().cap_control_level >= CapControlLevel.EXTREME:
+            return self.add_indent(f"""
+            <table>
+                 <tr>
+                     <th>{materialization_type}</th>
+                     <th colspan='3' >{embed_url(self.get_url(), m.unique_id, m.resource_type, m.name)} ({materialized}) </th>
+                     <th>{Image.ModelOverView.diff_icon(self.get_model_type())}</th>
+                 </tr>
+                 <tr>
+                     <td></td>
+                     <td></td>
+                     <td>Base</td>
+                     <td>Target</td>
+                     <td></td>
+                 </tr>
+                 {self.build_dbt_info(m)}
+                 {self.build_rows(m)}
+                 {self.build_columns(m)}
+            </table>
+            """)
 
         return self.add_indent(f"""
     <table>
@@ -1289,6 +1315,8 @@ class MetricsChangeView:
         for date in self.agg_data:
             if self.agg_data[date].get("base") != self.agg_data[date].get("target"):
                 changes += 1
+        if CapControl().cap_control_level >= CapControlLevel.EXTREME:
+            return f"{changes}"
         return f"{changes}{Image.DbtMetric.implicit_icon}"
 
     def summary_for_change_type(self):
@@ -1406,7 +1434,7 @@ class DbtMetricsWithChangesTable(_Element):
 
     def build(self):
         self.data.aggregate_by_date()
-        if CapControl().cap_control_level == CapControlLevel.HIGH:
+        if CapControl().cap_control_level >= CapControlLevel.HIGH:
             return f"""* {embed_url(self.get_url(), '', 'metric', self.data.name)} ({self.data.summary_for_change_type()})"""
 
         return f"""<details><summary>{embed_url(self.get_url(), '', 'metric', self.data.name)} ({self.data.summary_for_change_type()}) </summary>
