@@ -53,13 +53,11 @@ def dbt_select_option_builder():
                             multiple=True,
                             cls=MultiOption)
     except Exception:
-        pass
-    # For dbt-core < 1.5.0
-    return click.option('--select', '-s', default=None, help='Specify the dbt nodes to include.',
-                        multiple=True)
+        # For dbt-core < 1.5.0
+        return click.option('--select', '-s', default=None, help='Specify the dbt nodes to include.',
+                            multiple=True)
 
 
-dbt_select_option = [dbt_select_option_builder()]
 dbt_related_options = [
     click.option('--dbt-project-dir', type=click.Path(exists=True),
                  help='The path to the dbt project directory.'),
@@ -191,7 +189,7 @@ def diagnose(**kwargs):
 @click.option('--project', default=None, type=click.STRING, help='Specify the project name to upload.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
-@add_options(dbt_select_option)
+@add_options([dbt_select_option_builder()])
 @add_options(dbt_related_options)
 @add_options(debug_option)
 def run(**kwargs):
@@ -234,7 +232,8 @@ def run(**kwargs):
     if select and (dbt_list or env_dbt_resources is not None):
         raise PipeRiderConflictOptionsError(
             'Cannot use options "--select" with "--dbt-list" or environment variable "PIPERIDER_DBT_RESOURCES"',
-            hint='Remove "--select" option and use "--dbt-list" or environment variable "PIPERIDER_DBT_RESOURCES" instead.'
+            hint='Remove "--select" option and use "--dbt-list" or environment variable "PIPERIDER_DBT_RESOURCES" '
+                 'instead.'
         )
 
     if dbt_list:
@@ -470,7 +469,6 @@ def cloud_compare_reports(**kwargs):
 @click.option('--dry-run', is_flag=True, default=False, help='Display the run details without actually executing it')
 @click.option('--interactive', is_flag=True, default=False,
               help='Prompt for confirmation to proceed with the run (Y/N)')
-@click.option('--select', '-s', default=None, type=click.STRING, help='Specify the dbt nodes to include.')
 @add_options(dbt_related_options)
 @add_options(debug_option)
 def compare_with_recipe(**kwargs):
