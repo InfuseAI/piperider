@@ -1437,8 +1437,8 @@ class DbtMetricsWithChangesElement(_Element):
         changed_line = f"\n* dbt Metrics with Changes: {len(self.changes_data)}\n"
         changed_metrics = [DbtMetricsWithChangesTable(self, x) for x in self.changes_data]
 
-        return changed_line + self.add_indent(_build_list(changed_metrics), 4) + DbtMetricsWithNoChangesElement(self,
-            self.no_changes_data).build()
+        return (changed_line + self.add_indent(_build_list(changed_metrics), 4) + DbtMetricsWithNoChangesElement(
+            self, self.no_changes_data).build())
 
 
 class DbtMetricsWithNoChangesElement(_Element):
