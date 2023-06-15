@@ -4,11 +4,48 @@ import math
 import urllib.parse
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from functools import cmp_to_key
+from functools import cmp_to_key, total_ordering
 from typing import Dict, Iterable, List, Optional, Tuple
 
 from dbt.contracts.graph.manifest import WritableManifest
 from enum import Enum
+
+from piperider_cli import is_executed_manually
+
+
+@total_ordering
+class CapControlLevel(Enum):
+    NONE = 0
+    LOW = 1
+    HIGH = 2
+    EXTREME = 3
+
+    # __eq__ is provided by Enum
+
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value < other.value
+        return NotImplemented
+
+
+@dataclass
+class CapControl:
+    """A singleton dataclass."""
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super().__new__(cls, *args, **kwargs)
+            cls._instance._initialized = False
+        return cls._instance
+
+    def __init__(self):
+        if self._initialized:
+            return
+        self._initialized = True
+        self.max_summary_report_length = 65535
+        self.cap_control_level = CapControlLevel.NONE
 
 
 def embed_url_cli(url: str, unique_id: str, resource_type: str, table_name: str, column_name: str = None):
@@ -58,8 +95,8 @@ iconBaseUrl = 'https://raw.githubusercontent.com/InfuseAI/piperider/main/images/
 
 
 class ModelType(Enum):
-    ALTERED_MODELS = "Altered Models"
-    DOWNSTREAM_MODELS = "Downstream Models"
+    EXPLICT_CHANGED_MODELS = "Explicit Changed Models"
+    IMPLICIT_CHANGED_MODELS = "Implicit Changed Models"
 
 
 def change_rate(base: int, target: int):
@@ -141,9 +178,9 @@ class Image:
 
         @classmethod
         def diff_icon(cls, model_type: ModelType):
-            if model_type == ModelType.ALTERED_MODELS:
+            if model_type == ModelType.EXPLICT_CHANGED_MODELS:
                 return cls.explicit
-            if model_type == ModelType.DOWNSTREAM_MODELS:
+            if model_type == ModelType.IMPLICIT_CHANGED_MODELS:
                 return cls.implicit
             return ""
 
@@ -508,6 +545,12 @@ class ChangedColumnsTableEntryElement(_Element):
         change_status = self.change_status
         m = self.find_target_node(self.get_model_selector())
 
+        if CapControl().cap_control_level >= CapControlLevel.HIGH:
+            result = f"""
+                * {embed_url(self.get_url(), m.unique_id, m.resource_type, m.name, self.column_name)}
+            """
+            return self.add_indent(result, 8)
+
         if change_status.is_added_or_removed():
 
             display_type = change_status.target_view.get_type()
@@ -570,6 +613,12 @@ class TotalColumnsTableEntryElement(_Element):
 
         change_status = self.create_change_status()
         m = self.find_target_node(self.get_model_selector())
+
+        if CapControl().cap_control_level >= CapControlLevel.LOW:
+            result = f"""
+                * {embed_url(self.get_url(), m.unique_id, m.resource_type, m.name, self.column_name)}
+            """
+            return self.add_indent(result, 8)
 
         def to_title_str(base_value, base_rate, target_value, target_rate):
             if base_value is None:
@@ -752,9 +801,13 @@ class ChangedColumnsTableElement(_Element):
     def build(self):
         name = self.find_table_name(self.model_selector)
         t = self.joined_tables()
-        from functools import cmp_to_key
         children = ChangedColumnsTableEntryElement.sorted(list(t.columns_changed_iterator(self, name)))
         self.column_changes = len(children)
+
+        if CapControl().cap_control_level >= CapControlLevel.HIGH:
+            return f"""
+            {_build_list(children)}
+            """
 
         orange_changes = Styles.latex_orange('↑ changes')
 
@@ -787,6 +840,11 @@ class TotalColumnsTableElement(_Element):
         t = self.joined_tables()
         children = list(t.all_columns_iterator(self, name))
         self.columns = len(children)
+
+        if CapControl().cap_control_level >= CapControlLevel.LOW:
+            return f"""
+            {_build_list(children)}
+            """
 
         return f"""
         <table>
@@ -839,6 +897,10 @@ class ModelEntryColumnsInTotalElement(_Element):
         element = TotalColumnsTableElement(self.root, self.model_selector)
         content = element.build()
         columns_total = element.columns
+
+        if CapControl().cap_control_level >= CapControlLevel.EXTREME:
+            return ""
+
         return self.add_indent(
             f"<details><summary>{columns_total} Columns in Total</summary>{content}</details>"
         )
@@ -853,6 +915,27 @@ class ModelEntryOverviewElement(_Element):
         m = self.find_target_node(self.model_selector)
         materialized = m.config.materialized
         materialization_type = Image.ModelOverView.materialization(materialized)
+
+        if CapControl().cap_control_level >= CapControlLevel.EXTREME:
+            return self.add_indent(f"""
+            <table>
+                 <tr>
+                     <th>{materialization_type}</th>
+                     <th colspan='3' >{embed_url(self.get_url(), m.unique_id, m.resource_type, m.name)} ({materialized}) </th>
+                     <th>{Image.ModelOverView.diff_icon(self.get_model_type())}</th>
+                 </tr>
+                 <tr>
+                     <td></td>
+                     <td></td>
+                     <td>Base</td>
+                     <td>Target</td>
+                     <td></td>
+                 </tr>
+                 {self.build_dbt_info(m)}
+                 {self.build_rows(m)}
+                 {self.build_columns(m)}
+            </table>
+            """)
 
         return self.add_indent(f"""
     <table>
@@ -1232,6 +1315,8 @@ class MetricsChangeView:
         for date in self.agg_data:
             if self.agg_data[date].get("base") != self.agg_data[date].get("target"):
                 changes += 1
+        if CapControl().cap_control_level >= CapControlLevel.EXTREME:
+            return f"{changes}"
         return f"{changes}{Image.DbtMetric.implicit_icon}"
 
     def summary_for_change_type(self):
@@ -1343,13 +1428,16 @@ class DbtMetricsWithChangesTableEntry(_Element):
 
 
 class DbtMetricsWithChangesTable(_Element):
-    def __init__(self, data: MetricsChangeView):
-        super().__init__(None)
+    def __init__(self, root: _Element, data: MetricsChangeView):
+        super().__init__(root)
         self.data = data
 
     def build(self):
         self.data.aggregate_by_date()
-        return f"""<details><summary>{self.data.name} ({self.data.summary_for_change_type()}) </summary>
+        if CapControl().cap_control_level >= CapControlLevel.HIGH:
+            return f"""* {embed_url(self.get_url(), '', 'metric', self.data.name)} ({self.data.summary_for_change_type()})"""
+
+        return f"""<details><summary>{embed_url(self.get_url(), '', 'metric', self.data.name)} ({self.data.summary_for_change_type()}) </summary>
         <table>
             <thead>
                 <tr>
@@ -1368,22 +1456,22 @@ class DbtMetricsWithChangesTable(_Element):
 
 
 class DbtMetricsWithChangesElement(_Element):
-    def __init__(self, changes_data: List[MetricsChangeView], no_changes_data: List[MetricsChangeView]):
-        super().__init__(None)
+    def __init__(self, root: _Element, changes_data: List[MetricsChangeView], no_changes_data: List[MetricsChangeView]):
+        super().__init__(root)
         self.changes_data = changes_data
         self.no_changes_data = no_changes_data
 
     def build(self):
         changed_line = f"\n* dbt Metrics with Changes: {len(self.changes_data)}\n"
-        changed_metrics = [DbtMetricsWithChangesTable(x) for x in self.changes_data]
+        changed_metrics = [DbtMetricsWithChangesTable(self, x) for x in self.changes_data]
 
-        return changed_line + self.add_indent(_build_list(changed_metrics), 4) + DbtMetricsWithNoChangesElement(
-            self.no_changes_data).build()
+        return (changed_line + self.add_indent(_build_list(changed_metrics), 4) + DbtMetricsWithNoChangesElement(
+            self, self.no_changes_data).build())
 
 
 class DbtMetricsWithNoChangesElement(_Element):
-    def __init__(self, data: List[MetricsChangeView]):
-        super().__init__(None)
+    def __init__(self, root: _Element, data: List[MetricsChangeView]):
+        super().__init__(root)
         self.data = data
 
     def build(self):
@@ -1455,7 +1543,7 @@ class DbtMetricsChangeElement(_Element):
         ]
         return (
             f"<details><summary>dbt Metrics changes: {self.changes} {Image.DbtMetric.triangle_icon if self.changes > 0 else ''} of {self.total_metrics} dbt Metrics</summary>"
-            f"\n{DbtMetricsWithChangesElement(changeset, no_changeset).build()}\n"
+            f"\n{DbtMetricsWithChangesElement(self, changeset, no_changeset).build()}\n"
             f"</details>"
         )
 
@@ -1509,8 +1597,25 @@ class Document(_Element):
         return doc
 
     def build(self):
-        return _build_list([ModelElement(self, ModelType.ALTERED_MODELS, self.altered_models),
-                            ModelElement(self, ModelType.DOWNSTREAM_MODELS, self.downstream_models),
-                            DbtMetricsChangeElement(
-                                self, self.base_run.get("metrics"), self.target_run.get("metrics")
-                            )])
+        if is_executed_manually():
+            return _build_list([ModelElement(self, ModelType.EXPLICT_CHANGED_MODELS, self.altered_models),
+                                ModelElement(self, ModelType.IMPLICIT_CHANGED_MODELS, self.downstream_models),
+                                DbtMetricsChangeElement(self, self.base_run.get("metrics"),
+                                                        self.target_run.get("metrics"))])
+
+        # PipeRider Compare Action: There is a text limit to the comment that get published to GitHub actions
+        control = CapControl()
+        for level in CapControlLevel:
+            control.cap_control_level = level
+            doc = _build_list([ModelElement(self, ModelType.EXPLICT_CHANGED_MODELS, self.altered_models),
+                               ModelElement(self, ModelType.IMPLICIT_CHANGED_MODELS, self.downstream_models),
+                               DbtMetricsChangeElement(self, self.base_run.get("metrics"),
+                                                       self.target_run.get("metrics"))])
+
+            if len(doc) < control.max_summary_report_length:
+                return doc
+
+        return """
+        Comparison summary is too long to be generated.
+        Please feedback us to help us improve the report and provide most useful information to you.
+        """
