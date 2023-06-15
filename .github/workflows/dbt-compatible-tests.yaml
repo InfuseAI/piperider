@@ -31,4 +31,17 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Run tests
         run: |
-          python -mpytest tests/test_dbt_manifest_compatible.py tests/test_dbt_integeration.py
+          set +e
+          output=$(python -c "from dbt import version as v" 2>&1)
+          exit_code=$?
+          set -e
+
+          if [ $exit_code -eq 0 ]; then
+              python -mpytest tests/test_dbt_manifest_compatible.py tests/test_dbt_integeration.py
+          else
+              # https://github.com/dbt-labs/dbt-core/issues/6203#issuecomment-1319112890
+              echo "Skip! dbt-core v1.3 only works with python less than 3.11"
+          fi
+
+
+          
