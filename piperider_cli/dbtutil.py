@@ -455,5 +455,5 @@ def get_fqn_list_by_tag(tag: str, project_dir: str):
             fqn_list.append('source:' + '.'.join(item.get('fqn', [])))
     for key, item in manifest.get('metrics', {}).items():
         if tag in item.get('tags'):
-            fqn_list.append('metric:' + '.'.join(item.get('fqn', [])))
+            fqn_list.append(key.replace('metric.', 'metric:'))
     return fqn_list
