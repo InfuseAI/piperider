@@ -54,6 +54,7 @@ export function GraphNode({ data }: GraphNodeProps) {
 
   // text color, icon
   let iconChangeStatus;
+  let msgChangeStatus;
   let changeStatus = data.changeStatus;
   let color = 'inherit';
   let fontWeight: CSSProperties['fontWeight'] = 'inherit';
@@ -61,22 +62,26 @@ export function GraphNode({ data }: GraphNodeProps) {
   if (!singleOnly) {
     if (changeStatus === 'added') {
       iconChangeStatus = VscDiffAdded;
+      msgChangeStatus = 'added';
       color = '#1a7f37';
       color = COLOR_ADDED;
       fontWeight = 600;
       borderStyle = 'dashed';
     } else if (changeStatus === 'changed') {
       iconChangeStatus = VscDiffModified;
+      msgChangeStatus = 'explict change';
       color = '#9a6700';
       color = COLOR_CHANGED;
       fontWeight = 600;
     } else if (changeStatus === 'implicit') {
       iconChangeStatus = RxDotFilled;
+      msgChangeStatus = 'implicit change';
       color = '#9a6700';
       color = COLOR_CHANGED;
       fontWeight = 600;
     } else if (changeStatus === 'removed') {
       iconChangeStatus = VscDiffRemoved;
+      msgChangeStatus = 'removed';
       color = COLOR_REMOVED;
       color = '#cf222e';
       fontWeight = 600;
@@ -139,16 +144,18 @@ export function GraphNode({ data }: GraphNodeProps) {
         boxShadow={boxShadow}
         padding={0}
       >
-        <Flex
-          backgroundColor={resourceColor}
-          padding={2}
-          borderRightWidth={borderWidth}
-          borderColor={borderColor}
-          borderStyle={borderStyle}
-          alignItems="top"
-        >
-          <Icon as={resourceIcon} />
-        </Flex>
+        <Tooltip label={resourceType}>
+          <Flex
+            backgroundColor={resourceColor}
+            padding={2}
+            borderRightWidth={borderWidth}
+            borderColor={borderColor}
+            borderStyle={borderStyle}
+            alignItems="top"
+          >
+            <Icon as={resourceIcon} />
+          </Flex>
+        </Tooltip>
 
         <VStack flex="1 0 auto" mx="1" color={color} width="100px">
           <Flex
@@ -156,7 +163,7 @@ export function GraphNode({ data }: GraphNodeProps) {
             textAlign="left"
             flex="1"
             fontWeight={fontWeight}
-            mx={2}
+            p={1}
             alignItems="center"
           >
             <Box
@@ -169,12 +176,16 @@ export function GraphNode({ data }: GraphNodeProps) {
             </Box>
 
             {!singleOnly && changeStatus && (
-              <Icon
-                color={color}
-                as={iconChangeStatus}
-                fontWeight={fontWeight}
-                flex="0 0 20px"
-              />
+              <Tooltip label={msgChangeStatus}>
+                <Flex>
+                  <Icon
+                    color={color}
+                    as={iconChangeStatus}
+                    fontWeight={fontWeight}
+                    flex="0 0 20px"
+                  />
+                </Flex>
+              </Tooltip>
             )}
             {singleOnly && stat && statValue !== undefined && (
               <Text fontWeight="bold" textAlign="right" fontSize="sm">

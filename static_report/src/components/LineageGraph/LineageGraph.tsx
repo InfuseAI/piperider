@@ -267,11 +267,17 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
         >
           <Controls showInteractive={false} />
           <MiniMap nodeStrokeWidth={3} zoomable pannable />
-          {nodes.length === 0 && (
+          {filterBy !== undefined && (
             <Panel position="top-left">
               <Text fontSize="sm">
-                {filterBy === 'selected' && 'No active node.'}
-                {filterBy === 'changed' && 'No changed nodes found.'}{' '}
+                {filterBy === 'selected' &&
+                  (nodes.length > 0
+                    ? 'Active node and its depedencies.'
+                    : 'No active node.')}
+                {filterBy === 'changed' &&
+                  (nodes.length > 0
+                    ? 'Changed nodes and their downstreams.'
+                    : 'No changed nodes found.')}{' '}
                 <Link
                   color="blue"
                   onClick={() => {
