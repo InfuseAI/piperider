@@ -70,13 +70,11 @@ export function GraphNode({ data }: GraphNodeProps) {
       color = '#9a6700';
       color = COLOR_CHANGED;
       fontWeight = 600;
-      borderStyle = 'dashed';
     } else if (changeStatus === 'implicit') {
       iconChangeStatus = RxDotFilled;
       color = '#9a6700';
       color = COLOR_CHANGED;
       fontWeight = 600;
-      borderStyle = 'dashed';
     } else if (changeStatus === 'removed') {
       iconChangeStatus = VscDiffRemoved;
       color = COLOR_REMOVED;

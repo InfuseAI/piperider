@@ -34,10 +34,16 @@ export function BMWidget({ data: { base, target }, singleOnly }: Props) {
   //shared timeGrain selection + options (SR+CR+Dimensions)
   const fallbackBMData = target || base;
   const timeGrain = fallbackBMData?.grain;
-  const dateRangeStartEnd = [
-    fallbackBMData?.data[0][0],
-    fallbackBMData?.data[0].slice(-1),
-  ].map((v) => String(v));
+
+  let start: string = '-';
+  let end: string = '-';
+
+  if (fallbackBMData && fallbackBMData.data.length > 0) {
+    const firstRow = fallbackBMData?.data[0];
+    const lastRow = fallbackBMData?.data[fallbackBMData.data.length - 1];
+    start = String(firstRow[0]);
+    end = String(lastRow[0]);
+  }
 
   return (
     <Box p={3}>
@@ -78,7 +84,7 @@ export function BMWidget({ data: { base, target }, singleOnly }: Props) {
         </Flex>
         <Flex>
           <Text color={'gray.500'} fontSize={'sm'}>
-            from {dateRangeStartEnd[0]} to {dateRangeStartEnd[1]}
+            from {start} to {end}
           </Text>
         </Flex>
       </Box>
