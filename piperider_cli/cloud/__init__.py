@@ -8,7 +8,8 @@ from rich.progress import Progress, TextColumn, BarColumn, DownloadColumn, TimeE
 from ruamel import yaml
 
 from piperider_cli import __version__
-from piperider_cli.error import PipeRiderNoDefaultProjectError, CloudReportError
+from piperider_cli.configuration import Configuration, FileSystem
+from piperider_cli.error import PipeRiderNoDefaultProjectError, CloudReportError, PipeRiderConfigError
 from piperider_cli.event import load_user_profile, update_user_profile
 
 PIPERIDER_CLOUD_SERVICE = 'https://cloud.piperider.io/'
@@ -34,7 +35,7 @@ class CloudServiceHelper:
         self.user_profile = load_user_profile()
         if self.user_profile is None:
             return
-        self.load_configuration()
+        self.load_cloud_api_config()
 
     @property
     def cloud_host(self):
@@ -42,7 +43,7 @@ class CloudServiceHelper:
             return 'http://localhost:3000'
         return self.api_service
 
-    def load_configuration(self):
+    def load_cloud_api_config(self):
         # load from the configuration file first
         # overwrite them if found env vars
         self.api_service = os.environ.get(SERVICE_ENV_SERVICE_KEY,
@@ -52,13 +53,26 @@ class CloudServiceHelper:
                                         self.user_profile.get('api_token'))
 
     def get_config(self) -> dict:
-        config = self.user_profile.get('cloud_config', {})
+        # precedence: local cloud config > global profiler cloud config
+        config = {}
+        try:
+            config = Configuration.instance().cloud_config
+        except PipeRiderConfigError:
+            # piperider may not be initialized
+            pass
+
+        if not config.get('default_project'):
+            config.update(self.user_profile.get('cloud_config', {}))
+
         return config if config else {}
 
     def update_config(self, options: dict):
         cloud_config = self.get_config()
         cloud_config.update(options)
-        self.user_profile = update_user_profile({'cloud_config': cloud_config})
+        try:
+            Configuration.update_config('cloud_config', cloud_config)
+        except PipeRiderConfigError:
+            self.user_profile = update_user_profile({'cloud_config': cloud_config})
 
     def update_api_token(self):
         if self.api_token:
