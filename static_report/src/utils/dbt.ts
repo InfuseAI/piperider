@@ -1,4 +1,4 @@
-import { CompColEntryItem, CompTableColEntryItem } from './store';
+import { ChangeStatus, CompColEntryItem, CompTableColEntryItem } from './store';
 import {
   DbtManifestSchema,
   ModelNode,
@@ -33,8 +33,6 @@ export type ItemType =
   | 'metric_list'
   | 'test_list'
   | 'graph';
-
-type ChangeStatus = 'changed' | 'added' | 'removed' | 'implicit';
 
 export interface SidebarTreeItem {
   name: string;
@@ -173,9 +171,9 @@ function compareDbtNode(
   }
 
   // code change
-  if (target?.raw_code && base?.raw_code !== target?.raw_code) {
-    return 'changed';
-  }
+  // if (target?.raw_code && base?.raw_code !== target?.raw_code) {
+  //   return 'changed';
+  // }
 
   // value change
   if (
@@ -370,7 +368,8 @@ export function buildSourceTree(
         path,
       );
 
-      const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
+      // const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
+      const changeStatus = metadata.changeStatus;
       tree[sourceName].items.push({
         type: 'source',
         name: name,
@@ -446,7 +445,8 @@ export function buildModelOrSeedTree(
       fallback!.__columns || [],
       path,
     );
-    const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
+    // const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
+    const changeStatus = metadata.changeStatus;
 
     curDir[fname] = {
       type: resourceType,
@@ -497,7 +497,8 @@ export function buildLegacyTablesTree(
       fallback!.__columns || [],
       path,
     );
-    const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
+    // const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
+    const changeStatus = metadata.changeStatus;
 
     const itemTable: SidebarTreeItem = {
       name: fallback?.name || '',
@@ -572,7 +573,7 @@ export function buildDatabaseTree(
   const treeNodes: DbtNode[] = [];
   const changeStatuses: { [key: string]: ChangeStatus | undefined } = {};
 
-  itemsNodeComparison.forEach(([key, { base, target }]) => {
+  itemsNodeComparison.forEach(([key, { base, target }, metadata]) => {
     const node = target || base;
 
     if (!node) {
@@ -590,7 +591,8 @@ export function buildDatabaseTree(
       treeNodes.push(node as DbtNode);
     }
 
-    changeStatuses[key] = compareDbtNode(base, target);
+    // changeStatuses[key] = compareDbtNode(base, target);
+    changeStatuses[key] = metadata.changeStatus;
   });
 
   var treeNodesSorted = _.sortBy(treeNodes, function (node) {
@@ -668,7 +670,7 @@ export function buildLineageGraph(
   }
 
   itemsNodeComparison.forEach((tableEntry) => {
-    const [key, { base, target }] = tableEntry;
+    const [key, { base, target }, metadata] = tableEntry;
     const fallback = (target ?? base) as DbtNode;
     const dependsOn: LineageGraphNode['dependsOn'] = {};
     const from: LineageGraphNode['from'] = [];
@@ -711,7 +713,8 @@ export function buildLineageGraph(
       fallback!.__columns || [],
       path,
     );
-    const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
+    // const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
+    const changeStatus = metadata.changeStatus;
 
     data[key] = {
       uniqueId: key,
