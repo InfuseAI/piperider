@@ -191,6 +191,9 @@ def run(**kwargs):
     force_upload = kwargs.get('upload')
     project_name = kwargs.get('project')
 
+    if project_name is not None:
+        os.environ.get('PIPERIDER_API_PROJECT')
+
     console = Console()
     env_dbt_resources = os.environ.get('PIPERIDER_DBT_RESOURCES')
 
