@@ -206,16 +206,11 @@ export const getDownstreamNodes = (
 /* The changed nodes and their intermedia nodes */
 const filterByChanged = (lineageGraph: LineageGraphData) => {
   const changeSet = new Set<string>();
-  const upstreamSet = new Set<string>();
   const downstreamSet = new Set<string>();
 
   Object.entries(lineageGraph).forEach(([uniqueId, node]) => {
     if (node.changeStatus !== undefined) {
       changeSet.add(uniqueId);
-
-      for (const upstream of getUpstreamNodes(lineageGraph, uniqueId)) {
-        upstreamSet.add(upstream);
-      }
 
       for (const downstream of getDownstreamNodes(lineageGraph, uniqueId)) {
         downstreamSet.add(downstream);
@@ -223,13 +218,8 @@ const filterByChanged = (lineageGraph: LineageGraphData) => {
     }
   });
 
-  // Add all (<change upstream> & <change downstream>) to changeSet
-  const isDownAndUpSet = Array.from(upstreamSet).filter((uniqueId) =>
-    downstreamSet.has(uniqueId),
-  );
-
   // union of changeSet and isDownAndUpSet
-  isDownAndUpSet.forEach((uniqueId) => {
+  downstreamSet.forEach((uniqueId) => {
     changeSet.add(uniqueId);
   });
 
