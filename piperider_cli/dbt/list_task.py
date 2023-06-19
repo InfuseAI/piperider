@@ -10,7 +10,6 @@ from dbt.contracts.connection import QueryComment
 from dbt.contracts.graph.manifest import Manifest, WritableManifest
 from dbt.contracts.project import PackageConfig, UserConfig
 from dbt.contracts.state import PreviousState
-from dbt.exceptions import EventCompilationError
 from dbt.node_types import NodeType
 
 from dbt.task.list import ListTask
@@ -33,10 +32,22 @@ def dbt_version_obj():
     return v.parse(dbt_version.__version__)
 
 
+def is_v1_3():
+    from packaging import version as v
+    dbt_v = dbt_version_obj()
+    return v.parse('1.3.0') <= dbt_v < v.parse('v1.4.0')
+
+
 def is_v1_4():
     from packaging import version as v
     dbt_v = dbt_version_obj()
     return v.parse('1.4.0') <= dbt_v < v.parse('v1.5.0')
+
+
+def is_lt_v1_5():
+    from packaging import version as v
+    dbt_v = dbt_version_obj()
+    return dbt_v < v.parse('v1.5.0')
 
 
 def is_v1_5():
@@ -45,12 +56,24 @@ def is_v1_5():
     return v.parse('1.5.0') <= dbt_v < v.parse('v1.6.0')
 
 
+def is_ge_v1_4():
+    from packaging import version as v
+    dbt_v = dbt_version_obj()
+    return dbt_v >= v.parse('1.4.0')
+
+
 def load_manifest(manifest: Dict):
-    if dbt_version() == '1.4':
+    v = dbt_version()
+    if v == '1.3':
+        return _load_manifest_version_13(manifest)
+
+    if v == '1.4':
         return _load_manifest_version_14(manifest)
 
-    # TODO ensure it is after v1.5.x
-    return _load_manifest_version_15(manifest)
+    if v == '1.5':
+        return _load_manifest_version_15(manifest)
+
+    raise NotImplementedError(f'dbt-core version: {v} is not supported')
 
 
 def get_manifest_schema_version(dct: dict) -> int:
@@ -58,6 +81,14 @@ def get_manifest_schema_version(dct: dict) -> int:
     if not schema_version:
         raise ValueError("Manifest doesn't have schema version")
     return int(schema_version.split(".")[-2][-1])
+
+
+def _load_manifest_version_13(data: Dict):
+    from dbt.contracts.util import upgrade_manifest_json
+    if get_manifest_schema_version(data) <= 6:
+        data = upgrade_manifest_json(data)
+
+    return WritableManifest.from_dict(data)  # type: ignore
 
 
 def _load_manifest_version_14(data: Dict):
@@ -323,7 +354,7 @@ def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector 
     setattr(dbt_flags, "state", None)
     setattr(dbt_flags, "models", None)
 
-    if is_v1_4():
+    if is_lt_v1_5():
         flags_module.INDIRECT_SELECTION = 'eager'
 
     setattr(dbt_flags, "output", "selector")
@@ -346,12 +377,11 @@ def compare_models_between_manifests(
     task = _DbtListTask()
     task.manifest = altered_manifest
 
-    #
-    if is_v1_5() and hasattr(flags_module, 'get_flags'):
-        dbt_flags = flags_module.get_flags()
-    else:
+    if is_lt_v1_5():
         dbt_flags = task.args
         flags_module.INDIRECT_SELECTION = 'eager'
+    else:
+        dbt_flags = flags_module.get_flags()
 
     setattr(dbt_flags, "state", None)
     setattr(dbt_flags, "models", None)
@@ -367,10 +397,15 @@ def compare_models_between_manifests(
     else:
         setattr(dbt_flags, "select", ("state:modified",))
 
+    if is_ge_v1_4():
+        from dbt.exceptions import EventCompilationError as DbtCompilationErr
+    else:
+        from dbt.exceptions import CompilationException as DbtCompilationErr
+
     try:
         with disable_dbt_compile_stats():
             return task.run()
-    except EventCompilationError as e:
+    except DbtCompilationErr as e:
         if "does not match any nodes" in e.msg:
             return []
         raise e
