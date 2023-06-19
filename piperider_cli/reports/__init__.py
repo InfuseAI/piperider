@@ -370,6 +370,9 @@ class ColumnChangeView:
         if self.data.get("nulls") != other.data.get("nulls"):
             return False
 
+        if self.data.get("distincts") != other.data.get("distincts"):
+            return False
+
         return True
 
     @property
@@ -790,6 +793,21 @@ class JoinedTables:
         b = table.get("base", {}).get("col_count")
         t = table.get("target", {}).get("col_count")
         return b, t
+
+    def tables(self):
+        return list(self._joined_tables.keys())
+
+    def table_data_iterator(self):
+        for table_name in self._joined_tables.keys():
+            table_data = self._joined_tables[table_name]
+            yield table_name, table_data.get('base'), table_data.get('target')
+
+    def has_row_counts_changed(self, table_name):
+        b, t = self.row_counts(table_name)
+        # We only check row-changes when both of them are profiled
+        if math.isnan(b) or math.isnan(t):
+            return False
+        return b != t
 
 
 class ChangedColumnsTableElement(_Element):
