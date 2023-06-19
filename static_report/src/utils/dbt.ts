@@ -1,15 +1,10 @@
-import { CompColEntryItem, CompTableColEntryItem } from './store';
+import { ChangeStatus, CompColEntryItem, CompTableColEntryItem } from './store';
 import {
   DbtManifestSchema,
   ModelNode,
   SourceDefinition,
 } from '../sdlc/dbt-manifest-schema';
-import {
-  BusinessMetric,
-  ColumnSchema,
-  DbtNode,
-  SaferSRSchema,
-} from '../types/index';
+import { ColumnSchema, DbtNode, SaferSRSchema } from '../types/index';
 import _ from 'lodash';
 import { HOME_ROUTE_PATH } from './routes';
 import { DbtRunResultsSchema } from '../sdlc/dbt-run-results-schema';
@@ -33,8 +28,6 @@ export type ItemType =
   | 'metric_list'
   | 'test_list'
   | 'graph';
-
-type ChangeStatus = 'changed' | 'added' | 'removed' | 'implicit';
 
 export interface SidebarTreeItem {
   name: string;
@@ -156,46 +149,6 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
   return dbtNodes;
 };
 
-function compareDbtNode(
-  base?: Partial<DbtNode>,
-  target?: Partial<DbtNode>,
-): ChangeStatus | undefined {
-  if (base === undefined && target === undefined) {
-    return undefined;
-  }
-
-  if (!base) {
-    return 'added';
-  }
-
-  if (!target) {
-    return 'removed';
-  }
-
-  // code change
-  if (target?.raw_code && base?.raw_code !== target?.raw_code) {
-    return 'changed';
-  }
-
-  // value change
-  if (
-    base?.__table?.row_count !== undefined &&
-    target.__table?.row_count !== undefined
-  ) {
-    if (base.__table.row_count !== target.__table.row_count) {
-      return 'implicit';
-    }
-  }
-
-  if (base?.__queries !== undefined && target.__queries !== undefined) {
-    if (compareQueries(base, target)) {
-      return 'implicit';
-    }
-  }
-
-  return undefined;
-}
-
 export function compareColumn(
   base?: Partial<ColumnSchema>,
   target?: Partial<ColumnSchema>,
@@ -221,65 +174,6 @@ export function compareColumn(
   if (base?.duplicates !== target?.duplicates) {
     return 'implicit';
   }
-}
-
-export function compareQuery(
-  base?: Partial<BusinessMetric>,
-  target?: Partial<BusinessMetric>,
-): ChangeStatus | undefined {
-  if (!base?.data) {
-    return 'added';
-  } else if (!target?.data) {
-    return 'removed';
-  }
-
-  // value change
-  if (base.data.length !== target.data.length) {
-    return 'implicit';
-  }
-
-  for (let i = 0; i < base.data?.length; i++) {
-    if (base.data[i][1] !== target.data[i][1]) {
-      return 'implicit';
-    }
-  }
-
-  return undefined;
-}
-
-export function compareQueries(
-  base?: Partial<DbtNode>,
-  target?: Partial<DbtNode>,
-): ChangeStatus | undefined {
-  if (base?.__queries === undefined) {
-    return undefined;
-  }
-
-  if (target?.__queries === undefined) {
-    return undefined;
-  }
-
-  let valueChange = false;
-  target?.__queries.forEach((targetQuery) => {
-    if (valueChange) {
-      return;
-    }
-
-    const baseQuery = _.find(
-      base?.__queries,
-      (q) => q.name === targetQuery.name,
-    );
-
-    if (compareQuery(baseQuery, targetQuery)) {
-      valueChange = true;
-    }
-  });
-
-  if (valueChange) {
-    return 'implicit';
-  }
-
-  return undefined;
 }
 
 export function findNodeByUniqueID(
@@ -365,12 +259,9 @@ export function buildSourceTree(
       }
 
       const path = `/sources/${fallback?.unique_id}`;
-      const [columnItems, columnChangeStatus] = buildColumnTree(
-        fallback!.__columns || [],
-        path,
-      );
+      const [columnItems] = buildColumnTree(fallback!.__columns || [], path);
 
-      const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
+      const changeStatus = metadata.changeStatus;
       tree[sourceName].items.push({
         type: 'source',
         name: name,
@@ -442,11 +333,8 @@ export function buildModelOrSeedTree(
     });
 
     const path = `/${resourceType}s/${fallback?.unique_id}`;
-    const [columnItems, columnChangeStatus] = buildColumnTree(
-      fallback!.__columns || [],
-      path,
-    );
-    const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
+    const [columnItems] = buildColumnTree(fallback!.__columns || [], path);
+    const changeStatus = metadata.changeStatus;
 
     curDir[fname] = {
       type: resourceType,
@@ -493,11 +381,8 @@ export function buildLegacyTablesTree(
     }
 
     const path = `/tables/${fallback?.name}`;
-    const [columnItems, columnChangeStatus] = buildColumnTree(
-      fallback!.__columns || [],
-      path,
-    );
-    const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
+    const [columnItems] = buildColumnTree(fallback!.__columns || [], path);
+    const changeStatus = metadata.changeStatus;
 
     const itemTable: SidebarTreeItem = {
       name: fallback?.name || '',
@@ -572,7 +457,7 @@ export function buildDatabaseTree(
   const treeNodes: DbtNode[] = [];
   const changeStatuses: { [key: string]: ChangeStatus | undefined } = {};
 
-  itemsNodeComparison.forEach(([key, { base, target }]) => {
+  itemsNodeComparison.forEach(([key, { base, target }, metadata]) => {
     const node = target || base;
 
     if (!node) {
@@ -590,7 +475,7 @@ export function buildDatabaseTree(
       treeNodes.push(node as DbtNode);
     }
 
-    changeStatuses[key] = compareDbtNode(base, target);
+    changeStatuses[key] = metadata.changeStatus;
   });
 
   var treeNodesSorted = _.sortBy(treeNodes, function (node) {
@@ -668,7 +553,7 @@ export function buildLineageGraph(
   }
 
   itemsNodeComparison.forEach((tableEntry) => {
-    const [key, { base, target }] = tableEntry;
+    const [key, { base, target }, metadata] = tableEntry;
     const fallback = (target ?? base) as DbtNode;
     const dependsOn: LineageGraphNode['dependsOn'] = {};
     const from: LineageGraphNode['from'] = [];
@@ -707,11 +592,7 @@ export function buildLineageGraph(
     const packageName = fallback?.package_name;
     const filePath = fallback?.original_file_path.replace(/^models\//, '');
     const tags = fallback?.tags || [];
-    const [, columnChangeStatus] = buildColumnTree(
-      fallback!.__columns || [],
-      path,
-    );
-    const changeStatus = compareDbtNode(base, target) ?? columnChangeStatus;
+    const changeStatus = metadata.changeStatus;
 
     data[key] = {
       uniqueId: key,

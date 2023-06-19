@@ -50,6 +50,8 @@ export interface SaferTableSchema
 export interface ComparisonReportSchema {
   base: SaferSRSchema;
   input: SaferSRSchema;
+  implicit?: string[];
+  explicit?: string[];
 }
 
 export type ComparsionSource = 'base' | 'target';
