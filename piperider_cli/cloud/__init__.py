@@ -71,7 +71,7 @@ class CloudServiceHelper:
         cloud_config.update(options)
         try:
             Configuration.update_config('cloud_config', cloud_config)
-        except PipeRiderConfigError:
+        except FileNotFoundError:
             self.user_profile = update_user_profile({'cloud_config': cloud_config})
 
     def update_api_token(self):
