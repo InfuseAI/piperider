@@ -1,5 +1,4 @@
 import json
-import math
 import os
 import shutil
 import sys
@@ -7,6 +6,7 @@ import uuid
 from datetime import datetime
 from typing import List, Optional
 
+import math
 from rich import box
 from rich.color import Color
 from rich.console import Console
@@ -561,7 +561,7 @@ def get_dbt_state_dir(dbt_state_dir, dbt_config, ds):
 class Runner():
     @staticmethod
     def exec(datasource=None, table=None, output=None, skip_report=False, dbt_state_dir: str = None,
-             dbt_resources: Optional[dict] = None, report_dir: str = None):
+             dbt_resources: Optional[dict] = None, dbt_select: tuple = None, report_dir: str = None):
         console = Console()
 
         raise_exception_when_directory_not_writable(output)
@@ -639,6 +639,10 @@ class Runner():
                 return sys.exit(1)
             dbt_manifest = dbtutil.get_dbt_manifest(dbt_state_dir)
             dbt_run_results = dbtutil.get_dbt_run_results(dbt_state_dir)
+            if dbt_select:
+                # If the dbt_resources were already provided by environment variable PIPERIDER_DBT_RESOURCES, skip the dbt select
+                dbt_resources = dbt_resources if dbt_resources else dbtutil.get_dbt_resources(dbt_manifest,
+                                                                                              select=dbt_select)
         console.print('everything is OK.')
 
         console.rule('Collect metadata')

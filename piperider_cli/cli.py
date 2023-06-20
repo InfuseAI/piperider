@@ -11,7 +11,7 @@ from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cloud_connector import CloudConnector
 from piperider_cli.compare_report import CompareReport
 from piperider_cli.configuration import FileSystem, is_piperider_workspace_exist
-from piperider_cli.error import RecipeConfigException, DbtProjectNotFoundError
+from piperider_cli.error import RecipeConfigException, DbtProjectNotFoundError, PipeRiderConflictOptionsError
 from piperider_cli.event import UserProfileConfigurator
 from piperider_cli.event.track import TrackCommand
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED
@@ -43,6 +43,20 @@ event.init()
 debug_option = [
     click.option('--debug', is_flag=True, help='Enable debug mode.')
 ]
+
+
+def dbt_select_option_builder():
+    try:
+        # For dbt-core >= 1.5.0
+        from dbt.cli.options import MultiOption
+        return click.option('--select', '-s', default=None, type=tuple, help='Specify the dbt nodes to include.',
+                            multiple=True,
+                            cls=MultiOption)
+    except Exception:
+        # For dbt-core < 1.5.0
+        return click.option('--select', '-s', default=None, help='Specify the dbt nodes to include.',
+                            multiple=True)
+
 
 dbt_related_options = [
     click.option('--dbt-project-dir', type=click.Path(exists=True),
@@ -175,6 +189,7 @@ def diagnose(**kwargs):
 @click.option('--project', default=None, type=click.STRING, help='Specify the project name to upload.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
+@add_options([dbt_select_option_builder()])
 @add_options(dbt_related_options)
 @add_options(debug_option)
 def run(**kwargs):
@@ -190,6 +205,7 @@ def run(**kwargs):
     dbt_list = kwargs.get('dbt_list')
     force_upload = kwargs.get('upload')
     project_name = kwargs.get('project')
+    select = kwargs.get('select')
 
     console = Console()
     env_dbt_resources = os.environ.get('PIPERIDER_DBT_RESOURCES')
@@ -213,6 +229,12 @@ def run(**kwargs):
         raise DbtProjectNotFoundError()
 
     dbt_resources = None
+    if select and dbt_list is True:
+        raise PipeRiderConflictOptionsError(
+            'Cannot use options "--select" with "--dbt-list"',
+            hint='Remove "--select" option and use "--dbt-list" instead.'
+        )
+
     if dbt_list:
         dbt_resources = dbtutil.read_dbt_resources(sys.stdin)
     if env_dbt_resources is not None:
@@ -224,6 +246,7 @@ def run(**kwargs):
                       skip_report=skip_report,
                       dbt_state_dir=dbt_state_dir,
                       dbt_resources=dbt_resources,
+                      dbt_select=select,
                       report_dir=kwargs.get('report_dir'))
     if ret in (0, EC_ERR_TEST_FAILED):
         if enable_share:
@@ -445,6 +468,7 @@ def cloud_compare_reports(**kwargs):
 @click.option('--dry-run', is_flag=True, default=False, help='Display the run details without actually executing it')
 @click.option('--interactive', is_flag=True, default=False,
               help='Prompt for confirmation to proceed with the run (Y/N)')
+@add_options([dbt_select_option_builder()])
 @add_options(dbt_related_options)
 @add_options(debug_option)
 def compare_with_recipe(**kwargs):
@@ -458,6 +482,7 @@ def compare_with_recipe(**kwargs):
     enable_share = kwargs.get('share')
     open_report = kwargs.get('open')
     project_name = kwargs.get('project')
+    select = kwargs.get('select')
     debug = kwargs.get('debug', False)
 
     # reconfigure recipe global flags
@@ -487,7 +512,7 @@ def compare_with_recipe(**kwargs):
     ret = 0
     try:
         # note: dry-run and interactive are set by configure_recipe_execution_flags
-        recipe_config: RecipeConfiguration = RecipeExecutor.exec(recipe_name=recipe, debug=debug)
+        recipe_config: RecipeConfiguration = RecipeExecutor.exec(recipe_name=recipe, select=select, debug=debug)
         last = False
         base = target = None
         if not recipe_config.base.is_file_specified() and not recipe_config.target.is_file_specified():

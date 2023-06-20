@@ -11,7 +11,6 @@ from dbt.contracts.graph.manifest import Manifest, WritableManifest
 from dbt.contracts.project import PackageConfig, UserConfig
 from dbt.contracts.state import PreviousState
 from dbt.node_types import NodeType
-
 from dbt.task.list import ListTask
 
 from piperider_cli.dbt import disable_dbt_compile_stats
@@ -146,7 +145,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def rename_relation(
-            self, from_relation: BaseRelation, to_relation: BaseRelation
+        self, from_relation: BaseRelation, to_relation: BaseRelation
     ) -> None:
         pass
 
@@ -157,7 +156,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def list_relations_without_caching(
-            self, schema_relation: BaseRelation
+        self, schema_relation: BaseRelation
     ) -> List[BaseRelation]:
         pass
 
@@ -346,7 +345,7 @@ class ResourceSelector:
         )
 
 
-def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector = None):
+def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector = None, select: tuple = None):
     task = _DbtListTask()
     task.manifest = manifest
 
@@ -364,15 +363,15 @@ def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector 
         setattr(dbt_flags, "resource_types", selector.build_selected_set())
 
     setattr(dbt_flags, "selector", None)
-    setattr(dbt_flags, "select", None)
+    setattr(dbt_flags, "select", select)
     with disable_dbt_compile_stats():
         return task.run()
 
 
 def compare_models_between_manifests(
-        base_manifest: Manifest,
-        altered_manifest: Manifest,
-        include_downstream: bool = False,
+    base_manifest: Manifest,
+    altered_manifest: Manifest,
+    include_downstream: bool = False,
 ):
     task = _DbtListTask()
     task.manifest = altered_manifest

@@ -205,3 +205,10 @@ class CloudReportError(PipeRiderError):
     def __init__(self, error_msg):
         self.message = error_msg
         pass
+
+
+class PipeRiderConflictOptionsError(PipeRiderError):
+    def __init__(self, error_msg, hint=''):
+        self.message = error_msg
+        self.hint = hint
+        pass
