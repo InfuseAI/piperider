@@ -4,7 +4,7 @@ import sys
 import time
 import uuid
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Union
 
 import inquirer
 from rich.console import Console
@@ -241,6 +241,9 @@ class Configuration(object):
         self.dbt = kwargs.get('dbt', None)
         self.telemetry_resolver = TelemetryIdResolver()
 
+        # local default project config
+        self.cloud_config = kwargs.get('cloud_config', None)
+
     def _verify_input_config(self):
         if self.profiler_config:
             limit = self.profiler_config.get('table', {}).get('limit', 0)
@@ -274,6 +277,17 @@ class Configuration(object):
         fs = ReportDirectory(self, report_dir=report_dir)
         self.report_directory_filesystem = fs
         return self.report_directory_filesystem
+
+    @staticmethod
+    def update_config(key: str, update_values: Union[dict, str]):
+        _yml = yaml.YAML()
+
+        with open(FileSystem.PIPERIDER_CONFIG_PATH, 'r') as f:
+            config = _yml.load(f)
+
+        config[key] = update_values
+        with open(FileSystem.PIPERIDER_CONFIG_PATH, 'w+') as f:
+            _yml.dump(config, f)
 
     @classmethod
     def from_dbt_project(cls, dbt_project_path, dbt_profiles_dir=None):
@@ -481,7 +495,8 @@ class Configuration(object):
             include_views=config.get('include_views', False),
             telemetry_id=config.get('telemetry', {}).get('id'),
             report_dir=config.get('report_dir', '.'),
-            dbt=dbt
+            dbt=dbt,
+            cloud_config=config.get('cloud_config', {})
         )
 
     def flush_datasource(self, path):
@@ -555,6 +570,9 @@ class Configuration(object):
                 datasource.update(**d.credential)
             config.pop('dbt')
             config['dataSources'].append(datasource)
+
+        if self.cloud_config:
+            config['cloud_config'] = self.cloud_config
 
         config_yaml = CommentedMap(config)
 
