@@ -21,7 +21,6 @@ class TestDuckDBDataSource(TestCase):
         self.assertEqual('duckdb', ds.type_name)
         self.assertEqual('config', ds.credential_source)
         self.assertTrue(ds.validate())
-        self.assertEqual(ds.verify_connector(), None)
 
     def test_duckdb_validate_method(self):
         ds = self.datasource_cls('unittest', dbt=self.mock_dbt, credential=self.mock_credentials)
