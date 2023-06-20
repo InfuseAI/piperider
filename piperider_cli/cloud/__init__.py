@@ -71,6 +71,7 @@ class CloudServiceHelper:
         cloud_config.update(options)
         try:
             Configuration.update_config('cloud_config', cloud_config)
+            Configuration.instance().cloud_config = cloud_config
         except FileNotFoundError:
             self.user_profile = update_user_profile({'cloud_config': cloud_config})
 
