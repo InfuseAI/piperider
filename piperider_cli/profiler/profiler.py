@@ -25,11 +25,12 @@ HISTOGRAM_NUM_BUCKET = 50
 
 
 class ProfileSubject:
-    def __init__(self, table: str, schema: str = None, database: str = None, name: str = None):
+    def __init__(self, table: str, schema: str = None, database: str = None, name: str = None, ref_id: str = None):
         self.table = table
         self.schema = schema
         self.database = database
         self.name = name if name else table
+        self.ref_id = ref_id
 
 
 def dtof(value: Union[int, float, decimal.Decimal]) -> Union[int, float]:
@@ -539,6 +540,8 @@ class TableProfiler:
             "duplicate_rows_p": None,
             "columns": columns,
         }
+        if subject.ref_id:
+            result['ref_id'] = subject.ref_id
         futures = []
         profile_start = time.perf_counter()
 
@@ -586,6 +589,10 @@ class TableProfiler:
             "col_count": col_count,
             "columns": columns,
         }
+
+        if subject.ref_id:
+            result['ref_id'] = subject.ref_id
+
         futures = []
 
         # Profile columns

@@ -41,7 +41,8 @@ class Metric:
         dimensions=None,
         filters=None,
         label=None,
-        description=None
+        description=None,
+        ref_id=None,
     ):
         self.name = name
         self.table = table
@@ -56,6 +57,7 @@ class Metric:
         self.label = label
         self.description = description
         self.ref_metrics: List[Metric] = []
+        self.ref_id = ref_id
 
 
 class MetricEngine:
@@ -265,6 +267,7 @@ class MetricEngine:
 
         query_result = {
             'name': f'{metric.name}_{self._compose_query_name(grain, dimension)}',
+            'ref_id': metric.ref_id,
             'label': f'{metric.label} ({self._compose_query_name(grain, dimension, label=True)})',
             'description': metric.description,
             'grain': grain,
