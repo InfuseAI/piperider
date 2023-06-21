@@ -540,9 +540,10 @@ class ChangeSet:
         tables = JoinedTables(self.base, self.target)
         for table_name, b, t in tables.table_data_iterator():
             r1, r2 = tables.row_counts(table_name)
+            c1, c2 = tables.column_counts(table_name)
             both_profiled = not math.isnan(r1) and not math.isnan(r2)
             if both_profiled:
-                if r1 == r2 and b == t:
+                if r1 == r2 and c1 == c2 and not self.has_changed(b, t):
                     pass
                 else:
                     diffs.append(table_name)
@@ -562,3 +563,19 @@ class ChangeSet:
         output = [mapping.get(x) for x in table_implicit + metric_implicit if mapping.get(x)]
         filtered_explicit = sorted(list(set(output) - set(self.explicit_changes)))
         return filtered_explicit
+
+    def has_changed(self, p1: Dict, p2: Dict):
+        """
+        p1 and p2 are table profiled data
+        """
+
+        from piperider_cli.reports import ColumnChangeView
+
+        base_cols: Dict[str, Dict] = p1.get('columns')
+        target_cols: Dict[str, Dict] = p2.get('columns')
+
+        for k in base_cols:
+            if ColumnChangeView(base_cols.get(k)) != ColumnChangeView(target_cols.get(k)):
+                return True
+
+        return False
