@@ -514,20 +514,14 @@ class ChangeSet:
         metrics_t = {x.get('name'): x for x in self.target.get('metrics')}
 
         diffs = []
-        added_or_removed = []
         for x in set(list(metrics_b.keys()) + list(metrics_t.keys())):
             if x in metrics_b and x in metrics_t:
                 if metrics_b.get(x) != metrics_t.get(x):
-                    # header will like this: ['date_week', 'average_order_amount']
-                    # the second element is the metric name
-                    diffs.append(metrics_b.get(x).get('headers')[1])
-            else:
-                if metrics_b.get(x):
-                    added_or_removed.append(metrics_b.get(x).get('headers')[1])
-                if metrics_t.get(x):
-                    added_or_removed.append(metrics_t.get(x).get('headers')[1])
+                    ref_id = metrics_t.get(x).get('ref_id')
+                    if ref_id:
+                        diffs.append(ref_id)
 
-        implicit = list(set(diffs) - set(added_or_removed))
+        implicit = list(set(diffs))
         return list(set(implicit) - set(self.explicit_changes))
 
     def _table_implicit_changes(self):
@@ -535,10 +529,9 @@ class ChangeSet:
         from piperider_cli.reports import JoinedTables
 
         diffs = []
-        added_or_removed = []
 
         tables = JoinedTables(self.base, self.target)
-        for table_name, b, t in tables.table_data_iterator():
+        for table_name, ref_id, b, t in tables.table_data_iterator():
             r1, r2 = tables.row_counts(table_name)
             c1, c2 = tables.column_counts(table_name)
             both_profiled = not math.isnan(r1) and not math.isnan(r2)
@@ -546,22 +539,14 @@ class ChangeSet:
                 if r1 == r2 and c1 == c2 and not self.has_changed(b, t):
                     pass
                 else:
-                    diffs.append(table_name)
-            else:
-                added_or_removed.append(table_name)
+                    diffs.append(ref_id)
 
         return diffs
 
     def list_implicit_changes(self):
         table_implicit = self._table_implicit_changes()
         metric_implicit = self._metrics_implicit_changes()
-
-        # only use the target_resources to exclude "removed" resources
-        target_resources = list_resources_unique_id_from_manifest(self.target_manifest)
-        mapping = {x.get('name'): x.get('unique_id') for x in target_resources}
-
-        output = [mapping.get(x) for x in table_implicit + metric_implicit if mapping.get(x)]
-        filtered_explicit = sorted(list(set(output) - set(self.explicit_changes)))
+        filtered_explicit = sorted(list(set(table_implicit + metric_implicit) - set(self.explicit_changes)))
         return filtered_explicit
 
     def has_changed(self, p1: Dict, p2: Dict):

@@ -58,6 +58,12 @@ class _BaseDbtTest(TestCase):
     def target_31587(self):
         return self.run_object("sc-31587-input.json")
 
+    def base_31587_with_ref(self):
+        return self.run_object("sc-31587-with-ref-base.json")
+
+    def target_31587_with_ref(self):
+        return self.run_object("sc-31587-with-ref-input.json")
+
 
 class TestDbtIntegration(_BaseDbtTest):
     def setUp(self):
@@ -164,6 +170,29 @@ class TestDbtIntegration(_BaseDbtTest):
                      'this only works after manifests generated after the v1.4')
     def test_list_explicit_changes2(self):
         c = ChangeSet(self.base_31587(), self.target_31587())
+
+        expected = ['model.jaffle_shop.orders',
+                    'test.jaffle_shop.accepted_values_orders_status__placed__shipped__completed__return_pending__returned.be6b5b5ec3',
+                    'test.jaffle_shop.not_null_orders_amount.106140f9fd',
+                    'test.jaffle_shop.not_null_orders_bank_transfer_amount.7743500c49',
+                    'test.jaffle_shop.not_null_orders_coupon_amount.ab90c90625',
+                    'test.jaffle_shop.not_null_orders_credit_card_amount.d3ca593b59',
+                    'test.jaffle_shop.not_null_orders_customer_id.c5f02694af',
+                    'test.jaffle_shop.not_null_orders_gift_card_amount.413a0d2d7a',
+                    'test.jaffle_shop.not_null_orders_order_id.cf6c17daed',
+                    'test.jaffle_shop.unique_orders_order_id.fed79b3a6e']
+        changes = c.list_explicit_changes()
+        self.assertListEqual(changes, expected)
+
+        # expected_implicit = ['metric.jaffle_shop.average_order_amount']
+        # because there is no `ref_id` in the table and metric
+        expected_implicit = []
+        self.assertListEqual(c.list_implicit_changes(), expected_implicit)
+
+    @unittest.skipIf(dbt_version_obj() < version.parse('1.4'),
+                     'this only works after manifests generated after the v1.4')
+    def test_list_explicit_changes3(self):
+        c = ChangeSet(self.base_31587_with_ref(), self.target_31587_with_ref())
 
         expected = ['model.jaffle_shop.orders',
                     'test.jaffle_shop.accepted_values_orders_status__placed__shipped__completed__return_pending__returned.be6b5b5ec3',
