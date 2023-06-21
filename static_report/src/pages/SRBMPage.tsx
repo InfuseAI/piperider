@@ -1,7 +1,8 @@
-import { Box, Grid, GridItem, Text } from '@chakra-ui/react';
+import { Box, Grid, GridItem, Link, Text } from '@chakra-ui/react';
 import _ from 'lodash';
+import { FaChartBar } from 'react-icons/fa';
 import { useRoute } from 'wouter';
-import { NoData } from '../components';
+import { TableColumnHeader } from '../components';
 import { BMWidget } from '../components/Widgets/BMWidget';
 import { useTrackOnMount } from '../hooks';
 import { EVENTS, SR_TYPE_LABEL, useReportStore } from '../utils';
@@ -20,6 +21,8 @@ export function SRBMPage() {
   const [matchMetric, paramMetric] = useRoute(METRIC_DETAILS_ROUTE_PATH);
 
   let queries = rawData?.base?.metrics ?? [];
+  let name = 'All metrics';
+  let description = 'All metric queries';
 
   if (matchMetric) {
     const uniqueId = paramMetric?.uniqueId;
@@ -27,15 +30,27 @@ export function SRBMPage() {
     if (entry) {
       const [, { base }] = entry;
       queries = base?.__queries || [];
+      name = base?.label ?? base?.name;
+      description = base?.description;
     }
   }
 
   const names = queries.map((v) => v.name);
   return (
     <Box>
-      <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
-        Metrics
-      </Text>
+      {!matchMetric && (
+        <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
+          Metrics
+        </Text>
+      )}
+      {matchMetric && (
+        <TableColumnHeader
+          subtitle="Metric"
+          title={name}
+          icon={FaChartBar}
+          infoTip={description}
+        />
+      )}
 
       <Grid templateColumns={{ base: '1fr', xl: '1fr 1fr' }} w={'100%'} gap={5}>
         {names.map((name) => {
@@ -48,7 +63,18 @@ export function SRBMPage() {
             </GridItem>
           );
         })}
-        {names.length === 0 && <NoData text="No metrics data available" />}
+        {names.length === 0 && (
+          <Text color="gray.500">
+            No metric queries available. To enable, see{' '}
+            <Link
+              isExternal
+              textDecoration={'underline'}
+              href="https://docs.piperider.io/get-started/run/metrics"
+            >
+              metrics docs
+            </Link>
+          </Text>
+        )}
       </Grid>
     </Box>
   );

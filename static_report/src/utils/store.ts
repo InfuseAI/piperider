@@ -132,6 +132,8 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
         results.push(base[0]);
         base.shift();
         target.splice(0, idx + 1);
+      } else if (results.includes(base[0])) {
+        base.shift();
       } else {
         results.push(base[0]);
         base.shift();

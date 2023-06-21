@@ -1,7 +1,8 @@
-import { Box, Flex, Grid, GridItem, Text } from '@chakra-ui/react';
+import { Box, Flex, Grid, GridItem, Link, Text } from '@chakra-ui/react';
 import _ from 'lodash';
+import { FaChartBar } from 'react-icons/fa';
 import { useRoute } from 'wouter';
-import { NoData } from '../components';
+import { TableColumnHeader } from '../components';
 import { BMWidget } from '../components/Widgets/BMWidget';
 import { useTrackOnMount } from '../hooks';
 import { EVENTS, CR_TYPE_LABEL, useReportStore } from '../utils';
@@ -20,14 +21,19 @@ export function CRBMPage() {
 
   let baseQueries = rawData?.base?.metrics ?? [];
   let targetQueries = rawData?.input?.metrics ?? [];
+  let name = 'All metrics';
+  let description = 'All metric queries';
 
   if (matchMetric) {
     const uniqueId = paramMetric?.uniqueId;
     const entry = _.find(tableColumnsOnly, ([key]) => key === uniqueId);
     if (entry) {
       const [, { base, target }] = entry;
+      const fallback = target ?? base;
       baseQueries = base?.__queries || [];
       targetQueries = target?.__queries || [];
+      name = fallback?.label ?? fallback?.name;
+      description = fallback?.description;
     }
   }
 
@@ -39,9 +45,19 @@ export function CRBMPage() {
   return (
     <Box>
       <Flex w={'100%'}>
-        <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
-          Metrics
-        </Text>
+        {!matchMetric && (
+          <Text fontSize={'xl'} fontWeight={'semibold'} textAlign={'left'}>
+            Metrics
+          </Text>
+        )}
+        {matchMetric && (
+          <TableColumnHeader
+            subtitle="Metric"
+            title={name}
+            icon={FaChartBar}
+            infoTip={description}
+          />
+        )}
       </Flex>
       <Grid templateColumns={{ base: '1fr', xl: '1fr 1fr' }} w={'100%'} gap={5}>
         {names.map((name) => {
@@ -54,7 +70,18 @@ export function CRBMPage() {
             </GridItem>
           );
         })}
-        {names.length === 0 && <NoData text="No metrics data available" />}
+        {names.length === 0 && (
+          <Text color="gray.500">
+            No metric queries available. To enable, see{' '}
+            <Link
+              isExternal
+              textDecoration={'underline'}
+              href="https://docs.piperider.io/get-started/run/metrics"
+            >
+              metrics docs
+            </Link>
+          </Text>
+        )}
       </Grid>
     </Box>
   );

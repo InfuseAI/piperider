@@ -1,6 +1,7 @@
 import { CompColEntryItem, CompTableColEntryItem } from './store';
 import {
   DbtManifestSchema,
+  Metric,
   ModelNode,
   SourceDefinition,
 } from '../sdlc/dbt-manifest-schema';
@@ -478,6 +479,51 @@ export function buildModelOrSeedTree(
   return recursiveFlattenItems(tree);
 }
 
+export function buildMetricTree(
+  itemsNodeComparison: CompTableColEntryItem[],
+): SidebarTreeItem[] {
+  let tree = {};
+
+  _.each(
+    itemsNodeComparison,
+    function ([uniqueId, { base, target }, metadata]) {
+      if (!uniqueId.startsWith('metric.')) {
+        return;
+      }
+
+      const fallback = target || base;
+      var packageName = (fallback as any as Metric)?.package_name;
+      var name = fallback?.label ?? fallback?.name;
+
+      if (!tree[packageName]) {
+        tree[packageName] = {
+          type: 'folder',
+          name: packageName,
+          items: [],
+          expanded: true,
+        };
+      }
+
+      const path = `/metrics/${fallback?.unique_id}`;
+      tree[packageName].items.push({
+        type: 'metric',
+        name: name,
+        path,
+      });
+    },
+  );
+
+  // sort schemas
+  let metrics: SidebarTreeItem[] = _.sortBy(_.values(tree), 'name');
+
+  // sort tables in the schema
+  _.each(metrics, function (metric) {
+    metric.items = _.sortBy(metric.items, 'name');
+  });
+
+  return metrics;
+}
+
 export function buildLegacyTablesTree(
   itemsNodeComparison: CompTableColEntryItem[],
 ): SidebarTreeItem[] {
@@ -551,6 +597,7 @@ export function buildProjectTree(
     name: 'Metrics',
     type: 'metric_list',
     path: `/metrics`,
+    items: buildMetricTree(itemsNodeComparison),
   };
   const assertion: SidebarTreeItem = {
     name: 'Assertions',
