@@ -37,7 +37,8 @@ class _FileSystem:
 
     def set_working_directory(self, working_directory: str):
         if os.path.exists(working_directory):
-            self.working_directory = working_directory
+            self.working_directory = working_directory if os.path.isdir(working_directory) else os.path.dirname(
+                working_directory)
         else:
             raise FileNotFoundError(f'the directory[{working_directory}] is not existing.')
 
@@ -340,8 +341,8 @@ class Configuration(object):
             profile_dir = dbt_profiles_dir
         elif os.getenv('DBT_PROFILES_DIR'):
             profile_dir = os.getenv('DBT_PROFILES_DIR')
-        elif os.path.exists(os.path.join(dbt_project_path, DBT_PROFILE_FILE)):
-            profile_dir = dbt_project_path
+        elif os.path.exists(os.path.join(os.path.dirname(dbt_project_path), DBT_PROFILE_FILE)):
+            profile_dir = os.path.dirname(dbt_project_path)
         elif os.path.exists(os.path.join(os.getcwd(), DBT_PROFILE_FILE)):
             profile_dir = os.getcwd()
         else:
@@ -360,10 +361,17 @@ class Configuration(object):
 
         dbt_profile = dbtutil.load_dbt_profile(os.path.expanduser(dbt_profile_path))
 
+        console = Console()
         profile_name = dbt_project.get('profile', '')
-        target_name = dbt_profile.get(profile_name, {}).get('target', '')
+        profile_content = dbt_profile.get(profile_name, None)
+
+        if profile_content is None:
+            "Could not find profile named 'jaffle_shop'"
+            console.print("[bold red]Error:[/bold red] "
+                          f"Could not find profile named '{profile_name}'")
+            sys.exit(1)
+        target_name = profile_content.get('target', 'default')
         if target_name not in list(dbt_profile.get(profile_name, {}).get('outputs', {}).keys()):
-            console = Console()
             console.print("[bold red]Error:[/bold red] "
                           f"The profile '{profile_name}' does not have a target named '{target_name}'.\n"
                           "Please check the dbt profile format.")
@@ -371,7 +379,7 @@ class Configuration(object):
         credential = dbtutil.load_credential_from_dbt_profile(dbt_profile, profile_name, target_name)
         type_name = credential.get('type')
         dbt = {
-            'projectDir': os.path.relpath(dbt_project_path, FileSystem.WORKING_DIRECTORY),
+            'projectDir': os.path.relpath(os.path.dirname(dbt_project_path), FileSystem.WORKING_DIRECTORY),
             'tag': 'piperider',
         }
 

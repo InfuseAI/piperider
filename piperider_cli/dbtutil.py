@@ -31,13 +31,8 @@ def search_dbt_project_path() -> str:
 
 def get_dbt_project_path(dbt_project_dir: str = None, no_auto_search: bool = False,
                          recursive: bool = True) -> str:
-    dbt_project_path = None
-    if dbt_project_dir:
-        dbt_project_path = os.path.join(dbt_project_dir, "dbt_project.yml")
-    else:
-        dbt_project_path = search_dbt_project_path()
-
-    return dbt_project_path
+    project_dir = dbt_project_dir if dbt_project_dir else search_dbt_project_path()
+    return os.path.join(project_dir, "dbt_project.yml")
 
 
 # Deprecated due to we will search parent directory for dbt_project.yml, not subdirectory ref: SC-31557
@@ -393,12 +388,17 @@ def load_dbt_project(path: str):
 
 def load_dbt_profile(path):
     template = load_jinja_template(path)
+    profile = None
     try:
         yml = yaml.YAML()
         yml.allow_duplicate_keys = True
-        return yml.load(template.render())
+        profile = yml.load(template.render())
     except Exception as e:
         raise DbtProfileInvalidError(path, e)
+    if profile is None:
+        raise DbtProfileInvalidError(path, f"The profile '{path}' is empty")
+    return profile
+
 
 
 def load_credential_from_dbt_profile(dbt_profile, profile_name, target_name):
