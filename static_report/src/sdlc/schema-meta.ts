@@ -1,6 +1,7 @@
 export const schemaMetaDescriptions = {
   "name": "Name of this column",
   "description": "Descriptor of this column",
+  "ref_id": "The reference unique id to the dbt resource",
   "row_count": "Number of rows in this table",
   "duplicate_rows": "Number of rows that have identical values across corresponding columns in this table",
   "duplicate_rows_p": "Percentage of rows that have identical values across corresponding columns in this table",
