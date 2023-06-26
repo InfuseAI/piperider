@@ -167,7 +167,7 @@ class DbtAdapterCommandNotFoundError(PipeRiderError):
 class DbtRunTimeError(PipeRiderError):
     def __init__(self, err: RuntimeError, select=None, state=None):
         self.message = err.msg
-        hint_cmd = f'dbt list'
+        hint_cmd = 'dbt list'
         if select:
             hint_cmd = f'{hint_cmd} --select {",".join(select)}'
         if state:
