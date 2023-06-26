@@ -1,11 +1,14 @@
 import json
 import os
+import unittest
 from typing import Dict
 from unittest import TestCase
 
+from packaging import version
+
 from piperider_cli.dbt.list_task import (
-    compare_models_between_manifests,
-    list_resources_from_manifest,
+    ChangeSet, compare_models_between_manifests,
+    dbt_version_obj, list_resources_from_manifest,
     ResourceSelector,
     load_manifest,
 )
@@ -28,6 +31,11 @@ class _BaseDbtTest(TestCase):
                 data = data.get("dbt", {}).get("manifest", {})
             return load_manifest(data)
 
+    def run_object(self, run_name):
+        with open(self.fake_data_path(run_name)) as fh:
+            data = json.loads(fh.read())
+            return data
+
     def load_json(self, filename: str) -> Dict:
         with open(self.fake_data_path(filename)) as fh:
             return json.loads(fh.read())
@@ -37,6 +45,24 @@ class _BaseDbtTest(TestCase):
 
     def target_manifest(self):
         return self.manifest_object("jaffle_shop_target_1.3.json", True)
+
+    def base_run(self):
+        return self.run_object("jaffle_shop_base_1.3.json")
+
+    def target_run(self):
+        return self.run_object("jaffle_shop_target_1.3.json")
+
+    def base_31587(self):
+        return self.run_object("sc-31587-base.json")
+
+    def target_31587(self):
+        return self.run_object("sc-31587-input.json")
+
+    def base_31587_with_ref(self):
+        return self.run_object("sc-31587-with-ref-base.json")
+
+    def target_31587_with_ref(self):
+        return self.run_object("sc-31587-with-ref-input.json")
 
 
 class TestDbtIntegration(_BaseDbtTest):
@@ -117,3 +143,69 @@ class TestDbtIntegration(_BaseDbtTest):
 
         expected = ["jaffle_shop.customers", "jaffle_shop.orders"]
         self.assertListEqual(with_downstream, expected)
+
+    def test_list_explicit_changes(self):
+        c = ChangeSet(self.base_run(), self.target_run())
+
+        expected = ['model.jaffle_shop.customers', 'model.jaffle_shop.orders',
+                    'test.jaffle_shop.accepted_values_orders_status'
+                    '__placed__shipped__completed__return_pending__returned.be6b5b5ec3',
+                    'test.jaffle_shop.not_null_customers_customer_id.5c9bf9911d',
+                    'test.jaffle_shop.not_null_orders_amount.106140f9fd',
+                    'test.jaffle_shop.not_null_orders_bank_transfer_amount.7743500c49',
+                    'test.jaffle_shop.not_null_orders_coupon_amount.ab90c90625',
+                    'test.jaffle_shop.not_null_orders_credit_card_amount.d3ca593b59',
+                    'test.jaffle_shop.not_null_orders_customer_id.c5f02694af',
+                    'test.jaffle_shop.not_null_orders_gift_card_amount.413a0d2d7a',
+                    'test.jaffle_shop.not_null_orders_order_id.cf6c17daed',
+                    'test.jaffle_shop.relationships_orders_customer_id__customer_id__ref_customers_.c6ec7f58f2',
+                    'test.jaffle_shop.unique_customers_customer_id.c5af1ff4b1',
+                    'test.jaffle_shop.unique_orders_order_id.fed79b3a6e']
+        changes = c.list_explicit_changes()
+        self.assertListEqual(changes, expected)
+
+        print(c.list_implicit_changes())
+
+    @unittest.skipIf(dbt_version_obj() < version.parse('1.4'),
+                     'this only works after manifests generated after the v1.4')
+    def test_list_explicit_changes2(self):
+        c = ChangeSet(self.base_31587(), self.target_31587())
+
+        expected = ['model.jaffle_shop.orders',
+                    'test.jaffle_shop.accepted_values_orders_status__placed__shipped__completed__return_pending__returned.be6b5b5ec3',
+                    'test.jaffle_shop.not_null_orders_amount.106140f9fd',
+                    'test.jaffle_shop.not_null_orders_bank_transfer_amount.7743500c49',
+                    'test.jaffle_shop.not_null_orders_coupon_amount.ab90c90625',
+                    'test.jaffle_shop.not_null_orders_credit_card_amount.d3ca593b59',
+                    'test.jaffle_shop.not_null_orders_customer_id.c5f02694af',
+                    'test.jaffle_shop.not_null_orders_gift_card_amount.413a0d2d7a',
+                    'test.jaffle_shop.not_null_orders_order_id.cf6c17daed',
+                    'test.jaffle_shop.unique_orders_order_id.fed79b3a6e']
+        changes = c.list_explicit_changes()
+        self.assertListEqual(changes, expected)
+
+        # expected_implicit = ['metric.jaffle_shop.average_order_amount']
+        # because there is no `ref_id` in the table and metric
+        expected_implicit = []
+        self.assertListEqual(c.list_implicit_changes(), expected_implicit)
+
+    @unittest.skipIf(dbt_version_obj() < version.parse('1.4'),
+                     'this only works after manifests generated after the v1.4')
+    def test_list_explicit_changes3(self):
+        c = ChangeSet(self.base_31587_with_ref(), self.target_31587_with_ref())
+
+        expected = ['model.jaffle_shop.orders',
+                    'test.jaffle_shop.accepted_values_orders_status__placed__shipped__completed__return_pending__returned.be6b5b5ec3',
+                    'test.jaffle_shop.not_null_orders_amount.106140f9fd',
+                    'test.jaffle_shop.not_null_orders_bank_transfer_amount.7743500c49',
+                    'test.jaffle_shop.not_null_orders_coupon_amount.ab90c90625',
+                    'test.jaffle_shop.not_null_orders_credit_card_amount.d3ca593b59',
+                    'test.jaffle_shop.not_null_orders_customer_id.c5f02694af',
+                    'test.jaffle_shop.not_null_orders_gift_card_amount.413a0d2d7a',
+                    'test.jaffle_shop.not_null_orders_order_id.cf6c17daed',
+                    'test.jaffle_shop.unique_orders_order_id.fed79b3a6e']
+        changes = c.list_explicit_changes()
+        self.assertListEqual(changes, expected)
+
+        expected_implicit = ['metric.jaffle_shop.average_order_amount']
+        self.assertListEqual(c.list_implicit_changes(), expected_implicit)

@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 from base64 import b64encode
+from typing import Dict
 
 from rich.console import Console
 

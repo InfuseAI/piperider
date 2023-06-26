@@ -512,12 +512,14 @@ def get_dbt_all_subjects(dbt_state_dir, options, filter_fn):
                 table = node.get('identifier')  # there is no alias in the source definition
                 schema = node.get('schema')
                 database = node.get('database')
+                ref_id = node.get("unique_id")
             else:
                 name = node.get('name')
                 table = node.get('alias')
                 schema = node.get('schema')
                 database = node.get('database')
-            result.append(ProfileSubject(table, schema, database, name))
+                ref_id = node.get("unique_id")
+            result.append(ProfileSubject(table, schema, database, name, ref_id))
         return result
 
     subjects = as_subjects(dbtutil.get_dbt_state_candidate(dbt_state_dir, options, select_for_metadata=True))

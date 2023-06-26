@@ -31,6 +31,10 @@ export interface TableSchema {
   name: string;
   description?: string;
   /**
+   * The reference unique id to the dbt resource
+   */
+  ref_id?: string;
+  /**
    * Number of rows in this table
    */
   row_count?: number;
@@ -304,6 +308,10 @@ export interface BusinessMetric {
    * A short for name of the business metric with time grain
    */
   label: string;
+  /**
+   * The reference unique id to the dbt metric
+   */
+  ref_id?: string;
   /**
    * Long form, human-readable description for the business metric
    */

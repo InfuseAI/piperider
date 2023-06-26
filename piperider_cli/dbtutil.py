@@ -325,7 +325,8 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
 
         m = Metric(metric.get('name'), table, schema, database, metric.get('expression'), metric.get('timestamp'),
                    metric.get('calculation_method'), metric.get('time_grains'), dimensions=None,
-                   filters=metric.get('filters'), label=metric.get('label'), description=metric.get('description'))
+                   filters=metric.get('filters'), label=metric.get('label'), description=metric.get('description'),
+                   ref_id=metric.get('unique_id'))
 
         metric_map[key] = m
         statistics = Statistics()

@@ -1,4 +1,6 @@
 import argparse
+import json
+import math
 from typing import Dict, List
 
 import agate
@@ -368,6 +370,30 @@ def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector 
         return task.run()
 
 
+def list_resources_unique_id_from_manifest(manifest: Manifest):
+    task = _DbtListTask()
+    task.manifest = manifest
+
+    dbt_flags = task.args
+    setattr(dbt_flags, "state", None)
+    setattr(dbt_flags, "models", None)
+
+    if is_lt_v1_5():
+        flags_module.INDIRECT_SELECTION = 'eager'
+
+    setattr(dbt_flags, "output", "json")
+    setattr(dbt_flags, "output", "json")
+    setattr(dbt_flags, "output_keys", "unique_id,name")
+    setattr(dbt_flags, "selector_name", None)
+    setattr(dbt_flags, "resource_types", [])
+
+    setattr(dbt_flags, "selector", None)
+    setattr(dbt_flags, "select", None)
+    with disable_dbt_compile_stats():
+        output = task.run()
+        return [json.loads(x) for x in output]
+
+
 def compare_models_between_manifests(
     base_manifest: Manifest,
     altered_manifest: Manifest,
@@ -408,3 +434,132 @@ def compare_models_between_manifests(
         if "does not match any nodes" in e.msg:
             return []
         raise e
+
+
+def list_changes_in_unique_id(
+        base_manifest: Manifest,
+        target_manifest: Manifest, show_modified_only=False) -> List[Dict[str, str]]:
+    task = _DbtListTask()
+    task.manifest = target_manifest
+
+    if is_lt_v1_5():
+        dbt_flags = task.args
+        flags_module.INDIRECT_SELECTION = 'eager'
+    else:
+        dbt_flags = flags_module.get_flags()
+
+    setattr(dbt_flags, "state", None)
+    setattr(dbt_flags, "models", None)
+    setattr(dbt_flags, "selector_name", None)
+    setattr(dbt_flags, "output", "json")
+    setattr(dbt_flags, "output_keys", "unique_id,name")
+    setattr(dbt_flags, "resource_types", None)
+    setattr(dbt_flags, "selector", None)
+
+    task.previous_state = _InMemoryPreviousState(base_manifest)
+
+    if show_modified_only:
+        setattr(dbt_flags, "select", ("state:modified",))
+    else:
+        setattr(dbt_flags, "select", None)
+
+    if is_ge_v1_4():
+        from dbt.exceptions import EventCompilationError as DbtCompilationErr
+    else:
+        from dbt.exceptions import CompilationException as DbtCompilationErr
+
+    try:
+        with disable_dbt_compile_stats():
+            outputs = task.run()
+            outputs = [json.loads(x) for x in outputs]
+            return outputs
+    except DbtCompilationErr as e:
+        if "does not match any nodes" in e.msg:
+            return []
+        raise e
+
+
+class ChangeSet:
+
+    def __init__(self, base: Dict, target: Dict):
+        self.base: Dict = base
+        self.target: Dict = target
+        self.base_manifest: Manifest = self._m(base)
+        self.target_manifest: Manifest = self._m(target)
+        self.explicit_changes = sorted(self._do_list_explicit_changes())
+
+    def _m(self, run: Dict):
+        manifest = run.get('dbt', {}).get('manifest', {})
+        if manifest == {}:
+            raise ValueError('Cannot find .dbt.manifest in run data')
+        return load_manifest(manifest)
+
+    def _do_list_explicit_changes(self):
+        base_resources = [x.get('unique_id') for x in list_resources_unique_id_from_manifest(self.base_manifest)]
+        target_resources = [x.get('unique_id') for x in list_resources_unique_id_from_manifest(self.target_manifest)]
+
+        # exclude added and removed
+        resource_in_both = list(set(base_resources).intersection(target_resources))
+        output = [x.get('unique_id') for x in list_changes_in_unique_id(self.base_manifest, self.target_manifest, True)]
+        output = list(set(output).intersection(resource_in_both))
+        return output
+
+    def list_explicit_changes(self):
+        return self.explicit_changes
+
+    def _metrics_implicit_changes(self):
+        # exclude added and removed
+        metrics_b = {x.get('name'): x for x in self.base.get('metrics')}
+        metrics_t = {x.get('name'): x for x in self.target.get('metrics')}
+
+        diffs = []
+        for x in set(list(metrics_b.keys()) + list(metrics_t.keys())):
+            if x in metrics_b and x in metrics_t:
+                if metrics_b.get(x) != metrics_t.get(x):
+                    ref_id = metrics_t.get(x).get('ref_id')
+                    if ref_id:
+                        diffs.append(ref_id)
+
+        implicit = list(set(diffs))
+        return list(set(implicit) - set(self.explicit_changes))
+
+    def _table_implicit_changes(self):
+        # list implicit changes and exclude added and removed tables
+        from piperider_cli.reports import JoinedTables
+
+        diffs = []
+
+        tables = JoinedTables(self.base, self.target)
+        for table_name, ref_id, b, t in tables.table_data_iterator():
+            r1, r2 = tables.row_counts(table_name)
+            c1, c2 = tables.column_counts(table_name)
+            both_profiled = not math.isnan(r1) and not math.isnan(r2)
+            if both_profiled:
+                if r1 == r2 and c1 == c2 and not self.has_changed(b, t):
+                    pass
+                else:
+                    diffs.append(ref_id)
+
+        return diffs
+
+    def list_implicit_changes(self):
+        table_implicit = self._table_implicit_changes()
+        metric_implicit = self._metrics_implicit_changes()
+        filtered_explicit = sorted(list(set(table_implicit + metric_implicit) - set(self.explicit_changes)))
+        return filtered_explicit
+
+    def has_changed(self, p1: Dict, p2: Dict):
+        """
+        p1 and p2 are table profiled data
+        """
+
+        from piperider_cli.reports import ColumnChangeView
+
+        base_cols: Dict[str, Dict] = p1.get('columns')
+        target_cols: Dict[str, Dict] = p2.get('columns')
+
+        for k in base_cols:
+            if ColumnChangeView(base_cols.get(k)) != ColumnChangeView(target_cols.get(k)):
+                return True
+
+        return False

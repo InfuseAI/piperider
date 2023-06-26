@@ -21,11 +21,13 @@ import {
 } from './dbt';
 
 export type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
+export type ChangeStatus = 'changed' | 'added' | 'removed' | 'implicit' | null;
 type ComparableMetadata = {
   added?: number;
   deleted?: number;
   changed?: number;
   mismatched?: boolean;
+  changeStatus?: ChangeStatus;
 };
 type EntryItem<T> = [string, T, ComparableMetadata];
 export type CompColEntryItem = EntryItem<ComparableData<Partial<ColumnSchema>>>;
@@ -158,6 +160,8 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
   const baseNodes = buildDbtNodes(rawData?.base) ?? {};
   const targetNodes = buildDbtNodes(rawData?.input) ?? {};
   const nodeKeys = mergeKeys(Object.keys(baseNodes), Object.keys(targetNodes));
+  const implicit = rawData?.implicit ? new Set(rawData?.implicit) : new Set();
+  const explicit = rawData?.explicit ? new Set(rawData?.explicit) : new Set();
 
   return nodeKeys.map((nodeKey) => {
     const base = baseNodes[nodeKey];
@@ -171,6 +175,7 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
     let added = 0;
     let deleted = 0;
     let changed = 0;
+    let changeStatus: ComparableMetadata['changeStatus'] = null;
 
     const columns: CompColEntryItem[] = [];
     keys.forEach((key) => {
@@ -203,10 +208,19 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
       target.__columns = columns;
     }
 
+    if (!base) {
+      changeStatus = 'added';
+    } else if (!target) {
+      changeStatus = 'removed';
+    } else if (explicit.has(`${nodeKey}`)) {
+      changeStatus = 'changed';
+    } else if (implicit.has(`${nodeKey}`)) {
+      changeStatus = 'implicit';
+    }
     return [
       nodeKey,
       { base, target },
-      { added, deleted, changed },
+      { added, deleted, changed, changeStatus },
     ] as CompTableColEntryItem;
   });
 };

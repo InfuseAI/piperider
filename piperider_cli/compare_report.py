@@ -173,6 +173,22 @@ class ComparisonData(object):
         self._base = base
         self._target = target
 
+        self.implicit = []
+        self.explicit = []
+        self._update_implicit_and_explicit_changeset()
+
+    def _update_implicit_and_explicit_changeset(self):
+        try:
+            from piperider_cli.dbt.list_task import ChangeSet
+            c = ChangeSet(self._base, self._target)
+            self.explicit = c.list_explicit_changes()
+            self.implicit = c.list_implicit_changes()
+        except BaseException as e:
+            console = Console()
+            console.print(
+                f'[bold yellow]Warning:[/bold yellow] {e}. Got problem to generate changeset.')
+            pass
+
     def id(self):
         return self._id
 
@@ -182,6 +198,8 @@ class ComparisonData(object):
             base=self._base,
             # TODO: rename input -> target in schema and result json
             input=self._target,
+            implicit=self.implicit,
+            explicit=self.explicit
         )
         return json.dumps(output, separators=(',', ':'))
 
