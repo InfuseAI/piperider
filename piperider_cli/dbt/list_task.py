@@ -17,7 +17,6 @@ from dbt.contracts.state import PreviousState
 from dbt.node_types import NodeType
 from dbt.task.list import ListTask
 
-from piperider_cli.configuration import FileSystem
 from piperider_cli.dbt import disable_dbt_compile_stats
 
 
@@ -206,6 +205,7 @@ class _Adapter(BaseAdapter):
 
 class _RuntimeConfig(RuntimeConfig):
     def __init__(self):
+        from piperider_cli.configuration import FileSystem
         data = {
             "profile_name": "piperider",
             "target_name": "piperider",
