@@ -16,7 +16,7 @@ from piperider_cli.dbt.list_task import load_manifest, list_resources_from_manif
 from piperider_cli.error import \
     DbtProjectInvalidError, \
     DbtProfileInvalidError, \
-    DbtProfileBigQueryAuthWithTokenUnsupportedError
+    DbtProfileBigQueryAuthWithTokenUnsupportedError, DbtRunTimeError
 from piperider_cli.metrics_engine import Metric
 from piperider_cli.statistics import Statistics
 
@@ -349,8 +349,11 @@ def get_dbt_manifest(dbt_state_dir: str):
     return _get_state_manifest(dbt_state_dir)
 
 
-def get_dbt_resources(dbt_manifest: Dict, select: tuple = None):
-    list_resources = list_resources_from_manifest(load_manifest(dbt_manifest), select=select)
+def get_dbt_resources(dbt_manifest: Dict, select: tuple = None, state=None):
+    try:
+        list_resources = list_resources_from_manifest(load_manifest(dbt_manifest), select=select, state=state)
+    except RuntimeError as e:
+        raise DbtRunTimeError(e, select, state)
     return read_dbt_resources(list_resources)
 
 

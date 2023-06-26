@@ -164,6 +164,17 @@ class DbtAdapterCommandNotFoundError(PipeRiderError):
         self.hint = f'Please run \'pip install dbt-{datasource_type}\' to install dbt Core and the adapter.'
 
 
+class DbtRunTimeError(PipeRiderError):
+    def __init__(self, err: RuntimeError, select=None, state=None):
+        self.message = err.msg
+        hint_cmd = f'dbt list'
+        if select:
+            hint_cmd = f'{hint_cmd} --select {",".join(select)}'
+        if state:
+            hint_cmd = f'{hint_cmd} --state {state}'
+        self.hint = f"Please make sure the select options are correct by executing '{hint_cmd}'."
+
+
 class AssertionError(PipeRiderError):
     def __init__(self, error_msg):
         self.message = error_msg
