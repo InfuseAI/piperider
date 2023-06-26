@@ -1,6 +1,7 @@
 import argparse
 import json
 import math
+import tempfile
 from typing import Dict, List
 
 import agate
@@ -61,6 +62,10 @@ def is_ge_v1_4():
     from packaging import version as v
     dbt_v = dbt_version_obj()
     return dbt_v >= v.parse('1.4.0')
+
+
+def create_temp_dir():
+    return tempfile.mkdtemp()
 
 
 def load_manifest(manifest: Dict):
@@ -147,7 +152,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def rename_relation(
-        self, from_relation: BaseRelation, to_relation: BaseRelation
+            self, from_relation: BaseRelation, to_relation: BaseRelation
     ) -> None:
         pass
 
@@ -158,7 +163,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def list_relations_without_caching(
-        self, schema_relation: BaseRelation
+            self, schema_relation: BaseRelation
     ) -> List[BaseRelation]:
         pass
 
@@ -354,6 +359,7 @@ def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector 
     dbt_flags = task.args
     setattr(dbt_flags, "state", None)
     setattr(dbt_flags, "models", None)
+    setattr(dbt_flags, "project_target_path", create_temp_dir())
 
     if is_lt_v1_5():
         flags_module.INDIRECT_SELECTION = 'eager'
@@ -377,6 +383,7 @@ def list_resources_unique_id_from_manifest(manifest: Manifest):
     dbt_flags = task.args
     setattr(dbt_flags, "state", None)
     setattr(dbt_flags, "models", None)
+    setattr(dbt_flags, "project_target_path", create_temp_dir())
 
     if is_lt_v1_5():
         flags_module.INDIRECT_SELECTION = 'eager'
@@ -395,9 +402,9 @@ def list_resources_unique_id_from_manifest(manifest: Manifest):
 
 
 def compare_models_between_manifests(
-    base_manifest: Manifest,
-    altered_manifest: Manifest,
-    include_downstream: bool = False,
+        base_manifest: Manifest,
+        altered_manifest: Manifest,
+        include_downstream: bool = False,
 ):
     task = _DbtListTask()
     task.manifest = altered_manifest
@@ -409,6 +416,7 @@ def compare_models_between_manifests(
         dbt_flags = flags_module.get_flags()
 
     setattr(dbt_flags, "state", None)
+    setattr(dbt_flags, "project_target_path", create_temp_dir())
     setattr(dbt_flags, "models", None)
     setattr(dbt_flags, "selector_name", None)
     setattr(dbt_flags, "output", "selector")
@@ -448,6 +456,7 @@ def list_changes_in_unique_id(
     else:
         dbt_flags = flags_module.get_flags()
 
+    setattr(dbt_flags, "project_target_path", create_temp_dir())
     setattr(dbt_flags, "state", None)
     setattr(dbt_flags, "models", None)
     setattr(dbt_flags, "selector_name", None)
