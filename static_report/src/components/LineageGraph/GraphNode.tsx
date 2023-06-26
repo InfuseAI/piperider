@@ -1,8 +1,6 @@
 import { Box, Flex, Icon, VStack, Text, Tooltip } from '@chakra-ui/react';
 import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
 
-import { RxDotFilled } from 'react-icons/rx';
-
 import { Handle, NodeProps, Position } from 'reactflow';
 import { useLocation } from 'wouter';
 import { LineageGraphNode } from '../../utils/dbt';
@@ -19,6 +17,7 @@ import {
 import { getStatDiff } from './util';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { FaChartBar } from 'react-icons/fa';
+import { IconImplicit } from '../Icons';
 
 interface GraphNodeProps extends NodeProps {
   data: LineageGraphNode;
@@ -74,7 +73,7 @@ export function GraphNode({ data }: GraphNodeProps) {
       color = COLOR_CHANGED;
       fontWeight = 600;
     } else if (changeStatus === 'implicit') {
-      iconChangeStatus = RxDotFilled;
+      iconChangeStatus = IconImplicit;
       msgChangeStatus = 'implicit change';
       color = '#9a6700';
       color = COLOR_CHANGED;
