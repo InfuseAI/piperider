@@ -37,6 +37,7 @@ class CheckingHandler(object):
         if not self.configurator:
             try:
                 self.configurator = Configuration.instance()
+                self.configurator.activate_report_directory()
             except Exception:
                 pass
 
