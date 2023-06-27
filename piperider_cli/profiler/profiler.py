@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, date, timezone
 from typing import Optional, Union, List, Tuple
 
+import sentry_sdk
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import MetaData, Table, Column, String, Integer, Numeric, Date, DateTime, Boolean, ARRAY, select, func, \
     distinct, case, text, literal_column, inspect, JSON
@@ -130,7 +131,14 @@ class Profiler:
             def _fetch_table_task(subject):
                 engine = self.data_source.get_engine_by_database(subject.database)
                 schema = subject.schema.lower() if subject.schema is not None else None
-                return subject.name, Table(subject.table, MetaData(), autoload_with=engine, schema=schema)
+                table = None
+                try:
+                    table = Table(subject.table, MetaData(), autoload_with=engine, schema=schema)
+                except BaseException as e:
+                    # ignore the table metadata fetch error
+                    sentry_sdk.capture_exception(e)
+                    pass
+                return subject.name, table
 
             future = _run_in_executor(self.executor, _fetch_table_task, subject)
             futures.append(future)
@@ -206,6 +214,7 @@ class Profiler:
 
         # Fetch schema data
         map_name_tables = await self._fetch_metadata(metadata_subjects if metadata_subjects else subjects)
+        map_name_tables = {k: v for k, v in map_name_tables.items() if v is not None}
 
         if metadata_subjects is None:
             # for compatible with non-dbt cases, we use subjects as the metadata_subjects
