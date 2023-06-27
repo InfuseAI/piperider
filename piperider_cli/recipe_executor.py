@@ -12,7 +12,7 @@ console = Console()
 
 class RecipeExecutor:
     @staticmethod
-    def exec(recipe_name: str, auto_generate_default_recipe: bool = True, select=None, debug=False):
+    def exec(recipe_name: str, auto_generate_default_recipe: bool = True, select: tuple = None, debug=False):
         recipe_path = select_recipe_file(recipe_name)
         if select:
             if recipe_name:
@@ -21,7 +21,7 @@ class RecipeExecutor:
                 )
             console.print(
                 f"[[bold green]Select[/bold green]] Manually select the dbt nodes to run by '{','.join(select)}'")
-        if recipe_path is None or select is not None:
+        if recipe_path is None or select:
             if auto_generate_default_recipe:
                 config = Configuration.instance()
                 dbt_project_path = None
