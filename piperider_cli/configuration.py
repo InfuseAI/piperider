@@ -235,14 +235,6 @@ class TelemetryIdResolver:
                 errs = errs.decode().strip()
             return outs, errs, proc.returncode
 
-        outs, errs, exit_code = _exec("git --version")
-        if exit_code != 0 or "version" not in outs:
-            return
-
-        outs, errs, exit_code = _exec("git status --porcelain")
-        if exit_code != 0:
-            return
-
         outs, errs, exit_code = _exec("git remote get-url origin")
         if exit_code != 0:
             return
