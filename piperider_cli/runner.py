@@ -644,9 +644,9 @@ class Runner():
             dbt_run_results = dbtutil.get_dbt_run_results(dbt_target_path)
             if dbt_select:
                 # If the dbt_resources were already provided by environment variable PIPERIDER_DBT_RESOURCES, skip the dbt select
-                dbt_resources = dbt_resources if dbt_resources else dbtutil.get_dbt_resources(dbt_manifest,
-                                                                                              select=dbt_select,
-                                                                                              state=dbt_state)
+                dbt_resources = dbt_resources if dbt_resources else dbtutil.load_dbt_resources(dbt_manifest,
+                                                                                               select=dbt_select,
+                                                                                               state=dbt_state)
         console.print('everything is OK.')
 
         console.rule('Collect metadata')

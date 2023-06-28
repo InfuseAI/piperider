@@ -9,7 +9,7 @@ import agate
 import dbt.flags as flags_module
 from dbt.adapters.base import BaseAdapter, BaseRelation, Column as BaseColumn
 from dbt.config.project import VarProvider
-from dbt.config.runtime import RuntimeConfig, load_profile, load_project
+from dbt.config.runtime import RuntimeConfig
 from dbt.contracts.connection import QueryComment
 from dbt.contracts.graph.manifest import Manifest, WritableManifest
 from dbt.contracts.project import PackageConfig, UserConfig
@@ -68,6 +68,24 @@ def is_ge_v1_4():
 
 def create_temp_dir():
     return tempfile.mkdtemp()
+
+
+def load_full_manifest():
+    from dbt.adapters.factory import register_adapter
+    from dbt.parser.manifest import ManifestLoader
+    runtime_config = PrepareRuntimeConfig()
+    register_adapter(runtime_config)
+
+    v = dbt_version()
+    if v == '1.5':
+        return ManifestLoader.get_full_manifest(
+            runtime_config, write_perf_info=False
+        )
+    elif v == '1.4':
+        return ManifestLoader.get_full_manifest(
+            runtime_config
+        )
+    # raise NotImplementedError(f'dbt-core version: {v} is not supported')
 
 
 def load_manifest(manifest: Dict):
@@ -207,6 +225,36 @@ class _Adapter(BaseAdapter):
 def PrepareRuntimeConfig():
     from piperider_cli.configuration import FileSystem
     project_root = FileSystem.WORKING_DIRECTORY
+
+    def _get_v14_runtime_config(flags):
+        setattr(flags, 'project_dir', project_root)
+        setattr(flags, "SEND_ANONYMOUS_USAGE_STATS", False)
+        initialize_from_flags()
+        return ListTask.ConfigType.from_args(flags)
+
+    def _get_v15_runtime_config(flags):
+        from dbt.config.runtime import load_project, load_profile
+
+        flags_module.set_flags(flags)
+        initialize_from_flags(False, project_root)
+
+        profile = load_profile(
+            project_root=project_root,
+            cli_vars={}
+        )
+        project = load_project(
+            project_root=project_root,
+            version_check=True,
+            profile=profile,
+            cli_vars={}
+        )
+
+        return RuntimeConfig.from_parts(
+            project,
+            profile,
+            flags
+        )
+
     flags = flags_module.get_flag_obj()
     setattr(flags, 'target_path', None)
     setattr(flags, "WRITE_JSON", None)
@@ -220,25 +268,15 @@ def PrepareRuntimeConfig():
     setattr(flags, "cls", ListTask)
     setattr(flags, "profile", None)
     setattr(flags, "target", None)
-    flags_module.set_flags(flags)
-    initialize_from_flags(False, project_root)
 
-    profile = load_profile(
-        project_root=project_root,
-        cli_vars={}
-    )
-    project = load_project(
-        project_root=project_root,
-        version_check=True,
-        profile=profile,
-        cli_vars={}
-    )
+    v = dbt_version()
 
-    return RuntimeConfig.from_parts(
-        project,
-        profile,
-        flags
-    )
+    if v == '1.5':
+        return _get_v15_runtime_config(flags)
+    elif v == '1.4':
+        return _get_v14_runtime_config(flags)
+
+    raise NotImplementedError(f'dbt-core version: {v} is not supported')
 
 
 class _RuntimeConfig(RuntimeConfig):
@@ -317,7 +355,7 @@ class _DbtListTask(ListTask):
 
         # The graph compiler tries to make directories when it initialized itself
         # setattr(self.args, "target_path", "/tmp/piperider-list-task/target_path")
-        setattr(self.args, "target_path", None)
+        setattr(self.args, "target_path", 'target')
         setattr(
             self.args,
             "packages_install_path",
