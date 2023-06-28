@@ -9,13 +9,14 @@ import agate
 import dbt.flags as flags_module
 from dbt.adapters.base import BaseAdapter, BaseRelation, Column as BaseColumn
 from dbt.config.project import VarProvider
-from dbt.config.runtime import RuntimeConfig
+from dbt.config.runtime import RuntimeConfig, load_profile, load_project
 from dbt.contracts.connection import QueryComment
 from dbt.contracts.graph.manifest import Manifest, WritableManifest
 from dbt.contracts.project import PackageConfig, UserConfig
 from dbt.contracts.state import PreviousState
 from dbt.node_types import NodeType
 from dbt.task.list import ListTask
+from dbt.tracking import initialize_from_flags
 
 from piperider_cli.dbt import disable_dbt_compile_stats
 
@@ -201,6 +202,43 @@ class _Adapter(BaseAdapter):
     @classmethod
     def convert_time_type(cls, agate_table: agate.Table, col_idx: int) -> str:
         pass
+
+
+def PrepareRuntimeConfig():
+    from piperider_cli.configuration import FileSystem
+    project_root = FileSystem.WORKING_DIRECTORY
+    flags = flags_module.get_flag_obj()
+    setattr(flags, 'target_path', None)
+    setattr(flags, "WRITE_JSON", None)
+    setattr(flags, "exclude", None)
+    setattr(flags, "output", "selector")
+    setattr(flags, "models", None)
+    setattr(flags, "INDIRECT_SELECTION", "eager")
+    setattr(flags, "WARN_ERROR", True)
+    setattr(flags, "MACRO_DEBUGGING", False)
+    setattr(flags, "PROFILES_DIR", project_root)
+    setattr(flags, "cls", ListTask)
+    setattr(flags, "profile", None)
+    setattr(flags, "target", None)
+    flags_module.set_flags(flags)
+    initialize_from_flags(False, project_root)
+
+    profile = load_profile(
+        project_root=project_root,
+        cli_vars={}
+    )
+    project = load_project(
+        project_root=project_root,
+        version_check=True,
+        profile=profile,
+        cli_vars={}
+    )
+
+    return RuntimeConfig.from_parts(
+        project,
+        profile,
+        flags
+    )
 
 
 class _RuntimeConfig(RuntimeConfig):

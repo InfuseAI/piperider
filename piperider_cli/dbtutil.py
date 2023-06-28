@@ -7,12 +7,14 @@ from pathlib import Path
 from typing import Optional, Union, Dict
 
 import inquirer
+from dbt.adapters.factory import register_adapter
+from dbt.parser.manifest import ManifestLoader
 from rich.console import Console
 from rich.table import Table
 from ruamel import yaml
 
 from piperider_cli import load_jinja_template, load_jinja_string_template
-from piperider_cli.dbt.list_task import load_manifest, list_resources_from_manifest
+from piperider_cli.dbt.list_task import load_manifest, list_resources_from_manifest, PrepareRuntimeConfig
 from piperider_cli.error import \
     DbtProjectInvalidError, \
     DbtProfileInvalidError, \
@@ -351,7 +353,16 @@ def get_dbt_manifest(dbt_state_dir: str):
 
 def get_dbt_resources(dbt_manifest: Dict, select: tuple = None, state=None):
     try:
-        list_resources = list_resources_from_manifest(load_manifest(dbt_manifest), select=select, state=state)
+        if state is None:
+            manifest = load_manifest(dbt_manifest)
+        else:
+            runtime_config = PrepareRuntimeConfig()
+            register_adapter(runtime_config)
+            manifest = ManifestLoader.get_full_manifest(
+                runtime_config, write_perf_info=False
+            )
+
+        list_resources = list_resources_from_manifest(manifest, select=select, state=state)
     except RuntimeError as e:
         raise DbtRunTimeError(e, select, state)
     return read_dbt_resources(list_resources)
