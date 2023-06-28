@@ -95,7 +95,7 @@ export const getMetadata = async () => {
       Buffer.from(await readFile(piperiderConfigPath)).toString(),
     );
     amplitudeUserID = piperiderProfile.user_id;
-    amplitudeProjectID = piperiderConfig.telemetry.id;
+    amplitudeProjectID = piperiderConfig.telemetry?.id;
   } catch (e) {
     throw new Error(chalk.red(e));
   }
