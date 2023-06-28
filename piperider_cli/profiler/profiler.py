@@ -187,7 +187,9 @@ class Profiler:
 
             for subject in subjects:
                 name = subject.name
-                table = map_name_tables[name]
+                table = map_name_tables.get(name)
+                if table is None:
+                    continue
                 engine = self.data_source.get_engine_by_database(subject.database)
                 table_profiler = TableProfiler(engine, self.executor, subject, table, self.event_handler, self.config)
                 tresult = await table_profiler.profile()
@@ -222,7 +224,9 @@ class Profiler:
 
         for subject in metadata_subjects:
             engine = self.data_source.get_engine_by_database(subject.database)
-            table = map_name_tables[subject.name]
+            table = map_name_tables.get(subject.name)
+            if table is None:
+                continue
             table_profiler = TableProfiler(engine, self.executor, subject, table, self.event_handler, self.config)
             tresult = await table_profiler.fetch_schema()
             profiled_tables[subject.name] = tresult
