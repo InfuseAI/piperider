@@ -8,6 +8,7 @@ import jsonschema
 from jsonschema.exceptions import ValidationError
 from rich.console import Console
 from ruamel import yaml
+from ruamel.yaml import CommentedSeq
 
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli import get_run_json_path, load_jinja_template, load_json
@@ -39,7 +40,12 @@ class AbstractRecipeField(metaclass=ABCMeta):
         self.commands: List[str] = content.get('commands', [])
 
         if content.get('command'):
-            self.commands.append(content.get('command'))
+            data = content.get('command')
+            if isinstance(data, CommentedSeq):
+                for c in data:
+                    self.commands.append(c)
+            else:
+                self.commands.append(data)
 
     def __dict__(self):
         d = dict()
