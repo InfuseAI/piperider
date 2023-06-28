@@ -393,10 +393,12 @@ export function buildMetricTree(
       }
 
       const path = `/metrics/${fallback?.unique_id}`;
+      const changeStatus = metadata.changeStatus;
       tree[packageName].items.push({
         type: 'metric',
         name: name,
         path,
+        changeStatus,
       });
     },
   );
