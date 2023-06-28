@@ -1,9 +1,12 @@
 import json
 import os
+import shlex
+import subprocess
 import sys
 import time
 import uuid
 from pathlib import Path
+from subprocess import Popen
 from typing import Callable, Dict, List, Optional, Union
 
 import inquirer
@@ -135,6 +138,7 @@ class TelemetryIdResolver:
             self.resolve_from_local_state,
             self.resolve_from_cloud_state,
             self.resolve_from_legacy_config,
+            self.resolve_from_git_remote_url,
             self.resolve_by_new_id,
         ]
         self.show_debug_message = os.environ.get('SHOW_PIPERIDER_TELEMETRY_ID_RESOLVED_TIME') is not None
@@ -205,6 +209,37 @@ class TelemetryIdResolver:
     @staticmethod
     def resolve_from_legacy_config(configuration: "Configuration"):
         return configuration.telemetry_id
+
+    @staticmethod
+    def resolve_from_git_remote_url(configuration: "Configuration"):
+        def _exec(command_line: str):
+            cmd = shlex.split(command_line)
+            proc = None
+            try:
+                proc = Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
+                outs, errs = proc.communicate()
+            except BaseException as e:
+                if proc:
+                    proc.kill()
+                    outs, errs = proc.communicate()
+                else:
+                    return None, e, 1
+
+            if outs is not None:
+                outs = outs.decode().strip()
+            if errs is not None:
+                errs = errs.decode().strip()
+            return outs, errs, proc.returncode
+
+        outs, errs, exit_code = _exec("git remote get-url origin")
+        if exit_code != 0:
+            return
+
+        return uuid.uuid5(uuid.NAMESPACE_URL, outs).hex
 
     @staticmethod
     def resolve_by_new_id(configuration: "Configuration"):

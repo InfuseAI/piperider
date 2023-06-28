@@ -130,7 +130,9 @@ class Initializer():
             console.print('[bold green]Piperider workspace already exist[/bold green] ')
 
         # get Configuration object from dbt or user created configuration
-        configuration = _generate_configuration(dbt_project_path, dbt_profiles_dir, interactive)
+        _generate_configuration(dbt_project_path, dbt_profiles_dir, interactive)
+        configuration = Configuration.instance()
+        configuration.activate_report_directory()
 
         return configuration
 
