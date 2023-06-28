@@ -81,7 +81,7 @@ def load_full_manifest():
         return ManifestLoader.get_full_manifest(
             runtime_config, write_perf_info=False
         )
-    elif v == '1.4':
+    elif v == '1.4' or v == '1.3':
         return ManifestLoader.get_full_manifest(
             runtime_config
         )
@@ -226,6 +226,12 @@ def PrepareRuntimeConfig():
     from piperider_cli.configuration import FileSystem
     project_root = FileSystem.WORKING_DIRECTORY
 
+    def _get_v13_runtime_config(flags):
+        setattr(flags, 'project_dir', project_root)
+        setattr(flags, "SEND_ANONYMOUS_USAGE_STATS", False)
+        initialize_from_flags()
+        return ListTask.ConfigType.from_args(flags)
+
     def _get_v14_runtime_config(flags):
         setattr(flags, 'project_dir', project_root)
         setattr(flags, "SEND_ANONYMOUS_USAGE_STATS", False)
@@ -275,6 +281,8 @@ def PrepareRuntimeConfig():
         return _get_v15_runtime_config(flags)
     elif v == '1.4':
         return _get_v14_runtime_config(flags)
+    elif v == '1.3':
+        return _get_v13_runtime_config(flags)
 
     raise NotImplementedError(f'dbt-core version: {v} is not supported')
 
