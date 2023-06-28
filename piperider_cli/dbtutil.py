@@ -467,3 +467,14 @@ def get_fqn_list_by_tag(tag: str, project_dir: str):
         if tag in item.get('tags'):
             fqn_list.append(key.replace('metric.', 'metric:'))
     return fqn_list
+
+
+def prepare_topological_graph(manifest: Dict):
+    child_map = manifest.get('child_map', {})
+    graph = {}
+    for k, v in child_map.items():
+        if k.split('.')[0] == 'model' or k.split('.')[0] == 'metric':
+            v = [x for x in v if x.split('.')[0] == 'model' or x.split('.')[0] == 'metric']
+            graph[k] = v
+
+    return graph

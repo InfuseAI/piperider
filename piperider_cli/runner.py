@@ -19,7 +19,7 @@ from sqlalchemy.exc import NoSuchTableError
 
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli import convert_to_tzlocal, datetime_to_str, clone_directory, \
-    raise_exception_when_directory_not_writable
+    raise_exception_when_directory_not_writable, topological_sort
 from piperider_cli import event
 from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
@@ -746,6 +746,8 @@ class Runner():
 
         if dbt_config:
             dbtutil.append_descriptions(run_result, dbt_state_dir)
+            graph = dbtutil.prepare_topological_graph(run_result.get('dbt', {}).get('manifest', {}))
+            print(topological_sort(graph, len(list(graph.keys()))))
         _append_descriptions_from_assertion(run_result)
 
         run_result['id'] = run_id
