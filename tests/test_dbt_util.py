@@ -1,10 +1,12 @@
 import os
-from unittest import TestCase
+from pathlib import Path
+from unittest import TestCase, mock
 
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli.datasource.sqlite import SqliteDataSource
 from piperider_cli.profiler import Profiler
 from tests.common import create_table
+from tests.test_dbt_manifest_compatible import _load_manifest
 
 
 class TestRunner(TestCase):
@@ -216,3 +218,47 @@ class TestRunner(TestCase):
         metrics = dbtutil.get_dbt_state_metrics(self.dbt_state_dir, 'abc', resources)
         self.assertEqual(len(metrics), 5)
         self.assertEqual(metrics[0].name, 'total_events')
+
+    @mock.patch('pathlib.Path.cwd',
+                return_value=Path(os.path.join(os.path.dirname(__file__), 'mock_dbt_project', 'dir_1', 'dir_2')))
+    def test_search_dbt_project_path(self, *args):
+        path = dbtutil.search_dbt_project_path()
+        self.assertEqual(path, os.path.join(os.path.dirname(__file__), 'mock_dbt_project'))
+
+    def test_is_ready(self):
+        self.assertFalse(dbtutil.is_ready({
+            'profile': None
+        }))
+
+        self.assertFalse(dbtutil.is_ready({
+            'profile': 'mock_data',
+            'target': None
+        }))
+
+        self.assertFalse(dbtutil.is_ready({
+            'profile': 'mock_data',
+            'target': 'mock_data',
+            'projectDir': None
+        }))
+
+        self.assertTrue(dbtutil.is_ready({
+            'profile': 'mock_data',
+            'target': 'mock_data',
+            'projectDir': '~/',  # this is a valid path
+        }))
+
+    @mock.patch('piperider_cli.dbtutil.get_dbt_manifest')
+    def test_load_dbt_resources(self, get_dbt_manifest):
+        target_path = os.path.join(os.path.dirname(__file__), 'mock_dbt_data')
+        get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.5.1-manifest.json')
+        resources = dbtutil.load_dbt_resources(target_path)
+        self.assertIn('models', resources)
+        self.assertIn('metrics', resources)
+
+    @mock.patch('piperider_cli.dbtutil.get_dbt_manifest')
+    def test_load_dbt_resources(self, get_dbt_manifest):
+        target_path = os.path.join(os.path.dirname(__file__), 'mock_dbt_data')
+        get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.5.1-manifest.json')
+        resources = dbtutil.load_dbt_resources(target_path)
+        self.assertIn('models', resources)
+        self.assertIn('metrics', resources)
