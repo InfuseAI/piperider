@@ -34,6 +34,7 @@ class _FileSystem:
 
     def __init__(self):
         self.working_directory = os.getcwd()
+        self.dbt_profiles_dir = None
 
     def set_working_directory(self, working_directory: str):
         if os.path.exists(working_directory):
@@ -42,9 +43,28 @@ class _FileSystem:
         else:
             raise FileNotFoundError(f'the directory[{working_directory}] is not existing.')
 
+    def set_dbt_profiles_dir(self, dbt_profiles_dir: str):
+        if os.path.exists(os.path.join(dbt_profiles_dir, DBT_PROFILE_FILE)):
+            self.dbt_profiles_dir = dbt_profiles_dir
+        else:
+            raise FileNotFoundError(f'[DBT Profiles Dir] the directory[{dbt_profiles_dir}] is not existing.')
+
     @property
     def WORKING_DIRECTORY(self):
         return self.working_directory
+
+    @property
+    def DBT_PROFILES_DIR(self):
+        if self.dbt_profiles_dir:
+            return self.dbt_profiles_dir
+        elif os.getenv('DBT_PROFILES_DIR'):
+            return os.getenv('DBT_PROFILES_DIR')
+        elif os.path.exists(os.path.join(self.working_directory, DBT_PROFILE_FILE)):
+            return self.working_directory
+        elif os.path.exists(os.path.join(os.getcwd(), DBT_PROFILE_FILE)):
+            return os.getcwd()
+        else:
+            return os.path.expanduser(DBT_PROFILES_DIR_DEFAULT)
 
     @property
     def PIPERIDER_WORKSPACE_NAME(self):
@@ -339,14 +359,8 @@ class Configuration(object):
         # https://docs.getdbt.com/docs/get-started/connection-profiles#advanced-customizing-a-profile-directory
         if dbt_profiles_dir:
             profile_dir = dbt_profiles_dir
-        elif os.getenv('DBT_PROFILES_DIR'):
-            profile_dir = os.getenv('DBT_PROFILES_DIR')
-        elif os.path.exists(os.path.join(os.path.dirname(dbt_project_path), DBT_PROFILE_FILE)):
-            profile_dir = os.path.dirname(dbt_project_path)
-        elif os.path.exists(os.path.join(os.getcwd(), DBT_PROFILE_FILE)):
-            profile_dir = os.getcwd()
         else:
-            profile_dir = DBT_PROFILES_DIR_DEFAULT
+            profile_dir = FileSystem.DBT_PROFILES_DIR
 
         dbt_profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
 
@@ -452,12 +466,8 @@ class Configuration(object):
                 # https://docs.getdbt.com/docs/get-started/connection-profiles#advanced-customizing-a-profile-directory
                 if dbt.get('profilesDir'):
                     profile_dir = dbt.get('profilesDir')
-                elif os.getenv('DBT_PROFILES_DIR'):
-                    profile_dir = os.getenv('DBT_PROFILES_DIR')
-                elif os.path.exists(os.path.join(os.getcwd(), DBT_PROFILE_FILE)):
-                    profile_dir = os.getcwd()
                 else:
-                    profile_dir = DBT_PROFILES_DIR_DEFAULT
+                    profile_dir = FileSystem.DBT_PROFILES_DIR
                 profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
                 if '~' in profile_path:
                     profile_path = os.path.expanduser(profile_path)
@@ -492,15 +502,8 @@ class Configuration(object):
             # https://docs.getdbt.com/docs/get-started/connection-profiles#advanced-customizing-a-profile-directory
             if dbt.get('profilesDir'):
                 profile_dir = dbt.get('profilesDir')
-            elif os.getenv('DBT_PROFILES_DIR'):
-                profile_dir = os.getenv('DBT_PROFILES_DIR')
-            elif not os.path.isabs(project_dir) and os.path.exists(
-                os.path.join(FileSystem.WORKING_DIRECTORY, project_dir, DBT_PROFILE_FILE)):
-                profile_dir = os.path.abspath(os.path.join(FileSystem.WORKING_DIRECTORY, project_dir))
-            elif os.path.exists(os.path.join(project_dir, DBT_PROFILE_FILE)):
-                profile_dir = project_dir
             else:
-                profile_dir = DBT_PROFILES_DIR_DEFAULT
+                profile_dir = FileSystem.DBT_PROFILES_DIR
 
             profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
             if '~' in profile_path:

@@ -7,16 +7,6 @@ import uuid
 from datetime import datetime
 from typing import List, Optional
 
-from rich import box
-from rich.color import Color
-from rich.console import Console
-from rich.pretty import Pretty
-from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedColumn, MofNCompleteColumn
-from rich.style import Style
-from rich.table import Table
-from sqlalchemy import inspect
-from sqlalchemy.exc import NoSuchTableError
-
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli import convert_to_tzlocal, datetime_to_str, clone_directory, \
     raise_exception_when_directory_not_writable
@@ -29,6 +19,15 @@ from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.metrics_engine import MetricEngine, MetricEventHandler
 from piperider_cli.profiler import Profiler, ProfilerEventHandler, ProfileSubject
 from piperider_cli.statistics import Statistics
+from rich import box
+from rich.color import Color
+from rich.console import Console
+from rich.pretty import Pretty
+from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedColumn, MofNCompleteColumn
+from rich.style import Style
+from rich.table import Table
+from sqlalchemy import inspect
+from sqlalchemy.exc import NoSuchTableError
 
 
 class RunEventPayload:
@@ -644,7 +643,7 @@ class Runner():
             dbt_run_results = dbtutil.get_dbt_run_results(dbt_target_path)
             if dbt_select:
                 # If the dbt_resources were already provided by environment variable PIPERIDER_DBT_RESOURCES, skip the dbt select
-                dbt_resources = dbt_resources if dbt_resources else dbtutil.load_dbt_resources(dbt_manifest,
+                dbt_resources = dbt_resources if dbt_resources else dbtutil.load_dbt_resources(dbt_target_path,
                                                                                                select=dbt_select,
                                                                                                state=dbt_state)
         console.print('everything is OK.')

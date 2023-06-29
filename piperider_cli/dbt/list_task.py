@@ -70,10 +70,11 @@ def create_temp_dir():
     return tempfile.mkdtemp()
 
 
-def load_full_manifest():
+def load_full_manifest(target_path: str):
     from dbt.adapters.factory import register_adapter
     from dbt.parser.manifest import ManifestLoader
-    runtime_config = PrepareRuntimeConfig()
+
+    runtime_config = PrepareRuntimeConfig(target_path)
     register_adapter(runtime_config)
 
     v = dbt_version()
@@ -85,7 +86,7 @@ def load_full_manifest():
         return ManifestLoader.get_full_manifest(
             runtime_config
         )
-    # raise NotImplementedError(f'dbt-core version: {v} is not supported')
+    raise NotImplementedError(f'dbt-core version: {v} is not supported')
 
 
 def load_manifest(manifest: Dict):
@@ -222,9 +223,10 @@ class _Adapter(BaseAdapter):
         pass
 
 
-def PrepareRuntimeConfig():
+def PrepareRuntimeConfig(target_path: str):
     from piperider_cli.configuration import FileSystem
     project_root = FileSystem.WORKING_DIRECTORY
+    profiles_dir = FileSystem.DBT_PROFILES_DIR
 
     def _get_v13_runtime_config(flags):
         setattr(flags, 'project_dir', project_root)
@@ -252,7 +254,8 @@ def PrepareRuntimeConfig():
             project_root=project_root,
             version_check=True,
             profile=profile,
-            cli_vars={}
+            cli_vars={
+            }
         )
 
         return RuntimeConfig.from_parts(
@@ -262,7 +265,7 @@ def PrepareRuntimeConfig():
         )
 
     flags = flags_module.get_flag_obj()
-    setattr(flags, 'target_path', None)
+    setattr(flags, 'target_path', target_path)
     setattr(flags, "WRITE_JSON", None)
     setattr(flags, "exclude", None)
     setattr(flags, "output", "selector")
@@ -270,7 +273,7 @@ def PrepareRuntimeConfig():
     setattr(flags, "INDIRECT_SELECTION", "eager")
     setattr(flags, "WARN_ERROR", True)
     setattr(flags, "MACRO_DEBUGGING", False)
-    setattr(flags, "PROFILES_DIR", project_root)
+    setattr(flags, "PROFILES_DIR", profiles_dir)
     setattr(flags, "cls", ListTask)
     setattr(flags, "profile", None)
     setattr(flags, "target", None)
