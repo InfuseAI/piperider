@@ -366,7 +366,6 @@ class Configuration(object):
         profile_content = dbt_profile.get(profile_name, None)
 
         if profile_content is None:
-            "Could not find profile named 'jaffle_shop'"
             console.print("[bold red]Error:[/bold red] "
                           f"Could not find profile named '{profile_name}'")
             sys.exit(1)
