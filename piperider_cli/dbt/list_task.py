@@ -518,8 +518,8 @@ class ChangeSet:
 
     def _metrics_implicit_changes(self):
         # exclude added and removed
-        metrics_b = {x.get('name'): x for x in self.base.get('metrics')}
-        metrics_t = {x.get('name'): x for x in self.target.get('metrics')}
+        metrics_b = {x.get('name'): x for x in self.base.get('metrics', {})}
+        metrics_t = {x.get('name'): x for x in self.target.get('metrics', {})}
 
         diffs = []
         for x in set(list(metrics_b.keys()) + list(metrics_t.keys())):
