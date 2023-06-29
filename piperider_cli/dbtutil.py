@@ -32,6 +32,8 @@ def search_dbt_project_path() -> str:
 def get_dbt_project_path(dbt_project_dir: str = None, no_auto_search: bool = False,
                          recursive: bool = True) -> str:
     project_dir = dbt_project_dir if dbt_project_dir else search_dbt_project_path()
+    if project_dir is None:
+        return None
     return os.path.join(project_dir, "dbt_project.yml")
 
 
