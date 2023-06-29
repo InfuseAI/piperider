@@ -91,7 +91,6 @@ class DuckDBDataSource(DataSource):
         from piperider_cli.configuration import FileSystem
         dbpath = credential.get('path')
         if os.path.isabs(dbpath) is False:
-            #dbpath = os.path.join(FileSystem.WORKING_DIRECTORY, dbpath)
             dbpath = os.path.join(os.getcwd(), dbpath)
         duckdb_path = os.path.abspath(dbpath)
         if not os.path.exists(duckdb_path):

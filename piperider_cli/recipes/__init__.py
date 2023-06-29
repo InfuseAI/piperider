@@ -357,9 +357,6 @@ def execute_configuration(cfg: RecipeConfiguration, debug=False):
     console.print("Check: dbt")
     verify_dbt_dependencies(cfg)
 
-    current_branch = get_current_branch(cfg)
-
-    skip_finally = False
     try:
         console.rule("Recipe executor: target phase")
         execute_recipe(cfg.target, recipe_type='target', debug=debug)
@@ -371,7 +368,6 @@ def execute_configuration(cfg: RecipeConfiguration, debug=False):
         execute_recipe_archive(cfg.base, recipe_type='base', debug=debug)
     except Exception as e:
         if isinstance(e, InteractiveStopException):
-            skip_finally = True
             console.rule("Recipe executor: interrupted by the user", style="red")
             sys.exit(0)
         else:

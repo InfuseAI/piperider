@@ -400,7 +400,6 @@ def load_dbt_profile(path):
     return profile
 
 
-
 def load_credential_from_dbt_profile(dbt_profile, profile_name, target_name):
     credential = dbt_profile.get(profile_name, {}).get('outputs', {}).get(target_name, {})
 

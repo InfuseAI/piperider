@@ -136,7 +136,6 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
 
         return project_dir
 
-
     def ensure_git_ready(self):
         outs, errs, exit_code = self.dryrun_ignored_execute_command("git --version")
         if exit_code != 0:
@@ -232,7 +231,7 @@ class InteractiveRecipeDecorator(AbstractRecipeUtils):
             from rich.prompt import Confirm
             return Confirm.ask(f"Execute '{command_line}'")
 
-    def git_archive( self, commit_or_branch ) -> str:
+    def git_archive(self, commit_or_branch) -> str:
         # ask user continue
         cmd = f"git archive --format=tar --output=/path/to/tmp/{commit_or_branch}.tar {commit_or_branch}"
         if self.should_continue(cmd):
