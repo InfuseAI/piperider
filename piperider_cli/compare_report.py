@@ -4,7 +4,7 @@ import os
 import shutil
 import sys
 from datetime import date, datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import inquirer
 import readchar
@@ -16,6 +16,7 @@ from piperider_cli import clone_directory, datetime_to_str, open_report_in_brows
 from piperider_cli.configuration import Configuration, ReportDirectory
 from piperider_cli.generate_report import setup_report_variables
 from piperider_cli.reports import Document
+from piperider_cli.dbt.changeset import SummaryChangeSet
 
 
 class RunOutput(object):
@@ -175,6 +176,8 @@ class ComparisonData(object):
 
         self.implicit = []
         self.explicit = []
+
+        self.summary_change_set: Optional[SummaryChangeSet] = None
         self._update_implicit_and_explicit_changeset()
 
     def _update_implicit_and_explicit_changeset(self):
@@ -183,6 +186,8 @@ class ComparisonData(object):
             c = ChangeSet(self._base, self._target)
             self.explicit = c.list_explicit_changes()
             self.implicit = c.list_implicit_changes()
+
+            self.summary_change_set = SummaryChangeSet(self._base, self._target)
         except BaseException as e:
             console = Console()
             console.print(
@@ -602,6 +607,19 @@ class ComparisonData(object):
 
         return out.getvalue()
 
+    def to_cli_stats(self, console):
+        console.print()
+        console.print("Statistics:")
+
+        for d in [self.summary_change_set.models, self.summary_change_set.metrics]:
+            output = [f"  {d.resource_type}: total={d.total}, explict={d.explicit_changes}",
+                      f"(added={d.added}, removed={d.removed}, modified={d.modified}), ",
+                      f"impacted={d.impacted}, implicit={d.implicit_changes}"]
+
+            console.print("".join(output))
+
+        console.print("")
+
 
 def prepare_default_output_path(filesystem: ReportDirectory, created_at):
     latest_symlink_path = os.path.join(filesystem.get_comparison_dir(), 'latest')
@@ -864,6 +882,7 @@ class CompareReport(object):
             shutil.copyfile(summary_md_path, summary_file)
             summary_md_path = summary_file
 
+        comparison_data.to_cli_stats(console)
         console.print()
         console.print(f"Comparison report: {report_path}")
         if summary_data:
