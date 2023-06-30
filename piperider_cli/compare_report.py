@@ -183,6 +183,9 @@ class ComparisonData(object):
             c = ChangeSet(self._base, self._target)
             self.explicit = c.list_explicit_changes()
             self.implicit = c.list_implicit_changes()
+
+            from piperider_cli.dbt.changeset import SummaryChangeSet
+            cc = SummaryChangeSet(self._base, self._target)
         except BaseException as e:
             console = Console()
             console.print(

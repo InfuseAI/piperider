@@ -801,7 +801,7 @@ class JoinedTables:
         for table_name in self._joined_tables.keys():
             table_data = self._joined_tables[table_name]
             fallback = table_data.get('target') if table_data.get('target') else table_data.get('base')
-            if fallback and fallback.get('ref_id'):
+            if fallback:
                 yield table_name, fallback.get('ref_id'), table_data.get('base'), table_data.get('target')
 
     def has_row_counts_changed(self, table_name):

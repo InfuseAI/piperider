@@ -388,7 +388,6 @@ def list_resources_unique_id_from_manifest(manifest: Manifest):
         flags_module.INDIRECT_SELECTION = 'eager'
 
     setattr(dbt_flags, "output", "json")
-    setattr(dbt_flags, "output", "json")
     setattr(dbt_flags, "output_keys", "unique_id,name,resource_type")
     setattr(dbt_flags, "selector_name", None)
     setattr(dbt_flags, "resource_types", [])
@@ -443,6 +442,45 @@ def compare_models_between_manifests(
         raise e
 
 
+def list_modified_with_downstream(
+        base_manifest: Manifest,
+        altered_manifest: Manifest,
+):
+    task = _DbtListTask()
+    task.manifest = altered_manifest
+
+    if is_lt_v1_5():
+        dbt_flags = task.args
+        flags_module.INDIRECT_SELECTION = 'eager'
+    else:
+        dbt_flags = flags_module.get_flags()
+
+    setattr(dbt_flags, "state", None)
+    setattr(dbt_flags, "project_target_path", create_temp_dir())
+    setattr(dbt_flags, "models", None)
+    setattr(dbt_flags, "selector_name", None)
+    setattr(dbt_flags, "output", "json")
+    setattr(dbt_flags, "output_keys", "unique_id,name,resource_type")
+    setattr(dbt_flags, "resource_types", {NodeType.Model, NodeType.Metric})
+    setattr(dbt_flags, "selector", None)
+
+    task.previous_state = _InMemoryPreviousState(base_manifest)
+    setattr(dbt_flags, "select", ("state:modified+",))
+
+    if is_ge_v1_4():
+        from dbt.exceptions import EventCompilationError as DbtCompilationErr
+    else:
+        from dbt.exceptions import CompilationException as DbtCompilationErr
+
+    try:
+        with disable_dbt_compile_stats():
+            return [json.loads(x) for x in task.run()]
+    except DbtCompilationErr as e:
+        if "does not match any nodes" in e.msg:
+            return []
+        raise e
+
+
 def list_changes_in_unique_id(
         base_manifest: Manifest,
         target_manifest: Manifest, show_modified_only=False) -> List[Dict[str, str]]:
@@ -485,5 +523,3 @@ def list_changes_in_unique_id(
         if "does not match any nodes" in e.msg:
             return []
         raise e
-
-
