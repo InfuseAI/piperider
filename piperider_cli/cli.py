@@ -180,7 +180,7 @@ def diagnose(**kwargs):
               metavar='TABLE_NAME')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--skip-report', is_flag=True, help='Skip generating report.')
-@click.option('--dbt-state', default=None, help='Directory of the the dbt state.')
+@click.option('--dbt-target-path', default=None, help='Configure the "target-path" of dbt.')
 @click.option('--dbt-list', is_flag=True, help='Associate with dbt list format input.')
 @click.option('--dbt-run-results', is_flag=True, help='Associate with dbt run results.',
               hidden=True)  # For backward compatibility
@@ -189,7 +189,11 @@ def diagnose(**kwargs):
 @click.option('--project', default=None, type=click.STRING, help='Specify the project name to upload.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
-@add_options([dbt_select_option_builder()])
+@add_options([
+    dbt_select_option_builder(),
+    click.option('--state', default=None,
+                 help='If set, use the given directory as the source for JSON files to compare with this project.')
+])
 @add_options(dbt_related_options)
 @add_options(debug_option)
 def run(**kwargs):
@@ -201,11 +205,12 @@ def run(**kwargs):
     open_report = kwargs.get('open')
     enable_share = kwargs.get('share')
     skip_report = kwargs.get('skip_report')
-    dbt_state_dir = kwargs.get('dbt_state')
+    dbt_target_path = kwargs.get('dbt_target_path')
     dbt_list = kwargs.get('dbt_list')
     force_upload = kwargs.get('upload')
     project_name = kwargs.get('project')
     select = kwargs.get('select')
+    state = kwargs.get('state')
 
     if project_name is not None:
         os.environ.get('PIPERIDER_API_PROJECT')
@@ -225,7 +230,10 @@ def run(**kwargs):
     dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search, recursive=False)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     if dbt_project_path:
-        FileSystem.set_working_directory(dbt_project_path)
+        working_dir = os.path.dirname(dbt_project_path) if dbt_project_path.endswith('.yml') else dbt_project_path
+        FileSystem.set_working_directory(working_dir)
+        if dbt_profiles_dir:
+            FileSystem.set_dbt_profiles_dir(dbt_profiles_dir)
         # Only run initializer when dbt project path is provided
         Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
     elif is_piperider_workspace_exist() is False:
@@ -247,9 +255,10 @@ def run(**kwargs):
                       table=table,
                       output=output,
                       skip_report=skip_report,
-                      dbt_state_dir=dbt_state_dir,
+                      dbt_target_path=dbt_target_path,
                       dbt_resources=dbt_resources,
                       dbt_select=select,
+                      dbt_state=state,
                       report_dir=kwargs.get('report_dir'))
     if ret in (0, EC_ERR_TEST_FAILED):
         if enable_share:

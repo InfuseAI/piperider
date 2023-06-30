@@ -4,21 +4,20 @@ import os
 import sys
 from glob import glob
 from pathlib import Path
-from typing import Optional, Union, Dict
+from typing import Optional, Union
 
 import inquirer
-from rich.console import Console
-from rich.table import Table
-from ruamel import yaml
-
 from piperider_cli import load_jinja_template, load_jinja_string_template
-from piperider_cli.dbt.list_task import load_manifest, list_resources_from_manifest
+from piperider_cli.dbt.list_task import load_manifest, list_resources_from_manifest, load_full_manifest
 from piperider_cli.error import \
     DbtProjectInvalidError, \
     DbtProfileInvalidError, \
-    DbtProfileBigQueryAuthWithTokenUnsupportedError
+    DbtProfileBigQueryAuthWithTokenUnsupportedError, DbtRunTimeError
 from piperider_cli.metrics_engine import Metric
 from piperider_cli.statistics import Statistics
+from rich.console import Console
+from rich.table import Table
+from ruamel import yaml
 
 console = Console()
 
@@ -349,8 +348,12 @@ def get_dbt_manifest(dbt_state_dir: str):
     return _get_state_manifest(dbt_state_dir)
 
 
-def get_dbt_resources(dbt_manifest: Dict, select: tuple = None):
-    list_resources = list_resources_from_manifest(load_manifest(dbt_manifest), select=select)
+def load_dbt_resources(target_path: str, select: tuple = None, state=None):
+    manifest = load_manifest(get_dbt_manifest(target_path)) if state is None else load_full_manifest(target_path)
+    try:
+        list_resources = list_resources_from_manifest(manifest, select=select, state=state)
+    except RuntimeError as e:
+        raise DbtRunTimeError(e, select, state)
     return read_dbt_resources(list_resources)
 
 

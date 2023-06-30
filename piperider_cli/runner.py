@@ -1,21 +1,11 @@
 import json
+import math
 import os
 import shutil
 import sys
 import uuid
 from datetime import datetime
 from typing import List, Optional
-
-import math
-from rich import box
-from rich.color import Color
-from rich.console import Console
-from rich.pretty import Pretty
-from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedColumn, MofNCompleteColumn
-from rich.style import Style
-from rich.table import Table
-from sqlalchemy import inspect
-from sqlalchemy.exc import NoSuchTableError
 
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli import convert_to_tzlocal, datetime_to_str, clone_directory, \
@@ -29,6 +19,15 @@ from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.metrics_engine import MetricEngine, MetricEventHandler
 from piperider_cli.profiler import Profiler, ProfilerEventHandler, ProfileSubject
 from piperider_cli.statistics import Statistics
+from rich import box
+from rich.color import Color
+from rich.console import Console
+from rich.pretty import Pretty
+from rich.progress import Progress, Column, TextColumn, BarColumn, TimeElapsedColumn, MofNCompleteColumn
+from rich.style import Style
+from rich.table import Table
+from sqlalchemy import inspect
+from sqlalchemy.exc import NoSuchTableError
 
 
 class RunEventPayload:
@@ -540,30 +539,31 @@ def get_dbt_profile_subjects(dbt_state_dir, options, filter_fn):
     return tagged_subjects
 
 
-def get_dbt_state_dir(dbt_state_dir, dbt_config, ds):
-    if not dbt_state_dir:
+def get_dbt_state_dir(target_path, dbt_config, ds):
+    if target_path is None or os.path.exists(target_path) is False:
         project_dir = dbt_config.get('projectDir')
         dbt_project = dbtutil.load_dbt_project(project_dir)
-        dbt_state_dir = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
-        if os.path.isabs(dbt_state_dir) is False:
+        target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
+        if os.path.isabs(target_path) is False:
             parent = project_dir if os.path.isabs(project_dir) else os.path.join(FileSystem.WORKING_DIRECTORY,
                                                                                  project_dir)
-            dbt_state_dir = os.path.join(parent, dbt_state_dir)
+            target_path = os.path.join(parent, target_path)
 
-    if not dbtutil.is_dbt_state_ready(dbt_state_dir):
-        return None, f"[bold red]Error:[/bold red] No available 'manifest.json' under '{dbt_state_dir}'"
+    if not dbtutil.is_dbt_state_ready(target_path):
+        return None, f"[bold red]Error:[/bold red] No available 'manifest.json' under '{target_path}'"
 
     if os.environ.get('PIPERIDER_SKIP_TARGET_CHECK', None) != '1':
-        if not check_dbt_manifest_compatibility(ds, dbt_state_dir):
+        if not check_dbt_manifest_compatibility(ds, target_path):
             return None, f"[bold red]Error:[/bold red] Target mismatched. Please run 'dbt compile -t {dbt_config.get('target')}' to generate the new manifest, or set the environment variable 'PIPERIDER_SKIP_TARGET_CHECK=1' to skip the check."
 
-    return dbt_state_dir, None
+    return target_path, None
 
 
 class Runner():
     @staticmethod
-    def exec(datasource=None, table=None, output=None, skip_report=False, dbt_state_dir: str = None,
-             dbt_resources: Optional[dict] = None, dbt_select: tuple = None, report_dir: str = None):
+    def exec(datasource=None, table=None, output=None, skip_report=False, dbt_target_path: str = None,
+             dbt_resources: Optional[dict] = None, dbt_select: tuple = None, dbt_state: str = None,
+             report_dir: str = None):
         console = Console()
 
         raise_exception_when_directory_not_writable(output)
@@ -635,16 +635,17 @@ class Runner():
                 console.log(
                     '[bold red]ERROR:[/bold red] DBT configuration is not completed, please check the config.yml')
                 return sys.exit(1)
-            dbt_state_dir, err_msg = get_dbt_state_dir(dbt_state_dir, dbt_config, ds)
+            dbt_target_path, err_msg = get_dbt_state_dir(dbt_target_path, dbt_config, ds)
             if err_msg:
                 console.print(err_msg)
                 return sys.exit(1)
-            dbt_manifest = dbtutil.get_dbt_manifest(dbt_state_dir)
-            dbt_run_results = dbtutil.get_dbt_run_results(dbt_state_dir)
+            dbt_manifest = dbtutil.get_dbt_manifest(dbt_target_path)
+            dbt_run_results = dbtutil.get_dbt_run_results(dbt_target_path)
             if dbt_select:
                 # If the dbt_resources were already provided by environment variable PIPERIDER_DBT_RESOURCES, skip the dbt select
-                dbt_resources = dbt_resources if dbt_resources else dbtutil.get_dbt_resources(dbt_manifest,
-                                                                                              select=dbt_select)
+                dbt_resources = dbt_resources if dbt_resources else dbtutil.load_dbt_resources(dbt_target_path,
+                                                                                               select=dbt_select,
+                                                                                               state=dbt_state)
         console.print('everything is OK.')
 
         console.rule('Collect metadata')
@@ -657,8 +658,8 @@ class Runner():
         dbt_test_results = None
 
         if dbt_config:
-            if dbtutil.is_dbt_run_results_ready(dbt_state_dir):
-                dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_state_dir, table_filter=table)
+            if dbtutil.is_dbt_run_results_ready(dbt_target_path):
+                dbt_test_results = dbtutil.get_dbt_state_tests_result(dbt_target_path, table_filter=table)
 
         if table:
             if len(table.split('.')) == 2:
@@ -677,7 +678,7 @@ class Runner():
                     dbt_resources=dbt_resources,
                     tag=dbt_config.get('tag')
                 )
-                subjects, dbt_metadata_subjects = get_dbt_all_subjects(dbt_state_dir, options, filter_fn)
+                subjects, dbt_metadata_subjects = get_dbt_all_subjects(dbt_target_path, options, filter_fn)
             else:
                 table_names = inspect(engine).get_table_names()
                 if configuration.include_views:
@@ -705,7 +706,7 @@ class Runner():
         statistics.reset()
         metrics = []
         if dbt_config:
-            metrics = dbtutil.get_dbt_state_metrics(dbt_state_dir, dbt_config.get('tag', 'piperider'), dbt_resources)
+            metrics = dbtutil.get_dbt_state_metrics(dbt_target_path, dbt_config.get('tag', 'piperider'), dbt_resources)
 
         console.rule('Query metrics')
         statistics.display_statistic('query', 'metric')
@@ -745,7 +746,7 @@ class Runner():
             _clean_up_profile_null_properties(run_result['tables'][t])
 
         if dbt_config:
-            dbtutil.append_descriptions(run_result, dbt_state_dir)
+            dbtutil.append_descriptions(run_result, dbt_target_path)
         _append_descriptions_from_assertion(run_result)
 
         run_result['id'] = run_id
@@ -761,7 +762,7 @@ class Runner():
             f.write(json.dumps(run_result, separators=(',', ':')))
 
         if dbt_config:
-            abs_dir = os.path.abspath(dbt_state_dir)
+            abs_dir = os.path.abspath(dbt_target_path)
             dbt_state_files = ['manifest.json', 'run_results.json', 'index.html', 'catalog.json']
             dbt_output_dir = os.path.join(output_path, 'dbt')
             os.makedirs(dbt_output_dir, exist_ok=True)

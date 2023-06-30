@@ -2,6 +2,7 @@ import argparse
 import json
 import math
 import tempfile
+from pathlib import Path
 from typing import Dict, List
 
 import agate
@@ -15,6 +16,7 @@ from dbt.contracts.project import PackageConfig, UserConfig
 from dbt.contracts.state import PreviousState
 from dbt.node_types import NodeType
 from dbt.task.list import ListTask
+from dbt.tracking import initialize_from_flags
 
 from piperider_cli.dbt import disable_dbt_compile_stats
 
@@ -66,6 +68,25 @@ def is_ge_v1_4():
 
 def create_temp_dir():
     return tempfile.mkdtemp()
+
+
+def load_full_manifest(target_path: str):
+    from dbt.adapters.factory import register_adapter
+    from dbt.parser.manifest import ManifestLoader
+
+    runtime_config = PrepareRuntimeConfig(target_path)
+    register_adapter(runtime_config)
+
+    v = dbt_version()
+    if v == '1.5':
+        return ManifestLoader.get_full_manifest(
+            runtime_config, write_perf_info=False
+        )
+    elif v == '1.4' or v == '1.3':
+        return ManifestLoader.get_full_manifest(
+            runtime_config
+        )
+    raise NotImplementedError(f'dbt-core version: {v} is not supported')
 
 
 def load_manifest(manifest: Dict):
@@ -152,7 +173,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def rename_relation(
-            self, from_relation: BaseRelation, to_relation: BaseRelation
+        self, from_relation: BaseRelation, to_relation: BaseRelation
     ) -> None:
         pass
 
@@ -163,7 +184,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def list_relations_without_caching(
-            self, schema_relation: BaseRelation
+        self, schema_relation: BaseRelation
     ) -> List[BaseRelation]:
         pass
 
@@ -202,8 +223,76 @@ class _Adapter(BaseAdapter):
         pass
 
 
+def PrepareRuntimeConfig(target_path: str):
+    from piperider_cli.configuration import FileSystem
+    project_root = FileSystem.WORKING_DIRECTORY
+    profiles_dir = FileSystem.DBT_PROFILES_DIR
+
+    def _get_v13_runtime_config(flags):
+        setattr(flags, 'project_dir', project_root)
+        setattr(flags, "SEND_ANONYMOUS_USAGE_STATS", False)
+        initialize_from_flags()
+        return ListTask.ConfigType.from_args(flags)
+
+    def _get_v14_runtime_config(flags):
+        setattr(flags, 'project_dir', project_root)
+        setattr(flags, "SEND_ANONYMOUS_USAGE_STATS", False)
+        initialize_from_flags()
+        return ListTask.ConfigType.from_args(flags)
+
+    def _get_v15_runtime_config(flags):
+        from dbt.config.runtime import load_project, load_profile
+
+        flags_module.set_flags(flags)
+        initialize_from_flags(False, project_root)
+
+        profile = load_profile(
+            project_root=project_root,
+            cli_vars={}
+        )
+        project = load_project(
+            project_root=project_root,
+            version_check=True,
+            profile=profile,
+            cli_vars={
+            }
+        )
+
+        return RuntimeConfig.from_parts(
+            project,
+            profile,
+            flags
+        )
+
+    flags = flags_module.get_flag_obj()
+    setattr(flags, 'target_path', target_path)
+    setattr(flags, "WRITE_JSON", None)
+    setattr(flags, "exclude", None)
+    setattr(flags, "output", "selector")
+    setattr(flags, "models", None)
+    setattr(flags, "INDIRECT_SELECTION", "eager")
+    setattr(flags, "WARN_ERROR", True)
+    setattr(flags, "MACRO_DEBUGGING", False)
+    setattr(flags, "PROFILES_DIR", profiles_dir)
+    setattr(flags, "cls", ListTask)
+    setattr(flags, "profile", None)
+    setattr(flags, "target", None)
+
+    v = dbt_version()
+
+    if v == '1.5':
+        return _get_v15_runtime_config(flags)
+    elif v == '1.4':
+        return _get_v14_runtime_config(flags)
+    elif v == '1.3':
+        return _get_v13_runtime_config(flags)
+
+    raise NotImplementedError(f'dbt-core version: {v} is not supported')
+
+
 class _RuntimeConfig(RuntimeConfig):
     def __init__(self):
+        from piperider_cli.configuration import FileSystem
         data = {
             "profile_name": "piperider",
             "target_name": "piperider",
@@ -213,7 +302,7 @@ class _RuntimeConfig(RuntimeConfig):
             "profile_env_vars": {},
             "project_name": "jaffle_shop",
             "version": "0.1",
-            "project_root": "",
+            "project_root": FileSystem.WORKING_DIRECTORY,
             "model_paths": ["models"],
             "macro_paths": ["macros"],
             "seed_paths": ["seeds"],
@@ -276,7 +365,8 @@ class _DbtListTask(ListTask):
             flags_module.set_flags(self.args)
 
         # The graph compiler tries to make directories when it initialized itself
-        setattr(self.args, "target_path", "/tmp/piperider-list-task/target_path")
+        # setattr(self.args, "target_path", "/tmp/piperider-list-task/target_path")
+        setattr(self.args, "target_path", 'target')
         setattr(
             self.args,
             "packages_install_path",
@@ -300,7 +390,7 @@ class _DbtListTask(ListTask):
         if self.manifest is None:
             raise BaseException("compile_manifest called before manifest was loaded")
 
-        adapter = _Adapter(self.args)
+        adapter = _Adapter(self.config)
         compiler = adapter.get_compiler()
         self.graph = compiler.compile(self.manifest)
 
@@ -352,12 +442,13 @@ class ResourceSelector:
         )
 
 
-def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector = None, select: tuple = None):
+def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector = None, select: tuple = None,
+                                 state: str = None):
     task = _DbtListTask()
     task.manifest = manifest
 
     dbt_flags = task.args
-    setattr(dbt_flags, "state", None)
+    setattr(dbt_flags, "state", Path(state) if state else None)
     setattr(dbt_flags, "models", None)
     setattr(dbt_flags, "project_target_path", create_temp_dir())
 
@@ -372,6 +463,9 @@ def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector 
 
     setattr(dbt_flags, "selector", None)
     setattr(dbt_flags, "select", select)
+    if state:
+        task.set_previous_state()
+
     with disable_dbt_compile_stats():
         return task.run()
 
@@ -402,9 +496,9 @@ def list_resources_unique_id_from_manifest(manifest: Manifest):
 
 
 def compare_models_between_manifests(
-        base_manifest: Manifest,
-        altered_manifest: Manifest,
-        include_downstream: bool = False,
+    base_manifest: Manifest,
+    altered_manifest: Manifest,
+    include_downstream: bool = False,
 ):
     task = _DbtListTask()
     task.manifest = altered_manifest
@@ -445,8 +539,8 @@ def compare_models_between_manifests(
 
 
 def list_changes_in_unique_id(
-        base_manifest: Manifest,
-        target_manifest: Manifest, show_modified_only=False) -> List[Dict[str, str]]:
+    base_manifest: Manifest,
+    target_manifest: Manifest, show_modified_only=False) -> List[Dict[str, str]]:
     task = _DbtListTask()
     task.manifest = target_manifest
 
