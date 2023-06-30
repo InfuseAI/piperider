@@ -179,7 +179,7 @@ class ComparisonData(object):
 
     def _update_implicit_and_explicit_changeset(self):
         try:
-            from piperider_cli.dbt.list_task import ChangeSet
+            from piperider_cli.dbt.changeset import ChangeSet
             c = ChangeSet(self._base, self._target)
             self.explicit = c.list_explicit_changes()
             self.implicit = c.list_implicit_changes()

@@ -7,11 +7,12 @@ from unittest import TestCase
 from packaging import version
 
 from piperider_cli.dbt.list_task import (
-    ChangeSet, compare_models_between_manifests,
+    compare_models_between_manifests,
     dbt_version_obj, list_resources_from_manifest,
     ResourceSelector,
     load_manifest,
 )
+from piperider_cli.dbt.changeset import ChangeSet
 
 
 class _BaseDbtTest(TestCase):
