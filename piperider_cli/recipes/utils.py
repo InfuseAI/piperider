@@ -3,6 +3,8 @@ import os
 import re
 import shlex
 import subprocess
+import tempfile
+import tarfile
 from subprocess import Popen
 from typing import Dict, Tuple
 
@@ -116,6 +118,24 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
             raise ex
         return outs
 
+    def git_archive(self, commit_or_branch):
+        def untar(file_path, extract_dir):
+            with tarfile.open(file_path, 'r') as tar:
+                tar.extractall(extract_dir)
+
+        tmpdirname = tempfile.mkdtemp()
+        tar = os.path.join(tmpdirname, f'{commit_or_branch}.tar')
+        outs, errs, exit_code = self.execute_command_in_silent(
+            f"git archive --format=tar --output={tar} {commit_or_branch}"
+        )
+        if exit_code != 0:
+            raise RecipeException(errs)
+
+        project_dir = os.path.join(tmpdirname, commit_or_branch)
+        untar(tar, project_dir)
+
+        return project_dir
+
     def ensure_git_ready(self):
         outs, errs, exit_code = self.dryrun_ignored_execute_command("git --version")
         if exit_code != 0:
@@ -129,11 +149,6 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
         )
         if exit_code != 0 and "not a git repository" in errs:
             raise RecipeException("The working directory is not a git repository.")
-
-        dirty_list = [x for x in outs.split("\n") if not x.strip().startswith("??")]
-        dirty_list = [x for x in dirty_list if x]
-        if len(dirty_list) != 0:
-            raise RecipeException("Working directory is dirty. Stop to run the recipe")
 
     def check_dbt_command(self):
         outs, errs, exit_code = self.dryrun_ignored_execute_command("dbt --version")
@@ -157,6 +172,11 @@ class DryRunRecipeUtils(AbstractRecipeUtils):
 
     def execute_command_with_showing_output(self, command_line, env: Dict = None):
         self.console.print(f"[green]:external-command:>[/green] {command_line}")
+        return 0
+
+    def git_archive(self, commit_or_branch):
+        cmd = f"git archive --format=tar --output=/path/to/tmp/{commit_or_branch}.tar {commit_or_branch}"
+        self.console.print(f"[green]:external-command:>[/green] [default]{cmd}[/default]")
         return 0
 
 
@@ -205,6 +225,13 @@ class InteractiveRecipeDecorator(AbstractRecipeUtils):
         else:
             from rich.prompt import Confirm
             return Confirm.ask(f"Execute '{command_line}'")
+
+    def git_archive(self, commit_or_branch) -> str:
+        # ask user continue
+        cmd = f"git archive --format=tar --output=/path/to/tmp/{commit_or_branch}.tar {commit_or_branch}"
+        if self.should_continue(cmd):
+            return self.decoratee.git_archive(commit_or_branch)
+        raise InteractiveStopException()
 
 
 if __name__ == "__main__":

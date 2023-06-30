@@ -237,29 +237,16 @@ def verify_dbt_dependencies(cfg: RecipeConfiguration):
     tool().check_dbt_command()
 
 
-def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type='base'):
+def execute_recipe(model: RecipeModel, debug=False, recipe_type='base'):
     """
     We execute a recipe in the following steps:
-    1. if there was a branch or current_branch, switch to it
-    2. run dbt commands
-    3. run piperider commands
+    1. run dbt commands
+    2. run piperider commands
     """
 
     if model.is_file_specified():
         console.print(f"Select {recipe_type} report: \[{model.file}]")
         return
-
-    if recipe_type == 'base':
-        a_branch = model.branch
-        b_branch = current_branch
-        if a_branch != b_branch:
-            switch_merge_base_branch(a_branch, b_branch)
-
-    else:
-        working_branch = model.branch or current_branch
-        if working_branch is not None:
-            console.print(f"Switch git branch to: \[{working_branch}]")
-            switch_branch(working_branch)
 
     # model.dbt.commands
     for cmd in model.dbt.commands or []:
@@ -289,6 +276,52 @@ def execute_recipe(model: RecipeModel, current_branch, debug=False, recipe_type=
         config = Configuration.instance()
         fqn_list = dbtutil.get_fqn_list_by_tag(config.dbt.get('tag'), config.dbt.get('projectDir'))
         model.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(fqn_list)
+
+
+def execute_recipe_archive(model: RecipeModel, debug=False, recipe_type='base'):
+    """
+    We execute a recipe in the following steps:
+    1. export the repo with specified commit or branch if needed
+    2. run dbt commands
+    3. run piperider commands
+    """
+
+    if model.is_file_specified():
+        console.print(f"Select {recipe_type} report: \[{model.file}]")
+        return
+
+    tmpdirname = None
+    if model.branch:
+        console.print("Run: \[git archive]")
+        tmpdirname = tool().git_archive(model.branch)
+        console.print()
+
+    # model.dbt.commands
+    for cmd in model.dbt.commands or []:
+        console.print(f"Run: \[{cmd}]")
+        # TODO: handle existing flags in command from recipe
+        cmd = f'{cmd} --project-dir {tmpdirname}' if tmpdirname else cmd
+        exit_code = tool().execute_command_with_showing_output(cmd, model.dbt.envs())
+        if debug:
+            console.print(f"Exit code: {exit_code}")
+        if exit_code != 0:
+            console.print(
+                f"[bold yellow]Warning: [/bold yellow] Recipe dbt command failed: '{cmd}' with exit code: {exit_code}")
+            sys.exit(exit_code)
+        console.print()
+
+    # model.piperider.commands
+    for cmd in model.piperider.commands or []:
+        console.print(f"Run: \[{cmd}]")
+        cmd = f'{cmd} --dbt-project-dir {tmpdirname} --dbt-state {tmpdirname}/target' if tmpdirname else cmd
+        exit_code = tool().execute_command_with_showing_output(cmd, model.piperider.envs())
+        if debug:
+            console.print(f"Exit code: {exit_code}")
+        if exit_code != 0:
+            console.print(
+                f"[bold yellow]Warning: [/bold yellow] Recipe piperider command failed: '{cmd}' with exit code: {exit_code}")
+            sys.exit(exit_code)
+        console.print()
 
 
 def get_current_branch(cfg: RecipeConfiguration):
@@ -324,32 +357,22 @@ def execute_configuration(cfg: RecipeConfiguration, debug=False):
     console.print("Check: dbt")
     verify_dbt_dependencies(cfg)
 
-    current_branch = get_current_branch(cfg)
-
-    skip_finally = False
     try:
         console.rule("Recipe executor: target phase")
-        target_branch = cfg.target.branch or current_branch
-        execute_recipe(cfg.target, target_branch, recipe_type='target', debug=debug)
+        execute_recipe(cfg.target, recipe_type='target', debug=debug)
 
         console.rule("Recipe executor: base phase")
         target_dbt_resources = cfg.target.piperider.environments.get('PIPERIDER_DBT_RESOURCES')
         if target_dbt_resources:
             cfg.base.piperider.environments['PIPERIDER_DBT_RESOURCES'] = target_dbt_resources
-        execute_recipe(cfg.base, current_branch, recipe_type='base', debug=debug)
+        execute_recipe_archive(cfg.base, recipe_type='base', debug=debug)
     except Exception as e:
         if isinstance(e, InteractiveStopException):
-            skip_finally = True
             console.rule("Recipe executor: interrupted by the user", style="red")
             sys.exit(0)
         else:
             console.rule("Recipe executor: error occurred", style="red")
             raise e
-    finally:
-        if not skip_finally and current_branch is not None:
-            # switch back to the original branch
-            console.print(f"Switch git branch back to: \[{current_branch}]")
-            switch_branch(current_branch)
 
 
 def select_recipe_file(name: str = None):
