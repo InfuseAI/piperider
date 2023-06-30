@@ -37,7 +37,7 @@ jobs:
           set -e
 
           if [ $exit_code -eq 0 ]; then
-              python -mpytest tests/test_dbt_manifest_compatible.py tests/test_dbt_integeration.py
+              python -mpytest tests/test_dbt_manifest_compatible.py tests/test_dbt_integeration.py tests/test_dbt_util.py
           else
               # https://github.com/dbt-labs/dbt-core/issues/6203#issuecomment-1319112890
               echo "Skip! dbt-core v1.3 only works with python less than 3.11"
