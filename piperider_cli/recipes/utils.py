@@ -150,11 +150,6 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
         if exit_code != 0 and "not a git repository" in errs:
             raise RecipeException("The working directory is not a git repository.")
 
-        dirty_list = [x for x in outs.split("\n") if not x.strip().startswith("??")]
-        dirty_list = [x for x in dirty_list if x]
-        if len(dirty_list) != 0:
-            raise RecipeException("Working directory is dirty. Stop to run the recipe")
-
     def check_dbt_command(self):
         outs, errs, exit_code = self.dryrun_ignored_execute_command("dbt --version")
         if exit_code != 0:
