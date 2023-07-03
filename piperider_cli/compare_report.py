@@ -268,6 +268,15 @@ class ComparisonData(object):
             return ""
         return Document.from_runs(self._base, self._target).build()
 
+    def to_summary_markdown_ng_ng(self):
+        if self._base.get('dbt') is None or self._target.get('dbt') is None:
+            console = Console()
+            console.print("[bold yellow]Warning: [/bold yellow]'summary.md' report is not generated.")
+            console.print("To generate a summary.md file, please run the 'piperider run' command in a dbt project "
+                          "and use the latest version of piperider.")
+            return ""
+        return Document.from_runs(self._base, self._target).build2()
+
     @staticmethod
     def _value_with_annotation(key, annotation=None):
         annotation_str = f" ({annotation})" if annotation else ''
@@ -830,7 +839,7 @@ class CompareReport(object):
                 f.write(summary_data)
 
         data_id = comparison_data.id()
-        summary_data = summary_data if summary_data else comparison_data.to_summary_markdown_ng()
+        summary_data = summary_data if summary_data else comparison_data.to_summary_markdown_ng_ng()
 
         default_report_directory = prepare_default_output_path(filesystem, data_id)
         output_report(default_report_directory)

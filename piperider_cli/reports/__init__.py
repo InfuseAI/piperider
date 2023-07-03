@@ -11,6 +11,9 @@ from dbt.contracts.graph.manifest import WritableManifest
 from enum import Enum
 
 from piperider_cli import is_executed_manually
+from piperider_cli.dbt.changeset import SummaryChangeSet
+
+MAX_SUMMARY_REPORT_LENGTH = 65535
 
 
 @total_ordering
@@ -1306,6 +1309,7 @@ class ModelElement(_Element):
 class MetricsChangeView:
     def __init__(self, name: str):
         self.name = name
+        self.metric: str = None
         self.header: str = "__unknown__"
         self.base_data: Optional[List] = None
         self.target_data: Optional[List] = None
@@ -1568,6 +1572,82 @@ class DbtMetricsChangeElement(_Element):
         )
 
 
+class MetricsElement(_Element):
+    def __init__(
+            self, root: _Element, metrics_labels: Dict, base_metrics: List[Dict], target_metrics: List[Dict]
+    ):
+        super().__init__(root)
+        self.metrics_label = metrics_labels
+        self.base_metrics = base_metrics
+        self.target_metrics = target_metrics
+        self.joined_metrics = None
+        self.metrics_summary = None
+
+        if not self.target_metrics:
+            return
+
+        joined_metrics: Dict[str, MetricsChangeView] = collections.OrderedDict()
+        metric_names = sorted(
+            list(
+                set(
+                    [x.get("name") for x in self.base_metrics] + [x.get("name") for x in self.target_metrics]
+                )
+            )
+        )
+
+        for name in metric_names:
+            joined_metrics[name] = MetricsChangeView(name)
+
+        for metric in self.base_metrics:
+            name = metric.get("name")
+            m: MetricsChangeView = joined_metrics[name]
+            m.metric = metric.get("headers")[1]
+            m.header = metric.get("headers")[0]
+            m.base_data = metric.get("data")
+
+        for metric in self.target_metrics:
+            name = metric.get("name")
+            m: MetricsChangeView = joined_metrics[name]
+            m.metric = metric.get("headers")[1]
+            m.header = metric.get("headers")[0]
+            m.target_data = metric.get("data")
+
+        # added, removed, edited, no changes
+        for m in joined_metrics.values():
+            m.update_status()
+
+        self.joined_metrics = joined_metrics
+        self.changes = len(
+            [x for x in joined_metrics.values() if x.change_type != "no-changes"]
+        )
+
+        metrics_summary = {}
+        for m in self.joined_metrics.values():
+            if m.metric not in metrics_summary:
+                metrics_summary[metrics_labels[m.metric]] = {'total': 0, 'changed': 0}
+
+            if m.change_type != "no-changes":
+                metrics_summary[metrics_labels[m.metric]]['changed'] += 1
+            metrics_summary[metrics_labels[m.metric]]['total'] += 1
+
+        self.metrics_summary = metrics_summary
+
+    def build(self):
+        if not self.metrics_summary:
+            return ""
+
+        content = ""
+        for m, v in self.metrics_summary.items():
+            chagned = f"({Styles.latex_orange(str(v['changed']))})" if v['changed'] > 0 else ""
+            content += f"|| {m} | {v['total']} {chagned} |\n"
+
+        return f"""# Metrics
+|   | Metric | Queries <br> total ({Styles.latex_orange("change")}) |
+| --- | --- | --- |
+{content}
+"""
+
+
 class Document(_Element):
     def __init__(
             self,
@@ -1639,3 +1719,32 @@ class Document(_Element):
         Comparison summary is too long to be generated.
         Please feedback us to help us improve the report and provide most useful information to you.
         """
+
+    def build2(self):
+
+        change_set = SummaryChangeSet(self.base_run, self.target_run)
+        doc = self.build_summary(change_set)
+
+        metrics_labels = {k.split('.')[-1]: v.label for k, v in self.base_manifest.metrics.items()}
+        metrics_labels.update({k.split('.')[-1]: v.label for k, v in self.base_manifest.metrics.items()})
+
+        doc += MetricsElement(self, metrics_labels, self.base_run.get("metrics"), self.target_run.get("metrics")).build()
+
+        # doc = _build_list([ModelElement(self, ModelType.EXPLICT_CHANGED_MODELS, self.altered_models),
+        #                    ModelElement(self, ModelType.IMPLICIT_CHANGED_MODELS, self.downstream_models),
+        #                    DbtMetricsChangeElement(self, self.base_run.get("metrics"),
+        #                                            self.target_run.get("metrics"))])
+
+        return doc[:MAX_SUMMARY_REPORT_LENGTH]
+
+    def build_summary(self, change_set: SummaryChangeSet):
+        summary = f"""# Comparison Summary
+
+{("[Piperider Report](" + self.get_url() + ")") if self.get_url() else ""}
+| Resource | Total | Explicit Changes | Impacted | Implicit Changes |
+| --- | --- | --- | --- | --- |
+| {change_set.models.resource_type} | {change_set.models.total} | {change_set.models.explicit_changes} | {change_set.models.impacted} | {change_set.models.implicit_changes} |
+| {change_set.metrics.resource_type} | {change_set.metrics.total} | {change_set.metrics.explicit_changes} | {change_set.metrics.impacted} | {change_set.metrics.implicit_changes} |
+"""
+
+        return summary

@@ -50,10 +50,12 @@ class SummaryChangeSet:
         self.metrics_added: List = []
         self.metrics_removed: List = []
 
+        self.models_impacted: List = []
         self.models_implicit_changes: List = []
         self.update_models_explicit_changes()
         self.update_models_implicit_changes()
 
+        self.metrics_impacted: List = []
         self.metrics_implicit_changes: List = []
         self.update_metrics_explicit_changes()
         self.update_metrics_implicit_changes()
@@ -81,9 +83,9 @@ class SummaryChangeSet:
                                           x.get('resource_type') == 'model']
 
         # TODO discovery the downstream of added by "dbt list --select model_name+"
-        models_impacted = set(
+        self.models_impacted = set(
             dbt_listed_modified_model_plus + self.models_added + self.models_removed + self.models_modified)
-        self.models.impacted = len(models_impacted)
+        self.models.impacted = len(self.models_impacted)
 
         # update model implicit changes
         self.models.implicit_changes = len(self.models_implicit_changes)
@@ -95,9 +97,9 @@ class SummaryChangeSet:
         dbt_listed_modified_metrics_plus = [x.get('unique_id') for x in self.modified_models_and_metrics_with_downstream
                                             if
                                             x.get('resource_type') == 'metric']
-        metrics_impacted = set(
+        self.metrics_impacted = set(
             dbt_listed_modified_metrics_plus + self.metrics_added + self.metrics_removed + self.metrics_modified)
-        self.metrics.impacted = len(metrics_impacted)
+        self.metrics.impacted = len(self.metrics_impacted)
         self.metrics.implicit_changes = len(self.metrics_implicit_changes)
         pass
 
