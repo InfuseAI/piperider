@@ -29,8 +29,7 @@ export function TableColumnHeader({
 }: Props & BoxProps) {
   return (
     <Box {...props}>
-      <Text color="gray.500">{subtitle}</Text>
-      <Flex alignItems="center" my={2} gap={2}>
+      <Flex alignItems="center" mb={2} gap={2}>
         <Icon rounded={'md'} color={iconColor} as={icon} boxSize={6} />
         <Heading fontSize={24}>{title || NO_VALUE}</Heading>
         <Tooltip
@@ -41,6 +40,7 @@ export function TableColumnHeader({
           <Icon as={FiInfo} boxSize={5} mt={1} color={'gray.400'} />
         </Tooltip>
       </Flex>
+      <Text color="gray.500">{subtitle}</Text>
     </Box>
   );
 }

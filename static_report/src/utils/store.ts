@@ -21,7 +21,7 @@ import {
 } from './dbt';
 
 export type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
-export type ChangeStatus = 'changed' | 'added' | 'removed' | 'implicit' | null;
+export type ChangeStatus = 'modified' | 'added' | 'removed' | 'implicit' | null;
 type ComparableMetadata = {
   added?: number;
   deleted?: number;
@@ -213,7 +213,7 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
     } else if (!target) {
       changeStatus = 'removed';
     } else if (explicit.has(`${nodeKey}`)) {
-      changeStatus = 'changed';
+      changeStatus = 'modified';
     } else if (implicit.has(`${nodeKey}`)) {
       changeStatus = 'implicit';
     }

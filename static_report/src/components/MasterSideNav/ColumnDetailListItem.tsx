@@ -7,7 +7,7 @@ import {
   formatIntervalMinMax,
 } from '../../utils/formatters';
 import { COLUMN_DETAILS_ROUTE_PATH } from '../../utils/routes';
-import { getIconForColumnType } from '../Columns/utils';
+import { getIconForColumnType } from '../Icons';
 import { ColumnName } from './ColumnName';
 
 interface Props extends Comparable {

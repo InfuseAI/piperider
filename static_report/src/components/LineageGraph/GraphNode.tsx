@@ -17,7 +17,7 @@ import {
 import { getStatDiff } from './util';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { FaChartBar } from 'react-icons/fa';
-import { IconImplicit } from '../Icons';
+import { getIconForChangeStatus, IconImplicit } from '../Icons';
 
 interface GraphNodeProps extends NodeProps {
   data: LineageGraphNode;
@@ -52,37 +52,28 @@ export function GraphNode({ data }: GraphNodeProps) {
   }
 
   // text color, icon
-  let iconChangeStatus;
+
   let msgChangeStatus;
   let changeStatus = data.changeStatus;
   let color = 'inherit';
+  let iconChangeStatus;
   let fontWeight: CSSProperties['fontWeight'] = 'inherit';
   let borderStyle = 'solid';
   if (!singleOnly) {
+    iconChangeStatus = getIconForChangeStatus(changeStatus).icon;
+    color = getIconForChangeStatus(changeStatus).color;
     if (changeStatus === 'added') {
-      iconChangeStatus = VscDiffAdded;
       msgChangeStatus = 'added';
-      color = '#1a7f37';
-      color = COLOR_ADDED;
       fontWeight = 600;
       borderStyle = 'dashed';
-    } else if (changeStatus === 'changed') {
-      iconChangeStatus = VscDiffModified;
+    } else if (changeStatus === 'modified') {
       msgChangeStatus = 'explict change';
-      color = '#9a6700';
-      color = COLOR_CHANGED;
       fontWeight = 600;
     } else if (changeStatus === 'implicit') {
-      iconChangeStatus = IconImplicit;
       msgChangeStatus = 'implicit change';
-      color = '#9a6700';
-      color = COLOR_CHANGED;
       fontWeight = 600;
     } else if (changeStatus === 'removed') {
-      iconChangeStatus = VscDiffRemoved;
       msgChangeStatus = 'removed';
-      color = COLOR_REMOVED;
-      color = '#cf222e';
       fontWeight = 600;
       borderStyle = 'dashed';
     } else if (isNoProfile) {
@@ -94,7 +85,7 @@ export function GraphNode({ data }: GraphNodeProps) {
 
   // border width and color
   let borderWidth = 1;
-  let borderColor = color;
+  let borderColor = 'black';
   let backgroundColor = 'white';
   let boxShadow = 'unset';
 
@@ -156,7 +147,7 @@ export function GraphNode({ data }: GraphNodeProps) {
           </Flex>
         </Tooltip>
 
-        <VStack flex="1 0 auto" mx="1" color={color} width="100px">
+        <VStack flex="1 0 auto" mx="1" width="100px">
           <Flex
             width="100%"
             textAlign="left"
@@ -170,6 +161,7 @@ export function GraphNode({ data }: GraphNodeProps) {
               overflow="hidden"
               textOverflow="ellipsis"
               whiteSpace="nowrap"
+              color={isActive ? 'white' : 'inherit'}
             >
               <Tooltip label={name}>{name}</Tooltip>
             </Box>

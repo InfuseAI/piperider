@@ -11,7 +11,6 @@ import { NoData } from '../components/Common/NoData';
 import {
   containsDataSummary,
   containsColumnQuantile,
-  getIconForColumnType,
 } from '../components/Columns/utils';
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
@@ -19,6 +18,7 @@ import { useTrackOnMount } from '../hooks';
 import { EVENTS, CR_TYPE_LABEL, formatTitleCase } from '../utils';
 import { useColumnRoute } from '../utils/routes';
 import React from 'react';
+import { getIconForColumnType } from '../components/Icons';
 
 export default function CRColumnDetailPage() {
   const params = useColumnRoute();

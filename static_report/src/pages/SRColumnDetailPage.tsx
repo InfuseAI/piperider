@@ -9,7 +9,6 @@ import { NoData } from '../components/Common/NoData';
 import {
   containsDataSummary,
   containsColumnQuantile,
-  getIconForColumnType,
 } from '../components/Columns/utils';
 import {
   EVENTS,
@@ -21,6 +20,7 @@ import {
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useColumnRoute } from '../utils/routes';
+import { getIconForColumnType } from '../components/Icons';
 
 export default function SRColumnDetailPage() {
   const params = useColumnRoute();

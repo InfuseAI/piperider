@@ -25,6 +25,7 @@ import {
 import { CRAssertionListPage } from './CRAssertionListPage';
 import { CRBMPage } from './CRBMPage';
 import CRColumnDetailPage from './CRColumnDetailPage';
+import { CROverviewPage } from './CROverviewPage';
 import CRTableDetailPage from './CRTableDetailPage';
 import { CRTablesListPage } from './CRTableListPage';
 
@@ -44,11 +45,7 @@ export function CRPage({ data, cloud, sideNavTop = '0px' }: Props) {
         <MasterDetailContainer cloud={cloud} sideNavTop={sideNavTop}>
           <Switch>
             <Route path={HOME_ROUTE_PATH}>
-              <CRTablesListPage />
-            </Route>
-
-            <Route path={TABLE_LIST_ROUTE_PATH}>
-              <CRTablesListPage />
+              <CROverviewPage />
             </Route>
 
             <Route path={TABLE_LIST_ROUTE_PATH}>
