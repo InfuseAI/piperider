@@ -1,4 +1,6 @@
 import math
+from dataclasses import dataclass
+from enum import Enum
 from typing import Dict, List
 
 from dbt.contracts.graph.manifest import Manifest
@@ -10,16 +12,94 @@ from piperider_cli.dbt.list_task import (
 )
 
 
-class SummaryOverview:
+class ChangeType(Enum):
+    ADDED = "added"
+    REMOVED = "removed"
+    MODIFIED = "modified"
+    IMPLICIT = "implicit"
+    IGNORED = "ignored"
+
+
+class ResourceType(Enum):
+    MODEL = "model"
+    METRIC = "metric"
+
+    @classmethod
+    def of(cls, resource_type: str):
+        if resource_type == cls.MODEL.value:
+            return cls.MODEL
+        if resource_type == cls.METRIC.value:
+            return cls.METRIC
+        raise NotImplementedError(f"no such type: {resource_type}")
+
+
+@dataclass
+class ChangeUnit:
+    change_type: ChangeType
+    resource_type: ResourceType
+    unique_id: str
+
+
+class SummaryAggregate:
+    display_name: str
     resource_type: str
     total: int
-    explicit_changes: int
-    impacted: int
-    implicit_changes: int
+    # implicit_changes: int
 
-    added: int
-    removed: int
-    modified: int
+    explicit_changeset: List[ChangeUnit] = None
+
+    # TODO discovery the downstream of added by "dbt list --select model_name+"
+    # it mixed resources with "model" and "metric"
+    modified_with_downstream: List[ChangeUnit] = None
+
+    # value changes from profiling data
+    diffs: List[str] = None
+
+    def __init__(self, display_name: str):
+        self.display_name = display_name
+        if self.display_name == 'Models':
+            self.resource_type = 'model'
+        elif self.display_name == 'Metrics':
+            self.resource_type = 'metric'
+        else:
+            raise ValueError(f'Unknown type for {display_name}')
+
+    @property
+    def explicit_changes(self) -> int:
+        """
+        the code changes
+        """
+        self._ensure_initialized()
+        return len(self.explicit_changeset)
+
+    @property
+    def impacted(self) -> int:
+        """
+        any code changes and all downstream
+        """
+        self._ensure_initialized()
+
+        # TODO discovery the downstream of added by "dbt list --select model_name+"
+
+        code_changes: List[str] = [x.unique_id for x in self.explicit_changeset]
+        modified: List[str] = [x.unique_id for x in self.modified_with_downstream if
+                               x.resource_type.value == self.resource_type]
+        return len(set(modified + code_changes))
+
+    @property
+    def implicit_changes(self) -> int:
+        """
+        all value changes excluding the code changes
+        """
+        self._ensure_initialized()
+        code_changes: List[str] = [x.unique_id for x in self.explicit_changeset]
+        return len(set(self.diffs) - set(code_changes))
+
+    def _ensure_initialized(self):
+        if self.explicit_changeset is None:
+            raise ValueError('explicit_changeset is not initialized')
+        if self.modified_with_downstream is None:
+            raise ValueError('modified_with_downstream is not initialized')
 
 
 class SummaryChangeSet:
@@ -37,27 +117,10 @@ class SummaryChangeSet:
         self.modified_models_and_metrics_with_downstream = list_modified_with_downstream(self.base_manifest,
                                                                                          self.target_manifest)
 
-        self.models = SummaryOverview()
-        self.models.resource_type = 'Models'
-        self.metrics = SummaryOverview()
-        self.metrics.resource_type = 'Metrics'
+        self.models = SummaryAggregate('Models')
+        self.metrics = SummaryAggregate('Metrics')
 
-        self.models_modified: List = []
-        self.models_added: List = []
-        self.models_removed: List = []
-
-        self.metrics_modified: List = []
-        self.metrics_added: List = []
-        self.metrics_removed: List = []
-
-        self.models_implicit_changes: List = []
-        self.update_models_explicit_changes()
-        self.update_models_implicit_changes()
-
-        self.metrics_implicit_changes: List = []
-        self.update_metrics_explicit_changes()
-        self.update_metrics_implicit_changes()
-
+        # TODO the execute should be merged into each aggregate
         self.execute()
 
     def _m(self, run: Dict):
@@ -67,49 +130,22 @@ class SummaryChangeSet:
         return load_manifest(manifest)
 
     def execute(self):
-        # update total
+        self.models.explicit_changeset = self.find_explicit_changes('model')
+        self.update_models_value_changes()
+
+        self.metrics.explicit_changeset = self.find_explicit_changes('metric')
+        self.update_metrics_value_changes()
+
+        # configure the modified + downstream
+        modified_with_downstream = [ChangeUnit(unique_id=x.get('unique_id'), change_type=ChangeType.IGNORED,
+                                               resource_type=ResourceType.of(x.get('resource_type')))
+                                    for x in self.modified_models_and_metrics_with_downstream]
+        self.models.modified_with_downstream = modified_with_downstream
+        self.metrics.modified_with_downstream = modified_with_downstream
+
+        # update total values
         self.models.total = len([x for x in self.target_resources if x.get('resource_type') == 'model'])
         self.metrics.total = len([x for x in self.target_resources if x.get('resource_type') == 'metric'])
-
-        # update model explicit changes
-        self.models.explicit_changes = sum(
-            [len(self.models_added), len(self.models_removed), len(self.models_modified)])
-
-        # update model impacted
-        dbt_listed_modified_model_plus = [x.get('unique_id') for x in self.modified_models_and_metrics_with_downstream
-                                          if
-                                          x.get('resource_type') == 'model']
-
-        # TODO discovery the downstream of added by "dbt list --select model_name+"
-        models_impacted = set(
-            dbt_listed_modified_model_plus + self.models_added + self.models_removed + self.models_modified)
-        self.models.impacted = len(models_impacted)
-
-        # update model implicit changes
-        self.models.implicit_changes = len(self.models_implicit_changes)
-
-        # update metrics explicit
-        self.metrics.explicit_changes = sum(
-            [len(self.metrics_added), len(self.metrics_removed), len(self.metrics_modified)])
-
-        dbt_listed_modified_metrics_plus = [x.get('unique_id') for x in self.modified_models_and_metrics_with_downstream
-                                            if
-                                            x.get('resource_type') == 'metric']
-        metrics_impacted = set(
-            dbt_listed_modified_metrics_plus + self.metrics_added + self.metrics_removed + self.metrics_modified)
-        self.metrics.impacted = len(metrics_impacted)
-        self.metrics.implicit_changes = len(self.metrics_implicit_changes)
-        pass
-
-    def update_models_explicit_changes(self):
-        (self.models_added, self.models_removed, self.models_modified) = self.find_explicit_changes('model')
-        (self.models.added, self.models.removed, self.models.modified) = \
-            [len(x) for x in [self.models_added, self.models_removed, self.models_modified]]
-
-    def update_metrics_explicit_changes(self):
-        (self.metrics_added, self.metrics_removed, self.metrics_modified) = self.find_explicit_changes('metric')
-        (self.metrics.added, self.metrics.removed, self.metrics.modified) = \
-            [len(x) for x in [self.metrics_added, self.metrics_removed, self.metrics_modified]]
 
     def find_explicit_changes(self, resource_type_filter: str):
         base_resources = [x.get("unique_id") for x in self.base_resources if
@@ -126,13 +162,16 @@ class SummaryChangeSet:
             )
         ]
 
-        modified = list(set(modified).intersection(resource_in_both))
-        added = list(set(target_resources) - set(base_resources))
-        removed = list(set(base_resources) - set(target_resources))
+        def as_unit(unique_id: str, change_type: ChangeType):
+            return ChangeUnit(unique_id=unique_id, change_type=change_type,
+                              resource_type=ResourceType.of(resource_type_filter))
 
-        return added, removed, modified
+        modified = [as_unit(x, ChangeType.MODIFIED) for x in list(set(modified).intersection(resource_in_both))]
+        added = [as_unit(x, ChangeType.ADDED) for x in list(set(target_resources) - set(base_resources))]
+        removed = [as_unit(x, ChangeType.REMOVED) for x in list(set(base_resources) - set(target_resources))]
+        return added + removed + modified
 
-    def update_models_implicit_changes(self):
+    def update_models_value_changes(self):
         # list implicit changes and exclude added and removed tables
         from piperider_cli.reports import JoinedTables
 
@@ -162,10 +201,9 @@ class SummaryChangeSet:
                         assert resolved_id is not None
                         diffs.append(resolved_id)
 
-        self.models_implicit_changes = list(
-            set(diffs) - set(self.models_added) - set(self.models_removed) - set(self.models_modified))
+        self.models.diffs = list(set(diffs))
 
-    def update_metrics_implicit_changes(self):
+    def update_metrics_value_changes(self):
         # exclude added and removed
         metrics_b = {x.get("name"): x for x in self.base.get("metrics", {})}
         metrics_t = {x.get("name"): x for x in self.target.get("metrics", {})}
@@ -184,9 +222,7 @@ class SummaryChangeSet:
                         assert ref_id is not None
                         diffs.append(ref_id)
 
-        implicit = list(set(diffs))
-        self.metrics_implicit_changes = list(
-            set(implicit) - set(self.metrics_added) - set(self.metrics_removed) - set(self.metrics_modified))
+        self.metrics.diffs = list(set(diffs))
 
     def has_changed(self, p1: Dict, p2: Dict):
         """
@@ -216,10 +252,15 @@ class SummaryChangeSet:
 
         # TODO generate summary table
         # TODO generate models list
+        self.generate_models_section()
+
         # TODO generate metrics list
         # TODO generate test overview
 
         pass
+
+    def generate_models_section(self):
+        return ""
 
 
 class ChangeSet:
