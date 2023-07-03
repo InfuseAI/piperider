@@ -211,6 +211,16 @@ class SummaryChangeSet:
             if entry.get("resource_type") == resource_type and entry.get("name") == resource_name:
                 return entry.get("unique_id")
 
+    def generate_markdown(self):
+        # ref: https://gist.github.com/popcornylu/7a9f68c1ea80f09ba9c780d2026ce71e
+
+        # TODO generate summary table
+        # TODO generate models list
+        # TODO generate metrics list
+        # TODO generate test overview
+
+        pass
+
 
 class ChangeSet:
     def __init__(self, base: Dict, target: Dict):
