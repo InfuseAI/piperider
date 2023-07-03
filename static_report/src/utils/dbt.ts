@@ -91,6 +91,7 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
     const uniqueId = `table.${table?.name}`;
     dbtNodes[uniqueId] = {
       name: table?.name ?? '',
+      description: table?.description ?? '',
       unique_id: uniqueId,
       resource_type: 'table',
       __table: table,

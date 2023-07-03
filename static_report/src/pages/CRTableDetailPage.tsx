@@ -45,6 +45,10 @@ export default function CRTableDetailPage() {
   }
 
   const [, { base, target }] = currentTableEntry;
+  const fallback = target || base;
+
+  const name = fallback?.name;
+  const description = fallback?.description || undefined;
 
   const baseDataTable = base?.__table;
   const targetDataTable = target?.__table;
@@ -154,13 +158,29 @@ export default function CRTableDetailPage() {
     }
   }
 
+  if (targetDataTable === undefined && baseDataTable === undefined) {
+    return (
+      <>
+        <TableColumnHeader
+          title={name}
+          subtitle={'Table'}
+          mb={5}
+          infoTip={description}
+        />
+        <NoData
+          text={`No schema data found. The table or view may not be available in the data source.`}
+        />
+      </>
+    );
+  }
+
   return (
     <Box>
       <TableColumnHeader
-        title={(targetDataTable || baseDataTable)?.name}
+        title={name}
         subtitle={'Table'}
         mb={5}
-        infoTip={(targetDataTable || baseDataTable)?.description}
+        infoTip={description}
       />
 
       <ComparableGridHeader />
