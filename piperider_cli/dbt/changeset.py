@@ -45,7 +45,6 @@ class SummaryAggregate:
     display_name: str
     resource_type: str
     total: int
-    # implicit_changes: int
 
     explicit_changeset: List[ChangeUnit] = None
 
@@ -95,6 +94,18 @@ class SummaryAggregate:
         self._ensure_initialized()
         code_changes: List[str] = [x.unique_id for x in self.explicit_changeset]
         return len(set(self.diffs) - set(code_changes))
+
+    @property
+    def implicit_changeset(self) -> List[ChangeUnit]:
+        self._ensure_initialized()
+        code_changes: List[str] = [x.unique_id for x in self.explicit_changeset]
+        ids = set(self.diffs) - set(code_changes)
+
+        def _t(x: ChangeUnit):
+            x.change_type = ChangeType.IMPLICIT
+            return x
+
+        return [_t(x) for x in self.modified_with_downstream if x.unique_id in ids]
 
     def _ensure_initialized(self):
         if self.explicit_changeset is None:
@@ -276,6 +287,11 @@ class SummaryChangeSet:
 
     def generate_models_section(self, out: Callable[[str], None]) -> None:
         out("# Models")
+        m = self.models
+        changeset = m.explicit_changeset + m.implicit_changeset
+
+        for c in changeset:
+            pass
 
     def generate_metrics_section(self, out: Callable[[str], None]) -> None:
         out("# Metrics")

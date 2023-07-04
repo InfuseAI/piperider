@@ -271,7 +271,7 @@ class ComparisonData(object):
 
         # TODO replace to new generator
         self.summary_change_set.generate_markdown()
-        
+
         return Document.from_runs(self._base, self._target).build()
 
     @staticmethod
