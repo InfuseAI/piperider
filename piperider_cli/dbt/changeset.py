@@ -1,6 +1,7 @@
 import collections
 import math
 from dataclasses import dataclass
+from datetime import timedelta
 from enum import Enum
 from io import StringIO
 from typing import Callable, Dict, List, Optional
@@ -169,6 +170,45 @@ class MetricsChangeView:
             self.change_type = "edited"
 
 
+class LookUpTable:
+
+    def __init__(self, c: "SummaryChangeSet"):
+        self.c: "SummaryChangeSet" = c
+
+        self.path_mapping = self._build_path_mapping()
+        self.base_execution, self.target_execution = self._build_dbt_time_mapping()
+
+    def _build_path_mapping(self) -> Dict[str, str]:
+        m = dict()
+        for x in self.c.target_resources + self.c.base_resources:
+            unique_id, resource_path = x.get('unique_id'), x.get('original_file_path')
+            if unique_id not in m:
+                m[unique_id] = resource_path
+
+        return m
+
+    def path(self, unique_id: str):
+        return self.path_mapping.get(unique_id)
+
+    def _build_dbt_time_mapping(self):
+        base_execution = {x.get('unique_id'): x.get('execution_time') for x in
+                          self.c.base.get('dbt', {}).get('run_results', {}).get('results', [])}
+        target_execution = {x.get('unique_id'): x.get('execution_time') for x in
+                            self.c.target.get('dbt', {}).get('run_results', {}).get('results', [])}
+
+        return base_execution, target_execution
+
+    def execution_time(self, unique_id: str):
+        return self.base_execution.get(unique_id), self.target_execution.get(unique_id)
+
+    @staticmethod
+    def to_human_readable(seconds: float):
+        if seconds is None:
+            return "-"
+
+        return str(timedelta(seconds=seconds))[:-4]
+
+
 class SummaryChangeSet:
     def __init__(self, base: Dict, target: Dict):
         self.base: Dict = base
@@ -180,7 +220,8 @@ class SummaryChangeSet:
         # resources in this format [{unique_id, name, resource_type}]
         self.base_resources = list_resources_unique_id_from_manifest(self.base_manifest)
         self.target_resources = list_resources_unique_id_from_manifest(self.target_manifest)
-        self.id_path_mapping = self.build_path_mapping()
+
+        self.mapper = LookUpTable(self)
 
         self.modified_models_and_metrics_with_downstream = \
             list_modified_with_downstream(self.base_manifest, self.target_manifest)
@@ -428,10 +469,30 @@ class SummaryChangeSet:
                 return text % dict(value=t, color=color, sign=sign, diff=diff)
             return 'rows'
 
+        def dbt_time(c: ChangeUnit):
+            b, t = self.mapper.execution_time(c.unique_id)
+            if c.change_type == ChangeType.ADDED:
+                return LookUpTable.to_human_readable(t)
+
+            if c.change_type == ChangeType.REMOVED:
+                return ""
+            if c.change_type == ChangeType.MODIFIED:
+                """
+                example:
+                0:00:00.16 $\color{green}{\text{ (↓ 0.05) }}$
+                """
+                color = "green" if t > b else "red"
+                sign = "↑" if t > b else "↓"
+                diff = t - b
+                text = r'%(value)s $\color{%(color)s}{\text{ (%(sign)s %(diff).2f) }}$'
+                return text % dict(value=LookUpTable.to_human_readable(t), color=color, sign=sign, diff=diff)
+
+            return 'dbt-time'
+
         for c in changeset:
             mt.add_row(
                 [c.change_type.icon_image_tag,
-                 self.id_path_mapping.get(c.unique_id), cols(c), rows(c), 'dt', 'ftest',
+                 self.mapper.path(c.unique_id), cols(c), rows(c), dbt_time(c), 'ftest',
                  'tests'])
 
         out(mt.build())
