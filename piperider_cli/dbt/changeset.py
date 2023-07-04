@@ -11,6 +11,7 @@ from piperider_cli.dbt.list_task import (
     list_modified_with_downstream, list_resources_unique_id_from_manifest,
     load_manifest,
 )
+from piperider_cli.dbt.markdown import MarkdownTable
 
 
 class ChangeType(Enum):
@@ -290,8 +291,20 @@ class SummaryChangeSet:
         m = self.models
         changeset = m.explicit_changeset + m.implicit_changeset
 
+        column_header = """
+        Columns <br> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-plus%402x.png" width="10px"> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-minus%402x.png" width="10px"> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-explicit%402x.png" width="10px">
+        """.strip()
+
+        "Rows | Dbt Time | Failed Tests | All Tests"
+
+        mt = MarkdownTable(headers=['', 'Model', column_header, 'Rows', 'Dbt Time', 'Failed Tests', 'All Tests'])
+
         for c in changeset:
+            mt.add_row([c.change_type, c.unique_id, 'columns', 'rows', 'dt', 'ftest', 'tests'])
+            # print(c.unique_id)
             pass
+
+        out(mt.build())
 
     def generate_metrics_section(self, out: Callable[[str], None]) -> None:
         out("# Metrics")
