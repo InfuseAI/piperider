@@ -148,12 +148,10 @@ class SummaryAggregate:
 class MetricsChangeView:
     def __init__(self, name: str):
         self.name = name
-        self.metric_group: str = None
-        self.header: str = "__unknown__"
+        self.unique_id: str = None
         self.base_data: Optional[List] = None
         self.target_data: Optional[List] = None
         self.change_type = None
-        self.agg_data = None
 
     def update_status(self):
         # added, removed, edited, no changes
@@ -445,8 +443,8 @@ class SummaryChangeSet:
         if not target_metrics:
             return
 
-        metric_group_labels = {x.name: x.label for x in self.base_manifest.metrics.values()}
-        metric_group_labels.update({x.name: x.label for x in self.target_manifest.metrics.values()})
+        metrics_labels = {unique_id: v.label for unique_id, v in self.base_manifest.metrics.items()}
+        metrics_labels.update({unique_id: v.label for unique_id, v in self.target_manifest.metrics.items()})
 
         joined_metrics: Dict[str, MetricsChangeView] = collections.OrderedDict()
         metric_names = sorted(
@@ -463,38 +461,47 @@ class SummaryChangeSet:
         for metric in base_metrics:
             name = metric.get("name")
             m: MetricsChangeView = joined_metrics[name]
-            m.metric_group = metric.get("headers")[1]
-            m.header = metric.get("headers")[0]
+            m.unique_id = metric.get("ref_id")
             m.base_data = metric.get("data")
 
         for metric in target_metrics:
             name = metric.get("name")
             m: MetricsChangeView = joined_metrics[name]
-            m.metric_group = metric.get("headers")[1]
-            m.header = metric.get("headers")[0]
+            m.unique_id = metric.get("ref_id")
             m.target_data = metric.get("data")
 
         # added, removed, edited, no changes
         for m in joined_metrics.values():
             m.update_status()
 
+        def state_icon(unique_id: str):
+            for change_unit in self.metrics.explicit_changeset:
+                if change_unit.unique_id == unique_id:
+                    return change_unit.change_type.icon_image_tag
+
+            for change_unit in self.metrics.implicit_changeset:
+                if change_unit.unique_id == unique_id:
+                    return change_unit.change_type.icon_image_tag
+
+            return ""
+
         metrics_summary = {}
         for m in joined_metrics.values():
-            label = metric_group_labels[m.metric_group]
+            label = metrics_labels[m.unique_id]
             if label not in metrics_summary:
-                metrics_summary[label] = {'total': 0, 'changed': 0}
+                metrics_summary[label] = {'total': 0, 'no-changes': 0, 'edited': 0, 'added': 0, 'removed': 0}
 
-            if m.change_type != "no-changes":
-                metrics_summary[label]['changed'] += 1
+            metrics_summary[label][m.change_type] += 1
             metrics_summary[label]['total'] += 1
+            metrics_summary[label]['state_icon'] = state_icon(m.unique_id)
 
         if not metrics_summary:
             out("")
 
         mt = MarkdownTable(headers=['', 'Metric', f"Queries <br> total ({Styles.latex_orange('change')})"])
-        for m, v in metrics_summary.items():
-            chagned = f"({Styles.latex_orange(str(v['changed']))})" if v['changed'] > 0 else ""
-            mt.add_row(['', m, f"{v['total']} {chagned}"])
+        for label, v in metrics_summary.items():
+            chagned = f"({Styles.latex_orange(str(v['edited']))})" if v['edited'] > 0 else ""
+            mt.add_row([v['state_icon'], label, f"{v['total']} {chagned}"])
 
         out(mt.build())
 
