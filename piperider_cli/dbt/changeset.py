@@ -13,7 +13,7 @@ from piperider_cli.dbt.list_task import (
     load_manifest,
 )
 from piperider_cli.dbt.markdown import MarkdownTable
-from piperider_cli.reports import JoinedTables
+from piperider_cli.reports import ChangedColumnsTableEntryElement, JoinedTables
 from piperider_cli.reports import Styles
 
 
@@ -64,6 +64,12 @@ class ChangeUnit:
     change_type: ChangeType
     resource_type: ResourceType
     unique_id: str
+
+    @property
+    def table_name(self) -> str:
+        if self.resource_type == ResourceType.MODEL:
+            return self.unique_id.split(".")[-1]
+        raise ValueError("It is non sense to get table_name for a non-model resource")
 
 
 class SummaryAggregate:
@@ -361,7 +367,7 @@ class SummaryChangeSet:
         mt = MarkdownTable(headers=['', 'Model', column_header, 'Rows', 'Dbt Time', 'Failed Tests', 'All Tests'])
 
         def cols(c: ChangeUnit):
-            counts = self.tables.column_counts(table_name=c.unique_id.split(".")[-1])
+            counts = self.tables.column_counts(table_name=c.table_name)
             if c.change_type == ChangeType.ADDED:
                 _, t = counts
                 return t
@@ -370,11 +376,40 @@ class SummaryChangeSet:
                 return f"~~{b}~~"
             if c.change_type == ChangeType.MODIFIED:
                 b, t = counts
-                return f"{b} {t} (todo)"
+                """
+                example:
+                16 ($\color{green}{\text{ 1 }}$ / $\color{red}{\text{ 1 }}$ / $\color{orange}{\text{ 5 }}$)
+                """
+
+                changes = list(self.tables.columns_changed_iterator(None, c.table_name))
+
+                def col_state(c: ChangedColumnsTableEntryElement):
+                    if c.base_view is not None and c.target_view is not None:
+                        return ChangeType.MODIFIED
+                    if c.base_view is None:
+                        return ChangeType.ADDED
+                    if c.target_view is None:
+                        return ChangeType.REMOVED
+                    raise ValueError("Cannot be here")
+
+                stat = [col_state(x) for x in changes]
+                from collections import Counter
+                counter = Counter(stat)
+                param = dict(value=t,
+                             added=counter.get(ChangeType.ADDED, 0),
+                             removed=counter.get(ChangeType.REMOVED, 0),
+                             modified=counter.get(ChangeType.MODIFIED, 0),
+                             )
+
+                output = r"%(value)s ($\color{green}{\text{ %(added)s }}$ /" \
+                         r" $\color{red}{\text{ %(removed)s }}$ /" \
+                         r" $\color{orange}{\text{ %(modified)s }}$)" % param
+                return output
+
             return 'columns'
 
         def rows(c: ChangeUnit):
-            rows = self.tables.row_counts(table_name=c.unique_id.split(".")[-1])
+            rows = self.tables.row_counts(table_name=c.table_name)
             if c.change_type == ChangeType.ADDED:
                 _, t = rows
                 return t
