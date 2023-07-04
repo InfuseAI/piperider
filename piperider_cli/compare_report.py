@@ -262,16 +262,16 @@ class ComparisonData(object):
         return out.getvalue()
 
     def to_summary_markdown_ng(self):
-        # TODO replace to new generator
-        if self.summary_change_set is not None:
-            self.summary_change_set.generate_markdown()
-
         if self._base.get('dbt') is None or self._target.get('dbt') is None:
             console = Console()
             console.print("[bold yellow]Warning: [/bold yellow]'summary.md' report is not generated.")
             console.print("To generate a summary.md file, please run the 'piperider run' command in a dbt project "
                           "and use the latest version of piperider.")
             return ""
+
+        # TODO replace to new generator
+        self.summary_change_set.generate_markdown()
+        
         return Document.from_runs(self._base, self._target).build()
 
     @staticmethod
