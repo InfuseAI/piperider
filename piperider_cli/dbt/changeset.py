@@ -1,8 +1,9 @@
+import collections
 import math
 from dataclasses import dataclass
 from enum import Enum
 from io import StringIO
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Optional
 
 from dbt.contracts.graph.manifest import Manifest
 
@@ -12,6 +13,7 @@ from piperider_cli.dbt.list_task import (
     load_manifest,
 )
 from piperider_cli.dbt.markdown import MarkdownTable
+from piperider_cli.reports import Styles
 
 
 class ChangeType(Enum):
@@ -115,6 +117,32 @@ class SummaryAggregate:
             raise ValueError('modified_with_downstream is not initialized')
 
 
+class MetricsChangeView:
+    def __init__(self, name: str):
+        self.name = name
+        self.metric_group: str = None
+        self.header: str = "__unknown__"
+        self.base_data: Optional[List] = None
+        self.target_data: Optional[List] = None
+        self.change_type = None
+        self.agg_data = None
+
+    def update_status(self):
+        # added, removed, edited, no changes
+        if self.base_data is None and self.target_data is not None:
+            self.change_type = "added"
+            return
+
+        if self.base_data is not None and self.target_data is None:
+            self.change_type = "removed"
+            return
+
+        if self.base_data == self.target_data:
+            self.change_type = "no-changes"
+        else:
+            self.change_type = "edited"
+
+
 class SummaryChangeSet:
     def __init__(self, base: Dict, target: Dict):
         self.base: Dict = base
@@ -141,6 +169,9 @@ class SummaryChangeSet:
         if manifest == {}:
             raise ValueError("Cannot find .dbt.manifest in run data")
         return load_manifest(manifest)
+
+    def get_url(self):
+        return ""
 
     def execute(self):
         self.models.explicit_changeset = self.find_explicit_changes('model')
@@ -285,6 +316,11 @@ class SummaryChangeSet:
 
     def generate_summary_section(self, out: Callable[[str], None]) -> None:
         out("# Comparison Summary")
+        mt = MarkdownTable(headers=['Resource', 'Total', 'Explicit Changes', 'Impacted', 'Implicit Changes'])
+        mt.add_row([self.models.display_name, self.models.total, self.models.explicit_changes, self.models.impacted, self.models.implicit_changes])
+        mt.add_row([self.metrics.display_name, self.metrics.total, self.metrics.explicit_changes, self.metrics.impacted, self.metrics.implicit_changes])
+
+        out(mt.build())
 
     def generate_models_section(self, out: Callable[[str], None]) -> None:
         out("# Models")
@@ -308,6 +344,63 @@ class SummaryChangeSet:
 
     def generate_metrics_section(self, out: Callable[[str], None]) -> None:
         out("# Metrics")
+        base_metrics = self.base.get('metrics', [])
+        target_metrics = self.target.get('metrics', [])
+        if not target_metrics:
+            return
+
+        metric_group_labels = {x.name: x.label for x in self.base_manifest.metrics.values()}
+        metric_group_labels.update({x.name: x.label for x in self.target_manifest.metrics.values()})
+
+        joined_metrics: Dict[str, MetricsChangeView] = collections.OrderedDict()
+        metric_names = sorted(
+            list(
+                set(
+                    [x.get('name') for x in base_metrics] + [x.get('name') for x in target_metrics]
+                )
+            )
+        )
+
+        for name in metric_names:
+            joined_metrics[name] = MetricsChangeView(name)
+
+        for metric in base_metrics:
+            name = metric.get("name")
+            m: MetricsChangeView = joined_metrics[name]
+            m.metric_group = metric.get("headers")[1]
+            m.header = metric.get("headers")[0]
+            m.base_data = metric.get("data")
+
+        for metric in target_metrics:
+            name = metric.get("name")
+            m: MetricsChangeView = joined_metrics[name]
+            m.metric_group = metric.get("headers")[1]
+            m.header = metric.get("headers")[0]
+            m.target_data = metric.get("data")
+
+        # added, removed, edited, no changes
+        for m in joined_metrics.values():
+            m.update_status()
+
+        metrics_summary = {}
+        for m in joined_metrics.values():
+            label = metric_group_labels[m.metric_group]
+            if label not in metrics_summary:
+                metrics_summary[label] = {'total': 0, 'changed': 0}
+
+            if m.change_type != "no-changes":
+                metrics_summary[label]['changed'] += 1
+            metrics_summary[label]['total'] += 1
+
+        if not metrics_summary:
+            out("")
+
+        mt = MarkdownTable(headers=['', 'Metric', f"Queries <br> total ({Styles.latex_orange('change')})"])
+        for m, v in metrics_summary.items():
+            chagned = f"({Styles.latex_orange(str(v['changed']))})" if v['changed'] > 0 else ""
+            mt.add_row(['', m, f"{v['total']} {chagned}"])
+
+        out(mt.build())
 
     def generate_tests_section(self, out: Callable[[str], None]) -> None:
         out("# Test Results")
