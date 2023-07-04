@@ -177,6 +177,7 @@ class LookUpTable:
 
         self.path_mapping = self._build_path_mapping()
         self.base_execution, self.target_execution = self._build_dbt_time_mapping()
+        self.base_tests, self.target_tests = self._build_tests_mapping()
 
     def _build_path_mapping(self) -> Dict[str, str]:
         m = dict()
@@ -189,6 +190,14 @@ class LookUpTable:
 
     def path(self, unique_id: str):
         return self.path_mapping.get(unique_id)
+
+    def tests(self, unique_id: str):
+        return sum(self.base_tests.get(unique_id, dict(passed=0, failed=0)).values()), \
+            sum(self.target_tests.get(unique_id, dict(passed=0, failed=0)).values())
+
+    def failed_tests(self, unique_id: str):
+        return self.base_tests.get(unique_id, dict(passed=0, failed=0)).get('failed'), \
+            self.target_tests.get(unique_id, dict(passed=0, failed=0)).get('failed')
 
     def _build_dbt_time_mapping(self):
         base_execution = {x.get('unique_id'): x.get('execution_time') for x in
@@ -207,6 +216,26 @@ class LookUpTable:
             return "-"
 
         return str(timedelta(seconds=seconds))[:-4]
+
+    def _build_tests_mapping(self):
+        from collections import Counter
+        # convert test results to (table_name, pass_or_not): count form
+        b = Counter([(x.get('table'), x.get('status')) for x in self.c.base.get('tests', [])])
+        t = Counter([(x.get('table'), x.get('status')) for x in self.c.target.get('tests', [])])
+
+        def as_dict(c: Counter):
+            m = dict()
+            for (table, status), v in c.items():
+                if table not in m:
+                    m[table] = dict(passed=0, failed=0)
+
+                if status == 'passed':
+                    m[table]['passed'] += v
+                else:
+                    m[table]['failed'] += v
+            return m
+
+        return as_dict(b), as_dict(t)
 
 
 class SummaryChangeSet:
@@ -368,10 +397,7 @@ class SummaryChangeSet:
 
         out_func("")
 
-        # TODO generate summary table
         self.generate_summary_section(out_func)
-
-        # TODO generate models list
         self.generate_models_section(out_func)
 
         # TODO generate metrics list
@@ -380,6 +406,7 @@ class SummaryChangeSet:
         # TODO generate test overview
         self.generate_tests_section(out_func)
 
+        # TODO write to json file
         print(output.getvalue())
 
     def generate_summary_section(self, out: Callable[[str], None]) -> None:
@@ -489,11 +516,43 @@ class SummaryChangeSet:
 
             return 'dbt-time'
 
+        def failed_tests(c: ChangeUnit):
+            b, t = self.mapper.failed_tests(c.unique_id)
+            if c.change_type == ChangeType.ADDED:
+                return t
+            if c.change_type == ChangeType.REMOVED:
+                return ""
+            if c.change_type == ChangeType.MODIFIED:
+                if b == t:
+                    return f"{t}"
+                color = "green" if t > b else "red"
+                sign = "↑" if t > b else "↓"
+                diff = t - b
+                text = r'%(value)s ($\color{%(color)s}{\text{ (%(sign)s %(diff)s) }}$)'
+                return text % dict(value=t, color=color, sign=sign, diff=diff)
+            return "failed tests"
+
+        def all_tests(c: ChangeUnit):
+            b, t = self.mapper.tests(c.unique_id)
+            if c.change_type == ChangeType.ADDED:
+                return t
+            if c.change_type == ChangeType.REMOVED:
+                return ""
+            if c.change_type == ChangeType.MODIFIED:
+                if b == t:
+                    return f"{t}"
+                color = "green" if t > b else "red"
+                sign = "↑" if t > b else "↓"
+                diff = t - b
+                text = r'%(value)s ($\color{%(color)s}{\text{ (%(sign)s %(diff)s) }}$)'
+                return text % dict(value=t, color=color, sign=sign, diff=diff)
+            return "all tests"
+
         for c in changeset:
             mt.add_row(
                 [c.change_type.icon_image_tag,
-                 self.mapper.path(c.unique_id), cols(c), rows(c), dbt_time(c), 'ftest',
-                 'tests'])
+                 self.mapper.path(c.unique_id), cols(c), rows(c), dbt_time(c), failed_tests(c),
+                 all_tests(c)])
 
         out(mt.build())
 
