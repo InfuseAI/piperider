@@ -13,6 +13,7 @@ from piperider_cli.dbt.list_task import (
     load_manifest,
 )
 from piperider_cli.dbt.markdown import MarkdownTable
+from piperider_cli.reports import JoinedTables
 from piperider_cli.reports import Styles
 
 
@@ -22,6 +23,27 @@ class ChangeType(Enum):
     MODIFIED = "modified"
     IMPLICIT = "implicit"
     IGNORED = "ignored"
+
+    @property
+    def icon_url(self) -> str:
+        base_url = "https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons"
+
+        if self.value == 'added':
+            return base_url + "/icon-diff-delta-plus%402x.png"
+        if self.value == 'removed':
+            return base_url + "/icon-diff-delta-minus%402x.png"
+        if self.value == 'modified':
+            return base_url + "/icon-diff-delta-explicit%402x.png"
+        if self.value == 'implicit':
+            return base_url + "/icon-diff-delta-implicit%402x.png"
+        return ""
+
+    @property
+    def icon_image_tag(self) -> str:
+        url = self.icon_url
+        if url == "":
+            return ""
+        return f"""<img src="{url}" width="16px">"""
 
 
 class ResourceType(Enum):
@@ -149,14 +171,15 @@ class SummaryChangeSet:
         self.target: Dict = target
         self.base_manifest: Manifest = self._m(base)
         self.target_manifest: Manifest = self._m(target)
+        self.tables = JoinedTables(self.base, self.target)
 
         # resources in this format [{unique_id, name, resource_type}]
         self.base_resources = list_resources_unique_id_from_manifest(self.base_manifest)
-        self.target_resources = list_resources_unique_id_from_manifest(
-            self.target_manifest
-        )
-        self.modified_models_and_metrics_with_downstream = list_modified_with_downstream(self.base_manifest,
-                                                                                         self.target_manifest)
+        self.target_resources = list_resources_unique_id_from_manifest(self.target_manifest)
+        self.id_path_mapping = self.build_path_mapping()
+
+        self.modified_models_and_metrics_with_downstream = \
+            list_modified_with_downstream(self.base_manifest, self.target_manifest)
 
         self.models = SummaryAggregate('Models')
         self.metrics = SummaryAggregate('Metrics')
@@ -217,14 +240,11 @@ class SummaryChangeSet:
 
     def update_models_value_changes(self):
         # list implicit changes and exclude added and removed tables
-        from piperider_cli.reports import JoinedTables
-
         diffs = []
 
-        tables = JoinedTables(self.base, self.target)
-        for table_name, ref_id, b, t in tables.table_data_iterator():
-            r1, r2 = tables.row_counts(table_name)
-            c1, c2 = tables.column_counts(table_name)
+        for table_name, ref_id, b, t in self.tables.table_data_iterator():
+            r1, r2 = self.tables.row_counts(table_name)
+            c1, c2 = self.tables.column_counts(table_name)
             both_profiled = not math.isnan(r1) and not math.isnan(r2)
             if both_profiled:
                 if r1 == r2 and c1 == c2 and not self.has_changed(b, t):
@@ -277,6 +297,9 @@ class SummaryChangeSet:
 
         base_cols: Dict[str, Dict] = p1.get("columns")
         target_cols: Dict[str, Dict] = p2.get("columns")
+
+        if base_cols is None or target_cols is None:
+            return True
 
         for k in base_cols:
             if ColumnChangeView(base_cols.get(k)) != ColumnChangeView(
@@ -335,10 +358,37 @@ class SummaryChangeSet:
 
         mt = MarkdownTable(headers=['', 'Model', column_header, 'Rows', 'Dbt Time', 'Failed Tests', 'All Tests'])
 
+        def cols(c: ChangeUnit):
+            counts = self.tables.column_counts(table_name=c.unique_id.split(".")[-1])
+            if c.change_type == ChangeType.ADDED:
+                _, t = counts
+                return t
+            if c.change_type == ChangeType.REMOVED:
+                b, _ = counts
+                return f"~~{b}~~"
+            if c.change_type == ChangeType.MODIFIED:
+                b, t = counts
+                return f"{b} {t} (todo)"
+            return 'columns'
+
+        def rows(c: ChangeUnit):
+            rows = self.tables.row_counts(table_name=c.unique_id.split(".")[-1])
+            if c.change_type == ChangeType.ADDED:
+                _, t = rows
+                return t
+            if c.change_type == ChangeType.REMOVED:
+                b, _ = rows
+                return f"~~{b}~~"
+            if c.change_type == ChangeType.MODIFIED:
+                b, t = rows
+                return f"{b} {t} (todo)"
+            return 'rows'
+
         for c in changeset:
-            mt.add_row([c.change_type, c.unique_id, 'columns', 'rows', 'dt', 'ftest', 'tests'])
-            # print(c.unique_id)
-            pass
+            mt.add_row(
+                [c.change_type.icon_image_tag,
+                 self.id_path_mapping.get(c.unique_id), cols(c), rows(c), 'dt', 'ftest',
+                 'tests'])
 
         out(mt.build())
 
@@ -404,6 +454,16 @@ class SummaryChangeSet:
 
     def generate_tests_section(self, out: Callable[[str], None]) -> None:
         out("# Test Results")
+
+    def build_path_mapping(self) -> Dict[str, str]:
+        m = dict()
+
+        for x in self.target_resources + self.base_resources:
+            unique_id, resource_path = x.get('unique_id'), x.get('original_file_path')
+            if unique_id not in m:
+                m[unique_id] = resource_path
+
+        return m
 
 
 class ChangeSet:

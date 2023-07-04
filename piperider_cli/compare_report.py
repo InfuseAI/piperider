@@ -192,7 +192,6 @@ class ComparisonData(object):
             console = Console()
             console.print(
                 f'[bold yellow]Warning:[/bold yellow] {e}. Got problem to generate changeset.')
-            pass
 
     def id(self):
         return self._id
@@ -270,7 +269,8 @@ class ComparisonData(object):
             return ""
 
         # TODO replace to new generator
-        self.summary_change_set.generate_markdown()
+        if self.summary_change_set:
+            self.summary_change_set.generate_markdown()
 
         return Document.from_runs(self._base, self._target).build()
 

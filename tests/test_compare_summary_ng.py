@@ -26,8 +26,11 @@ class TestCompareSummaryNG(TestCase):
 
     @unittest.skipIf(v < version.parse('1.4'), 'this only works after manifests generated after the v1.4')
     def test_in_memory_compare_with_manifests(self):
-        run1 = self.manifest_dict("jaffle_shop_base.json")
-        run2 = self.manifest_dict("jaffle_shop_target.json")
+        # run1 = self.manifest_dict("jaffle_shop_base.json")
+        # run2 = self.manifest_dict("jaffle_shop_target.json")
+
+        run1 = self.manifest_dict("sc-31587-with-ref-base.json")
+        run2 = self.manifest_dict("sc-31587-with-ref-input.json")
 
         data = ComparisonData(run1, run2, None)
         result = data.to_summary_markdown_ng()
