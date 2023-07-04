@@ -1,7 +1,8 @@
 import math
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List
+from io import StringIO
+from typing import Callable, Dict, List
 
 from dbt.contracts.graph.manifest import Manifest
 
@@ -249,18 +250,38 @@ class SummaryChangeSet:
 
     def generate_markdown(self):
         # ref: https://gist.github.com/popcornylu/7a9f68c1ea80f09ba9c780d2026ce71e
+        output = StringIO()
+
+        def out_func(message: str):
+            print(message, file=output)
+
+        out_func("")
 
         # TODO generate summary table
+        self.generate_summary_section(out_func)
+
         # TODO generate models list
-        self.generate_models_section()
+        self.generate_models_section(out_func)
 
         # TODO generate metrics list
+        self.generate_metrics_section(out_func)
+
         # TODO generate test overview
+        self.generate_tests_section(out_func)
 
-        pass
+        print(output.getvalue())
 
-    def generate_models_section(self):
-        return ""
+    def generate_summary_section(self, out: Callable[[str], None]) -> None:
+        out("# Comparison Summary")
+
+    def generate_models_section(self, out: Callable[[str], None]) -> None:
+        out("# Models")
+
+    def generate_metrics_section(self, out: Callable[[str], None]) -> None:
+        out("# Metrics")
+
+    def generate_tests_section(self, out: Callable[[str], None]) -> None:
+        out("# Test Results")
 
 
 class ChangeSet:
