@@ -443,7 +443,7 @@ class ResourceSelector:
 
 
 def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector = None, select: tuple = None,
-                                 state: str = None):
+                                 state: str = None) -> List[str]:
     task = _DbtListTask()
     task.manifest = manifest
 

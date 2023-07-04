@@ -34,8 +34,9 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
     if tool().git_branch() is not None:
         base.branch = 'main'
 
-    if options and options.get('select'):
-        select_options = '--select ' + ' '.join(options.get('select'))
+    filtered_select = list(filter(lambda s: 'state:modified' not in s, options.get('select'))) if options else None
+    if filtered_select:
+        select_options = '--select ' + ' '.join(filtered_select)
 
     dbt_project = _read_dbt_project_file(dbt_project_path)
     if dbt_project:
@@ -58,22 +59,25 @@ def _create_target_recipe(dbt_project_path=None, options: dict = None) -> Recipe
     """
     target = RecipeModel()
     select_options = ''
+    state_option = ''
 
     # The target branch should be empty by default
     if options and options.get('select'):
         select_options = '--select ' + ' '.join(options.get('select'))
+        if 'state:modified' in options.get('select'):
+            state_option = ' --state <DBT_STATE_PATH>'
 
     dbt_project = _read_dbt_project_file(dbt_project_path)
     if dbt_project:
         target.dbt = RecipeDbtField({
             'commands': [
                 'dbt deps',
-                f'dbt build {select_options}'.strip()
+                f'dbt build {select_options}'.strip() + state_option
             ]
         })
 
     target.piperider = RecipePiperiderField({
-        'command': f'piperider run {select_options}'.strip(),
+        'command': f'piperider run {select_options}'.strip() + state_option,
     })
     return target
 
@@ -84,10 +88,10 @@ def generate_default_recipe(overwrite_existing: bool = False,
     Generate the default recipe
     """
     recipe_path = FileSystem.DEFAULT_RECIPE_PATH
-    if overwrite_existing is False and os.path.exists(recipe_path):
+    if overwrite_existing is True and os.path.exists(recipe_path):
         if interactive is True:
             console.print('[bold green]Piperider default recipe already exist[/bold green]')
-        return 0
+        return None
     base = _create_base_recipe(dbt_project_path, options)
     target = _create_target_recipe(dbt_project_path, options)
     recipe = RecipeConfiguration(base=base, target=target)

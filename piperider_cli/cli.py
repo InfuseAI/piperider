@@ -480,7 +480,12 @@ def cloud_compare_reports(**kwargs):
 @click.option('--dry-run', is_flag=True, default=False, help='Display the run details without actually executing it')
 @click.option('--interactive', is_flag=True, default=False,
               help='Prompt for confirmation to proceed with the run (Y/N)')
-@add_options([dbt_select_option_builder()])
+@add_options([
+    dbt_select_option_builder(),
+    click.option('--modified', '-m', default=False, is_flag=True, help='Only compare the modified models.'),
+    click.option('--base-branch', '-b', default='main', type=click.STRING, help='Specify the base branch.',
+                 show_default=True),
+])
 @add_options(dbt_related_options)
 @add_options(debug_option)
 def compare_with_recipe(**kwargs):
@@ -496,6 +501,8 @@ def compare_with_recipe(**kwargs):
     project_name = kwargs.get('project')
     select = kwargs.get('select')
     debug = kwargs.get('debug', False)
+    if kwargs.get('modified'):
+        select = ('state:modified',) + select
 
     # reconfigure recipe global flags
     configure_recipe_execution_flags(dry_run=kwargs.get('dry_run'), interactive=kwargs.get('interactive'))
