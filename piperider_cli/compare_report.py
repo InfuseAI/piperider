@@ -263,9 +263,8 @@ class ComparisonData(object):
 
     def to_summary_markdown_ng(self):
         # TODO replace to new generator
-        if self.summary_change_set is None:
-            self._update_implicit_and_explicit_changeset()
-        self.summary_change_set.generate_markdown()
+        if self.summary_change_set is not None:
+            self.summary_change_set.generate_markdown()
 
         if self._base.get('dbt') is None or self._target.get('dbt') is None:
             console = Console()
