@@ -340,8 +340,10 @@ class SummaryChangeSet:
     def generate_summary_section(self, out: Callable[[str], None]) -> None:
         out("# Comparison Summary")
         mt = MarkdownTable(headers=['Resource', 'Total', 'Explicit Changes', 'Impacted', 'Implicit Changes'])
-        mt.add_row([self.models.display_name, self.models.total, self.models.explicit_changes, self.models.impacted, self.models.implicit_changes])
-        mt.add_row([self.metrics.display_name, self.metrics.total, self.metrics.explicit_changes, self.metrics.impacted, self.metrics.implicit_changes])
+        mt.add_row([self.models.display_name, self.models.total, self.models.explicit_changes, self.models.impacted,
+                    self.models.implicit_changes])
+        mt.add_row([self.metrics.display_name, self.metrics.total, self.metrics.explicit_changes, self.metrics.impacted,
+                    self.metrics.implicit_changes])
 
         out(mt.build())
 
@@ -381,7 +383,16 @@ class SummaryChangeSet:
                 return f"~~{b}~~"
             if c.change_type == ChangeType.MODIFIED:
                 b, t = rows
-                return f"{b} {t} (todo)"
+                """
+                example:
+                997 $\color{green}{\text{ (↑ 20) }}$
+                97 $\color{red}{\text{ (↓ -2) }}$
+                """
+                color = "green" if t > b else "red"
+                sign = "↑" if t > b else "↓"
+                diff = t - b
+                text = r'%(value)s $\color{%(color)s}{\text{ (%(sign)s %(diff)s) }}$'
+                return text % dict(value=t, color=color, sign=sign, diff=diff)
             return 'rows'
 
         for c in changeset:
