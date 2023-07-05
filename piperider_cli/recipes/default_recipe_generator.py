@@ -38,7 +38,7 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
         base.dbt = RecipeDbtField({
             'commands': [
                 'dbt deps',
-                f'dbt build'
+                'dbt build'
             ]
         })
 
