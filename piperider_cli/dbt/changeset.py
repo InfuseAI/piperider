@@ -255,8 +255,16 @@ class LookUpTable:
         g1 = dbtutil.prepare_topological_graph(self.c.base.get('dbt', {}).get('manifest', {}))
         g2 = dbtutil.prepare_topological_graph(self.c.target.get('dbt', {}).get('manifest', {}))
 
-        # TODO is it good enough?
-        g = {**g1, **g2}
+        g = dict()
+        for k in set(list(g1.keys()) + list(g2.keys())):
+            if k in g1 and k in g2:
+                g[k] = list(set(g1[k] + g2[k]))
+                continue
+
+            if k in g1:
+                g[k] = g1[k]
+            if k in g2:
+                g[k] = g2[k]
 
         sorted_parameters = topological_sort(g, len(list(g.keys())))
         weights = dict()
