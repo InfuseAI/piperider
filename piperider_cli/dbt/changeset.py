@@ -46,6 +46,16 @@ class ChangeType(Enum):
             return ""
         return f"""<img src="{url}" width="16px">"""
 
+    def display_changes(self, b, t, format_text: str, *, converter: Callable = None):
+        if self != self.MODIFIED:
+            raise ValueError("Only modified type has display for changes")
+        color = "green" if t > b else "red"
+        sign = "↑" if t > b else "↓"
+        diff = t - b
+        if converter:
+            return format_text % dict(value=converter(t), color=color, sign=sign, diff=diff)
+        return format_text % dict(value=t, color=color, sign=sign, diff=diff)
+
 
 class ResourceType(Enum):
     MODEL = "model"
@@ -489,11 +499,8 @@ class SummaryChangeSet:
                 997 $\color{green}{\text{ (↑ 20) }}$
                 97 $\color{red}{\text{ (↓ -2) }}$
                 """
-                color = "green" if t > b else "red"
-                sign = "↑" if t > b else "↓"
-                diff = t - b
                 text = r'%(value)s $\color{%(color)s}{\text{ (%(sign)s %(diff)s) }}$'
-                return text % dict(value=t, color=color, sign=sign, diff=diff)
+                return ChangeType.MODIFIED.display_changes(b, t, text)
             return 'rows'
 
         def dbt_time(c: ChangeUnit):
@@ -508,44 +515,44 @@ class SummaryChangeSet:
                 example:
                 0:00:00.16 $\color{green}{\text{ (↓ 0.05) }}$
                 """
-                color = "green" if t > b else "red"
-                sign = "↑" if t > b else "↓"
-                diff = t - b
                 text = r'%(value)s $\color{%(color)s}{\text{ (%(sign)s %(diff).2f) }}$'
-                return text % dict(value=LookUpTable.to_human_readable(t), color=color, sign=sign, diff=diff)
+                return ChangeType.MODIFIED.display_changes(b, t, text, converter=LookUpTable.to_human_readable)
 
             return 'dbt-time'
 
         def failed_tests(c: ChangeUnit):
+            _, all_t = self.mapper.tests(c.unique_id)
             b, t = self.mapper.failed_tests(c.unique_id)
             if c.change_type == ChangeType.ADDED:
+                if all_t == 0:
+                    return "-"
                 return t
             if c.change_type == ChangeType.REMOVED:
                 return ""
             if c.change_type == ChangeType.MODIFIED:
+                if all_t == 0:
+                    return "-"
                 if b == t:
                     return f"{t}"
-                color = "green" if t > b else "red"
-                sign = "↑" if t > b else "↓"
-                diff = t - b
                 text = r'%(value)s ($\color{%(color)s}{\text{ (%(sign)s %(diff)s) }}$)'
-                return text % dict(value=t, color=color, sign=sign, diff=diff)
+                return ChangeType.MODIFIED.display_changes(b, t, text)
             return "failed tests"
 
         def all_tests(c: ChangeUnit):
             b, t = self.mapper.tests(c.unique_id)
             if c.change_type == ChangeType.ADDED:
+                if t == 0:
+                    return "-"
                 return t
             if c.change_type == ChangeType.REMOVED:
                 return ""
             if c.change_type == ChangeType.MODIFIED:
+                if t == 0:
+                    return "-"
                 if b == t:
                     return f"{t}"
-                color = "green" if t > b else "red"
-                sign = "↑" if t > b else "↓"
-                diff = t - b
                 text = r'%(value)s ($\color{%(color)s}{\text{ (%(sign)s %(diff)s) }}$)'
-                return text % dict(value=t, color=color, sign=sign, diff=diff)
+                return ChangeType.MODIFIED.display_changes(b, t, text)
             return "all tests"
 
         for c in changeset:
