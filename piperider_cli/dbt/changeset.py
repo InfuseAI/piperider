@@ -200,7 +200,11 @@ class LookUpTable:
         return m
 
     def path(self, unique_id: str):
-        return self.path_mapping.get(unique_id)
+        p = self.path_mapping.get(unique_id)
+        limit = 28
+        if p is not None and len(p) >= limit:
+            return f"..{p[len(p) - limit:]}"
+        return p
 
     def tests(self, unique_id: str):
         return sum(self.base_tests.get(unique_id, dict(passed=0, failed=0)).values()), \
