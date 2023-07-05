@@ -519,7 +519,7 @@ class SummaryChangeSet:
                          r" $\color{orange}{\text{ %(modified)s }}$)" % param
                 return output
 
-            return 'columns'
+            return '-'
 
         def rows(c: ChangeUnit):
             rows = self.tables.row_counts(table_name=c.table_name)
@@ -538,7 +538,7 @@ class SummaryChangeSet:
                 """
                 text = r'%(value)s $\color{%(color)s}{\text{ (%(sign)s %(diff)s) }}$'
                 return ChangeType.MODIFIED.display_changes(b, t, text)
-            return 'rows'
+            return '-'
 
         def dbt_time(c: ChangeUnit):
             b, t = self.mapper.execution_time(c.unique_id)
@@ -555,7 +555,7 @@ class SummaryChangeSet:
                 text = r'%(value)s $\color{%(color)s}{\text{ (%(sign)s %(diff).2f) }}$'
                 return ChangeType.MODIFIED.display_changes(b, t, text, converter=LookUpTable.to_human_readable)
 
-            return 'dbt-time'
+            return '-'
 
         def failed_tests(c: ChangeUnit):
             _, all_t = self.mapper.tests(c.unique_id)
@@ -573,7 +573,7 @@ class SummaryChangeSet:
                     return f"{t}"
                 text = r'%(value)s ($\color{%(color)s}{\text{ (%(sign)s %(diff)s) }}$)'
                 return ChangeType.MODIFIED.display_changes(b, t, text)
-            return "failed tests"
+            return "-"
 
         def all_tests(c: ChangeUnit):
             b, t = self.mapper.tests(c.unique_id)
@@ -590,7 +590,7 @@ class SummaryChangeSet:
                     return f"{t}"
                 text = r'%(value)s ($\color{%(color)s}{\text{ (%(sign)s %(diff)s) }}$)'
                 return ChangeType.MODIFIED.display_changes(b, t, text)
-            return "all tests"
+            return "-"
 
         for c in changeset:
             mt.add_row(
