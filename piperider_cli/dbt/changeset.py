@@ -51,6 +51,15 @@ class ChangeType(Enum):
         color = "green" if t > b else "red"
         sign = "↑" if t > b else "↓"
         diff = t - b
+        if math.isnan(diff):
+            if math.isnan(b):
+                return str(t)
+            else:
+                return str(b)
+
+        if t == b:
+            return str(b)
+
         if converter:
             return format_text % dict(value=converter(t), color=color, sign=sign, diff=diff)
         return format_text % dict(value=t, color=color, sign=sign, diff=diff)
@@ -488,7 +497,7 @@ class SummaryChangeSet:
             if c.change_type == ChangeType.REMOVED:
                 b, _ = counts
                 return f"~~{b}~~"
-            if c.change_type == ChangeType.MODIFIED:
+            if c.change_type == ChangeType.MODIFIED or c.change_type == ChangeType.IMPLICIT:
                 b, t = counts
                 """
                 example:
@@ -530,7 +539,7 @@ class SummaryChangeSet:
             if c.change_type == ChangeType.REMOVED:
                 b, _ = rows
                 return f"~~{b}~~"
-            if c.change_type == ChangeType.MODIFIED:
+            if c.change_type == ChangeType.MODIFIED or c.change_type == ChangeType.IMPLICIT:
                 b, t = rows
                 """
                 example:
@@ -548,7 +557,7 @@ class SummaryChangeSet:
 
             if c.change_type == ChangeType.REMOVED:
                 return ""
-            if c.change_type == ChangeType.MODIFIED:
+            if c.change_type == ChangeType.MODIFIED or c.change_type == ChangeType.IMPLICIT:
                 """
                 example:
                 0:00:00.16 $\color{green}{\text{ (↓ 0.05) }}$
@@ -559,15 +568,15 @@ class SummaryChangeSet:
             return '-'
 
         def failed_tests(c: ChangeUnit):
-            _, all_t = self.mapper.tests(c.unique_id)
-            b, t = self.mapper.failed_tests(c.unique_id)
+            _, all_t = self.mapper.tests(c.table_name)
+            b, t = self.mapper.failed_tests(c.table_name)
             if c.change_type == ChangeType.ADDED:
                 if all_t == 0:
                     return "-"
                 return t
             if c.change_type == ChangeType.REMOVED:
                 return ""
-            if c.change_type == ChangeType.MODIFIED:
+            if c.change_type == ChangeType.MODIFIED or c.change_type == ChangeType.IMPLICIT:
                 if all_t == 0:
                     return "-"
                 if b == t:
@@ -577,14 +586,14 @@ class SummaryChangeSet:
             return "-"
 
         def all_tests(c: ChangeUnit):
-            b, t = self.mapper.tests(c.unique_id)
+            b, t = self.mapper.tests(c.table_name)
             if c.change_type == ChangeType.ADDED:
                 if t == 0:
                     return "-"
                 return t
             if c.change_type == ChangeType.REMOVED:
                 return ""
-            if c.change_type == ChangeType.MODIFIED:
+            if c.change_type == ChangeType.MODIFIED or c.change_type == ChangeType.IMPLICIT:
                 if t == 0:
                     return "-"
                 if b == t:
