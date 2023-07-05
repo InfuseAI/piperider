@@ -652,13 +652,13 @@ class SummaryChangeSet:
         for m in joined_metrics.values():
             m.update_status()
 
-        def state_icon(unique_id: str):
+        def state_icon(metric_group: str):
             for change_unit in self.metrics.explicit_changeset:
-                if change_unit.unique_id == unique_id:
+                if '.'.join(change_unit.unique_id.split('.')[2:]) == metric_group:
                     return change_unit.change_type.icon_image_tag
 
             for change_unit in self.metrics.implicit_changeset:
-                if change_unit.unique_id == unique_id:
+                if '.'.join(change_unit.unique_id.split('.')[2:]) == metric_group:
                     return change_unit.change_type.icon_image_tag
 
             return ""
