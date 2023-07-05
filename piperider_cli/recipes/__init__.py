@@ -261,12 +261,8 @@ def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = No
         select = (f'tag:{config.dbt.get("tag")}',) if config.dbt.get('tag') else ()
     select = update_select_with_modified(select, modified)
 
-    if any('state:modified' in item for item in select) is True:
-        # TODO:
-        # 1. Run dbt compile on the base branch and save the target path
-        # 2. Assign the target path as state
+    if any('state:' in item for item in select) is True:
         execute_dbt_compile_archive(cfg.base)
-        pass
 
     dbt_project = dbtutil.load_dbt_project(config.dbt.get('projectDir'))
     target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
@@ -456,9 +452,6 @@ def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None,
         else:
             console.rule("Recipe executor: error occurred", style="red")
             raise e
-    finally:
-        console.rule("Recipe executor: clean up")
-        clean_up(cfg)
 
 
 def select_recipe_file(name: str = None):

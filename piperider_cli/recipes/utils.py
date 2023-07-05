@@ -2,7 +2,6 @@ import abc
 import os
 import re
 import shlex
-import shutil
 import subprocess
 import tarfile
 import tempfile
@@ -54,6 +53,7 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 env=env or os.environ.copy(),
+                cwd=FileSystem.WORKING_DIRECTORY,
             )
             outs, errs = proc.communicate()
         except BaseException as e:
@@ -159,9 +159,6 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
 
     def list_dbt_resources(self, manifest, select=None, state=None):
         return list_resources_from_manifest(manifest, select=select, state=state)
-
-    def remove_dir(self, path):
-        shutil.rmtree(path)
 
 
 class RecipeUtils(AbstractRecipeUtils):
