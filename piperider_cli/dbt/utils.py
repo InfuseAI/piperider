@@ -1,6 +1,5 @@
 import math
-from dataclasses import dataclass
-from functools import cmp_to_key
+
 from typing import Dict, Iterable, List
 
 
@@ -13,15 +12,6 @@ class TotalColumnsTableEntryElement:
         self.base_view = ColumnChangeView(self.base_column_data)
         self.target_view = ColumnChangeView(self.target_column_data)
 
-    def build(self):
-        return ""
-
-    def create_change_status(self):
-        change_status = ColumnChangeView.create_change_status(
-            self.base_view, self.target_view
-        )
-        return change_status
-
 
 class ChangedColumnsTableEntryElement:
     def __init__(self, column_name: str, base_column_data: Dict, target_column_data: Dict):
@@ -32,13 +22,6 @@ class ChangedColumnsTableEntryElement:
         self.base_view = ColumnChangeView(self.base_column_data)
         self.target_view = ColumnChangeView(self.target_column_data)
         self.changed = self.base_view != self.target_view
-
-    @classmethod
-    def sorted(cls, elements: List["ChangedColumnsTableEntryElement"]):
-        return sorted(elements)
-
-    def build(self):
-        return ""
 
 
 class ColumnChangeView:
@@ -65,75 +48,6 @@ class ColumnChangeView:
             return False
 
         return True
-
-    @property
-    def duplicates_p(self):
-        if not self.data:
-            return "-"
-        if self.data.get("duplicates_p") is None:
-            return "-"
-        return f"{self.data.get('duplicates_p'):.1%}"
-
-    @property
-    def duplicates(self):
-        if not self.data:
-            return None
-        return self.data.get("duplicates")
-
-    @property
-    def nulls_p(self):
-        if not self.data:
-            return "-"
-        if self.data.get("nulls_p") is None:
-            return "-"
-
-        return f"{self.data.get('nulls_p'):.1%}"
-
-    @property
-    def nulls(self):
-        if not self.data:
-            return None
-        return self.data.get("nulls")
-
-    def get_type(self, compared_type: str = None):
-        if self.data is None:
-            return None
-        if compared_type is not None:
-            if self.data.get("type") != compared_type:
-                return f"{self.data.get('type')} <kbd>changed</kbd>"
-            return self.data.get("type")
-        return self.data.get("type")
-
-
-@dataclass
-class ChangeStatus:
-    change_type: str
-    base_view: "ColumnChangeView"
-    target_view: "ColumnChangeView"
-    icon: str
-
-    def is_added_or_removed(self):
-        return self.change_type in ["Added.", "Removed."]
-
-    def display(self):
-        if self.target_view is not None and self.target_view.data is not None:
-            return self.target_view
-        return self.base_view
-
-    def name(self):
-        return self.display().data.get('name')
-
-    @classmethod
-    def count_added(cls, views: List["ChangeStatus"]):
-        return len([x for x in views if x.change_type == "Added."])
-
-    @classmethod
-    def count_removed(cls, views: List["ChangeStatus"]):
-        return len([x for x in views if x.change_type == "Removed."])
-
-    @classmethod
-    def count_edited(cls, views: List["ChangeStatus"]):
-        return len([x for x in views if x.change_type == "Edited."])
 
 
 class JoinedTables:
@@ -202,12 +116,6 @@ class JoinedTables:
             result[key] = value
         return result
 
-    def is_profiled(self):
-        for x in self._joined_tables.values():
-            if x.get('base', {}).get('row_count') is not None:
-                return True
-        return False
-
     def columns_changed_iterator(self, table_name: str) -> Iterable[ChangedColumnsTableEntryElement]:
         all_column_keys, b, t = self._create_columns_and_their_metrics(table_name)
 
@@ -216,12 +124,6 @@ class JoinedTables:
             if not elem.changed:
                 continue
             yield elem
-
-    def all_columns_iterator(self, table_name) -> Iterable[TotalColumnsTableEntryElement]:
-        all_column_keys, b, t = self._create_columns_and_their_metrics(table_name)
-
-        for column_name in all_column_keys:
-            yield TotalColumnsTableEntryElement(column_name, b.get(column_name), t.get(column_name))
 
     def _create_columns_and_their_metrics(self, table_name):
         table = self._joined_tables[table_name]
@@ -242,19 +144,9 @@ class JoinedTables:
         t = table.get("target", {}).get("col_count")
         return b, t
 
-    def tables(self):
-        return list(self._joined_tables.keys())
-
     def table_data_iterator(self):
         for table_name in self._joined_tables.keys():
             table_data = self._joined_tables[table_name]
             fallback = table_data.get('target') if table_data.get('target') else table_data.get('base')
             if fallback:
                 yield table_name, fallback.get('ref_id'), table_data.get('base'), table_data.get('target')
-
-    def has_row_counts_changed(self, table_name):
-        b, t = self.row_counts(table_name)
-        # We only check row-changes when both of them are profiled
-        if math.isnan(b) or math.isnan(t):
-            return False
-        return b != t
