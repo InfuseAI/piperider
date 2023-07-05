@@ -14,8 +14,7 @@ from piperider_cli.dbt.list_task import (
     load_manifest,
 )
 from piperider_cli.dbt.markdown import MarkdownTable
-from piperider_cli.reports import ChangedColumnsTableEntryElement, JoinedTables
-from piperider_cli.reports import Styles
+from piperider_cli.dbt.utils import ChangedColumnsTableEntryElement, ColumnChangeView, JoinedTables
 
 
 class ChangeType(Enum):
@@ -424,8 +423,6 @@ class SummaryChangeSet:
         p1 and p2 are table profiled data
         """
 
-        from piperider_cli.reports import ColumnChangeView
-
         base_cols: Dict[str, Dict] = p1.get("columns")
         target_cols: Dict[str, Dict] = p2.get("columns")
 
@@ -498,7 +495,7 @@ class SummaryChangeSet:
                 16 ($\color{green}{\text{ 1 }}$ / $\color{red}{\text{ 1 }}$ / $\color{orange}{\text{ 5 }}$)
                 """
 
-                changes = list(self.tables.columns_changed_iterator(None, c.table_name))
+                changes = list(self.tables.columns_changed_iterator(c.table_name))
 
                 def col_state(c: ChangedColumnsTableEntryElement):
                     if c.base_view is not None and c.target_view is not None:
@@ -679,9 +676,16 @@ class SummaryChangeSet:
         if not metrics_summary:
             out("")
 
-        mt = MarkdownTable(headers=['', 'Metric', f"Queries <br> total ({Styles.latex_orange('change')})"])
+        def latex_orange(text):
+            if text is None:
+                return ""
+            if isinstance(text, str) and '%' in text:
+                text = text.replace('%', '\%')
+            return r'$\color{orange}{\text{ %s }}$' % str(text)
+
+        mt = MarkdownTable(headers=['', 'Metric', f"Queries <br> total ({latex_orange('change')})"])
         for label, v in metrics_summary.items():
-            chagned = f"({Styles.latex_orange(str(v['edited']))})" if v['edited'] > 0 else ""
+            chagned = f"({latex_orange(str(v['edited']))})" if v['edited'] > 0 else ""
             mt.add_row([v['state_icon'], label, f"{v['total']} {chagned}"])
 
         out(mt.build())
@@ -766,7 +770,6 @@ class ChangeSet:
 
     def _table_implicit_changes(self):
         # list implicit changes and exclude added and removed tables
-        from piperider_cli.reports import JoinedTables
 
         diffs = []
 
@@ -800,8 +803,6 @@ class ChangeSet:
         """
         p1 and p2 are table profiled data
         """
-
-        from piperider_cli.reports import ColumnChangeView
 
         base_cols: Dict[str, Dict] = p1.get("columns")
         target_cols: Dict[str, Dict] = p2.get("columns")
