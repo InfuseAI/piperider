@@ -71,20 +71,3 @@ class TestCompareSummaryNG(TestCase):
 
         with open("output.md", "w") as fh:
             fh.write(result)
-
-    def test_sorting(self):
-        # show usage of the sort
-        m1 = self.manifest_dict("jaffle_shop_base.json").get('dbt', {}).get('manifest', {})
-        m2 = self.manifest_dict("jaffle_shop_target.json").get('dbt', {}).get('manifest', {})
-
-        g1 = dbtutil.prepare_topological_graph(m1)
-        g2 = dbtutil.prepare_topological_graph(m2)
-
-        graph = dbtutil.prepare_topological_graph(m1)
-        x1 = {**g2, **g1}
-        x2 = {**g1, **g2}
-        o1 = topological_sort(x1, len(list(x1.keys())))
-        o2 = topological_sort(x2, len(list(x2.keys())))
-        print()
-        print(o1)
-        print(o2)

@@ -188,6 +188,7 @@ class LookUpTable:
         self.path_mapping = self._build_path_mapping()
         self.base_execution, self.target_execution = self._build_dbt_time_mapping()
         self.base_tests, self.target_tests = self._build_tests_mapping()
+        self._sorted_weights: Dict[str, int] = self._build_sorting_parameters()
 
     def _build_path_mapping(self) -> Dict[str, str]:
         m = dict()
@@ -246,6 +247,39 @@ class LookUpTable:
             return m
 
         return as_dict(b), as_dict(t)
+
+    def _build_sorting_parameters(self):
+        from piperider_cli import dbtutil
+        from piperider_cli.dbt.sorting import topological_sort
+
+        g1 = dbtutil.prepare_topological_graph(self.c.base.get('dbt', {}).get('manifest', {}))
+        g2 = dbtutil.prepare_topological_graph(self.c.target.get('dbt', {}).get('manifest', {}))
+
+        # TODO is it good enough?
+        g = {**g1, **g2}
+
+        sorted_parameters = topological_sort(g, len(list(g.keys())))
+        weights = dict()
+        for x in sorted_parameters:
+            weights[x] = len(weights)
+        return weights
+
+    def sort(self, changeset: List[ChangeUnit]) -> List[ChangeUnit]:
+        from functools import cmp_to_key
+        def callback(a: ChangeUnit, b: ChangeUnit) -> int:
+            av = self._sorted_weights[a.unique_id]
+            bv = self._sorted_weights[b.unique_id]
+
+            if av == bv:
+                return 0
+
+            if av < bv:
+                return -1
+
+            if av > bv:
+                return 1
+
+        return sorted(changeset, key=cmp_to_key(callback))
 
 
 class SummaryChangeSet:
@@ -432,7 +466,7 @@ class SummaryChangeSet:
     def generate_models_section(self, out: Callable[[str], None]) -> None:
         out("# Models")
         m = self.models
-        changeset = m.explicit_changeset + m.implicit_changeset
+        changeset = self.mapper.sort(m.explicit_changeset + m.implicit_changeset)
 
         column_header = """
         Columns <br> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-plus%402x.png" width="10px"> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-minus%402x.png" width="10px"> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-explicit%402x.png" width="10px">
