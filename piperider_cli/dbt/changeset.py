@@ -159,7 +159,7 @@ class SummaryAggregate:
 class MetricsChangeView:
     def __init__(self, name: str):
         self.name = name
-        self.unique_id: str = None
+        self.metric_group: str = None
         self.base_data: Optional[List] = None
         self.target_data: Optional[List] = None
         self.change_type = None
@@ -570,8 +570,8 @@ class SummaryChangeSet:
         if not target_metrics:
             return
 
-        metrics_labels = {unique_id: v.label for unique_id, v in self.base_manifest.metrics.items()}
-        metrics_labels.update({unique_id: v.label for unique_id, v in self.target_manifest.metrics.items()})
+        metrics_labels = {v.name: v.label for v in self.base_manifest.metrics.values()}
+        metrics_labels.update({v.name: v.label for v in self.target_manifest.metrics.values()})
 
         joined_metrics: Dict[str, MetricsChangeView] = collections.OrderedDict()
         metric_names = sorted(
@@ -588,13 +588,13 @@ class SummaryChangeSet:
         for metric in base_metrics:
             name = metric.get("name")
             m: MetricsChangeView = joined_metrics[name]
-            m.unique_id = metric.get("ref_id")
+            m.metric_group = metric.get("headers")[1]
             m.base_data = metric.get("data")
 
         for metric in target_metrics:
             name = metric.get("name")
             m: MetricsChangeView = joined_metrics[name]
-            m.unique_id = metric.get("ref_id")
+            m.metric_group = metric.get("headers")[1]
             m.target_data = metric.get("data")
 
         # added, removed, edited, no changes
@@ -614,13 +614,13 @@ class SummaryChangeSet:
 
         metrics_summary = {}
         for m in joined_metrics.values():
-            label = metrics_labels[m.unique_id]
+            label = metrics_labels[m.metric_group]
             if label not in metrics_summary:
                 metrics_summary[label] = {'total': 0, 'no-changes': 0, 'edited': 0, 'added': 0, 'removed': 0}
 
             metrics_summary[label][m.change_type] += 1
             metrics_summary[label]['total'] += 1
-            metrics_summary[label]['state_icon'] = state_icon(m.unique_id)
+            metrics_summary[label]['state_icon'] = state_icon(m.metric_group)
 
         if not metrics_summary:
             out("")
