@@ -13,7 +13,7 @@ console = Console()
 class RecipeExecutor:
     @staticmethod
     def exec(recipe_name: str, auto_generate_default_recipe: bool = True, select: tuple = None, modified: bool = False,
-             debug=False):
+             debug=False, base_branch: str = None, target_branch: str = None):
         config = Configuration.instance()
         recipe_path = select_recipe_file(recipe_name)
 
@@ -36,6 +36,8 @@ class RecipeExecutor:
                     options = {}
                     options['select'] = select
                     options['modified'] = modified
+                    options['base_branch'] = base_branch
+                    options['target_branch'] = target_branch
                 recipe = generate_default_recipe(overwrite_existing=False,
                                                  dbt_project_path=dbt_project_path,
                                                  options=options)

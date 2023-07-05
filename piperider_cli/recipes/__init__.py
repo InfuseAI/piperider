@@ -271,8 +271,13 @@ def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = No
     dbt_project = dbtutil.load_dbt_project(config.dbt.get('projectDir'))
     target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
     state = cfg.base.state_path if cfg.base.state_path else None
-    manifest = load_manifest(
-        dbtutil.get_dbt_manifest(target_path)) if state is None else load_full_manifest(target_path)
+    if state:
+        console.print(f"Run: \[dbt list] select option '{' '.join(select)}' with state")
+        manifest = load_full_manifest(target_path)
+    else:
+        console.print(f"Run: \[dbt list] select option '{' '.join(select)}'")
+        manifest = load_manifest(dbtutil.get_dbt_manifest(target_path))
+    console.print()
     return tool().list_dbt_resources(manifest, select=select, state=state), state
 
 
@@ -431,17 +436,12 @@ def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None,
         console.rule("Recipe executor: prepare execution environments")
         dbt_resources, dbt_state_path = prepare_dbt_resources_candidate(cfg, select=select, modified=modified)
         if dbt_resources:
-            console.print('Config: base phase env PIPERIDER_DBT_RESOURCES')
             if debug:
-                console.print(f'Result: "PIPERIDER_DBT_RESOURCES" {dbt_resources}')
+                console.print(f'Config: piperider env "PIPERIDER_DBT_RESOURCES" = {dbt_resources}')
+            else:
+                console.print('Config: piperider env "PIPERIDER_DBT_RESOURCES"')
             cfg.base.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
-
-        if dbt_state_path:
-            console.print(f'Replace: target phase commands value "<DBT_STATE_PATH>" to "{dbt_state_path}"')
-            cfg.target.dbt.commands = [cmd.replace('<DBT_STATE_PATH>', dbt_state_path) for cmd in
-                                       cfg.target.dbt.commands]
-            cfg.target.piperider.commands = [cmd.replace('<DBT_STATE_PATH>', dbt_state_path) for cmd in
-                                             cfg.target.piperider.commands]
+            cfg.target.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
 
         console.rule("Recipe executor: base phase")
         execute_recipe_archive(cfg.base, recipe_type='base', debug=debug)

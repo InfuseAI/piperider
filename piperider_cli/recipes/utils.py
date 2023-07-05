@@ -190,8 +190,8 @@ class DryRunRecipeUtils(AbstractRecipeUtils):
     def list_dbt_resources(self, manifest, select=None, state=None):
         state_msg = ''
         if state:
-            state_msg = f'with state: {state}'
-        self.console.print(f"[green]:dbt-resources:>[/green] with select: {select} {state_msg}")
+            state_msg = f'state: {state}'
+        self.console.print(f"[green]:dbt-resources:>[/green] with select: {''.join(select)} {state_msg}")
         return ['dbt_model1', 'dbt_model2', 'dbt_model3']
 
     def remove_dir(self, path):
