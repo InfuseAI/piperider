@@ -15,7 +15,6 @@ from piperider_cli import clone_directory, datetime_to_str, open_report_in_brows
     raise_exception_when_directory_not_writable, str_to_datetime
 from piperider_cli.configuration import Configuration, ReportDirectory
 from piperider_cli.generate_report import setup_report_variables
-from piperider_cli.reports import Document
 from piperider_cli.dbt.changeset import SummaryChangeSet, ChangeType
 
 
@@ -270,9 +269,9 @@ class ComparisonData(object):
 
         # TODO replace to new generator
         if self.summary_change_set:
-            self.summary_change_set.generate_markdown()
+            return self.summary_change_set.generate_markdown()
 
-        return Document.from_runs(self._base, self._target).build()
+        return ""
 
     @staticmethod
     def _value_with_annotation(key, annotation=None):

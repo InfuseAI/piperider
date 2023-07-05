@@ -454,8 +454,7 @@ class SummaryChangeSet:
         self.generate_models_section(out_func)
         self.generate_metrics_section(out_func)
 
-        # TODO write to json file
-        print(output.getvalue())
+        return output.getvalue()
 
     def generate_summary_section(self, out: Callable[[str], None]) -> None:
         out("# Comparison Summary")
