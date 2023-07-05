@@ -28,8 +28,8 @@ class TestCompareSummaryNG(TestCase):
 
     @unittest.skipIf(v < version.parse('1.4'), 'this only works after manifests generated after the v1.4')
     def test_in_memory_compare_with_manifests(self):
-        # run1 = self.manifest_dict("jaffle_shop_base.json")
-        # run2 = self.manifest_dict("jaffle_shop_target.json")
+        run1 = self.manifest_dict("jaffle_shop_base.json")
+        run2 = self.manifest_dict("jaffle_shop_target.json")
 
         run1 = self.manifest_dict("sc-31587-with-ref-base.json")
         run2 = self.manifest_dict("sc-31587-with-ref-input.json")
@@ -74,8 +74,17 @@ class TestCompareSummaryNG(TestCase):
 
     def test_sorting(self):
         # show usage of the sort
-        m = self.manifest_dict("case_base_not_profiled_1.json").get('dbt', {}).get('manifest', {})
-        graph = dbtutil.prepare_topological_graph(m)
-        output = topological_sort(graph, len(list(graph.keys())))
-        print(output)
-        pass
+        m1 = self.manifest_dict("jaffle_shop_base.json").get('dbt', {}).get('manifest', {})
+        m2 = self.manifest_dict("jaffle_shop_target.json").get('dbt', {}).get('manifest', {})
+
+        g1 = dbtutil.prepare_topological_graph(m1)
+        g2 = dbtutil.prepare_topological_graph(m2)
+
+        graph = dbtutil.prepare_topological_graph(m1)
+        x1 = {**g2, **g1}
+        x2 = {**g1, **g2}
+        o1 = topological_sort(x1, len(list(x1.keys())))
+        o2 = topological_sort(x2, len(list(x2.keys())))
+        print()
+        print(o1)
+        print(o2)
