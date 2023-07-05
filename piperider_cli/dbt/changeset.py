@@ -266,6 +266,7 @@ class LookUpTable:
 
     def sort(self, changeset: List[ChangeUnit]) -> List[ChangeUnit]:
         from functools import cmp_to_key
+
         def callback(a: ChangeUnit, b: ChangeUnit) -> int:
             av = self._sorted_weights[a.unique_id]
             bv = self._sorted_weights[b.unique_id]
@@ -443,12 +444,7 @@ class SummaryChangeSet:
 
         self.generate_summary_section(out_func)
         self.generate_models_section(out_func)
-
-        # TODO generate metrics list
         self.generate_metrics_section(out_func)
-
-        # TODO generate test overview
-        self.generate_tests_section(out_func)
 
         # TODO write to json file
         print(output.getvalue())
@@ -665,9 +661,6 @@ class SummaryChangeSet:
             mt.add_row([v['state_icon'], label, f"{v['total']} {chagned}"])
 
         out(mt.build())
-
-    def generate_tests_section(self, out: Callable[[str], None]) -> None:
-        out("# Test Results")
 
     def build_path_mapping(self) -> Dict[str, str]:
         m = dict()
