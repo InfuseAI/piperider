@@ -16,7 +16,7 @@ from piperider_cli import clone_directory, datetime_to_str, open_report_in_brows
 from piperider_cli.configuration import Configuration, ReportDirectory
 from piperider_cli.generate_report import setup_report_variables
 from piperider_cli.reports import Document
-from piperider_cli.dbt.changeset import SummaryChangeSet
+from piperider_cli.dbt.changeset import SummaryChangeSet, ChangeType
 
 
 class RunOutput(object):
@@ -617,7 +617,9 @@ class ComparisonData(object):
 
         for d in [self.summary_change_set.models, self.summary_change_set.metrics]:
             output = [f"  {d.resource_type}: total={d.total}, explict={d.explicit_changes}",
-                      f"(added={d.added}, removed={d.removed}, modified={d.modified}), ",
+                      f"(added={len([x for x in d.explicit_changeset if x.change_type == ChangeType.ADDED])}, "
+                      f"removed={len([x for x in d.explicit_changeset if x.change_type == ChangeType.REMOVED])}, "
+                      f"modified={len([x for x in d.explicit_changeset if x.change_type == ChangeType.MODIFIED])}), ",
                       f"impacted={d.impacted}, implicit={d.implicit_changes}"]
 
             console.print("".join(output))
