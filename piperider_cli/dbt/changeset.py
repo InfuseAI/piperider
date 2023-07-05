@@ -603,33 +603,46 @@ class SummaryChangeSet:
 
     def generate_metrics_section(self, out: Callable[[str], None]) -> None:
         out("# Metrics")
-        base_metrics = self.base.get('metrics', [])
-        target_metrics = self.target.get('metrics', [])
-        if not target_metrics:
+        base_run_metrics = self.base.get('metrics', [])
+        target_run_metrics = self.target.get('metrics', [])
+
+        weight = {'.'.join(unique_id.split('.')[2:]): w for unique_id, w in self.mapper._sorted_weights.items()
+                  if unique_id.split('.')[0] == 'metric'}
+
+        if not target_run_metrics:
             return
 
         metrics_labels = {v.name: v.label for v in self.base_manifest.metrics.values()}
         metrics_labels.update({v.name: v.label for v in self.target_manifest.metrics.values()})
 
+        from functools import cmp_to_key
+
+        def callback(a: Dict, b: Dict) -> int:
+            av = weight[a.get('headers')[1]]
+            bv = weight[b.get('headers')[1]]
+
+            if av == bv:
+                return 0
+
+            if av < bv:
+                return -1
+
+            if av > bv:
+                return 1
+
+        run_metrics: List[Dict] = sorted(base_run_metrics + target_run_metrics, key=cmp_to_key(callback))
+
         joined_metrics: Dict[str, MetricsChangeView] = collections.OrderedDict()
-        metric_names = sorted(
-            list(
-                set(
-                    [x.get('name') for x in base_metrics] + [x.get('name') for x in target_metrics]
-                )
-            )
-        )
+        for m in run_metrics:
+            joined_metrics[m.get('name')] = MetricsChangeView(m.get('name'))
 
-        for name in metric_names:
-            joined_metrics[name] = MetricsChangeView(name)
-
-        for metric in base_metrics:
+        for metric in base_run_metrics:
             name = metric.get("name")
             m: MetricsChangeView = joined_metrics[name]
             m.metric_group = metric.get("headers")[1]
             m.base_data = metric.get("data")
 
-        for metric in target_metrics:
+        for metric in target_run_metrics:
             name = metric.get("name")
             m: MetricsChangeView = joined_metrics[name]
             m.metric_group = metric.get("headers")[1]
