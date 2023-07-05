@@ -499,10 +499,9 @@ def compare_with_recipe(**kwargs):
     enable_share = kwargs.get('share')
     open_report = kwargs.get('open')
     project_name = kwargs.get('project')
-    select = kwargs.get('select')
     debug = kwargs.get('debug', False)
-    if kwargs.get('modified'):
-        select = ('state:modified',) + select
+    select = kwargs.get('select')
+    modified = kwargs.get('modified')
 
     # reconfigure recipe global flags
     configure_recipe_execution_flags(dry_run=kwargs.get('dry_run'), interactive=kwargs.get('interactive'))
@@ -531,7 +530,11 @@ def compare_with_recipe(**kwargs):
     ret = 0
     try:
         # note: dry-run and interactive are set by configure_recipe_execution_flags
-        recipe_config: RecipeConfiguration = RecipeExecutor.exec(recipe_name=recipe, select=select, debug=debug)
+        recipe_config: RecipeConfiguration = RecipeExecutor.exec(
+            recipe_name=recipe,
+            select=select,
+            modified=modified,
+            debug=debug)
         last = False
         base = target = None
         if not recipe_config.base.is_file_specified() and not recipe_config.target.is_file_specified():

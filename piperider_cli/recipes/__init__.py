@@ -240,10 +240,26 @@ def verify_dbt_dependencies(cfg: RecipeConfiguration):
     tool().check_dbt_command()
 
 
-def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = None):
+def update_select_with_modified(select: tuple = None, modified: bool = False):
+    if modified is False:
+        return select
+
+    if len(select) == 0:
+        return ('state:modified+',)
+
+    if any('state:modified' in item for item in select) is True:
+        return select
+
+    select_list = list(select)
+    select_list[0] = select_list[0] + ',state:modified+'
+    return tuple(select_list)
+
+
+def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = None, modified: bool = False):
     config = Configuration.instance()
     if not select:
         select = (f'tag:{config.dbt.get("tag")}',) if config.dbt.get('tag') else ()
+    select = update_select_with_modified(select, modified)
 
     if any('state:modified' in item for item in select) is True:
         # TODO:
@@ -305,7 +321,7 @@ def execute_dbt_compile_archive(model: RecipeModel, debug=False):
     if not model.branch:
         raise RecipeConfigException("Branch is not specified")
 
-    console.print(f"Run: \[dbt compile]")
+    console.print("Run: \[dbt compile]")
     if model.tmp_dir_path is None:
         model.tmp_dir_path = tool().git_archive(model.branch)
         model.state_path = os.path.join(model.tmp_dir_path, 'state')
@@ -393,7 +409,17 @@ def switch_branch(branch_name):
     tool().git_checkout_to(branch_name)
 
 
-def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None, debug=False):
+def clean_up(cfg: RecipeConfiguration):
+    if cfg.base.tmp_dir_path:
+        console.print(f"Clean up base branch git archive: \[{cfg.base.tmp_dir_path}]")
+        tool().remove_dir(cfg.base.tmp_dir_path)
+
+    if cfg.target.tmp_dir_path:
+        console.print(f"Clean up base branch git archive: \[{cfg.target.tmp_dir_path}]")
+        tool().remove_dir(cfg.target.tmp_dir_path)
+
+
+def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None, modified: bool = False, debug=False):
     console.rule("Recipe executor: verify execution environments")
     # check the dependencies
     console.print("Check: git")
@@ -403,9 +429,11 @@ def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None,
 
     try:
         console.rule("Recipe executor: prepare execution environments")
-        dbt_resources, dbt_state_path = prepare_dbt_resources_candidate(cfg, select=select)
+        dbt_resources, dbt_state_path = prepare_dbt_resources_candidate(cfg, select=select, modified=modified)
         if dbt_resources:
             console.print('Config: base phase env PIPERIDER_DBT_RESOURCES')
+            if debug:
+                console.print(f'Result: "PIPERIDER_DBT_RESOURCES" {dbt_resources}')
             cfg.base.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
 
         if dbt_state_path:
@@ -428,6 +456,9 @@ def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None,
         else:
             console.rule("Recipe executor: error occurred", style="red")
             raise e
+    finally:
+        console.rule("Recipe executor: clean up")
+        clean_up(cfg)
 
 
 def select_recipe_file(name: str = None):

@@ -8,7 +8,7 @@ from piperider_cli.configuration import FileSystem
 from piperider_cli.dbtutil import load_dbt_project
 from piperider_cli.recipes import (RecipeConfiguration,
                                    RecipeDbtField, RecipeModel,
-                                   RecipePiperiderField, tool)
+                                   RecipePiperiderField, tool, update_select_with_modified)
 
 console = Console()
 
@@ -34,7 +34,8 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
     if tool().git_branch() is not None:
         base.branch = 'main'
 
-    filtered_select = list(filter(lambda s: 'state:modified' not in s, options.get('select'))) if options else None
+    filtered_select = list(
+        filter(lambda s: 'state:modified' not in s, options.get('select', ''))) if options else None
     if filtered_select:
         select_options = '--select ' + ' '.join(filtered_select)
 
@@ -43,7 +44,7 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
         base.dbt = RecipeDbtField({
             'commands': [
                 'dbt deps',
-                f'dbt build {select_options}'.strip()
+                f'dbt build'
             ]
         })
 
@@ -58,26 +59,44 @@ def _create_target_recipe(dbt_project_path=None, options: dict = None) -> Recipe
     Create the target recipe
     """
     target = RecipeModel()
-    select_options = ''
+    piperider_select_options = ''
+    dbt_select_options = ''
     state_option = ''
+    select = options.get('select') if options else ()
+    modified = options.get('modified') if options else False
 
     # The target branch should be empty by default
-    if options and options.get('select'):
-        select_options = '--select ' + ' '.join(options.get('select'))
-        if 'state:modified' in options.get('select'):
-            state_option = ' --state <DBT_STATE_PATH>'
+    select_contain_state_modified = any('state:modified' in s for s in select)
+    if select_contain_state_modified or modified:
+        state_option = ' --state <DBT_STATE_PATH>'
+        if select_contain_state_modified:
+            dbt_select_options = '--select ' + ' '.join(
+                filter(lambda s: 'state:modified' in s, select)
+            )
+            piperider_select_options = '--select ' + ' '.join(
+                select
+            )
+        elif modified:
+            dbt_select_options = '--select state:modified+'
+            piperider_select_options = '--select ' + ' '.join(
+                update_select_with_modified(select, modified)
+            )
+    elif select:
+        piperider_select_options = '--select ' + ' '.join(
+            select
+        )
 
     dbt_project = _read_dbt_project_file(dbt_project_path)
     if dbt_project:
         target.dbt = RecipeDbtField({
             'commands': [
                 'dbt deps',
-                f'dbt build {select_options}'.strip() + state_option
+                f'dbt build {dbt_select_options}'.strip() + state_option
             ]
         })
 
     target.piperider = RecipePiperiderField({
-        'command': f'piperider run {select_options}'.strip() + state_option,
+        'command': f'piperider run {piperider_select_options}'.strip() + state_option,
     })
     return target
 

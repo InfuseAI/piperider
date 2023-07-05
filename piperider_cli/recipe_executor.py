@@ -12,27 +12,30 @@ console = Console()
 
 class RecipeExecutor:
     @staticmethod
-    def exec(recipe_name: str, auto_generate_default_recipe: bool = True, select: tuple = None, debug=False):
+    def exec(recipe_name: str, auto_generate_default_recipe: bool = True, select: tuple = None, modified: bool = False,
+             debug=False):
+        config = Configuration.instance()
         recipe_path = select_recipe_file(recipe_name)
+
+        if recipe_name and (select or modified is True):
+            console.print(
+                "[[bold yellow]Warning[/bold yellow]] The recipe will be ignored when --select or --modified is provided."
+            )
         if select:
-            if recipe_name:
-                console.print(
-                    "[[bold yellow]Warning[/bold yellow]] The recipe will be ignored when --select is provided."
-                )
             console.print(
                 f"[[bold green]Select[/bold green]] Manually select the dbt nodes to run by '{','.join(select)}'")
-        if recipe_path is None or select:
+        if recipe_path is None or select or modified is True:
             if auto_generate_default_recipe:
-                config = Configuration.instance()
                 dbt_project_path = None
                 if config.dataSources and config.dataSources[0].args.get('dbt'):
                     dbt_project_path = os.path.relpath(config.dataSources[0].args.get('dbt', {}).get('projectDir'))
                 # generate a default recipe
                 console.rule("Recipe executor: generate recipe")
                 options = None
-                if select:
+                if select or modified:
                     options = {}
                     options['select'] = select
+                    options['modified'] = modified
                 recipe = generate_default_recipe(overwrite_existing=False,
                                                  dbt_project_path=dbt_project_path,
                                                  options=options)
@@ -46,6 +49,6 @@ class RecipeExecutor:
                 raise FileNotFoundError(f"Cannot find the recipe '{recipe_name}'")
         else:
             recipe = RecipeConfiguration.load(recipe_path)
-        execute_recipe_configuration(recipe, select=select, debug=debug)
+        execute_recipe_configuration(recipe, select=select, modified=modified, debug=debug)
 
         return recipe

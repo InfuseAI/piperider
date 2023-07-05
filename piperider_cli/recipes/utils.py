@@ -2,6 +2,7 @@ import abc
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import tarfile
 import tempfile
@@ -159,6 +160,9 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
     def list_dbt_resources(self, manifest, select=None, state=None):
         return list_resources_from_manifest(manifest, select=select, state=state)
 
+    def remove_dir(self, path):
+        shutil.rmtree(path)
+
 
 class RecipeUtils(AbstractRecipeUtils):
     def execute_command_with_showing_output(self, command_line, env: Dict = None):
@@ -184,8 +188,14 @@ class DryRunRecipeUtils(AbstractRecipeUtils):
         return '/path/to/tmp'
 
     def list_dbt_resources(self, manifest, select=None, state=None):
-        self.console.print(f"[green]:dbt-resources:>[/green] with select: {select} state: {state}")
+        state_msg = ''
+        if state:
+            state_msg = f'with state: {state}'
+        self.console.print(f"[green]:dbt-resources:>[/green] with select: {select} {state_msg}")
         return ['dbt_model1', 'dbt_model2', 'dbt_model3']
+
+    def remove_dir(self, path):
+        self.console.print(f"[green]:remove-dir:>[/green] {path}")
 
 
 class InteractiveStopException(Exception):
