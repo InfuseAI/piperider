@@ -534,11 +534,12 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         base_run_metrics = self.base.get('metrics', [])
         target_run_metrics = self.target.get('metrics', [])
 
-        if not target_run_metrics:
-            return
-
-        metrics_labels = {v.name: v.label for v in self.base_manifest.metrics.values()}
-        metrics_labels.update({v.name: v.label for v in self.target_manifest.metrics.values()})
+        metrics_labels: Dict[str, str] = collections.OrderedDict()
+        for m in changeset[:50]:
+            node = self.target_manifest.metrics.get(m.unique_id)
+            if node is None:
+                node = self.base_manifest.metrics.get(m.unique_id)
+            metrics_labels[node.name] = node.label
 
         joined_metrics: Dict[str, MetricsChangeView] = collections.OrderedDict()
         for m in changeset[:50]:
@@ -577,14 +578,16 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
             return ""
 
         metrics_summary = {}
+        for metric_group, label in metrics_labels.items():
+            metrics_summary[label] = {
+                'total': 0, 'no-changes': 0, 'edited': 0, 'added': 0, 'removed': 0,
+                'state_icon': state_icon(metric_group)
+            }
+
         for m in joined_metrics.values():
             label = metrics_labels[m.metric_group]
-            if label not in metrics_summary:
-                metrics_summary[label] = {'total': 0, 'no-changes': 0, 'edited': 0, 'added': 0, 'removed': 0}
-
             metrics_summary[label][m.change_type] += 1
             metrics_summary[label]['total'] += 1
-            metrics_summary[label]['state_icon'] = state_icon(m.metric_group)
 
         if not metrics_summary:
             out("")
@@ -599,7 +602,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         mt = MarkdownTable(headers=['', 'Metric', f"Queries <br> total ({latex_orange('change')})"])
         for label, v in metrics_summary.items():
             chagned = f"({latex_orange(str(v['edited']))})" if v['edited'] > 0 else ""
-            mt.add_row([v['state_icon'], label, f"{v['total']} {chagned}"])
+            mt.add_row([v['state_icon'], label, f"{v['total'] if v['total'] > 0 else '-'} {chagned}"])
 
         if len(changeset) > 50:
             remainings = len(changeset) - 50
