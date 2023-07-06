@@ -513,11 +513,16 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                 return ChangeType.MODIFIED.display_changes(b, t, text)
             return "-"
 
-        for c in changeset:
+        for c in changeset[:50]:
             mt.add_row(
                 [c.change_type.icon_image_tag,
                  self.mapper.path(c.unique_id), cols(c), rows(c), dbt_time(c), failed_tests(c),
                  all_tests(c)])
+ 
+        if len(changeset) > 50:
+            remainings = len(changeset) - 50
+            mt.add_row(
+                ['', f'{remainings} more changed models', '', '', '', '', ''])
 
         out(mt.build())
 
