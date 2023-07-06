@@ -613,6 +613,10 @@ class ComparisonData(object):
 
     def to_cli_stats(self, console):
         console.print()
+
+        if self.summary_change_set is None:
+            return
+
         console.print("Statistics:")
 
         for d in [self.summary_change_set.models, self.summary_change_set.metrics]:
