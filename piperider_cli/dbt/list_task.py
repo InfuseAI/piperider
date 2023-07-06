@@ -385,6 +385,14 @@ class _DbtListTask(ListTask):
         # All nodes the compiler building
         self.node_results = []
 
+        try:
+            from dbt.task.contextvars import cv_project_root
+            if self.config:
+                cv_project_root.set(self.config.project_root)
+        except:
+            # cv_project_root start to be defined since dbt-core v1.5.2
+            pass
+
     def compile_manifest(self):
         if self.manifest is None:
             raise BaseException("compile_manifest called before manifest was loaded")
@@ -537,8 +545,8 @@ def compare_models_between_manifests(
 
 
 def list_modified_with_downstream(
-        base_manifest: Manifest,
-        altered_manifest: Manifest,
+    base_manifest: Manifest,
+    altered_manifest: Manifest,
 ):
     task = _DbtListTask()
     task.manifest = altered_manifest
