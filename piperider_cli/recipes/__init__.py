@@ -313,7 +313,7 @@ def execute_recipe_archive(model: RecipeModel, debug=False, recipe_type='base'):
     # model.piperider.commands
     for cmd in model.piperider.commands or []:
         console.print(f"Run: \[{cmd}]")
-        cmd = f'{cmd} --dbt-project-dir {tmpdirname} --dbt-state {tmpdirname}/target' if tmpdirname else cmd
+        cmd = f'{cmd} --dbt-project-dir {tmpdirname} --dbt-target-path {tmpdirname}/target' if tmpdirname else cmd
         exit_code = tool().execute_command_with_showing_output(cmd, model.piperider.envs())
         if debug:
             console.print(f"Exit code: {exit_code}")

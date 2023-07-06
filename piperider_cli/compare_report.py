@@ -4,7 +4,7 @@ import os
 import shutil
 import sys
 from datetime import date, datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import inquirer
 import readchar
@@ -15,7 +15,8 @@ from piperider_cli import clone_directory, datetime_to_str, open_report_in_brows
     raise_exception_when_directory_not_writable, str_to_datetime
 from piperider_cli.configuration import Configuration, ReportDirectory
 from piperider_cli.generate_report import setup_report_variables
-from piperider_cli.reports import Document
+from piperider_cli.dbt.changeset import SummaryChangeSet
+from piperider_cli.dbt.utils import ChangeType
 
 
 class RunOutput(object):
@@ -175,19 +176,22 @@ class ComparisonData(object):
 
         self.implicit = []
         self.explicit = []
+
+        self.summary_change_set: Optional[SummaryChangeSet] = None
         self._update_implicit_and_explicit_changeset()
 
     def _update_implicit_and_explicit_changeset(self):
         try:
-            from piperider_cli.dbt.list_task import ChangeSet
-            c = ChangeSet(self._base, self._target)
+            from piperider_cli.dbt.changeset import GraphDataChangeSet
+            c = GraphDataChangeSet(self._base, self._target)
             self.explicit = c.list_explicit_changes()
             self.implicit = c.list_implicit_changes()
+
+            self.summary_change_set = SummaryChangeSet(self._base, self._target)
         except BaseException as e:
             console = Console()
             console.print(
                 f'[bold yellow]Warning:[/bold yellow] {e}. Got problem to generate changeset.')
-            pass
 
     def id(self):
         return self._id
@@ -263,7 +267,12 @@ class ComparisonData(object):
             console.print("To generate a summary.md file, please run the 'piperider run' command in a dbt project "
                           "and use the latest version of piperider.")
             return ""
-        return Document.from_runs(self._base, self._target).build()
+
+        # TODO replace to new generator
+        if self.summary_change_set:
+            return self.summary_change_set.generate_markdown()
+
+        return ""
 
     @staticmethod
     def _value_with_annotation(key, annotation=None):
@@ -602,6 +611,25 @@ class ComparisonData(object):
 
         return out.getvalue()
 
+    def to_cli_stats(self, console):
+        console.print()
+
+        if self.summary_change_set is None:
+            return
+
+        console.print("Statistics:")
+
+        for d in [self.summary_change_set.models, self.summary_change_set.metrics]:
+            output = [f"  {d.resource_type}: total={d.total}, explict={d.explicit_changes}",
+                      f"(added={len([x for x in d.explicit_changeset if x.change_type == ChangeType.ADDED])}, "
+                      f"removed={len([x for x in d.explicit_changeset if x.change_type == ChangeType.REMOVED])}, "
+                      f"modified={len([x for x in d.explicit_changeset if x.change_type == ChangeType.MODIFIED])}), ",
+                      f"impacted={d.impacted}, implicit={d.implicit_changes}"]
+
+            console.print("".join(output))
+
+        console.print("")
+
 
 def prepare_default_output_path(filesystem: ReportDirectory, created_at):
     latest_symlink_path = os.path.join(filesystem.get_comparison_dir(), 'latest')
@@ -864,6 +892,7 @@ class CompareReport(object):
             shutil.copyfile(summary_md_path, summary_file)
             summary_md_path = summary_file
 
+        comparison_data.to_cli_stats(console)
         console.print()
         console.print(f"Comparison report: {report_path}")
         if summary_data:
