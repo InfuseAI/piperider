@@ -389,7 +389,7 @@ class _DbtListTask(ListTask):
             from dbt.task.contextvars import cv_project_root
             if self.config:
                 cv_project_root.set(self.config.project_root)
-        except:
+        except Exception:
             # cv_project_root start to be defined since dbt-core v1.5.2
             pass
 
