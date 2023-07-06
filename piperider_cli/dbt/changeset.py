@@ -528,11 +528,11 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
 
     def generate_metrics_section(self, out: Callable[[str], None]) -> None:
         out("# Metrics")
+        m = self.metrics
+        changeset = self.mapper.sort(m.explicit_changeset + m.implicit_changeset)
+
         base_run_metrics = self.base.get('metrics', [])
         target_run_metrics = self.target.get('metrics', [])
-
-        weight = {'.'.join(unique_id.split('.')[2:]): w for unique_id, w in self.mapper._sorted_weights.items()
-                  if unique_id.split('.')[0] == 'metric'}
 
         if not target_run_metrics:
             return
@@ -540,38 +540,26 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         metrics_labels = {v.name: v.label for v in self.base_manifest.metrics.values()}
         metrics_labels.update({v.name: v.label for v in self.target_manifest.metrics.values()})
 
-        from functools import cmp_to_key
-
-        def callback(a: Dict, b: Dict) -> int:
-            av = weight[a.get('headers')[1]]
-            bv = weight[b.get('headers')[1]]
-
-            if av == bv:
-                return 0
-
-            if av < bv:
-                return -1
-
-            if av > bv:
-                return 1
-
-        run_metrics: List[Dict] = sorted(base_run_metrics + target_run_metrics, key=cmp_to_key(callback))
-
         joined_metrics: Dict[str, MetricsChangeView] = collections.OrderedDict()
-        for m in run_metrics:
-            joined_metrics[m.get('name')] = MetricsChangeView(m.get('name'))
+        for m in changeset[:50]:
+            metrics_group = '.'.join(m.unique_id.split('.')[2:])
+            for metric in base_run_metrics:
+                if metrics_group == metric.get("headers")[1]:
+                    name = metric.get("name")
+                    if name not in joined_metrics:
+                        joined_metrics[name] = MetricsChangeView(name)
+                    m = joined_metrics[name]
+                    m.metric_group = metrics_group
+                    m.base_data = metric.get("data")
 
-        for metric in base_run_metrics:
-            name = metric.get("name")
-            m: MetricsChangeView = joined_metrics[name]
-            m.metric_group = metric.get("headers")[1]
-            m.base_data = metric.get("data")
-
-        for metric in target_run_metrics:
-            name = metric.get("name")
-            m: MetricsChangeView = joined_metrics[name]
-            m.metric_group = metric.get("headers")[1]
-            m.target_data = metric.get("data")
+            for metric in target_run_metrics:
+                if metrics_group == metric.get("headers")[1]:
+                    name = metric.get("name")
+                    if name not in joined_metrics:
+                        joined_metrics[name] = MetricsChangeView(name)
+                    m = joined_metrics[name]
+                    m.metric_group = metric.get("headers")[1]
+                    m.target_data = metric.get("data")
 
         # added, removed, edited, no changes
         for m in joined_metrics.values():
@@ -612,6 +600,11 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         for label, v in metrics_summary.items():
             chagned = f"({latex_orange(str(v['edited']))})" if v['edited'] > 0 else ""
             mt.add_row([v['state_icon'], label, f"{v['total']} {chagned}"])
+
+        if len(changeset) > 50:
+            remainings = len(changeset) - 50
+            mt.add_row(
+                ['', f'{remainings} more changed metrics', ''])
 
         out(mt.build())
 
