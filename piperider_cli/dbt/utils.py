@@ -3,16 +3,6 @@ import math
 from typing import Dict, Iterable, List
 
 
-class TotalColumnsTableEntryElement:
-    def __init__(self, column_name: str, base_column_data: Dict, target_column_data: Dict):
-        self.column_name = column_name
-        self.base_column_data = base_column_data
-        self.target_column_data = target_column_data
-
-        self.base_view = ColumnChangeView(self.base_column_data)
-        self.target_view = ColumnChangeView(self.target_column_data)
-
-
 class ChangedColumnsTableEntryElement:
     def __init__(self, column_name: str, base_column_data: Dict, target_column_data: Dict):
         self.column_name = column_name
