@@ -209,7 +209,7 @@ const filterByChanged = (lineageGraph: LineageGraphData) => {
   const downstreamSet = new Set<string>();
 
   Object.entries(lineageGraph).forEach(([uniqueId, node]) => {
-    if (node.changeStatus !== undefined) {
+    if (node.changeStatus !== undefined && node.changeStatus !== null) {
       changeSet.add(uniqueId);
 
       for (const downstream of getDownstreamNodes(lineageGraph, uniqueId)) {

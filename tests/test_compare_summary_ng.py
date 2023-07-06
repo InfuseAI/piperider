@@ -1,14 +1,29 @@
 import json
 import os
+import subprocess
 import unittest
 from unittest import TestCase
 
+from piperider_cli import dbtutil
+from piperider_cli.dbt.sorting import topological_sort
 from piperider_cli.compare_report import ComparisonData
 from packaging import version
 
 from piperider_cli.dbt.list_task import dbt_version_obj
 
 v = dbt_version_obj()
+
+
+def pbcopy_string(input_string):
+    try:
+        import platform
+        if platform.system() != "Darwin":
+            return
+
+        subprocess.run(['pbcopy'], input=input_string.encode(), check=True)
+        print("String copied to clipboard.")
+    except Exception:
+        pass
 
 
 class TestCompareSummaryNG(TestCase):
@@ -29,8 +44,16 @@ class TestCompareSummaryNG(TestCase):
         run1 = self.manifest_dict("jaffle_shop_base.json")
         run2 = self.manifest_dict("jaffle_shop_target.json")
 
+        run1 = self.manifest_dict("sc-31587-with-ref-base.json")
+        run2 = self.manifest_dict("sc-31587-with-ref-input.json")
+
+        run1 = self.manifest_dict("sc-31723-base.json")
+        run2 = self.manifest_dict("sc-31723-target.json")
+
         data = ComparisonData(run1, run2, None)
         result = data.to_summary_markdown_ng()
+
+        pbcopy_string(result)
 
         with open("output.md", "w") as fh:
             fh.write(result)

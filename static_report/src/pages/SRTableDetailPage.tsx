@@ -35,14 +35,33 @@ export default function SRTableDetailPage() {
   if (!currentTableEntry) {
     return <NoData text={`No data found for '${tableKey}'`} />;
   }
+
+  const name = currentTableEntry[1].base?.name;
+  const description = currentTableEntry[1].base?.description || undefined;
+
   const dataTable = currentTableEntry[1].base?.__table;
+  if (dataTable === undefined) {
+    return (
+      <>
+        <TableColumnHeader
+          title={name}
+          subtitle={'Table'}
+          infoTip={description}
+          mb={5}
+        />
+        <NoData
+          text={`No schema data found. The table or view may not be available in the data source.`}
+        />
+      </>
+    );
+  }
 
   return (
     <>
       <TableColumnHeader
-        title={dataTable!.name}
+        title={name}
         subtitle={'Table'}
-        infoTip={dataTable!.description}
+        infoTip={description}
         mb={5}
       />
       <Grid
