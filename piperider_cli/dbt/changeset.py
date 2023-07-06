@@ -14,7 +14,7 @@ from piperider_cli.dbt.list_task import (
     load_manifest,
 )
 from piperider_cli.dbt.markdown import MarkdownTable
-from piperider_cli.dbt.utils import ChangedColumnsTableEntryElement, ColumnChangeView, JoinedTables
+from piperider_cli.dbt.utils import ColumnChangeEntry, ColumnChangeView, JoinedTables
 
 
 class ChangeType(Enum):
@@ -506,7 +506,7 @@ class SummaryChangeSet:
 
                 changes = list(self.tables.columns_changed_iterator(c.table_name))
 
-                def col_state(c: ChangedColumnsTableEntryElement):
+                def col_state(c: ColumnChangeEntry):
                     if c.base_view is not None and c.target_view is not None:
                         return ChangeType.MODIFIED
                     if c.base_view is None:

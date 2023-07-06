@@ -3,15 +3,15 @@ import math
 from typing import Dict, Iterable, List
 
 
-class ChangedColumnsTableEntryElement:
+class ColumnChangeEntry:
     def __init__(self, column_name: str, base_column_data: Dict, target_column_data: Dict):
         self.column_name = column_name
-        self.base_column_data = base_column_data
-        self.target_column_data = target_column_data
+        self.base_view = ColumnChangeView(base_column_data)
+        self.target_view = ColumnChangeView(target_column_data)
 
-        self.base_view = ColumnChangeView(self.base_column_data)
-        self.target_view = ColumnChangeView(self.target_column_data)
-        self.changed = self.base_view != self.target_view
+    @property
+    def changed(self) -> bool:
+        return self.base_view != self.target_view
 
 
 class ColumnChangeView:
@@ -106,11 +106,11 @@ class JoinedTables:
             result[key] = value
         return result
 
-    def columns_changed_iterator(self, table_name: str) -> Iterable[ChangedColumnsTableEntryElement]:
+    def columns_changed_iterator(self, table_name: str) -> Iterable[ColumnChangeEntry]:
         all_column_keys, b, t = self._create_columns_and_their_metrics(table_name)
 
         for column_name in all_column_keys:
-            elem = ChangedColumnsTableEntryElement(column_name, b.get(column_name), t.get(column_name))
+            elem = ColumnChangeEntry(column_name, b.get(column_name), t.get(column_name))
             if not elem.changed:
                 continue
             yield elem
