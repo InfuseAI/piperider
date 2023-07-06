@@ -12,7 +12,7 @@ from piperider_cli.dbt.list_task import (
     ResourceSelector,
     load_manifest,
 )
-from piperider_cli.dbt.changeset import ChangeSet
+from piperider_cli.dbt.changeset import GraphDataChangeSet
 
 
 class _BaseDbtTest(TestCase):
@@ -152,7 +152,7 @@ class TestDbtIntegration(_BaseDbtTest):
         self.assertListEqual(with_downstream, expected)
 
     def test_list_explicit_changes(self):
-        c = ChangeSet(self.base_run(), self.target_run())
+        c = GraphDataChangeSet(self.base_run(), self.target_run())
 
         expected = ['model.jaffle_shop.customers', 'model.jaffle_shop.orders',
                     'test.jaffle_shop.accepted_values_orders_status'
@@ -176,7 +176,7 @@ class TestDbtIntegration(_BaseDbtTest):
     @unittest.skipIf(dbt_version_obj() < version.parse('1.4'),
                      'this only works after manifests generated after the v1.4')
     def test_list_explicit_changes_without_ref_ids(self):
-        c = ChangeSet(self.base_31587(), self.target_31587())
+        c = GraphDataChangeSet(self.base_31587(), self.target_31587())
 
         expected = ['model.jaffle_shop.orders',
                     'test.jaffle_shop.accepted_values_orders_status__placed__shipped__completed__return_pending__returned.be6b5b5ec3',
@@ -197,7 +197,7 @@ class TestDbtIntegration(_BaseDbtTest):
     @unittest.skipIf(dbt_version_obj() < version.parse('1.4'),
                      'this only works after manifests generated after the v1.4')
     def test_list_explicit_changes_with_ref_ids(self):
-        c = ChangeSet(self.base_31587_with_ref(), self.target_31587_with_ref())
+        c = GraphDataChangeSet(self.base_31587_with_ref(), self.target_31587_with_ref())
 
         expected = ['model.jaffle_shop.orders',
                     'test.jaffle_shop.accepted_values_orders_status__placed__shipped__completed__return_pending__returned.be6b5b5ec3',
@@ -218,7 +218,7 @@ class TestDbtIntegration(_BaseDbtTest):
     @unittest.skipIf(dbt_version_obj() < version.parse('1.4'),
                      'this only works after manifests generated after the v1.4')
     def test_list_changes_metrics_case(self):
-        c = ChangeSet(self.base_31587_metrics(), self.target_31587_metrics())
+        c = GraphDataChangeSet(self.base_31587_metrics(), self.target_31587_metrics())
         expected = ['model.jaffle_shop.orders',
                     'test.jaffle_shop.accepted_values_orders_status__placed__shipped__completed__return_pending__returned.be6b5b5ec3',
                     'test.jaffle_shop.not_null_orders_amount.106140f9fd',

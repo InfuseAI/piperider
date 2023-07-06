@@ -15,7 +15,8 @@ from piperider_cli import clone_directory, datetime_to_str, open_report_in_brows
     raise_exception_when_directory_not_writable, str_to_datetime
 from piperider_cli.configuration import Configuration, ReportDirectory
 from piperider_cli.generate_report import setup_report_variables
-from piperider_cli.dbt.changeset import SummaryChangeSet, ChangeType
+from piperider_cli.dbt.changeset import SummaryChangeSet
+from piperider_cli.dbt.utils import ChangeType
 
 
 class RunOutput(object):
@@ -181,8 +182,8 @@ class ComparisonData(object):
 
     def _update_implicit_and_explicit_changeset(self):
         try:
-            from piperider_cli.dbt.changeset import ChangeSet
-            c = ChangeSet(self._base, self._target)
+            from piperider_cli.dbt.changeset import GraphDataChangeSet
+            c = GraphDataChangeSet(self._base, self._target)
             self.explicit = c.list_explicit_changes()
             self.implicit = c.list_implicit_changes()
 

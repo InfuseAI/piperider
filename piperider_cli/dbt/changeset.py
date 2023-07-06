@@ -1,10 +1,8 @@
 import collections
 import math
-from dataclasses import dataclass
 from datetime import timedelta
-from enum import Enum
 from io import StringIO
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List
 
 from dbt.contracts.graph.manifest import Manifest
 
@@ -14,81 +12,48 @@ from piperider_cli.dbt.list_task import (
     load_manifest,
 )
 from piperider_cli.dbt.markdown import MarkdownTable
-from piperider_cli.dbt.utils import ColumnChangeEntry, ColumnChangeView, JoinedTables
+from piperider_cli.dbt.utils import ChangeType, ChangeUnit, ColumnChangeEntry, ColumnChangeView, JoinedTables, \
+    MetricsChangeView, ResourceType
 
 
-class ChangeType(Enum):
-    ADDED = "added"
-    REMOVED = "removed"
-    MODIFIED = "modified"
-    IMPLICIT = "implicit"
-    IGNORED = "ignored"
+class DefaultChangeSetOpMixin:
+    __slots__ = ()
 
-    @property
-    def icon_url(self) -> str:
-        base_url = "https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons"
+    def load_run_as_manifest(self, run: Dict):
+        manifest = run.get("dbt", {}).get("manifest", {})
+        if manifest == {}:
+            raise ValueError("Cannot find .dbt.manifest in run data")
+        return load_manifest(manifest)
 
-        if self.value == 'added':
-            return base_url + "/icon-diff-delta-plus%402x.png"
-        if self.value == 'removed':
-            return base_url + "/icon-diff-delta-minus%402x.png"
-        if self.value == 'modified':
-            return base_url + "/icon-diff-delta-explicit%402x.png"
-        if self.value == 'implicit':
-            return base_url + "/icon-diff-delta-implicit%402x.png"
-        return ""
+    def resolve_unique_id(self, resource_name: str, resource_type: str):
+        for entry in self.base_resources + self.target_resources:
+            if entry.get("resource_type") == resource_type and entry.get("name") == resource_name:
+                return entry.get("unique_id")
 
-    @property
-    def icon_image_tag(self) -> str:
-        url = self.icon_url
-        if url == "":
-            return ""
-        return f"""<img src="{url}" width="16px">"""
+    def has_changed(self, p1: Dict, p2: Dict):
+        """
+        p1 and p2 are table profiled data
+        """
 
-    def display_changes(self, b, t, format_text: str, *, converter: Callable = None):
-        if self != self.MODIFIED:
-            raise ValueError("Only modified type has display for changes")
-        color = "green" if t > b else "red"
-        sign = "↑" if t > b else "↓"
-        diff = t - b
-        if math.isnan(diff):
-            if math.isnan(b):
-                return str(t)
-            else:
-                return str(b)
+        base_cols: Dict[str, Dict] = p1.get("columns")
+        target_cols: Dict[str, Dict] = p2.get("columns")
 
-        if t == b:
-            return str(b)
+        if base_cols is None or target_cols is None:
+            return True
 
-        if converter:
-            return format_text % dict(value=converter(t), color=color, sign=sign, diff=diff)
-        return format_text % dict(value=t, color=color, sign=sign, diff=diff)
+        for k in base_cols:
+            if ColumnChangeView(base_cols.get(k)) != ColumnChangeView(
+                    target_cols.get(k)
+            ):
+                return True
 
+        for k in target_cols:
+            if ColumnChangeView(base_cols.get(k)) != ColumnChangeView(
+                    target_cols.get(k)
+            ):
+                return True
 
-class ResourceType(Enum):
-    MODEL = "model"
-    METRIC = "metric"
-
-    @classmethod
-    def of(cls, resource_type: str):
-        if resource_type == cls.MODEL.value:
-            return cls.MODEL
-        if resource_type == cls.METRIC.value:
-            return cls.METRIC
-        raise NotImplementedError(f"no such type: {resource_type}")
-
-
-@dataclass
-class ChangeUnit:
-    change_type: ChangeType
-    resource_type: ResourceType
-    unique_id: str
-
-    @property
-    def table_name(self) -> str:
-        if self.resource_type == ResourceType.MODEL:
-            return self.unique_id.split(".")[-1]
-        raise ValueError("It is non sense to get table_name for a non-model resource")
+        return False
 
 
 class SummaryAggregate:
@@ -162,30 +127,6 @@ class SummaryAggregate:
             raise ValueError('explicit_changeset is not initialized')
         if self.modified_with_downstream is None:
             raise ValueError('modified_with_downstream is not initialized')
-
-
-class MetricsChangeView:
-    def __init__(self, name: str):
-        self.name = name
-        self.metric_group: str = None
-        self.base_data: Optional[List] = None
-        self.target_data: Optional[List] = None
-        self.change_type = None
-
-    def update_status(self):
-        # added, removed, edited, no changes
-        if self.base_data is None and self.target_data is not None:
-            self.change_type = "added"
-            return
-
-        if self.base_data is not None and self.target_data is None:
-            self.change_type = "removed"
-            return
-
-        if self.base_data == self.target_data:
-            self.change_type = "no-changes"
-        else:
-            self.change_type = "edited"
 
 
 class LookUpTable:
@@ -303,12 +244,12 @@ class LookUpTable:
         return sorted(changeset, key=cmp_to_key(callback))
 
 
-class SummaryChangeSet:
+class SummaryChangeSet(DefaultChangeSetOpMixin):
     def __init__(self, base: Dict, target: Dict):
         self.base: Dict = base
         self.target: Dict = target
-        self.base_manifest: Manifest = self._m(base)
-        self.target_manifest: Manifest = self._m(target)
+        self.base_manifest: Manifest = self.load_run_as_manifest(base)
+        self.target_manifest: Manifest = self.load_run_as_manifest(target)
         self.tables = JoinedTables(self.base, self.target)
 
         # resources in this format [{unique_id, name, resource_type}]
@@ -325,12 +266,6 @@ class SummaryChangeSet:
 
         # TODO the execute should be merged into each aggregate
         self.execute()
-
-    def _m(self, run: Dict):
-        manifest = run.get("dbt", {}).get("manifest", {})
-        if manifest == {}:
-            raise ValueError("Cannot find .dbt.manifest in run data")
-        return load_manifest(manifest)
 
     def get_url(self):
         return ""
@@ -426,30 +361,6 @@ class SummaryChangeSet:
                         diffs.append(ref_id)
 
         self.metrics.diffs = list(set(diffs))
-
-    def has_changed(self, p1: Dict, p2: Dict):
-        """
-        p1 and p2 are table profiled data
-        """
-
-        base_cols: Dict[str, Dict] = p1.get("columns")
-        target_cols: Dict[str, Dict] = p2.get("columns")
-
-        if base_cols is None or target_cols is None:
-            return True
-
-        for k in base_cols:
-            if ColumnChangeView(base_cols.get(k)) != ColumnChangeView(
-                    target_cols.get(k)
-            ):
-                return True
-
-        return False
-
-    def resolve_unique_id(self, resource_name: str, resource_type: str):
-        for entry in self.base_resources + self.target_resources:
-            if entry.get("resource_type") == resource_type and entry.get("name") == resource_name:
-                return entry.get("unique_id")
 
     def generate_markdown(self):
         # ref: https://gist.github.com/popcornylu/7a9f68c1ea80f09ba9c780d2026ce71e
@@ -710,12 +621,12 @@ class SummaryChangeSet:
         return m
 
 
-class ChangeSet:
+class GraphDataChangeSet(DefaultChangeSetOpMixin):
     def __init__(self, base: Dict, target: Dict):
         self.base: Dict = base
         self.target: Dict = target
-        self.base_manifest: Manifest = self._m(base)
-        self.target_manifest: Manifest = self._m(target)
+        self.base_manifest: Manifest = self.load_run_as_manifest(base)
+        self.target_manifest: Manifest = self.load_run_as_manifest(target)
 
         # resources in this format [{unique_id, name, resource_type}]
         self.base_resources = list_resources_unique_id_from_manifest(self.base_manifest)
@@ -724,17 +635,6 @@ class ChangeSet:
         )
 
         self.explicit_changes = sorted(self._do_list_explicit_changes())
-
-    def _m(self, run: Dict):
-        manifest = run.get("dbt", {}).get("manifest", {})
-        if manifest == {}:
-            raise ValueError("Cannot find .dbt.manifest in run data")
-        return load_manifest(manifest)
-
-    def resolve_unique_id(self, resource_name: str, resource_type: str):
-        for entry in self.base_resources + self.target_resources:
-            if entry.get("resource_type") == resource_type and entry.get("name") == resource_name:
-                return entry.get("unique_id")
 
     def _do_list_explicit_changes(self):
         base_resources = [x.get("unique_id") for x in self.base_resources]
@@ -807,19 +707,3 @@ class ChangeSet:
             list(set(table_implicit + metric_implicit) - set(self.explicit_changes))
         )
         return filtered_explicit
-
-    def has_changed(self, p1: Dict, p2: Dict):
-        """
-        p1 and p2 are table profiled data
-        """
-
-        base_cols: Dict[str, Dict] = p1.get("columns")
-        target_cols: Dict[str, Dict] = p2.get("columns")
-
-        for k in base_cols:
-            if ColumnChangeView(base_cols.get(k)) != ColumnChangeView(
-                    target_cols.get(k)
-            ):
-                return True
-
-        return False

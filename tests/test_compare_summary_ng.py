@@ -16,9 +16,13 @@ v = dbt_version_obj()
 
 def pbcopy_string(input_string):
     try:
+        import platform
+        if platform.system() != "Darwin":
+            return
+
         subprocess.run(['pbcopy'], input=input_string.encode(), check=True)
         print("String copied to clipboard.")
-    except subprocess.CalledProcessError:
+    except Exception:
         pass
 
 

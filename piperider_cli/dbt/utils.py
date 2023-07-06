@@ -1,6 +1,8 @@
 import math
+from dataclasses import dataclass
+from enum import Enum
 
-from typing import Dict, Iterable, List
+from typing import Callable, Dict, Iterable, List, Optional
 
 
 class ColumnChangeEntry:
@@ -140,3 +142,101 @@ class JoinedTables:
             fallback = table_data.get('target') if table_data.get('target') else table_data.get('base')
             if fallback:
                 yield table_name, fallback.get('ref_id'), table_data.get('base'), table_data.get('target')
+
+
+class ChangeType(Enum):
+    ADDED = "added"
+    REMOVED = "removed"
+    MODIFIED = "modified"
+    IMPLICIT = "implicit"
+    IGNORED = "ignored"
+
+    @property
+    def icon_url(self) -> str:
+        base_url = "https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons"
+
+        if self.value == 'added':
+            return base_url + "/icon-diff-delta-plus%402x.png"
+        if self.value == 'removed':
+            return base_url + "/icon-diff-delta-minus%402x.png"
+        if self.value == 'modified':
+            return base_url + "/icon-diff-delta-explicit%402x.png"
+        if self.value == 'implicit':
+            return base_url + "/icon-diff-delta-implicit%402x.png"
+        return ""
+
+    @property
+    def icon_image_tag(self) -> str:
+        url = self.icon_url
+        if url == "":
+            return ""
+        return f"""<img src="{url}" width="16px">"""
+
+    def display_changes(self, b, t, format_text: str, *, converter: Callable = None):
+        if self != self.MODIFIED:
+            raise ValueError("Only modified type has display for changes")
+        color = "green" if t > b else "red"
+        sign = "↑" if t > b else "↓"
+        diff = t - b
+        if math.isnan(diff):
+            if math.isnan(b):
+                return str(t)
+            else:
+                return str(b)
+
+        if t == b:
+            return str(b)
+
+        if converter:
+            return format_text % dict(value=converter(t), color=color, sign=sign, diff=diff)
+        return format_text % dict(value=t, color=color, sign=sign, diff=diff)
+
+
+class ResourceType(Enum):
+    MODEL = "model"
+    METRIC = "metric"
+
+    @classmethod
+    def of(cls, resource_type: str):
+        if resource_type == cls.MODEL.value:
+            return cls.MODEL
+        if resource_type == cls.METRIC.value:
+            return cls.METRIC
+        raise NotImplementedError(f"no such type: {resource_type}")
+
+
+@dataclass
+class ChangeUnit:
+    change_type: ChangeType
+    resource_type: ResourceType
+    unique_id: str
+
+    @property
+    def table_name(self) -> str:
+        if self.resource_type == ResourceType.MODEL:
+            return self.unique_id.split(".")[-1]
+        raise ValueError("It is non sense to get table_name for a non-model resource")
+
+
+class MetricsChangeView:
+    def __init__(self, name: str):
+        self.name = name
+        self.metric_group: str = None
+        self.base_data: Optional[List] = None
+        self.target_data: Optional[List] = None
+        self.change_type = None
+
+    def update_status(self):
+        # added, removed, edited, no changes
+        if self.base_data is None and self.target_data is not None:
+            self.change_type = "added"
+            return
+
+        if self.base_data is not None and self.target_data is None:
+            self.change_type = "removed"
+            return
+
+        if self.base_data == self.target_data:
+            self.change_type = "no-changes"
+        else:
+            self.change_type = "edited"
