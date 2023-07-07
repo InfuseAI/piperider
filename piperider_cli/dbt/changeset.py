@@ -14,6 +14,7 @@ from piperider_cli.dbt.list_task import (
 from piperider_cli.dbt.markdown import MarkdownTable
 from piperider_cli.dbt.utils import ChangeType, ChangeUnit, ColumnChangeEntry, ColumnChangeView, JoinedTables, \
     MetricsChangeView, ResourceType
+from piperider_cli.reports import embed_url
 
 
 class DefaultChangeSetOpMixin:
@@ -268,6 +269,8 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         self.execute()
 
     def get_url(self):
+        if hasattr(self, 'url'):
+            return self.url
         return ""
 
     def execute(self):
@@ -379,6 +382,8 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
 
     def generate_summary_section(self, out: Callable[[str], None]) -> None:
         out("# Comparison Summary")
+        if self.get_url():
+            out(f"[PipeRider Report]({self.get_url()})")
         mt = MarkdownTable(headers=['Resource', 'Total', 'Explicit Changes', 'Impacted', 'Implicit Changes'])
         mt.add_row([self.models.display_name, self.models.total, self.models.explicit_changes, self.models.impacted,
                     self.models.implicit_changes])
@@ -516,7 +521,8 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         for c in changeset[:50]:
             mt.add_row(
                 [c.change_type.icon_image_tag,
-                 self.mapper.path(c.unique_id), cols(c), rows(c), dbt_time(c), failed_tests(c),
+                 embed_url(self.mapper.path(c.unique_id), self.get_url(), c.unique_id, c.resource_type.value),
+                 cols(c), rows(c), dbt_time(c), failed_tests(c),
                  all_tests(c)])
 
         if len(changeset) > 50:

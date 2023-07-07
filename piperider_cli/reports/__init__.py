@@ -1,30 +1,12 @@
-import abc
-import math
 import urllib.parse
-from dataclasses import dataclass
-from functools import total_ordering
-from typing import Iterable, List
-
-from dbt.contracts.graph.manifest import WritableManifest
-from enum import Enum
 
 
-def embed_url_cli(url: str, unique_id: str, resource_type: str, table_name: str, column_name: str = None):
-    if column_name is None:
-        # table
-        return table_name
-    else:
-        # column
-        return column_name
+def embed_url_cli(content: str, url: str, unique_id: str, resource_type: str):
+    return content
 
 
-def embed_url_cloud(url: str, unique_id: str, resource_type: str, table_name: str, column_name: str = None):
-    if column_name is None:
-        # table
-        return f'<a href="{url}#/{resource_type}s/{urllib.parse.quote(unique_id)}">{table_name}</a>'
-    else:
-        # column
-        return f'<a href="{url}#/{resource_type}s/{urllib.parse.quote(unique_id)}/columns/{urllib.parse.quote(column_name)}">{column_name}</a>'
+def embed_url_cloud(content: str, url: str, unique_id: str, resource_type: str):
+    return f"[{content}]({url}#/{resource_type}s/{urllib.parse.quote(unique_id)})"
 
 
 embed_url = None
