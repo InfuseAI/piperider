@@ -506,7 +506,7 @@ def compare_with_recipe(**kwargs):
     if force_upload is True and CloudConnector.is_login() is False:
         raise RecipeConfigException(
             message='Please login to PipeRider Cloud first.',
-            hint='Run "piprider cloud login" to login to PipeRider Cloud.'
+            hint='Run "piperider cloud login" to login to PipeRider Cloud.'
         )
 
     # Search dbt project config files
