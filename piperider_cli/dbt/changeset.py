@@ -138,6 +138,8 @@ class LookUpTable:
         self.path_mapping = self._build_path_mapping()
         self.base_execution, self.target_execution = self._build_dbt_time_mapping()
         self.base_tests, self.target_tests = self._build_tests_mapping()
+        self.label_mapping = self._build_metric_label_mapping()
+        self.grain_metric_mapping = self._build_grain_metric_mapping()
         self._sorted_weights: Dict[str, int] = self._build_sorting_parameters()
 
     def _build_path_mapping(self) -> Dict[str, str]:
@@ -201,6 +203,50 @@ class LookUpTable:
             return m
 
         return as_dict(b), as_dict(t)
+
+    def _build_metric_label_mapping(self) -> Dict[str, str]:
+        m = dict()
+        for unique_id, v in self.c.base_manifest.metrics.items():
+            m[unique_id] = v.label
+
+        for unique_id, v in self.c.target_manifest.metrics.items():
+            m[unique_id] = v.label
+
+        return m
+
+    def _build_grain_metric_mapping(self):
+        mapping = dict()
+
+        base_run_metrics = self.c.base.get('metrics', [])
+        target_run_metrics = self.c.target.get('metrics', [])
+
+        for unique_id in self.c.base_manifest.metrics:
+            if unique_id not in mapping:
+                mapping[unique_id] = dict()
+            metrics_group = '.'.join(unique_id.split('.')[2:])
+            for metric in base_run_metrics:
+                if metrics_group == metric.get("headers")[1]:
+                    name = metric.get("name")
+                    if name not in mapping[unique_id]:
+                        mapping[unique_id][name] = MetricsChangeView(name)
+                    m = mapping[unique_id][name]
+                    m.metric_group = metrics_group
+                    m.base_data = metric.get("data")
+
+        for unique_id in self.c.target_manifest.metrics:
+            if unique_id not in mapping:
+                mapping[unique_id] = dict()
+            metrics_group = '.'.join(unique_id.split('.')[2:])
+            for metric in target_run_metrics:
+                if metrics_group == metric.get("headers")[1]:
+                    name = metric.get("name")
+                    if name not in mapping[unique_id]:
+                        mapping[unique_id][name] = MetricsChangeView(name)
+                    m = mapping[unique_id][name]
+                    m.metric_group = metrics_group
+                    m.target_data = metric.get("data")
+
+        return mapping
 
     def _build_sorting_parameters(self):
         from piperider_cli import dbtutil
@@ -534,66 +580,25 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
 
     def generate_metrics_section(self, out: Callable[[str], None]) -> None:
         out("# Metrics")
-        m = self.metrics
-        changeset = self.mapper.sort(m.explicit_changeset + m.implicit_changeset)
+        changeset = self.mapper.sort(self.metrics.explicit_changeset + self.metrics.implicit_changeset)
+        grain_metrics = self.mapper.grain_metric_mapping
+        labels = self.mapper.label_mapping
 
-        base_run_metrics = self.base.get('metrics', [])
-        target_run_metrics = self.target.get('metrics', [])
-
-        metrics_labels: Dict[str, str] = collections.OrderedDict()
-        for m in changeset[:50]:
-            node = self.target_manifest.metrics.get(m.unique_id)
-            if node is None:
-                node = self.base_manifest.metrics.get(m.unique_id)
-            metrics_labels[node.name] = node.label
-
-        joined_metrics: Dict[str, MetricsChangeView] = collections.OrderedDict()
-        for m in changeset[:50]:
-            metrics_group = '.'.join(m.unique_id.split('.')[2:])
-            for metric in base_run_metrics:
-                if metrics_group == metric.get("headers")[1]:
-                    name = metric.get("name")
-                    if name not in joined_metrics:
-                        joined_metrics[name] = MetricsChangeView(name)
-                    m = joined_metrics[name]
-                    m.metric_group = metrics_group
-                    m.base_data = metric.get("data")
-
-            for metric in target_run_metrics:
-                if metrics_group == metric.get("headers")[1]:
-                    name = metric.get("name")
-                    if name not in joined_metrics:
-                        joined_metrics[name] = MetricsChangeView(name)
-                    m = joined_metrics[name]
-                    m.metric_group = metric.get("headers")[1]
-                    m.target_data = metric.get("data")
-
-        # added, removed, edited, no changes
-        for m in joined_metrics.values():
-            m.update_status()
-
-        def state_icon(metric_group: str):
-            for change_unit in self.metrics.explicit_changeset:
-                if '.'.join(change_unit.unique_id.split('.')[2:]) == metric_group:
-                    return change_unit.change_type.icon_image_tag
-
-            for change_unit in self.metrics.implicit_changeset:
-                if '.'.join(change_unit.unique_id.split('.')[2:]) == metric_group:
-                    return change_unit.change_type.icon_image_tag
-
-            return ""
+        for c in changeset:
+            for gm in grain_metrics[c.unique_id].values():
+                gm.update_status()
 
         metrics_summary = {}
-        for metric_group, label in metrics_labels.items():
+        for c in changeset[:50]:
+            label = labels[c.unique_id]
             metrics_summary[label] = {
                 'total': 0, 'no-changes': 0, 'edited': 0, 'added': 0, 'removed': 0,
-                'state_icon': state_icon(metric_group)
+                'state_icon': c.change_type.icon_image_tag
             }
 
-        for m in joined_metrics.values():
-            label = metrics_labels[m.metric_group]
-            metrics_summary[label][m.change_type] += 1
-            metrics_summary[label]['total'] += 1
+            for gm in grain_metrics[c.unique_id].values():
+                metrics_summary[label][gm.change_type] += 1
+                metrics_summary[label]['total'] += 1
 
         if not metrics_summary:
             out("")
