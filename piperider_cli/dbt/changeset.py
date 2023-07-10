@@ -617,7 +617,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
             chagned = f"({latex_orange(str(entry['edited']))})" if entry['edited'] > 0 else ""
             mt.add_row([
                 entry['state_icon'],
-                embed_url(label, self.get_url(), c.resource_type.value, c.unique_id),
+                embed_url(label, self.get_url(), c.unique_id, c.resource_type.value),
                 f"{entry['total'] if entry['total'] > 0 else '-'} {chagned}"
             ])
 
