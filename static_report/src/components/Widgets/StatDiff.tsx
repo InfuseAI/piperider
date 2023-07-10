@@ -63,11 +63,13 @@ export default function StatDiff({
   return (
     <Text fontWeight="bold" textAlign="right" fontSize="sm">
       {statValueF}&nbsp;
-      {statDiff && (
+      {statDiff ? (
         <Text as="span" color={diffColor}>
           {statDiff < 0 ? <TriangleDownIcon /> : <TriangleUpIcon />}
           {statDiffF}
         </Text>
+      ) : (
+        <></>
       )}
     </Text>
   );

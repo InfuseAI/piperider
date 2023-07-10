@@ -68,7 +68,9 @@ export function getStatDiff(
       : undefined;
   const statValue = targetValue ?? baseValue;
   if (statValue === undefined) {
-    return {};
+    return {
+      statValueF: '-',
+    };
   }
 
   const statValueF = _formatValue(statValue, formatStyle);
@@ -77,7 +79,11 @@ export function getStatDiff(
     return { statValue, statValueF };
   }
 
-  const statDiff = targetValue - baseValue;
+  let statDiff = targetValue - baseValue;
+  if (formatStyle === 'duration' && Math.abs(statDiff) < 0.01) {
+    statDiff = 0;
+  }
+
   const statDiffF = _formatValue(statDiff, formatStyle);
 
   return { statValue, statValueF, statDiff, statDiffF };
