@@ -611,9 +611,15 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
             return r'$\color{orange}{\text{ %s }}$' % str(text)
 
         mt = MarkdownTable(headers=['', 'Metric', f"Queries <br> total ({latex_orange('change')})"])
-        for label, v in metrics_summary.items():
-            chagned = f"({latex_orange(str(v['edited']))})" if v['edited'] > 0 else ""
-            mt.add_row([v['state_icon'], label, f"{v['total'] if v['total'] > 0 else '-'} {chagned}"])
+        for c in changeset[:50]:
+            label = labels[c.unique_id]
+            entry = metrics_summary[label]
+            chagned = f"({latex_orange(str(entry['edited']))})" if entry['edited'] > 0 else ""
+            mt.add_row([
+                entry['state_icon'],
+                embed_url(label, self.get_url(), c.resource_type.value, c.unique_id),
+                f"{entry['total'] if entry['total'] > 0 else '-'} {chagned}"
+            ])
 
         if len(changeset) > 50:
             remainings = len(changeset) - 50
