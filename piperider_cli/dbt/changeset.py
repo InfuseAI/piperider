@@ -1,5 +1,5 @@
-import collections
 import math
+import urllib.parse
 from datetime import timedelta
 from io import StringIO
 from typing import Callable, Dict, List
@@ -14,7 +14,24 @@ from piperider_cli.dbt.list_task import (
 from piperider_cli.dbt.markdown import MarkdownTable
 from piperider_cli.dbt.utils import ChangeType, ChangeUnit, ColumnChangeEntry, ColumnChangeView, JoinedTables, \
     MetricsChangeView, ResourceType
-from piperider_cli.reports import embed_url
+
+
+def embed_url_cli(content: str, url: str, unique_id: str, resource_type: str):
+    return content
+
+
+def embed_url_cloud(content: str, url: str, unique_id: str, resource_type: str):
+    return f"[{content}]({url}#/{resource_type}s/{urllib.parse.quote(unique_id)})"
+
+
+embed_url = None
+try:
+    from web import patch_sys_path_for_piperider_cli
+
+    patch_sys_path_for_piperider_cli()
+    embed_url = embed_url_cloud
+except ImportError:
+    embed_url = embed_url_cli
 
 
 class DefaultChangeSetOpMixin:
