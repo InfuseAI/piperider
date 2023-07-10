@@ -442,6 +442,9 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         out("# Models")
         m = self.models
         changeset = self.mapper.sort(m.explicit_changeset + m.implicit_changeset)
+        if not changeset:
+            out("No changes detected")
+            return
 
         column_header = """
         Columns <br> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-plus%402x.png" width="10px"> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-minus%402x.png" width="10px"> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-explicit%402x.png" width="10px">
@@ -581,6 +584,10 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
     def generate_metrics_section(self, out: Callable[[str], None]) -> None:
         out("# Metrics")
         changeset = self.mapper.sort(self.metrics.explicit_changeset + self.metrics.implicit_changeset)
+        if not changeset:
+            out("No changes detected")
+            return
+
         grain_metrics = self.mapper.grain_metric_mapping
         labels = self.mapper.label_mapping
 
