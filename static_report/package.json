@@ -70,7 +70,7 @@
     "ts-to-zod": "^1.11.0",
     "typescript": "^4.7.4",
     "web-vitals": "^2.1.4",
-    "wouter": "^2.9.0",
+    "wouter": "^2.10.0",
     "yaml": "^2.1.3"
   },
   "scripts": {

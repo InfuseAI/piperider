@@ -1,4 +1,5 @@
 import { useRoute } from 'wouter';
+import { useSearch } from 'wouter/use-location';
 
 export const HOME_ROUTE_PATH = '/';
 export const TABLE_LIST_ROUTE_PATH = '/tables';
@@ -32,6 +33,7 @@ export function useTableRoute(): {
   readonly tableName?: string;
   readonly uniqueId?: string;
   readonly columnName?: string;
+  readonly enableLineageGraph?: boolean;
 } {
   const [matchTable, paramsTable] = useRoute(TABLE_DETAILS_ROUTE_PATH);
   const [matchModel, paramsModel] = useRoute(MODEL_DETAILS_ROUTE_PATH);
@@ -39,19 +41,25 @@ export function useTableRoute(): {
   const [matchSeed, paramsSeed] = useRoute(SEED_DETAILS_ROUTE_PATH);
   const [matchMetric, paramsMetric] = useRoute(METRIC_DETAILS_ROUTE_PATH);
 
+  const search = useSearch();
+  const searchParams = new URLSearchParams(search);
+
+  const enableLineageGraph = searchParams.has('lineage_graph');
+  let params = {};
+
   if (matchTable) {
-    return paramsTable;
+    params = paramsTable;
   } else if (matchModel) {
-    return paramsModel;
+    params = paramsModel;
   } else if (matchSource) {
-    return paramsSource;
+    params = paramsSource;
   } else if (matchSeed) {
-    return paramsSeed;
+    params = paramsSeed;
   } else if (matchMetric) {
-    return paramsMetric;
-  } else {
-    return {};
+    params = paramsMetric;
   }
+
+  return { ...params, enableLineageGraph };
 }
 
 export function useColumnRoute(): {
