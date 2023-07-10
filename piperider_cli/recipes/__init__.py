@@ -13,6 +13,7 @@ from ruamel.yaml import CommentedSeq
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli import get_run_json_path, load_jinja_template, load_json
 from piperider_cli.configuration import Configuration, FileSystem
+from piperider_cli.dbt.list_task import load_manifest, load_full_manifest
 from piperider_cli.error import RecipeConfigException
 from piperider_cli.recipes.utils import InteractiveStopException
 
@@ -98,6 +99,8 @@ class RecipeModel:
     dbt: RecipeDbtField = None
     piperider: RecipePiperiderField = None
     cloud: RecipeCloudField = None
+    tmp_dir_path: str = None
+    state_path: str = None
 
     def __init__(self, content: dict = None):
         if content is None:
@@ -237,6 +240,43 @@ def verify_dbt_dependencies(cfg: RecipeConfiguration):
     tool().check_dbt_command()
 
 
+def update_select_with_modified(select: tuple = None, modified: bool = False):
+    if modified is False:
+        return select
+
+    if len(select) == 0:
+        return ('state:modified+',)
+
+    if any('state:modified' in item for item in select) is True:
+        return select
+
+    select_list = list(select)
+    select_list[0] = select_list[0] + ',state:modified+'
+    return tuple(select_list)
+
+
+def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = None, modified: bool = False):
+    config = Configuration.instance()
+    if not select:
+        select = (f'tag:{config.dbt.get("tag")}',) if config.dbt.get('tag') else ()
+    select = update_select_with_modified(select, modified)
+
+    if any('state:' in item for item in select) is True:
+        execute_dbt_compile_archive(cfg.base)
+
+    dbt_project = dbtutil.load_dbt_project(config.dbt.get('projectDir'))
+    target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
+    state = cfg.base.state_path if cfg.base.state_path else None
+    if state:
+        console.print(f"Run: \[dbt list] select option '{' '.join(select)}' with state")
+        manifest = load_full_manifest(target_path)
+    else:
+        console.print(f"Run: \[dbt list] select option '{' '.join(select)}'")
+        manifest = load_manifest(dbtutil.get_dbt_manifest(target_path))
+    console.print()
+    return tool().list_dbt_resources(manifest, select=select, state=state), state
+
+
 def execute_recipe(model: RecipeModel, debug=False, recipe_type='base'):
     """
     We execute a recipe in the following steps:
@@ -272,10 +312,31 @@ def execute_recipe(model: RecipeModel, debug=False, recipe_type='base'):
             sys.exit(exit_code)
         console.print()
 
-    if recipe_type == 'target':
-        config = Configuration.instance()
-        fqn_list = dbtutil.get_fqn_list_by_tag(config.dbt.get('tag'), config.dbt.get('projectDir'))
-        model.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(fqn_list)
+    # if recipe_type == 'target':
+    #     config = Configuration.instance()
+    #     fqn_list = dbtutil.get_fqn_list_by_tag(config.dbt.get('tag'), config.dbt.get('projectDir'))
+    #     model.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(fqn_list)
+
+
+def execute_dbt_compile_archive(model: RecipeModel, debug=False):
+    if not model.branch:
+        raise RecipeConfigException("Branch is not specified")
+
+    console.print("Run: \[dbt compile]")
+    if model.tmp_dir_path is None:
+        model.tmp_dir_path = tool().git_archive(model.branch)
+        model.state_path = os.path.join(model.tmp_dir_path, 'state')
+
+    project_dir = model.tmp_dir_path
+    target_path = model.state_path
+    cmd = f'dbt compile --project-dir {project_dir} --target-path {target_path}'
+    exit_code = tool().execute_command_with_showing_output(cmd, model.dbt.envs())
+    if exit_code != 0:
+        console.print(
+            f"[bold yellow]Warning: [/bold yellow] Dbt command failed: '{cmd}' with exit code: {exit_code}")
+        sys.exit(exit_code)
+    console.print()
+    pass
 
 
 def execute_recipe_archive(model: RecipeModel, debug=False, recipe_type='base'):
@@ -290,17 +351,17 @@ def execute_recipe_archive(model: RecipeModel, debug=False, recipe_type='base'):
         console.print(f"Select {recipe_type} report: \[{model.file}]")
         return
 
-    tmpdirname = None
     if model.branch:
         console.print("Run: \[git archive]")
-        tmpdirname = tool().git_archive(model.branch)
+        if model.tmp_dir_path is None:
+            model.tmp_dir_path = tool().git_archive(model.branch)
         console.print()
 
     # model.dbt.commands
     for cmd in model.dbt.commands or []:
         console.print(f"Run: \[{cmd}]")
         # TODO: handle existing flags in command from recipe
-        cmd = f'{cmd} --project-dir {tmpdirname}' if tmpdirname else cmd
+        cmd = f'{cmd} --project-dir {model.tmp_dir_path}' if model.tmp_dir_path else cmd
         exit_code = tool().execute_command_with_showing_output(cmd, model.dbt.envs())
         if debug:
             console.print(f"Exit code: {exit_code}")
@@ -313,7 +374,7 @@ def execute_recipe_archive(model: RecipeModel, debug=False, recipe_type='base'):
     # model.piperider.commands
     for cmd in model.piperider.commands or []:
         console.print(f"Run: \[{cmd}]")
-        cmd = f'{cmd} --dbt-project-dir {tmpdirname} --dbt-target-path {tmpdirname}/target' if tmpdirname else cmd
+        cmd = f'{cmd} --dbt-project-dir {model.tmp_dir_path} --dbt-target-path {model.tmp_dir_path}/target' if model.tmp_dir_path else cmd
         exit_code = tool().execute_command_with_showing_output(cmd, model.piperider.envs())
         if debug:
             console.print(f"Exit code: {exit_code}")
@@ -349,7 +410,17 @@ def switch_branch(branch_name):
     tool().git_checkout_to(branch_name)
 
 
-def execute_configuration(cfg: RecipeConfiguration, debug=False):
+def clean_up(cfg: RecipeConfiguration):
+    if cfg.base.tmp_dir_path:
+        console.print(f"Clean up base branch git archive: \[{cfg.base.tmp_dir_path}]")
+        tool().remove_dir(cfg.base.tmp_dir_path)
+
+    if cfg.target.tmp_dir_path:
+        console.print(f"Clean up base branch git archive: \[{cfg.target.tmp_dir_path}]")
+        tool().remove_dir(cfg.target.tmp_dir_path)
+
+
+def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None, modified: bool = False, debug=False):
     console.rule("Recipe executor: verify execution environments")
     # check the dependencies
     console.print("Check: git")
@@ -358,14 +429,22 @@ def execute_configuration(cfg: RecipeConfiguration, debug=False):
     verify_dbt_dependencies(cfg)
 
     try:
+        console.rule("Recipe executor: prepare execution environments")
+        dbt_resources, dbt_state_path = prepare_dbt_resources_candidate(cfg, select=select, modified=modified)
+        if dbt_resources:
+            if debug:
+                console.print(f'Config: piperider env "PIPERIDER_DBT_RESOURCES" = {dbt_resources}')
+            else:
+                console.print('Config: piperider env "PIPERIDER_DBT_RESOURCES"')
+            cfg.base.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
+            cfg.target.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
+
+        console.rule("Recipe executor: base phase")
+        execute_recipe_archive(cfg.base, recipe_type='base', debug=debug)
+
         console.rule("Recipe executor: target phase")
         execute_recipe(cfg.target, recipe_type='target', debug=debug)
 
-        console.rule("Recipe executor: base phase")
-        target_dbt_resources = cfg.target.piperider.environments.get('PIPERIDER_DBT_RESOURCES')
-        if target_dbt_resources:
-            cfg.base.piperider.environments['PIPERIDER_DBT_RESOURCES'] = target_dbt_resources
-        execute_recipe_archive(cfg.base, recipe_type='base', debug=debug)
     except Exception as e:
         if isinstance(e, InteractiveStopException):
             console.rule("Recipe executor: interrupted by the user", style="red")

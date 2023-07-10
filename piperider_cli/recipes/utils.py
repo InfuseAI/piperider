@@ -3,14 +3,15 @@ import os
 import re
 import shlex
 import subprocess
-import tempfile
 import tarfile
+import tempfile
 from subprocess import Popen
 from typing import Dict, Tuple
 
 from rich.console import Console
 
 from piperider_cli.configuration import FileSystem
+from piperider_cli.dbt.list_task import list_resources_from_manifest
 from piperider_cli.error import PipeRiderError, RecipeException
 
 
@@ -52,6 +53,7 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 env=env or os.environ.copy(),
+                cwd=FileSystem.WORKING_DIRECTORY,
             )
             outs, errs = proc.communicate()
         except BaseException as e:
@@ -155,6 +157,9 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
         if exit_code != 0:
             raise PipeRiderError("dbt is not installed", hint="Please install it first")
 
+    def list_dbt_resources(self, manifest, select=None, state=None):
+        return list_resources_from_manifest(manifest, select=select, state=state)
+
 
 class RecipeUtils(AbstractRecipeUtils):
     def execute_command_with_showing_output(self, command_line, env: Dict = None):
@@ -177,7 +182,17 @@ class DryRunRecipeUtils(AbstractRecipeUtils):
     def git_archive(self, commit_or_branch):
         cmd = f"git archive --format=tar --output=/path/to/tmp/{commit_or_branch}.tar {commit_or_branch}"
         self.console.print(f"[green]:external-command:>[/green] [default]{cmd}[/default]")
-        return 0
+        return '/path/to/tmp'
+
+    def list_dbt_resources(self, manifest, select=None, state=None):
+        state_msg = ''
+        if state:
+            state_msg = f'state: {state}'
+        self.console.print(f"[green]:dbt-resources:>[/green] with select: {''.join(select)} {state_msg}")
+        return ['dbt_model1', 'dbt_model2', 'dbt_model3']
+
+    def remove_dir(self, path):
+        self.console.print(f"[green]:remove-dir:>[/green] {path}")
 
 
 class InteractiveStopException(Exception):

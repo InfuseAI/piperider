@@ -480,7 +480,12 @@ def cloud_compare_reports(**kwargs):
 @click.option('--dry-run', is_flag=True, default=False, help='Display the run details without actually executing it')
 @click.option('--interactive', is_flag=True, default=False,
               help='Prompt for confirmation to proceed with the run (Y/N)')
-@add_options([dbt_select_option_builder()])
+@add_options([
+    dbt_select_option_builder(),
+    click.option('--modified', default=False, is_flag=True, help='Only compare the modified models.'),
+    click.option('--base-branch', default='main', type=click.STRING, help='Specify the base branch.',
+                 show_default=True),
+])
 @add_options(dbt_related_options)
 @add_options(debug_option)
 def compare_with_recipe(**kwargs):
@@ -494,8 +499,11 @@ def compare_with_recipe(**kwargs):
     enable_share = kwargs.get('share')
     open_report = kwargs.get('open')
     project_name = kwargs.get('project')
-    select = kwargs.get('select')
     debug = kwargs.get('debug', False)
+    select = kwargs.get('select')
+    modified = kwargs.get('modified')
+
+    base_branch = kwargs.get('base_branch')
 
     # reconfigure recipe global flags
     configure_recipe_execution_flags(dry_run=kwargs.get('dry_run'), interactive=kwargs.get('interactive'))
@@ -524,7 +532,12 @@ def compare_with_recipe(**kwargs):
     ret = 0
     try:
         # note: dry-run and interactive are set by configure_recipe_execution_flags
-        recipe_config: RecipeConfiguration = RecipeExecutor.exec(recipe_name=recipe, select=select, debug=debug)
+        recipe_config: RecipeConfiguration = RecipeExecutor.exec(
+            recipe_name=recipe,
+            select=select,
+            modified=modified,
+            base_branch=base_branch,
+            debug=debug)
         last = False
         base = target = None
         if not recipe_config.base.is_file_specified() and not recipe_config.target.is_file_specified():
