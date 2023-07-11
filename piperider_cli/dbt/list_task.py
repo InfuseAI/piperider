@@ -270,7 +270,7 @@ def PrepareRuntimeConfig(target_path: str):
     setattr(flags, "output", "selector")
     setattr(flags, "models", None)
     setattr(flags, "INDIRECT_SELECTION", "eager")
-    setattr(flags, "WARN_ERROR", True)
+    setattr(flags, "WARN_ERROR", False)
     setattr(flags, "MACRO_DEBUGGING", False)
     setattr(flags, "PROFILES_DIR", profiles_dir)
     setattr(flags, "cls", ListTask)
@@ -378,7 +378,7 @@ class _DbtListTask(ListTask):
         setattr(self.args, "output", "selector")
         setattr(self.args, "models", None)
         setattr(self.args, "INDIRECT_SELECTION", "eager")
-        setattr(self.args, "WARN_ERROR", True)
+        setattr(self.args, "WARN_ERROR", False)
         self.args.args = argparse.Namespace()
         self.args.args.cls = ListTask
 
