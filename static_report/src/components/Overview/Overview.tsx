@@ -1,14 +1,5 @@
-import {
-  useDisclosure,
-  Tab,
-  Tabs,
-  TabList,
-  Tag,
-  Spacer,
-  Heading,
-} from '@chakra-ui/react';
+import { Tab, Tabs, TabList, Tag, Spacer, Heading } from '@chakra-ui/react';
 
-import _ from 'lodash';
 import {
   Flex,
   Menu,
@@ -231,8 +222,6 @@ const defaultFilterOptions: FilterOptions = {
 type Props = {} & Comparable;
 
 export function Overview({ singleOnly }: Props) {
-  const modal = useDisclosure();
-  const [tableColsEntryId, setTableColsEntryId] = useState(-1);
   const { tableColumnsOnly = [], lineageGraph } = useReportStore.getState();
   const [sortMethod, setSortMethod] = useState('topology');
   const [resourceIndex, setResourceIndex] = useState(0);
@@ -253,7 +242,7 @@ export function Overview({ singleOnly }: Props) {
   const sorted = useMemo(() => {
     const filtered = tableColumnsOnly.filter(([key, { base, target }]) => {
       const fallback = target ?? base;
-      return fallback?.resource_type == resourceType;
+      return fallback?.resource_type === resourceType;
     });
 
     if (sortMethod === 'topology' && lineageGraph) {
@@ -264,7 +253,7 @@ export function Overview({ singleOnly }: Props) {
   }, [resourceType, sortMethod, tableColumnsOnly, lineageGraph]);
 
   const listed = sorted.filter((tableColsEntry) => {
-    const [key, { base, target }, metadata] = tableColsEntry;
+    const [, { base, target }, metadata] = tableColsEntry;
     const fallback = base ?? target;
     if (singleOnly) {
       return true;

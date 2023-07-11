@@ -49,7 +49,7 @@ export default function StatDiff({
     };
   }
 
-  const { statValue, statValueF, statDiff, statDiffF } = statResult;
+  const { statValueF, statDiff, statDiffF } = statResult;
 
   let diffColor;
   if (!reverseColor && statDiff) {

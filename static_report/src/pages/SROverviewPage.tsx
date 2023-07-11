@@ -1,6 +1,5 @@
 import { useTrackOnMount } from '../hooks';
 import { EVENTS, SR_TYPE_LABEL } from '../utils/trackEvents';
-import _ from 'lodash';
 import { Overview } from '../components/Overview/Overview';
 
 export function SROverviewPage() {

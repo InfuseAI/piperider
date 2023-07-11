@@ -6,7 +6,6 @@ import {
   Th,
   Tbody,
   Td,
-  Text,
   Icon,
   Tooltip,
   IconButton,
@@ -18,7 +17,6 @@ import { Comparable } from '../../lib';
 import { CompTableColEntryItem } from '../../utils/store';
 import { getIconForChangeStatus } from '../Icons';
 import { ChangeStatusWidget } from '../Widgets/ChangeStatusWidget';
-import StatDiff from '../Widgets/StatDiff';
 
 type Props = {
   tableColumnsOnly: CompTableColEntryItem[];
@@ -61,7 +59,7 @@ export function MetricList({
         </Thead>
         <Tbody fontSize="sm">
           {tableColumnsOnly.map((tableColsEntry, i) => {
-            const [key, { base, target }, metadata] = tableColsEntry;
+            const [, { base, target }, metadata] = tableColsEntry;
             const fallback = base ?? target;
             if (!fallback) {
               return <></>;

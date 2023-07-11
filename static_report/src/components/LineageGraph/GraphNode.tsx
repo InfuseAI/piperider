@@ -1,23 +1,15 @@
 import { Box, Flex, Icon, VStack, Text, Tooltip } from '@chakra-ui/react';
-import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
 
 import { Handle, NodeProps, Position } from 'reactflow';
 import { useLocation } from 'wouter';
 import { LineageGraphNode } from '../../utils/dbt';
 import { FiGrid } from 'react-icons/fi';
 import { CSSProperties } from 'react';
-import {
-  COLOR_ADDED,
-  COLOR_CHANGED,
-  COLOR_HIGHLIGHT,
-  COLOR_NOPROFILED,
-  COLOR_REMOVED,
-  COLOR_UNCHANGED,
-} from './style';
+import { COLOR_HIGHLIGHT, COLOR_NOPROFILED, COLOR_UNCHANGED } from './style';
 import { getStatDiff } from './util';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { FaChartBar } from 'react-icons/fa';
-import { getIconForChangeStatus, IconImplicit } from '../Icons';
+import { getIconForChangeStatus } from '../Icons';
 
 interface GraphNodeProps extends NodeProps {
   data: LineageGraphNode;

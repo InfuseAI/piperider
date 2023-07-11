@@ -6,35 +6,18 @@ import {
   Th,
   Tbody,
   Td,
-  Text,
   Icon,
   Tooltip,
   Flex,
-  Box,
-  VStack,
-  HStack,
-  Menu,
-  MenuButton,
-  MenuList,
   IconButton,
-  MenuDivider,
-  MenuItemOption,
-  MenuOptionGroup,
 } from '@chakra-ui/react';
-import { ReactNode, useMemo, useState } from 'react';
-import { BsFilter } from 'react-icons/bs';
+
 import { FaSortAlphaDown, FaSortNumericDown } from 'react-icons/fa';
-import { FiInfo } from 'react-icons/fi';
+
 import { Link } from 'wouter';
 import { Comparable } from '../../types';
-import { LineageGraphData } from '../../utils/dbt';
-import { topologySort } from '../../utils/graph';
-import {
-  ChangeStatus,
-  CompTableColEntryItem,
-  useReportStore,
-} from '../../utils/store';
-import { SearchTextInput } from '../Common/SearchTextInput';
+import { CompTableColEntryItem } from '../../utils/store';
+
 import { getIconForChangeStatus } from '../Icons';
 import { ChangeStatusWidget } from '../Widgets/ChangeStatusWidget';
 import StatDiff from '../Widgets/StatDiff';
@@ -84,7 +67,7 @@ export function ModelList({
         </Thead>
         <Tbody fontSize="sm">
           {tableColumnsOnly.map((tableColsEntry, i) => {
-            const [key, { base, target }, metadata] = tableColsEntry;
+            const [, { base, target }, metadata] = tableColsEntry;
             const fallback = base ?? target;
             if (!fallback) {
               return <></>;

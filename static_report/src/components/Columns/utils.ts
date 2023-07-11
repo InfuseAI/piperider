@@ -6,12 +6,6 @@ import {
   NULL_VAL_COLOR,
   INFO_VAL_COLOR,
 } from './../../utils/theme';
-import { AiOutlineFileText } from 'react-icons/ai';
-import { BiText, BiQuestionMark } from 'react-icons/bi';
-import { BsCalendarDate } from 'react-icons/bs';
-import { TbCircleHalf } from 'react-icons/tb';
-import { TiSortNumerically } from 'react-icons/ti';
-import { VscSymbolOperator } from 'react-icons/vsc';
 import { ColumnSchema } from '../../sdlc';
 import {
   formatAsAbbreviatedNumber,

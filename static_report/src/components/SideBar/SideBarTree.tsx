@@ -1,17 +1,12 @@
 import { SidebarTreeItem } from '../../utils/dbt';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { List, ListItem, ListIcon, Text, Flex } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { FaChartBar, FaFile, FaHome } from 'react-icons/fa';
 import { FiDatabase, FiFolder, FiGrid } from 'react-icons/fi';
 import { FiChevronDown, FiChevronRight, FiCheckCircle } from 'react-icons/fi';
-import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
 import { Comparable } from '../../types';
-import {
-  getIconForChangeStatus,
-  getIconForColumnType,
-  IconImplicit,
-} from '../Icons';
+import { getIconForChangeStatus, getIconForColumnType } from '../Icons';
 
 interface Props extends Comparable {
   items?: SidebarTreeItem[];
