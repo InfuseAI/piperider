@@ -555,7 +555,6 @@ def compare_with_recipe(**kwargs):
                                open_report=open_report,
                                project_name=project_name,
                                show_progress=True,
-                               reverse_last=True,
                                debug=debug)
     except Exception as e:
         raise e
