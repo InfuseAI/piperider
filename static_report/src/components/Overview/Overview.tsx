@@ -157,6 +157,67 @@ function sortByTopology(
   return sorted;
 }
 
+function getTabItems(tableColumnsOnly: CompTableColEntryItem[]) {
+  const groupByResourceType: {
+    [key: string]: { total: number; changed: number };
+  } = {};
+
+  tableColumnsOnly.forEach(([key, { base, target }, metadata]) => {
+    const fallback = target ?? base;
+    const resourceType = fallback?.resource_type ?? '';
+
+    if (!groupByResourceType[resourceType]) {
+      groupByResourceType[resourceType] = { total: 0, changed: 0 };
+    }
+
+    groupByResourceType[resourceType].total += 1;
+    if (metadata.changeStatus) {
+      groupByResourceType[resourceType].changed += 1;
+    }
+  });
+
+  const tabItems: {
+    resourceType: string;
+    name: string;
+    total: number;
+    changed: number;
+  }[] = [];
+
+  if (groupByResourceType['model']) {
+    tabItems.push({
+      resourceType: 'model',
+      name: 'Models',
+      ...groupByResourceType['model'],
+    });
+  }
+
+  if (groupByResourceType['seed']) {
+    tabItems.push({
+      resourceType: 'seed',
+      name: 'Seeds',
+      ...groupByResourceType['seed'],
+    });
+  }
+
+  if (groupByResourceType['source']) {
+    tabItems.push({
+      resourceType: 'source',
+      name: 'Sources',
+      ...groupByResourceType['source'],
+    });
+  }
+
+  if (groupByResourceType['metric']) {
+    tabItems.push({
+      resourceType: 'metric',
+      name: 'Metrics',
+      ...groupByResourceType['metric'],
+    });
+  }
+
+  return tabItems;
+}
+
 type FilterOptions = {
   search?: string;
   changeStatus: Set<'added' | 'removed' | 'modified' | 'implicit' | 'noChange'>;
@@ -183,33 +244,8 @@ export function Overview() {
     }
   };
 
-  const resources: {
-    resourceType: string;
-    name: string;
-    changed: number;
-  }[] = [
-    {
-      resourceType: 'model',
-      name: 'Models',
-      changed: 2,
-    },
-    {
-      resourceType: 'seed',
-      name: 'Seeds',
-      changed: 1,
-    },
-    {
-      resourceType: 'source',
-      name: 'Sources',
-      changed: 0,
-    },
-    {
-      resourceType: 'metric',
-      name: 'Metrics',
-      changed: 1,
-    },
-  ];
-  const resourceType = resources[resourceIndex].resourceType;
+  const tabItems = getTabItems(tableColumnsOnly);
+  const resourceType = tabItems[resourceIndex].resourceType;
 
   const sorted = useMemo(() => {
     const filtered = tableColumnsOnly.filter(([key, { base, target }]) => {
@@ -292,13 +328,13 @@ export function Overview() {
         </Flex>
         <Tabs onChange={setResourceIndex} mb={4}>
           <TabList>
-            {resources.map((resource) => {
+            {tabItems.map((tabItem) => {
               return (
                 <Tab>
-                  {resource.name}
-                  {resource.changed > 0 && (
+                  {tabItem.name}
+                  {tabItem.changed > 0 && (
                     <Tag size="sm" bg="red.400" color="white" ml={2}>
-                      {resource.changed}
+                      {tabItem.changed}
                     </Tag>
                   )}
                 </Tab>
