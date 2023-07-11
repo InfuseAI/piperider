@@ -24,6 +24,7 @@ import { useLocation } from 'wouter';
 import { Comparable } from '../../types';
 import { LineageGraph } from '../LineageGraph/LineageGraph';
 import { useCloudReport } from '../../utils/cloud';
+import { useTableRoute } from '../../utils/routes';
 
 export function SideBar({ singleOnly }: Comparable) {
   const { isLegacy, projectTree, databaseTree, expandTreeForPath } =
@@ -32,6 +33,7 @@ export function SideBar({ singleOnly }: Comparable) {
   const [tabIndex, setTabIndex] = useState(-1);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isCloud = useCloudReport();
+  const { params } = useTableRoute();
 
   const handleTabChange = (index) => {
     expandTreeForPath(location);
@@ -45,6 +47,13 @@ export function SideBar({ singleOnly }: Comparable) {
       setTabIndex(0);
     }
   }, [location, tabIndex, expandTreeForPath]);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(params);
+    if (isCloud && searchParams.has('v_g') && searchParams.get('v_g') === '1') {
+      onOpen();
+    }
+  }, [onOpen, params, isCloud]);
 
   if (isLegacy) {
     return (
