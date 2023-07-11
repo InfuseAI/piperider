@@ -1,4 +1,12 @@
-import { Tab, Tabs, TabList, Tag, Spacer, Heading } from '@chakra-ui/react';
+import {
+  Tab,
+  Tabs,
+  TabList,
+  Tag,
+  Spacer,
+  Heading,
+  Box,
+} from '@chakra-ui/react';
 
 import {
   Flex,
@@ -9,25 +17,44 @@ import {
   MenuDivider,
   MenuItemOption,
   MenuOptionGroup,
+  Icon,
 } from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
 import { BsFilter } from 'react-icons/bs';
 import { LineageGraphData } from '../../utils/dbt';
 import { topologySort } from '../../utils/graph';
-import { CompTableColEntryItem, useReportStore } from '../../utils/store';
+import {
+  ChangeStatus,
+  CompTableColEntryItem,
+  useReportStore,
+} from '../../utils/store';
 import { SearchTextInput } from '../Common/SearchTextInput';
 import { ModelList } from './ModelList';
 import { ChangeSummary } from './ChangeSummary';
 import { MetricList } from './MetricList';
 import { Comparable } from '../../types';
+import { getIconForChangeStatus } from '../Icons';
 
-const SelectMenu = ({
+function getMenuItemOption(name: string, changeStatus?: ChangeStatus) {
+  const { icon, color } = getIconForChangeStatus(changeStatus);
+
+  return (
+    <MenuItemOption value={changeStatus ? changeStatus : 'noChange'}>
+      <Flex alignItems="center" gap={1}>
+        {icon && <Icon as={icon} color={color} />}
+        <Box>{name}</Box>
+      </Flex>
+    </MenuItemOption>
+  );
+}
+
+function SelectMenu({
   filterOptions,
   setFilterOptions,
 }: {
   filterOptions: FilterOptions;
   setFilterOptions: (filterOptions: FilterOptions) => void;
-}) => {
+}) {
   const { changeStatus } = filterOptions;
   let defaultValue: string[] = [];
 
@@ -99,16 +126,16 @@ const SelectMenu = ({
             });
           }}
         >
-          <MenuItemOption value="added">Added</MenuItemOption>
-          <MenuItemOption value="removed">Removed</MenuItemOption>
-          <MenuItemOption value="modified">Modified</MenuItemOption>
-          <MenuItemOption value="implicit">Implicit</MenuItemOption>
-          <MenuItemOption value="noChange">No change</MenuItemOption>
+          {getMenuItemOption('Added', 'added')}
+          {getMenuItemOption('Removed', 'removed')}
+          {getMenuItemOption('Modified', 'modified')}
+          {getMenuItemOption('Implicit', 'implicit')}
+          {getMenuItemOption('No change')}
         </MenuOptionGroup>
       </MenuList>
     </Menu>
   );
-};
+}
 
 function sortByAlphabet(tableColumnsOnly: CompTableColEntryItem[]) {
   function getName([key, { base, target }]: CompTableColEntryItem) {
@@ -367,7 +394,7 @@ export function Overview({ singleOnly }: Props) {
             tableColumnsOnly={listed}
             sortMethod={sortMethod}
             handleSortChange={handleSortChange}
-            singleOnly
+            singleOnly={singleOnly}
           />
         )}
         {(resourceType === 'model' ||
@@ -377,7 +404,7 @@ export function Overview({ singleOnly }: Props) {
             tableColumnsOnly={listed}
             sortMethod={sortMethod}
             handleSortChange={handleSortChange}
-            singleOnly
+            singleOnly={singleOnly}
           />
         )}
       </Flex>

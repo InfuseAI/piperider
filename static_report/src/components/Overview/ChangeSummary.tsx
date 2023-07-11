@@ -1,4 +1,4 @@
-import { VStack, Box, Icon, Text, Tooltip, HStack } from '@chakra-ui/react';
+import { VStack, Box, Icon, Text, Tooltip, Grid } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { FiInfo } from 'react-icons/fi';
 import { CompTableColEntryItem } from '../../lib';
@@ -59,9 +59,9 @@ export function ChangeSummary({ tableColumnsOnly, noImpacted }: Props) {
     );
 
   return (
-    <HStack spacing={10}>
+    <Grid templateColumns="repeat(4, 1fr)" gap={6}>
       <SummaryText name="Total" value={total} />
-      &nbsp;&nbsp;&nbsp;
+
       <SummaryText
         name="Explicit Changes"
         value={
@@ -76,22 +76,18 @@ export function ChangeSummary({ tableColumnsOnly, noImpacted }: Props) {
         }
         tip="Code change or config change"
       />
-      &nbsp;&nbsp;&nbsp;
-      {!noImpacted && (
-        <>
-          <SummaryText
-            name="Impacted"
-            value={impacted}
-            tip="Explicit changes and their downstream"
-          />
-          &nbsp;&nbsp;&nbsp;
-        </>
-      )}
+
+      <SummaryText
+        name="Impacted"
+        value={impacted}
+        tip="Explicit changes and their downstream"
+      />
+
       <SummaryText
         name="Implicit Changes"
         value={implicit}
         tip="Any detected changes which are not explicit changed"
       />
-    </HStack>
+    </Grid>
   );
 }
