@@ -496,7 +496,7 @@ export function buildProjectTree(
   if (isLegacy) {
     return [overview, table, metric, assertion];
   } else {
-    return [overview, source, seed, model, metric, assertion];
+    return [overview, model, source, seed, metric, assertion];
   }
 }
 

@@ -26,6 +26,7 @@ import { BsFilter } from 'react-icons/bs';
 import { FaSortAlphaDown, FaSortNumericDown } from 'react-icons/fa';
 import { FiInfo } from 'react-icons/fi';
 import { Link } from 'wouter';
+import { Comparable } from '../../types';
 import { LineageGraphData } from '../../utils/dbt';
 import { topologySort } from '../../utils/graph';
 import {
@@ -42,19 +43,20 @@ type Props = {
   tableColumnsOnly: CompTableColEntryItem[];
   sortMethod: string;
   handleSortChange: () => void;
-};
+} & Comparable;
 
 export function ModelList({
   tableColumnsOnly,
   sortMethod,
   handleSortChange,
+  singleOnly,
 }: Props) {
   return (
     <TableContainer>
       <Table variant="simple">
         <Thead>
           <Tr>
-            <Th p={0} width="30px"></Th>
+            {!singleOnly && <Th p={0} width="30px"></Th>}
             <Th pl={0}>
               Name{' '}
               <Tooltip label={`sort by ${sortMethod} order`}>
@@ -94,11 +96,13 @@ export function ModelList({
 
             return (
               <Tr>
-                <Td p={0}>
-                  <Flex alignContent="center">
-                    {icon && <Icon color={color} as={icon} />}
-                  </Flex>
-                </Td>
+                {!singleOnly && (
+                  <Td p={0}>
+                    <Flex alignContent="center">
+                      {icon && <Icon color={color} as={icon} />}
+                    </Flex>
+                  </Td>
+                )}
                 <Td pl={0}>
                   <Link
                     href={`/${fallback.resource_type}s/${fallback.unique_id}`}
@@ -108,11 +112,13 @@ export function ModelList({
                 </Td>
                 <Td>
                   {`${Object.keys(fallback?.columns || {}).length}`}
-                  <ChangeStatusWidget
-                    added={metadata.added}
-                    removed={metadata.deleted}
-                    modified={metadata.changed}
-                  />
+                  {!singleOnly && (
+                    <ChangeStatusWidget
+                      added={metadata.added}
+                      removed={metadata.deleted}
+                      modified={metadata.changed}
+                    />
+                  )}
                 </Td>
                 <Td textAlign="right" fontSize="sm">
                   <StatDiff base={base} target={target} stat="row_count" />

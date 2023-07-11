@@ -14,6 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { FaSortAlphaDown, FaSortNumericDown } from 'react-icons/fa';
 import { Link } from 'wouter';
+import { Comparable } from '../../lib';
 import { CompTableColEntryItem } from '../../utils/store';
 import { getIconForChangeStatus } from '../Icons';
 import { ChangeStatusWidget } from '../Widgets/ChangeStatusWidget';
@@ -23,19 +24,20 @@ type Props = {
   tableColumnsOnly: CompTableColEntryItem[];
   sortMethod: string;
   handleSortChange: () => void;
-};
+} & Comparable;
 
 export function MetricList({
   tableColumnsOnly,
   sortMethod,
   handleSortChange,
+  singleOnly,
 }: Props) {
   return (
     <TableContainer>
       <Table variant="simple">
         <Thead>
           <Tr>
-            <Th p={0} width="30px"></Th>
+            {!singleOnly && <Th p={0} width="30px"></Th>}
             <Th pl={0}>
               Name{' '}
               <Tooltip label={`sort by ${sortMethod} order`}>
@@ -71,11 +73,13 @@ export function MetricList({
 
             return (
               <Tr>
-                <Td p={0}>
-                  <Flex alignContent="center">
-                    {icon && <Icon color={color} as={icon} />}
-                  </Flex>
-                </Td>
+                {!singleOnly && (
+                  <Td p={0}>
+                    <Flex alignContent="center">
+                      {icon && <Icon color={color} as={icon} />}
+                    </Flex>
+                  </Td>
+                )}
                 <Td pl={0}>
                   <Link href={`/metrics/${fallback.unique_id}`}>
                     {fallback.name}

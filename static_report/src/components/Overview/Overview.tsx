@@ -28,6 +28,7 @@ import { SearchTextInput } from '../Common/SearchTextInput';
 import { ModelList } from './ModelList';
 import { ChangeSummary } from './ChangeSummary';
 import { MetricList } from './MetricList';
+import { Comparable } from '../../types';
 
 const SelectMenu = ({
   filterOptions,
@@ -227,7 +228,9 @@ const defaultFilterOptions: FilterOptions = {
   changeStatus: new Set(['added', 'removed', 'modified', 'implicit']),
 };
 
-export function Overview() {
+type Props = {} & Comparable;
+
+export function Overview({ singleOnly }: Props) {
   const modal = useDisclosure();
   const [tableColsEntryId, setTableColsEntryId] = useState(-1);
   const { tableColumnsOnly = [], lineageGraph } = useReportStore.getState();
@@ -263,6 +266,10 @@ export function Overview() {
   const listed = sorted.filter((tableColsEntry) => {
     const [key, { base, target }, metadata] = tableColsEntry;
     const fallback = base ?? target;
+    if (singleOnly) {
+      return true;
+    }
+
     if (!fallback) {
       return false;
     }
@@ -332,7 +339,7 @@ export function Overview() {
               return (
                 <Tab>
                   {tabItem.name}
-                  {tabItem.changed > 0 && (
+                  {!singleOnly && tabItem.changed > 0 && (
                     <Tag size="sm" bg="red.400" color="white" ml={2}>
                       {tabItem.changed}
                     </Tag>
@@ -343,10 +350,12 @@ export function Overview() {
           </TabList>
         </Tabs>
 
-        <ChangeSummary
-          tableColumnsOnly={sorted}
-          noImpacted={resourceType === 'source' || resourceType === 'seed'}
-        />
+        {!singleOnly && (
+          <ChangeSummary
+            tableColumnsOnly={sorted}
+            noImpacted={resourceType === 'source' || resourceType === 'seed'}
+          />
+        )}
 
         <Flex alignContent="stretch" gap={3} my={2}>
           <SearchTextInput
@@ -355,10 +364,13 @@ export function Overview() {
             }}
             placeholder={`Search ${resourceType}s`}
           />
-          <SelectMenu
-            filterOptions={filterOptions}
-            setFilterOptions={setFilterOptions}
-          />
+
+          {!singleOnly && (
+            <SelectMenu
+              filterOptions={filterOptions}
+              setFilterOptions={setFilterOptions}
+            />
+          )}
         </Flex>
 
         {resourceType === 'metric' && (
@@ -366,6 +378,7 @@ export function Overview() {
             tableColumnsOnly={listed}
             sortMethod={sortMethod}
             handleSortChange={handleSortChange}
+            singleOnly
           />
         )}
         {(resourceType === 'model' ||
@@ -375,6 +388,7 @@ export function Overview() {
             tableColumnsOnly={listed}
             sortMethod={sortMethod}
             handleSortChange={handleSortChange}
+            singleOnly
           />
         )}
       </Flex>
