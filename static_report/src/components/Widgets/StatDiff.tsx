@@ -8,17 +8,11 @@ type StatDiffProps = {
   target?: Partial<DbtNode>;
   stat: 'execution_time' | 'row_count' | 'failed_test' | 'all_test';
   isActive?: boolean;
-  reverseColor?: boolean;
 };
 
-export default function StatDiff({
-  base,
-  target,
-  stat,
-  isActive,
-  reverseColor = false,
-}: StatDiffProps) {
+export function dbtNodeStatDiff({ base, target, stat }: StatDiffProps) {
   let statResult: ReturnType<typeof getStatDiff> = {};
+
   if (stat === 'execution_time') {
     statResult = getStatDiff(
       base?.__runResult,
@@ -33,28 +27,21 @@ export default function StatDiff({
       'row_count',
       'decimal',
     );
-  } else if (stat === 'failed_test') {
-    statResult = {
-      statValue: 0,
-      statValueF: '0',
-      statDiff: 3,
-      statDiffF: '3',
-    };
-  } else if (stat === 'all_test') {
-    statResult = {
-      statValue: 0,
-      statValueF: '0',
-      statDiff: 3,
-      statDiffF: '3',
-    };
   }
+
+  return statResult;
+}
+
+export function StatDiff(props: StatDiffProps) {
+  const { isActive } = props;
+  const statResult = dbtNodeStatDiff(props);
 
   const { statValueF, statDiff, statDiffF } = statResult;
 
   let diffColor;
-  if (!reverseColor && statDiff) {
+  if (statDiff && statDiff < 0) {
     // green
-    diffColor = isActive ? 'green.200' : 'green.500';
+    diffColor = isActive ? 'white' : 'green.500';
   } else {
     // red
     diffColor = isActive ? 'white' : 'red.500';

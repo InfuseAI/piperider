@@ -20,7 +20,7 @@ import { CompTableColEntryItem } from '../../utils/store';
 
 import { getIconForChangeStatus } from '../Icons';
 import { ChangeStatusWidget } from '../Widgets/ChangeStatusWidget';
-import StatDiff from '../Widgets/StatDiff';
+import { StatDiff } from '../Widgets/StatDiff';
 
 type Props = {
   tableColumnsOnly: CompTableColEntryItem[];
@@ -107,12 +107,7 @@ export function ModelList({
                   <StatDiff base={base} target={target} stat="row_count" />
                 </Td>
                 <Td textAlign="right" fontSize="sm">
-                  <StatDiff
-                    base={base}
-                    target={target}
-                    stat="execution_time"
-                    reverseColor
-                  />
+                  <StatDiff base={base} target={target} stat="execution_time" />
                 </Td>
                 {/* <Td>
                     <StatDiff

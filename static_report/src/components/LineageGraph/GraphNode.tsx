@@ -5,9 +5,8 @@ import { useLocation } from 'wouter';
 import { LineageGraphNode } from '../../utils/dbt';
 import { CSSProperties } from 'react';
 import { COLOR_HIGHLIGHT, COLOR_NOPROFILED, COLOR_UNCHANGED } from './style';
-import { getStatDiff } from './util';
-import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
+import { dbtNodeStatDiff, StatDiff } from '../Widgets/StatDiff';
 
 interface GraphNodeProps extends NodeProps {
   data: LineageGraphNode;
@@ -79,25 +78,11 @@ export function GraphNode({ data }: GraphNodeProps) {
   }
 
   const name = data?.name;
-
-  let statResult: ReturnType<typeof getStatDiff> = {};
-  if (stat === 'execution_time') {
-    statResult = getStatDiff(
-      data?.base?.__runResult,
-      data?.target?.__runResult,
-      'execution_time',
-      'duration',
-    );
-  } else if (stat === 'row_count') {
-    statResult = getStatDiff(
-      data?.base?.__table,
-      data?.target?.__table,
-      'row_count',
-      'decimal',
-    );
-  }
-
-  const { statValue, statValueF, statDiff, statDiffF } = statResult;
+  const { statValue, statValueF } = dbtNodeStatDiff({
+    base: data?.base,
+    target: data?.target,
+    stat: stat as any,
+  });
   return (
     <>
       <Flex
@@ -165,29 +150,16 @@ export function GraphNode({ data }: GraphNodeProps) {
           {!singleOnly && stat && statValue !== undefined && (
             <Box width="100%">
               <Text
-                fontWeight="bold"
                 textAlign="right"
                 fontSize="sm"
                 color={isActive ? 'white' : 'inherit'}
               >
-                {statValueF}&nbsp;
-                {statDiff !== undefined && (
-                  <Text
-                    as="span"
-                    color={
-                      statDiff < 0
-                        ? isActive
-                          ? 'white'
-                          : 'red.500'
-                        : isActive
-                        ? 'white'
-                        : 'green.500'
-                    }
-                  >
-                    {statDiff < 0 ? <TriangleDownIcon /> : <TriangleUpIcon />}
-                    {statDiffF}
-                  </Text>
-                )}
+                <StatDiff
+                  base={data?.base}
+                  target={data?.target}
+                  stat={stat as any}
+                  isActive={isActive}
+                />
               </Text>
             </Box>
           )}
