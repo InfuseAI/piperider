@@ -1,4 +1,4 @@
-import { Icon } from '@chakra-ui/react';
+import { Text, Flex, Icon, Box } from '@chakra-ui/react';
 import { ChangeStatus } from '../../lib';
 import { getIconForChangeStatus } from '../Icons';
 
@@ -20,7 +20,7 @@ function ChangeStatusOne({
 
   return (
     <>
-      <Icon as={icon} color={color} /> {value}
+      <Icon as={icon} color={color} /> <Text ml={1}>{value}</Text>
     </>
   );
 }
@@ -35,22 +35,22 @@ export function ChangeStatusWidget({
   let first = true;
 
   if (added) {
-    items.push(<>{first ? '(' : ', '}</>);
+    items.push(first ? <>(</> : <Box pr={2}>,</Box>);
     items.push(<ChangeStatusOne value={added} changeStatus="added" />);
     first = false;
   }
   if (removed) {
-    items.push(<>{first ? '(' : ', '}</>);
+    items.push(first ? <>(</> : <Box pr={2}>,</Box>);
     items.push(<ChangeStatusOne value={removed} changeStatus="removed" />);
     first = false;
   }
   if (modified) {
-    items.push(<>{first ? '(' : ', '}</>);
+    items.push(first ? <>(</> : <Box pr={2}>,</Box>);
     items.push(<ChangeStatusOne value={modified} changeStatus="modified" />);
     first = false;
   }
   if (implicit) {
-    items.push(<>{first ? '(' : ', '}</>);
+    items.push(first ? <>(</> : <Box pr={2}>,</Box>);
     items.push(<ChangeStatusOne value={implicit} changeStatus="implicit" />);
     first = false;
   }
@@ -58,5 +58,11 @@ export function ChangeStatusWidget({
     items.push(<>{')'}</>);
   }
 
-  return <>{items}</>;
+  return (
+    <Box display="inline-block">
+      <Flex alignItems="center" justifyContent="center">
+        {items}
+      </Flex>
+    </Box>
+  );
 }

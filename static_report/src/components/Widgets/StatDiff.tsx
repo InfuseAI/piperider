@@ -61,7 +61,7 @@ export default function StatDiff({
   }
 
   return (
-    <Text fontWeight="bold" textAlign="right" fontSize="sm">
+    <Text>
       {statValueF}&nbsp;
       {statDiff ? (
         <Text as="span" color={diffColor}>

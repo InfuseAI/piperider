@@ -10,6 +10,7 @@ import {
   Icon,
   Tooltip,
   IconButton,
+  Flex,
 } from '@chakra-ui/react';
 import { FaSortAlphaDown, FaSortNumericDown } from 'react-icons/fa';
 import { Link } from 'wouter';
@@ -34,8 +35,8 @@ export function MetricList({
       <Table variant="simple">
         <Thead>
           <Tr>
-            <Th p={0}></Th>
-            <Th>
+            <Th p={0} width="30px"></Th>
+            <Th pl={0}>
               Name{' '}
               <Tooltip label={`sort by ${sortMethod} order`}>
                 <IconButton
@@ -56,7 +57,7 @@ export function MetricList({
             <Th>Queries</Th>
           </Tr>
         </Thead>
-        <Tbody>
+        <Tbody fontSize="sm">
           {tableColumnsOnly.map((tableColsEntry, i) => {
             const [key, { base, target }, metadata] = tableColsEntry;
             const fallback = base ?? target;
@@ -70,21 +71,23 @@ export function MetricList({
 
             return (
               <Tr>
-                <Td p={0}>{icon && <Icon color={color} as={icon} />}</Td>
-                <Td>
+                <Td p={0}>
+                  <Flex alignContent="center">
+                    {icon && <Icon color={color} as={icon} />}
+                  </Flex>
+                </Td>
+                <Td pl={0}>
                   <Link href={`/metrics/${fallback.unique_id}`}>
                     {fallback.name}
                   </Link>
                 </Td>
                 <Td>
                   {`${Object.keys(fallback?.__queries || {}).length}`}
-                  <Text as="span" fontSize="sm">
-                    <ChangeStatusWidget
-                      added={metadata.added}
-                      removed={metadata.deleted}
-                      modified={metadata.changed}
-                    />
-                  </Text>
+                  <ChangeStatusWidget
+                    added={metadata.added}
+                    removed={metadata.deleted}
+                    modified={metadata.changed}
+                  />
                 </Td>
               </Tr>
             );

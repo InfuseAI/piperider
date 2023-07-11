@@ -54,8 +54,8 @@ export function ModelList({
       <Table variant="simple">
         <Thead>
           <Tr>
-            <Th p={0}></Th>
-            <Th>
+            <Th p={0} width="30px"></Th>
+            <Th pl={0}>
               Name{' '}
               <Tooltip label={`sort by ${sortMethod} order`}>
                 <IconButton
@@ -80,7 +80,7 @@ export function ModelList({
               <Th isNumeric>Total Tests</Th> */}
           </Tr>
         </Thead>
-        <Tbody>
+        <Tbody fontSize="sm">
           {tableColumnsOnly.map((tableColsEntry, i) => {
             const [key, { base, target }, metadata] = tableColsEntry;
             const fallback = base ?? target;
@@ -94,8 +94,12 @@ export function ModelList({
 
             return (
               <Tr>
-                <Td p={0}>{icon && <Icon color={color} as={icon} />}</Td>
-                <Td>
+                <Td p={0}>
+                  <Flex alignContent="center">
+                    {icon && <Icon color={color} as={icon} />}
+                  </Flex>
+                </Td>
+                <Td pl={0}>
                   <Link
                     href={`/${fallback.resource_type}s/${fallback.unique_id}`}
                   >
@@ -104,18 +108,16 @@ export function ModelList({
                 </Td>
                 <Td>
                   {`${Object.keys(fallback?.columns || {}).length}`}
-                  <Text as="span" fontSize="sm">
-                    <ChangeStatusWidget
-                      added={metadata.added}
-                      removed={metadata.deleted}
-                      modified={metadata.changed}
-                    />
-                  </Text>
+                  <ChangeStatusWidget
+                    added={metadata.added}
+                    removed={metadata.deleted}
+                    modified={metadata.changed}
+                  />
                 </Td>
-                <Td>
+                <Td textAlign="right" fontSize="sm">
                   <StatDiff base={base} target={target} stat="row_count" />
                 </Td>
-                <Td>
+                <Td textAlign="right" fontSize="sm">
                   <StatDiff
                     base={base}
                     target={target}
