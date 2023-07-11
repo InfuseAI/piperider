@@ -1,0 +1,25 @@
+From 1937da51c2828890f74ed327719a3f3e925b41da Mon Sep 17 00:00:00 2001
+From: "Ching Yi, Chan" <qrtt1@infuseai.io>
+Date: Tue, 11 Jul 2023 15:52:04 +0800
+Subject: [PATCH] Add average_value_per_order to customers
+
+Signed-off-by: Ching Yi, Chan <qrtt1@infuseai.io>
+---
+ models/customers.sql | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/models/customers.sql b/models/customers.sql
+index 0b3d35d..c4b0655 100644
+--- a/models/customers.sql
++++ b/models/customers.sql
+@@ -55,6 +55,7 @@ final as (
+         customers.last_name,
+         customer_orders.first_order,
+         customer_orders.most_recent_order,
++        customer_payments.total_amount / customer_orders.number_of_orders as average_value_per_order,
+         customer_orders.number_of_orders,
+         customer_payments.total_amount as customer_lifetime_value
+ 
+-- 
+2.32.1 (Apple Git-133)
+

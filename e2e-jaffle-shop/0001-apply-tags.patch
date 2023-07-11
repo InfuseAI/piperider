@@ -1,0 +1,34 @@
+From 88439b5e99f95ff00ffb8f3f378f55452199b7c7 Mon Sep 17 00:00:00 2001
+From: "Ching Yi, Chan" <qrtt1@infuseai.io>
+Date: Tue, 11 Jul 2023 15:43:54 +0800
+Subject: [PATCH] apply tags
+
+Signed-off-by: Ching Yi, Chan <qrtt1@infuseai.io>
+---
+ models/customers.sql | 2 ++
+ models/orders.sql    | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/models/customers.sql b/models/customers.sql
+index 016a004..0b3d35d 100644
+--- a/models/customers.sql
++++ b/models/customers.sql
+@@ -1,3 +1,5 @@
++{{ config(tags=['piperider']) }}
++
+ with customers as (
+ 
+     select * from {{ ref('stg_customers') }}
+diff --git a/models/orders.sql b/models/orders.sql
+index cbb2934..5bdfd49 100644
+--- a/models/orders.sql
++++ b/models/orders.sql
+@@ -1,3 +1,5 @@
++{{ config(tags=['piperider']) }}
++
+ {% set payment_methods = ['credit_card', 'coupon', 'bank_transfer', 'gift_card'] %}
+ 
+ with orders as (
+-- 
+2.32.1 (Apple Git-133)
+
