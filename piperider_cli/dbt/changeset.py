@@ -391,6 +391,8 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                     pass
                 else:
                     if ref_id:
+                        if not ref_id.startswith("model."):
+                            continue
                         diffs.append(ref_id)
                     else:
                         resolved_id = self.resolve_unique_id(table_name, "model")
@@ -399,6 +401,8 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
             else:
                 if self.has_changed(b, t):
                     if ref_id:
+                        if not ref_id.startswith("model."):
+                            continue
                         diffs.append(ref_id)
                     else:
                         resolved_id = self.resolve_unique_id(table_name, "model")
