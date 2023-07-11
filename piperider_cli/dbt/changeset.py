@@ -545,7 +545,8 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                 0:00:00.16 $\color{green}{\text{ (↓ 0.05) }}$
                 """
                 text = r'%(value)s $\color{%(color)s}{\text{ (%(sign)s %(diff).2f) }}$'
-                return ChangeType.MODIFIED.display_changes(b, t, text, converter=LookUpTable.to_human_readable)
+                return ChangeType.MODIFIED.display_changes(b, t, text, converter=LookUpTable.to_human_readable,
+                                                           negative_change=True)
 
             return '-'
 
@@ -564,7 +565,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                 if b == t:
                     return f"{t}"
                 text = r'%(value)s ($\color{%(color)s}{\text{ (%(sign)s %(diff)s) }}$)'
-                return ChangeType.MODIFIED.display_changes(b, t, text)
+                return ChangeType.MODIFIED.display_changes(b, t, text, negative_change=True)
             return "-"
 
         def all_tests(c: ChangeUnit):
