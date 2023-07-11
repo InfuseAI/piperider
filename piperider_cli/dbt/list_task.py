@@ -172,7 +172,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def rename_relation(
-        self, from_relation: BaseRelation, to_relation: BaseRelation
+            self, from_relation: BaseRelation, to_relation: BaseRelation
     ) -> None:
         pass
 
@@ -183,7 +183,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def list_relations_without_caching(
-        self, schema_relation: BaseRelation
+            self, schema_relation: BaseRelation
     ) -> List[BaseRelation]:
         pass
 
@@ -271,6 +271,7 @@ def PrepareRuntimeConfig(target_path: str):
     setattr(flags, "models", None)
     setattr(flags, "INDIRECT_SELECTION", "eager")
     setattr(flags, "WARN_ERROR", False)
+    _configure_warn_error_options(flags)
     setattr(flags, "MACRO_DEBUGGING", False)
     setattr(flags, "PROFILES_DIR", profiles_dir)
     setattr(flags, "cls", ListTask)
@@ -287,6 +288,12 @@ def PrepareRuntimeConfig(target_path: str):
         return _get_v13_runtime_config(flags)
 
     raise NotImplementedError(f'dbt-core version: {v} is not supported')
+
+
+def _configure_warn_error_options(flags):
+    if is_ge_v1_4():
+        from dbt.helper_types import WarnErrorOptions
+        setattr(flags, "WARN_ERROR_OPTIONS", WarnErrorOptions([]))
 
 
 class _RuntimeConfig(RuntimeConfig):
@@ -379,6 +386,7 @@ class _DbtListTask(ListTask):
         setattr(self.args, "models", None)
         setattr(self.args, "INDIRECT_SELECTION", "eager")
         setattr(self.args, "WARN_ERROR", False)
+        _configure_warn_error_options(self.args)
         self.args.args = argparse.Namespace()
         self.args.args.cls = ListTask
 
@@ -502,9 +510,9 @@ def list_resources_unique_id_from_manifest(manifest: Manifest):
 
 
 def compare_models_between_manifests(
-    base_manifest: Manifest,
-    altered_manifest: Manifest,
-    include_downstream: bool = False,
+        base_manifest: Manifest,
+        altered_manifest: Manifest,
+        include_downstream: bool = False,
 ):
     task = _DbtListTask()
     task.manifest = altered_manifest
@@ -545,8 +553,8 @@ def compare_models_between_manifests(
 
 
 def list_modified_with_downstream(
-    base_manifest: Manifest,
-    altered_manifest: Manifest,
+        base_manifest: Manifest,
+        altered_manifest: Manifest,
 ):
     task = _DbtListTask()
     task.manifest = altered_manifest
@@ -584,8 +592,8 @@ def list_modified_with_downstream(
 
 
 def list_changes_in_unique_id(
-    base_manifest: Manifest,
-    target_manifest: Manifest, show_modified_only=False) -> List[Dict[str, str]]:
+        base_manifest: Manifest,
+        target_manifest: Manifest, show_modified_only=False) -> List[Dict[str, str]]:
     task = _DbtListTask()
     task.manifest = target_manifest
 
