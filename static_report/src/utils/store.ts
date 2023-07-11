@@ -249,7 +249,11 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
       changeStatus = 'implicit';
     }
 
-    if (impactedSet.has(nodeKey) || changeStatus === 'added') {
+    if (
+      impactedSet.has(nodeKey) ||
+      changeStatus === 'added' ||
+      changeStatus === 'removed'
+    ) {
       impacted = true;
     }
 

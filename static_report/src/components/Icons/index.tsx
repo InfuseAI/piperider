@@ -1,6 +1,8 @@
 import { AiOutlineFileText } from 'react-icons/ai';
 import { BiQuestionMark, BiText } from 'react-icons/bi';
 import { BsCalendarDate } from 'react-icons/bs';
+import { FaChartBar } from 'react-icons/fa';
+import { FiGrid } from 'react-icons/fi';
 import { TbCircleHalf } from 'react-icons/tb';
 import { TiSortNumerically } from 'react-icons/ti';
 import {
@@ -54,6 +56,25 @@ export function getIconForChangeStatus(changeStatus?: ChangeStatus): {
     return { color: '#ffc808', icon: IconModified };
   } else if (changeStatus === 'implicit') {
     return { color: '#fd6136', icon: IconImplicit };
+  } else {
+    return { color: 'inherit', icon: undefined };
+  }
+}
+
+export function getIconForResourceType(resourceType?: string): {
+  color: string;
+  icon: any; //IconType not provided
+} {
+  if (resourceType === 'model') {
+    return { color: '#c0eafd', icon: FiGrid };
+  } else if (resourceType === 'source' || resourceType === 'seed') {
+    return { color: '#a6dda6', icon: FiGrid };
+  } else if (
+    resourceType === 'metric' ||
+    resourceType === 'exposure' ||
+    resourceType === 'analysis'
+  ) {
+    return { color: 'rgb(255 230 238)', icon: FaChartBar };
   } else {
     return { color: 'inherit', icon: undefined };
   }

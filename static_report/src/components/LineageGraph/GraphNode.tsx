@@ -3,13 +3,11 @@ import { Box, Flex, Icon, VStack, Text, Tooltip } from '@chakra-ui/react';
 import { Handle, NodeProps, Position } from 'reactflow';
 import { useLocation } from 'wouter';
 import { LineageGraphNode } from '../../utils/dbt';
-import { FiGrid } from 'react-icons/fi';
 import { CSSProperties } from 'react';
 import { COLOR_HIGHLIGHT, COLOR_NOPROFILED, COLOR_UNCHANGED } from './style';
 import { getStatDiff } from './util';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
-import { FaChartBar } from 'react-icons/fa';
-import { getIconForChangeStatus } from '../Icons';
+import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
 
 interface GraphNodeProps extends NodeProps {
   data: LineageGraphNode;
@@ -24,23 +22,14 @@ export function GraphNode({ data }: GraphNodeProps) {
   let resourceType = data?.type;
   let isNoProfile = false;
 
-  // resource background color
-  let resourceColor: CSSProperties['color'] = 'inherit';
-  let resourceIcon = FiGrid;
+  const { color: resourceColor, icon: resourceIcon } =
+    getIconForResourceType(resourceType);
   if (
     resourceType === 'source' ||
     resourceType === 'seed' ||
     resourceType === 'model'
   ) {
-    resourceColor = '#c0eafd';
     isNoProfile = (data.target ?? data.base)?.__table?.row_count === undefined;
-  } else if (
-    resourceType === 'metric' ||
-    resourceType === 'exposure' ||
-    resourceType === 'analysis'
-  ) {
-    resourceColor = 'rgb(255 230 238)';
-    resourceIcon = FaChartBar;
   }
 
   // text color, icon
@@ -56,17 +45,13 @@ export function GraphNode({ data }: GraphNodeProps) {
     color = getIconForChangeStatus(changeStatus).color;
     if (changeStatus === 'added') {
       msgChangeStatus = 'added';
-      fontWeight = 600;
       borderStyle = 'dashed';
     } else if (changeStatus === 'modified') {
       msgChangeStatus = 'explict change';
-      fontWeight = 600;
     } else if (changeStatus === 'implicit') {
       msgChangeStatus = 'implicit change';
-      fontWeight = 600;
     } else if (changeStatus === 'removed') {
       msgChangeStatus = 'removed';
-      fontWeight = 600;
       borderStyle = 'dashed';
     } else if (isNoProfile) {
       color = COLOR_NOPROFILED;
@@ -77,7 +62,7 @@ export function GraphNode({ data }: GraphNodeProps) {
 
   // border width and color
   let borderWidth = 1;
-  let borderColor = 'black';
+  let borderColor = color;
   let backgroundColor = 'white';
   let boxShadow = 'unset';
 
@@ -179,7 +164,12 @@ export function GraphNode({ data }: GraphNodeProps) {
 
           {!singleOnly && stat && statValue !== undefined && (
             <Box width="100%">
-              <Text fontWeight="bold" textAlign="right" fontSize="sm">
+              <Text
+                fontWeight="bold"
+                textAlign="right"
+                fontSize="sm"
+                color={isActive ? 'white' : 'inherit'}
+              >
                 {statValueF}&nbsp;
                 {statDiff !== undefined && (
                   <Text
@@ -190,7 +180,7 @@ export function GraphNode({ data }: GraphNodeProps) {
                           ? 'white'
                           : 'red.500'
                         : isActive
-                        ? 'green.200'
+                        ? 'white'
                         : 'green.500'
                     }
                   >

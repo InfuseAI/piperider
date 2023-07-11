@@ -2,11 +2,15 @@ import { SidebarTreeItem } from '../../utils/dbt';
 import { useState } from 'react';
 import { List, ListItem, ListIcon, Text, Flex } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
-import { FaChartBar, FaFile, FaHome } from 'react-icons/fa';
-import { FiDatabase, FiFolder, FiGrid } from 'react-icons/fi';
+import { FaChartBar, FaHome } from 'react-icons/fa';
+import { FiDatabase, FiFolder } from 'react-icons/fi';
 import { FiChevronDown, FiChevronRight, FiCheckCircle } from 'react-icons/fi';
 import { Comparable } from '../../types';
-import { getIconForChangeStatus, getIconForColumnType } from '../Icons';
+import {
+  getIconForChangeStatus,
+  getIconForColumnType,
+  getIconForResourceType,
+} from '../Icons';
 
 interface Props extends Comparable {
   items?: SidebarTreeItem[];
@@ -79,36 +83,35 @@ export function SideBarTree({ items, singleOnly }: Props) {
       getIconForChangeStatus(changeStatus);
 
     let icon = FiFolder;
+
+    const resourceIcon = getIconForResourceType(type).icon;
+
+    if (resourceIcon) {
+      icon = resourceIcon;
+    } else if (type === 'database') {
+      icon = FiDatabase;
+    } else if (type === 'schema') {
+      icon = FiFolder;
+    } else if (type.startsWith('column_')) {
+      const columnType = type.slice('column_'.length);
+      icon = getIconForColumnType(columnType).icon;
+    } else if (type === 'metric_list') {
+      icon = FaChartBar;
+    } else if (type === 'test_list') {
+      icon = FiCheckCircle;
+    } else if (type === 'overview') {
+      icon = FaHome;
+    }
+
+    const isActive = item.path === location;
     if (
       type === 'model' ||
       type === 'table' ||
       type === 'source' ||
       type === 'seed'
     ) {
-      icon = FiGrid;
       isNoProfile = (item.items ?? []).length === 0;
-    } else if (type.startsWith('database')) {
-      icon = FiDatabase;
-    } else if (type.startsWith('schema')) {
-      icon = FiFolder;
-    } else if (type.startsWith('column_')) {
-      const columnType = type.slice('column_'.length);
-      icon = getIconForColumnType(columnType).icon;
-    } else if (
-      type === 'metric' ||
-      type === 'metric_list' ||
-      type === 'analysis'
-    ) {
-      icon = FaChartBar;
-    } else if (type === 'test_list') {
-      icon = FiCheckCircle;
-    } else if (type === 'exposure') {
-      icon = FaFile;
-    } else if (type === 'overview') {
-      icon = FaHome;
     }
-
-    const isActive = item.path === location;
 
     return (
       <ListItem key={name}>

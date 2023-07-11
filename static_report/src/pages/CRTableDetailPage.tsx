@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Divider,
   Flex,
   Grid,
@@ -187,7 +186,7 @@ export default function CRTableDetailPage() {
           infoTip={description}
         />
         <Spacer />
-        <Button
+        {/* <Button
           size="sm"
           bg="piperider.500"
           color="white"
@@ -199,7 +198,7 @@ export default function CRTableDetailPage() {
           }}
         >
           Show Dependencies
-        </Button>
+        </Button> */}
       </HStack>
 
       <ComparableGridHeader />

@@ -33,7 +33,7 @@ import { ModelList } from './ModelList';
 import { ChangeSummary } from './ChangeSummary';
 import { MetricList } from './MetricList';
 import { Comparable } from '../../types';
-import { getIconForChangeStatus } from '../Icons';
+import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
 
 function getMenuItemOption(name: string, changeStatus?: ChangeStatus) {
   const { icon, color } = getIconForChangeStatus(changeStatus);
@@ -198,6 +198,7 @@ function getTabItems(tableColumnsOnly: CompTableColEntryItem[]) {
   const tabItems: {
     resourceType: string;
     name: string;
+    icon: any;
     total: number;
     changed: number;
   }[] = [];
@@ -206,6 +207,7 @@ function getTabItems(tableColumnsOnly: CompTableColEntryItem[]) {
     tabItems.push({
       resourceType: 'model',
       name: 'Models',
+      icon: getIconForResourceType('model').icon,
       ...groupByResourceType['model'],
     });
   }
@@ -214,6 +216,7 @@ function getTabItems(tableColumnsOnly: CompTableColEntryItem[]) {
     tabItems.push({
       resourceType: 'seed',
       name: 'Seeds',
+      icon: getIconForResourceType('seed').icon,
       ...groupByResourceType['seed'],
     });
   }
@@ -222,6 +225,7 @@ function getTabItems(tableColumnsOnly: CompTableColEntryItem[]) {
     tabItems.push({
       resourceType: 'source',
       name: 'Sources',
+      icon: getIconForResourceType('source').icon,
       ...groupByResourceType['source'],
     });
   }
@@ -230,6 +234,7 @@ function getTabItems(tableColumnsOnly: CompTableColEntryItem[]) {
     tabItems.push({
       resourceType: 'metric',
       name: 'Metrics',
+      icon: getIconForResourceType('metric').icon,
       ...groupByResourceType['metric'],
     });
   }
@@ -354,6 +359,7 @@ export function Overview({ singleOnly }: Props) {
             {tabItems.map((tabItem) => {
               return (
                 <Tab>
+                  <Icon as={tabItem.icon} mr={1} />
                   {tabItem.name}
                   {!singleOnly && tabItem.changed > 0 && (
                     <Tag size="sm" bg="red.400" color="white" ml={2}>
