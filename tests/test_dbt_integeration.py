@@ -71,6 +71,12 @@ class _BaseDbtTest(TestCase):
     def target_31587_metrics(self):
         return self.run_object("sc-31587-metrics-input.json")
 
+    def base_31782(self):
+        return self.run_object("sc-31782-base.json")
+
+    def target_31782(self):
+        return self.run_object("sc-31782-target.json")
+
 
 class TestDbtIntegration(_BaseDbtTest):
     def setUp(self):
@@ -234,3 +240,22 @@ class TestDbtIntegration(_BaseDbtTest):
 
         changes = c.list_implicit_changes()
         self.assertListEqual(c.list_implicit_changes(), ['metric.jaffle_shop.average_order_amount'])
+
+    @unittest.skipIf(dbt_version_obj() < version.parse('1.4'),
+                     'this only works after manifests generated after the v1.4')
+    def test_list_large_seeds_case(self):
+        try:
+            c = GraphDataChangeSet(self.base_31782(), self.target_31782())
+        except Exception as e:
+            self.fail("Unexpected Exception")
+
+        expected = ['metric.jaffle_shop.expenses',
+                    'model.jaffle_shop.stg_payments',
+                    'test.jaffle_shop.accepted_values_stg_payments_payment_method__credit_card__coupon__bank_transfer__gift_card.3c3820f278',
+                    'test.jaffle_shop.not_null_stg_payments_payment_id.c19cc50075',
+                    'test.jaffle_shop.unique_stg_payments_payment_id.3744510712']
+
+        changes = c.list_explicit_changes()
+        self.assertListEqual(changes, expected)
+        changes = c.list_implicit_changes()
+        self.assertListEqual(changes, ['metric.jaffle_shop.profit'])
