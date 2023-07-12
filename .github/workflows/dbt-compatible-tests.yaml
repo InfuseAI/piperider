@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+      - bug/sc-31782/disable-warn-to-exception
 
 
 jobs:
