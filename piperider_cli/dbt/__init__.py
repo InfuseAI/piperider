@@ -10,7 +10,7 @@ def disable_dbt_compile_stats():
         def __exit__(self, exc_type, exc_val, exc_tb):
             compilation.print_compile_stats = self.original_print_compile_stats
 
-    import dbt.events.eventmgr as mgr
-    mgr.cleanup_event_logger()
+    from dbt.events.functions import cleanup_event_logger
+    cleanup_event_logger()
 
     return context_class()
