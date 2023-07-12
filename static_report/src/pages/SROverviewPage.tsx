@@ -1,6 +1,8 @@
 import { useTrackOnMount } from '../hooks';
 import { EVENTS, SR_TYPE_LABEL } from '../utils/trackEvents';
 import { Overview } from '../components/Overview/Overview';
+import { useReportStore } from '../utils/store';
+import { SRTablesListPage } from './SRTablesListPage';
 
 export function SROverviewPage() {
   useTrackOnMount({
@@ -11,5 +13,7 @@ export function SROverviewPage() {
     },
   });
 
-  return <Overview singleOnly />;
+  const { isLegacy } = useReportStore.getState();
+
+  return isLegacy ? <SRTablesListPage /> : <Overview singleOnly />;
 }

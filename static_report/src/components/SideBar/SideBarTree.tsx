@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { List, ListItem, ListIcon, Text, Flex } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { FaChartBar, FaHome } from 'react-icons/fa';
-import { FiDatabase, FiFolder } from 'react-icons/fi';
+import { FiDatabase, FiFolder, FiGrid } from 'react-icons/fi';
 import { FiChevronDown, FiChevronRight, FiCheckCircle } from 'react-icons/fi';
 import { Comparable } from '../../types';
 import {
@@ -92,6 +92,8 @@ export function SideBarTree({ items, singleOnly }: Props) {
       icon = FiDatabase;
     } else if (type === 'schema') {
       icon = FiFolder;
+    } else if (type === 'table') {
+      icon = FiGrid;
     } else if (type.startsWith('column_')) {
       const columnType = type.slice('column_'.length);
       icon = getIconForColumnType(columnType).icon;
