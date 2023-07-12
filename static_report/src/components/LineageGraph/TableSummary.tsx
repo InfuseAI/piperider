@@ -18,13 +18,7 @@ import {
   Tr,
   VStack,
 } from '@chakra-ui/react';
-import {
-  ColumnSchema,
-  Comparable,
-  NO_VALUE,
-  getIconForColumnType,
-  useReportStore,
-} from '../../lib';
+import { ColumnSchema, Comparable, NO_VALUE, useReportStore } from '../../lib';
 import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
 import { useTableRoute } from '../../utils/routes';
 import {
@@ -36,6 +30,7 @@ import { useState } from 'react';
 import { getStatDiff } from './util';
 import { compareColumn } from '../../utils/dbt';
 import { COLOR_ADDED, COLOR_CHANGED, COLOR_REMOVED } from './style';
+import { getIconForColumnType } from '../Icons';
 
 interface Props extends Comparable {
   isOpen: boolean;

@@ -6,12 +6,6 @@ import {
   NULL_VAL_COLOR,
   INFO_VAL_COLOR,
 } from './../../utils/theme';
-import { AiOutlineFileText } from 'react-icons/ai';
-import { BiText, BiQuestionMark } from 'react-icons/bi';
-import { BsCalendarDate } from 'react-icons/bs';
-import { TbCircleHalf } from 'react-icons/tb';
-import { TiSortNumerically } from 'react-icons/ti';
-import { VscSymbolOperator } from 'react-icons/vsc';
 import { ColumnSchema } from '../../sdlc';
 import {
   formatAsAbbreviatedNumber,
@@ -121,36 +115,6 @@ export function transformCompositionAsFlatStackInput(
     ratios: [valids_p, ...invalidNullRatios].map(zeroAsFallbackHandler),
     colors: [INFO_VAL_COLOR, ...invalidNullColors],
   };
-}
-
-/**
- * Retrieves the color and icon component for the column's generic type. Will default to question mark icon when type doesn't match
- * @param columnDatum
- * @returns
- */
-export function getIconForColumnType(type?: string): {
-  backgroundColor: string;
-  icon: any; //IconType not provided
-} {
-  if (type === 'integer') {
-    return { backgroundColor: 'orange.500', icon: TiSortNumerically };
-  }
-  if (type === 'string') {
-    return { backgroundColor: 'blue.500', icon: BiText };
-  }
-  if (type === 'numeric') {
-    return { backgroundColor: 'red.500', icon: VscSymbolOperator };
-  }
-  if (type === 'datetime') {
-    return { backgroundColor: 'teal.500', icon: BsCalendarDate };
-  }
-  if (type === 'boolean') {
-    return { backgroundColor: 'pink.500', icon: TbCircleHalf };
-  }
-  if (type === 'other') {
-    return { backgroundColor: 'limegreen', icon: AiOutlineFileText };
-  }
-  return { backgroundColor: 'gray.500', icon: BiQuestionMark };
 }
 
 export type MetricNameMetakeyList = [MetricMetaKeys, string][];

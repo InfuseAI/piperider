@@ -16,9 +16,9 @@ import {
   useReportStore,
 } from '../../../utils/store';
 import { NO_DESCRIPTION_MSG } from '../../Common/constant';
-import { getIconForColumnType } from '../../Columns';
 import { ColumnBadge } from './ColumnBadge';
 import { useLocation } from 'wouter';
+import { getIconForColumnType } from '../../Icons';
 
 interface Props extends Comparable {
   combinedTableEntry?: CompTableColEntryItem;

@@ -3,6 +3,8 @@ import {
   Divider,
   Flex,
   Grid,
+  HStack,
+  Spacer,
   Table,
   TableContainer,
   Tbody,
@@ -176,12 +178,28 @@ export default function CRTableDetailPage() {
 
   return (
     <Box>
-      <TableColumnHeader
-        title={name}
-        subtitle={'Table'}
-        mb={5}
-        infoTip={description}
-      />
+      <HStack alignItems="flex-start">
+        <TableColumnHeader
+          title={name}
+          subtitle={'Table'}
+          mb={5}
+          infoTip={description}
+        />
+        <Spacer />
+        {/* <Button
+          size="sm"
+          bg="piperider.500"
+          color="white"
+          _hover={{
+            bg: 'piperider.600',
+          }}
+          _active={{
+            bg: 'piperider.800',
+          }}
+        >
+          Show Dependencies
+        </Button> */}
+      </HStack>
 
       <ComparableGridHeader />
       <ComparisonContent>

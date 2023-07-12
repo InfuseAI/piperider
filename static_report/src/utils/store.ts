@@ -19,15 +19,25 @@ import {
   buildLineageGraph,
   buildProjectTree,
 } from './dbt';
+import { getDownstreamSet } from './graph';
+import { DbtManifestSchema } from '../sdlc/dbt-manifest-schema';
 
 export type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
-export type ChangeStatus = 'changed' | 'added' | 'removed' | 'implicit' | null;
+export type ChangeStatus = 'modified' | 'added' | 'removed' | 'implicit' | null;
 type ComparableMetadata = {
-  added?: number;
-  deleted?: number;
-  changed?: number;
-  mismatched?: boolean;
+  /**
+   * Dbt node
+   */
+  added?: number; // count of added columns
+  deleted?: number; // count of deleted columns
+  changed?: number; // count of changed columns
+  impacted?: boolean; // is the explicit changes or their downstreams
   changeStatus?: ChangeStatus;
+
+  /**
+   * Column
+   */
+  mismatched?: boolean; // the column is mismatched
 };
 type EntryItem<T> = [string, T, ComparableMetadata];
 export type CompColEntryItem = EntryItem<ComparableData<Partial<ColumnSchema>>>;
@@ -58,6 +68,14 @@ export interface ReportState {
    */
   projectTree?: SidebarTreeItem[];
   databaseTree?: SidebarTreeItem[];
+
+  /**
+   * Change sets
+   */
+  explicit?: Set<string>;
+  impacted?: Set<string>;
+  implicit?: Set<string>;
+
   /**
    * Lineage graph
    */
@@ -160,8 +178,20 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
   const baseNodes = buildDbtNodes(rawData?.base) ?? {};
   const targetNodes = buildDbtNodes(rawData?.input) ?? {};
   const nodeKeys = mergeKeys(Object.keys(baseNodes), Object.keys(targetNodes));
-  const implicit = rawData?.implicit ? new Set(rawData?.implicit) : new Set();
-  const explicit = rawData?.explicit ? new Set(rawData?.explicit) : new Set();
+  const implicitSet = rawData?.implicit
+    ? new Set(rawData?.implicit)
+    : new Set();
+  const explicitSet = rawData?.explicit
+    ? new Set(rawData?.explicit)
+    : new Set();
+  const impactedSet = rawData?.explicit
+    ? getDownstreamSet(rawData?.explicit, (uniqueId) => {
+        const manifest = rawData?.input?.dbt?.manifest as
+          | DbtManifestSchema
+          | undefined;
+        return manifest?.child_map?.[uniqueId] ?? [];
+      })
+    : new Set();
 
   return nodeKeys.map((nodeKey) => {
     const base = baseNodes[nodeKey];
@@ -176,6 +206,7 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
     let deleted = 0;
     let changed = 0;
     let changeStatus: ComparableMetadata['changeStatus'] = null;
+    let impacted = false;
 
     const columns: CompColEntryItem[] = [];
     keys.forEach((key) => {
@@ -212,15 +243,24 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
       changeStatus = 'added';
     } else if (!target) {
       changeStatus = 'removed';
-    } else if (explicit.has(`${nodeKey}`)) {
-      changeStatus = 'changed';
-    } else if (implicit.has(`${nodeKey}`)) {
+    } else if (explicitSet.has(`${nodeKey}`)) {
+      changeStatus = 'modified';
+    } else if (implicitSet.has(`${nodeKey}`)) {
       changeStatus = 'implicit';
     }
+
+    if (
+      impactedSet.has(nodeKey) ||
+      changeStatus === 'added' ||
+      changeStatus === 'removed'
+    ) {
+      impacted = true;
+    }
+
     return [
       nodeKey,
       { base, target },
-      { added, deleted, changed, changeStatus },
+      { added, deleted, changed, changeStatus, impacted },
     ] as CompTableColEntryItem;
   });
 };

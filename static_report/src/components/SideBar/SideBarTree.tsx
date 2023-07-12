@@ -1,14 +1,16 @@
 import { SidebarTreeItem } from '../../utils/dbt';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { List, ListItem, ListIcon, Text, Flex } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
-import { FaChartBar, FaFile, FaHome } from 'react-icons/fa';
-import { getIconForColumnType } from '..';
+import { FaChartBar, FaHome } from 'react-icons/fa';
 import { FiDatabase, FiFolder, FiGrid } from 'react-icons/fi';
 import { FiChevronDown, FiChevronRight, FiCheckCircle } from 'react-icons/fi';
-import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
 import { Comparable } from '../../types';
-import { IconImplicit } from '../Icons';
+import {
+  getIconForChangeStatus,
+  getIconForColumnType,
+  getIconForResourceType,
+} from '../Icons';
 
 interface Props extends Comparable {
   items?: SidebarTreeItem[];
@@ -58,58 +60,60 @@ export function SideBarTree({ items, singleOnly }: Props) {
     const isExpanded = !!item.expanded;
     const isExpandable = items && items.length > 0;
     const iconChevron = isExpanded ? FiChevronDown : FiChevronRight;
-    let iconChangeStatus;
+
     let changeStatus = item.changeStatus;
     let isNoProfile = false;
 
-    if (changeStatus === 'added') {
-      iconChangeStatus = VscDiffAdded;
-    } else if (changeStatus === 'removed') {
-      iconChangeStatus = VscDiffRemoved;
-    } else if (changeStatus === 'changed') {
-      iconChangeStatus = VscDiffModified;
-    } else if (changeStatus === 'implicit') {
-      iconChangeStatus = IconImplicit;
-    }
+    // if (changeStatus === 'added') {
+    //   iconChangeStatus = VscDiffAdded;
+    // } else if (changeStatus === 'removed') {
+    //   iconChangeStatus = VscDiffRemoved;
+    // } else if (changeStatus === 'modified') {
+    //   iconChangeStatus = VscDiffModified;
+    // } else if (changeStatus === 'implicit') {
+    //   iconChangeStatus = IconImplicit;
+    // }
 
     if (!isExpanded && !changeStatus && isChildrenChanged(item)) {
       // If the item is not expanded and has children that are changed, then
       // we want to show the changed icon.
-      changeStatus = 'changed';
-      iconChangeStatus = VscDiffModified;
+      changeStatus = 'modified';
     }
+    const { icon: iconChangeStatus, color: colorChangeStatus } =
+      getIconForChangeStatus(changeStatus);
 
     let icon = FiFolder;
+
+    const resourceIcon = getIconForResourceType(type).icon;
+
+    if (resourceIcon) {
+      icon = resourceIcon;
+    } else if (type === 'database') {
+      icon = FiDatabase;
+    } else if (type === 'schema') {
+      icon = FiFolder;
+    } else if (type === 'table') {
+      icon = FiGrid;
+    } else if (type.startsWith('column_')) {
+      const columnType = type.slice('column_'.length);
+      icon = getIconForColumnType(columnType).icon;
+    } else if (type === 'metric_list') {
+      icon = FaChartBar;
+    } else if (type === 'test_list') {
+      icon = FiCheckCircle;
+    } else if (type === 'overview') {
+      icon = FaHome;
+    }
+
+    const isActive = item.path === location;
     if (
       type === 'model' ||
       type === 'table' ||
       type === 'source' ||
       type === 'seed'
     ) {
-      icon = FiGrid;
       isNoProfile = (item.items ?? []).length === 0;
-    } else if (type.startsWith('database')) {
-      icon = FiDatabase;
-    } else if (type.startsWith('schema')) {
-      icon = FiFolder;
-    } else if (type.startsWith('column_')) {
-      const columnType = type.slice('column_'.length);
-      icon = getIconForColumnType(columnType).icon;
-    } else if (
-      type === 'metric' ||
-      type === 'metric_list' ||
-      type === 'analysis'
-    ) {
-      icon = FaChartBar;
-    } else if (type === 'test_list') {
-      icon = FiCheckCircle;
-    } else if (type === 'exposure') {
-      icon = FaFile;
-    } else if (type === 'overview') {
-      icon = FaHome;
     }
-
-    const isActive = item.path === location;
 
     return (
       <ListItem key={name}>
@@ -132,7 +136,12 @@ export function SideBarTree({ items, singleOnly }: Props) {
           />
           <ListIcon as={icon} mr={1} />
           <Text flex={1}>{name}</Text>
-          {!singleOnly && changeStatus && <ListIcon as={iconChangeStatus} />}
+          {!singleOnly && changeStatus && (
+            <ListIcon
+              as={iconChangeStatus}
+              color={isActive ? 'white' : colorChangeStatus}
+            />
+          )}
         </Flex>
         {isExpanded && items && items.length > 0 && (
           <List ml={4} spacing={1} my={1}>

@@ -496,14 +496,19 @@ export function buildProjectTree(
   if (isLegacy) {
     return [overview, table, metric, assertion];
   } else {
-    return [overview, source, seed, model, metric, assertion];
+    return [overview, model, source, seed, metric, assertion];
   }
 }
 
 export function buildDatabaseTree(
   itemsNodeComparison: CompTableColEntryItem[],
 ): SidebarTreeItem[] {
-  let items: SidebarTreeItem[] = [];
+  const overview: SidebarTreeItem = {
+    name: 'Overview',
+    type: 'overview',
+    path: HOME_ROUTE_PATH,
+  };
+  let items: SidebarTreeItem[] = [overview];
   const treeNodes: DbtNode[] = [];
   const changeStatuses: { [key: string]: ChangeStatus | undefined } = {};
 

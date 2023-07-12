@@ -4,10 +4,15 @@ import { InputGroup, InputLeftElement, Input } from '@chakra-ui/react';
 interface Props {
   onChange: (search: string) => void;
   filterString?: string;
+  placeholder?: string;
 }
-export function SearchTextInput({ onChange, filterString }: Props) {
+export function SearchTextInput({
+  onChange,
+  filterString,
+  placeholder,
+}: Props) {
   return (
-    <InputGroup my={2}>
+    <InputGroup>
       <InputLeftElement
         pointerEvents={'none'}
         children={<SearchIcon color={'gray.300'} />}
@@ -16,7 +21,7 @@ export function SearchTextInput({ onChange, filterString }: Props) {
         bg={'white'}
         color={'black'}
         type={'text'}
-        placeholder="Search Column"
+        placeholder={placeholder ?? 'Search Column'}
         value={filterString}
         onChange={({ target }) => onChange(target.value)}
       />

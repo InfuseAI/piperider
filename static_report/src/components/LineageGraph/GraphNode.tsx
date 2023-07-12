@@ -1,23 +1,12 @@
 import { Box, Flex, Icon, VStack, Text, Tooltip } from '@chakra-ui/react';
-import { VscDiffAdded, VscDiffModified, VscDiffRemoved } from 'react-icons/vsc';
 
 import { Handle, NodeProps, Position } from 'reactflow';
 import { useLocation } from 'wouter';
 import { LineageGraphNode } from '../../utils/dbt';
-import { FiGrid } from 'react-icons/fi';
 import { CSSProperties } from 'react';
-import {
-  COLOR_ADDED,
-  COLOR_CHANGED,
-  COLOR_HIGHLIGHT,
-  COLOR_NOPROFILED,
-  COLOR_REMOVED,
-  COLOR_UNCHANGED,
-} from './style';
-import { getStatDiff } from './util';
-import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
-import { FaChartBar } from 'react-icons/fa';
-import { IconImplicit } from '../Icons';
+import { COLOR_HIGHLIGHT, COLOR_NOPROFILED, COLOR_UNCHANGED } from './style';
+import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
+import { dbtNodeStatDiff, StatDiff } from '../Widgets/StatDiff';
 
 interface GraphNodeProps extends NodeProps {
   data: LineageGraphNode;
@@ -32,58 +21,36 @@ export function GraphNode({ data }: GraphNodeProps) {
   let resourceType = data?.type;
   let isNoProfile = false;
 
-  // resource background color
-  let resourceColor: CSSProperties['color'] = 'inherit';
-  let resourceIcon = FiGrid;
+  const { color: resourceColor, icon: resourceIcon } =
+    getIconForResourceType(resourceType);
   if (
     resourceType === 'source' ||
     resourceType === 'seed' ||
     resourceType === 'model'
   ) {
-    resourceColor = '#c0eafd';
     isNoProfile = (data.target ?? data.base)?.__table?.row_count === undefined;
-  } else if (
-    resourceType === 'metric' ||
-    resourceType === 'exposure' ||
-    resourceType === 'analysis'
-  ) {
-    resourceColor = 'rgb(255 230 238)';
-    resourceIcon = FaChartBar;
   }
 
   // text color, icon
-  let iconChangeStatus;
+
   let msgChangeStatus;
   let changeStatus = data.changeStatus;
   let color = 'inherit';
+  let iconChangeStatus;
   let fontWeight: CSSProperties['fontWeight'] = 'inherit';
   let borderStyle = 'solid';
   if (!singleOnly) {
+    iconChangeStatus = getIconForChangeStatus(changeStatus).icon;
+    color = getIconForChangeStatus(changeStatus).color;
     if (changeStatus === 'added') {
-      iconChangeStatus = VscDiffAdded;
       msgChangeStatus = 'added';
-      color = '#1a7f37';
-      color = COLOR_ADDED;
-      fontWeight = 600;
       borderStyle = 'dashed';
-    } else if (changeStatus === 'changed') {
-      iconChangeStatus = VscDiffModified;
+    } else if (changeStatus === 'modified') {
       msgChangeStatus = 'explict change';
-      color = '#9a6700';
-      color = COLOR_CHANGED;
-      fontWeight = 600;
     } else if (changeStatus === 'implicit') {
-      iconChangeStatus = IconImplicit;
       msgChangeStatus = 'implicit change';
-      color = '#9a6700';
-      color = COLOR_CHANGED;
-      fontWeight = 600;
     } else if (changeStatus === 'removed') {
-      iconChangeStatus = VscDiffRemoved;
       msgChangeStatus = 'removed';
-      color = COLOR_REMOVED;
-      color = '#cf222e';
-      fontWeight = 600;
       borderStyle = 'dashed';
     } else if (isNoProfile) {
       color = COLOR_NOPROFILED;
@@ -111,25 +78,11 @@ export function GraphNode({ data }: GraphNodeProps) {
   }
 
   const name = data?.name;
-
-  let statResult: ReturnType<typeof getStatDiff> = {};
-  if (stat === 'execution_time') {
-    statResult = getStatDiff(
-      data?.base?.__runResult,
-      data?.target?.__runResult,
-      'execution_time',
-      'duration',
-    );
-  } else if (stat === 'row_count') {
-    statResult = getStatDiff(
-      data?.base?.__table,
-      data?.target?.__table,
-      'row_count',
-      'decimal',
-    );
-  }
-
-  const { statValue, statValueF, statDiff, statDiffF } = statResult;
+  const { statValue, statValueF } = dbtNodeStatDiff({
+    base: data?.base,
+    target: data?.target,
+    stat: stat as any,
+  });
   return (
     <>
       <Flex
@@ -156,7 +109,7 @@ export function GraphNode({ data }: GraphNodeProps) {
           </Flex>
         </Tooltip>
 
-        <VStack flex="1 0 auto" mx="1" color={color} width="100px">
+        <VStack flex="1 0 auto" mx="1" width="100px">
           <Flex
             width="100%"
             textAlign="left"
@@ -170,6 +123,7 @@ export function GraphNode({ data }: GraphNodeProps) {
               overflow="hidden"
               textOverflow="ellipsis"
               whiteSpace="nowrap"
+              color={isActive ? 'white' : 'inherit'}
             >
               <Tooltip label={name}>{name}</Tooltip>
             </Box>
@@ -195,25 +149,17 @@ export function GraphNode({ data }: GraphNodeProps) {
 
           {!singleOnly && stat && statValue !== undefined && (
             <Box width="100%">
-              <Text fontWeight="bold" textAlign="right" fontSize="sm">
-                {statValueF}&nbsp;
-                {statDiff !== undefined && (
-                  <Text
-                    as="span"
-                    color={
-                      statDiff < 0
-                        ? isActive
-                          ? 'white'
-                          : 'red.500'
-                        : isActive
-                        ? 'green.200'
-                        : 'green.500'
-                    }
-                  >
-                    {statDiff < 0 ? <TriangleDownIcon /> : <TriangleUpIcon />}
-                    {statDiffF}
-                  </Text>
-                )}
+              <Text
+                textAlign="right"
+                fontSize="sm"
+                color={isActive ? 'white' : 'inherit'}
+              >
+                <StatDiff
+                  base={data?.base}
+                  target={data?.target}
+                  stat={stat as any}
+                  isActive={isActive}
+                />
               </Text>
             </Box>
           )}
