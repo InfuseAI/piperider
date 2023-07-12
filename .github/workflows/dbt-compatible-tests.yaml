@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-      - bug/sc-31782/disable-warn-to-exception-clean-logger
   pull_request:
     branches:
       - main
-      - bug/sc-31782/disable-warn-to-exception
 
 
 jobs:
