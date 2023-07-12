@@ -287,9 +287,6 @@ export function Overview({ singleOnly }: Props) {
   const listed = sorted.filter((tableColsEntry) => {
     const [, { base, target }, metadata] = tableColsEntry;
     const fallback = base ?? target;
-    if (singleOnly) {
-      return true;
-    }
 
     if (!fallback) {
       return false;
@@ -300,37 +297,40 @@ export function Overview({ singleOnly }: Props) {
       }
     }
 
-    if (
-      !filterOptions.changeStatus.has('noChange') &&
-      metadata.changeStatus === null
-    ) {
-      return false;
+    if (!singleOnly) {
+      if (
+        !filterOptions.changeStatus.has('noChange') &&
+        metadata.changeStatus === null
+      ) {
+        return false;
+      }
+
+      if (
+        !filterOptions.changeStatus.has('added') &&
+        metadata.changeStatus === 'added'
+      ) {
+        return false;
+      }
+      if (
+        !filterOptions.changeStatus.has('removed') &&
+        metadata.changeStatus === 'removed'
+      ) {
+        return false;
+      }
+      if (
+        !filterOptions.changeStatus.has('modified') &&
+        metadata.changeStatus === 'modified'
+      ) {
+        return false;
+      }
+      if (
+        !filterOptions.changeStatus.has('implicit') &&
+        metadata.changeStatus === 'implicit'
+      ) {
+        return false;
+      }
     }
 
-    if (
-      !filterOptions.changeStatus.has('added') &&
-      metadata.changeStatus === 'added'
-    ) {
-      return false;
-    }
-    if (
-      !filterOptions.changeStatus.has('removed') &&
-      metadata.changeStatus === 'removed'
-    ) {
-      return false;
-    }
-    if (
-      !filterOptions.changeStatus.has('modified') &&
-      metadata.changeStatus === 'modified'
-    ) {
-      return false;
-    }
-    if (
-      !filterOptions.changeStatus.has('implicit') &&
-      metadata.changeStatus === 'implicit'
-    ) {
-      return false;
-    }
     return true;
   });
 
