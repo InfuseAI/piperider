@@ -118,7 +118,7 @@ function SelectMenu({
         <MenuDivider />
         <MenuOptionGroup
           type="checkbox"
-          value={[...changeStatus]}
+          value={[...Array.from(changeStatus)]}
           onChange={(value) => {
             setFilterOptions({
               ...filterOptions,
@@ -244,7 +244,7 @@ function getTabItems(tableColumnsOnly: CompTableColEntryItem[]) {
 
 type FilterOptions = {
   search?: string;
-  changeStatus: Set<'added' | 'removed' | 'modified' | 'implicit' | 'noChange'>;
+  changeStatus: Set<string>;
 };
 
 const defaultFilterOptions: FilterOptions = {
