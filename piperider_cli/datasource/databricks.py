@@ -43,7 +43,7 @@ class DataBricksDataSource(DataSource):
         return f"type={self.type_name}, database={cred.get('schema')}, schema={cred.get('schema')}"
 
     def get_database(self):
-        return self.credential.get('schema')
+        return None
 
     def get_schema(self):
         return self.credential.get('schema')
