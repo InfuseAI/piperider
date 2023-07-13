@@ -68,6 +68,9 @@ setup(name='piperider',
           'athena': [
               'PyAthena[SQLAlchemy]'
           ],
+          'databricks': [
+              'databricks-sql-connector'
+          ],
           'duckdb': duckdb_require_packages,
           'csv': duckdb_require_packages,
           'parquet': duckdb_require_packages,
