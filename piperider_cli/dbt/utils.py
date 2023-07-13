@@ -172,10 +172,13 @@ class ChangeType(Enum):
             return ""
         return f"""<img src="{url}" width="16px">"""
 
-    def display_changes(self, b, t, format_text: str, *, converter: Callable = None):
+    def display_changes(self, b, t, format_text: str, *, converter: Callable = None, negative_change: bool = False):
         if self != self.MODIFIED:
             raise ValueError("Only modified type has display for changes")
-        color = "green" if t > b else "red"
+        if negative_change:
+            color = "red" if t > b else "green"
+        else:
+            color = "green" if t > b else "red"
         sign = "↑" if t > b else "↓"
         diff = t - b
         if math.isnan(diff):
