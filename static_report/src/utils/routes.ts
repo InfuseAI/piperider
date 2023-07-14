@@ -1,5 +1,4 @@
-import { useRoute, Path } from 'wouter';
-import { Match } from 'wouter/types/matcher';
+import { useRoute } from 'wouter';
 
 export const HOME_ROUTE_PATH = '/';
 export const TABLE_LIST_ROUTE_PATH = '/tables';
@@ -29,47 +28,17 @@ export const METRIC_DETAILS_ROUTE_PATH = '/metrics/:uniqueId';
  */
 export const SSR_ROUTE_PATH = `/ssr`;
 
-export function useRouteWithQueryParams<RoutePath extends Path = Path>(
-  pattern: RoutePath,
-): Match {
-  const [match, params] = useRoute(pattern);
-  if (match) {
-    const newParams = {};
-    Object.entries(params).forEach(([key, value]) => {
-      if (value?.includes('?')) {
-        const [originalValue, searchParams] = value.split('?');
-        newParams[key] = originalValue;
-        newParams['params'] = searchParams;
-      } else {
-        newParams[key] = value;
-      }
-    });
-    return [true, newParams];
-  }
-  return [false, null];
-}
-
 export function useTableRoute(): {
   readonly tableName?: string;
   readonly uniqueId?: string;
   readonly columnName?: string;
   readonly params?: string;
 } {
-  const [matchTable, paramsTable] = useRouteWithQueryParams(
-    TABLE_DETAILS_ROUTE_PATH,
-  );
-  const [matchModel, paramsModel] = useRouteWithQueryParams(
-    MODEL_DETAILS_ROUTE_PATH,
-  );
-  const [matchSource, paramsSource] = useRouteWithQueryParams(
-    SOURCE_DETAILS_ROUTE_PATH,
-  );
-  const [matchSeed, paramsSeed] = useRouteWithQueryParams(
-    SEED_DETAILS_ROUTE_PATH,
-  );
-  const [matchMetric, paramsMetric] = useRouteWithQueryParams(
-    METRIC_DETAILS_ROUTE_PATH,
-  );
+  const [matchTable, paramsTable] = useRoute(TABLE_DETAILS_ROUTE_PATH);
+  const [matchModel, paramsModel] = useRoute(MODEL_DETAILS_ROUTE_PATH);
+  const [matchSource, paramsSource] = useRoute(SOURCE_DETAILS_ROUTE_PATH);
+  const [matchSeed, paramsSeed] = useRoute(SEED_DETAILS_ROUTE_PATH);
+  const [matchMetric, paramsMetric] = useRoute(METRIC_DETAILS_ROUTE_PATH);
 
   if (matchTable) {
     return paramsTable;

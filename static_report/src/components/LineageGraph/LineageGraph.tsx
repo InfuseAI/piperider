@@ -1,7 +1,7 @@
 import { useReportStore } from '../../utils/store';
 import { Comparable } from '../../types';
 
-import { useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import ReactFlow, {
   Controls,
   MiniMap,
@@ -46,6 +46,7 @@ import {
 } from './graph';
 import { useTrackOnMount } from '../../hooks/useTrackOnMount';
 import { CR_TYPE_LABEL, EVENTS, SR_TYPE_LABEL } from '../../utils/trackEvents';
+import { useHashParams } from '../../hooks';
 
 const nodeTypes = {
   customNode: GraphNode,
@@ -64,14 +65,33 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   let { uniqueId } = useTableRoute();
-  const [, setLocation] = useLocation();
-  const [filterBy, setFilterBy] = useState<FilterBy>(
-    singleOnly ? undefined : 'changed',
-  );
+  const [location, setLocation] = useLocation();
+  const hashParams = useHashParams();
+
   const [selected, setSelected] = useState<string | undefined>(uniqueId);
   const [layoutAlgorithm, setLayoutAlgorithm] = useState('dagre');
-  const [stat, setStat] = useState('');
   const [groupBy, setGroupBy] = useState('');
+
+  const stat = hashParams.get('g_stat') || '';
+  const setStat = useCallback(
+    (stat: string) => {
+      hashParams.set('g_stat', stat);
+      setLocation(`${location}?${hashParams}`);
+    },
+    [hashParams, location, setLocation],
+  );
+  const filterBy: FilterBy = hashParams.has('g_filter_by')
+    ? (hashParams.get('g_filter_by') as FilterBy)
+    : singleOnly
+    ? 'all'
+    : 'changed';
+  const setFilterBy = useCallback(
+    (filterBy: string) => {
+      hashParams.set('g_filter_by', filterBy);
+      setLocation(`${location}?${hashParams}`);
+    },
+    [hashParams, location, setLocation],
+  );
 
   useTrackOnMount({
     eventName: EVENTS.PAGE_VIEW,
@@ -85,7 +105,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
     (event: React.MouseEvent, node: Node) => {
       const item = node.data as LineageGraphNode;
       if (item?.path) {
-        setLocation(item?.path || '');
+        setLocation(`${item?.path || ''}?${hashParams}`);
       }
 
       if (
@@ -102,7 +122,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
       }
     },
     // eslint-disable-next-line
-    [onOpen],
+    [onOpen, hashParams],
   );
 
   const onChangeOnlyClick = useCallback(() => {
@@ -115,15 +135,13 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
   }, [uniqueId, setSelected, setFilterBy]);
 
   const onFullGraphClick = useCallback(() => {
-    setFilterBy(undefined);
+    setFilterBy('all');
   }, [setFilterBy]);
 
   const onResetClick = useCallback(() => {
-    setFilterBy(singleOnly ? undefined : 'changed');
-    setStat('');
     setLayoutAlgorithm('dagre');
     setGroupBy('');
-    reactflow.fitView({ maxZoom: 1 });
+    setLocation(`${location}?g_v=1`);
   }, [
     setFilterBy,
     setStat,
@@ -267,7 +285,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
         >
           <Controls showInteractive={false} />
           <MiniMap nodeStrokeWidth={3} zoomable pannable />
-          {filterBy !== undefined && (
+          {(filterBy === 'selected' || filterBy === 'changed') && (
             <Panel position="top-left">
               <Text fontSize="sm">
                 {filterBy === 'selected' &&
