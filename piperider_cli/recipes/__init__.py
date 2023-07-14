@@ -319,12 +319,13 @@ def execute_recipe(model: RecipeModel, debug=False, recipe_type='base'):
 
 
 def execute_dbt_compile_archive(model: RecipeModel, debug=False):
-    if not model.branch:
+    branch_or_commit = tool().git_merge_base(model.branch, 'HEAD') or model.branch
+    if not branch_or_commit:
         raise RecipeConfigException("Branch is not specified")
 
     console.print("Run: \[dbt compile]")
     if model.tmp_dir_path is None:
-        model.tmp_dir_path = tool().git_archive(model.branch)
+        model.tmp_dir_path = tool().git_archive(branch_or_commit)
         model.state_path = os.path.join(model.tmp_dir_path, 'state')
 
     project_dir = model.tmp_dir_path
@@ -351,10 +352,11 @@ def execute_recipe_archive(model: RecipeModel, debug=False, recipe_type='base'):
         console.print(f"Select {recipe_type} report: \[{model.file}]")
         return
 
-    if model.branch:
-        console.print("Run: \[git archive]")
+    branch_or_commit = tool().git_merge_base(model.branch, 'HEAD') or model.branch
+    if branch_or_commit:
+        console.print(f"Run: \[git archive] {model.branch}...HEAD = {branch_or_commit}")
         if model.tmp_dir_path is None:
-            model.tmp_dir_path = tool().git_archive(model.branch)
+            model.tmp_dir_path = tool().git_archive(branch_or_commit)
         console.print()
 
     # model.dbt.commands
