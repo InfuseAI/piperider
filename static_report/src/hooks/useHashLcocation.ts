@@ -31,7 +31,7 @@ function useHash(defaultValue?: string): [string, (string) => void] {
     [_window],
   );
 
-  return [_window ? _window.location.hash : hash, navigate];
+  return [hash, navigate];
 }
 
 // This is used by wouter Router

@@ -1,7 +1,7 @@
 import { useReportStore } from '../../utils/store';
 import { Comparable } from '../../types';
 
-import { memo, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import ReactFlow, {
   Controls,
   MiniMap,
@@ -142,14 +142,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
     setLayoutAlgorithm('dagre');
     setGroupBy('');
     setLocation(`${location}?g_v=1`);
-  }, [
-    setFilterBy,
-    setStat,
-    setLayoutAlgorithm,
-    setGroupBy,
-    reactflow,
-    singleOnly,
-  ]);
+  }, [setLayoutAlgorithm, setGroupBy, location, setLocation]);
 
   useEffect(() => {
     const renderGraph = async () => {
