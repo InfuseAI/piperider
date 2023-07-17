@@ -61,7 +61,11 @@ export function ChangeSummary({ tableColumnsOnly, noImpacted }: Props) {
   return (
     <Grid templateColumns="repeat(4, 1fr)" gap={6}>
       <SummaryText name="Total" value={total} />
-
+      <SummaryText
+        name="Impacted"
+        value={impacted}
+        tip="Explicit changes and their downstream"
+      />
       <SummaryText
         name="Explicit Changes"
         value={
@@ -76,13 +80,6 @@ export function ChangeSummary({ tableColumnsOnly, noImpacted }: Props) {
         }
         tip="Code change or config change"
       />
-
-      <SummaryText
-        name="Impacted"
-        value={impacted}
-        tip="Explicit changes and their downstream"
-      />
-
       <SummaryText
         name="Implicit Changes"
         value={implicit}
