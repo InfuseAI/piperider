@@ -255,6 +255,12 @@ def update_select_with_modified(select: tuple = None, modified: bool = False):
     return tuple(select_list)
 
 
+def replace_commands_dbt_state_path(commands: list, dbt_state_path: str):
+    if dbt_state_path is None:
+        return commands
+    return [command.replace('<DBT_STATE_PATH>', dbt_state_path) for command in commands]
+
+
 def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = None, modified: bool = False):
     config = Configuration.instance()
     if not select:
@@ -440,6 +446,9 @@ def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None,
                 console.print('Config: piperider env "PIPERIDER_DBT_RESOURCES"')
             cfg.base.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
             cfg.target.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
+
+        if dbt_state_path:
+            cfg.target.dbt.commands = replace_commands_dbt_state_path(cfg.target.dbt.commands, dbt_state_path)
 
         console.rule("Recipe executor: base phase")
         execute_recipe_archive(cfg.base, recipe_type='base', debug=debug)
