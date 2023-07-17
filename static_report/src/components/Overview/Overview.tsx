@@ -78,7 +78,7 @@ function SelectMenu({
     <Menu closeOnSelect={false} autoSelect={false}>
       <MenuButton as={Button} fontSize="14px">
         <Flex alignItems="center">
-          View Options <Icon as={BsFilter} fontSize="16px" />
+          Filter <Icon as={BsFilter} fontSize="16px" ml="5px" />
         </Flex>
       </MenuButton>
       <MenuList minWidth="240px">

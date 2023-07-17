@@ -17,7 +17,7 @@ export function Navbar({ isSingleReport }: Props) {
       justifyContent="space-between"
       width="100%"
       height="48px"
-      px="80px"
+      px="96px"
       bg="white"
       gap={4}
     >
