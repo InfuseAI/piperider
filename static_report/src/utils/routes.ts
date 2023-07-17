@@ -32,6 +32,7 @@ export function useTableRoute(): {
   readonly tableName?: string;
   readonly uniqueId?: string;
   readonly columnName?: string;
+  readonly params?: string;
 } {
   const [matchTable, paramsTable] = useRoute(TABLE_DETAILS_ROUTE_PATH);
   const [matchModel, paramsModel] = useRoute(MODEL_DETAILS_ROUTE_PATH);

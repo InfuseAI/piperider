@@ -82,8 +82,10 @@ function MobileDeviceWarning() {
 }
 
 function App() {
+  const isDevelopmentMode = process.env.NODE_ENV === 'development';
+
   useDocumentTitle();
-  const [cloud, setCloud] = useState(false);
+  const [cloud, setCloud] = useState(isDevelopmentMode);
 
   const setTracker = useTrackerStore((state) => state.setTracker);
   const tracker = {
@@ -105,7 +107,6 @@ function App() {
 
   const isSingleReport: boolean =
     process.env.REACT_APP_SINGLE_REPORT === 'true';
-  const isDevelopmentMode = process.env.NODE_ENV === 'development';
 
   return (
     <>

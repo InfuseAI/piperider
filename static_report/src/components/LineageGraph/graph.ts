@@ -13,7 +13,7 @@ const nodeHeight = 60;
 const groupMargin = 20;
 const groupType = 'customGroup';
 
-export type FilterBy = 'changed' | 'selected' | undefined;
+export type FilterBy = 'changed' | 'selected' | 'all';
 
 export const buildNodesAndEdges = async (
   lineageGraph: LineageGraphData,

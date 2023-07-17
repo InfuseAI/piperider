@@ -13,7 +13,6 @@ import {
   TabPanel,
   TabPanels,
   Tabs,
-  useDisclosure,
   Text,
 } from '@chakra-ui/react';
 import { useReportStore } from '../../utils/store';
@@ -24,14 +23,15 @@ import { useLocation } from 'wouter';
 import { Comparable } from '../../types';
 import { LineageGraph } from '../LineageGraph/LineageGraph';
 import { useCloudReport } from '../../utils/cloud';
+import { useHashParams } from '../../hooks';
 
 export function SideBar({ singleOnly }: Comparable) {
   const { isLegacy, projectTree, databaseTree, expandTreeForPath } =
     useReportStore.getState();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [tabIndex, setTabIndex] = useState(-1);
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const isCloud = useCloudReport();
+  const hashParams = useHashParams();
 
   const handleTabChange = (index) => {
     expandTreeForPath(location);
@@ -79,12 +79,16 @@ export function SideBar({ singleOnly }: Comparable) {
       {isCloud && (
         <Button
           style={{ position: 'fixed', bottom: 0, right: 0 }}
-          onClick={onOpen}
+          onClick={() => setLocation(location + '?g_v=1')}
         >
           Show Graph
         </Button>
       )}
-      <Modal isOpen={isOpen} onClose={onClose} size="xl">
+      <Modal
+        isOpen={isCloud && hashParams.get('g_v') === '1'}
+        onClose={() => setLocation(location)}
+        size="xl"
+      >
         <ModalOverlay />
         <ModalContent maxW="calc(100vw - 200px)" backgroundColor="#f6f6f6">
           <ModalHeader
