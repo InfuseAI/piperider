@@ -38,17 +38,17 @@ def run_external_command(command_line, env: Dict = None):
 
 def prepare_for_action(recipe_name: str = None):
     recipe_path = select_recipe_file(None if not recipe_name else recipe_name)
+
     if recipe_path is not None:
         cfg = RecipeConfiguration.load(recipe_path)
-
         if cfg.base.branch:
             git_switch_to(cfg.base.branch)
         if cfg.target.branch:
             git_switch_to(cfg.target.branch)
 
-    ref_name = os.environ.get('GITHUB_HEAD_REF')
-    print(f'switch to GITHUB_HEAD_REF: {ref_name}')
-    git_switch_to(ref_name)
+        ref_name = os.environ.get('GITHUB_HEAD_REF')
+        print(f'switch to GITHUB_HEAD_REF: {ref_name}')
+        git_switch_to(ref_name)
 
 
 def make_recipe_command():
@@ -74,6 +74,9 @@ def make_recipe_command():
         upload = os.environ.get("INPUT_UPLOAD", "false")
         if upload == "true":
             command_builder.append("--upload")
+
+        base_branch = os.environ.get("GITHUB_BASE_REF", 'main')
+        command_builder.append("--base-branch", base_branch)
 
     compare_command = " ".join(command_builder)
     print(compare_command)
