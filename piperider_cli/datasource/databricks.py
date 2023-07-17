@@ -36,14 +36,19 @@ class DataBricksDataSource(DataSource):
     def engine_args(self):
         credential = self.credential
         http_path = credential.get('http_path')
-        return dict(connect_args={'http_path': http_path})
+        args = {'http_path': http_path}
+
+        if credential.get('catalog'):
+            args['catalog'] = credential.get('catalog')
+
+        return dict(connect_args=args)
 
     def _get_display_description(self):
         cred = self.credential
-        return f"type={self.type_name}, database={cred.get('schema')}, schema={cred.get('schema')}"
+        return f"type={self.type_name}, database={cred.get('catalog')}, schema={cred.get('schema')}"
 
     def get_database(self):
-        return None
+        return self.credential.get('catalog')
 
     def get_schema(self):
         return self.credential.get('schema')
