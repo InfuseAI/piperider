@@ -1,7 +1,8 @@
 import {
   Box,
-  Button,
+  Flex,
   Icon,
+  IconButton,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -14,6 +15,7 @@ import {
   TabPanels,
   Tabs,
   Text,
+  Tooltip,
 } from '@chakra-ui/react';
 import { useReportStore } from '../../utils/store';
 import { SideBarTree } from './SideBarTree';
@@ -24,6 +26,7 @@ import { Comparable } from '../../types';
 import { LineageGraph } from '../LineageGraph/LineageGraph';
 import { useCloudReport } from '../../utils/cloud';
 import { useHashParams } from '../../hooks';
+import { CgListTree } from 'react-icons/cg';
 
 export function SideBar({ singleOnly }: Comparable) {
   const { isLegacy, projectTree, databaseTree, expandTreeForPath } =
@@ -57,16 +60,31 @@ export function SideBar({ singleOnly }: Comparable) {
   return (
     <>
       <Tabs index={tabIndex} onChange={handleTabChange}>
-        <TabList>
-          <Tab>
-            <Icon as={FaFolder} mr={2} />
-            Project
-          </Tab>
-          <Tab>
-            <Icon as={FaDatabase} mr={2} />
-            Database
-          </Tab>
-        </TabList>
+        <Flex>
+          <TabList flex="1 1 auto" flexWrap="wrap">
+            <Tab>
+              <Icon as={FaFolder} mr={2} />
+              Project
+            </Tab>
+            <Tab>
+              <Icon as={FaDatabase} mr={2} />
+              Database
+            </Tab>
+          </TabList>
+          {isCloud && (
+            <Box borderBottom="2px" borderColor="gray.200">
+              <Tooltip label="Show Lineage Graph" openDelay={1000}>
+                <IconButton
+                  aria-label="Show Lineage Graph"
+                  icon={<CgListTree />}
+                  isRound={false}
+                  backgroundColor="transparent"
+                  onClick={() => setLocation(location + '?g_v=1')}
+                />
+              </Tooltip>
+            </Box>
+          )}
+        </Flex>
         <TabPanels>
           <TabPanel>
             <SideBarTree items={projectTree} singleOnly={singleOnly} />
@@ -76,14 +94,14 @@ export function SideBar({ singleOnly }: Comparable) {
           </TabPanel>
         </TabPanels>
       </Tabs>
-      {isCloud && (
+      {/* {isCloud && (
         <Button
           style={{ position: 'fixed', bottom: 0, right: 0 }}
           onClick={() => setLocation(location + '?g_v=1')}
         >
           Show Graph
         </Button>
-      )}
+      )} */}
       <Modal
         isOpen={isCloud && hashParams.get('g_v') === '1'}
         onClose={() => setLocation(location)}

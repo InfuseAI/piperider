@@ -1,4 +1,4 @@
-import { Flex, Icon, Image, Link, Text } from '@chakra-ui/react';
+import { Box, Flex, Icon, Image, Link, Text } from '@chakra-ui/react';
 import { FiSquare, FiColumns } from 'react-icons/fi';
 import { NO_VALUE } from '../Columns';
 import { useReportStore } from '../../utils/store';
@@ -14,26 +14,27 @@ export function Navbar({ isSingleReport }: Props) {
   return (
     <Flex
       alignItems="center"
-      justifyContent="center"
+      justifyContent="space-between"
       width="100%"
       height="48px"
-      px="80px"
+      px="96px"
       bg="white"
-      position="relative"
       gap={4}
     >
-      <Link href="#/" position="absolute" left="96px" zIndex={100}>
-        <Image src="logo/logo.svg" height="36px" alt="PipeRider" />
-      </Link>
+      <Box flex="0 0 150px">
+        <Link href="#/" zIndex={100}>
+          <Image src="logo/logo.svg" height="36px" alt="PipeRider" />
+        </Link>
+      </Box>
 
       <Flex
-        // ml="180px"
+        flex="0 0 auto"
+        position="relative"
         justifyContent="center"
         alignItems="center"
         minWidth="50%"
         bgColor="gray.100"
         borderRadius={8}
-        position="relative"
       >
         <Icon
           left={2}
@@ -46,7 +47,7 @@ export function Navbar({ isSingleReport }: Props) {
         </Text>
       </Flex>
 
-      <Flex position="absolute" right="96px" zIndex="modal">
+      <Flex justifyContent="flex-end" zIndex="modal" flex="0 1 150px">
         <HelpMenu feedbackLink={FeedbackLinkFromLocalReport} />
       </Flex>
     </Flex>

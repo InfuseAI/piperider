@@ -6,6 +6,7 @@ import {
   Spacer,
   Heading,
   Box,
+  Button,
 } from '@chakra-ui/react';
 
 import {
@@ -13,7 +14,6 @@ import {
   Menu,
   MenuButton,
   MenuList,
-  IconButton,
   MenuDivider,
   MenuItemOption,
   MenuOptionGroup,
@@ -21,6 +21,7 @@ import {
 } from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
 import { BsFilter } from 'react-icons/bs';
+import { CgListTree } from 'react-icons/cg';
 import { LineageGraphData } from '../../utils/dbt';
 import { topologySort } from '../../utils/graph';
 import {
@@ -34,6 +35,8 @@ import { ChangeSummary } from './ChangeSummary';
 import { MetricList } from './MetricList';
 import { Comparable } from '../../types';
 import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
+import { useLocation } from 'wouter';
+import { useCloudReport } from '../../utils/cloud';
 
 function getMenuItemOption(name: string, changeStatus?: ChangeStatus) {
   const { icon, color } = getIconForChangeStatus(changeStatus);
@@ -72,13 +75,12 @@ function SelectMenu({
   }
 
   return (
-    <Menu closeOnSelect={false}>
-      <MenuButton
-        as={IconButton}
-        icon={<BsFilter />}
-        size="md"
-        variant="outline"
-      />
+    <Menu closeOnSelect={false} autoSelect={false}>
+      <MenuButton as={Button} fontSize="14px">
+        <Flex alignItems="center">
+          Filter <Icon as={BsFilter} fontSize="16px" ml="5px" />
+        </Flex>
+      </MenuButton>
       <MenuList minWidth="240px">
         <MenuOptionGroup type="checkbox" value={defaultValue}>
           <MenuItemOption
@@ -259,6 +261,8 @@ export function Overview({ singleOnly }: Props) {
   const [resourceIndex, setResourceIndex] = useState(0);
   const [filterOptions, setFilterOptions] =
     useState<FilterOptions>(defaultFilterOptions);
+  const [location, setLocation] = useLocation();
+  const isCloud = useCloudReport();
 
   const handleSortChange = () => {
     if (sortMethod === 'alphabet') {
@@ -340,19 +344,25 @@ export function Overview({ singleOnly }: Props) {
         <Flex w={'100%'}>
           <Heading fontSize={24}>Overview</Heading>
           <Spacer />
-          {/* <Button
-            size="sm"
-            bg="piperider.500"
-            color="white"
-            _hover={{
-              bg: 'piperider.600',
-            }}
-            _active={{
-              bg: 'piperider.800',
-            }}
-          >
-            Lineage Diff
-          </Button> */}
+          {isCloud && (
+            <Button
+              size="sm"
+              bg="piperider.500"
+              color="white"
+              _hover={{
+                bg: 'piperider.600',
+              }}
+              _active={{
+                bg: 'piperider.800',
+              }}
+              onClick={() => {
+                setLocation(`${location}?g_v=1`);
+              }}
+            >
+              {singleOnly ? 'Lineage Graph' : 'Lineage Diff'}
+              <Icon as={CgListTree} ml={1} />
+            </Button>
+          )}
         </Flex>
         <Tabs onChange={setResourceIndex} mb={4}>
           <TabList>
