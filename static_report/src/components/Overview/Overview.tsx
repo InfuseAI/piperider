@@ -3,6 +3,7 @@ import {
   Tabs,
   TabList,
   Tag,
+  Text,
   Spacer,
   Heading,
   Box,
@@ -19,6 +20,7 @@ import {
   MenuOptionGroup,
   Icon,
 } from '@chakra-ui/react';
+import { format } from 'date-fns';
 import { useMemo, useState } from 'react';
 import { BsFilter } from 'react-icons/bs';
 import { CgListTree } from 'react-icons/cg';
@@ -33,7 +35,7 @@ import { SearchTextInput } from '../Common/SearchTextInput';
 import { ModelList } from './ModelList';
 import { ChangeSummary } from './ChangeSummary';
 import { MetricList } from './MetricList';
-import { Comparable } from '../../types';
+import { Comparable, ComparisonReportSchema } from '../../types';
 import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
 import { useLocation } from 'wouter';
 import { useCloudReport } from '../../utils/cloud';
@@ -244,6 +246,22 @@ function getTabItems(tableColumnsOnly: CompTableColEntryItem[]) {
   return tabItems;
 }
 
+function getGitBranches(rawData: Partial<ComparisonReportSchema>) {
+  const convert_time = (created_at: string | undefined) => {
+    if (!created_at) {
+      return null;
+    }
+    return format(new Date(created_at), 'MM/dd/yyyy HH:mm');
+  };
+  return {
+    base:
+      rawData.base?.datasource.git_branch || convert_time(rawData.base?.created_at),
+    target:
+      rawData.input?.datasource.git_branch ||
+      convert_time(rawData.input?.created_at),
+  };
+}
+
 type FilterOptions = {
   search?: string;
   changeStatus: Set<string>;
@@ -256,7 +274,11 @@ const defaultFilterOptions: FilterOptions = {
 type Props = {} & Comparable;
 
 export function Overview({ singleOnly }: Props) {
-  const { tableColumnsOnly = [], lineageGraph } = useReportStore.getState();
+  const {
+    tableColumnsOnly = [],
+    lineageGraph,
+    rawData,
+  } = useReportStore.getState();
   const [sortMethod, setSortMethod] = useState('topology');
   const [resourceIndex, setResourceIndex] = useState(0);
   const [filterOptions, setFilterOptions] =
@@ -338,6 +360,8 @@ export function Overview({ singleOnly }: Props) {
     return true;
   });
 
+  const gitBranches = getGitBranches(rawData);
+
   return (
     <>
       <Flex direction="column" w={'100%'} minHeight="650px">
@@ -362,6 +386,20 @@ export function Overview({ singleOnly }: Props) {
               {singleOnly ? 'Lineage Graph' : 'Lineage Diff'}
               <Icon as={CgListTree} ml={1} />
             </Button>
+          )}
+        </Flex>
+        <Flex direction="column" color={'gray'} mb={3}>
+          <Flex>
+            {(singleOnly && <Text w={'60px'}>Branch:</Text>) || (
+              <Text w={'110px'}>Base branch:</Text>
+            )}
+            <Text>{gitBranches.base}</Text>
+          </Flex>
+          {!singleOnly && (
+            <Flex>
+              <Text w={'110px'}>Target branch:</Text>
+              <Text>{gitBranches.target}</Text>
+            </Flex>
           )}
         </Flex>
         <Tabs onChange={setResourceIndex} mb={4}>

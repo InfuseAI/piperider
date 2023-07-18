@@ -350,6 +350,8 @@ export interface AssertionTest {
 export interface DataSource {
   name: string;
   type: string;
+  git_branch?: string;
+  git_sha?: string;
 }
 export interface Cloud {
   [k: string]: unknown;
