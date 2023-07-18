@@ -560,6 +560,7 @@ def get_dbt_state_dir(target_path, dbt_config, ds):
 
     return target_path, None
 
+
 def get_git_branch():
     # NOTE: Provide git branch information directly for the archived dbt project without .git folder
     git_branch = os.environ.get('PIPERIDER_GIT_BRANCH', None)
@@ -578,7 +579,7 @@ def get_git_branch():
                 cwd=FileSystem.WORKING_DIRECTORY,
             )
             outs, errs = proc.communicate()
-        except BaseException as e:
+        except BaseException:
             if proc:
                 proc.kill()
                 outs, errs = proc.communicate()
