@@ -1,7 +1,9 @@
 import json
 import math
 import os
+import shlex
 import shutil
+import subprocess
 import sys
 import uuid
 from datetime import datetime
@@ -558,6 +560,43 @@ def get_dbt_state_dir(target_path, dbt_config, ds):
 
     return target_path, None
 
+def get_git_branch():
+    # NOTE: Provide git branch information directly for the archived dbt project without .git folder
+    git_branch = os.environ.get('PIPERIDER_GIT_BRANCH', None)
+    git_sha = os.environ.get('PIPERIDER_GIT_SHA', None)
+    if git_branch is not None and git_sha is not None:
+        return git_branch, git_sha
+
+    def _exec(command_line: str):
+        cmd = shlex.split(command_line)
+        proc = None
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                cwd=FileSystem.WORKING_DIRECTORY,
+            )
+            outs, errs = proc.communicate()
+        except BaseException as e:
+            if proc:
+                proc.kill()
+                outs, errs = proc.communicate()
+            else:
+                return ''
+
+        if outs is not None:
+            outs = outs.decode().strip()
+        return outs
+
+    git_branch = _exec('git branch --show-current')
+    try:
+        line = _exec(f'git log {git_branch} --pretty=oneline -n 1')
+        git_sha = line.split(' ')[0]
+    except BaseException:
+        git_sha = ''
+    return git_branch, git_sha
+
 
 class Runner():
     @staticmethod
@@ -751,7 +790,8 @@ class Runner():
 
         run_result['id'] = run_id
         run_result['created_at'] = datetime_to_str(created_at)
-        run_result['datasource'] = dict(name=ds.name, type=ds.type_name)
+        git_branch, git_sha = get_git_branch()
+        run_result['datasource'] = dict(name=ds.name, type=ds.type_name, git_branch=git_branch, git_sha=git_sha)
 
         decorate_with_metadata(run_result)
 

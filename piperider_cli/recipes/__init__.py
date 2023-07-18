@@ -327,6 +327,10 @@ def execute_dbt_compile_archive(model: RecipeModel, debug=False):
     if model.tmp_dir_path is None:
         model.tmp_dir_path = tool().git_archive(branch_or_commit)
         model.state_path = os.path.join(model.tmp_dir_path, 'state')
+        # NOTE: Passing git branch information through environment variables,
+        #       as the archived folder does not have a .git folder.
+        model.piperider.environments['PIPERIDER_GIT_BRANCH'] = model.branch
+        model.piperider.environments['PIPERIDER_GIT_SHA'] = branch_or_commit
 
     project_dir = model.tmp_dir_path
     target_path = model.state_path
