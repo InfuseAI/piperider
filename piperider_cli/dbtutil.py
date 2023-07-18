@@ -12,6 +12,7 @@ from rich.table import Table
 from ruamel import yaml
 
 from piperider_cli import load_jinja_template, load_jinja_string_template
+from piperider_cli.configuration import FileSystem
 from piperider_cli.dbt.list_task import load_manifest, list_resources_from_manifest, load_full_manifest
 from piperider_cli.error import \
     DbtProjectInvalidError, \
@@ -134,6 +135,8 @@ def _get_state_run_results(dbt_state_dir: str):
 
 def _get_state_manifest(dbt_state_dir: str):
     path = os.path.join(dbt_state_dir, 'manifest.json')
+    if os.path.isabs(path) is False:
+        path = os.path.join(FileSystem.WORKING_DIRECTORY, path)
     with open(path) as f:
         manifest = json.load(f)
 
@@ -346,7 +349,10 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
 
 
 def check_dbt_manifest(dbt_state_dir: str) -> bool:
-    return os.path.exists(os.path.join(dbt_state_dir, 'manifest.json'))
+    path = os.path.join(dbt_state_dir, 'manifest.json')
+    if os.path.isabs(path) is False:
+        path = os.path.join(FileSystem.WORKING_DIRECTORY, path)
+    return os.path.exists(path)
 
 
 def get_dbt_manifest(dbt_state_dir: str):

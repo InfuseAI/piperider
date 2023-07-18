@@ -13,7 +13,6 @@ from ruamel.yaml import CommentedSeq
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli import get_run_json_path, load_jinja_template, load_json
 from piperider_cli.configuration import Configuration, FileSystem
-from piperider_cli.dbt.list_task import load_manifest, load_full_manifest
 from piperider_cli.error import RecipeConfigException
 from piperider_cli.recipes.utils import InteractiveStopException
 
@@ -273,12 +272,10 @@ def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = No
 
     if state:
         console.print(f"Run: \[dbt list] select option '{' '.join(select)}' with state")
-        manifest = load_full_manifest(target_path)
     else:
         console.print(f"Run: \[dbt list] select option '{' '.join(select)}'")
-        manifest = load_manifest(dbtutil.get_dbt_manifest(target_path))
     console.print()
-    return tool().list_dbt_resources(manifest, select=select, state=state), state
+    return tool().list_dbt_resources(target_path, select=select, state=state), state
 
 
 def execute_recipe(model: RecipeModel, debug=False, recipe_type='base'):
@@ -337,7 +334,7 @@ def execute_dbt_compile_archive(model: RecipeModel, debug=False):
 
 def execute_dbt_compile(model: RecipeModel, project_dir: str = None, target_path: str = None):
     console.print("Run: \[dbt compile]")
-    cmd = f'dbt compile'
+    cmd = 'dbt compile'
     if project_dir:
         cmd += f' --project-dir {project_dir}'
     if target_path:
