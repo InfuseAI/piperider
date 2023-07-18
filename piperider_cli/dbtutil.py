@@ -7,6 +7,10 @@ from pathlib import Path
 from typing import Dict, Optional, Union
 
 import inquirer
+from rich.console import Console
+from rich.table import Table
+from ruamel import yaml
+
 from piperider_cli import load_jinja_template, load_jinja_string_template
 from piperider_cli.dbt.list_task import load_manifest, list_resources_from_manifest, load_full_manifest
 from piperider_cli.error import \
@@ -15,9 +19,6 @@ from piperider_cli.error import \
     DbtProfileBigQueryAuthWithTokenUnsupportedError, DbtRunTimeError
 from piperider_cli.metrics_engine import Metric
 from piperider_cli.statistics import Statistics
-from rich.console import Console
-from rich.table import Table
-from ruamel import yaml
 
 console = Console()
 
@@ -342,6 +343,10 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
                 metric.ref_metrics.append(metric_map.get(depends_on_metric))
 
     return metrics
+
+
+def check_dbt_manifest(dbt_state_dir: str) -> bool:
+    return os.path.exists(os.path.join(dbt_state_dir, 'manifest.json'))
 
 
 def get_dbt_manifest(dbt_state_dir: str):

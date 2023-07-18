@@ -257,16 +257,20 @@ def update_select_with_modified(select: tuple = None, modified: bool = False):
 
 def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = None, modified: bool = False):
     config = Configuration.instance()
+    state = None
     if not select:
         select = (f'tag:{config.dbt.get("tag")}',) if config.dbt.get('tag') else ()
     select = update_select_with_modified(select, modified)
+    dbt_project = dbtutil.load_dbt_project(config.dbt.get('projectDir'))
+    target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
 
     if any('state:' in item for item in select) is True:
         execute_dbt_compile_archive(cfg.base)
+        state = cfg.base.state_path
+    elif dbtutil.check_dbt_manifest(target_path) is False:
+        # Need to compile the dbt project if the manifest file does not exist
+        execute_dbt_compile(cfg.base)
 
-    dbt_project = dbtutil.load_dbt_project(config.dbt.get('projectDir'))
-    target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
-    state = cfg.base.state_path if cfg.base.state_path else None
     if state:
         console.print(f"Run: \[dbt list] select option '{' '.join(select)}' with state")
         manifest = load_full_manifest(target_path)
@@ -323,15 +327,22 @@ def execute_dbt_compile_archive(model: RecipeModel, debug=False):
     if not branch_or_commit:
         raise RecipeConfigException("Branch is not specified")
 
-    console.print("Run: \[dbt compile]")
     if model.tmp_dir_path is None:
         model.tmp_dir_path = tool().git_archive(branch_or_commit)
         model.state_path = os.path.join(model.tmp_dir_path, 'state')
 
-    project_dir = model.tmp_dir_path
-    target_path = model.state_path
-    cmd = f'dbt compile --project-dir {project_dir} --target-path {target_path}'
-    exit_code = tool().execute_command_with_showing_output(cmd, model.dbt.envs())
+    execute_dbt_compile(model, model.tmp_dir_path, model.state_path)
+    pass
+
+
+def execute_dbt_compile(model: RecipeModel, project_dir: str = None, target_path: str = None):
+    console.print("Run: \[dbt compile]")
+    cmd = f'dbt compile'
+    if project_dir:
+        cmd += f' --project-dir {project_dir}'
+    if target_path:
+        cmd += f' --target-path {target_path}'
+    exit_code = tool().execute_command_with_showing_output(cmd.strip(), model.dbt.envs())
     if exit_code != 0:
         console.print(
             f"[bold yellow]Warning: [/bold yellow] Dbt command failed: '{cmd}' with exit code: {exit_code}")
