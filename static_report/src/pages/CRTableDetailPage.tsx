@@ -258,7 +258,7 @@ function TableColumnSchemaCompList({ tableEntry }) {
               <Th width="25%" borderRight="1px" borderRightColor="gray.200">
                 Base Type
               </Th>
-              <Th width="25%">Traget Column</Th>
+              <Th width="25%">Target Column</Th>
               <Th width="25%">Target Type</Th>
             </Tr>
           </Thead>

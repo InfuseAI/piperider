@@ -12,11 +12,12 @@ interface GraphNodeProps extends NodeProps {
   data: LineageGraphNode;
 }
 
-export function GraphNode({ data }: GraphNodeProps) {
-  const { singleOnly, stat, isHighlighted } = data;
+export function GraphNode({ selected, data }: GraphNodeProps) {
+  const { singleOnly, stat, isSelected, isHighlighted } = data;
 
-  const [location] = useLocation();
-  const isActive = data.path === location;
+  // const [location] = useLocation();
+  // const isActive = data.path === location;
+  const isActive = false;
 
   let resourceType = data?.type;
   let isNoProfile = false;
@@ -65,11 +66,9 @@ export function GraphNode({ data }: GraphNodeProps) {
   let backgroundColor = 'white';
   let boxShadow = 'unset';
 
-  if (isActive) {
+  if (!isSelected) {
     borderWidth = 1;
-    borderColor = COLOR_HIGHLIGHT;
-    backgroundColor = 'piperider.400';
-    color = 'white';
+    borderColor = 'gray.200';
   }
   if (isHighlighted) {
     borderWidth = 1;
@@ -87,7 +86,7 @@ export function GraphNode({ data }: GraphNodeProps) {
     <>
       <Flex
         width="300px"
-        _hover={{ backgroundColor: isActive ? backgroundColor : 'gray.100' }}
+        _hover={{ backgroundColor: 'gray.100' }}
         borderColor={borderColor}
         borderWidth={borderWidth}
         borderStyle={borderStyle}
@@ -98,7 +97,7 @@ export function GraphNode({ data }: GraphNodeProps) {
       >
         <Tooltip label={resourceType}>
           <Flex
-            backgroundColor={resourceColor}
+            backgroundColor={isSelected ? resourceColor : 'gray.100'}
             padding={2}
             borderRightWidth={borderWidth}
             borderColor={borderColor}
@@ -123,7 +122,7 @@ export function GraphNode({ data }: GraphNodeProps) {
               overflow="hidden"
               textOverflow="ellipsis"
               whiteSpace="nowrap"
-              color={isActive ? 'white' : 'inherit'}
+              color={isSelected ? 'inherit' : 'gray.400'}
             >
               <Tooltip label={name}>{name}</Tooltip>
             </Box>

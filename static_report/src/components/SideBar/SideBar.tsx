@@ -73,15 +73,13 @@ export function SideBar({ singleOnly }: Comparable) {
           </TabList>
           {isCloud && (
             <Box borderBottom="2px" borderColor="gray.200">
-              <Tooltip label="Show Lineage Graph" openDelay={1000}>
-                <IconButton
-                  aria-label="Show Lineage Graph"
-                  icon={<CgListTree />}
-                  isRound={false}
-                  backgroundColor="transparent"
-                  onClick={() => setLocation(location + '?g_v=1')}
-                />
-              </Tooltip>
+              <IconButton
+                aria-label="Show Lineage Graph"
+                icon={<CgListTree />}
+                isRound={false}
+                backgroundColor="transparent"
+                onClick={() => setLocation(location + '?g_v=1')}
+              />
             </Box>
           )}
         </Flex>
