@@ -255,7 +255,8 @@ function getGitBranches(rawData: Partial<ComparisonReportSchema>) {
   };
   return {
     base:
-      rawData.base?.datasource.git_branch || convert_time(rawData.base?.created_at),
+      rawData.base?.datasource.git_branch ||
+      convert_time(rawData.base?.created_at),
     target:
       rawData.input?.datasource.git_branch ||
       convert_time(rawData.input?.created_at),
@@ -390,14 +391,14 @@ export function Overview({ singleOnly }: Props) {
         </Flex>
         <Flex direction="column" color={'gray'} mb={3}>
           <Flex>
-            {(singleOnly && <Text w={'60px'}>Branch:</Text>) || (
-              <Text w={'110px'}>Base branch:</Text>
+            {(singleOnly && <Text w={'65px'}>Branch:</Text>) || (
+              <Text w={'120px'}>Base branch:</Text>
             )}
             <Text>{gitBranches.base}</Text>
           </Flex>
           {!singleOnly && (
             <Flex>
-              <Text w={'110px'}>Target branch:</Text>
+              <Text w={'120px'}>Target branch:</Text>
               <Text>{gitBranches.target}</Text>
             </Flex>
           )}
