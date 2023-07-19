@@ -1,5 +1,4 @@
 import asyncio
-import concurrent.futures
 import decimal
 import itertools
 from concurrent.futures import ThreadPoolExecutor
@@ -7,7 +6,6 @@ from typing import List, Union
 
 from sqlalchemy import select, func, distinct, literal_column, join, outerjoin, Column, Date
 from sqlalchemy.engine import Engine
-from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy.sql.expression import text, union_all, case
 from sqlalchemy.sql.selectable import CTE
 
@@ -138,6 +136,8 @@ class MetricEngine:
             # Source model
             if self.data_source.type_name == 'bigquery':
                 source_model = text(f"`{metric.database}.{metric.schema}.{metric.table}`")
+            elif self.data_source.type_name == 'databricks':
+                source_model = text(f"{metric.schema}.{metric.table}")
             else:
                 source_model = text(f"{metric.database}.{metric.schema}.{metric.table}")
 
