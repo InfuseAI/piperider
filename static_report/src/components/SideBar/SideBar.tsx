@@ -49,6 +49,17 @@ export function SideBar({ singleOnly }: Comparable) {
     }
   }, [location, tabIndex, expandTreeForPath]);
 
+  useEffect(() => {
+    // watch the model open and send a page-view event
+    // please don't send the event when onClick because the PermaLink will not work in that way
+    if (isCloud && hashParams.get('g_v') === '1') {
+      console.log('Modal opened');
+      console.log(`window: ${window.amplitude_callback}`);
+      // TODO fix the event
+      // amplitude.track();
+    }
+  }, [isCloud]);
+
   if (isLegacy) {
     return (
       <Box mt={5}>
