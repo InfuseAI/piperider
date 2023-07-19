@@ -3,7 +3,6 @@ import {
   Tabs,
   TabList,
   Tag,
-  Text,
   Spacer,
   Heading,
   Box,
@@ -20,7 +19,6 @@ import {
   MenuOptionGroup,
   Icon,
 } from '@chakra-ui/react';
-import { format } from 'date-fns';
 import { useMemo, useState } from 'react';
 import { BsFilter } from 'react-icons/bs';
 import { CgListTree } from 'react-icons/cg';
@@ -35,7 +33,7 @@ import { SearchTextInput } from '../Common/SearchTextInput';
 import { ModelList } from './ModelList';
 import { ChangeSummary } from './ChangeSummary';
 import { MetricList } from './MetricList';
-import { Comparable, ComparisonReportSchema } from '../../types';
+import { Comparable } from '../../types';
 import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
 import { useLocation } from 'wouter';
 import { useCloudReport } from '../../utils/cloud';
@@ -258,11 +256,7 @@ const defaultFilterOptions: FilterOptions = {
 type Props = {} & Comparable;
 
 export function Overview({ singleOnly }: Props) {
-  const {
-    tableColumnsOnly = [],
-    lineageGraph,
-    rawData,
-  } = useReportStore.getState();
+  const { tableColumnsOnly = [], lineageGraph } = useReportStore.getState();
   const [sortMethod, setSortMethod] = useState('topology');
   const [resourceIndex, setResourceIndex] = useState(0);
   const [filterOptions, setFilterOptions] =
