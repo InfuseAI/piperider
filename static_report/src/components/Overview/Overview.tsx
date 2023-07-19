@@ -246,23 +246,6 @@ function getTabItems(tableColumnsOnly: CompTableColEntryItem[]) {
   return tabItems;
 }
 
-function getGitBranches(rawData: Partial<ComparisonReportSchema>) {
-  const convert_time = (created_at: string | undefined) => {
-    if (!created_at) {
-      return null;
-    }
-    return format(new Date(created_at), 'MM/dd/yyyy HH:mm');
-  };
-  return {
-    base:
-      rawData.base?.datasource.git_branch ||
-      convert_time(rawData.base?.created_at),
-    target:
-      rawData.input?.datasource.git_branch ||
-      convert_time(rawData.input?.created_at),
-  };
-}
-
 type FilterOptions = {
   search?: string;
   changeStatus: Set<string>;
@@ -361,8 +344,6 @@ export function Overview({ singleOnly }: Props) {
     return true;
   });
 
-  const gitBranches = getGitBranches(rawData);
-
   return (
     <>
       <Flex direction="column" w={'100%'} minHeight="650px">
@@ -387,20 +368,6 @@ export function Overview({ singleOnly }: Props) {
               {singleOnly ? 'Lineage Graph' : 'Lineage Diff'}
               <Icon as={CgListTree} ml={1} />
             </Button>
-          )}
-        </Flex>
-        <Flex direction="column" color={'gray'} mb={3}>
-          <Flex>
-            {(singleOnly && <Text w={'65px'}>Branch:</Text>) || (
-              <Text w={'120px'}>Base branch:</Text>
-            )}
-            <Text>{gitBranches.base}</Text>
-          </Flex>
-          {!singleOnly && (
-            <Flex>
-              <Text w={'120px'}>Target branch:</Text>
-              <Text>{gitBranches.target}</Text>
-            </Flex>
           )}
         </Flex>
         <Tabs onChange={setResourceIndex} mb={4}>

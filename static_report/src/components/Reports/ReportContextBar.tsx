@@ -2,11 +2,13 @@ import { Flex, FlexProps, Text } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { BiPlug } from 'react-icons/bi';
 import { BsGearWideConnected } from 'react-icons/bs';
+import { GoGitBranch } from 'react-icons/go';
 import { borderVal } from '../../utils';
 
 interface Props {
   datasource?: string;
   version?: string;
+  gitBranch?: string;
   showProjectInfo?: boolean;
   children?: ReactNode;
   actionArea?: ReactNode;
@@ -17,6 +19,7 @@ interface Props {
 export function ReportContextBar({
   datasource,
   version,
+  gitBranch,
   showProjectInfo,
   children,
   actionArea,
@@ -47,6 +50,12 @@ export function ReportContextBar({
               <BsGearWideConnected />
               <Text color={'gray.500'}>Version: {version}</Text>
             </Flex>
+          </Flex>
+        )}
+        {gitBranch && (
+          <Flex alignItems={'center'} gap={2}>
+            <GoGitBranch />
+            <Text color={'gray.500'}>Branch: {gitBranch}</Text>
           </Flex>
         )}
       </Flex>
