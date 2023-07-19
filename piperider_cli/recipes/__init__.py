@@ -255,7 +255,7 @@ def update_select_with_modified(select: tuple = None, modified: bool = False):
     return tuple(select_list)
 
 
-def replace_commands_dbt_state_path(commands: list, dbt_state_path: str):
+def replace_commands_dbt_state_path(commands: list[str], dbt_state_path: str):
     if dbt_state_path is None:
         return commands
     return [command.replace('<DBT_STATE_PATH>', dbt_state_path) for command in commands]
