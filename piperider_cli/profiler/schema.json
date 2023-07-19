@@ -382,6 +382,12 @@
         },
         "type": {
           "type": "string"
+        },
+        "git_branch": {
+          "type": "string"
+        },
+        "git_sha": {
+          "type": "string"
         }
       }
     },
