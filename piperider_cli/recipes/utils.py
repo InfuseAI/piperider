@@ -11,7 +11,8 @@ from typing import Dict, Tuple
 from rich.console import Console
 
 from piperider_cli.configuration import FileSystem
-from piperider_cli.dbt.list_task import list_resources_from_manifest
+from piperider_cli.dbt.list_task import list_resources_from_manifest, load_full_manifest, load_manifest
+from piperider_cli.dbtutil import get_dbt_manifest
 from piperider_cli.error import PipeRiderError, RecipeException
 
 
@@ -157,7 +158,11 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
         if exit_code != 0:
             raise PipeRiderError("dbt is not installed", hint="Please install it first")
 
-    def list_dbt_resources(self, manifest, select=None, state=None):
+    def list_dbt_resources(self, target_path, select=None, state=None):
+        if state:
+            manifest = load_full_manifest(target_path)
+        else:
+            manifest = load_manifest(get_dbt_manifest(target_path))
         return list_resources_from_manifest(manifest, select=select, state=state)
 
 
@@ -184,7 +189,7 @@ class DryRunRecipeUtils(AbstractRecipeUtils):
         self.console.print(f"[green]:external-command:>[/green] [default]{cmd}[/default]")
         return '/path/to/tmp'
 
-    def list_dbt_resources(self, manifest, select=None, state=None):
+    def list_dbt_resources(self, target_path, select=None, state=None):
         state_msg = ''
         if state:
             state_msg = f'state: {state}'
