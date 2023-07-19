@@ -31,13 +31,12 @@ class RecipeExecutor:
                     dbt_project_path = os.path.relpath(config.dataSources[0].args.get('dbt', {}).get('projectDir'))
                 # generate a default recipe
                 console.rule("Recipe executor: generate recipe")
-                options = None
+                options = {}
                 if select or modified:
-                    options = {}
                     options['select'] = select
                     options['modified'] = modified
-                    options['base_branch'] = base_branch
-                    options['target_branch'] = target_branch
+                options['base_branch'] = base_branch
+                options['target_branch'] = target_branch
                 recipe = generate_default_recipe(overwrite_existing=False,
                                                  dbt_project_path=dbt_project_path,
                                                  options=options)
