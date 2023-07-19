@@ -102,7 +102,7 @@ result (daily update)
 # PipeRider Cloud (beta)
 
 [PipeRider Cloud](http://cloud.piperider.io/) allows you to upload reports and share them with your team members. For
-information on pricing plans, please refer to the [pricing page](https://www.piperider.io/pricing).
+information on pricing plans, please refer to the [pricing page](https://www.piperider.io/#pricing).
 
 # PipeRider Compare Action
 
