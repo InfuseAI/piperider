@@ -421,7 +421,6 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                   value={changeInclude}
                   onChange={(value) => {
                     setChangeInclude(value as string);
-                    setChangeSelect('impacted');
                     setSelected(undefined);
                     setExpandLeft([]);
                     setExpandRight([]);
