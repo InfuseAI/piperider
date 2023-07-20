@@ -175,6 +175,10 @@ class ChangeType(Enum):
     def display_changes(self, b, t, format_text: str, *, converter: Callable = None, negative_change: bool = False):
         if self != self.MODIFIED:
             raise ValueError("Only modified type has display for changes")
+
+        if b is None or t is None:
+            return "-"
+
         if negative_change:
             color = "red" if t > b else "green"
         else:
