@@ -48,6 +48,7 @@ class TestCompareSummaryNG(TestCase):
         run2 = self.manifest_dict("sc-31587-with-ref-input.json")
 
         run1 = self.manifest_dict("sc-31723-base.json")
+        run1 = self.manifest_dict("case_base_not_profiled_1.json")
         run2 = self.manifest_dict("sc-31723-target.json")
 
         data = ComparisonData(run1, run2, None)

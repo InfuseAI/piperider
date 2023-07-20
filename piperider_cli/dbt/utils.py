@@ -177,7 +177,10 @@ class ChangeType(Enum):
             raise ValueError("Only modified type has display for changes")
 
         if b is None or t is None:
-            return "-"
+            if t is None:
+                return str(b)
+            else:
+                return str(t)
 
         if negative_change:
             color = "red" if t > b else "green"
@@ -186,10 +189,10 @@ class ChangeType(Enum):
         sign = "↑" if t > b else "↓"
         diff = t - b
         if math.isnan(diff):
-            if math.isnan(b):
-                return str(t)
-            else:
+            if math.isnan(t):
                 return str(b)
+            else:
+                return str(t)
 
         if t == b:
             return str(b)
