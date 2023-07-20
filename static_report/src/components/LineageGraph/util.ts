@@ -1,4 +1,4 @@
-import { Edge, Node, Position } from 'reactflow';
+import { Edge, Node } from 'reactflow';
 import dagre from 'dagre';
 
 import 'reactflow/dist/style.css';
@@ -11,10 +11,6 @@ import { getDownstreamSet, getUpstreamSet } from '../../utils/graph';
 
 const nodeWidth = 300;
 const nodeHeight = 60;
-const groupMargin = 20;
-const groupType = 'customGroup';
-
-export type FilterBy = 'impacted' | 'impacted+' | 'selected' | 'all';
 
 export const buildNodesAndEdges = (
   lineageGraph: LineageGraphData,

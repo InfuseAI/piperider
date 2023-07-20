@@ -15,7 +15,6 @@ import {
   TabPanels,
   Tabs,
   Text,
-  Tooltip,
 } from '@chakra-ui/react';
 import { useReportStore } from '../../utils/store';
 import { SideBarTree } from './SideBarTree';

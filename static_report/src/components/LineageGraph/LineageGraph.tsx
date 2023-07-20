@@ -18,33 +18,25 @@ import {
   Text,
   Flex,
   Box,
-  Select,
   useDisclosure,
   Spacer,
-  ButtonGroup,
   Button,
-  IconButton,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
-  Link,
   Portal,
-  MenuGroup,
   MenuOptionGroup,
   MenuItemOption,
   Tooltip,
 } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
-import { LineageGraphNode } from '../../utils/dbt';
 import { GraphNode } from './GraphNode';
 import GraphEdge from './GraphEdge';
 import { GraphGroup } from './GraphGroup';
-import { useTableRoute } from '../../utils/routes';
-import { ChevronDownIcon, InfoIcon } from '@chakra-ui/icons';
+import { ChevronUpIcon, InfoIcon } from '@chakra-ui/icons';
 import {
   buildNodesAndEdges,
-  FilterBy,
   selectDownstream,
   selectStateChanged,
   selectStateModified,
@@ -54,6 +46,7 @@ import {
 import { useTrackOnMount } from '../../hooks/useTrackOnMount';
 import { CR_TYPE_LABEL, EVENTS, SR_TYPE_LABEL } from '../../utils/trackEvents';
 import { useHashParams } from '../../hooks';
+import { CopyGraphUrlButton } from './CopyGraphUrlButton';
 
 const nodeTypes = {
   customNode: GraphNode,
@@ -63,6 +56,18 @@ const edgeTypes = {
   customEdge: GraphEdge,
 };
 
+const statName = {
+  '': 'No Stat',
+  execution_time: 'Execution Time',
+  row_count: 'Row Count',
+};
+
+const changeStatusName = {
+  all: 'All nodes',
+  impacted: 'Impacted',
+  'impacted+': 'Impacted+',
+};
+
 function LineageGraphWrapped({ singleOnly }: Comparable) {
   const reactflow = useReactFlow();
   const { lineageGraph = {} } = useReportStore.getState();
@@ -70,7 +75,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const hashParams = useHashParams();
 
   const [selected, setSelected] = useState<string | undefined>();
@@ -78,31 +83,28 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
   const [expandLeft, setExpandLeft] = useState<string[]>([]);
   const [expandRight, setExpandRight] = useState<string[]>([]);
 
-  const stat = hashParams.get('g_stat') || '';
-  const setStat = useCallback(
-    (stat: string) => {
-      hashParams.set('g_stat', stat);
-      setLocation(`${location}?${hashParams}`);
-    },
-    [hashParams, location, setLocation],
-  );
-  const filterBy: FilterBy = hashParams.has('g_filter_by')
-    ? (hashParams.get('g_filter_by') as FilterBy)
-    : singleOnly
-    ? 'all'
-    : 'all';
-  const setFilterBy = useCallback(
-    (filterBy: string) => {
-      hashParams.set('g_filter_by', filterBy);
-      setLocation(`${location}?${hashParams}`);
-    },
-    [hashParams, location, setLocation],
-  );
-
+  const [stat, setStat] = useState<string>(hashParams.get('g_s') || '');
+  const [changeInclude, setChangeInclude] = useState<string>('impacted+');
   const [changeSelect, setChangeSelect] = useState<string>('impacted');
 
+  const {
+    isOpen: isStatOpen,
+    onOpen: onStatOpen,
+    onClose: onStatClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isChangeStatusOpen,
+    onOpen: onChangeStatusOpen,
+    onClose: onChangeStatusClose,
+  } = useDisclosure();
+
   // Context Menu
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isContextMenuOpen,
+    onOpen: onContextMenuOpen,
+    onClose: onContextMenuClose,
+  } = useDisclosure();
   const [position, setPosition] = useState<[number, number]>([0, 0]);
   const [contextNodeId, setContextNodeId] = useState<string | undefined>();
 
@@ -114,11 +116,34 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
     },
   });
 
+  const paramStat = hashParams.get('g_s');
+  const paramChangeInclude = hashParams.get('g_ci');
+
+  useEffect(() => {
+    if (paramStat) {
+      setStat(paramStat);
+    }
+  }, [paramStat]);
+
+  useEffect(() => {
+    if (paramChangeInclude) {
+      setChangeInclude(paramChangeInclude);
+    }
+  }, [paramChangeInclude]);
+
+  const copyParams = new URLSearchParams();
+  copyParams.append('g_v', '1');
+  copyParams.append('g_s', stat);
+  if (!singleOnly) {
+    copyParams.append('g_ci', changeInclude);
+  }
+
   const onResetClick = () => {
     setSelected(undefined);
+    setChangeInclude('impacted+');
+    setChangeSelect('impacted');
     setExpandLeft([]);
     setExpandRight([]);
-    setLocation(`${location}?g_v=1`);
   };
 
   const defaultNodeSets = useMemo(() => {
@@ -137,7 +162,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
       impacted,
       impactedPlus,
     };
-  }, [lineageGraph, singleOnly]);
+  }, [lineageGraph]);
 
   const rebuild = useCallback(
     (includeSet: Set<string>, selectSet: Set<string>) => {
@@ -161,13 +186,13 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
 
       setTimeout(() => reactflow.fitView({ maxZoom: 1 }), 0);
     },
-    [lineageGraph, singleOnly, stat, setNodes, setEdges],
+    [lineageGraph, singleOnly, stat, setNodes, setEdges, reactflow],
   );
 
   useEffect(() => {
     // nodes
-    let includeSet: Set<string>;
-    let selectSet: Set<string>;
+    let includeSet: Set<string> = defaultNodeSets.all;
+    let selectSet: Set<string> = defaultNodeSets.all;
 
     if (selected) {
       includeSet = new Set<string>();
@@ -177,20 +202,18 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
           selectUpstream(lineageGraph, [selected]),
         );
       }
-    } else if (filterBy === 'impacted') {
-      includeSet = defaultNodeSets.impacted;
-    } else if (filterBy === 'impacted+') {
-      includeSet = defaultNodeSets.impactedPlus;
-    } else {
-      includeSet = defaultNodeSets.all;
-    }
+    } else if (!singleOnly) {
+      if (changeInclude === 'impacted') {
+        includeSet = defaultNodeSets.impacted;
+      } else if (changeInclude === 'impacted+') {
+        includeSet = defaultNodeSets.impactedPlus;
+      }
 
-    if (changeSelect === 'impacted') {
-      selectSet = defaultNodeSets.impacted;
-    } else if (changeSelect === 'changed') {
-      selectSet = defaultNodeSets.changed;
-    } else {
-      selectSet = defaultNodeSets.all;
+      if (changeSelect === 'impacted') {
+        selectSet = defaultNodeSets.impacted;
+      } else if (changeSelect === 'changed') {
+        selectSet = defaultNodeSets.changed;
+      }
     }
 
     includeSet = selectUnion(
@@ -202,16 +225,19 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
     rebuild(includeSet, selectSet);
   }, [
     lineageGraph,
-    filterBy,
+    changeInclude,
     changeSelect,
     stat,
     selected,
     expandLeft,
     expandRight,
+    defaultNodeSets,
+    singleOnly,
+    rebuild,
   ]);
 
   function highlightPath(node: Node) {
-    onClose();
+    onContextMenuClose();
 
     const relatedNodes = selectUnion(
       selectUpstream(lineageGraph, [node.id]),
@@ -299,7 +325,9 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           onClick={() => {
-            onClose();
+            onStatClose();
+            onChangeStatusClose();
+            onContextMenuClose();
           }}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
@@ -316,7 +344,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
             } else {
               setContextNodeId(undefined);
             }
-            onOpen();
+            onContextMenuOpen();
           }}
           minZoom={0.1}
           fitView
@@ -324,32 +352,8 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
           <Controls showInteractive={false} />
           <MiniMap nodeStrokeWidth={3} zoomable pannable />
           <Panel position="top-right">
-            <Button variant="outline" colorScheme="gray" size="sm">
-              Copy URL
-            </Button>
+            <CopyGraphUrlButton params={copyParams} />
           </Panel>
-          {/* {(filterBy === 'selected' || filterBy === 'impacted') && (
-            <Panel position="top-left">
-              <Text fontSize="sm">
-                {filterBy === 'selected' &&
-                  (nodes.length > 0
-                    ? 'Active node and its depedencies.'
-                    : 'No active node.')}
-                {filterBy === 'impacted' &&
-                  (nodes.length > 0
-                    ? 'Changed nodes and their downstreams.'
-                    : 'No changed nodes found.')}{' '}
-                <Link
-                  color="blue"
-                  onClick={() => {
-                    onFullGraphClick();
-                  }}
-                >
-                  Show all nodes
-                </Link>
-              </Text>
-            </Panel>
-          )} */}
         </ReactFlow>
       </Box>
 
@@ -364,40 +368,65 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
         borderTopWidth={1}
         alignItems="center"
       >
-        <Box p={2}>
-          <Text fontSize="sm" color="gray">
+        <Box p={2} flex="0 1 160px" fontSize="14px">
+          <Text color="gray" mb="2px">
             Stat
           </Text>
-          <Select
-            value={stat}
-            fontSize="sm"
-            variant="unstyled"
-            onChange={(event) => {
-              const value = event.target.value || '';
-              setStat(value);
-            }}
-          >
-            <option value="">No stat</option>
-            <option value="execution_time">Execution time</option>
-            <option value="row_count">Row count</option>
-          </Select>
+          <Menu closeOnSelect={false} isOpen={isStatOpen} onClose={onStatClose}>
+            <MenuButton as={Box} onClick={onStatOpen}>
+              <Flex alignItems="center" fontSize="sm" gap={2}>
+                {statName[stat] || '(unknown)'}
+                <ChevronUpIcon />
+              </Flex>
+            </MenuButton>
+            <MenuList>
+              <MenuOptionGroup
+                value={stat}
+                onChange={(value) => {
+                  setStat(value as string);
+                }}
+              >
+                <MenuItemOption value="" fontSize="sm">
+                  {statName['']}
+                </MenuItemOption>
+                <MenuItemOption value="execution_time" fontSize="sm">
+                  {statName['execution_time']}
+                </MenuItemOption>
+                <MenuItemOption value="row_count" fontSize="sm">
+                  {statName['row_count']}
+                </MenuItemOption>
+              </MenuOptionGroup>
+            </MenuList>
+          </Menu>
         </Box>
         {!singleOnly && (
-          <Box p={2}>
-            <Text fontSize="sm" color="gray">
+          <Box p={2} flex="0 1 160px" fontSize="14px">
+            <Text color="gray" mb="2px">
               Change Status
             </Text>
-            <Menu>
-              <MenuButton>{`${filterBy}`}</MenuButton>
+            <Menu
+              closeOnSelect={false}
+              isOpen={isChangeStatusOpen}
+              onClose={onChangeStatusClose}
+            >
+              <MenuButton as={Box} onClick={onChangeStatusOpen}>
+                <Flex gap={2} alignItems="center" fontSize="sm">
+                  {changeStatusName[changeInclude] || '(unknown)'}
+                  <ChevronUpIcon />
+                </Flex>
+              </MenuButton>
               <MenuList>
                 <MenuOptionGroup
                   title="Include"
-                  value={filterBy}
-                  onChange={(value) => setFilterBy(value as string)}
+                  value={changeInclude}
+                  onChange={(value) => {
+                    setChangeInclude(value as string);
+                    setChangeSelect('impacted');
+                    setSelected(undefined);
+                    setExpandLeft([]);
+                    setExpandRight([]);
+                  }}
                 >
-                  <MenuItemOption value="all" fontSize="sm">
-                    All nodes
-                  </MenuItemOption>
                   <MenuItemOption value="impacted" fontSize="sm">
                     Impacted
                   </MenuItemOption>
@@ -407,6 +436,9 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                       <InfoIcon />
                     </Tooltip>
                   </MenuItemOption>
+                  <MenuItemOption value="all" fontSize="sm">
+                    All nodes
+                  </MenuItemOption>
                 </MenuOptionGroup>
                 <MenuOptionGroup
                   title="Select"
@@ -415,14 +447,14 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                     setChangeSelect(value as string);
                   }}
                 >
-                  <MenuItemOption fontSize="sm" value="all">
-                    All nodes
+                  <MenuItemOption fontSize="sm" value="changed">
+                    Changed
                   </MenuItemOption>
                   <MenuItemOption fontSize="sm" value="impacted">
                     Impacted
                   </MenuItemOption>
-                  <MenuItemOption fontSize="sm" value="changed">
-                    Changed
+                  <MenuItemOption fontSize="sm" value="all">
+                    All nodes
                   </MenuItemOption>
                 </MenuOptionGroup>
               </MenuList>
@@ -438,7 +470,11 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
 
       {/* Context Menu */}
       <Portal>
-        <Menu isOpen={isOpen} onClose={onClose} size="sm">
+        <Menu
+          isOpen={isContextMenuOpen && contextNodeId !== undefined}
+          onClose={onContextMenuClose}
+          size="sm"
+        >
           <MenuButton
             aria-hidden={true}
             w={1}
@@ -464,6 +500,8 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
               <MenuItem
                 onClick={() => {
                   setSelected(contextNodeId);
+                  setExpandLeft([]);
+                  setExpandRight([]);
                 }}
               >
                 Focus on node
@@ -475,7 +513,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                   setExpandLeft([...expandLeft, contextNodeId || '']);
                 }}
               >
-                Expand left
+                Expand Left
               </MenuItem>
             )}
             {contextNodeId && (
@@ -487,7 +525,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                 Expand Right
               </MenuItem>
             )}
-            <MenuItem>Export PNG</MenuItem>
+            {/* <MenuItem>Export PNG</MenuItem> */}
           </MenuList>
         </Menu>
       </Portal>
