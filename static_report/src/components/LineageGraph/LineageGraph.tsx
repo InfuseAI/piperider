@@ -28,7 +28,13 @@ import {
   Portal,
   MenuOptionGroup,
   MenuItemOption,
+  Table,
+  Tbody,
+  Tr,
+  Td,
+  TableContainer,
   Tooltip,
+  Icon,
 } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { GraphNode } from './GraphNode';
@@ -47,6 +53,7 @@ import { useTrackOnMount } from '../../hooks/useTrackOnMount';
 import { CR_TYPE_LABEL, EVENTS, SR_TYPE_LABEL } from '../../utils/trackEvents';
 import { useHashParams } from '../../hooks';
 import { CopyGraphUrlButton } from './CopyGraphUrlButton';
+import { IconAdded, IconImplicit, IconModified, IconRemoved } from '../Icons';
 
 const nodeTypes = {
   customNode: GraphNode,
@@ -354,6 +361,11 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
           <Panel position="top-right">
             <CopyGraphUrlButton params={copyParams} />
           </Panel>
+          {!singleOnly && (
+            <Panel position="top-left">
+              <StatusLegend />
+            </Panel>
+          )}
         </ReactFlow>
       </Box>
 
@@ -529,6 +541,43 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
         </Menu>
       </Portal>
     </Flex>
+  );
+}
+
+function StatusLegend() {
+  return (
+    <Box>
+      <TableContainer>
+        <Table variant="simple" size="sm">
+          <Tbody>
+            <Tr>
+              <Td>
+                <Icon color={'#1dce00'} as={IconAdded} flex="0 0 20px" />
+              </Td>
+              <Td>added</Td>
+            </Tr>
+            <Tr>
+              <Td>
+                <Icon color={'#ff067e'} as={IconRemoved} flex="0 0 20px" />
+              </Td>
+              <Td>removed</Td>
+            </Tr>
+            <Tr>
+              <Td>
+                <Icon color={'#ffc808'} as={IconModified} flex="0 0 20px" />
+              </Td>
+              <Td>modified</Td>
+            </Tr>
+            <Tr>
+              <Td>
+                <Icon color={'#fd6136'} as={IconImplicit} flex="0 0 20px" />
+              </Td>
+              <Td>implicit</Td>
+            </Tr>
+          </Tbody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 }
 
