@@ -1,26 +1,31 @@
 export function getDownstreamSet(
   nodeIds: string[],
   getNeighbors: (id: string) => string[],
+  degree: number = 1000,
 ) {
   const downstreamSet: Set<string> = new Set();
-  const visited: Set<string> = new Set();
+  const visited: { [id: string]: number } = {};
 
-  const dfs = (id: string) => {
-    if (visited.has(id)) {
+  const dfs = (id: string, currentDegree: number) => {
+    if (currentDegree < 0) {
       return;
     }
-    visited.add(id);
+    if (visited[id] !== undefined && visited[id] >= currentDegree) {
+      return;
+    }
+    visited[id] = currentDegree;
+
     const neighbors = getNeighbors(id);
 
     for (const neighborId of neighbors) {
-      dfs(neighborId);
+      dfs(neighborId, currentDegree - 1);
     }
 
     downstreamSet.add(id);
   };
 
   for (const nodeId of nodeIds) {
-    dfs(nodeId);
+    dfs(nodeId, degree);
   }
 
   return downstreamSet;
@@ -29,8 +34,9 @@ export function getDownstreamSet(
 export function getUpstreamSet(
   nodeIds: string[],
   getNeighbors: (id: string) => string[],
+  degree: number = 1000,
 ) {
-  getDownstreamSet(nodeIds, getNeighbors);
+  return getDownstreamSet(nodeIds, getNeighbors, degree);
 }
 
 // https://en.wikipedia.org/wiki/Topological_sorting

@@ -59,6 +59,7 @@ export interface LineageGraphNode {
   tags: string[];
   singleOnly?: boolean;
   isHighlighted?: boolean;
+  isSelected?: boolean;
   stat?: string;
 }
 

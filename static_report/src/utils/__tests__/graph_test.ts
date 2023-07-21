@@ -23,6 +23,12 @@ test('Downstream set', () => {
   expect(getDownstreamSet(['B', 'C'], getNeighbors)).toEqual(
     new Set(['B', 'C', 'D', 'E']),
   );
+  expect(getDownstreamSet(['A'], getNeighbors, 1)).toEqual(
+    new Set(['A', 'B', 'C']),
+  );
+  expect(getDownstreamSet(['B', 'D'], getNeighbors, 1)).toEqual(
+    new Set(['B', 'D', 'E']),
+  );
 });
 
 test('Topology sorting', () => {

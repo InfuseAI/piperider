@@ -1,7 +1,6 @@
 import { Box, Flex, Icon, VStack, Text, Tooltip } from '@chakra-ui/react';
 
-import { Handle, NodeProps, Position } from 'reactflow';
-import { useLocation } from 'wouter';
+import { Handle, NodeProps, Position, useStore } from 'reactflow';
 import { LineageGraphNode } from '../../utils/dbt';
 import { CSSProperties } from 'react';
 import { COLOR_HIGHLIGHT, COLOR_NOPROFILED, COLOR_UNCHANGED } from './style';
@@ -12,11 +11,13 @@ interface GraphNodeProps extends NodeProps {
   data: LineageGraphNode;
 }
 
-export function GraphNode({ data }: GraphNodeProps) {
-  const { singleOnly, stat, isHighlighted } = data;
+export function GraphNode({ selected, data }: GraphNodeProps) {
+  const { singleOnly, stat, isSelected, isHighlighted } = data;
+  const showContent = useStore((s) => s.transform[2] > 0.3);
 
-  const [location] = useLocation();
-  const isActive = data.path === location;
+  // const [location] = useLocation();
+  // const isActive = data.path === location;
+  const isActive = false;
 
   let resourceType = data?.type;
   let isNoProfile = false;
@@ -39,16 +40,18 @@ export function GraphNode({ data }: GraphNodeProps) {
   let iconChangeStatus;
   let fontWeight: CSSProperties['fontWeight'] = 'inherit';
   let borderStyle = 'solid';
+  let zoomOutColor = isSelected ? 'gray.300' : 'gray.200';
   if (!singleOnly) {
     iconChangeStatus = getIconForChangeStatus(changeStatus).icon;
     color = getIconForChangeStatus(changeStatus).color;
+    zoomOutColor = changeStatus ? color : zoomOutColor;
     if (changeStatus === 'added') {
       msgChangeStatus = 'added';
       borderStyle = 'dashed';
     } else if (changeStatus === 'modified') {
-      msgChangeStatus = 'explict change';
+      msgChangeStatus = 'modified';
     } else if (changeStatus === 'implicit') {
-      msgChangeStatus = 'implicit change';
+      msgChangeStatus = 'implicit';
     } else if (changeStatus === 'removed') {
       msgChangeStatus = 'removed';
       borderStyle = 'dashed';
@@ -65,11 +68,9 @@ export function GraphNode({ data }: GraphNodeProps) {
   let backgroundColor = 'white';
   let boxShadow = 'unset';
 
-  if (isActive) {
+  if (!isSelected) {
     borderWidth = 1;
-    borderColor = COLOR_HIGHLIGHT;
-    backgroundColor = 'piperider.400';
-    color = 'white';
+    borderColor = 'gray.200';
   }
   if (isHighlighted) {
     borderWidth = 1;
@@ -84,30 +85,32 @@ export function GraphNode({ data }: GraphNodeProps) {
     stat: stat as any,
   });
   return (
-    <>
+    <Tooltip
+      label={resourceType === 'model' ? name : `${name} (${resourceType})`}
+      placement="top"
+    >
       <Flex
         width="300px"
-        _hover={{ backgroundColor: isActive ? backgroundColor : 'gray.100' }}
+        _hover={{ backgroundColor: 'gray.100' }}
         borderColor={borderColor}
         borderWidth={borderWidth}
         borderStyle={borderStyle}
-        backgroundColor={backgroundColor}
+        backgroundColor={showContent ? backgroundColor : zoomOutColor}
         borderRadius={3}
         boxShadow={boxShadow}
         padding={0}
       >
-        <Tooltip label={resourceType}>
-          <Flex
-            backgroundColor={resourceColor}
-            padding={2}
-            borderRightWidth={borderWidth}
-            borderColor={borderColor}
-            borderStyle={borderStyle}
-            alignItems="top"
-          >
-            <Icon as={resourceIcon} />
-          </Flex>
-        </Tooltip>
+        <Flex
+          backgroundColor={isSelected ? resourceColor : 'gray.100'}
+          padding={2}
+          borderRightWidth={borderWidth}
+          borderColor={borderColor}
+          borderStyle={borderStyle}
+          alignItems="top"
+          visibility={showContent ? 'inherit' : 'hidden'}
+        >
+          <Icon as={resourceIcon} />
+        </Flex>
 
         <VStack flex="1 0 auto" mx="1" width="100px">
           <Flex
@@ -117,15 +120,16 @@ export function GraphNode({ data }: GraphNodeProps) {
             fontWeight={fontWeight}
             p={1}
             alignItems="center"
+            visibility={showContent ? 'inherit' : 'hidden'}
           >
             <Box
               flex="1"
               overflow="hidden"
               textOverflow="ellipsis"
               whiteSpace="nowrap"
-              color={isActive ? 'white' : 'inherit'}
+              color={isSelected ? 'inherit' : 'gray.400'}
             >
-              <Tooltip label={name}>{name}</Tooltip>
+              {name}
             </Box>
 
             {!singleOnly && changeStatus && (
@@ -140,38 +144,45 @@ export function GraphNode({ data }: GraphNodeProps) {
                 </Flex>
               </Tooltip>
             )}
-            {singleOnly && stat && statValue !== undefined && (
-              <Text fontWeight="bold" textAlign="right" fontSize="sm">
-                {statValueF}
-              </Text>
-            )}
           </Flex>
 
-          {!singleOnly && stat && statValue !== undefined && (
-            <Box width="100%">
+          {stat && statValue !== undefined && (
+            <Box width="100%" visibility={showContent ? 'inherit' : 'hidden'}>
               <Text
                 textAlign="right"
                 fontSize="sm"
                 color={isActive ? 'white' : 'inherit'}
               >
-                <StatDiff
-                  base={data?.base}
-                  target={data?.target}
-                  stat={stat as any}
-                  isActive={isActive}
-                />
+                {singleOnly ? (
+                  <>{statValueF}</>
+                ) : (
+                  <StatDiff
+                    base={data?.base}
+                    target={data?.target}
+                    stat={stat as any}
+                    isActive={isActive}
+                  />
+                )}
               </Text>
             </Box>
           )}
         </VStack>
 
         {Object.keys(data?.dependsOn ?? {}).length > 0 && (
-          <Handle type="target" position={Position.Left} />
+          <Handle
+            type="target"
+            position={Position.Left}
+            isConnectable={false}
+          />
         )}
         {Object.keys(data?.children ?? {}).length > 0 && (
-          <Handle type="source" position={Position.Right} />
+          <Handle
+            type="source"
+            position={Position.Right}
+            isConnectable={false}
+          />
         )}
       </Flex>
-    </>
+    </Tooltip>
   );
 }
