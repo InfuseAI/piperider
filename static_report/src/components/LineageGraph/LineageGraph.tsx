@@ -28,11 +28,6 @@ import {
   Portal,
   MenuOptionGroup,
   MenuItemOption,
-  Table,
-  Tbody,
-  Tr,
-  Td,
-  TableContainer,
   Tooltip,
   Icon,
 } from '@chakra-ui/react';
@@ -546,37 +541,25 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
 
 function StatusLegend() {
   return (
-    <Box>
-      <TableContainer>
-        <Table variant="simple" size="sm">
-          <Tbody>
-            <Tr>
-              <Td>
-                <Icon color={'#1dce00'} as={IconAdded} flex="0 0 20px" />
-              </Td>
-              <Td>added</Td>
-            </Tr>
-            <Tr>
-              <Td>
-                <Icon color={'#ff067e'} as={IconRemoved} flex="0 0 20px" />
-              </Td>
-              <Td>removed</Td>
-            </Tr>
-            <Tr>
-              <Td>
-                <Icon color={'#ffc808'} as={IconModified} flex="0 0 20px" />
-              </Td>
-              <Td>modified</Td>
-            </Tr>
-            <Tr>
-              <Td>
-                <Icon color={'#fd6136'} as={IconImplicit} flex="0 0 20px" />
-              </Td>
-              <Td>implicit</Td>
-            </Tr>
-          </Tbody>
-        </Table>
-      </TableContainer>
+    <Box
+      bg="white"
+      padding="12px"
+      borderWidth="1px"
+      borderColor="gray.200"
+      fontSize="sm"
+    >
+      <Flex alignItems="center" gap="6px" marginBottom="2px">
+        <Icon color={'#1dce00'} as={IconAdded} /> added
+      </Flex>
+      <Flex alignItems="center" gap="6px" marginBottom="2px">
+        <Icon color={'#ff067e'} as={IconRemoved} /> removed
+      </Flex>
+      <Flex alignItems="center" gap="6px" marginBottom="2px">
+        <Icon color={'#ffc808'} as={IconModified} /> modified
+      </Flex>
+      <Flex alignItems="center" gap="6px">
+        <Icon color={'#fd6136'} as={IconImplicit} /> implicit
+      </Flex>
     </Box>
   );
 }
