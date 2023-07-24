@@ -451,11 +451,11 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         out("# Comparison Summary")
         if self.get_url():
             out(f"[PipeRider Report]({self.get_url()})")
-        mt = MarkdownTable(headers=['Resource', 'Total', 'Explicit Changes', 'Impacted', 'Implicit Changes'])
-        mt.add_row([self.models.display_name, self.models.total, self.models.explicit_changes, self.models.impacted,
-                    self.models.implicit_changes])
-        mt.add_row([self.metrics.display_name, self.metrics.total, self.metrics.explicit_changes, self.metrics.impacted,
-                    self.metrics.implicit_changes])
+        mt = MarkdownTable(headers=['Resource', 'Total', 'Impacted', 'Explicit Changes', 'Implicit Changes'])
+        mt.add_row([self.models.display_name, self.models.total, self.models.impacted,
+                    self.models.explicit_changes, self.models.implicit_changes])
+        mt.add_row([self.metrics.display_name, self.metrics.total, self.metrics.impacted,
+                    self.metrics.explicit_changes, self.metrics.implicit_changes])
 
         out(mt.build())
 

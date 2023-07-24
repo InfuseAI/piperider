@@ -107,7 +107,12 @@ export function ModelList({
                   <StatDiff base={base} target={target} stat="row_count" />
                 </Td>
                 <Td textAlign="right" fontSize="sm">
-                  <StatDiff base={base} target={target} stat="execution_time" />
+                  <StatDiff
+                    base={base}
+                    target={target}
+                    stat="execution_time"
+                    negativeChange
+                  />
                 </Td>
                 {/* <Td>
                     <StatDiff

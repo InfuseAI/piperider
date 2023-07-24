@@ -620,11 +620,11 @@ class ComparisonData(object):
         console.print("Statistics:")
 
         for d in [self.summary_change_set.models, self.summary_change_set.metrics]:
-            output = [f"  {d.resource_type}: total={d.total}, explict={d.explicit_changes}",
+            output = [f"  {d.resource_type}: total={d.total}, impacted={d.impacted}, explicit={d.explicit_changes}",
                       f"(added={len([x for x in d.explicit_changeset if x.change_type == ChangeType.ADDED])}, "
                       f"removed={len([x for x in d.explicit_changeset if x.change_type == ChangeType.REMOVED])}, "
                       f"modified={len([x for x in d.explicit_changeset if x.change_type == ChangeType.MODIFIED])}), ",
-                      f"impacted={d.impacted}, implicit={d.implicit_changes}"]
+                      f"implicit={d.implicit_changes}"]
 
             console.print("".join(output))
 
