@@ -36,7 +36,7 @@ class ColumnChangeView:
         if self.data.get("nulls") != other.data.get("nulls"):
             return False
 
-        if self.data.get("distincts") != other.data.get("distincts"):
+        if self.data.get("distinct") != other.data.get("distinct"):
             return False
 
         return True

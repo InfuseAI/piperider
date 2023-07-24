@@ -61,13 +61,13 @@ class DefaultChangeSetOpMixin:
 
         for k in base_cols:
             if ColumnChangeView(base_cols.get(k)) != ColumnChangeView(
-                    target_cols.get(k)
+                target_cols.get(k)
             ):
                 return True
 
         for k in target_cols:
             if ColumnChangeView(base_cols.get(k)) != ColumnChangeView(
-                    target_cols.get(k)
+                target_cols.get(k)
             ):
                 return True
 
@@ -177,11 +177,11 @@ class LookUpTable:
 
     def tests(self, unique_id: str):
         return sum(self.base_tests.get(unique_id, dict(passed=0, failed=0)).values()), \
-            sum(self.target_tests.get(unique_id, dict(passed=0, failed=0)).values())
+               sum(self.target_tests.get(unique_id, dict(passed=0, failed=0)).values())
 
     def failed_tests(self, unique_id: str):
         return self.base_tests.get(unique_id, dict(passed=0, failed=0)).get('failed'), \
-            self.target_tests.get(unique_id, dict(passed=0, failed=0)).get('failed')
+               self.target_tests.get(unique_id, dict(passed=0, failed=0)).get('failed')
 
     def _build_dbt_time_mapping(self):
         base_execution = {x.get('unique_id'): x.get('execution_time') for x in
@@ -493,11 +493,11 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                 changes = list(self.tables.columns_changed_iterator(c.table_name))
 
                 def col_state(c: ColumnChangeEntry):
-                    if c.base_view is not None and c.target_view is not None:
+                    if c.base_view.data is not None and c.target_view.data is not None:
                         return ChangeType.MODIFIED
-                    if c.base_view is None:
+                    if c.base_view.data is None:
                         return ChangeType.ADDED
-                    if c.target_view is None:
+                    if c.target_view.data is None:
                         return ChangeType.REMOVED
                     raise ValueError("Cannot be here")
 
