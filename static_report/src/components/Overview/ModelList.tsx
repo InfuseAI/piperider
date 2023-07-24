@@ -68,7 +68,7 @@ export function ModelList({
         <Tbody fontSize="sm">
           {tableColumnsOnly.map((tableColsEntry, i) => {
             const [, { base, target }, metadata] = tableColsEntry;
-            const fallback = base ?? target;
+            const fallback = target ?? base;
             if (!fallback) {
               return <></>;
             }
@@ -94,14 +94,16 @@ export function ModelList({
                   </Link>
                 </Td>
                 <Td>
-                  {`${Object.keys(fallback?.columns || {}).length}`}
-                  {!singleOnly && (
-                    <ChangeStatusWidget
-                      added={metadata.added}
-                      removed={metadata.deleted}
-                      modified={metadata.changed}
-                    />
-                  )}
+                  {`${Object.keys(fallback?.__columns || {}).length}`}
+                  {!singleOnly &&
+                    metadata.changeStatus !== 'added' &&
+                    metadata.changeStatus !== 'removed' && (
+                      <ChangeStatusWidget
+                        added={metadata.added}
+                        removed={metadata.deleted}
+                        modified={metadata.changed}
+                      />
+                    )}
                 </Td>
                 <Td textAlign="right" fontSize="sm">
                   <StatDiff base={base} target={target} stat="row_count" />

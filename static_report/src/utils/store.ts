@@ -18,6 +18,7 @@ import {
   buildDbtNodes,
   buildLineageGraph,
   buildProjectTree,
+  compareColumn,
 } from './dbt';
 import { getDownstreamSet } from './graph';
 import { DbtManifestSchema } from '../sdlc/dbt-manifest-schema';
@@ -213,17 +214,15 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
       const base = baseColumns[key];
       const target = targetColumns[key];
       let mismatched = false;
+      const changeStatus = compareColumn(base, target);
 
-      if (!base) {
+      if (changeStatus === 'added') {
         added += 1;
         mismatched = true;
-      } else if (!target) {
+      } else if (changeStatus === 'removed') {
         deleted += 1;
         mismatched = true;
-      } else if (
-        base.name !== target.name ||
-        base.schema_type !== target.schema_type
-      ) {
+      } else if (changeStatus === 'implicit' || changeStatus === 'modified') {
         changed += 1;
         mismatched = true;
       }
