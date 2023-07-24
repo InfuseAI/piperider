@@ -555,7 +555,7 @@ function StatusLegend() {
         <Icon color={'#ff067e'} as={IconRemoved} /> removed
       </Flex>
       <Flex alignItems="center" gap="6px" marginBottom="2px">
-        <Icon color={'#ffc808'} as={IconModified} /> modified
+        <Icon color={'#ffa502'} as={IconModified} /> modified
       </Flex>
       <Flex alignItems="center" gap="6px">
         <Icon color={'#fd6136'} as={IconImplicit} /> implicit
