@@ -342,7 +342,7 @@ class Configuration(object):
             config = _yml.load(f)
 
         config[key] = update_values
-        with open(FileSystem.PIPERIDER_CONFIG_PATH, 'w+') as f:
+        with open(FileSystem.PIPERIDER_CONFIG_PATH, 'w+', encoding='utf-8') as f:
             _yml.dump(config, f)
 
     @classmethod
@@ -588,7 +588,7 @@ class Configuration(object):
             # Only append a new line if the last datasource has no comment
             config.yaml_set_comment_before_after_key('profiler', before='\n')
 
-        with open(path, 'w') as fd:
+        with open(path, 'w', encoding='utf-8') as fd:
             yaml.YAML().dump(config, fd)
         pass
 
@@ -621,7 +621,7 @@ class Configuration(object):
 
         config_yaml = CommentedMap(config)
 
-        with open(path, 'w') as fd:
+        with open(path, 'w', encoding='utf-8') as fd:
             yaml.YAML().dump(config_yaml, fd)
 
     def dump_credentials(self, path, after_init_config=False):
@@ -640,7 +640,7 @@ class Configuration(object):
             creds[d.name] = dict(type=d.type_name, **d.credential)
 
         if creds:
-            with open(path, 'w') as fd:
+            with open(path, 'w', encoding='utf-8') as fd:
                 yaml.round_trip_dump(creds, fd)
 
     def to_sqlalchemy_config(self, datasource_name):

@@ -785,7 +785,7 @@ class Runner():
         output_path = prepare_default_output_path(filesystem, created_at, ds)
         output_file = os.path.join(output_path, 'run.json')
 
-        with open(output_file, 'w') as f:
+        with open(output_file, 'w', encoding='utf-8') as f:
             f.write(json.dumps(run_result, separators=(',', ':')))
 
         if dbt_config:

@@ -831,13 +831,13 @@ class CompareReport(object):
         def output_report(directory):
             clone_directory(report_template_dir, directory)
             filename = os.path.join(directory, 'index.html')
-            with open(filename, 'w') as f:
+            with open(filename, 'w', encoding='utf-8') as f:
                 html = setup_report_variables(report_template_html, False, comparison_data.to_json())
                 f.write(html)
 
         def output_summary(directory, summary_data):
             filename = os.path.join(directory, 'summary.md')
-            with open(filename, 'w') as f:
+            with open(filename, 'w', encoding='utf-8') as f:
                 f.write(summary_data)
 
         data_id = comparison_data.id()
@@ -894,5 +894,5 @@ class CompareReport(object):
 
         if debug:
             # Write comparison data to file
-            with open(os.path.join(default_report_directory, 'comparison_data.json'), 'w') as f:
+            with open(os.path.join(default_report_directory, 'comparison_data.json'), 'w', encoding='utf-8') as f:
                 f.write(comparison_data.to_json())

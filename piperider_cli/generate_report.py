@@ -60,7 +60,7 @@ def setup_report_variables(template_html: str, is_single: bool, data):
 
 def _generate_static_html(result, html, output_path):
     filename = os.path.join(output_path, "index.html")
-    with open(filename, 'w') as f:
+    with open(filename, 'w', encoding='utf-8') as f:
         html = setup_report_variables(html, True, result)
         f.write(html)
 
