@@ -30,6 +30,7 @@ from piperider_cli.exitcode import EC_ERR_TEST_FAILED
 from piperider_cli.metrics_engine import MetricEngine, MetricEventHandler
 from piperider_cli.profiler import ProfileSubject, Profiler, ProfilerEventHandler
 from piperider_cli.statistics import Statistics
+from piperider_cli.utils import create_link, remove_link
 
 
 class RunEventPayload:
@@ -342,26 +343,11 @@ def prepare_default_output_path(filesystem: ReportDirectory, created_at, ds):
         os.makedirs(output_path, exist_ok=True)
 
     # Create a symlink pointing to the latest output directory
-    if os.path.islink(latest_symlink_path):
-        os.unlink(latest_symlink_path)
+    remove_link(latest_symlink_path)
 
     console = Console()
     if not os.path.exists(latest_symlink_path):
-        try:
-            os.symlink(latest_source, latest_symlink_path)
-        except OSError as e:
-            """
-            System Error Codes:
-                ERROR_PRIVILEGE_NOT_HELD
-                1314 (0x522)
-                A required privilege is not held by the client.
-                https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--1300-1699-
-            """
-            if e.winerror is not None and e.winerror == 1314:
-                console.print(
-                    f'[bold yellow]Warning:[/bold yellow] {e}. To solve this, run piperider as an administrator')
-            else:
-                raise e
+        create_link(output_path, latest_symlink_path)
     else:
         console.print(f'[bold yellow]Warning: {latest_symlink_path} already exists[/bold yellow]')
 
