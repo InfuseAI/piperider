@@ -29,6 +29,7 @@ import {
   MenuOptionGroup,
   MenuItemOption,
   Tooltip,
+  Icon,
 } from '@chakra-ui/react';
 import { useLocation } from 'wouter';
 import { GraphNode } from './GraphNode';
@@ -47,6 +48,7 @@ import { useTrackOnMount } from '../../hooks/useTrackOnMount';
 import { CR_TYPE_LABEL, EVENTS, SR_TYPE_LABEL } from '../../utils/trackEvents';
 import { useHashParams } from '../../hooks';
 import { CopyGraphUrlButton } from './CopyGraphUrlButton';
+import { IconAdded, IconImplicit, IconModified, IconRemoved } from '../Icons';
 
 const nodeTypes = {
   customNode: GraphNode,
@@ -354,6 +356,11 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
           <Panel position="top-right">
             <CopyGraphUrlButton params={copyParams} />
           </Panel>
+          {!singleOnly && (
+            <Panel position="top-left">
+              <StatusLegend />
+            </Panel>
+          )}
         </ReactFlow>
       </Box>
 
@@ -529,6 +536,31 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
         </Menu>
       </Portal>
     </Flex>
+  );
+}
+
+function StatusLegend() {
+  return (
+    <Box
+      bg="white"
+      padding="12px"
+      borderWidth="1px"
+      borderColor="gray.200"
+      fontSize="sm"
+    >
+      <Flex alignItems="center" gap="6px" marginBottom="2px">
+        <Icon color={'#1dce00'} as={IconAdded} /> added
+      </Flex>
+      <Flex alignItems="center" gap="6px" marginBottom="2px">
+        <Icon color={'#ff067e'} as={IconRemoved} /> removed
+      </Flex>
+      <Flex alignItems="center" gap="6px" marginBottom="2px">
+        <Icon color={'#ffa502'} as={IconModified} /> modified
+      </Flex>
+      <Flex alignItems="center" gap="6px">
+        <Icon color={'#fd6136'} as={IconImplicit} /> implicit
+      </Flex>
+    </Box>
   );
 }
 
