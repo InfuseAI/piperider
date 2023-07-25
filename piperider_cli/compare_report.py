@@ -634,7 +634,6 @@ class ComparisonData(object):
 
 def prepare_default_output_path(filesystem: ReportDirectory, created_at):
     latest_symlink_path = os.path.join(filesystem.get_comparison_dir(), 'latest')
-    latest_source = created_at
     comparison_path = os.path.join(filesystem.get_comparison_dir(), created_at)
 
     if not os.path.exists(comparison_path):
