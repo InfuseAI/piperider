@@ -119,7 +119,7 @@ function App() {
         <div>
           <div style={{ position: 'absolute', top: '0px', left: '0px' }}>
             Cloud
-            <Tooltip label="Devlop the cloud mode. It would enable the lineage graph.">
+            <Tooltip label="Develop the cloud mode. It would enable the lineage graph.">
               <InfoIcon />
             </Tooltip>
             <br />

@@ -161,6 +161,7 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
                     target={data?.target}
                     stat={stat as any}
                     isActive={isActive}
+                    negativeChange={stat === 'execution_time'}
                   />
                 )}
               </Text>

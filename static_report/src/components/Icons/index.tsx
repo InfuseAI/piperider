@@ -53,7 +53,7 @@ export function getIconForChangeStatus(changeStatus?: ChangeStatus): {
   } else if (changeStatus === 'removed') {
     return { color: '#ff067e', icon: IconRemoved };
   } else if (changeStatus === 'modified') {
-    return { color: '#ffc808', icon: IconModified };
+    return { color: '#ffa502', icon: IconModified };
   } else if (changeStatus === 'implicit') {
     return { color: '#fd6136', icon: IconImplicit };
   } else {

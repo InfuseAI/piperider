@@ -36,7 +36,7 @@ class ColumnChangeView:
         if self.data.get("nulls") != other.data.get("nulls"):
             return False
 
-        if self.data.get("distincts") != other.data.get("distincts"):
+        if self.data.get("distinct") != other.data.get("distinct"):
             return False
 
         return True
@@ -185,7 +185,7 @@ class ChangeType(Enum):
         if negative_change:
             color = "red" if t > b else "green"
         else:
-            color = "green" if t > b else "red"
+            color = "orange" if t > b else "orange"
         sign = "↑" if t > b else "↓"
         diff = t - b
         if math.isnan(diff):
