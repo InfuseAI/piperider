@@ -1,0 +1,36 @@
+name: Run dbt tests on win
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [ '3.11' ]
+        dbt: [ ">=1.5" ]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest "dbt-core${{ matrix.dbt }}" "dbt-duckdb${{ matrix.dbt }}"
+          pip install '.[duckdb]'
+
+      - name: Run jaffle shop
+        run: |
+          ./e2e-jaffle-shop/run.bat
+          python ./e2e-jaffle-shop/windows-result-checker.py
