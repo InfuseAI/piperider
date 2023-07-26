@@ -128,18 +128,26 @@ export function SideBarTree({ items, singleOnly }: Props) {
             onClick(item);
           }}
           alignItems="center"
-          px={2}
         >
           <ListIcon
             as={iconChevron}
             visibility={isExpandable ? 'visible' : 'hidden'}
           />
           <ListIcon as={icon} mr={1} />
-          <Text flex={1}>{name}</Text>
+          <Text
+            flex="1 1 auto"
+            overflow="hidden"
+            whiteSpace="nowrap"
+            textOverflow="ellipsis"
+          >
+            {name}
+          </Text>
           {!singleOnly && changeStatus && (
             <ListIcon
               as={iconChangeStatus}
               color={isActive ? 'white' : colorChangeStatus}
+              flex="0 0 16px"
+              mr="0px"
             />
           )}
         </Flex>

@@ -127,7 +127,7 @@ export function getIconForChangeStatus(changeStatus?: ChangeStatus): {
     return { color: '#fd6136', icon: IconDsImpacted };
   } else if (changeStatus === 'ds_potential') {
     return { color: '#fd6136', icon: IconDsPotential };
-  } else if (changeStatus === 'ds_nochanged') {
+  } else if (changeStatus === 'ds_not_changed') {
     return { color: '#fd6136', icon: IconDsNoChanged };
   } else if (changeStatus === 'col_added') {
     return { color: '#1dce00', icon: IconAdded };

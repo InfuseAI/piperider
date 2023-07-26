@@ -7,6 +7,7 @@ import {
   Heading,
   Box,
   Button,
+  Divider,
 } from '@chakra-ui/react';
 
 import {
@@ -274,6 +275,14 @@ export function Overview({ singleOnly }: Props) {
   const tabItems = getTabItems(tableColumnsOnly);
   const resourceType = tabItems[resourceIndex].resourceType;
 
+  const allResources = useMemo(() => {
+    return tableColumnsOnly.filter(([key, { base, target }]) => {
+      const fallback = target ?? base;
+      const listedResourceType = new Set(['model', 'seed', 'source', 'metric']);
+      return listedResourceType.has(fallback?.resource_type ?? '');
+    });
+  }, [tableColumnsOnly]);
+
   const sorted = useMemo(() => {
     const filtered = tableColumnsOnly.filter(([key, { base, target }]) => {
       const fallback = target ?? base;
@@ -334,7 +343,13 @@ export function Overview({ singleOnly }: Props) {
   return (
     <>
       <Flex direction="column" w={'100%'} minHeight="650px">
-        <Flex w={'100%'}>
+        <Flex
+          w={'100%'}
+          borderBottom="1px solid"
+          borderColor="lightgray"
+          paddingBottom="10px"
+          marginBottom="20px"
+        >
           <Heading fontSize={24}>Overview</Heading>
           <Spacer />
           {isCloud && (
@@ -358,7 +373,7 @@ export function Overview({ singleOnly }: Props) {
           )}
         </Flex>
 
-        {!singleOnly && <ChangeSummary tableColumnsOnly={sorted} />}
+        {!singleOnly && <ChangeSummary tableColumnsOnly={allResources} />}
 
         <Tabs onChange={setResourceIndex} mb={4}>
           <TabList>

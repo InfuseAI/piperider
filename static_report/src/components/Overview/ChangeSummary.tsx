@@ -1,8 +1,12 @@
 import { VStack, Box, Icon, Text, Tooltip, Grid, Flex } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { FiInfo } from 'react-icons/fi';
-import { CompTableColEntryItem } from '../../lib';
-import { IconAdded } from '../Icons';
+import {
+  ChangeStatus,
+  CompTableColEntryItem,
+  NODE_CHANGE_STATUS_COUNT_MSGS,
+} from '../../lib';
+import { getIconForChangeStatus, IconAdded } from '../Icons';
 import { ChangeStatusWidget } from '../Widgets/ChangeStatusWidget';
 
 function SummaryText({
@@ -10,7 +14,7 @@ function SummaryText({
   value,
   tip,
 }: {
-  name: string;
+  name: ReactNode;
   value: ReactNode;
   tip?: ReactNode;
 }) {
@@ -31,85 +35,118 @@ function SummaryText({
   );
 }
 
+function ChangeStatusCountLabel({
+  changeStatus,
+  value,
+}: {
+  changeStatus: ChangeStatus;
+  value: number;
+}) {
+  const [label, description] =
+    NODE_CHANGE_STATUS_COUNT_MSGS[changeStatus ?? ''];
+  const { icon, color } = getIconForChangeStatus(changeStatus);
+
+  return (
+    <VStack alignItems="stretch">
+      <Flex alignItems="center" fontSize="sm" color="gray">
+        <Icon mr="5px" as={icon} color={color} />
+        {label}
+        <Tooltip label={description}>
+          <Box display="inline-block">
+            <Icon mx={'2px'} as={FiInfo} boxSize={3} />
+          </Box>
+        </Tooltip>
+      </Flex>
+      <Text fontSize="l">{value}</Text>
+    </VStack>
+  );
+}
+
 type Props = {
   tableColumnsOnly: CompTableColEntryItem[];
 };
 
 export function ChangeSummary({ tableColumnsOnly }: Props) {
-  const { total, added, removed, modified, impacted, implicit } =
-    tableColumnsOnly.reduce(
-      (acc, [key, { base, target }, { changeStatus, impacted }]) => {
-        return {
-          total: acc.total + (target ? 1 : 0),
-          added: acc.added + (changeStatus === 'added' ? 1 : 0),
-          removed: acc.removed + (changeStatus === 'removed' ? 1 : 0),
-          modified: acc.modified + (changeStatus === 'modified' ? 1 : 0),
-          impacted: acc.impacted + (impacted ? 1 : 0),
-          implicit: acc.implicit + 1,
-        };
-      },
-      {
-        total: 0,
-        added: 0,
-        removed: 0,
-        modified: 0,
-        impacted: 0,
-        implicit: 0,
-      },
-    );
+  const {
+    total,
+    adds,
+    removes,
+    modifies,
+    downstreamImpacts,
+    downstreamPotentials,
+    downstreamNoChanges,
+  } = tableColumnsOnly.reduce(
+    (acc, [key, { base, target }, { changeStatus }]) => {
+      return {
+        total: acc.total + (target ? 1 : 0),
+        adds: acc.adds + (changeStatus === 'added' ? 1 : 0),
+        removes: acc.removes + (changeStatus === 'removed' ? 1 : 0),
+        modifies: acc.modifies + (changeStatus === 'modified' ? 1 : 0),
+        downstreamImpacts:
+          acc.downstreamImpacts + (changeStatus === 'ds_impacted' ? 1 : 0),
+        downstreamPotentials:
+          acc.downstreamPotentials + (changeStatus === 'ds_potential' ? 1 : 0),
+        downstreamNoChanges:
+          acc.downstreamNoChanges + (changeStatus === 'ds_not_changed' ? 1 : 0),
+      };
+    },
+    {
+      total: 0,
+      adds: 0,
+      removes: 0,
+      modifies: 0,
+      downstreamImpacts: 0,
+      downstreamPotentials: 0,
+      downstreamNoChanges: 0,
+    },
+  );
 
   return (
-    <Grid templateColumns="1fr 1fr">
-      {/* <SummaryText
-        name="Code Changes"
-        value={
-          <>
-            {added + removed + modified}{' '}
-            <ChangeStatusWidget
-              added={added}
-              removed={removed}
-              modified={modified}
-            />{' '}
-          </>
-        }
-        tip="Code change or config change"
-      /> */}
+    <Grid templateColumns="1fr 1fr" mb="10px">
       <Box borderColor="lightgray">
         <SummaryText
-          name="Code Change"
+          name="Code Changes"
+          tip="Changes caused by users through editing. This may include adding or removing, renaming, or adjusting configuration."
           value={
             <>
               <Grid templateColumns="1fr 1fr 1fr" width="100%">
-                <SummaryText
-                  name="Added"
-                  value={
-                    <Flex alignItems="center" justifyContent="flex-start">
-                      3 <Icon as={IconAdded} />
-                    </Flex>
-                  }
+                <ChangeStatusCountLabel changeStatus="added" value={adds} />
+                <ChangeStatusCountLabel
+                  changeStatus="removed"
+                  value={removes}
                 />
-                <SummaryText name="Removed" value={3} />
-                <SummaryText name="Modified" value={3} />
+                <ChangeStatusCountLabel
+                  changeStatus="modified"
+                  value={modifies}
+                />
               </Grid>
             </>
           }
-          tip="Explicit changes and their downstream"
         />
       </Box>
 
-      <Box borderLeft="1px" paddingLeft="20px" borderColor="lightgray">
+      <Box borderLeft="1px" paddingLeft="12px" borderColor="lightgray">
         <SummaryText
-          name="Code Change Downstreams"
+          name="Downstreams of code changes"
+          tip="This is the affected scope of the code changes."
           value={
             <>
               <Grid templateColumns="1fr 1fr 1fr" width="100%">
-                <SummaryText name="Impacts" value={3} />
-                <SummaryText name="Potentials" value={3} />
-                <SummaryText name="No Changes" value={3} />
+                <ChangeStatusCountLabel
+                  changeStatus="ds_impacted"
+                  value={downstreamImpacts}
+                />
+                <ChangeStatusCountLabel
+                  changeStatus="ds_potential"
+                  value={downstreamPotentials}
+                />
+                <ChangeStatusCountLabel
+                  changeStatus="ds_not_changed"
+                  value={downstreamNoChanges}
+                />
               </Grid>
             </>
           }
-          tip="Explicit changes and their downstream"
         />
       </Box>
     </Grid>

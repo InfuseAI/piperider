@@ -33,7 +33,7 @@ export type ChangeStatus =
   // code change downstream
   | 'ds_impacted'
   | 'ds_potential'
-  | 'ds_nochanged'
+  | 'ds_not_changed'
 
   // column change
   | 'col_added'
@@ -43,6 +43,43 @@ export type ChangeStatus =
   // folder change
   | 'folder_changed'
   | null;
+
+export const NODE_CHANGE_STATUS_MSGS = {
+  added: ['Added', 'Added resource'],
+  removed: ['Removed', 'Removed resource'],
+  modified: ['Removed', 'Modified resource'],
+  ds_impacted: [
+    'D.S Impacted',
+    'Downstream of code changes and changes are detected.',
+  ],
+  ds_potential: [
+    'D.S. Potential',
+    'Downstream of code changes but the resource is not profiled or queried.',
+  ],
+  ds_not_changed: [
+    'D.S Not changed',
+    'Downstream of code changes and the resource is profiled or queried. No changes are detected.',
+  ],
+};
+
+export const NODE_CHANGE_STATUS_COUNT_MSGS = {
+  added: ['Adds', 'Count of new added resources'],
+  removed: ['Removes', 'Count of removed resources'],
+  modified: ['Modifies', 'Count of modified resources'],
+  ds_impacted: [
+    'Impacts',
+    'Count of impacted downstreams by code changes. There are changes detected.',
+  ],
+  ds_potential: [
+    'Potentials',
+    'Count of non-profiled downstreams, which are potentially impacted by code changes.',
+  ],
+  ds_not_changed: [
+    'No Changes',
+    'Count of profiled but not impacted downstreams. There are no changes detected.',
+  ],
+};
+
 type ComparableMetadata = {
   /**
    * Dbt node
@@ -283,7 +320,7 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
       } else if (!checked) {
         changeStatus = 'ds_potential';
       } else {
-        changeStatus = 'ds_nochanged';
+        changeStatus = 'ds_not_changed';
       }
     }
 
