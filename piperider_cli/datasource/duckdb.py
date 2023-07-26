@@ -74,6 +74,7 @@ class DuckDBDataSource(DataSource):
         ]
 
         warnings.filterwarnings('ignore', message="duckdb-engine doesn't yet support reflection on indices")
+        self.legacy_engine = None
 
     def validate(self):
         return self._validate_required_fields()
@@ -122,6 +123,27 @@ class DuckDBDataSource(DataSource):
                 seq, name, file = result
                 return name
         return 'main'
+
+    def is_legacy_duckdb(self):
+        # NOTE: the old duckdb cannot open multi-instance to a single file
+        import duckdb
+        from packaging import version as v
+        is_legacy = v.parse(duckdb.__version__) < v.parse('0.8.1')
+        return is_legacy
+
+    def get_engine_by_database(self, database=None):
+        if self.is_legacy_duckdb():
+            if self.legacy_engine is None:
+                self.legacy_engine = self.create_engine(database)
+            return self.legacy_engine
+
+        return super().get_engine_by_database(database)
+
+    @property
+    def threads(self):
+        if self.is_legacy_duckdb():
+            return 1
+        return super().threads
 
     def get_schema(self):
         cred = self.credential
