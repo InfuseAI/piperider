@@ -158,24 +158,24 @@ export function compareColumn(
 ): ChangeStatus | undefined {
   // schema change
   if (!base) {
-    return 'added';
+    return 'col_added';
   } else if (!target) {
-    return 'removed';
+    return 'col_removed';
   } else if (base.schema_type !== target?.schema_type) {
-    return 'implicit';
+    return 'col_changed';
   }
 
   // value change
   if (base?.nulls !== target?.nulls) {
-    return 'implicit';
+    return 'col_changed';
   }
 
   if (base?.distinct !== target?.distinct) {
-    return 'implicit';
+    return 'col_changed';
   }
 
   if (base?.duplicates !== target?.duplicates) {
-    return 'implicit';
+    return 'col_changed';
   }
 }
 
@@ -223,7 +223,7 @@ export function buildColumnTree(
     let type = `column_${fallback?.type}` as any;
     let changeStatus = compareColumn(base, target);
     if (changeStatus) {
-      resultChangeStatus = 'implicit';
+      resultChangeStatus = 'ds_impacted';
     }
 
     items.push({

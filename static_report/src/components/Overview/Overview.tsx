@@ -31,12 +31,12 @@ import {
 } from '../../utils/store';
 import { SearchTextInput } from '../Common/SearchTextInput';
 import { ModelList } from './ModelList';
-import { ChangeSummary } from './ChangeSummary';
 import { MetricList } from './MetricList';
 import { Comparable } from '../../types';
 import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
 import { useLocation } from 'wouter';
 import { useCloudReport } from '../../utils/cloud';
+import { ChangeSummary } from './ChangeSummary';
 
 function getMenuItemOption(name: string, changeStatus?: ChangeStatus) {
   const { icon, color } = getIconForChangeStatus(changeStatus);
@@ -131,7 +131,6 @@ function SelectMenu({
           {getMenuItemOption('Added', 'added')}
           {getMenuItemOption('Removed', 'removed')}
           {getMenuItemOption('Modified', 'modified')}
-          {getMenuItemOption('Implicit', 'implicit')}
           {getMenuItemOption('No change')}
         </MenuOptionGroup>
       </MenuList>
@@ -327,12 +326,6 @@ export function Overview({ singleOnly }: Props) {
       ) {
         return false;
       }
-      if (
-        !filterOptions.changeStatus.has('implicit') &&
-        metadata.changeStatus === 'implicit'
-      ) {
-        return false;
-      }
     }
 
     return true;
@@ -364,6 +357,9 @@ export function Overview({ singleOnly }: Props) {
             </Button>
           )}
         </Flex>
+
+        {!singleOnly && <ChangeSummary tableColumnsOnly={sorted} />}
+
         <Tabs onChange={setResourceIndex} mb={4}>
           <TabList>
             {tabItems.map((tabItem) => {
@@ -381,13 +377,13 @@ export function Overview({ singleOnly }: Props) {
             })}
           </TabList>
         </Tabs>
-
+        {/* 
         {!singleOnly && (
           <ChangeSummary
             tableColumnsOnly={sorted}
             noImpacted={resourceType === 'source' || resourceType === 'seed'}
           />
-        )}
+        )} */}
 
         <Flex alignContent="stretch" gap={3} my={2}>
           <SearchTextInput

@@ -45,20 +45,12 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
     iconChangeStatus = getIconForChangeStatus(changeStatus).icon;
     color = getIconForChangeStatus(changeStatus).color;
     zoomOutColor = changeStatus ? color : zoomOutColor;
-    if (changeStatus === 'added') {
-      msgChangeStatus = 'added';
+    if (changeStatus === 'added' || changeStatus === 'removed') {
       borderStyle = 'dashed';
-    } else if (changeStatus === 'modified') {
-      msgChangeStatus = 'modified';
-    } else if (changeStatus === 'implicit') {
-      msgChangeStatus = 'implicit';
-    } else if (changeStatus === 'removed') {
-      msgChangeStatus = 'removed';
-      borderStyle = 'dashed';
-    } else if (isNoProfile) {
-      color = COLOR_NOPROFILED;
-    } else {
-      color = COLOR_UNCHANGED;
+      // } else if (isNoProfile) {
+      //   color = COLOR_NOPROFILED;
+      // } else {
+      //   color = COLOR_UNCHANGED;
     }
   }
 
@@ -101,7 +93,7 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
         padding={0}
       >
         <Flex
-          backgroundColor={isSelected ? resourceColor : 'gray.100'}
+          backgroundColor={isSelected ? color : 'gray.100'}
           padding={2}
           borderRightWidth={borderWidth}
           borderColor={borderColor}

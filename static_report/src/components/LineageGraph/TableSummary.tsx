@@ -190,23 +190,23 @@ export default function TableSummary({ singleOnly, isOpen, onClose }: Props) {
                 const fallbackColumn = targetColumn || baseColumn;
                 let { icon } = getIconForColumnType(fallbackColumn?.type);
                 let iconChangeStatus: any = undefined;
-                let color: any;
+                let color: any = 'inherit';
 
-                if (!singleOnly) {
-                  const changeStatus = compareColumn(baseColumn, targetColumn);
-                  if (changeStatus === 'added') {
-                    iconChangeStatus = VscDiffAdded;
-                    color = COLOR_ADDED;
-                  } else if (changeStatus === 'removed') {
-                    iconChangeStatus = VscDiffRemoved;
-                    color = COLOR_REMOVED;
-                  } else if (changeStatus === 'implicit') {
-                    iconChangeStatus = VscDiffModified;
-                    color = COLOR_CHANGED;
-                  } else {
-                    color = 'inherit';
-                  }
-                }
+                // if (!singleOnly) {
+                //   const changeStatus = compareColumn(baseColumn, targetColumn);
+                //   if (changeStatus === 'added') {
+                //     iconChangeStatus = VscDiffAdded;
+                //     color = COLOR_ADDED;
+                //   } else if (changeStatus === 'removed') {
+                //     iconChangeStatus = VscDiffRemoved;
+                //     color = COLOR_REMOVED;
+                //   } else if (changeStatus === 'implicit') {
+                //     iconChangeStatus = VscDiffModified;
+                //     color = COLOR_CHANGED;
+                //   } else {
+                //     color = 'inherit';
+                //   }
+                // }
 
                 return (
                   <Tr

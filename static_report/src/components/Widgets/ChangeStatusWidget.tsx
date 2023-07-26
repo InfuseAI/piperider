@@ -6,7 +6,6 @@ type Props = {
   added?: number;
   removed?: number;
   modified?: number;
-  implicit?: number;
 };
 
 function ChangeStatusOne({
@@ -25,12 +24,7 @@ function ChangeStatusOne({
   );
 }
 
-export function ChangeStatusWidget({
-  added,
-  removed,
-  modified,
-  implicit,
-}: Props) {
+export function ChangeStatusWidget({ added, removed, modified }: Props) {
   const items: any[] = [];
   let first = true;
 
@@ -47,11 +41,6 @@ export function ChangeStatusWidget({
   if (modified) {
     items.push(first ? <>(</> : <Box pr={2}>,</Box>);
     items.push(<ChangeStatusOne value={modified} changeStatus="modified" />);
-    first = false;
-  }
-  if (implicit) {
-    items.push(first ? <>(</> : <Box pr={2}>,</Box>);
-    items.push(<ChangeStatusOne value={implicit} changeStatus="implicit" />);
     first = false;
   }
   if (!first) {

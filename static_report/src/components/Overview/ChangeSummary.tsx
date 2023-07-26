@@ -1,7 +1,8 @@
-import { VStack, Box, Icon, Text, Tooltip, Grid } from '@chakra-ui/react';
+import { VStack, Box, Icon, Text, Tooltip, Grid, Flex } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { FiInfo } from 'react-icons/fi';
 import { CompTableColEntryItem } from '../../lib';
+import { IconAdded } from '../Icons';
 import { ChangeStatusWidget } from '../Widgets/ChangeStatusWidget';
 
 function SummaryText({
@@ -14,7 +15,7 @@ function SummaryText({
   tip?: ReactNode;
 }) {
   return (
-    <VStack alignItems="flex-start">
+    <VStack alignItems="stretch">
       <Text fontSize="sm" color="gray">
         {name}
         {tip && (
@@ -32,10 +33,9 @@ function SummaryText({
 
 type Props = {
   tableColumnsOnly: CompTableColEntryItem[];
-  noImpacted: boolean;
 };
 
-export function ChangeSummary({ tableColumnsOnly, noImpacted }: Props) {
+export function ChangeSummary({ tableColumnsOnly }: Props) {
   const { total, added, removed, modified, impacted, implicit } =
     tableColumnsOnly.reduce(
       (acc, [key, { base, target }, { changeStatus, impacted }]) => {
@@ -45,7 +45,7 @@ export function ChangeSummary({ tableColumnsOnly, noImpacted }: Props) {
           removed: acc.removed + (changeStatus === 'removed' ? 1 : 0),
           modified: acc.modified + (changeStatus === 'modified' ? 1 : 0),
           impacted: acc.impacted + (impacted ? 1 : 0),
-          implicit: acc.implicit + (changeStatus === 'implicit' ? 1 : 0),
+          implicit: acc.implicit + 1,
         };
       },
       {
@@ -59,15 +59,9 @@ export function ChangeSummary({ tableColumnsOnly, noImpacted }: Props) {
     );
 
   return (
-    <Grid templateColumns="repeat(4, 1fr)" gap={6}>
-      <SummaryText name="Total" value={total} />
-      <SummaryText
-        name="Impacted"
-        value={impacted}
-        tip="Explicit changes and their downstream"
-      />
-      <SummaryText
-        name="Explicit Changes"
+    <Grid templateColumns="1fr 1fr">
+      {/* <SummaryText
+        name="Code Changes"
         value={
           <>
             {added + removed + modified}{' '}
@@ -79,12 +73,45 @@ export function ChangeSummary({ tableColumnsOnly, noImpacted }: Props) {
           </>
         }
         tip="Code change or config change"
-      />
-      <SummaryText
-        name="Implicit Changes"
-        value={implicit}
-        tip="Any detected changes which are not explicit changed"
-      />
+      /> */}
+      <Box borderColor="lightgray">
+        <SummaryText
+          name="Code Change"
+          value={
+            <>
+              <Grid templateColumns="1fr 1fr 1fr" width="100%">
+                <SummaryText
+                  name="Added"
+                  value={
+                    <Flex alignItems="center" justifyContent="flex-start">
+                      3 <Icon as={IconAdded} />
+                    </Flex>
+                  }
+                />
+                <SummaryText name="Removed" value={3} />
+                <SummaryText name="Modified" value={3} />
+              </Grid>
+            </>
+          }
+          tip="Explicit changes and their downstream"
+        />
+      </Box>
+
+      <Box borderLeft="1px" paddingLeft="20px" borderColor="lightgray">
+        <SummaryText
+          name="Code Change Downstreams"
+          value={
+            <>
+              <Grid templateColumns="1fr 1fr 1fr" width="100%">
+                <SummaryText name="Impacts" value={3} />
+                <SummaryText name="Potentials" value={3} />
+                <SummaryText name="No Changes" value={3} />
+              </Grid>
+            </>
+          }
+          tip="Explicit changes and their downstream"
+        />
+      </Box>
     </Grid>
   );
 }

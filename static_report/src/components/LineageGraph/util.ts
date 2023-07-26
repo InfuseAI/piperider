@@ -156,8 +156,7 @@ export function selectStateChanged(
     if (
       node.changeStatus === 'added' ||
       node.changeStatus === 'removed' ||
-      node.changeStatus === 'modified' ||
-      node.changeStatus === 'implicit'
+      node.changeStatus === 'modified'
     ) {
       changeSet.add(uniqueId);
     }

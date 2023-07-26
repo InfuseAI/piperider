@@ -77,7 +77,7 @@ export function SideBarTree({ items, singleOnly }: Props) {
     if (!isExpanded && !changeStatus && isChildrenChanged(item)) {
       // If the item is not expanded and has children that are changed, then
       // we want to show the changed icon.
-      changeStatus = 'modified';
+      changeStatus = 'folder_changed';
     }
     const { icon: iconChangeStatus, color: colorChangeStatus } =
       getIconForChangeStatus(changeStatus);

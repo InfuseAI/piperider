@@ -24,7 +24,25 @@ import { getDownstreamSet } from './graph';
 import { DbtManifestSchema } from '../sdlc/dbt-manifest-schema';
 
 export type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
-export type ChangeStatus = 'modified' | 'added' | 'removed' | 'implicit' | null;
+export type ChangeStatus =
+  // node change
+  // code change (user edit)
+  | 'added'
+  | 'removed'
+  | 'modified'
+  // code change downstream
+  | 'ds_impacted'
+  | 'ds_potential'
+  | 'ds_nochanged'
+
+  // column change
+  | 'col_added'
+  | 'col_removed'
+  | 'col_changed'
+
+  // folder change
+  | 'folder_changed'
+  | null;
 type ComparableMetadata = {
   /**
    * Dbt node
@@ -197,6 +215,7 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
   return nodeKeys.map((nodeKey) => {
     const base = baseNodes[nodeKey];
     const target = targetNodes[nodeKey];
+    const fallback = target ?? base;
     const baseColumns = base?.__table?.columns ?? {};
     const targetColumns = target?.__table?.columns ?? {};
     const keys = mergeKeys(
@@ -208,6 +227,20 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
     let changed = 0;
     let changeStatus: ComparableMetadata['changeStatus'] = null;
     let impacted = false;
+    let checked = false;
+
+    if (
+      fallback.resource_type === 'model' &&
+      fallback.__table?.row_count !== undefined
+    ) {
+      checked = true;
+    }
+    if (
+      fallback.resource_type === 'metric' &&
+      fallback.__queries !== undefined
+    ) {
+      checked = true;
+    }
 
     const columns: CompColEntryItem[] = [];
     keys.forEach((key) => {
@@ -216,13 +249,13 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
       let mismatched = false;
       const changeStatus = compareColumn(base, target);
 
-      if (changeStatus === 'added') {
+      if (changeStatus === 'col_added') {
         added += 1;
         mismatched = true;
-      } else if (changeStatus === 'removed') {
+      } else if (changeStatus === 'col_removed') {
         deleted += 1;
         mismatched = true;
-      } else if (changeStatus === 'implicit' || changeStatus === 'modified') {
+      } else if (changeStatus === 'col_changed') {
         changed += 1;
         mismatched = true;
       }
@@ -244,16 +277,14 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
       changeStatus = 'removed';
     } else if (explicitSet.has(`${nodeKey}`)) {
       changeStatus = 'modified';
-    } else if (implicitSet.has(`${nodeKey}`)) {
-      changeStatus = 'implicit';
-    }
-
-    if (
-      impactedSet.has(nodeKey) ||
-      changeStatus === 'added' ||
-      changeStatus === 'removed'
-    ) {
-      impacted = true;
+    } else if (impactedSet.has(nodeKey)) {
+      if (implicitSet.has(nodeKey)) {
+        changeStatus = 'ds_impacted';
+      } else if (!checked) {
+        changeStatus = 'ds_potential';
+      } else {
+        changeStatus = 'ds_nochanged';
+      }
     }
 
     return [

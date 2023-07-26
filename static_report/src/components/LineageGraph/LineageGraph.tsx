@@ -549,16 +549,22 @@ function StatusLegend() {
       fontSize="sm"
     >
       <Flex alignItems="center" gap="6px" marginBottom="2px">
-        <Icon color={'#1dce00'} as={IconAdded} /> added
+        <Icon color={'#1dce00'} as={IconAdded} /> Added
       </Flex>
       <Flex alignItems="center" gap="6px" marginBottom="2px">
-        <Icon color={'#ff067e'} as={IconRemoved} /> removed
+        <Icon color={'#ff067e'} as={IconRemoved} /> Removed
       </Flex>
       <Flex alignItems="center" gap="6px" marginBottom="2px">
-        <Icon color={'#ffa502'} as={IconModified} /> modified
+        <Icon color={'#ffa502'} as={IconModified} /> Modified
       </Flex>
       <Flex alignItems="center" gap="6px">
-        <Icon color={'#fd6136'} as={IconImplicit} /> implicit
+        <Icon color={'#fd6136'} as={IconImplicit} /> Downstream - Impacts
+      </Flex>
+      <Flex alignItems="center" gap="6px">
+        <Icon color={'#fd6136'} as={IconImplicit} /> Downstream - Potential
+      </Flex>
+      <Flex alignItems="center" gap="6px">
+        <Icon color={'#fd6136'} as={IconImplicit} /> Downstream - No Changes
       </Flex>
     </Box>
   );
