@@ -28,6 +28,7 @@ import { topologySort } from '../../utils/graph';
 import {
   ChangeStatus,
   CompTableColEntryItem,
+  NODE_CHANGE_STATUS_MSGS,
   useReportStore,
 } from '../../utils/store';
 import { SearchTextInput } from '../Common/SearchTextInput';
@@ -39,11 +40,58 @@ import { useLocation } from 'wouter';
 import { useCloudReport } from '../../utils/cloud';
 import { ChangeSummary } from './ChangeSummary';
 
-function getMenuItemOption(name: string, changeStatus?: ChangeStatus) {
+const setCodeChange = new Set<string>(['added', 'removed', 'modified']);
+const setDownstream = new Set<string>([
+  'ds_impacted',
+  'ds_potential',
+  'ds_not_changed',
+]);
+const setAll = new Set<string>([
+  ...Array.from(setCodeChange),
+  ...Array.from(setDownstream),
+  'other',
+]);
+
+function isSubset(subset: Set<any>, superset: Set<any>) {
+  for (const item of Array.from(subset)) {
+    if (!superset.has(item)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function mergeSet(set1: Set<any>, set2: Set<any>) {
+  return new Set<any>([...Array.from(set1), ...Array.from(set2)]);
+}
+
+function differenceSet(set1: Set<any>, set2: Set<any>) {
+  const result = new Set<any>();
+  for (const item of Array.from(set1)) {
+    if (!set2.has(item)) {
+      result.add(item);
+    }
+  }
+  return result;
+}
+
+function toggleSet(set1: Set<any>, set2: Set<any>) {
+  if (isSubset(set2, set1)) {
+    return differenceSet(set1, set2);
+  } else {
+    return mergeSet(set1, set2);
+  }
+}
+
+function getMenuItemOption(changeStatus: ChangeStatus) {
   const { icon, color } = getIconForChangeStatus(changeStatus);
+  const value = changeStatus ? changeStatus : 'other';
+  const name =
+    changeStatus !== null ? NODE_CHANGE_STATUS_MSGS[changeStatus][0] : 'Other';
 
   return (
-    <MenuItemOption value={changeStatus ? changeStatus : 'noChange'}>
+    <MenuItemOption value={value}>
       <Flex alignItems="center" gap={1}>
         {icon && <Icon as={icon} color={color} />}
         <Box>{name}</Box>
@@ -62,17 +110,14 @@ function SelectMenu({
   const { changeStatus } = filterOptions;
   let defaultValue: string[] = [];
 
-  if (
-    changeStatus.has('added') &&
-    changeStatus.has('removed') &&
-    changeStatus.has('modified') &&
-    changeStatus.has('implicit')
-  ) {
-    if (changeStatus.has('noChange')) {
-      defaultValue = ['all'];
-    } else {
-      defaultValue = ['changed'];
-    }
+  if (isSubset(setCodeChange, changeStatus)) {
+    defaultValue.push('code_changes');
+  }
+  if (isSubset(setDownstream, changeStatus)) {
+    defaultValue.push('downstreams');
+  }
+  if (isSubset(setAll, changeStatus)) {
+    defaultValue.push('all');
   }
 
   return (
@@ -85,33 +130,33 @@ function SelectMenu({
       <MenuList minWidth="240px">
         <MenuOptionGroup type="checkbox" value={defaultValue}>
           <MenuItemOption
-            value="changed"
+            value="code_changes"
             onClick={() => {
               setFilterOptions({
                 ...filterOptions,
-                changeStatus: new Set([
-                  'added',
-                  'removed',
-                  'modified',
-                  'implicit',
-                ]),
+                changeStatus: toggleSet(changeStatus, setCodeChange),
               });
             }}
           >
-            Change only
+            Code Changes
+          </MenuItemOption>
+          <MenuItemOption
+            value="downstreams"
+            onClick={() => {
+              setFilterOptions({
+                ...filterOptions,
+                changeStatus: toggleSet(changeStatus, setDownstream),
+              });
+            }}
+          >
+            Downstreams
           </MenuItemOption>
           <MenuItemOption
             value="all"
             onClick={() => {
               setFilterOptions({
                 ...filterOptions,
-                changeStatus: new Set([
-                  'added',
-                  'removed',
-                  'modified',
-                  'implicit',
-                  'noChange',
-                ]),
+                changeStatus: toggleSet(changeStatus, setAll),
               });
             }}
           >
@@ -129,10 +174,13 @@ function SelectMenu({
             });
           }}
         >
-          {getMenuItemOption('Added', 'added')}
-          {getMenuItemOption('Removed', 'removed')}
-          {getMenuItemOption('Modified', 'modified')}
-          {getMenuItemOption('No change')}
+          {getMenuItemOption('added')}
+          {getMenuItemOption('removed')}
+          {getMenuItemOption('modified')}
+          {getMenuItemOption('ds_impacted')}
+          {getMenuItemOption('ds_potential')}
+          {getMenuItemOption('ds_not_changed')}
+          {getMenuItemOption(null)}
         </MenuOptionGroup>
       </MenuList>
     </Menu>
@@ -250,7 +298,10 @@ type FilterOptions = {
 };
 
 const defaultFilterOptions: FilterOptions = {
-  changeStatus: new Set(['added', 'removed', 'modified', 'implicit']),
+  changeStatus: new Set<any>([
+    ...Array.from(setCodeChange),
+    ...Array.from(setDownstream),
+  ]),
 };
 
 type Props = {} & Comparable;
@@ -310,30 +361,14 @@ export function Overview({ singleOnly }: Props) {
     }
 
     if (!singleOnly) {
-      if (
-        !filterOptions.changeStatus.has('noChange') &&
-        metadata.changeStatus === null
-      ) {
-        return false;
-      }
-
-      if (
-        !filterOptions.changeStatus.has('added') &&
-        metadata.changeStatus === 'added'
-      ) {
-        return false;
-      }
-      if (
-        !filterOptions.changeStatus.has('removed') &&
-        metadata.changeStatus === 'removed'
-      ) {
-        return false;
-      }
-      if (
-        !filterOptions.changeStatus.has('modified') &&
-        metadata.changeStatus === 'modified'
-      ) {
-        return false;
+      if (metadata.changeStatus === null) {
+        if (!filterOptions.changeStatus.has('other')) {
+          return false;
+        }
+      } else {
+        if (!filterOptions.changeStatus.has(metadata.changeStatus ?? '')) {
+          return false;
+        }
       }
     }
 
@@ -392,13 +427,6 @@ export function Overview({ singleOnly }: Props) {
             })}
           </TabList>
         </Tabs>
-        {/* 
-        {!singleOnly && (
-          <ChangeSummary
-            tableColumnsOnly={sorted}
-            noImpacted={resourceType === 'source' || resourceType === 'seed'}
-          />
-        )} */}
 
         <Flex alignContent="stretch" gap={3} my={2}>
           <SearchTextInput

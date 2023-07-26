@@ -35,7 +35,7 @@ export function MasterDetailContainer({
         >
           <SideBar singleOnly={singleOnly} />
         </Box>
-        <Divider orientation="vertical" flex="0 0 1px" height="100%" />
+
         <Box
           maxHeight={mainContentAreaHeight}
           h={'100%'}

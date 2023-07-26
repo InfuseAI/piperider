@@ -47,7 +47,7 @@ export type ChangeStatus =
 export const NODE_CHANGE_STATUS_MSGS = {
   added: ['Added', 'Added resource'],
   removed: ['Removed', 'Removed resource'],
-  modified: ['Removed', 'Modified resource'],
+  modified: ['Modifed', 'Modified resource'],
   ds_impacted: [
     'D.S Impacted',
     'Downstream of code changes and changes are detected.',
