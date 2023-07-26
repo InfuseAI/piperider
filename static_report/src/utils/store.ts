@@ -49,7 +49,7 @@ export const NODE_CHANGE_STATUS_MSGS = {
   removed: ['Removed', 'Removed resource'],
   modified: ['Modifed', 'Modified resource'],
   ds_impacted: [
-    'D.S Impacted',
+    'D.S. Impacted',
     'Downstream of code changes and changes are detected.',
   ],
   ds_potential: [
@@ -57,7 +57,7 @@ export const NODE_CHANGE_STATUS_MSGS = {
     'Downstream of code changes but the resource is not profiled or queried.',
   ],
   ds_not_changed: [
-    'D.S Not changed',
+    'D.S. Not changed',
     'Downstream of code changes and the resource is profiled or queried. No changes are detected.',
   ],
 };

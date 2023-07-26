@@ -1,4 +1,8 @@
-import { useReportStore } from '../../utils/store';
+import {
+  ChangeStatus,
+  NODE_CHANGE_STATUS_MSGS,
+  useReportStore,
+} from '../../utils/store';
 import { Comparable } from '../../types';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -48,7 +52,8 @@ import { useTrackOnMount } from '../../hooks/useTrackOnMount';
 import { CR_TYPE_LABEL, EVENTS, SR_TYPE_LABEL } from '../../utils/trackEvents';
 import { useHashParams } from '../../hooks';
 import { CopyGraphUrlButton } from './CopyGraphUrlButton';
-import { IconAdded, IconImplicit, IconModified, IconRemoved } from '../Icons';
+import { getIconForChangeStatus } from '../Icons';
+import { FiInfo } from 'react-icons/fi';
 
 const nodeTypes = {
   customNode: GraphNode,
@@ -66,8 +71,8 @@ const statName = {
 
 const changeStatusName = {
   all: 'All nodes',
-  impacted: 'Impacted',
-  'impacted+': 'Impacted+',
+  'modified+': 'Modified+',
+  '1+modified+': '1+Modifed+',
 };
 
 function LineageGraphWrapped({ singleOnly }: Comparable) {
@@ -86,8 +91,8 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
   const [expandRight, setExpandRight] = useState<string[]>([]);
 
   const [stat, setStat] = useState<string>(hashParams.get('g_s') || '');
-  const [changeInclude, setChangeInclude] = useState<string>('impacted+');
-  const [changeSelect, setChangeSelect] = useState<string>('impacted');
+  const [changeInclude, setChangeInclude] = useState<string>('1+modified+');
+  const [changeSelect, setChangeSelect] = useState<string>('modified+');
 
   const {
     isOpen: isStatOpen,
@@ -142,8 +147,8 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
 
   const onResetClick = () => {
     setSelected(undefined);
-    setChangeInclude('impacted+');
-    setChangeSelect('impacted');
+    setChangeInclude('1+modified+');
+    setChangeSelect('modified+');
     setExpandLeft([]);
     setExpandRight([]);
   };
@@ -205,13 +210,13 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
         );
       }
     } else if (!singleOnly) {
-      if (changeInclude === 'impacted') {
+      if (changeInclude === 'modified+') {
         includeSet = defaultNodeSets.impacted;
-      } else if (changeInclude === 'impacted+') {
+      } else if (changeInclude === '1+modified+') {
         includeSet = defaultNodeSets.impactedPlus;
       }
 
-      if (changeSelect === 'impacted') {
+      if (changeSelect === 'modified+') {
         selectSet = defaultNodeSets.impacted;
       } else if (changeSelect === 'changed') {
         selectSet = defaultNodeSets.changed;
@@ -433,13 +438,20 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                     setExpandRight([]);
                   }}
                 >
-                  <MenuItemOption value="impacted" fontSize="sm">
-                    Impacted
+                  <MenuItemOption value="modified+" fontSize="sm">
+                    Modified+{' '}
+                    <Tooltip label="Code changes, and their downstreams.">
+                      <Box display="inline-block">
+                        <Icon as={FiInfo} />
+                      </Box>
+                    </Tooltip>
                   </MenuItemOption>
-                  <MenuItemOption value="impacted+" fontSize="sm">
-                    Impacted+{' '}
-                    <Tooltip label="Impacted and 1st degree parents">
-                      <InfoIcon />
+                  <MenuItemOption value="1+modified+" fontSize="sm">
+                    1+Modified+{' '}
+                    <Tooltip label="Code change, and their downstreams, and 1st degree upstreams.">
+                      <Box display="inline-block">
+                        <Icon as={FiInfo} />
+                      </Box>
                     </Tooltip>
                   </MenuItemOption>
                   <MenuItemOption value="all" fontSize="sm">
@@ -454,10 +466,20 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                   }}
                 >
                   <MenuItemOption fontSize="sm" value="changed">
-                    Changed
+                    Changed{' '}
+                    <Tooltip label="Code changes or any detected changes.">
+                      <Box display="inline-block">
+                        <Icon as={FiInfo} />
+                      </Box>
+                    </Tooltip>
                   </MenuItemOption>
-                  <MenuItemOption fontSize="sm" value="impacted">
-                    Impacted
+                  <MenuItemOption fontSize="sm" value="modified+">
+                    Modified+{' '}
+                    <Tooltip label="Code changes, and their downstreams.">
+                      <Box display="inline-block">
+                        <Icon as={FiInfo} />
+                      </Box>
+                    </Tooltip>
                   </MenuItemOption>
                   <MenuItemOption fontSize="sm" value="all">
                     All nodes
@@ -548,24 +570,17 @@ function StatusLegend() {
       borderColor="gray.200"
       fontSize="sm"
     >
-      <Flex alignItems="center" gap="6px" marginBottom="2px">
-        <Icon color={'#1dce00'} as={IconAdded} /> Added
-      </Flex>
-      <Flex alignItems="center" gap="6px" marginBottom="2px">
-        <Icon color={'#ff067e'} as={IconRemoved} /> Removed
-      </Flex>
-      <Flex alignItems="center" gap="6px" marginBottom="2px">
-        <Icon color={'#ffa502'} as={IconModified} /> Modified
-      </Flex>
-      <Flex alignItems="center" gap="6px">
-        <Icon color={'#fd6136'} as={IconImplicit} /> Downstream - Impacts
-      </Flex>
-      <Flex alignItems="center" gap="6px">
-        <Icon color={'#fd6136'} as={IconImplicit} /> Downstream - Potential
-      </Flex>
-      <Flex alignItems="center" gap="6px">
-        <Icon color={'#fd6136'} as={IconImplicit} /> Downstream - No Changes
-      </Flex>
+      {Object.entries(NODE_CHANGE_STATUS_MSGS).map(([key, [label, tip]]) => {
+        const { icon, color } = getIconForChangeStatus(key as ChangeStatus);
+
+        return (
+          <Tooltip label={tip}>
+            <Flex alignItems="center" gap="6px" marginBottom="2px">
+              <Icon color={color} as={icon} /> {label}
+            </Flex>
+          </Tooltip>
+        );
+      })}
     </Box>
   );
 }
