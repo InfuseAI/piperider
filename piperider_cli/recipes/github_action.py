@@ -80,6 +80,12 @@ def make_recipe_command():
     base_branch = os.environ.get("GITHUB_BASE_REF", 'main')
     command_builder.append(f"--base-branch {base_branch}")
 
+    if os.environ.get('INPUT_MODIFIED', 'false').lower() == 'true':
+        command_builder.append("--modified")
+
+    if os.environ.get('INPUT_SELECT'):
+        command_builder.append(f"--select {os.environ.get('INPUT_SELECT')}")
+
     compare_command = " ".join(command_builder)
     print(compare_command)
 
