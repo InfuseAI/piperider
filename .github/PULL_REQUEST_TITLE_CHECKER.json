@@ -5,6 +5,7 @@
   },
   "CHECKS": {
     "prefixes": [
+      "Bump ",
       "[Feature] ",
       "[Bug] ",
       "[Release] ",
