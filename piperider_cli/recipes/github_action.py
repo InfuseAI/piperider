@@ -39,7 +39,8 @@ def run_external_command(command_line, env: Dict = None):
 def prepare_for_action(recipe_name: str = None):
     recipe_path = select_recipe_file(None if not recipe_name else recipe_name)
 
-    if recipe_path is not None:
+    if recipe_path:
+        print(f'[Prepare] check recipe from file: {recipe_path}')
         cfg = RecipeConfiguration.load(recipe_path)
         if cfg.base.branch:
             print(f'[Prepare] switch to base branch: {cfg.base.branch}')
@@ -48,9 +49,19 @@ def prepare_for_action(recipe_name: str = None):
             print(f'[Prepare] switch to target branch: {cfg.target.branch}')
             git_switch_to(cfg.target.branch)
 
-        ref_name = os.environ.get('GITHUB_HEAD_REF')
-        print(f'[Prepare] switch to GITHUB_HEAD_REF: {ref_name}')
-        git_switch_to(ref_name)
+        head_ref = os.environ.get('GITHUB_HEAD_REF')
+        print(f'[Prepare] switch to GITHUB_HEAD_REF: {head_ref}')
+        git_switch_to(head_ref)
+    else:
+        print('[Prepare] check GitHub HEAD_REF and BASE_REF')
+        head_ref = os.environ.get('GITHUB_HEAD_REF')
+        base_ref = os.environ.get('GITHUB_BASE_REF')
+
+        print(f'[Prepare] switch to GITHUB_BASE_REF branch: {base_ref}')
+        git_switch_to(base_ref)
+
+        print(f'[Prepare] switch to GITHUB_HEAD_REF branch: {head_ref}')
+        git_switch_to(head_ref)
 
 
 def make_recipe_command():
