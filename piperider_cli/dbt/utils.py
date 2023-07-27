@@ -108,8 +108,8 @@ class JoinedTables:
             result[key] = value
         return result
 
-    def columns_changed_iterator(self, table_name: str) -> Iterable[ColumnChangeEntry]:
-        all_column_keys, b, t = self._create_columns_and_their_metrics(table_name)
+    def columns_changed_iterator(self, ref_id: str) -> Iterable[ColumnChangeEntry]:
+        all_column_keys, b, t = self._create_columns_and_their_metrics(ref_id)
 
         for column_name in all_column_keys:
             elem = ColumnChangeEntry(column_name, b.get(column_name), t.get(column_name))
@@ -117,8 +117,8 @@ class JoinedTables:
                 continue
             yield elem
 
-    def _create_columns_and_their_metrics(self, table_name):
-        table = self._joined_tables.get(table_name)
+    def _create_columns_and_their_metrics(self, ref_id):
+        table = self.by_ref_id(ref_id)
         if table is None:
             return [], None, None
         b = table.get("base", {}).get("columns", {})
@@ -126,16 +126,22 @@ class JoinedTables:
         all_column_keys = sorted(set(list(b.keys()) + list(t.keys())))
         return all_column_keys, b, t
 
-    def row_counts(self, table_name):
-        table = self._joined_tables.get(table_name)
+    def row_counts(self, ref_id: str):
+        table = self.by_ref_id(ref_id)
         if table is None:
             return math.nan, math.nan
         b = table.get("base", {}).get("row_count", math.nan)
         t = table.get("target", {}).get("row_count", math.nan)
         return b, t
 
-    def column_counts(self, table_name):
-        table = self._joined_tables.get(table_name)
+    def by_ref_id(self, ref_id: str):
+        if ref_id in self._joined_tables:
+            return self._joined_tables.get(ref_id)
+        table_name = ref_id.split('.')[-1]
+        return self._joined_tables.get(table_name)
+
+    def column_counts(self, ref_id: str):
+        table = self.by_ref_id(ref_id)
         if table is None:
             return None, None
         b = table.get("base", {}).get("col_count")
