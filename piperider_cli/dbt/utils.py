@@ -118,27 +118,33 @@ class JoinedTables:
             yield elem
 
     def _create_columns_and_their_metrics(self, table_name):
-        table = self._joined_tables[table_name]
+        table = self._joined_tables.get(table_name)
+        if table is None:
+            return [], None, None
         b = table.get("base", {}).get("columns", {})
         t = table.get("target", {}).get("columns", {})
         all_column_keys = sorted(set(list(b.keys()) + list(t.keys())))
         return all_column_keys, b, t
 
     def row_counts(self, table_name):
-        table = self._joined_tables[table_name]
+        table = self._joined_tables.get(table_name)
+        if table is None:
+            return math.nan, math.nan
         b = table.get("base", {}).get("row_count", math.nan)
         t = table.get("target", {}).get("row_count", math.nan)
         return b, t
 
     def column_counts(self, table_name):
-        table = self._joined_tables[table_name]
+        table = self._joined_tables.get(table_name)
+        if table is None:
+            return None, None
         b = table.get("base", {}).get("col_count")
         t = table.get("target", {}).get("col_count")
         return b, t
 
     def table_data_iterator(self):
         for table_name in self._joined_tables.keys():
-            table_data = self._joined_tables[table_name]
+            table_data = self._joined_tables.get(table_name)
             fallback = table_data.get('target') if table_data.get('target') else table_data.get('base')
             if fallback:
                 yield table_name, fallback.get('ref_id'), table_data.get('base'), table_data.get('target')
