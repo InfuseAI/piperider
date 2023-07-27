@@ -103,6 +103,8 @@ def transform_as_run(profiled_tables) -> Dict:
     from collections import Counter
 
     def _t(k):
+        if k is None:
+            return "__no_such_table__"
         return k.split(".")[-1]
 
     c = Counter([_t(ref_id) for ref_id in profiled_tables.keys()])
