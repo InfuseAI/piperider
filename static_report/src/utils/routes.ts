@@ -1,4 +1,4 @@
-import { useRoute } from 'wouter';
+import { useLocation, useRouter } from 'wouter';
 
 export const HOME_ROUTE_PATH = '/';
 export const TABLE_LIST_ROUTE_PATH = '/tables';
@@ -34,11 +34,29 @@ export function useTableRoute(): {
   readonly columnName?: string;
   readonly params?: string;
 } {
-  const [matchTable, paramsTable] = useRoute(TABLE_DETAILS_ROUTE_PATH);
-  const [matchModel, paramsModel] = useRoute(MODEL_DETAILS_ROUTE_PATH);
-  const [matchSource, paramsSource] = useRoute(SOURCE_DETAILS_ROUTE_PATH);
-  const [matchSeed, paramsSeed] = useRoute(SEED_DETAILS_ROUTE_PATH);
-  const [matchMetric, paramsMetric] = useRoute(METRIC_DETAILS_ROUTE_PATH);
+  const router = useRouter();
+  const [location] = useLocation();
+
+  const [matchTable, paramsTable] = router.matcher(
+    TABLE_DETAILS_ROUTE_PATH,
+    location,
+  );
+  const [matchModel, paramsModel] = router.matcher(
+    MODEL_DETAILS_ROUTE_PATH,
+    location,
+  );
+  const [matchSource, paramsSource] = router.matcher(
+    SOURCE_DETAILS_ROUTE_PATH,
+    location,
+  );
+  const [matchSeed, paramsSeed] = router.matcher(
+    SEED_DETAILS_ROUTE_PATH,
+    location,
+  );
+  const [matchMetric, paramsMetric] = router.matcher(
+    METRIC_DETAILS_ROUTE_PATH,
+    location,
+  );
 
   if (matchTable) {
     return paramsTable;
@@ -60,12 +78,26 @@ export function useColumnRoute(): {
   readonly uniqueId?: string;
   readonly columnName?: string;
 } {
-  const [matchTable, paramsTable] = useRoute(COLUMN_DETAILS_ROUTE_PATH);
-  const [matchModel, paramsModel] = useRoute(MODEL_COLUMN_DETAILS_ROUTE_PATH);
-  const [matchSource, paramsSource] = useRoute(
-    SOURCE_COLUMN_DETAILS_ROUTE_PATH,
+  const router = useRouter();
+  const [location] = useLocation();
+
+  const [matchTable, paramsTable] = router.matcher(
+    COLUMN_DETAILS_ROUTE_PATH,
+    location,
   );
-  const [matchSeed, paramsSeed] = useRoute(SEED_COLUMN_DETAILS_ROUTE_PATH);
+  const [matchModel, paramsModel] = router.matcher(
+    MODEL_COLUMN_DETAILS_ROUTE_PATH,
+    location,
+  );
+
+  const [matchSource, paramsSource] = router.matcher(
+    SOURCE_COLUMN_DETAILS_ROUTE_PATH,
+    location,
+  );
+  const [matchSeed, paramsSeed] = router.matcher(
+    SEED_COLUMN_DETAILS_ROUTE_PATH,
+    location,
+  );
 
   if (matchTable) {
     return paramsTable;
