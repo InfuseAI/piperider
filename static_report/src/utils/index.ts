@@ -4,3 +4,4 @@ export * from './formatters';
 export * from './store';
 export * from './theme';
 export * from './layout';
+export * from './icons';

@@ -1,5 +1,28 @@
-import { Tab, Tabs, TabList, Spacer, Heading, Button } from '@chakra-ui/react';
+import {
+  Tab,
+  Tabs,
+  TabList,
+  Tag,
+  Text,
+  Spacer,
+  Heading,
+  Box,
+  Button,
+  Popover,
+  PopoverTrigger,
+  IconButton,
+  Image,
+  PopoverContent,
+  PopoverArrow,
+  PopoverHeader,
+  PopoverBody,
+  Code,
+  OrderedList,
+  ListItem,
+  Link,
+} from '@chakra-ui/react';
 
+import { ExternalLinkIcon } from '@chakra-ui/icons';
 import {
   Flex,
   Menu,
@@ -24,6 +47,7 @@ import { getIconForResourceType } from '../Icons';
 import { useLocation } from 'wouter';
 import { useCloudReport } from '../../utils/cloud';
 import { ChangeSummary } from './ChangeSummary';
+import { CloudPlusIcon } from '../../lib';
 
 function SelectMenu({
   filterOptions,
@@ -259,7 +283,8 @@ export function Overview({ singleOnly }: Props) {
         <Flex w={'100%'} paddingBottom="10px" marginBottom="20px">
           <Heading fontSize={24}>Overview</Heading>
           <Spacer />
-          {isCloud && (
+          {isCloud ? (
+            // For Cloud overview layout
             <Button
               size="sm"
               bg="piperider.500"
@@ -277,6 +302,65 @@ export function Overview({ singleOnly }: Props) {
               {singleOnly ? 'Lineage Graph' : 'Lineage Diff'}
               <Icon as={CgListTree} ml={1} />
             </Button>
+          ) : (
+            // For Open Source overview layout
+            <Popover placement="bottom-end">
+              <PopoverTrigger>
+                {/* <Tooltip
+                  aria-label="tooltip"
+                  label="Show the additional features in Piperider Cloud"
+                > */}
+                <IconButton
+                  isRound={true}
+                  aria-label="hint of PipeRider Cloud"
+                  variant="ghost"
+                  size="sm"
+                  icon={<CloudPlusIcon />}
+                />
+                {/* </Tooltip> */}
+              </PopoverTrigger>
+              <PopoverContent>
+                <PopoverArrow />
+                <PopoverHeader fontWeight="semibold" fontSize="md">
+                  Try Lineage Diff on PipeRider Cloud
+                </PopoverHeader>
+                <PopoverBody>
+                  <Heading fontSize="md" as="h1">
+                    What's Lineage Diff?
+                  </Heading>
+                  <Text fontSize="sm">
+                    Visualize and compare the impact of your dbt code changes.
+                  </Text>
+                  <Image src="https://miro.medium.com/v2/resize:fit:3106/format:webp/1*YMiRnwJ7x2xaApEva5C_7Q.png" />
+                  <br />
+                  <Heading fontSize="md" as="h1">
+                    How to access Lineage Diff?
+                  </Heading>
+                  <Text fontSize="sm">
+                    The Lineage Diff feature is available on PipeRider Cloud.
+                  </Text>
+                  <Text fontSize="sm">
+                    Please follow the steps below to view the Lineage Diff.
+                  </Text>
+                  <OrderedList fontSize="sm">
+                    <ListItem>
+                      Sign up PipeRider Cloud:{' '}
+                      <Code>piperider cloud signup</Code>
+                    </ListItem>
+                    <ListItem>
+                      Upload the latest piperider report:{' '}
+                      <Code>piperider cloud upload-report</Code>
+                    </ListItem>
+                    <ListItem>
+                      Login your PipeRider Cloud to view report:{' '}
+                      <Link href="https://cloud.piperider.io" isExternal>
+                        https://cloud.piperider.io <ExternalLinkIcon mx="2px" />
+                      </Link>
+                    </ListItem>
+                  </OrderedList>
+                </PopoverBody>
+              </PopoverContent>
+            </Popover>
           )}
         </Flex>
 
