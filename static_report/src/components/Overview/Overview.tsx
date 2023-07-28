@@ -377,13 +377,7 @@ export function Overview({ singleOnly }: Props) {
   return (
     <>
       <Flex direction="column" w={'100%'} minHeight="650px">
-        <Flex
-          w={'100%'}
-          borderBottom="1px solid"
-          borderColor="lightgray"
-          paddingBottom="10px"
-          marginBottom="20px"
-        >
+        <Flex w={'100%'} paddingBottom="10px" marginBottom="20px">
           <Heading fontSize={24}>Overview</Heading>
           <Spacer />
           {isCloud && (

@@ -156,7 +156,8 @@ export function selectStateChanged(
     if (
       node.changeStatus === 'added' ||
       node.changeStatus === 'removed' ||
-      node.changeStatus === 'modified'
+      node.changeStatus === 'modified' ||
+      node.changeStatus === 'ds_impacted'
     ) {
       changeSet.add(uniqueId);
     }

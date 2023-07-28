@@ -2,8 +2,7 @@ import { Box, Flex, Icon, VStack, Text, Tooltip } from '@chakra-ui/react';
 
 import { Handle, NodeProps, Position, useStore } from 'reactflow';
 import { LineageGraphNode } from '../../utils/dbt';
-import { CSSProperties } from 'react';
-import { COLOR_HIGHLIGHT } from './style';
+import { COLOR_HIGHLIGHT, COLOR_NOPROFILED, COLOR_UNCHANGED } from './style';
 import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
 import { dbtNodeStatDiff, StatDiff } from '../Widgets/StatDiff';
 
@@ -15,41 +14,37 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
   const { singleOnly, stat, isSelected, isHighlighted } = data;
   const showContent = useStore((s) => s.transform[2] > 0.3);
 
-  // const [location] = useLocation();
-  // const isActive = data.path === location;
   const isActive = false;
 
   let resourceType = data?.type;
-  // let isNoProfile = false;
+  let isNoProfile = false;
 
-  const { icon: resourceIcon } = getIconForResourceType(resourceType);
-  // if (
-  //   resourceType === 'source' ||
-  //   resourceType === 'seed' ||
-  //   resourceType === 'model'
-  // ) {
-  //   isNoProfile = (data.target ?? data.base)?.__table?.row_count === undefined;
-  // }
+  const { color: resourceColor, icon: resourceIcon } =
+    getIconForResourceType(resourceType);
+  if (
+    resourceType === 'source' ||
+    resourceType === 'seed' ||
+    resourceType === 'model'
+  ) {
+    isNoProfile = (data.target ?? data.base)?.__table?.row_count === undefined;
+  }
 
   // text color, icon
-
-  let msgChangeStatus;
   let changeStatus = data.changeStatus;
-  let color = 'inherit';
+  let color = isSelected ? 'gray.300' : 'gray.200';
   let iconChangeStatus;
-  let fontWeight: CSSProperties['fontWeight'] = 'inherit';
+
   let borderStyle = 'solid';
-  let zoomOutColor = isSelected ? 'gray.300' : 'gray.200';
-  if (!singleOnly) {
+  if (singleOnly) {
+    color = resourceColor;
+  } else {
     iconChangeStatus = getIconForChangeStatus(changeStatus).icon;
-    color = getIconForChangeStatus(changeStatus).color;
-    zoomOutColor = changeStatus ? color : zoomOutColor;
+    if (changeStatus) {
+      color = getIconForChangeStatus(changeStatus).color;
+    }
+
     if (changeStatus === 'added' || changeStatus === 'removed') {
       borderStyle = 'dashed';
-      // } else if (isNoProfile) {
-      //   color = COLOR_NOPROFILED;
-      // } else {
-      //   color = COLOR_UNCHANGED;
     }
   }
 
@@ -86,7 +81,7 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
         borderColor={borderColor}
         borderWidth={borderWidth}
         borderStyle={borderStyle}
-        backgroundColor={showContent ? backgroundColor : zoomOutColor}
+        backgroundColor={showContent ? backgroundColor : color}
         borderRadius={3}
         boxShadow={boxShadow}
         padding={0}
@@ -103,12 +98,11 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
           <Icon as={resourceIcon} />
         </Flex>
 
-        <VStack flex="1 0 auto" mx="1" width="100px">
+        <Flex flex="1 0 auto" mx="1" width="100px" direction="column">
           <Flex
             width="100%"
             textAlign="left"
             flex="1"
-            fontWeight={fontWeight}
             p={1}
             alignItems="center"
             visibility={showContent ? 'inherit' : 'hidden'}
@@ -124,12 +118,11 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
             </Box>
 
             {!singleOnly && changeStatus && (
-              <Tooltip label={msgChangeStatus}>
+              <Tooltip>
                 <Flex>
                   <Icon
-                    color={color}
+                    color={isSelected ? color : 'gray.400'}
                     as={iconChangeStatus}
-                    fontWeight={fontWeight}
                     flex="0 0 20px"
                   />
                 </Flex>
@@ -138,7 +131,11 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
           </Flex>
 
           {stat && statValue !== undefined && (
-            <Box width="100%" visibility={showContent ? 'inherit' : 'hidden'}>
+            <Box
+              width="100%"
+              visibility={showContent ? 'inherit' : 'hidden'}
+              mt={0}
+            >
               <Text
                 textAlign="right"
                 fontSize="sm"
@@ -158,7 +155,7 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
               </Text>
             </Box>
           )}
-        </VStack>
+        </Flex>
 
         {Object.keys(data?.dependsOn ?? {}).length > 0 && (
           <Handle
