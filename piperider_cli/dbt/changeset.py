@@ -422,6 +422,8 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                 if metrics_b.get(x) != metrics_t.get(x):
                     ref_id = metrics_t.get(x).get("ref_id")
                     if ref_id:
+                        if not ref_id.startswith("metric."):
+                            continue
                         diffs.append(ref_id)
                     else:
                         # resolve the unique id for the legacy report
@@ -697,7 +699,7 @@ class GraphDataChangeSet(DefaultChangeSetOpMixin):
         ]
         output = list(set(output).intersection(resource_in_both))
 
-        return output
+        return [x for x in output if not x.startswith('test.')]
 
     def list_explicit_changes(self):
         return self.explicit_changes
@@ -713,6 +715,8 @@ class GraphDataChangeSet(DefaultChangeSetOpMixin):
                 if metrics_b.get(x) != metrics_t.get(x):
                     ref_id = metrics_t.get(x).get("ref_id")
                     if ref_id:
+                        if not ref_id.startswith("metric."):
+                            continue
                         diffs.append(ref_id)
                     else:
                         # resolve the unique id for the legacy report
@@ -739,6 +743,8 @@ class GraphDataChangeSet(DefaultChangeSetOpMixin):
                     pass
                 else:
                     if ref_id:
+                        if not ref_id.startswith("model."):
+                            continue
                         diffs.append(ref_id)
                     else:
                         resolved_id = self.resolve_unique_id(table_name, "model")
@@ -751,6 +757,6 @@ class GraphDataChangeSet(DefaultChangeSetOpMixin):
         table_implicit = self._table_implicit_changes()
         metric_implicit = self._metrics_implicit_changes()
         filtered_explicit = sorted(
-            list(set(table_implicit + metric_implicit) - set(self.explicit_changes))
+            list(set(table_implicit + metric_implicit))
         )
         return filtered_explicit
