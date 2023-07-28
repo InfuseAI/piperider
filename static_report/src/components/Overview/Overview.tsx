@@ -7,7 +7,6 @@ import {
   Heading,
   Box,
   Button,
-  Divider,
 } from '@chakra-ui/react';
 
 import {

@@ -1,4 +1,4 @@
-import { Box, Divider, Flex, Grid, GridItem } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { Comparable } from '../../types';
 import { mainContentAreaHeight } from '../../utils';

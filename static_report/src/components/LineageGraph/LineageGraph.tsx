@@ -39,7 +39,7 @@ import { useLocation } from 'wouter';
 import { GraphNode } from './GraphNode';
 import GraphEdge from './GraphEdge';
 import { GraphGroup } from './GraphGroup';
-import { ChevronUpIcon, InfoIcon } from '@chakra-ui/icons';
+import { ChevronUpIcon } from '@chakra-ui/icons';
 import {
   buildNodesAndEdges,
   selectDownstream,

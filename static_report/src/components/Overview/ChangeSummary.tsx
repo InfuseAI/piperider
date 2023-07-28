@@ -6,8 +6,7 @@ import {
   CompTableColEntryItem,
   NODE_CHANGE_STATUS_COUNT_MSGS,
 } from '../../lib';
-import { getIconForChangeStatus, IconAdded } from '../Icons';
-import { ChangeStatusWidget } from '../Widgets/ChangeStatusWidget';
+import { getIconForChangeStatus } from '../Icons';
 
 function SummaryText({
   name,
@@ -68,7 +67,6 @@ type Props = {
 
 export function ChangeSummary({ tableColumnsOnly }: Props) {
   const {
-    total,
     adds,
     removes,
     modifies,

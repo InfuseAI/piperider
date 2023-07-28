@@ -3,7 +3,7 @@ import { Box, Flex, Icon, VStack, Text, Tooltip } from '@chakra-ui/react';
 import { Handle, NodeProps, Position, useStore } from 'reactflow';
 import { LineageGraphNode } from '../../utils/dbt';
 import { CSSProperties } from 'react';
-import { COLOR_HIGHLIGHT, COLOR_NOPROFILED, COLOR_UNCHANGED } from './style';
+import { COLOR_HIGHLIGHT } from './style';
 import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
 import { dbtNodeStatDiff, StatDiff } from '../Widgets/StatDiff';
 
@@ -20,17 +20,16 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
   const isActive = false;
 
   let resourceType = data?.type;
-  let isNoProfile = false;
+  // let isNoProfile = false;
 
-  const { color: resourceColor, icon: resourceIcon } =
-    getIconForResourceType(resourceType);
-  if (
-    resourceType === 'source' ||
-    resourceType === 'seed' ||
-    resourceType === 'model'
-  ) {
-    isNoProfile = (data.target ?? data.base)?.__table?.row_count === undefined;
-  }
+  const { icon: resourceIcon } = getIconForResourceType(resourceType);
+  // if (
+  //   resourceType === 'source' ||
+  //   resourceType === 'seed' ||
+  //   resourceType === 'model'
+  // ) {
+  //   isNoProfile = (data.target ?? data.base)?.__table?.row_count === undefined;
+  // }
 
   // text color, icon
 
