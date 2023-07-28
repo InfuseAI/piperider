@@ -36,10 +36,11 @@ export default function SRTableDetailPage() {
     return <NoData text={`No data found for '${tableKey}'`} />;
   }
 
-  const name = currentTableEntry[1].base?.name;
-  const description = currentTableEntry[1].base?.description || undefined;
+  const [, { base: data, target }, { columns }] = currentTableEntry;
+  const name = data?.name;
+  const description = data?.description || undefined;
 
-  const dataTable = currentTableEntry[1].base?.__table;
+  const dataTable = data?.__table;
   if (dataTable === undefined) {
     return (
       <>
@@ -83,10 +84,7 @@ export default function SRTableDetailPage() {
         </VStack>
 
         <Divider orientation="vertical" />
-        <TableColumnSchemaList
-          columns={currentTableEntry?.[1].base?.__columns}
-          singleOnly
-        />
+        <TableColumnSchemaList columns={columns} singleOnly />
       </Grid>
     </>
   );

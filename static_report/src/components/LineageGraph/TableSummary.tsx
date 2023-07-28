@@ -111,10 +111,13 @@ export default function TableSummary({ singleOnly, isOpen, onClose }: Props) {
     return <>`No data found for '${uniqueId}'`</>;
   }
 
-  const [, { base: baseTableColEntry, target: targetTableColEntry }] =
-    tableEntry;
+  const [
+    ,
+    { base: baseTableColEntry, target: targetTableColEntry },
+    { columns },
+  ] = tableEntry;
   const fallbackTable = targetTableColEntry || baseTableColEntry;
-  if (!fallbackTable?.__columns) {
+  if (!columns) {
     return <></>;
   }
 
@@ -185,7 +188,7 @@ export default function TableSummary({ singleOnly, isOpen, onClose }: Props) {
             </Tr>
           </Thead>
           <Tbody>
-            {fallbackTable?.__columns?.map(
+            {columns.map(
               ([key, { base: baseColumn, target: targetColumn }, metadata]) => {
                 const fallbackColumn = targetColumn || baseColumn;
                 let { icon } = getIconForColumnType(fallbackColumn?.type);

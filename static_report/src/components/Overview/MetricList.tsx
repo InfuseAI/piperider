@@ -14,12 +14,12 @@ import {
 import { FaSortAlphaDown, FaSortNumericDown } from 'react-icons/fa';
 import { Link } from 'wouter';
 import { Comparable } from '../../lib';
-import { CompTableColEntryItem } from '../../utils/store';
+import { CompDbtNodeEntryItem } from '../../utils/store';
 import { getIconForChangeStatus } from '../Icons';
 import { ChangeStatusWidget } from '../Widgets/ChangeStatusWidget';
 
 type Props = {
-  tableColumnsOnly: CompTableColEntryItem[];
+  tableColumnsOnly: CompDbtNodeEntryItem[];
   sortMethod: string;
   handleSortChange: () => void;
 } & Comparable;

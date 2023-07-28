@@ -33,7 +33,6 @@ export type DbtNode = (
 ) & {
   __table?: SaferTableSchema;
   __queries?: BusinessMetric[];
-  __columns?: CompColEntryItem[];
   __runResult?: RunResultOutput;
   [key: string]: any;
 };

@@ -244,8 +244,11 @@ function ComparableGridHeader() {
 }
 
 function TableColumnSchemaCompList({ tableEntry }) {
-  const [, { base: baseTableColEntry, target: targetTableColEntry }] =
-    tableEntry;
+  const [
+    ,
+    { base: baseTableColEntry, target: targetTableColEntry },
+    { columns },
+  ] = tableEntry;
   const fallbackTable = targetTableColEntry || baseTableColEntry;
 
   const MergedSchema = () => (
@@ -263,7 +266,7 @@ function TableColumnSchemaCompList({ tableEntry }) {
             </Tr>
           </Thead>
           <Tbody>
-            {fallbackTable?.__columns.map(
+            {columns.map(
               ([key, { base: baseColumn, target: targetColumn }, metadata]) => {
                 return (
                   <Tr
@@ -338,7 +341,7 @@ function TableColumnSchemaCompList({ tableEntry }) {
             </Tr>
           </Thead>
           <Tbody>
-            {fallbackTable?.__columns.map(
+            {columns.map(
               ([key, { base: baseColumn, target: targetColumn }, metadata]) => {
                 const column = baseColumn || targetColumn;
                 return (

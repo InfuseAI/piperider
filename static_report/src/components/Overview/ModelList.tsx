@@ -15,15 +15,15 @@ import {
 import { FaSortAlphaDown, FaSortNumericDown } from 'react-icons/fa';
 
 import { Link } from 'wouter';
+import { CompDbtNodeEntryItem } from '../../lib';
 import { Comparable } from '../../types';
-import { CompTableColEntryItem } from '../../utils/store';
 
 import { getIconForChangeStatus } from '../Icons';
 import { ChangeStatusWidget } from '../Widgets/ChangeStatusWidget';
 import { StatDiff } from '../Widgets/StatDiff';
 
 type Props = {
-  tableColumnsOnly: CompTableColEntryItem[];
+  tableColumnsOnly: CompDbtNodeEntryItem[];
   sortMethod: string;
   handleSortChange: () => void;
 } & Comparable;
@@ -94,7 +94,7 @@ export function ModelList({
                   </Link>
                 </Td>
                 <Td>
-                  {`${Object.keys(fallback?.__columns || {}).length}`}
+                  {(metadata?.columns || []).length}
                   {!singleOnly &&
                     metadata.changeStatus !== 'added' &&
                     metadata.changeStatus !== 'removed' && (

@@ -26,7 +26,7 @@ import { LineageGraphData } from '../../utils/dbt';
 import { topologySort } from '../../utils/graph';
 import {
   ChangeStatus,
-  CompTableColEntryItem,
+  CompDbtNodeEntryItem,
   NODE_CHANGE_STATUS_MSGS,
   useReportStore,
 } from '../../utils/store';
@@ -186,8 +186,8 @@ function SelectMenu({
   );
 }
 
-function sortByAlphabet(tableColumnsOnly: CompTableColEntryItem[]) {
-  function getName([key, { base, target }]: CompTableColEntryItem) {
+function sortByAlphabet(tableColumnsOnly: CompDbtNodeEntryItem[]) {
+  function getName([key, { base, target }]: CompDbtNodeEntryItem) {
     const fallback = target ?? base;
     return fallback?.name ?? '';
   }
@@ -204,7 +204,7 @@ function sortByAlphabet(tableColumnsOnly: CompTableColEntryItem[]) {
 }
 
 function sortByTopology(
-  tableColumnsOnly: CompTableColEntryItem[],
+  tableColumnsOnly: CompDbtNodeEntryItem[],
   lineageGraph: LineageGraphData,
 ) {
   const sortedKeys = topologySort(Object.keys(lineageGraph), (uniqueId) => {
@@ -225,7 +225,7 @@ function sortByTopology(
   return sorted;
 }
 
-function getTabItems(tableColumnsOnly: CompTableColEntryItem[]) {
+function getTabItems(tableColumnsOnly: CompDbtNodeEntryItem[]) {
   const groupByResourceType: {
     [key: string]: { total: number; changed: number };
   } = {};

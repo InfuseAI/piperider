@@ -1,4 +1,4 @@
-import { ChangeStatus, CompColEntryItem, CompTableColEntryItem } from './store';
+import { ChangeStatus, CompColEntryItem, CompDbtNodeEntryItem } from './store';
 import {
   DbtManifestSchema,
   Metric,
@@ -237,7 +237,7 @@ export function buildColumnTree(
 }
 
 export function buildSourceTree(
-  itemsNodeComparison: CompTableColEntryItem[],
+  itemsNodeComparison: CompDbtNodeEntryItem[],
 ): SidebarTreeItem[] {
   let tree = {};
 
@@ -262,7 +262,7 @@ export function buildSourceTree(
       }
 
       const path = `/sources/${fallback?.unique_id}`;
-      const [columnItems] = buildColumnTree(fallback!.__columns || [], path);
+      const [columnItems] = buildColumnTree(metadata!.columns || [], path);
 
       const changeStatus = metadata.changeStatus;
       tree[sourceName].items.push({
@@ -287,7 +287,7 @@ export function buildSourceTree(
 }
 
 export function buildModelOrSeedTree(
-  itemsNodeComparison: CompTableColEntryItem[],
+  itemsNodeComparison: CompDbtNodeEntryItem[],
   resourceType?: 'seed' | 'model',
 ): SidebarTreeItem[] {
   let tree = {};
@@ -336,7 +336,7 @@ export function buildModelOrSeedTree(
     });
 
     const path = `/${resourceType}s/${fallback?.unique_id}`;
-    const [columnItems] = buildColumnTree(fallback!.__columns || [], path);
+    const [columnItems] = buildColumnTree(metadata!.columns || [], path);
     const changeStatus = metadata.changeStatus;
 
     curDir[fname] = {
@@ -370,7 +370,7 @@ export function buildModelOrSeedTree(
 }
 
 export function buildMetricTree(
-  itemsNodeComparison: CompTableColEntryItem[],
+  itemsNodeComparison: CompDbtNodeEntryItem[],
 ): SidebarTreeItem[] {
   let tree = {};
 
@@ -417,7 +417,7 @@ export function buildMetricTree(
 }
 
 export function buildLegacyTablesTree(
-  itemsNodeComparison: CompTableColEntryItem[],
+  itemsNodeComparison: CompDbtNodeEntryItem[],
 ): SidebarTreeItem[] {
   let itemsTable: SidebarTreeItem[] = [];
   _.each(itemsNodeComparison, ([uniqueId, { base, target }, metadata]) => {
@@ -431,7 +431,7 @@ export function buildLegacyTablesTree(
     }
 
     const path = `/tables/${fallback?.name}`;
-    const [columnItems] = buildColumnTree(fallback!.__columns || [], path);
+    const [columnItems] = buildColumnTree(metadata!.columns || [], path);
     const changeStatus = metadata.changeStatus;
 
     const itemTable: SidebarTreeItem = {
@@ -448,7 +448,7 @@ export function buildLegacyTablesTree(
 }
 
 export function buildProjectTree(
-  itemsNodeComparison: CompTableColEntryItem[],
+  itemsNodeComparison: CompDbtNodeEntryItem[],
   isLegacy: boolean = false,
 ): SidebarTreeItem[] {
   const overview: SidebarTreeItem = {
@@ -502,7 +502,7 @@ export function buildProjectTree(
 }
 
 export function buildDatabaseTree(
-  itemsNodeComparison: CompTableColEntryItem[],
+  itemsNodeComparison: CompDbtNodeEntryItem[],
 ): SidebarTreeItem[] {
   const overview: SidebarTreeItem = {
     name: 'Overview',
@@ -512,6 +512,7 @@ export function buildDatabaseTree(
   let items: SidebarTreeItem[] = [overview];
   const treeNodes: DbtNode[] = [];
   const changeStatuses: { [key: string]: ChangeStatus | undefined } = {};
+  const mapColumns: { [key: string]: CompColEntryItem[] | undefined } = {};
 
   itemsNodeComparison.forEach(([key, { base, target }, metadata]) => {
     const node = target || base;
@@ -532,6 +533,7 @@ export function buildDatabaseTree(
     }
 
     changeStatuses[key] = metadata.changeStatus;
+    mapColumns[key] = metadata.columns;
   });
 
   var treeNodesSorted = _.sortBy(treeNodes, function (node) {
@@ -568,7 +570,7 @@ export function buildDatabaseTree(
       _.each(schema_nodes, function (node) {
         const path = '/' + node.resource_type + 's/' + node.unique_id;
         const [columnItems, columnChangeStatus] = buildColumnTree(
-          node.__columns || [],
+          mapColumns[node!.unique_id!] || [],
           path,
         );
 
@@ -591,7 +593,7 @@ export function buildDatabaseTree(
 }
 
 export function buildLineageGraph(
-  itemsNodeComparison: CompTableColEntryItem[],
+  itemsNodeComparison: CompDbtNodeEntryItem[],
 ): LineageGraphData {
   const data: LineageGraphData = {};
 

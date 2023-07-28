@@ -22,6 +22,7 @@ import {
 } from './dbt';
 import { getDownstreamSet } from './graph';
 import { DbtManifestSchema } from '../sdlc/dbt-manifest-schema';
+import { mergeKeys } from './mergeKeys';
 
 export type ComparableReport = Partial<ComparisonReportSchema>; //to support single-run data structure
 export type ChangeStatus =
@@ -80,25 +81,31 @@ export const NODE_CHANGE_STATUS_COUNT_MSGS = {
   ],
 };
 
-type ComparableMetadata = {
-  /**
-   * Dbt node
-   */
-  added?: number; // count of added columns
-  deleted?: number; // count of deleted columns
-  changed?: number; // count of changed columns
-  impacted?: boolean; // is the explicit changes or their downstreams
-  changeStatus?: ChangeStatus;
+export type CompColEntryItem = [
+  string,
+  {
+    base?: Partial<ColumnSchema>;
+    target?: Partial<ColumnSchema>;
+  },
+  { changeStatus?: ChangeStatus },
+];
 
-  /**
-   * Column
-   */
-  mismatched?: boolean; // the column is mismatched
-};
-type EntryItem<T> = [string, T, ComparableMetadata];
-export type CompColEntryItem = EntryItem<ComparableData<Partial<ColumnSchema>>>;
-
-export type CompTableColEntryItem = EntryItem<ComparableData<Partial<DbtNode>>>;
+export type CompDbtNodeEntryItem = [
+  string,
+  {
+    base?: Partial<DbtNode>;
+    target?: Partial<DbtNode>;
+  },
+  {
+    columns?: CompColEntryItem[];
+    impacted?: boolean;
+    changeStatus?: ChangeStatus;
+    // change counts of subitems
+    added?: number;
+    deleted?: number;
+    changed?: number;
+  },
+];
 
 export type ComparedAssertionTestValue = Partial<AssertionTest> | null;
 
@@ -115,7 +122,7 @@ export interface ReportState {
   reportTime?: string;
   reportDisplayTime?: string;
   reportOnly?: ComparableData<Omit<SaferSRSchema, 'tables'>>;
-  tableColumnsOnly?: CompTableColEntryItem[];
+  tableColumnsOnly?: CompDbtNodeEntryItem[];
   assertionsOnly?: ComparableData<ComparedAssertionTestValue[]>;
   BMOnly?: ComparableData<BusinessMetric[]>;
   isCloudReport?: boolean;
@@ -186,51 +193,7 @@ const getReportTitle = (rawData: ComparableReport) => {
  * returns an aligned, compared (base/target), and normalized entries for profiler's tables and columns, making it easier to iterate and render over them. Each entry is equipped with a 3-element entry item that contains [key, {base, target}, metadata].
  * Currently Assertions is not added to metadata yet.
  */
-const getTableColumnsOnly = (rawData: ComparableReport) => {
-  const mergeKeys = (base: string[], target: string[]) => {
-    // Merge keys from base, target tables. Unlike default union, it preserves the order for column rename, added, removed.
-
-    // return _.union(primary, secondary);
-
-    const results: string[] = [];
-    while (base.length > 0 && target.length > 0) {
-      if (base[0] === target[0]) {
-        results.push(base[0]);
-        base.shift();
-        target.shift();
-      } else if (target.includes(base[0])) {
-        const idx = target.indexOf(base[0]);
-        for (let i = 0; i < idx; i++) {
-          if (!results.includes(target[i])) {
-            results.push(target[i]);
-          }
-        }
-        results.push(base[0]);
-        base.shift();
-        target.splice(0, idx + 1);
-      } else if (results.includes(base[0])) {
-        base.shift();
-      } else {
-        results.push(base[0]);
-        base.shift();
-      }
-    }
-
-    base.forEach((key) => {
-      if (!results.includes(key)) {
-        results.push(key);
-      }
-    });
-
-    target.forEach((key) => {
-      if (!results.includes(key)) {
-        results.push(key);
-      }
-    });
-
-    return results;
-  };
-
+const buildDbtNodeEntryItems = (rawData: ComparableReport) => {
   const baseNodes = buildDbtNodes(rawData?.base) ?? {};
   const targetNodes = buildDbtNodes(rawData?.input) ?? {};
   const nodeKeys = mergeKeys(Object.keys(baseNodes), Object.keys(targetNodes));
@@ -262,7 +225,7 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
     let added = 0;
     let deleted = 0;
     let changed = 0;
-    let changeStatus: ComparableMetadata['changeStatus'] = null;
+    let changeStatus: ChangeStatus = null;
     let impacted = false;
     let checked = false;
 
@@ -288,25 +251,14 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
 
       if (changeStatus === 'col_added') {
         added += 1;
-        mismatched = true;
       } else if (changeStatus === 'col_removed') {
         deleted += 1;
-        mismatched = true;
       } else if (changeStatus === 'col_changed') {
         changed += 1;
-        mismatched = true;
       }
 
-      columns.push([key, { base, target }, { mismatched }]);
+      columns.push([key, { base, target }, { changeStatus }]);
     });
-
-    if (base) {
-      base.__columns = columns;
-    }
-
-    if (target) {
-      target.__columns = columns;
-    }
 
     if (!base) {
       changeStatus = 'added';
@@ -327,8 +279,8 @@ const getTableColumnsOnly = (rawData: ComparableReport) => {
     return [
       nodeKey,
       { base, target },
-      { added, deleted, changed, changeStatus, impacted },
-    ] as CompTableColEntryItem;
+      { columns, changeStatus, impacted },
+    ] as CompDbtNodeEntryItem;
   });
 };
 
@@ -411,7 +363,7 @@ export const useReportStore = create<ReportState & ReportSetters>()(
     rawData: {},
     /** Entry point to get transformed report entities */
     setReportRawData: (rawData) => {
-      const tableColumnsOnly = getTableColumnsOnly(rawData);
+      const tableColumnsOnly = buildDbtNodeEntryItems(rawData);
       const fallback = rawData.input || rawData.base;
       const isLegacy = !fallback?.dbt?.manifest;
       const resultState: ReportState = {

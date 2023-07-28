@@ -76,7 +76,7 @@ export function TableColumnSchemaList({
                     >
                       <Td
                         color={
-                          metadata?.mismatched && isNotSingle
+                          !metadata?.changeStatus && isNotSingle
                             ? 'red.500'
                             : 'inherit'
                         }
@@ -94,7 +94,7 @@ export function TableColumnSchemaList({
                       </Td>
                       <Td
                         color={
-                          metadata?.mismatched && isNotSingle
+                          !metadata?.changeStatus && isNotSingle
                             ? 'red.500'
                             : 'inherit'
                         }
@@ -107,7 +107,9 @@ export function TableColumnSchemaList({
                       {isNotSingle ? (
                         <>
                           <Td
-                            color={metadata?.mismatched ? 'red.500' : 'inherit'}
+                            color={
+                              !metadata?.changeStatus ? 'red.500' : 'inherit'
+                            }
                             whiteSpace="normal"
                           >
                             <Text
@@ -121,7 +123,9 @@ export function TableColumnSchemaList({
                             </Text>
                           </Td>
                           <Td
-                            color={metadata?.mismatched ? 'red.500' : 'inherit'}
+                            color={
+                              !metadata?.changeStatus ? 'red.500' : 'inherit'
+                            }
                           >
                             <Text as={'span'} fontSize={'xs'}>
                               {targetColumn?.schema_type ?? NO_VALUE}

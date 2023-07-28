@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 import { FiInfo } from 'react-icons/fi';
 import {
   ChangeStatus,
-  CompTableColEntryItem,
+  CompDbtNodeEntryItem,
   NODE_CHANGE_STATUS_COUNT_MSGS,
 } from '../../lib';
 import { getIconForChangeStatus } from '../Icons';
@@ -62,7 +62,7 @@ function ChangeStatusCountLabel({
 }
 
 type Props = {
-  tableColumnsOnly: CompTableColEntryItem[];
+  tableColumnsOnly: CompDbtNodeEntryItem[];
 };
 
 export function ChangeSummary({ tableColumnsOnly }: Props) {
