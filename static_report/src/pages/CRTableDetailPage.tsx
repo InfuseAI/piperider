@@ -249,7 +249,6 @@ function TableColumnSchemaCompList({ tableEntry }) {
     { base: baseTableColEntry, target: targetTableColEntry },
     { columns },
   ] = tableEntry;
-  const fallbackTable = targetTableColEntry || baseTableColEntry;
 
   const MergedSchema = () => (
     <Flex direction="column" width="100%">

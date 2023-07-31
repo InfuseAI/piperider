@@ -36,7 +36,7 @@ export default function SRTableDetailPage() {
     return <NoData text={`No data found for '${tableKey}'`} />;
   }
 
-  const [, { base: data, target }, { columns }] = currentTableEntry;
+  const [, { base: data }, { columns }] = currentTableEntry;
   const name = data?.name;
   const description = data?.description || undefined;
 

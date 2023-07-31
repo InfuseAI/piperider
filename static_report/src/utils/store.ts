@@ -246,7 +246,6 @@ const buildDbtNodeEntryItems = (rawData: ComparableReport) => {
     keys.forEach((key) => {
       const base = baseColumns[key];
       const target = targetColumns[key];
-      let mismatched = false;
       const changeStatus = compareColumn(base, target);
 
       if (changeStatus === 'col_added') {
@@ -279,7 +278,7 @@ const buildDbtNodeEntryItems = (rawData: ComparableReport) => {
     return [
       nodeKey,
       { base, target },
-      { columns, changeStatus, impacted },
+      { columns, changeStatus, impacted, added, deleted, changed },
     ] as CompDbtNodeEntryItem;
   });
 };
