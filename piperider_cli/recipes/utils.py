@@ -5,6 +5,7 @@ import shlex
 import subprocess
 import tarfile
 import tempfile
+from pathlib import Path
 from subprocess import Popen
 from typing import Dict, Tuple
 
@@ -22,7 +23,7 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def execute_command_in_silent(
-        self, command_line, env: Dict = None
+            self, command_line, env: Dict = None
     ) -> Tuple[str, str, int]:
         """
         Execute command without showing outputs
@@ -34,7 +35,7 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def execute_command_with_showing_output(
-        self, command_line, env: Dict = None
+            self, command_line, env: Dict = None
     ) -> int:
         """
         Execute command and showing outputs
@@ -126,15 +127,17 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
             with tarfile.open(file_path, 'r') as tar:
                 tar.extractall(extract_dir)
 
-        tmpdirname = tempfile.mkdtemp()
-        tar = os.path.join(tmpdirname, f'{commit_or_branch}.tar')
+        tmpdirname = Path(tempfile.mkdtemp())
+        tar = (tmpdirname / f'{commit_or_branch}.tar').as_posix()
+
         outs, errs, exit_code = self.execute_command_in_silent(
-            f"git archive --format=tar --output={tar} {commit_or_branch}"
+            rf'git archive --format=tar --output={tar} {commit_or_branch}'
         )
+        print(rf'git archive --format=tar --output={tar} {commit_or_branch}')
         if exit_code != 0:
             raise RecipeException(errs)
 
-        project_dir = os.path.join(tmpdirname, commit_or_branch)
+        project_dir = (tmpdirname / commit_or_branch).as_posix()
         untar(tar, project_dir)
 
         return project_dir
@@ -171,6 +174,7 @@ class RecipeUtils(AbstractRecipeUtils):
         return self.dryrun_ignored_execute_command_no_outputs(command_line, env)
 
     def execute_command_in_silent(self, command_line, env: Dict = None):
+        print("execute_command_in_silent", command_line)
         outs, errs, exit_code = self.dryrun_ignored_execute_command(command_line, env)
         return outs, errs, exit_code
 
@@ -210,7 +214,7 @@ class InteractiveRecipeDecorator(AbstractRecipeUtils):
         self.decoratee = utils
 
     def execute_command_in_silent(
-        self, command_line, env: Dict = None
+            self, command_line, env: Dict = None
     ) -> Tuple[str, str, int]:
         # ask user continue
         if self.should_continue(command_line):
@@ -221,7 +225,7 @@ class InteractiveRecipeDecorator(AbstractRecipeUtils):
         raise InteractiveStopException()
 
     def execute_command_with_showing_output(
-        self, command_line, env: Dict = None
+            self, command_line, env: Dict = None
     ) -> int:
         # ask user continue
         if self.should_continue(command_line):

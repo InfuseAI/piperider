@@ -17,6 +17,7 @@ from piperider_cli.configuration import Configuration, ReportDirectory
 from piperider_cli.generate_report import setup_report_variables
 from piperider_cli.dbt.changeset import SummaryChangeSet
 from piperider_cli.dbt.utils import ChangeType
+from piperider_cli.utils import create_link, remove_link
 
 
 class RunOutput(object):
@@ -633,33 +634,17 @@ class ComparisonData(object):
 
 def prepare_default_output_path(filesystem: ReportDirectory, created_at):
     latest_symlink_path = os.path.join(filesystem.get_comparison_dir(), 'latest')
-    latest_source = created_at
     comparison_path = os.path.join(filesystem.get_comparison_dir(), created_at)
 
     if not os.path.exists(comparison_path):
         os.makedirs(comparison_path, exist_ok=True)
 
     # Create a symlink pointing to the latest comparison directory
-    if os.path.islink(latest_symlink_path):
-        os.unlink(latest_symlink_path)
+    remove_link(latest_symlink_path)
 
     console = Console()
     if not os.path.exists(latest_symlink_path):
-        try:
-            os.symlink(latest_source, latest_symlink_path)
-        except OSError as e:
-            """
-            System Error Codes:
-                ERROR_PRIVILEGE_NOT_HELD
-                1314 (0x522)
-                A required privilege is not held by the client.
-                https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--1300-1699-
-            """
-            if e.winerror is not None and e.winerror == 1314:
-                console.print(
-                    f'[bold yellow]Warning:[/bold yellow] {e}. To solve this, run piperider as an administrator')
-            else:
-                raise e
+        create_link(comparison_path, latest_symlink_path)
     else:
         console.print(f'[bold yellow]Warning: {latest_symlink_path} already exists[/bold yellow]')
 
@@ -845,13 +830,13 @@ class CompareReport(object):
         def output_report(directory):
             clone_directory(report_template_dir, directory)
             filename = os.path.join(directory, 'index.html')
-            with open(filename, 'w') as f:
+            with open(filename, 'w', encoding='utf-8') as f:
                 html = setup_report_variables(report_template_html, False, comparison_data.to_json())
                 f.write(html)
 
         def output_summary(directory, summary_data):
             filename = os.path.join(directory, 'summary.md')
-            with open(filename, 'w') as f:
+            with open(filename, 'w', encoding='utf-8') as f:
                 f.write(summary_data)
 
         data_id = comparison_data.id()
@@ -908,5 +893,5 @@ class CompareReport(object):
 
         if debug:
             # Write comparison data to file
-            with open(os.path.join(default_report_directory, 'comparison_data.json'), 'w') as f:
+            with open(os.path.join(default_report_directory, 'comparison_data.json'), 'w', encoding='utf-8') as f:
                 f.write(comparison_data.to_json())

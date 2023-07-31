@@ -239,7 +239,7 @@ def upload_to_cloud(run: RunOutput, debug=False, project: PipeRiderProject = Non
             'run_id': run_id,
             'project_name': f'{project.workspace_name}/{project.name}'
         }
-        with open(run_path, 'w') as f:
+        with open(run_path, 'w', encoding='utf-8') as f:
             f.write(json.dumps(report, separators=(',', ':')))
 
     if response.get('success') is True:
@@ -498,7 +498,7 @@ class CloudConnector:
             summary_dir = os.path.dirname(summary_file)
             if summary_dir:
                 os.makedirs(summary_dir, exist_ok=True)
-            with open(summary_file, 'w') as f:
+            with open(summary_file, 'w', encoding='utf-8') as f:
                 f.write(response.get('summary'))
 
     @staticmethod
