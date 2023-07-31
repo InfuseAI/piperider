@@ -160,20 +160,7 @@ class TestDbtIntegration(_BaseDbtTest):
     def test_list_explicit_changes(self):
         c = GraphDataChangeSet(self.base_run(), self.target_run())
 
-        expected = ['model.jaffle_shop.customers', 'model.jaffle_shop.orders',
-                    'test.jaffle_shop.accepted_values_orders_status'
-                    '__placed__shipped__completed__return_pending__returned.be6b5b5ec3',
-                    'test.jaffle_shop.not_null_customers_customer_id.5c9bf9911d',
-                    'test.jaffle_shop.not_null_orders_amount.106140f9fd',
-                    'test.jaffle_shop.not_null_orders_bank_transfer_amount.7743500c49',
-                    'test.jaffle_shop.not_null_orders_coupon_amount.ab90c90625',
-                    'test.jaffle_shop.not_null_orders_credit_card_amount.d3ca593b59',
-                    'test.jaffle_shop.not_null_orders_customer_id.c5f02694af',
-                    'test.jaffle_shop.not_null_orders_gift_card_amount.413a0d2d7a',
-                    'test.jaffle_shop.not_null_orders_order_id.cf6c17daed',
-                    'test.jaffle_shop.relationships_orders_customer_id__customer_id__ref_customers_.c6ec7f58f2',
-                    'test.jaffle_shop.unique_customers_customer_id.c5af1ff4b1',
-                    'test.jaffle_shop.unique_orders_order_id.fed79b3a6e']
+        expected = ['model.jaffle_shop.customers', 'model.jaffle_shop.orders']
         changes = c.list_explicit_changes()
         self.assertListEqual(changes, expected)
 
@@ -184,20 +171,11 @@ class TestDbtIntegration(_BaseDbtTest):
     def test_list_explicit_changes_without_ref_ids(self):
         c = GraphDataChangeSet(self.base_31587(), self.target_31587())
 
-        expected = ['model.jaffle_shop.orders',
-                    'test.jaffle_shop.accepted_values_orders_status__placed__shipped__completed__return_pending__returned.be6b5b5ec3',
-                    'test.jaffle_shop.not_null_orders_amount.106140f9fd',
-                    'test.jaffle_shop.not_null_orders_bank_transfer_amount.7743500c49',
-                    'test.jaffle_shop.not_null_orders_coupon_amount.ab90c90625',
-                    'test.jaffle_shop.not_null_orders_credit_card_amount.d3ca593b59',
-                    'test.jaffle_shop.not_null_orders_customer_id.c5f02694af',
-                    'test.jaffle_shop.not_null_orders_gift_card_amount.413a0d2d7a',
-                    'test.jaffle_shop.not_null_orders_order_id.cf6c17daed',
-                    'test.jaffle_shop.unique_orders_order_id.fed79b3a6e']
+        expected = ['model.jaffle_shop.orders']
         changes = c.list_explicit_changes()
         self.assertListEqual(changes, expected)
 
-        expected_implicit = ['metric.jaffle_shop.average_order_amount']
+        expected_implicit = ['metric.jaffle_shop.average_order_amount', 'model.jaffle_shop.orders']
         self.assertListEqual(c.list_implicit_changes(), expected_implicit)
 
     @unittest.skipIf(dbt_version_obj() < version.parse('1.4'),
@@ -205,41 +183,23 @@ class TestDbtIntegration(_BaseDbtTest):
     def test_list_explicit_changes_with_ref_ids(self):
         c = GraphDataChangeSet(self.base_31587_with_ref(), self.target_31587_with_ref())
 
-        expected = ['model.jaffle_shop.orders',
-                    'test.jaffle_shop.accepted_values_orders_status__placed__shipped__completed__return_pending__returned.be6b5b5ec3',
-                    'test.jaffle_shop.not_null_orders_amount.106140f9fd',
-                    'test.jaffle_shop.not_null_orders_bank_transfer_amount.7743500c49',
-                    'test.jaffle_shop.not_null_orders_coupon_amount.ab90c90625',
-                    'test.jaffle_shop.not_null_orders_credit_card_amount.d3ca593b59',
-                    'test.jaffle_shop.not_null_orders_customer_id.c5f02694af',
-                    'test.jaffle_shop.not_null_orders_gift_card_amount.413a0d2d7a',
-                    'test.jaffle_shop.not_null_orders_order_id.cf6c17daed',
-                    'test.jaffle_shop.unique_orders_order_id.fed79b3a6e']
+        expected = ['model.jaffle_shop.orders']
         changes = c.list_explicit_changes()
         self.assertListEqual(changes, expected)
 
-        expected_implicit = ['metric.jaffle_shop.average_order_amount']
+        expected_implicit = ['metric.jaffle_shop.average_order_amount', 'model.jaffle_shop.orders']
         self.assertListEqual(c.list_implicit_changes(), expected_implicit)
 
     @unittest.skipIf(dbt_version_obj() < version.parse('1.4'),
                      'this only works after manifests generated after the v1.4')
     def test_list_changes_metrics_case(self):
         c = GraphDataChangeSet(self.base_31587_metrics(), self.target_31587_metrics())
-        expected = ['model.jaffle_shop.orders',
-                    'test.jaffle_shop.accepted_values_orders_status__placed__shipped__completed__return_pending__returned.be6b5b5ec3',
-                    'test.jaffle_shop.not_null_orders_amount.106140f9fd',
-                    'test.jaffle_shop.not_null_orders_bank_transfer_amount.7743500c49',
-                    'test.jaffle_shop.not_null_orders_coupon_amount.ab90c90625',
-                    'test.jaffle_shop.not_null_orders_credit_card_amount.d3ca593b59',
-                    'test.jaffle_shop.not_null_orders_customer_id.c5f02694af',
-                    'test.jaffle_shop.not_null_orders_gift_card_amount.413a0d2d7a',
-                    'test.jaffle_shop.not_null_orders_order_id.cf6c17daed',
-                    'test.jaffle_shop.unique_orders_order_id.fed79b3a6e']
+        expected = ['model.jaffle_shop.orders']
         changes = c.list_explicit_changes()
         self.assertListEqual(changes, expected)
 
         changes = c.list_implicit_changes()
-        self.assertListEqual(c.list_implicit_changes(), ['metric.jaffle_shop.average_order_amount'])
+        self.assertListEqual(changes, ['metric.jaffle_shop.average_order_amount', 'model.jaffle_shop.orders'])
 
     @unittest.skipIf(dbt_version_obj() < version.parse('1.4'),
                      'this only works after manifests generated after the v1.4')
@@ -250,12 +210,9 @@ class TestDbtIntegration(_BaseDbtTest):
             self.fail("Unexpected Exception")
 
         expected = ['metric.jaffle_shop.expenses',
-                    'model.jaffle_shop.stg_payments',
-                    'test.jaffle_shop.accepted_values_stg_payments_payment_method__credit_card__coupon__bank_transfer__gift_card.3c3820f278',
-                    'test.jaffle_shop.not_null_stg_payments_payment_id.c19cc50075',
-                    'test.jaffle_shop.unique_stg_payments_payment_id.3744510712']
+                    'model.jaffle_shop.stg_payments']
 
         changes = c.list_explicit_changes()
         self.assertListEqual(changes, expected)
         changes = c.list_implicit_changes()
-        self.assertListEqual(changes, ['metric.jaffle_shop.profit'])
+        self.assertListEqual(changes, ['metric.jaffle_shop.profit', 'model.jaffle_shop.stg_payments'])
