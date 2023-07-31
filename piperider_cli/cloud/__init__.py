@@ -197,14 +197,15 @@ class PipeRiderCloud:
         if response.status_code != 200:
             return None
 
-        responseData = response.json()
+        response_data = response.json()
 
-        def genProjects():
-            for workspace in responseData.get('data', []):
-                for project in workspace.get('projects', []):
-                    yield project
+        def gen_projects():
+            for workspace in response_data.get('data', []):
+                for workspace_project in workspace.get('projects', []):
+                    workspace_project['workspace_name'] = workspace.get('name')
+                    yield workspace_project
 
-        projects = list(genProjects())
+        projects = list(gen_projects())
         if len(projects) == 1:
             return PipeRiderProject(projects[0])
         else:
