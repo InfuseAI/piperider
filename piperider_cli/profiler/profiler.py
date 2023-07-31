@@ -250,13 +250,12 @@ class Profiler:
             engine = self.data_source.get_engine_by_database(subject.database)
             table = map_name_tables.get(subject.ref_id)
 
-            tresult = {}
             if table is not None:
                 table_profiler = TableProfiler(engine, self.executor, subject, table, self.event_handler, self.config)
                 tresult = await table_profiler.fetch_schema()
                 profiled_tables[subject.ref_id] = tresult
             else:
-                profiled_tables[subject.ref_id] = tresult
+                profiled_tables[subject.ref_id] = dict(name=subject.name, columns={}, ref_id=subject.ref_id)
 
         profiled_tables = transform_as_run(profiled_tables)
         self.collected_metadata = CollectedMetadata(map_name_tables=map_name_tables,

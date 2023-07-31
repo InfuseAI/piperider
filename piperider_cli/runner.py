@@ -415,9 +415,11 @@ def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_resu
 
     # Table info
     for t in tables:
-        event_payload.columns.append(profiled_result['tables'][t]['col_count'])
+        table = profiled_result['tables'][t]
+        # null col_count when the metadata is not available
+        event_payload.columns.append(table.get('col_count'))
         # null row_count when the table is not profiled
-        event_payload.rows.append(profiled_result['tables'][t].get('row_count'))
+        event_payload.rows.append(table.get('row_count'))
 
     # Count PipeRider assertions
     for r in assertion_results or []:
