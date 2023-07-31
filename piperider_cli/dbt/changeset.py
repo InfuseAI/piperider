@@ -756,7 +756,27 @@ class GraphDataChangeSet(DefaultChangeSetOpMixin):
     def list_implicit_changes(self):
         table_implicit = self._table_implicit_changes()
         metric_implicit = self._metrics_implicit_changes()
-        filtered_explicit = sorted(
-            list(set(table_implicit + metric_implicit))
-        )
-        return filtered_explicit
+
+        return sorted(table_implicit + metric_implicit)
+
+    def list_base_non_checked(self):
+        non_checked = []
+        for x in self.base_resources:
+            if x.get('resource_type') != 'model':
+                continue
+            table = self.base.get('tables', {}).get(x.get('name'), {})
+            if 'row_count' not in table:
+                non_checked.append(x.get('unique_id'))
+
+        return non_checked
+
+    def list_target_non_checked(self):
+        non_checked = []
+        for x in self.target_resources:
+            if x.get('resource_type') != 'model':
+                continue
+            table = self.target.get('tables', {}).get(x.get('name'), {})
+            if 'row_count' not in table:
+                non_checked.append(x.get('unique_id'))
+
+        return non_checked

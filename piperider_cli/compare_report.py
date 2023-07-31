@@ -187,6 +187,8 @@ class ComparisonData(object):
             c = GraphDataChangeSet(self._base, self._target)
             self.explicit = c.list_explicit_changes()
             self.implicit = c.list_implicit_changes()
+            self.base_non_checked = c.list_base_non_checked()
+            self.target_non_checked = c.list_target_non_checked()
 
             self.summary_change_set = SummaryChangeSet(self._base, self._target)
         except BaseException as e:
@@ -204,7 +206,9 @@ class ComparisonData(object):
             # TODO: rename input -> target in schema and result json
             input=self._target,
             implicit=self.implicit,
-            explicit=self.explicit
+            explicit=self.explicit,
+            base_non_checked=self.base_non_checked,
+            target_non_checked=self.target_non_checked,
         )
         return json.dumps(output, separators=(',', ':'))
 
