@@ -189,23 +189,37 @@ def load_json(file_path):
 
 def _init_jinja_env(env):
     def env_var(var, default=None):
+        if var is None:
+            return var
         return os.getenv(var, default)
 
     def as_bool(var):
+        if var is None:
+            return var
         return var.lower() in ('true', 'yes', '1')
 
     def as_number(var):
+        if var is None:
+            return var
         if var.isnumeric():
             return int(var)
         return float(var)
 
     def as_text(var):
+        if var is None:
+            return var
         return str(var)
+
+    def silent_none(var):
+        if var is None:
+            return ""
+        return var
 
     env.globals['env_var'] = env_var
     env.filters['as_bool'] = as_bool
     env.filters['as_number'] = as_number
     env.filters['as_text'] = as_text
+    env.finalize = silent_none
 
 
 def load_jinja_template(path: str):
