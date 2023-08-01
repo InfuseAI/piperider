@@ -33,6 +33,7 @@ import {
 import { SearchTextInput } from '../Common/SearchTextInput';
 import { ModelList } from './ModelList';
 import { MetricList } from './MetricList';
+import { NodeList } from './NodeList';
 import { Comparable } from '../../types';
 import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
 import { useLocation } from 'wouter';
@@ -252,6 +253,14 @@ function getTabItems(tableColumnsOnly: CompDbtNodeEntryItem[]) {
     changed: number;
   }[] = [];
 
+  tabItems.push({
+    resourceType: '',
+    name: 'All',
+    icon: null,
+    total: 0,
+    changed: 0,
+  });
+
   if (groupByResourceType['model']) {
     tabItems.push({
       resourceType: 'model',
@@ -336,7 +345,11 @@ export function Overview({ singleOnly }: Props) {
   const sorted = useMemo(() => {
     const filtered = tableColumnsOnly.filter(([key, { base, target }]) => {
       const fallback = target ?? base;
-      return fallback?.resource_type === resourceType;
+      if (resourceType === '') {
+        return fallback?.resource_type !== 'test';
+      } else {
+        return fallback?.resource_type === resourceType;
+      }
     });
 
     if (sortMethod === 'topology' && lineageGraph) {
@@ -408,13 +421,13 @@ export function Overview({ singleOnly }: Props) {
             {tabItems.map((tabItem) => {
               return (
                 <Tab>
-                  <Icon as={tabItem.icon} mr={1} />
+                  {/* <Icon as={tabItem.icon} mr={1} */}
                   {tabItem.name}
-                  {!singleOnly && tabItem.changed > 0 && (
+                  {/* {!singleOnly && tabItem.changed > 0 && (
                     <Tag size="sm" bg="red.400" color="white" ml={2}>
                       {tabItem.changed}
                     </Tag>
-                  )}
+                  )} */}
                 </Tab>
               );
             })}
@@ -436,6 +449,15 @@ export function Overview({ singleOnly }: Props) {
             />
           )}
         </Flex>
+
+        {resourceType === '' && (
+          <NodeList
+            tableColumnsOnly={listed}
+            sortMethod={sortMethod}
+            handleSortChange={handleSortChange}
+            singleOnly={singleOnly}
+          />
+        )}
 
         {resourceType === 'metric' && (
           <MetricList

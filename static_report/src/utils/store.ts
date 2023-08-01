@@ -281,7 +281,7 @@ const buildDbtNodeEntryItems = (rawData: ComparableReport) => {
       changeStatus = 'modified';
     }
 
-    if (impactedSet.has(nodeKey)) {
+    if (impactedSet.has(nodeKey) && changeStatus !== 'added') {
       if (implicitSet.has(nodeKey)) {
         impactStatus = 'impacted';
       } else if (!assessed) {

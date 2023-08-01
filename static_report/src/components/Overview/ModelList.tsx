@@ -15,7 +15,7 @@ import {
 import { FaSortAlphaDown, FaSortNumericDown } from 'react-icons/fa';
 
 import { Link } from 'wouter';
-import { CompDbtNodeEntryItem } from '../../lib';
+import { CompDbtNodeEntryItem, NODE_IMPACT_STATUS_MSGS } from '../../lib';
 import { Comparable } from '../../types';
 
 import { getIconForChangeStatus } from '../Icons';
@@ -58,6 +58,11 @@ export function ModelList({
                 />
               </Tooltip>
             </Th>
+            {!singleOnly && (
+              <Th p={0} width="30px">
+                Impact
+              </Th>
+            )}
             <Th>Columns</Th>
             <Th isNumeric>Rows</Th>
             <Th isNumeric>Execution Time</Th>
@@ -77,6 +82,11 @@ export function ModelList({
               metadata.changeStatus,
             );
 
+            let impact = '-';
+            if (metadata.impactStatus) {
+              impact = NODE_IMPACT_STATUS_MSGS[metadata.impactStatus][0];
+            }
+
             return (
               <Tr>
                 {!singleOnly && (
@@ -93,6 +103,7 @@ export function ModelList({
                     {fallback.name}
                   </Link>
                 </Td>
+                {!singleOnly && <Td pl={0}>{impact}</Td>}
                 <Td>
                   {(metadata?.columns || []).length}
                   {!singleOnly &&
@@ -116,18 +127,6 @@ export function ModelList({
                     negativeChange
                   />
                 </Td>
-                {/* <Td>
-                    <StatDiff
-                      base={base}
-                      target={target}
-                      stat="failed_test"
-                      reverseColor
-                    />
-                  </Td>
-                  <Td>
-                    <StatDiff base={base} target={target} stat="all_test" />
-                  </Td>
-                  <Td></Td> */}
               </Tr>
             );
           })}
