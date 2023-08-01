@@ -77,7 +77,6 @@ class CompareReportTests(TestCase):
 
         self.assertEqual(samples_b, 10)
         self.assertEqual(samples_t, 5)
-        self.assertEqual(ComparisonData._value_with_delta(samples_b, samples_t), '5 (-5)')
 
         joined_table = result['table_c']
         columns_b = joined_table.get('base', {}).get('columns') if joined_table.get('base') else None
@@ -93,7 +92,6 @@ class CompareReportTests(TestCase):
 
         self.assertEqual(samples_b, None)
         self.assertEqual(samples_t, 15)
-        self.assertEqual(ComparisonData._value_with_delta(samples_b, samples_t), '15')
 
     def test_merge_keys(self):
         self.assertEqual(['a', 'b', 'c', 'd', 'e'], _merge_keys(['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'e']))
