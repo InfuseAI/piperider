@@ -35,9 +35,12 @@ export function CRTablesListPage() {
   );
 
   let selected;
+  let selectedColumns;
   if (tableColsEntryId !== -1) {
-    const [, { base, target }] = tableColumnsSorted[tableColsEntryId];
+    const [, { base, target }, { columns }] =
+      tableColumnsSorted[tableColsEntryId];
     selected = target ?? base;
+    selectedColumns = columns;
   }
 
   return (
@@ -102,7 +105,7 @@ export function CRTablesListPage() {
           )}
         </Text>
         {tableColsEntryId !== -1 && (
-          <TableColumnSchemaList columns={selected?.__columns} />
+          <TableColumnSchemaList columns={selectedColumns} />
         )}
       </CommonModal>
     </>

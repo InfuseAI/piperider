@@ -35,10 +35,13 @@ export function SRTablesListPage() {
     },
   );
 
-  const selected =
-    tableColsEntryId !== -1
-      ? tableColumnsSorted[tableColsEntryId][1].base
-      : undefined;
+  let selected;
+  let selectedColumns;
+  if (tableColsEntryId !== -1) {
+    const [, { base }, { columns }] = tableColumnsSorted[tableColsEntryId];
+    selected = base;
+    selectedColumns = columns;
+  }
 
   return (
     <>
@@ -100,7 +103,7 @@ export function SRTablesListPage() {
           )}
         </Text>
         {tableColsEntryId !== -1 && (
-          <TableColumnSchemaList singleOnly columns={selected?.__columns} />
+          <TableColumnSchemaList singleOnly columns={selectedColumns} />
         )}
       </CommonModal>
     </>

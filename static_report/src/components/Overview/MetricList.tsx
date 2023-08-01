@@ -13,13 +13,13 @@ import {
 } from '@chakra-ui/react';
 import { FaSortAlphaDown, FaSortNumericDown } from 'react-icons/fa';
 import { Link } from 'wouter';
-import { Comparable } from '../../lib';
-import { CompTableColEntryItem } from '../../utils/store';
+import { Comparable, NODE_IMPACT_STATUS_MSGS } from '../../lib';
+import { CompDbtNodeEntryItem } from '../../utils/store';
 import { getIconForChangeStatus } from '../Icons';
 import { ChangeStatusWidget } from '../Widgets/ChangeStatusWidget';
 
 type Props = {
-  tableColumnsOnly: CompTableColEntryItem[];
+  tableColumnsOnly: CompDbtNodeEntryItem[];
   sortMethod: string;
   handleSortChange: () => void;
 } & Comparable;
@@ -54,6 +54,11 @@ export function MetricList({
                 />
               </Tooltip>
             </Th>
+            {!singleOnly && (
+              <Th p={0} width="30px">
+                Impact
+              </Th>
+            )}
             <Th>Queries</Th>
           </Tr>
         </Thead>
@@ -69,6 +74,11 @@ export function MetricList({
               metadata.changeStatus,
             );
 
+            let impact = '-';
+            if (metadata.impactStatus) {
+              impact = NODE_IMPACT_STATUS_MSGS[metadata.impactStatus][0];
+            }
+
             return (
               <Tr>
                 {!singleOnly && (
@@ -83,6 +93,7 @@ export function MetricList({
                     {fallback.name}
                   </Link>
                 </Td>
+                {!singleOnly && <Td pl={0}>{impact}</Td>}
                 <Td>
                   {`${Object.keys(fallback?.__queries || {}).length}`}
                   <ChangeStatusWidget

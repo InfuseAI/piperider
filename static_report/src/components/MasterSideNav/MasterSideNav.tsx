@@ -21,7 +21,7 @@ import {
   COLUMN_DETAILS_ROUTE_PATH,
   TABLE_DETAILS_ROUTE_PATH,
 } from '../../utils/routes';
-import { CompTableColEntryItem, useReportStore } from '../../utils/store';
+import { CompDbtNodeEntryItem, useReportStore } from '../../utils/store';
 import { ColumnListAccordionPanel } from './ColumnListAccordionPanel';
 import { RoutableAccordionButton } from './RoutableAccordionButton';
 import { TableItemAccordionButton } from './TableItemAccordionButton';
@@ -29,7 +29,7 @@ import { TableItemAccordionButton } from './TableItemAccordionButton';
 interface Props extends Comparable {
   isTablesIndex?: boolean;
   initAsExpandedTables?: boolean;
-  tableColEntryList?: CompTableColEntryItem[];
+  tableColEntryList?: CompDbtNodeEntryItem[];
   onToggleShowExtra?: () => void;
 }
 /**

@@ -19,8 +19,6 @@ import { CompDbtNodeEntryItem, NODE_IMPACT_STATUS_MSGS } from '../../lib';
 import { Comparable } from '../../types';
 
 import { getIconForChangeStatus } from '../Icons';
-import { ChangeStatusWidget } from '../Widgets/ChangeStatusWidget';
-import { StatDiff } from '../Widgets/StatDiff';
 
 type Props = {
   tableColumnsOnly: CompDbtNodeEntryItem[];
@@ -28,7 +26,7 @@ type Props = {
   handleSortChange: () => void;
 } & Comparable;
 
-export function ModelList({
+export function NodeList({
   tableColumnsOnly,
   sortMethod,
   handleSortChange,
@@ -58,16 +56,12 @@ export function ModelList({
                 />
               </Tooltip>
             </Th>
+            <Th>Type</Th>
             {!singleOnly && (
               <Th p={0} width="30px">
                 Impact
               </Th>
             )}
-            <Th>Columns</Th>
-            <Th isNumeric>Rows</Th>
-            <Th isNumeric>Execution Time</Th>
-            {/* <Th isNumeric>Failed Tests</Th>
-              <Th isNumeric>Total Tests</Th> */}
           </Tr>
         </Thead>
         <Tbody fontSize="sm">
@@ -103,30 +97,8 @@ export function ModelList({
                     {fallback.name}
                   </Link>
                 </Td>
+                <Td pl={0}>{fallback.resource_type}</Td>
                 {!singleOnly && <Td pl={0}>{impact}</Td>}
-                <Td>
-                  {(metadata?.columns || []).length}
-                  {!singleOnly &&
-                    metadata.changeStatus !== 'added' &&
-                    metadata.changeStatus !== 'removed' && (
-                      <ChangeStatusWidget
-                        added={metadata.added}
-                        removed={metadata.deleted}
-                        modified={metadata.changed}
-                      />
-                    )}
-                </Td>
-                <Td textAlign="right" fontSize="sm">
-                  <StatDiff base={base} target={target} stat="row_count" />
-                </Td>
-                <Td textAlign="right" fontSize="sm">
-                  <StatDiff
-                    base={base}
-                    target={target}
-                    stat="execution_time"
-                    negativeChange
-                  />
-                </Td>
               </Tr>
             );
           })}

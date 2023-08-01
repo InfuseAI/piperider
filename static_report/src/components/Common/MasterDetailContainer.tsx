@@ -1,4 +1,4 @@
-import { Divider, Grid, GridItem } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { Comparable } from '../../types';
 import { mainContentAreaHeight } from '../../utils';
@@ -21,31 +21,31 @@ export function MasterDetailContainer({
 }: Props) {
   return (
     <CloudReportProvider cloud={cloud === true}>
-      <Grid
-        width={'100%'}
-        h={'100%'}
-        templateColumns="minmax(200px, 400px) 1px minmax(420px, 100%)"
-      >
+      <Flex width={'100%'} h={'100%'} alignItems="stretch">
         {/* Master Area */}
-        <GridItem
+        <Box
           overflowY={'auto'}
           // maxHeight={mainContentAreaHeight}
           position={'sticky'}
           top={sideNavTop}
+          flex="0 1 400px"
+          maxWidth="400px"
+          minWidth="280px"
           maxHeight={`calc(100vh - ${sideNavTop})`}
         >
           <SideBar singleOnly={singleOnly} />
-        </GridItem>
-        <Divider orientation="vertical" />
-        <GridItem
+        </Box>
+
+        <Box
           maxHeight={mainContentAreaHeight}
-          width="100%"
           h={'100%'}
           p={9}
+          flex="1 0 800px"
+          width="800px"
         >
           {children}
-        </GridItem>
-      </Grid>
+        </Box>
+      </Flex>
     </CloudReportProvider>
   );
 }

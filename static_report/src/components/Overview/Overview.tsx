@@ -1,20 +1,10 @@
-import {
-  Tab,
-  Tabs,
-  TabList,
-  Tag,
-  Spacer,
-  Heading,
-  Box,
-  Button,
-} from '@chakra-ui/react';
+import { Tab, Tabs, TabList, Spacer, Heading, Button } from '@chakra-ui/react';
 
 import {
   Flex,
   Menu,
   MenuButton,
   MenuList,
-  MenuDivider,
   MenuItemOption,
   MenuOptionGroup,
   Icon,
@@ -24,32 +14,16 @@ import { BsFilter } from 'react-icons/bs';
 import { CgListTree } from 'react-icons/cg';
 import { LineageGraphData } from '../../utils/dbt';
 import { topologySort } from '../../utils/graph';
-import {
-  ChangeStatus,
-  CompTableColEntryItem,
-  useReportStore,
-} from '../../utils/store';
+import { CompDbtNodeEntryItem, useReportStore } from '../../utils/store';
 import { SearchTextInput } from '../Common/SearchTextInput';
 import { ModelList } from './ModelList';
-import { ChangeSummary } from './ChangeSummary';
 import { MetricList } from './MetricList';
+import { NodeList } from './NodeList';
 import { Comparable } from '../../types';
-import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
+import { getIconForResourceType } from '../Icons';
 import { useLocation } from 'wouter';
 import { useCloudReport } from '../../utils/cloud';
-
-function getMenuItemOption(name: string, changeStatus?: ChangeStatus) {
-  const { icon, color } = getIconForChangeStatus(changeStatus);
-
-  return (
-    <MenuItemOption value={changeStatus ? changeStatus : 'noChange'}>
-      <Flex alignItems="center" gap={1}>
-        {icon && <Icon as={icon} color={color} />}
-        <Box>{name}</Box>
-      </Flex>
-    </MenuItemOption>
-  );
-}
+import { ChangeSummary } from './ChangeSummary';
 
 function SelectMenu({
   filterOptions,
@@ -58,22 +32,6 @@ function SelectMenu({
   filterOptions: FilterOptions;
   setFilterOptions: (filterOptions: FilterOptions) => void;
 }) {
-  const { changeStatus } = filterOptions;
-  let defaultValue: string[] = [];
-
-  if (
-    changeStatus.has('added') &&
-    changeStatus.has('removed') &&
-    changeStatus.has('modified') &&
-    changeStatus.has('implicit')
-  ) {
-    if (changeStatus.has('noChange')) {
-      defaultValue = ['all'];
-    } else {
-      defaultValue = ['changed'];
-    }
-  }
-
   return (
     <Menu closeOnSelect={false} autoSelect={false}>
       <MenuButton as={Button} fontSize="14px">
@@ -82,65 +40,29 @@ function SelectMenu({
         </Flex>
       </MenuButton>
       <MenuList minWidth="240px">
-        <MenuOptionGroup type="checkbox" value={defaultValue}>
-          <MenuItemOption
-            value="changed"
-            onClick={() => {
-              setFilterOptions({
-                ...filterOptions,
-                changeStatus: new Set([
-                  'added',
-                  'removed',
-                  'modified',
-                  'implicit',
-                ]),
-              });
-            }}
-          >
-            Change only
-          </MenuItemOption>
-          <MenuItemOption
-            value="all"
-            onClick={() => {
-              setFilterOptions({
-                ...filterOptions,
-                changeStatus: new Set([
-                  'added',
-                  'removed',
-                  'modified',
-                  'implicit',
-                  'noChange',
-                ]),
-              });
-            }}
-          >
-            All nodes
-          </MenuItemOption>
-        </MenuOptionGroup>
-        <MenuDivider />
         <MenuOptionGroup
-          type="checkbox"
-          value={[...Array.from(changeStatus)]}
-          onChange={(value) => {
+          type="radio"
+          defaultValue="potentially_impacted"
+          onChange={(filterBy) => {
             setFilterOptions({
               ...filterOptions,
-              changeStatus: new Set<any>(value),
+              filterBy: filterBy as any,
             });
           }}
         >
-          {getMenuItemOption('Added', 'added')}
-          {getMenuItemOption('Removed', 'removed')}
-          {getMenuItemOption('Modified', 'modified')}
-          {getMenuItemOption('Implicit', 'implicit')}
-          {getMenuItemOption('No change')}
+          <MenuItemOption value="potentially_impacted">
+            Potentially Impacted
+          </MenuItemOption>
+          <MenuItemOption value="code_changed">Code Changed</MenuItemOption>
+          <MenuItemOption value="all">All</MenuItemOption>
         </MenuOptionGroup>
       </MenuList>
     </Menu>
   );
 }
 
-function sortByAlphabet(tableColumnsOnly: CompTableColEntryItem[]) {
-  function getName([key, { base, target }]: CompTableColEntryItem) {
+function sortByAlphabet(tableColumnsOnly: CompDbtNodeEntryItem[]) {
+  function getName([key, { base, target }]: CompDbtNodeEntryItem) {
     const fallback = target ?? base;
     return fallback?.name ?? '';
   }
@@ -157,7 +79,7 @@ function sortByAlphabet(tableColumnsOnly: CompTableColEntryItem[]) {
 }
 
 function sortByTopology(
-  tableColumnsOnly: CompTableColEntryItem[],
+  tableColumnsOnly: CompDbtNodeEntryItem[],
   lineageGraph: LineageGraphData,
 ) {
   const sortedKeys = topologySort(Object.keys(lineageGraph), (uniqueId) => {
@@ -178,7 +100,7 @@ function sortByTopology(
   return sorted;
 }
 
-function getTabItems(tableColumnsOnly: CompTableColEntryItem[]) {
+function getTabItems(tableColumnsOnly: CompDbtNodeEntryItem[]) {
   const groupByResourceType: {
     [key: string]: { total: number; changed: number };
   } = {};
@@ -204,6 +126,14 @@ function getTabItems(tableColumnsOnly: CompTableColEntryItem[]) {
     total: number;
     changed: number;
   }[] = [];
+
+  tabItems.push({
+    resourceType: '',
+    name: 'All',
+    icon: null,
+    total: 0,
+    changed: 0,
+  });
 
   if (groupByResourceType['model']) {
     tabItems.push({
@@ -246,11 +176,7 @@ function getTabItems(tableColumnsOnly: CompTableColEntryItem[]) {
 
 type FilterOptions = {
   search?: string;
-  changeStatus: Set<string>;
-};
-
-const defaultFilterOptions: FilterOptions = {
-  changeStatus: new Set(['added', 'removed', 'modified', 'implicit']),
+  filterBy?: 'code_changed' | 'potentially_impacted' | 'all';
 };
 
 type Props = {} & Comparable;
@@ -259,8 +185,9 @@ export function Overview({ singleOnly }: Props) {
   const { tableColumnsOnly = [], lineageGraph } = useReportStore.getState();
   const [sortMethod, setSortMethod] = useState('topology');
   const [resourceIndex, setResourceIndex] = useState(0);
-  const [filterOptions, setFilterOptions] =
-    useState<FilterOptions>(defaultFilterOptions);
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    filterBy: 'potentially_impacted',
+  });
   const [location, setLocation] = useLocation();
   const isCloud = useCloudReport();
 
@@ -275,10 +202,22 @@ export function Overview({ singleOnly }: Props) {
   const tabItems = getTabItems(tableColumnsOnly);
   const resourceType = tabItems[resourceIndex].resourceType;
 
+  const allResources = useMemo(() => {
+    return tableColumnsOnly.filter(([key, { base, target }]) => {
+      const fallback = target ?? base;
+      const listedResourceType = new Set(['model', 'seed', 'source', 'metric']);
+      return listedResourceType.has(fallback?.resource_type ?? '');
+    });
+  }, [tableColumnsOnly]);
+
   const sorted = useMemo(() => {
     const filtered = tableColumnsOnly.filter(([key, { base, target }]) => {
       const fallback = target ?? base;
-      return fallback?.resource_type === resourceType;
+      if (resourceType === '') {
+        return fallback?.resource_type !== 'test';
+      } else {
+        return fallback?.resource_type === resourceType;
+      }
     });
 
     if (sortMethod === 'topology' && lineageGraph) {
@@ -302,36 +241,12 @@ export function Overview({ singleOnly }: Props) {
     }
 
     if (!singleOnly) {
-      if (
-        !filterOptions.changeStatus.has('noChange') &&
-        metadata.changeStatus === null
-      ) {
-        return false;
-      }
-
-      if (
-        !filterOptions.changeStatus.has('added') &&
-        metadata.changeStatus === 'added'
-      ) {
-        return false;
-      }
-      if (
-        !filterOptions.changeStatus.has('removed') &&
-        metadata.changeStatus === 'removed'
-      ) {
-        return false;
-      }
-      if (
-        !filterOptions.changeStatus.has('modified') &&
-        metadata.changeStatus === 'modified'
-      ) {
-        return false;
-      }
-      if (
-        !filterOptions.changeStatus.has('implicit') &&
-        metadata.changeStatus === 'implicit'
-      ) {
-        return false;
+      if (filterOptions?.filterBy === 'code_changed') {
+        return !!metadata.changeStatus;
+      } else if (filterOptions.filterBy === 'potentially_impacted') {
+        return !!metadata.impactStatus;
+      } else {
+        return true;
       }
     }
 
@@ -341,7 +256,7 @@ export function Overview({ singleOnly }: Props) {
   return (
     <>
       <Flex direction="column" w={'100%'} minHeight="650px">
-        <Flex w={'100%'}>
+        <Flex w={'100%'} paddingBottom="10px" marginBottom="20px">
           <Heading fontSize={24}>Overview</Heading>
           <Spacer />
           {isCloud && (
@@ -364,37 +279,33 @@ export function Overview({ singleOnly }: Props) {
             </Button>
           )}
         </Flex>
+
+        {!singleOnly && <ChangeSummary tableColumnsOnly={allResources} />}
+
         <Tabs onChange={setResourceIndex} mb={4}>
           <TabList>
             {tabItems.map((tabItem) => {
               return (
                 <Tab>
-                  <Icon as={tabItem.icon} mr={1} />
+                  {/* <Icon as={tabItem.icon} mr={1} */}
                   {tabItem.name}
-                  {!singleOnly && tabItem.changed > 0 && (
+                  {/* {!singleOnly && tabItem.changed > 0 && (
                     <Tag size="sm" bg="red.400" color="white" ml={2}>
                       {tabItem.changed}
                     </Tag>
-                  )}
+                  )} */}
                 </Tab>
               );
             })}
           </TabList>
         </Tabs>
 
-        {!singleOnly && (
-          <ChangeSummary
-            tableColumnsOnly={sorted}
-            noImpacted={resourceType === 'source' || resourceType === 'seed'}
-          />
-        )}
-
         <Flex alignContent="stretch" gap={3} my={2}>
           <SearchTextInput
             onChange={(search) => {
               setFilterOptions({ ...filterOptions, search });
             }}
-            placeholder={`Search ${resourceType}s`}
+            placeholder={resourceType ? `Search ${resourceType}s` : 'Search'}
           />
 
           {!singleOnly && (
@@ -404,6 +315,15 @@ export function Overview({ singleOnly }: Props) {
             />
           )}
         </Flex>
+
+        {resourceType === '' && (
+          <NodeList
+            tableColumnsOnly={listed}
+            sortMethod={sortMethod}
+            handleSortChange={handleSortChange}
+            singleOnly={singleOnly}
+          />
+        )}
 
         {resourceType === 'metric' && (
           <MetricList

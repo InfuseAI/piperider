@@ -11,7 +11,7 @@ import { AssertionPassFailCountLabel } from '../../Assertions/AssertionPassFailC
 import { getAssertionStatusCountsFromList } from '../utils';
 import { tableListGridTempCols, tableListWidth } from '../../../utils/layout';
 import {
-  CompTableColEntryItem,
+  CompDbtNodeEntryItem,
   ReportState,
   useReportStore,
 } from '../../../utils/store';
@@ -21,7 +21,7 @@ import { useLocation } from 'wouter';
 import { getIconForColumnType } from '../../Icons';
 
 interface Props extends Comparable {
-  combinedTableEntry?: CompTableColEntryItem;
+  combinedTableEntry?: CompDbtNodeEntryItem;
   combinedAssertions?: ReportState['assertionsOnly'];
   onInfoClick: () => void;
 }
@@ -33,7 +33,11 @@ export function TableListItem({
   onInfoClick,
 }: Props) {
   const { expandTreeForPath } = useReportStore.getState();
-  const [, { base, target }] = combinedTableEntry || [undefined, {}];
+  const [, { base, target }, { columns }] = combinedTableEntry || [
+    undefined,
+    {},
+    {},
+  ];
   const fallback = target ?? base;
   const fallbackTable = fallback?.__table;
 
@@ -141,10 +145,9 @@ export function TableListItem({
                     },
                   }}
                 >
-                  {fallback &&
-                    fallback?.__columns &&
-                    fallback?.__columns?.length > 0 &&
-                    fallback?.__columns.map(([colName, { base }]) => {
+                  {columns &&
+                    columns?.length > 0 &&
+                    columns.map(([colName, { base }]) => {
                       const { backgroundColor, icon } = getIconForColumnType(
                         base?.type,
                       );

@@ -1,4 +1,8 @@
-import { useReportStore } from '../../utils/store';
+import {
+  ChangeStatus,
+  NODE_CHANGE_STATUS_MSGS,
+  useReportStore,
+} from '../../utils/store';
 import { Comparable } from '../../types';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -35,7 +39,7 @@ import { useLocation } from 'wouter';
 import { GraphNode } from './GraphNode';
 import GraphEdge from './GraphEdge';
 import { GraphGroup } from './GraphGroup';
-import { ChevronUpIcon, InfoIcon } from '@chakra-ui/icons';
+import { ChevronUpIcon } from '@chakra-ui/icons';
 import {
   buildNodesAndEdges,
   selectDownstream,
@@ -48,7 +52,8 @@ import { useTrackOnMount } from '../../hooks/useTrackOnMount';
 import { CR_TYPE_LABEL, EVENTS, SR_TYPE_LABEL } from '../../utils/trackEvents';
 import { useHashParams } from '../../hooks';
 import { CopyGraphUrlButton } from './CopyGraphUrlButton';
-import { IconAdded, IconImplicit, IconModified, IconRemoved } from '../Icons';
+import { getIconForChangeStatus } from '../Icons';
+import { FiInfo } from 'react-icons/fi';
 
 const nodeTypes = {
   customNode: GraphNode,
@@ -60,14 +65,15 @@ const edgeTypes = {
 
 const statName = {
   '': 'No Stat',
+  impact: 'Impact',
   execution_time: 'Execution Time',
   row_count: 'Row Count',
 };
 
-const changeStatusName = {
-  all: 'All nodes',
-  impacted: 'Impacted',
-  'impacted+': 'Impacted+',
+const filterName = {
+  all: 'All',
+  potentially_impacted: 'Potentially Impacted',
+  potentially_impacted_plus: 'Potentially Impacted+',
 };
 
 function LineageGraphWrapped({ singleOnly }: Comparable) {
@@ -85,9 +91,15 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
   const [expandLeft, setExpandLeft] = useState<string[]>([]);
   const [expandRight, setExpandRight] = useState<string[]>([]);
 
-  const [stat, setStat] = useState<string>(hashParams.get('g_s') || '');
-  const [changeInclude, setChangeInclude] = useState<string>('impacted+');
-  const [changeSelect, setChangeSelect] = useState<string>('impacted');
+  const [stat, setStat] = useState<string>(
+    hashParams.get('g_s') || (singleOnly ? 'row_count' : 'impact'),
+  );
+  const [changeInclude, setChangeInclude] = useState<string>(
+    'potentially_impacted_plus',
+  );
+  const [changeSelect, setChangeSelect] = useState<string>(
+    'potentially_impacted',
+  );
 
   const {
     isOpen: isStatOpen,
@@ -142,8 +154,8 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
 
   const onResetClick = () => {
     setSelected(undefined);
-    setChangeInclude('impacted+');
-    setChangeSelect('impacted');
+    setChangeInclude('potentially_impacted_plus');
+    setChangeSelect('potentially_impacted');
     setExpandLeft([]);
     setExpandRight([]);
   };
@@ -205,13 +217,13 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
         );
       }
     } else if (!singleOnly) {
-      if (changeInclude === 'impacted') {
+      if (changeInclude === 'potentially_impacted') {
         includeSet = defaultNodeSets.impacted;
-      } else if (changeInclude === 'impacted+') {
+      } else if (changeInclude === 'potentially_impacted_plus') {
         includeSet = defaultNodeSets.impactedPlus;
       }
 
-      if (changeSelect === 'impacted') {
+      if (changeSelect === 'potentially_impacted') {
         selectSet = defaultNodeSets.impacted;
       } else if (changeSelect === 'changed') {
         selectSet = defaultNodeSets.changed;
@@ -396,6 +408,11 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                 <MenuItemOption value="" fontSize="sm">
                   {statName['']}
                 </MenuItemOption>
+                {!singleOnly && (
+                  <MenuItemOption value="impact" fontSize="sm">
+                    {statName['impact']}
+                  </MenuItemOption>
+                )}
                 <MenuItemOption value="execution_time" fontSize="sm">
                   {statName['execution_time']}
                 </MenuItemOption>
@@ -407,9 +424,9 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
           </Menu>
         </Box>
         {!singleOnly && (
-          <Box p={2} flex="0 1 160px" fontSize="14px">
+          <Box p={2} flex="0 1 200px" fontSize="14px">
             <Text color="gray" mb="2px">
-              Change Status
+              Filter
             </Text>
             <Menu
               closeOnSelect={false}
@@ -418,7 +435,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
             >
               <MenuButton as={Box} onClick={onChangeStatusOpen}>
                 <Flex gap={2} alignItems="center" fontSize="sm">
-                  {changeStatusName[changeInclude] || '(unknown)'}
+                  {filterName[changeInclude] || '(unknown)'}
                   <ChevronUpIcon />
                 </Flex>
               </MenuButton>
@@ -433,17 +450,27 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                     setExpandRight([]);
                   }}
                 >
-                  <MenuItemOption value="impacted" fontSize="sm">
-                    Impacted
+                  <MenuItemOption value="potentially_impacted" fontSize="sm">
+                    Potentially Impacted{' '}
+                    <Tooltip label="Code changed, and their downstreams">
+                      <Box display="inline-block">
+                        <Icon as={FiInfo} />
+                      </Box>
+                    </Tooltip>
                   </MenuItemOption>
-                  <MenuItemOption value="impacted+" fontSize="sm">
-                    Impacted+{' '}
-                    <Tooltip label="Impacted and 1st degree parents">
-                      <InfoIcon />
+                  <MenuItemOption
+                    value="potentially_impacted_plus"
+                    fontSize="sm"
+                  >
+                    Potentially Impacted+{' '}
+                    <Tooltip label="Code changed, and their downstreams, and 1st degree upstreams">
+                      <Box display="inline-block">
+                        <Icon as={FiInfo} />
+                      </Box>
                     </Tooltip>
                   </MenuItemOption>
                   <MenuItemOption value="all" fontSize="sm">
-                    All nodes
+                    All
                   </MenuItemOption>
                 </MenuOptionGroup>
                 <MenuOptionGroup
@@ -454,13 +481,13 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                   }}
                 >
                   <MenuItemOption fontSize="sm" value="changed">
-                    Changed
+                    Code Changed
                   </MenuItemOption>
-                  <MenuItemOption fontSize="sm" value="impacted">
-                    Impacted
+                  <MenuItemOption fontSize="sm" value="potentially_impacted">
+                    Potentially Impacted
                   </MenuItemOption>
                   <MenuItemOption fontSize="sm" value="all">
-                    All nodes
+                    All
                   </MenuItemOption>
                 </MenuOptionGroup>
               </MenuList>
@@ -548,18 +575,17 @@ function StatusLegend() {
       borderColor="gray.200"
       fontSize="sm"
     >
-      <Flex alignItems="center" gap="6px" marginBottom="2px">
-        <Icon color={'#1dce00'} as={IconAdded} /> added
-      </Flex>
-      <Flex alignItems="center" gap="6px" marginBottom="2px">
-        <Icon color={'#ff067e'} as={IconRemoved} /> removed
-      </Flex>
-      <Flex alignItems="center" gap="6px" marginBottom="2px">
-        <Icon color={'#ffa502'} as={IconModified} /> modified
-      </Flex>
-      <Flex alignItems="center" gap="6px">
-        <Icon color={'#fd6136'} as={IconImplicit} /> implicit
-      </Flex>
+      {Object.entries(NODE_CHANGE_STATUS_MSGS).map(([key, [label, tip]]) => {
+        const { icon, color } = getIconForChangeStatus(key as ChangeStatus);
+
+        return (
+          <Tooltip label={tip}>
+            <Flex alignItems="center" gap="6px" marginBottom="2px">
+              <Icon color={color} as={icon} /> {label}
+            </Flex>
+          </Tooltip>
+        );
+      })}
     </Box>
   );
 }
