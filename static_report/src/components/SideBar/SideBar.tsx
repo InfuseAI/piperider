@@ -112,7 +112,9 @@ export function SideBar({ singleOnly }: Comparable) {
             border="0 solid lightgray"
             borderBottomWidth={1}
           >
-            <Text fontSize="sm">Lineage Graph</Text>
+            <Text fontSize="sm">
+              {singleOnly ? 'Lineage Graph' : 'Lineage Diff'}
+            </Text>
             <ModalCloseButton />
           </ModalHeader>
           <ModalBody p={0}>

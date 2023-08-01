@@ -185,7 +185,9 @@ export function Overview({ singleOnly }: Props) {
   const { tableColumnsOnly = [], lineageGraph } = useReportStore.getState();
   const [sortMethod, setSortMethod] = useState('topology');
   const [resourceIndex, setResourceIndex] = useState(0);
-  const [filterOptions, setFilterOptions] = useState<FilterOptions>({});
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    filterBy: 'potential_impacts',
+  });
   const [location, setLocation] = useLocation();
   const isCloud = useCloudReport();
 

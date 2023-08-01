@@ -72,8 +72,8 @@ const statName = {
 
 const filterName = {
   all: 'All',
-  'modified+': 'Potential Impacted',
-  '1+modified+': 'Potential Impacted+',
+  potential_impacted: 'Potential Impacted',
+  potential_impacted_plus: 'Potential Impacted+',
 };
 
 function LineageGraphWrapped({ singleOnly }: Comparable) {
@@ -91,9 +91,14 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
   const [expandLeft, setExpandLeft] = useState<string[]>([]);
   const [expandRight, setExpandRight] = useState<string[]>([]);
 
-  const [stat, setStat] = useState<string>(hashParams.get('g_s') || '');
-  const [changeInclude, setChangeInclude] = useState<string>('1+modified+');
-  const [changeSelect, setChangeSelect] = useState<string>('modified+');
+  const [stat, setStat] = useState<string>(
+    hashParams.get('g_s') || (singleOnly ? 'row_count' : 'impact'),
+  );
+  const [changeInclude, setChangeInclude] = useState<string>(
+    'potential_impacted_plus',
+  );
+  const [changeSelect, setChangeSelect] =
+    useState<string>('potential_impacted');
 
   const {
     isOpen: isStatOpen,
@@ -148,8 +153,8 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
 
   const onResetClick = () => {
     setSelected(undefined);
-    setChangeInclude('1+modified+');
-    setChangeSelect('modified+');
+    setChangeInclude('potential_impacted_plus');
+    setChangeSelect('potential_impacted');
     setExpandLeft([]);
     setExpandRight([]);
   };
@@ -211,13 +216,13 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
         );
       }
     } else if (!singleOnly) {
-      if (changeInclude === 'modified+') {
+      if (changeInclude === 'potential_impacted') {
         includeSet = defaultNodeSets.impacted;
-      } else if (changeInclude === '1+modified+') {
+      } else if (changeInclude === 'potential_impacted_plus') {
         includeSet = defaultNodeSets.impactedPlus;
       }
 
-      if (changeSelect === 'modified+') {
+      if (changeSelect === 'potential_impacted') {
         selectSet = defaultNodeSets.impacted;
       } else if (changeSelect === 'changed') {
         selectSet = defaultNodeSets.changed;
@@ -444,7 +449,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                     setExpandRight([]);
                   }}
                 >
-                  <MenuItemOption value="modified+" fontSize="sm">
+                  <MenuItemOption value="potential_impacted" fontSize="sm">
                     Potential Impacted{' '}
                     <Tooltip label="Code changes, and their downstreams.">
                       <Box display="inline-block">
@@ -452,7 +457,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                       </Box>
                     </Tooltip>
                   </MenuItemOption>
-                  <MenuItemOption value="1+modified+" fontSize="sm">
+                  <MenuItemOption value="potential_impacted_plus" fontSize="sm">
                     Potential Impacted+{' '}
                     <Tooltip label="Code change, and their downstreams, and 1st degree upstreams.">
                       <Box display="inline-block">
@@ -479,7 +484,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                       </Box>
                     </Tooltip>
                   </MenuItemOption>
-                  <MenuItemOption fontSize="sm" value="modified+">
+                  <MenuItemOption fontSize="sm" value="potential_impacted">
                     Potential Impacted{' '}
                     <Tooltip label="Code changes, and their downstreams.">
                       <Box display="inline-block">

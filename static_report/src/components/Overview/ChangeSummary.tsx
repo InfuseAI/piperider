@@ -41,7 +41,7 @@ function ChangeStatusCountLabel({
   changeStatus: ChangeStatus;
   value: number;
 }) {
-  const [label, description] = NODE_CHANGE_STATUS_MSGS[changeStatus ?? ''];
+  const [label] = NODE_CHANGE_STATUS_MSGS[changeStatus ?? ''];
   const { icon, color } = getIconForChangeStatus(changeStatus);
 
   return (
@@ -49,11 +49,6 @@ function ChangeStatusCountLabel({
       <Flex alignItems="center" fontSize="sm" color="gray">
         <Icon mr="5px" as={icon} color={color} />
         {label}
-        <Tooltip label={description}>
-          <Box display="inline-block">
-            <Icon mx={'2px'} as={FiInfo} boxSize={3} />
-          </Box>
-        </Tooltip>
       </Flex>
       <Text fontSize="sm">{value}</Text>
     </VStack>
@@ -108,7 +103,6 @@ export function ChangeSummary({ tableColumnsOnly }: Props) {
       <Box borderColor="lightgray">
         <SummaryText
           name="Code Changes"
-          tip="Changes caused by users through editing. This may include adding or removing, renaming, or adjusting configuration."
           value={
             <>
               <Grid templateColumns="1fr 1fr 1fr" width="100%">
