@@ -45,10 +45,16 @@ export type ChangeStatus =
   | 'folder_changed'
   | null;
 
+export type ImpactStatus =
+  | 'assessed_not_impacted'
+  | 'impacted'
+  | 'skipped'
+  | null;
+
 export const NODE_CHANGE_STATUS_MSGS = {
   added: ['Added', 'Added resource'],
   removed: ['Removed', 'Removed resource'],
-  modified: ['Modifed', 'Modified resource'],
+  modified: ['Modified', 'Modified resource'],
   ds_impacted: [
     'D.S. Impacted',
     'Downstream of code changes and changes are detected.',
@@ -61,6 +67,12 @@ export const NODE_CHANGE_STATUS_MSGS = {
     'D.S. Not changed',
     'Downstream of code changes and the resource is profiled or queried. No changes are detected.',
   ],
+};
+
+export const NODE_IMPACT_STATUS_MSGS = {
+  impacted: ['Impacted', ''],
+  assessed_not_impacted: ['Assessed Not Impacted', ''],
+  skipped: ['Skipped', ''],
 };
 
 export const NODE_CHANGE_STATUS_COUNT_MSGS = {
@@ -100,6 +112,7 @@ export type CompDbtNodeEntryItem = [
     columns?: CompColEntryItem[];
     impacted?: boolean;
     changeStatus?: ChangeStatus;
+    impactStatus?: ImpactStatus;
     // change counts of subitems
     added?: number;
     deleted?: number;
@@ -226,20 +239,21 @@ const buildDbtNodeEntryItems = (rawData: ComparableReport) => {
     let deleted = 0;
     let changed = 0;
     let changeStatus: ChangeStatus = null;
+    let impactStatus: ImpactStatus = null;
     let impacted = false;
-    let checked = false;
+    let assessed = false;
 
     if (
       fallback.resource_type === 'model' &&
       fallback.__table?.row_count !== undefined
     ) {
-      checked = true;
+      assessed = true;
     }
     if (
       fallback.resource_type === 'metric' &&
       fallback.__queries !== undefined
     ) {
-      checked = true;
+      assessed = true;
     }
 
     const columns: CompColEntryItem[] = [];
@@ -265,20 +279,30 @@ const buildDbtNodeEntryItems = (rawData: ComparableReport) => {
       changeStatus = 'removed';
     } else if (explicitSet.has(`${nodeKey}`)) {
       changeStatus = 'modified';
-    } else if (impactedSet.has(nodeKey)) {
+    }
+
+    if (impactedSet.has(nodeKey)) {
       if (implicitSet.has(nodeKey)) {
-        changeStatus = 'ds_impacted';
-      } else if (!checked) {
-        changeStatus = 'ds_potential';
+        impactStatus = 'impacted';
+      } else if (!assessed) {
+        impactStatus = 'skipped';
       } else {
-        changeStatus = 'ds_not_changed';
+        impactStatus = 'assessed_not_impacted';
       }
     }
 
     return [
       nodeKey,
       { base, target },
-      { columns, changeStatus, impacted, added, deleted, changed },
+      {
+        columns,
+        changeStatus,
+        impactStatus,
+        impacted,
+        added,
+        deleted,
+        changed,
+      },
     ] as CompDbtNodeEntryItem;
   });
 };

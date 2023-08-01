@@ -5,6 +5,7 @@ import {
   ChangeStatus,
   CompDbtNodeEntryItem,
   NODE_CHANGE_STATUS_COUNT_MSGS,
+  NODE_CHANGE_STATUS_MSGS,
 } from '../../lib';
 import { getIconForChangeStatus } from '../Icons';
 
@@ -41,8 +42,7 @@ function ChangeStatusCountLabel({
   changeStatus: ChangeStatus;
   value: number;
 }) {
-  const [label, description] =
-    NODE_CHANGE_STATUS_COUNT_MSGS[changeStatus ?? ''];
+  const [label, description] = NODE_CHANGE_STATUS_MSGS[changeStatus ?? ''];
   const { icon, color } = getIconForChangeStatus(changeStatus);
 
   return (
@@ -70,22 +70,26 @@ export function ChangeSummary({ tableColumnsOnly }: Props) {
     adds,
     removes,
     modifies,
-    downstreamImpacts,
-    downstreamPotentials,
-    downstreamNoChanges,
+    potentialImpacted,
+    assessed,
+    skipped,
+    impacted,
   } = tableColumnsOnly.reduce(
-    (acc, [key, { base, target }, { changeStatus }]) => {
+    (acc, [key, { base, target }, { changeStatus, impactStatus }]) => {
       return {
         total: acc.total + (target ? 1 : 0),
         adds: acc.adds + (changeStatus === 'added' ? 1 : 0),
         removes: acc.removes + (changeStatus === 'removed' ? 1 : 0),
         modifies: acc.modifies + (changeStatus === 'modified' ? 1 : 0),
-        downstreamImpacts:
-          acc.downstreamImpacts + (changeStatus === 'ds_impacted' ? 1 : 0),
-        downstreamPotentials:
-          acc.downstreamPotentials + (changeStatus === 'ds_potential' ? 1 : 0),
-        downstreamNoChanges:
-          acc.downstreamNoChanges + (changeStatus === 'ds_not_changed' ? 1 : 0),
+        potentialImpacted: acc.potentialImpacted + (impactStatus ? 1 : 0),
+        assessed:
+          acc.assessed +
+          (impactStatus === 'impacted' ||
+          impactStatus === 'assessed_not_impacted'
+            ? 1
+            : 0),
+        skipped: acc.skipped + (impactStatus === 'skipped' ? 1 : 0),
+        impacted: acc.impacted + (impactStatus === 'impacted' ? 1 : 0),
       };
     },
     {
@@ -93,9 +97,10 @@ export function ChangeSummary({ tableColumnsOnly }: Props) {
       adds: 0,
       removes: 0,
       modifies: 0,
-      downstreamImpacts: 0,
-      downstreamPotentials: 0,
-      downstreamNoChanges: 0,
+      potentialImpacted: 0,
+      assessed: 0,
+      skipped: 0,
+      impacted: 0,
     },
   );
 
@@ -125,23 +130,24 @@ export function ChangeSummary({ tableColumnsOnly }: Props) {
 
       <Box borderLeft="1px" paddingLeft="12px" borderColor="lightgray">
         <SummaryText
-          name="Downstreams of code changes"
+          name="Resource Impacts"
           tip="This is the affected scope of the code changes."
           value={
             <>
               <Grid templateColumns="1fr 1fr 1fr" width="100%">
-                <ChangeStatusCountLabel
-                  changeStatus="ds_impacted"
-                  value={downstreamImpacts}
+                <SummaryText
+                  name="Potential Impacted"
+                  value={potentialImpacted}
                 />
-                <ChangeStatusCountLabel
-                  changeStatus="ds_potential"
-                  value={downstreamPotentials}
+                <SummaryText
+                  name="Assessed"
+                  value={
+                    <>
+                      {assessed} <br /> (Skipped={skipped})
+                    </>
+                  }
                 />
-                <ChangeStatusCountLabel
-                  changeStatus="ds_not_changed"
-                  value={downstreamNoChanges}
-                />
+                <SummaryText name="Impacted" value={impacted} />
               </Grid>
             </>
           }
