@@ -5,6 +5,7 @@ import { LineageGraphNode } from '../../utils/dbt';
 import { COLOR_HIGHLIGHT } from './style';
 import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
 import { dbtNodeStatDiff, StatDiff } from '../Widgets/StatDiff';
+import { NODE_IMPACT_STATUS_MSGS } from '../../lib';
 
 interface GraphNodeProps extends NodeProps {
   data: LineageGraphNode;
@@ -32,7 +33,8 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
 
   // text color, icon
   let changeStatus = data.changeStatus;
-  let color = isSelected ? 'gray.300' : 'gray.200';
+  let impactStatus = data.impactStatus;
+  let color = isSelected ? 'gray.400' : 'gray.200';
   let iconChangeStatus;
 
   let borderStyle = 'solid';
@@ -66,11 +68,20 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
   }
 
   const name = data?.name;
-  const { statValue, statValueF } = dbtNodeStatDiff({
+  let { statValue, statValueF } = dbtNodeStatDiff({
     base: data?.base,
     target: data?.target,
     stat: stat as any,
   });
+
+  let hasStat = false;
+  if (stat === 'impact' && impactStatus) {
+    hasStat = true;
+    statValueF = NODE_IMPACT_STATUS_MSGS[impactStatus][0];
+  } else if (stat && statValue !== undefined) {
+    hasStat = true;
+  }
+
   return (
     <Tooltip
       label={resourceType === 'model' ? name : `${name} (${resourceType})`}
@@ -131,7 +142,7 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
             )}
           </Flex>
 
-          {stat && statValue !== undefined && (
+          {hasStat && (
             <Box
               width="100%"
               visibility={showContent ? 'inherit' : 'hidden'}
@@ -143,6 +154,8 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
                 color={isActive ? 'white' : 'inherit'}
               >
                 {singleOnly ? (
+                  <>{statValueF}</>
+                ) : stat === 'impact' ? (
                   <>{statValueF}</>
                 ) : (
                   <StatDiff

@@ -55,42 +55,12 @@ export const NODE_CHANGE_STATUS_MSGS = {
   added: ['Added', 'Added resource'],
   removed: ['Removed', 'Removed resource'],
   modified: ['Modified', 'Modified resource'],
-  ds_impacted: [
-    'D.S. Impacted',
-    'Downstream of code changes and changes are detected.',
-  ],
-  ds_potential: [
-    'D.S. Potential',
-    'Downstream of code changes but the resource is not profiled or queried.',
-  ],
-  ds_not_changed: [
-    'D.S. Not changed',
-    'Downstream of code changes and the resource is profiled or queried. No changes are detected.',
-  ],
 };
 
 export const NODE_IMPACT_STATUS_MSGS = {
   impacted: ['Impacted', ''],
   assessed_not_impacted: ['Assessed Not Impacted', ''],
   skipped: ['Skipped', ''],
-};
-
-export const NODE_CHANGE_STATUS_COUNT_MSGS = {
-  added: ['Adds', 'Count of new added resources'],
-  removed: ['Removes', 'Count of removed resources'],
-  modified: ['Modifies', 'Count of modified resources'],
-  ds_impacted: [
-    'Impacts',
-    'Count of impacted downstreams by code changes. There are changes detected.',
-  ],
-  ds_potential: [
-    'Potentials',
-    'Count of non-profiled downstreams, which are potentially impacted by code changes.',
-  ],
-  ds_not_changed: [
-    'No Changes',
-    'Count of profiled but not impacted downstreams. There are no changes detected.',
-  ],
 };
 
 export type CompColEntryItem = [

@@ -4,7 +4,6 @@ import { FiInfo } from 'react-icons/fi';
 import {
   ChangeStatus,
   CompDbtNodeEntryItem,
-  NODE_CHANGE_STATUS_COUNT_MSGS,
   NODE_CHANGE_STATUS_MSGS,
 } from '../../lib';
 import { getIconForChangeStatus } from '../Icons';

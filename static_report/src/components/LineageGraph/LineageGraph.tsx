@@ -65,14 +65,15 @@ const edgeTypes = {
 
 const statName = {
   '': 'No Stat',
+  impact: 'Impact',
   execution_time: 'Execution Time',
   row_count: 'Row Count',
 };
 
-const changeStatusName = {
-  all: 'All nodes',
-  'modified+': 'Modified+',
-  '1+modified+': '1+Modifed+',
+const filterName = {
+  all: 'All',
+  'modified+': 'Potential Impacted',
+  '1+modified+': 'Potential Impacted+',
 };
 
 function LineageGraphWrapped({ singleOnly }: Comparable) {
@@ -401,6 +402,9 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                 <MenuItemOption value="" fontSize="sm">
                   {statName['']}
                 </MenuItemOption>
+                <MenuItemOption value="impact" fontSize="sm">
+                  {statName['impact']}
+                </MenuItemOption>
                 <MenuItemOption value="execution_time" fontSize="sm">
                   {statName['execution_time']}
                 </MenuItemOption>
@@ -412,9 +416,9 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
           </Menu>
         </Box>
         {!singleOnly && (
-          <Box p={2} flex="0 1 160px" fontSize="14px">
+          <Box p={2} flex="0 1 200px" fontSize="14px">
             <Text color="gray" mb="2px">
-              Change Status
+              Filter
             </Text>
             <Menu
               closeOnSelect={false}
@@ -423,7 +427,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
             >
               <MenuButton as={Box} onClick={onChangeStatusOpen}>
                 <Flex gap={2} alignItems="center" fontSize="sm">
-                  {changeStatusName[changeInclude] || '(unknown)'}
+                  {filterName[changeInclude] || '(unknown)'}
                   <ChevronUpIcon />
                 </Flex>
               </MenuButton>
@@ -439,7 +443,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                   }}
                 >
                   <MenuItemOption value="modified+" fontSize="sm">
-                    Modified+{' '}
+                    Potential Impacted{' '}
                     <Tooltip label="Code changes, and their downstreams.">
                       <Box display="inline-block">
                         <Icon as={FiInfo} />
@@ -447,7 +451,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                     </Tooltip>
                   </MenuItemOption>
                   <MenuItemOption value="1+modified+" fontSize="sm">
-                    1+Modified+{' '}
+                    Potential Impacted+{' '}
                     <Tooltip label="Code change, and their downstreams, and 1st degree upstreams.">
                       <Box display="inline-block">
                         <Icon as={FiInfo} />
@@ -455,7 +459,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                     </Tooltip>
                   </MenuItemOption>
                   <MenuItemOption value="all" fontSize="sm">
-                    All nodes
+                    All
                   </MenuItemOption>
                 </MenuOptionGroup>
                 <MenuOptionGroup
@@ -466,7 +470,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                   }}
                 >
                   <MenuItemOption fontSize="sm" value="changed">
-                    Changed{' '}
+                    Code Changed{' '}
                     <Tooltip label="Code changes or any detected changes.">
                       <Box display="inline-block">
                         <Icon as={FiInfo} />
@@ -474,7 +478,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                     </Tooltip>
                   </MenuItemOption>
                   <MenuItemOption fontSize="sm" value="modified+">
-                    Modified+{' '}
+                    Potential Impacted{' '}
                     <Tooltip label="Code changes, and their downstreams.">
                       <Box display="inline-block">
                         <Icon as={FiInfo} />
@@ -482,7 +486,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                     </Tooltip>
                   </MenuItemOption>
                   <MenuItemOption fontSize="sm" value="all">
-                    All nodes
+                    All
                   </MenuItemOption>
                 </MenuOptionGroup>
               </MenuList>

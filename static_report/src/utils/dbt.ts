@@ -1,4 +1,9 @@
-import { ChangeStatus, CompColEntryItem, CompDbtNodeEntryItem } from './store';
+import {
+  ChangeStatus,
+  CompColEntryItem,
+  CompDbtNodeEntryItem,
+  ImpactStatus,
+} from './store';
 import {
   DbtManifestSchema,
   Metric,
@@ -48,6 +53,7 @@ export interface LineageGraphNode {
   filePath: string;
   packageName?: string;
   changeStatus?: ChangeStatus;
+  impactStatus?: ImpactStatus;
   dependsOn: {
     [key: string]: LineageGraphEdge;
   };
@@ -651,6 +657,7 @@ export function buildLineageGraph(
     const filePath = fallback?.original_file_path.replace(/^models\//, '');
     const tags = fallback?.tags || [];
     const changeStatus = metadata.changeStatus;
+    const impactStatus = metadata.impactStatus;
 
     data[key] = {
       uniqueId: key,
@@ -661,6 +668,7 @@ export function buildLineageGraph(
       filePath,
       packageName,
       changeStatus,
+      impactStatus,
       base: base as DbtNode,
       target: target as DbtNode,
       dependsOn,
