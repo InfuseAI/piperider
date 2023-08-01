@@ -72,8 +72,8 @@ const statName = {
 
 const filterName = {
   all: 'All',
-  potential_impacted: 'Potential Impacted',
-  potential_impacted_plus: 'Potential Impacted+',
+  potentially_impacted: 'Potentially Impacted',
+  potentially_impacted_plus: 'Potentially Impacted+',
 };
 
 function LineageGraphWrapped({ singleOnly }: Comparable) {
@@ -95,10 +95,11 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
     hashParams.get('g_s') || (singleOnly ? 'row_count' : 'impact'),
   );
   const [changeInclude, setChangeInclude] = useState<string>(
-    'potential_impacted_plus',
+    'potentially_impacted_plus',
   );
-  const [changeSelect, setChangeSelect] =
-    useState<string>('potential_impacted');
+  const [changeSelect, setChangeSelect] = useState<string>(
+    'potentially_impacted',
+  );
 
   const {
     isOpen: isStatOpen,
@@ -153,8 +154,8 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
 
   const onResetClick = () => {
     setSelected(undefined);
-    setChangeInclude('potential_impacted_plus');
-    setChangeSelect('potential_impacted');
+    setChangeInclude('potentially_impacted_plus');
+    setChangeSelect('potentially_impacted');
     setExpandLeft([]);
     setExpandRight([]);
   };
@@ -216,13 +217,13 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
         );
       }
     } else if (!singleOnly) {
-      if (changeInclude === 'potential_impacted') {
+      if (changeInclude === 'potentially_impacted') {
         includeSet = defaultNodeSets.impacted;
-      } else if (changeInclude === 'potential_impacted_plus') {
+      } else if (changeInclude === 'potentially_impacted_plus') {
         includeSet = defaultNodeSets.impactedPlus;
       }
 
-      if (changeSelect === 'potential_impacted') {
+      if (changeSelect === 'potentially_impacted') {
         selectSet = defaultNodeSets.impacted;
       } else if (changeSelect === 'changed') {
         selectSet = defaultNodeSets.changed;
@@ -449,17 +450,20 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                     setExpandRight([]);
                   }}
                 >
-                  <MenuItemOption value="potential_impacted" fontSize="sm">
-                    Potential Impacted{' '}
-                    <Tooltip label="Code changes, and their downstreams.">
+                  <MenuItemOption value="potentially_impacted" fontSize="sm">
+                    Potentially Impacted{' '}
+                    <Tooltip label="Code changed, and their downstreams">
                       <Box display="inline-block">
                         <Icon as={FiInfo} />
                       </Box>
                     </Tooltip>
                   </MenuItemOption>
-                  <MenuItemOption value="potential_impacted_plus" fontSize="sm">
-                    Potential Impacted+{' '}
-                    <Tooltip label="Code change, and their downstreams, and 1st degree upstreams.">
+                  <MenuItemOption
+                    value="potentially_impacted_plus"
+                    fontSize="sm"
+                  >
+                    Potentially Impacted+{' '}
+                    <Tooltip label="Code changed, and their downstreams, and 1st degree upstreams">
                       <Box display="inline-block">
                         <Icon as={FiInfo} />
                       </Box>
@@ -477,20 +481,10 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                   }}
                 >
                   <MenuItemOption fontSize="sm" value="changed">
-                    Code Changed{' '}
-                    <Tooltip label="Code changes or any detected changes.">
-                      <Box display="inline-block">
-                        <Icon as={FiInfo} />
-                      </Box>
-                    </Tooltip>
+                    Code Changed
                   </MenuItemOption>
-                  <MenuItemOption fontSize="sm" value="potential_impacted">
-                    Potential Impacted{' '}
-                    <Tooltip label="Code changes, and their downstreams.">
-                      <Box display="inline-block">
-                        <Icon as={FiInfo} />
-                      </Box>
-                    </Tooltip>
+                  <MenuItemOption fontSize="sm" value="potentially_impacted">
+                    Potentially Impacted
                   </MenuItemOption>
                   <MenuItemOption fontSize="sm" value="all">
                     All

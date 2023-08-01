@@ -228,9 +228,6 @@ export function buildColumnTree(
 
     let type = `column_${fallback?.type}` as any;
     let changeStatus = compareColumn(base, target);
-    if (changeStatus) {
-      resultChangeStatus = 'ds_impacted';
-    }
 
     items.push({
       type,
@@ -575,13 +572,12 @@ export function buildDatabaseTree(
 
       _.each(schema_nodes, function (node) {
         const path = '/' + node.resource_type + 's/' + node.unique_id;
-        const [columnItems, columnChangeStatus] = buildColumnTree(
+        const [columnItems] = buildColumnTree(
           mapColumns[node!.unique_id!] || [],
           path,
         );
 
-        const changeStatus =
-          changeStatuses[node!.unique_id!] ?? columnChangeStatus;
+        const changeStatus = changeStatuses[node!.unique_id!];
         let itemTable: SidebarTreeItem = {
           type: node.resource_type as any,
           name: node.identifier || node.alias || node.name,

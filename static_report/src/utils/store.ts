@@ -31,10 +31,6 @@ export type ChangeStatus =
   | 'added'
   | 'removed'
   | 'modified'
-  // code change downstream
-  | 'ds_impacted'
-  | 'ds_potential'
-  | 'ds_not_changed'
 
   // column change
   | 'col_added'
@@ -253,7 +249,7 @@ const buildDbtNodeEntryItems = (rawData: ComparableReport) => {
     }
 
     if (impactedSet.has(nodeKey)) {
-      if (implicitSet.has(nodeKey)) {
+      if (implicitSet.has(nodeKey) || added > 0 || deleted > 0 || changed > 0) {
         impactStatus = 'impacted';
       } else if (!assessed) {
         impactStatus = 'skipped';

@@ -42,7 +42,7 @@ function SelectMenu({
       <MenuList minWidth="240px">
         <MenuOptionGroup
           type="radio"
-          defaultValue="potential_impacts"
+          defaultValue="potentially_impacted"
           onChange={(filterBy) => {
             setFilterOptions({
               ...filterOptions,
@@ -50,8 +50,8 @@ function SelectMenu({
             });
           }}
         >
-          <MenuItemOption value="potential_impacts">
-            Potential Impacted
+          <MenuItemOption value="potentially_impacted">
+            Potentially Impacted
           </MenuItemOption>
           <MenuItemOption value="code_changes">Code Changes</MenuItemOption>
           <MenuItemOption value="all">All</MenuItemOption>
@@ -176,7 +176,7 @@ function getTabItems(tableColumnsOnly: CompDbtNodeEntryItem[]) {
 
 type FilterOptions = {
   search?: string;
-  filterBy?: 'code_changes' | 'potential_impacts' | 'all';
+  filterBy?: 'code_changes' | 'potentially_impacted' | 'all';
 };
 
 type Props = {} & Comparable;
@@ -186,7 +186,7 @@ export function Overview({ singleOnly }: Props) {
   const [sortMethod, setSortMethod] = useState('topology');
   const [resourceIndex, setResourceIndex] = useState(0);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-    filterBy: 'potential_impacts',
+    filterBy: 'potentially_impacted',
   });
   const [location, setLocation] = useLocation();
   const isCloud = useCloudReport();
@@ -243,7 +243,7 @@ export function Overview({ singleOnly }: Props) {
     if (!singleOnly) {
       if (filterOptions?.filterBy === 'code_changes') {
         return !!metadata.changeStatus;
-      } else if (filterOptions.filterBy === 'potential_impacts') {
+      } else if (filterOptions.filterBy === 'potentially_impacted') {
         return !!metadata.impactStatus;
       } else {
         return true;

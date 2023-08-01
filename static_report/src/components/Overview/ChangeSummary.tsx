@@ -64,7 +64,7 @@ export function ChangeSummary({ tableColumnsOnly }: Props) {
     adds,
     removes,
     modifies,
-    potentialImpacted,
+    potentiallyImpacted,
     assessed,
     skipped,
     impacted,
@@ -75,7 +75,7 @@ export function ChangeSummary({ tableColumnsOnly }: Props) {
         adds: acc.adds + (changeStatus === 'added' ? 1 : 0),
         removes: acc.removes + (changeStatus === 'removed' ? 1 : 0),
         modifies: acc.modifies + (changeStatus === 'modified' ? 1 : 0),
-        potentialImpacted: acc.potentialImpacted + (impactStatus ? 1 : 0),
+        potentiallyImpacted: acc.potentiallyImpacted + (impactStatus ? 1 : 0),
         assessed:
           acc.assessed +
           (impactStatus === 'impacted' ||
@@ -91,7 +91,7 @@ export function ChangeSummary({ tableColumnsOnly }: Props) {
       adds: 0,
       removes: 0,
       modifies: 0,
-      potentialImpacted: 0,
+      potentiallyImpacted: 0,
       assessed: 0,
       skipped: 0,
       impacted: 0,
@@ -128,8 +128,8 @@ export function ChangeSummary({ tableColumnsOnly }: Props) {
             <>
               <Grid templateColumns="1fr 1fr 1fr" width="100%">
                 <SummaryText
-                  name="Potential Impacted"
-                  value={potentialImpacted}
+                  name="Potentially Impacted"
+                  value={potentiallyImpacted}
                 />
                 <SummaryText
                   name="Assessed"
