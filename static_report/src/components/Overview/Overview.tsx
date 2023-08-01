@@ -40,50 +40,6 @@ import { useLocation } from 'wouter';
 import { useCloudReport } from '../../utils/cloud';
 import { ChangeSummary } from './ChangeSummary';
 
-const setCodeChange = new Set<string>(['added', 'removed', 'modified']);
-const setDownstream = new Set<string>([
-  'ds_impacted',
-  'ds_potential',
-  'ds_not_changed',
-]);
-const setAll = new Set<string>([
-  ...Array.from(setCodeChange),
-  ...Array.from(setDownstream),
-  'other',
-]);
-
-function isSubset(subset: Set<any>, superset: Set<any>) {
-  for (const item of Array.from(subset)) {
-    if (!superset.has(item)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function mergeSet(set1: Set<any>, set2: Set<any>) {
-  return new Set<any>([...Array.from(set1), ...Array.from(set2)]);
-}
-
-function differenceSet(set1: Set<any>, set2: Set<any>) {
-  const result = new Set<any>();
-  for (const item of Array.from(set1)) {
-    if (!set2.has(item)) {
-      result.add(item);
-    }
-  }
-  return result;
-}
-
-function toggleSet(set1: Set<any>, set2: Set<any>) {
-  if (isSubset(set2, set1)) {
-    return differenceSet(set1, set2);
-  } else {
-    return mergeSet(set1, set2);
-  }
-}
-
 function getMenuItemOption(changeStatus: ChangeStatus) {
   const { icon, color } = getIconForChangeStatus(changeStatus);
   const value = changeStatus ? changeStatus : 'other';
@@ -107,19 +63,6 @@ function SelectMenu({
   filterOptions: FilterOptions;
   setFilterOptions: (filterOptions: FilterOptions) => void;
 }) {
-  const { changeStatus } = filterOptions;
-  let defaultValue: string[] = [];
-
-  if (isSubset(setCodeChange, changeStatus)) {
-    defaultValue.push('code_changes');
-  }
-  if (isSubset(setDownstream, changeStatus)) {
-    defaultValue.push('downstreams');
-  }
-  if (isSubset(setAll, changeStatus)) {
-    defaultValue.push('all');
-  }
-
   return (
     <Menu closeOnSelect={false} autoSelect={false}>
       <MenuButton as={Button} fontSize="14px">
@@ -128,59 +71,21 @@ function SelectMenu({
         </Flex>
       </MenuButton>
       <MenuList minWidth="240px">
-        <MenuOptionGroup type="checkbox" value={defaultValue}>
-          <MenuItemOption
-            value="code_changes"
-            onClick={() => {
-              setFilterOptions({
-                ...filterOptions,
-                changeStatus: toggleSet(changeStatus, setCodeChange),
-              });
-            }}
-          >
-            Code Changes
-          </MenuItemOption>
-          <MenuItemOption
-            value="downstreams"
-            onClick={() => {
-              setFilterOptions({
-                ...filterOptions,
-                changeStatus: toggleSet(changeStatus, setDownstream),
-              });
-            }}
-          >
-            Downstreams
-          </MenuItemOption>
-          <MenuItemOption
-            value="all"
-            onClick={() => {
-              setFilterOptions({
-                ...filterOptions,
-                changeStatus: toggleSet(changeStatus, setAll),
-              });
-            }}
-          >
-            All nodes
-          </MenuItemOption>
-        </MenuOptionGroup>
-        <MenuDivider />
         <MenuOptionGroup
-          type="checkbox"
-          value={[...Array.from(changeStatus)]}
-          onChange={(value) => {
+          type="radio"
+          defaultValue="potential_impacts"
+          onChange={(filterBy) => {
             setFilterOptions({
               ...filterOptions,
-              changeStatus: new Set<any>(value),
+              filterBy: filterBy as any,
             });
           }}
         >
-          {getMenuItemOption('added')}
-          {getMenuItemOption('removed')}
-          {getMenuItemOption('modified')}
-          {getMenuItemOption('ds_impacted')}
-          {getMenuItemOption('ds_potential')}
-          {getMenuItemOption('ds_not_changed')}
-          {getMenuItemOption(null)}
+          <MenuItemOption value="code_changes">Code Changes</MenuItemOption>
+          <MenuItemOption value="potential_impacts">
+            Potential Impacted
+          </MenuItemOption>
+          <MenuItemOption value="all">All</MenuItemOption>
         </MenuOptionGroup>
       </MenuList>
     </Menu>
@@ -302,14 +207,7 @@ function getTabItems(tableColumnsOnly: CompDbtNodeEntryItem[]) {
 
 type FilterOptions = {
   search?: string;
-  changeStatus: Set<string>;
-};
-
-const defaultFilterOptions: FilterOptions = {
-  changeStatus: new Set<any>([
-    ...Array.from(setCodeChange),
-    ...Array.from(setDownstream),
-  ]),
+  filterBy?: 'code_changes' | 'potential_impacts' | 'all';
 };
 
 type Props = {} & Comparable;
@@ -318,8 +216,7 @@ export function Overview({ singleOnly }: Props) {
   const { tableColumnsOnly = [], lineageGraph } = useReportStore.getState();
   const [sortMethod, setSortMethod] = useState('topology');
   const [resourceIndex, setResourceIndex] = useState(0);
-  const [filterOptions, setFilterOptions] =
-    useState<FilterOptions>(defaultFilterOptions);
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({});
   const [location, setLocation] = useLocation();
   const isCloud = useCloudReport();
 
@@ -373,14 +270,12 @@ export function Overview({ singleOnly }: Props) {
     }
 
     if (!singleOnly) {
-      if (metadata.changeStatus === null) {
-        if (!filterOptions.changeStatus.has('other')) {
-          return false;
-        }
+      if (filterOptions?.filterBy === 'code_changes') {
+        return !!metadata.changeStatus;
+      } else if (filterOptions.filterBy === 'potential_impacts') {
+        return !!metadata.impactStatus;
       } else {
-        if (!filterOptions.changeStatus.has(metadata.changeStatus ?? '')) {
-          return false;
-        }
+        return true;
       }
     }
 
