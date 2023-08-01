@@ -87,6 +87,8 @@ class SummaryAggregate:
 
     # value changes from profiling data
     diffs: List[str] = None
+    no_diffs: List[str] = None
+    skipped: List[str] = None
 
     def __init__(self, display_name: str):
         self.display_name = display_name
@@ -349,6 +351,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                                     for x in self.modified_models_and_metrics_with_downstream]
         self.models.modified_with_downstream = modified_with_downstream
         self.metrics.modified_with_downstream = modified_with_downstream
+        self.update_modified_with_downstream(modified_with_downstream)
 
         # update total values
         self.models.total = len([x for x in self.target_resources if x.get('resource_type') == 'model'])
@@ -381,6 +384,18 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
     def update_models_value_changes(self):
         # list implicit changes and exclude added and removed tables
         diffs = []
+        no_diffs = []
+        skipped = []
+
+        def _resolve_id(ref_id: str, table_name: str):
+            if ref_id:
+                if not ref_id.startswith("model."):
+                    return None
+                return ref_id
+            else:
+                resolved_id = self.resolve_unique_id(table_name, "model")
+                assert resolved_id is not None
+                return resolved_id
 
         for table_name, ref_id, b, t in self.tables.table_data_iterator():
             r1, r2 = self.tables.row_counts(table_name)
@@ -388,28 +403,27 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
             both_profiled = not math.isnan(r1) and not math.isnan(r2)
             if both_profiled:
                 if r1 == r2 and c1 == c2 and not self.has_changed(b, t):
-                    pass
+                    resolved_id = _resolve_id(ref_id, table_name)
+                    if resolved_id:
+                        no_diffs.append(resolved_id)
                 else:
-                    if ref_id:
-                        if not ref_id.startswith("model."):
-                            continue
-                        diffs.append(ref_id)
-                    else:
-                        resolved_id = self.resolve_unique_id(table_name, "model")
-                        assert resolved_id is not None
+                    resolved_id = _resolve_id(ref_id, table_name)
+                    if resolved_id:
                         diffs.append(resolved_id)
             else:
                 if self.has_changed(b, t):
-                    if ref_id:
-                        if not ref_id.startswith("model."):
-                            continue
-                        diffs.append(ref_id)
-                    else:
-                        resolved_id = self.resolve_unique_id(table_name, "model")
-                        assert resolved_id is not None
+                    resolved_id = _resolve_id(ref_id, table_name)
+                    if resolved_id:
                         diffs.append(resolved_id)
+                else:
+                    if ref_id:
+                        resolved_id = _resolve_id(ref_id, table_name)
+                        if resolved_id:
+                            skipped.append(resolved_id)
 
         self.models.diffs = list(set(diffs))
+        self.models.no_diffs = list(set(no_diffs))
+        self.models.skipped = list(set(skipped))
 
     def update_metrics_value_changes(self):
         # exclude added and removed
@@ -417,22 +431,56 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         metrics_t = {x.get("name"): x for x in self.target.get("metrics", {})}
 
         diffs = []
+        no_diffs = []
+        # NOTE: The non-queried metrics are not included in the skipped list, because they are not in run.json
+        # TODO: it would be nice to include them in the skipped list
+        skipped = []
+
+        def _resolve_id(ref_id: str, metric):
+            if ref_id:
+                if not ref_id.startswith("metric."):
+                    return None
+                return ref_id
+            else:
+                # resolve the unique id for the legacy report
+                metric_name = metric.get(x).get("headers")[-1]
+                ref_id = self.resolve_unique_id(metric_name, "metric")
+                assert ref_id is not None
+                return ref_id
+
         for x in set(list(metrics_b.keys()) + list(metrics_t.keys())):
             if x in metrics_b and x in metrics_t:
                 if metrics_b.get(x) != metrics_t.get(x):
                     ref_id = metrics_t.get(x).get("ref_id")
-                    if ref_id:
-                        if not ref_id.startswith("metric."):
-                            continue
+                    resolved_id = _resolve_id(ref_id, metrics_t)
+                    if resolved_id:
                         diffs.append(ref_id)
-                    else:
-                        # resolve the unique id for the legacy report
-                        metric_name = metrics_t.get(x).get("headers")[-1]
-                        ref_id = self.resolve_unique_id(metric_name, "metric")
-                        assert ref_id is not None
-                        diffs.append(ref_id)
+                else:
+                    ref_id = metrics_t.get(x).get("ref_id")
+                    resolved_id = _resolve_id(ref_id, metrics_t)
+                    if resolved_id:
+                        no_diffs.append(ref_id)
+            else:
+                metric = metrics_t if x in metrics_t else metrics_b
+                ref_id = metric.get(x).get("ref_id")
+                ref_id = _resolve_id(ref_id, metric)
+                if ref_id:
+                    skipped.append(ref_id)
 
         self.metrics.diffs = list(set(diffs))
+        self.metrics.no_diffs = list(set(no_diffs))
+        self.metrics.skipped = list(set(skipped))
+
+    def update_modified_with_downstream(self, units: List[ChangeUnit]):
+        explicit_changes = self.models.explicit_changeset + self.metrics.explicit_changeset
+        implicit_changes = self.models.implicit_changeset + self.metrics.implicit_changeset
+        changes = explicit_changes + implicit_changes
+
+        for unit in units:
+            for c in changes:
+                if unit.unique_id == c.unique_id:
+                    unit.change_type = c.change_type
+                    break
 
     def generate_markdown(self):
         # ref: https://gist.github.com/popcornylu/7a9f68c1ea80f09ba9c780d2026ce71e
@@ -443,28 +491,47 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
 
         out_func("")
 
-        self.generate_summary_section(out_func)
-        self.generate_models_section(out_func)
-        self.generate_metrics_section(out_func)
+        self.generate_impact_summary_section(out_func)
+        self.generate_resource_impact_section(out_func)
 
         return output.getvalue()
 
-    def generate_summary_section(self, out: Callable[[str], None]) -> None:
-        out("# Comparison Summary")
+    def generate_impact_summary_section(self, out: Callable[[str], None]) -> None:
+        out("# Impact Summary")
         if self.get_url():
             out(f"[PipeRider Report]({self.get_url()})")
-        mt = MarkdownTable(headers=['Resource', 'Total', 'Impacted', 'Explicit Changes', 'Implicit Changes'])
-        mt.add_row([self.models.display_name, self.models.total, self.models.impacted,
-                    self.models.explicit_changes, self.models.implicit_changes])
-        mt.add_row([self.metrics.display_name, self.metrics.total, self.metrics.impacted,
-                    self.metrics.explicit_changes, self.metrics.implicit_changes])
-
+        out("### Code Change")
+        mt = MarkdownTable(headers=['Added', 'Removed', 'Modified'])
+        explicit_changes = self.models.explicit_changeset + self.metrics.explicit_changeset
+        added = [x for x in explicit_changes if x.change_type == ChangeType.ADDED]
+        removed = [x for x in explicit_changes if x.change_type == ChangeType.REMOVED]
+        modified = [x for x in explicit_changes if x.change_type == ChangeType.MODIFIED]
+        mt.add_row([len(added), len(removed), len(modified)])
         out(mt.build())
 
+        out("### Resource Impact Summary")
+        mt = MarkdownTable(headers=['Potentially Impacted', 'Assessed', 'Impacted'])
+        potentially_impacted = [x.unique_id for x in (self.models.modified_with_downstream + removed)]
+        impacted = [x for x in list(set(self.models.diffs + self.metrics.diffs)) if x in potentially_impacted]
+        assessed_no_impacted = [x for x in list(set(self.models.no_diffs + self.metrics.no_diffs)) if x in potentially_impacted]
+
+        mt.add_row([len(potentially_impacted),
+                    f"{len(impacted) + len(assessed_no_impacted)} assessed, "
+                    f"{len(potentially_impacted) - len(impacted) - len(assessed_no_impacted)} skipped",
+                    len(impacted)])
+        out(mt.build())
+
+    def generate_resource_impact_section(self, out: Callable[[str], None]) -> None:
+        out("# Resource Impact")
+        self.generate_models_section(out)
+        self.generate_metrics_section(out)
+
     def generate_models_section(self, out: Callable[[str], None]) -> None:
-        out("# Models")
+        out("### Models")
         m = self.models
-        changeset = self.mapper.sort(m.explicit_changeset + m.implicit_changeset)
+        modified_with_downstream = [x for x in m.modified_with_downstream if x.resource_type == ResourceType.MODEL]
+        removed = [x for x in m.explicit_changeset if x.change_type == ChangeType.REMOVED]
+        changeset = self.mapper.sort(modified_with_downstream + removed)
         if not changeset:
             out("No changes detected")
             return
@@ -473,9 +540,18 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         Columns <br> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-plus%402x.png" width="10px"> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-minus%402x.png" width="10px"> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-explicit%402x.png" width="10px">
         """.strip()
 
-        "Rows | Dbt Time | Failed Tests | All Tests"
+        mt = MarkdownTable(headers=['', 'Model', 'Impact', column_header, 'Rows', 'Dbt Time', 'Failed Tests', 'All Tests'])
 
-        mt = MarkdownTable(headers=['', 'Model', column_header, 'Rows', 'Dbt Time', 'Failed Tests', 'All Tests'])
+        def impact(c: ChangeUnit):
+            impacted = self.models.diffs
+            skipped = self.models.skipped
+            assessed_no_impacted = self.models.no_diffs
+            if c.unique_id in impacted:
+                return "Impacted"
+            elif c.unique_id in skipped:
+                return "Skipped"
+            elif c.unique_id in assessed_no_impacted:
+                return "Assessed not impacted"
 
         def cols(c: ChangeUnit):
             counts = self.tables.column_counts(table_name=c.table_name)
@@ -516,6 +592,9 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                          r" $\color{red}{\text{ %(removed)s }}$ /" \
                          r" $\color{orange}{\text{ %(modified)s }}$)" % param
                 return output
+            if c.change_type == ChangeType.IGNORED:
+                b, t = counts
+                return t
 
             return '-'
 
@@ -536,6 +615,9 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                 """
                 text = r'%(value)s $\color{%(color)s}{\text{ (%(sign)s %(diff)s) }}$'
                 return ChangeType.MODIFIED.display_changes(b, t, text)
+            if c.change_type == ChangeType.IGNORED:
+                b, t = rows
+                return t
             return '-'
 
         def dbt_time(c: ChangeUnit):
@@ -545,7 +627,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
 
             if c.change_type == ChangeType.REMOVED:
                 return ""
-            if c.change_type == ChangeType.MODIFIED or c.change_type == ChangeType.IMPLICIT:
+            if c.change_type == ChangeType.MODIFIED or c.change_type == ChangeType.IMPLICIT or c.change_type == ChangeType.IGNORED:
                 """
                 example:
                 0:00:00.16 $\color{green}{\text{ (↓ 0.05) }}$
@@ -565,7 +647,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                 return t
             if c.change_type == ChangeType.REMOVED:
                 return ""
-            if c.change_type == ChangeType.MODIFIED or c.change_type == ChangeType.IMPLICIT:
+            if c.change_type == ChangeType.MODIFIED or c.change_type == ChangeType.IMPLICIT or c.change_type == ChangeType.IGNORED:
                 if all_t == 0:
                     return "-"
                 if b == t:
@@ -582,7 +664,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                 return t
             if c.change_type == ChangeType.REMOVED:
                 return ""
-            if c.change_type == ChangeType.MODIFIED or c.change_type == ChangeType.IMPLICIT:
+            if c.change_type == ChangeType.MODIFIED or c.change_type == ChangeType.IMPLICIT or c.change_type == ChangeType.IGNORED:
                 if t == 0:
                     return "-"
                 if b == t:
@@ -593,21 +675,24 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
 
         for c in changeset[:50]:
             mt.add_row(
-                [c.change_type.icon_image_tag,
+                [c.change_type.icon_image_tag if c.change_type.icon_image_tag else "&nbsp;&nbsp;&nbsp;",
                  embed_url(self.mapper.path(c.unique_id), self.get_url(), c.unique_id, c.resource_type.value),
-                 cols(c), rows(c), dbt_time(c), failed_tests(c),
+                 impact(c), cols(c), rows(c), dbt_time(c), failed_tests(c),
                  all_tests(c)])
 
         if len(changeset) > 50:
             remainings = len(changeset) - 50
             mt.add_row(
-                ['', f'{remainings} more changed models', '', '', '', '', ''])
+                ['', f'{remainings} more potentially impacted models', '', '', '', '', ''])
 
         out(mt.build())
 
     def generate_metrics_section(self, out: Callable[[str], None]) -> None:
-        out("# Metrics")
-        changeset = self.mapper.sort(self.metrics.explicit_changeset + self.metrics.implicit_changeset)
+        out("### Metrics")
+        m = self.metrics
+        modified_with_downstream = [x for x in m.modified_with_downstream if x.resource_type == ResourceType.METRIC]
+        removed = [x for x in m.explicit_changeset if x.change_type == ChangeType.REMOVED]
+        changeset = self.mapper.sort(modified_with_downstream + removed)
         if not changeset:
             out("No changes detected")
             return
@@ -624,7 +709,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
             label = labels[c.unique_id]
             metrics_summary[label] = {
                 'total': 0, 'no-changes': 0, 'edited': 0, 'added': 0, 'removed': 0,
-                'state_icon': c.change_type.icon_image_tag
+                'state_icon': c.change_type.icon_image_tag,
             }
 
             for gm in grain_metrics[c.unique_id].values():
@@ -641,21 +726,36 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                 text = text.replace('%', '\%')
             return r'$\color{orange}{\text{ %s }}$' % str(text)
 
-        mt = MarkdownTable(headers=['', 'Metric', f"Queries <br> total ({latex_orange('change')})"])
+        mt = MarkdownTable(headers=['', 'Metric', 'Impact', f"Queries <br> total ({latex_orange('change')})"])
+
+        def impact(c: ChangeUnit):
+            impacted = self.metrics.diffs
+            skipped = self.metrics.skipped
+            assessed_no_impacted = self.metrics.no_diffs
+            if c.unique_id in impacted:
+                return "Impacted"
+            elif c.unique_id in skipped:
+                return "Skipped"
+            elif c.unique_id in assessed_no_impacted:
+                return "Assessed not impacted"
+            else:
+                return "Skipped"
+
         for c in changeset[:50]:
             label = labels[c.unique_id]
             entry = metrics_summary[label]
             chagned = f"({latex_orange(str(entry['edited']))})" if entry['edited'] > 0 else ""
             mt.add_row([
-                entry['state_icon'],
+                entry['state_icon'] if entry['state_icon'] else "&nbsp;&nbsp;&nbsp;",
                 embed_url(label, self.get_url(), c.unique_id, c.resource_type.value),
+                impact(c),
                 f"{entry['total'] if entry['total'] > 0 else '-'} {chagned}"
             ])
 
         if len(changeset) > 50:
             remainings = len(changeset) - 50
             mt.add_row(
-                ['', f'{remainings} more changed metrics', ''])
+                ['', f'{remainings} more potentially impacted metrics', ''])
 
         out(mt.build())
 
@@ -726,7 +826,7 @@ class GraphDataChangeSet(DefaultChangeSetOpMixin):
                         diffs.append(ref_id)
 
         implicit = list(set(diffs))
-        return list(set(implicit) - set(self.explicit_changes))
+        return implicit
 
     def _table_implicit_changes(self):
         # list implicit changes and exclude added and removed tables
@@ -758,25 +858,3 @@ class GraphDataChangeSet(DefaultChangeSetOpMixin):
         metric_implicit = self._metrics_implicit_changes()
 
         return sorted(table_implicit + metric_implicit)
-
-    def list_base_non_checked(self):
-        non_checked = []
-        for x in self.base_resources:
-            if x.get('resource_type') != 'model':
-                continue
-            table = self.base.get('tables', {}).get(x.get('name'), {})
-            if 'row_count' not in table:
-                non_checked.append(x.get('unique_id'))
-
-        return non_checked
-
-    def list_target_non_checked(self):
-        non_checked = []
-        for x in self.target_resources:
-            if x.get('resource_type') != 'model':
-                continue
-            table = self.target.get('tables', {}).get(x.get('name'), {})
-            if 'row_count' not in table:
-                non_checked.append(x.get('unique_id'))
-
-        return non_checked

@@ -187,8 +187,6 @@ class ComparisonData(object):
             c = GraphDataChangeSet(self._base, self._target)
             self.explicit = c.list_explicit_changes()
             self.implicit = c.list_implicit_changes()
-            self.base_non_checked = c.list_base_non_checked()
-            self.target_non_checked = c.list_target_non_checked()
 
             self.summary_change_set = SummaryChangeSet(self._base, self._target)
         except BaseException as e:
@@ -207,8 +205,6 @@ class ComparisonData(object):
             input=self._target,
             implicit=self.implicit,
             explicit=self.explicit,
-            base_non_checked=self.base_non_checked,
-            target_non_checked=self.target_non_checked,
         )
         return json.dumps(output, separators=(',', ':'))
 
@@ -234,14 +230,28 @@ class ComparisonData(object):
 
         console.print("Statistics:")
 
-        for d in [self.summary_change_set.models, self.summary_change_set.metrics]:
-            output = [f"  {d.resource_type}: total={d.total}, impacted={d.impacted}, explicit={d.explicit_changes}",
-                      f"(added={len([x for x in d.explicit_changeset if x.change_type == ChangeType.ADDED])}, "
-                      f"removed={len([x for x in d.explicit_changeset if x.change_type == ChangeType.REMOVED])}, "
-                      f"modified={len([x for x in d.explicit_changeset if x.change_type == ChangeType.MODIFIED])}), ",
-                      f"implicit={d.implicit_changes}"]
+        change_set = self.summary_change_set.models.explicit_changeset + self.summary_change_set.metrics.explicit_changeset
+        added = [x for x in change_set if x.change_type == ChangeType.ADDED]
+        removed = [x for x in change_set if x.change_type == ChangeType.REMOVED]
+        modified = [x for x in change_set if x.change_type == ChangeType.MODIFIED]
+        code_change = [
+            f"added={len(added)}",
+            f"removed={len(removed)}",
+            f"modified={len(modified)}",
+        ]
 
-            console.print("".join(output))
+        potentially_impacted = [x.unique_id for x in (self.summary_change_set.models.modified_with_downstream + removed)]
+        impacted = [x for x in list(set(self.summary_change_set.models.diffs + self.summary_change_set.metrics.diffs)) if x in potentially_impacted]
+        assessed_no_impacted = [x for x in list(set(self.summary_change_set.models.no_diffs + self.summary_change_set.metrics.no_diffs)) if x in potentially_impacted]
+        impact_summary = [
+            f"potentially_impacted={len(potentially_impacted)}",
+            f"assessed={len(impacted) + len(assessed_no_impacted)}",
+            f"skipped={len(potentially_impacted) - len(impacted) - len(assessed_no_impacted)}",
+            f"impacted={len(impacted)}",
+        ]
+
+        console.print("  Code Change: " + ", ".join(code_change))
+        console.print("  Resource Impact Summary: " + ", ".join(impact_summary))
 
         console.print("")
 
