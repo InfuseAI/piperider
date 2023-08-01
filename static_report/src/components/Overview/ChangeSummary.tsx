@@ -102,7 +102,7 @@ export function ChangeSummary({ tableColumnsOnly }: Props) {
     <Grid templateColumns="1fr 1fr" mb="10px" borderTop="1px solid lightgray">
       <Box borderColor="lightgray">
         <SummaryText
-          name="Code Changes"
+          name="Code Changed"
           value={
             <>
               <Grid templateColumns="1fr 1fr 1fr" width="100%">

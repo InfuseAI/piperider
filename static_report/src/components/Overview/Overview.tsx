@@ -53,7 +53,7 @@ function SelectMenu({
           <MenuItemOption value="potentially_impacted">
             Potentially Impacted
           </MenuItemOption>
-          <MenuItemOption value="code_changes">Code Changes</MenuItemOption>
+          <MenuItemOption value="code_changed">Code Changed</MenuItemOption>
           <MenuItemOption value="all">All</MenuItemOption>
         </MenuOptionGroup>
       </MenuList>
@@ -176,7 +176,7 @@ function getTabItems(tableColumnsOnly: CompDbtNodeEntryItem[]) {
 
 type FilterOptions = {
   search?: string;
-  filterBy?: 'code_changes' | 'potentially_impacted' | 'all';
+  filterBy?: 'code_changed' | 'potentially_impacted' | 'all';
 };
 
 type Props = {} & Comparable;
@@ -241,7 +241,7 @@ export function Overview({ singleOnly }: Props) {
     }
 
     if (!singleOnly) {
-      if (filterOptions?.filterBy === 'code_changes') {
+      if (filterOptions?.filterBy === 'code_changed') {
         return !!metadata.changeStatus;
       } else if (filterOptions.filterBy === 'potentially_impacted') {
         return !!metadata.impactStatus;
