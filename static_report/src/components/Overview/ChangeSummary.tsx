@@ -30,7 +30,7 @@ function SummaryText({
           </Tooltip>
         )}
       </Text>
-      <Text fontSize="l">{value}</Text>
+      <Text fontSize="sm">{value}</Text>
     </VStack>
   );
 }
@@ -56,7 +56,7 @@ function ChangeStatusCountLabel({
           </Box>
         </Tooltip>
       </Flex>
-      <Text fontSize="l">{value}</Text>
+      <Text fontSize="sm">{value}</Text>
     </VStack>
   );
 }
@@ -130,8 +130,7 @@ export function ChangeSummary({ tableColumnsOnly }: Props) {
 
       <Box borderLeft="1px" paddingLeft="12px" borderColor="lightgray">
         <SummaryText
-          name="Resource Impacts"
-          tip="This is the affected scope of the code changes."
+          name="Resource Impact Summary"
           value={
             <>
               <Grid templateColumns="1fr 1fr 1fr" width="100%">
@@ -143,7 +142,7 @@ export function ChangeSummary({ tableColumnsOnly }: Props) {
                   name="Assessed"
                   value={
                     <>
-                      {assessed} <br /> (Skipped={skipped})
+                      {assessed} assessed, {skipped} skipped
                     </>
                   }
                 />

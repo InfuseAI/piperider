@@ -81,10 +81,10 @@ function SelectMenu({
             });
           }}
         >
-          <MenuItemOption value="code_changes">Code Changes</MenuItemOption>
           <MenuItemOption value="potential_impacts">
             Potential Impacted
           </MenuItemOption>
+          <MenuItemOption value="code_changes">Code Changes</MenuItemOption>
           <MenuItemOption value="all">All</MenuItemOption>
         </MenuOptionGroup>
       </MenuList>
@@ -334,7 +334,7 @@ export function Overview({ singleOnly }: Props) {
             onChange={(search) => {
               setFilterOptions({ ...filterOptions, search });
             }}
-            placeholder={`Search ${resourceType}s`}
+            placeholder={resourceType ? `Search ${resourceType}s` : 'Search'}
           />
 
           {!singleOnly && (

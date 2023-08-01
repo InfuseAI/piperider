@@ -244,10 +244,11 @@ const buildDbtNodeEntryItems = (rawData: ComparableReport) => {
     let assessed = false;
 
     if (
-      fallback.resource_type === 'model' &&
-      fallback.__table?.row_count !== undefined
+      fallback.resource_type === 'model' ||
+      fallback.resource_type === 'source' ||
+      fallback.resource_type === 'seed'
     ) {
-      assessed = true;
+      assessed = fallback.__table?.row_count !== undefined;
     }
     if (
       fallback.resource_type === 'metric' &&
@@ -281,7 +282,7 @@ const buildDbtNodeEntryItems = (rawData: ComparableReport) => {
       changeStatus = 'modified';
     }
 
-    if (impactedSet.has(nodeKey) && changeStatus !== 'added') {
+    if (impactedSet.has(nodeKey)) {
       if (implicitSet.has(nodeKey)) {
         impactStatus = 'impacted';
       } else if (!assessed) {
@@ -289,6 +290,14 @@ const buildDbtNodeEntryItems = (rawData: ComparableReport) => {
       } else {
         impactStatus = 'assessed_not_impacted';
       }
+    } else if (changeStatus === 'added') {
+      if (!assessed) {
+        impactStatus = 'skipped';
+      } else {
+        impactStatus = 'assessed_not_impacted';
+      }
+    } else if (changeStatus === 'removed') {
+      impactStatus = 'skipped';
     }
 
     return [
