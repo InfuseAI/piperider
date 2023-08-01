@@ -1,20 +1,10 @@
-import {
-  Tab,
-  Tabs,
-  TabList,
-  Tag,
-  Spacer,
-  Heading,
-  Box,
-  Button,
-} from '@chakra-ui/react';
+import { Tab, Tabs, TabList, Spacer, Heading, Button } from '@chakra-ui/react';
 
 import {
   Flex,
   Menu,
   MenuButton,
   MenuList,
-  MenuDivider,
   MenuItemOption,
   MenuOptionGroup,
   Icon,
@@ -24,37 +14,16 @@ import { BsFilter } from 'react-icons/bs';
 import { CgListTree } from 'react-icons/cg';
 import { LineageGraphData } from '../../utils/dbt';
 import { topologySort } from '../../utils/graph';
-import {
-  ChangeStatus,
-  CompDbtNodeEntryItem,
-  NODE_CHANGE_STATUS_MSGS,
-  useReportStore,
-} from '../../utils/store';
+import { CompDbtNodeEntryItem, useReportStore } from '../../utils/store';
 import { SearchTextInput } from '../Common/SearchTextInput';
 import { ModelList } from './ModelList';
 import { MetricList } from './MetricList';
 import { NodeList } from './NodeList';
 import { Comparable } from '../../types';
-import { getIconForChangeStatus, getIconForResourceType } from '../Icons';
+import { getIconForResourceType } from '../Icons';
 import { useLocation } from 'wouter';
 import { useCloudReport } from '../../utils/cloud';
 import { ChangeSummary } from './ChangeSummary';
-
-function getMenuItemOption(changeStatus: ChangeStatus) {
-  const { icon, color } = getIconForChangeStatus(changeStatus);
-  const value = changeStatus ? changeStatus : 'other';
-  const name =
-    changeStatus !== null ? NODE_CHANGE_STATUS_MSGS[changeStatus][0] : 'Other';
-
-  return (
-    <MenuItemOption value={value}>
-      <Flex alignItems="center" gap={1}>
-        {icon && <Icon as={icon} color={color} />}
-        <Box>{name}</Box>
-      </Flex>
-    </MenuItemOption>
-  );
-}
 
 function SelectMenu({
   filterOptions,

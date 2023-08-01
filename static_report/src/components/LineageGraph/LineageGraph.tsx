@@ -402,9 +402,11 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
                 <MenuItemOption value="" fontSize="sm">
                   {statName['']}
                 </MenuItemOption>
-                <MenuItemOption value="impact" fontSize="sm">
-                  {statName['impact']}
-                </MenuItemOption>
+                {!singleOnly && (
+                  <MenuItemOption value="impact" fontSize="sm">
+                    {statName['impact']}
+                  </MenuItemOption>
+                )}
                 <MenuItemOption value="execution_time" fontSize="sm">
                   {statName['execution_time']}
                 </MenuItemOption>

@@ -19,8 +19,6 @@ import { CompDbtNodeEntryItem, NODE_IMPACT_STATUS_MSGS } from '../../lib';
 import { Comparable } from '../../types';
 
 import { getIconForChangeStatus } from '../Icons';
-import { ChangeStatusWidget } from '../Widgets/ChangeStatusWidget';
-import { StatDiff } from '../Widgets/StatDiff';
 
 type Props = {
   tableColumnsOnly: CompDbtNodeEntryItem[];
