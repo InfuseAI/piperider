@@ -256,8 +256,8 @@ class ComparisonData(object):
             f"impacted={len(impacted)}",
         ]
 
-        console.print("  Code Change: " + ", ".join(code_change))
-        console.print("  Resource Impact Summary: " + ", ".join(impact_summary))
+        console.print("  Code Changes: " + ", ".join(code_change))
+        console.print("  Resource Impact: " + ", ".join(impact_summary))
 
         console.print("")
 
