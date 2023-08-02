@@ -214,5 +214,10 @@ class TestDbtIntegration(_BaseDbtTest):
 
         changes = c.list_explicit_changes()
         self.assertListEqual(changes, expected)
+
+        expected = ['metric.jaffle_shop.expenses',
+                    'metric.jaffle_shop.profit',
+                    'model.jaffle_shop.stg_payments']
+
         changes = c.list_implicit_changes()
-        self.assertListEqual(changes, ['metric.jaffle_shop.profit', 'model.jaffle_shop.stg_payments'])
+        self.assertListEqual(changes, expected)
