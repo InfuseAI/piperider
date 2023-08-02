@@ -903,7 +903,7 @@ class GraphDataChangeSet(DefaultChangeSetOpMixin):
                     pass
                 else:
                     if ref_id:
-                        if not ref_id.startswith("model.") or not ref_id.startswith("seed."):
+                        if not ref_id.startswith("model.") and not ref_id.startswith("seed."):
                             continue
                         diffs.append(ref_id)
                     else:
