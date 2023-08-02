@@ -42,6 +42,7 @@ export interface SidebarTreeItem {
   expanded?: boolean;
   items?: SidebarTreeItem[];
   changeStatus?: ChangeStatus;
+  impactStatus?: ImpactStatus;
 }
 
 export interface LineageGraphNode {
@@ -268,12 +269,15 @@ export function buildSourceTree(
       const [columnItems] = buildColumnTree(metadata!.columns || [], path);
 
       const changeStatus = metadata.changeStatus;
+      const impactStatus = metadata.impactStatus;
+
       tree[sourceName].items.push({
         type: 'source',
         name: name,
         path,
         items: columnItems,
         changeStatus,
+        impactStatus,
       });
     },
   );
@@ -341,6 +345,7 @@ export function buildModelOrSeedTree(
     const path = `/${resourceType}s/${fallback?.unique_id}`;
     const [columnItems] = buildColumnTree(metadata!.columns || [], path);
     const changeStatus = metadata.changeStatus;
+    const impactStatus = metadata.impactStatus;
 
     curDir[fname] = {
       type: resourceType,
@@ -348,6 +353,7 @@ export function buildModelOrSeedTree(
       path,
       items: columnItems,
       changeStatus,
+      impactStatus,
     };
   });
 
@@ -399,11 +405,13 @@ export function buildMetricTree(
 
       const path = `/metrics/${fallback?.unique_id}`;
       const changeStatus = metadata.changeStatus;
+      const impactStatus = metadata.impactStatus;
       tree[packageName].items.push({
         type: 'metric',
         name: name,
         path,
         changeStatus,
+        impactStatus,
       });
     },
   );
@@ -515,6 +523,7 @@ export function buildDatabaseTree(
   let items: SidebarTreeItem[] = [overview];
   const treeNodes: DbtNode[] = [];
   const changeStatuses: { [key: string]: ChangeStatus | undefined } = {};
+  const impactStatuses: { [key: string]: ImpactStatus | undefined } = {};
   const mapColumns: { [key: string]: CompColEntryItem[] | undefined } = {};
 
   itemsNodeComparison.forEach(([key, { base, target }, metadata]) => {
@@ -536,6 +545,7 @@ export function buildDatabaseTree(
     }
 
     changeStatuses[key] = metadata.changeStatus;
+    impactStatuses[key] = metadata.impactStatus;
     mapColumns[key] = metadata.columns;
   });
 
@@ -578,12 +588,14 @@ export function buildDatabaseTree(
         );
 
         const changeStatus = changeStatuses[node!.unique_id!];
+        const impactStatus = impactStatuses[node!.unique_id!];
         let itemTable: SidebarTreeItem = {
           type: node.resource_type as any,
           name: node.identifier || node.alias || node.name,
           path,
           items: columnItems,
           changeStatus,
+          impactStatus,
         };
 
         itemSchema.items!.push(itemTable);

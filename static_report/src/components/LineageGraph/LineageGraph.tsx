@@ -567,6 +567,11 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
 }
 
 function StatusLegend() {
+  const { icon: iconImpacted, color: colorImpacted } = getIconForChangeStatus(
+    null,
+    'impacted',
+  );
+
   return (
     <Box
       bg="white"
@@ -579,13 +584,15 @@ function StatusLegend() {
         const { icon, color } = getIconForChangeStatus(key as ChangeStatus);
 
         return (
-          <Tooltip label={tip}>
-            <Flex alignItems="center" gap="6px" marginBottom="2px">
-              <Icon color={color} as={icon} /> {label}
-            </Flex>
-          </Tooltip>
+          <Flex alignItems="center" gap="6px" marginBottom="2px">
+            <Icon color={color} as={icon} /> {label}
+          </Flex>
         );
       })}
+
+      <Flex alignItems="center" gap="6px" marginBottom="2px">
+        <Icon color={colorImpacted} as={iconImpacted} /> Impacted
+      </Flex>
     </Box>
   );
 }

@@ -72,6 +72,7 @@ export function MetricList({
 
             const { icon, color } = getIconForChangeStatus(
               metadata.changeStatus,
+              metadata.impactStatus,
             );
 
             let impact = '-';

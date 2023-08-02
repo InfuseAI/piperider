@@ -43,7 +43,7 @@ export function SideBarTree({ items, singleOnly }: Props) {
       item.type === 'metric_list'
     ) {
       for (const child of item?.items ?? []) {
-        if (child.changeStatus) {
+        if (child.changeStatus || child.impactStatus === 'impacted') {
           return true;
         }
 
@@ -70,6 +70,8 @@ export function SideBarTree({ items, singleOnly }: Props) {
     const iconChevron = isExpanded ? FiChevronDown : FiChevronRight;
 
     let changeStatus = item.changeStatus;
+    const impactStatus = item.impactStatus;
+
     let isNoProfile = false;
 
     // if (changeStatus === 'added') {
@@ -88,7 +90,7 @@ export function SideBarTree({ items, singleOnly }: Props) {
       changeStatus = 'folder_changed';
     }
     const { icon: iconChangeStatus, color: colorChangeStatus } =
-      getIconForChangeStatus(changeStatus);
+      getIconForChangeStatus(changeStatus, impactStatus);
 
     let icon = FiFolder;
 
@@ -150,7 +152,7 @@ export function SideBarTree({ items, singleOnly }: Props) {
           >
             {name}
           </Text>
-          {!singleOnly && changeStatus && (
+          {!singleOnly && iconChangeStatus && (
             <ListIcon
               as={iconChangeStatus}
               color={isActive ? 'white' : colorChangeStatus}

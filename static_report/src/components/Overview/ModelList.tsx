@@ -80,6 +80,7 @@ export function ModelList({
 
             const { icon, color } = getIconForChangeStatus(
               metadata.changeStatus,
+              metadata.impactStatus,
             );
 
             let impact = '-';
