@@ -1,6 +1,7 @@
 import argparse
 import json
 import tempfile
+from dataclasses import fields
 from pathlib import Path
 from typing import Dict, List
 
@@ -156,24 +157,12 @@ def _load_manifest_version_15(manifest: Dict):
 
 
 def _load_manifest_version_16(manifest: Dict):
-    from dbt.exceptions import IncompatibleSchemaError
-
-    data = manifest
-
-    # Check metadata version. There is a class variable 'dbt_schema_version', but
-    # that doesn't show up in artifacts, where it only exists in the 'metadata'
-    # dictionary.
-    if hasattr(WritableManifest, "dbt_schema_version"):
-        if "metadata" in data and "dbt_schema_version" in data["metadata"]:
-            previous_schema_version = data["metadata"]["dbt_schema_version"]
-            # cls.dbt_schema_version is a SchemaVersion object
-            if not WritableManifest.is_compatible_version(previous_schema_version):
-                raise IncompatibleSchemaError(
-                    expected=str(WritableManifest.dbt_schema_version),
-                    found=previous_schema_version,
-                )
-
-    return Manifest.from_dict(data)
+    from dbt.contracts.graph.manifest import Manifest
+    m = _load_manifest_version_15(manifest)
+    data = m.__dict__
+    all_fields = set([x.name for x in fields(Manifest)])
+    new_data = {k: v for k, v in data.items() if k in all_fields}
+    return Manifest(**new_data)
 
 
 class _Adapter(BaseAdapter):
@@ -201,7 +190,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def rename_relation(
-        self, from_relation: BaseRelation, to_relation: BaseRelation
+            self, from_relation: BaseRelation, to_relation: BaseRelation
     ) -> None:
         pass
 
@@ -212,7 +201,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def list_relations_without_caching(
-        self, schema_relation: BaseRelation
+            self, schema_relation: BaseRelation
     ) -> List[BaseRelation]:
         pass
 
@@ -381,9 +370,15 @@ class _RuntimeConfig(RuntimeConfig):
             "project_env_vars": {},
             "cli_vars": {},
             "dependencies": None,
-            "restrict_access": False,
-            "packages_specified_path": "packages.yml",
         }
+
+        found_restrict_access = any(field.name == 'restrict_access' for field in fields(RuntimeConfig))
+        found_packages_specified_path = any(field.name == 'packages_specified_path' for field in fields(RuntimeConfig))
+        if found_restrict_access:
+            data['restrict_access'] = False
+
+        if found_packages_specified_path:
+            data['packages_specified_path'] = "packages.yml"
 
         super().__init__(args=None, **data)
 
@@ -500,9 +495,9 @@ def list_resources_data_from_manifest(manifest: Manifest, select: tuple = None, 
 
 
 def compare_models_between_manifests(
-    base_manifest: Manifest,
-    altered_manifest: Manifest,
-    include_downstream: bool = False,
+        base_manifest: Manifest,
+        altered_manifest: Manifest,
+        include_downstream: bool = False,
 ):
     task = _DbtListTask()
     task.manifest = altered_manifest
@@ -543,8 +538,8 @@ def compare_models_between_manifests(
 
 
 def list_modified_with_downstream(
-    base_manifest: Manifest,
-    altered_manifest: Manifest,
+        base_manifest: Manifest,
+        altered_manifest: Manifest,
 ):
     task = _DbtListTask()
     task.manifest = altered_manifest
@@ -582,8 +577,8 @@ def list_modified_with_downstream(
 
 
 def list_changes_in_unique_id(
-    base_manifest: Manifest,
-    target_manifest: Manifest, show_modified_only=False) -> List[Dict[str, str]]:
+        base_manifest: Manifest,
+        target_manifest: Manifest, show_modified_only=False) -> List[Dict[str, str]]:
     task = _DbtListTask()
     task.manifest = target_manifest
 
