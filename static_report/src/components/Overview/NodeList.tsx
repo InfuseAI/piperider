@@ -74,6 +74,7 @@ export function NodeList({
 
             const { icon, color } = getIconForChangeStatus(
               metadata.changeStatus,
+              metadata.impactStatus,
             );
 
             let impact = '-';

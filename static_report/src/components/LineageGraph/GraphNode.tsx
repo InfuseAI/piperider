@@ -41,9 +41,9 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
   if (singleOnly) {
     color = resourceColor;
   } else {
-    iconChangeStatus = getIconForChangeStatus(changeStatus).icon;
-    if (changeStatus) {
-      color = getIconForChangeStatus(changeStatus).color;
+    iconChangeStatus = getIconForChangeStatus(changeStatus, impactStatus).icon;
+    if (changeStatus || impactStatus === 'impacted') {
+      color = getIconForChangeStatus(changeStatus, impactStatus).color;
     }
 
     if (changeStatus === 'added' || changeStatus === 'removed') {
@@ -129,16 +129,14 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
               {name}
             </Box>
 
-            {!singleOnly && changeStatus && (
-              <Tooltip>
-                <Flex>
-                  <Icon
-                    color={isSelected ? color : 'gray.400'}
-                    as={iconChangeStatus}
-                    flex="0 0 20px"
-                  />
-                </Flex>
-              </Tooltip>
+            {!singleOnly && iconChangeStatus && (
+              <Flex>
+                <Icon
+                  color={isSelected ? color : 'gray.400'}
+                  as={iconChangeStatus}
+                  flex="0 0 20px"
+                />
+              </Flex>
             )}
           </Flex>
 

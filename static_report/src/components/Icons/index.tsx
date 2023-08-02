@@ -11,7 +11,7 @@ import {
   VscDiffRemoved,
   VscSymbolOperator,
 } from 'react-icons/vsc';
-import { ChangeStatus } from '../../lib';
+import { ChangeStatus, ImpactStatus } from '../../lib';
 
 export const IconAdded = VscDiffAdded;
 export const IconRemoved = VscDiffRemoved;
@@ -113,7 +113,10 @@ export const IconDsNoChanged = (props) => {
 
 export const IconImplicit = IconDsImpacted;
 
-export function getIconForChangeStatus(changeStatus?: ChangeStatus): {
+export function getIconForChangeStatus(
+  changeStatus?: ChangeStatus,
+  impactStatus?: ImpactStatus,
+): {
   color: string;
   icon: any; //IconType not provided
 } {
@@ -131,9 +134,13 @@ export function getIconForChangeStatus(changeStatus?: ChangeStatus): {
     return { color: '#ffa502', icon: IconModified };
   } else if (changeStatus === 'folder_changed') {
     return { color: '#ffa502', icon: IconChanged };
-  } else {
-    return { color: 'inherit', icon: undefined };
   }
+
+  if (impactStatus === 'impacted') {
+    return { color: '#fd6136', icon: IconDsImpacted };
+  }
+
+  return { color: 'inherit', icon: undefined };
 }
 
 export function getIconForResourceType(resourceType?: string): {
