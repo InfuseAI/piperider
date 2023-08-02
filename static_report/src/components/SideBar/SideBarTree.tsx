@@ -36,15 +36,23 @@ export function SideBarTree({ items, singleOnly }: Props) {
   };
 
   const isChildrenChanged = (item: SidebarTreeItem) => {
-    for (const child of item?.items ?? []) {
-      if (child.changeStatus) {
-        return true;
-      }
+    if (
+      item.type === 'folder' ||
+      item.type === 'database' ||
+      item.type === 'schema' ||
+      item.type === 'metric_list'
+    ) {
+      for (const child of item?.items ?? []) {
+        if (child.changeStatus) {
+          return true;
+        }
 
-      if (isChildrenChanged(child)) {
-        return true;
+        if (isChildrenChanged(child)) {
+          return true;
+        }
       }
     }
+
     return false;
   };
 
