@@ -540,7 +540,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         Columns <br> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-plus%402x.png" width="10px"> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-minus%402x.png" width="10px"> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-explicit%402x.png" width="10px">
         """.strip()
 
-        mt = MarkdownTable(headers=['', 'Model', 'Impact', column_header, 'Rows', 'Dbt Time', 'Failed Tests', 'All Tests'])
+        mt = MarkdownTable(headers=['&nbsp;&nbsp;&nbsp;', 'Model', 'Impact', column_header, 'Rows', 'Dbt Time', 'Failed Tests', 'All Tests'])
 
         def impact(c: ChangeUnit):
             impacted = self.models.diffs
@@ -675,7 +675,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
 
         for c in changeset[:50]:
             mt.add_row(
-                [c.change_type.icon_image_tag if c.change_type.icon_image_tag else "&nbsp;&nbsp;&nbsp;",
+                [c.change_type.icon_image_tag,
                  embed_url(self.mapper.path(c.unique_id), self.get_url(), c.unique_id, c.resource_type.value),
                  impact(c), cols(c), rows(c), dbt_time(c), failed_tests(c),
                  all_tests(c)])
@@ -726,7 +726,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                 text = text.replace('%', '\%')
             return r'$\color{orange}{\text{ %s }}$' % str(text)
 
-        mt = MarkdownTable(headers=['', 'Metric', 'Impact', f"Queries <br> total ({latex_orange('change')})"])
+        mt = MarkdownTable(headers=['&nbsp;&nbsp;&nbsp;', 'Metric', 'Impact', f"Queries <br> total ({latex_orange('change')})"])
 
         def impact(c: ChangeUnit):
             impacted = self.metrics.diffs
@@ -746,7 +746,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
             entry = metrics_summary[label]
             chagned = f"({latex_orange(str(entry['edited']))})" if entry['edited'] > 0 else ""
             mt.add_row([
-                entry['state_icon'] if entry['state_icon'] else "&nbsp;&nbsp;&nbsp;",
+                entry['state_icon'],
                 embed_url(label, self.get_url(), c.unique_id, c.resource_type.value),
                 impact(c),
                 f"{entry['total'] if entry['total'] > 0 else '-'} {chagned}"
