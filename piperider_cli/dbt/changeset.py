@@ -560,7 +560,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         out("# Impact Summary")
         if self.get_url():
             out(f"[PipeRider Report]({self.get_url()})")
-        out("### Code Change")
+        out("### Code Changes")
         mt = MarkdownTable(headers=['Added', 'Removed', 'Modified'])
         explicit_changes = self.models.explicit_changeset + self.metrics.explicit_changeset + self.seeds.explicit_changeset
         added = [x for x in explicit_changes if x.change_type == ChangeType.ADDED]
@@ -569,7 +569,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         mt.add_row([len(added), len(removed), len(modified)])
         out(mt.build())
 
-        out("### Resource Impact Summary")
+        out("### Resource Impact")
         mt = MarkdownTable(headers=['Potentially Impacted', 'Assessed', 'Impacted'])
         potentially_impacted = [x.unique_id for x in (self.models.modified_with_downstream + removed)]
         impacted = [x for x in list(set(self.models.diffs + self.metrics.diffs + self.seeds.diffs)) if x in potentially_impacted]

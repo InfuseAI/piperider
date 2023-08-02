@@ -228,7 +228,7 @@ class ComparisonData(object):
         if self.summary_change_set is None:
             return
 
-        console.print("Statistics:")
+        console.print("Impact Summary:")
 
         change_set = self.summary_change_set.models.explicit_changeset
         change_set += self.summary_change_set.metrics.explicit_changeset
