@@ -230,11 +230,9 @@ class ComparisonData(object):
 
         console.print("Statistics:")
 
-        change_set = (
-            self.summary_change_set.models.explicit_changeset +
-            self.summary_change_set.metrics.explicit_changeset +
-            self.summary_change_set.seeds.explicit_changeset
-        )
+        change_set = self.summary_change_set.models.explicit_changeset
+        change_set += self.summary_change_set.metrics.explicit_changeset
+        change_set += self.summary_change_set.seeds.explicit_changeset
         added = [x for x in change_set if x.change_type == ChangeType.ADDED]
         removed = [x for x in change_set if x.change_type == ChangeType.REMOVED]
         modified = [x for x in change_set if x.change_type == ChangeType.MODIFIED]
@@ -245,18 +243,12 @@ class ComparisonData(object):
         ]
 
         potentially_impacted = [x.unique_id for x in (self.summary_change_set.models.modified_with_downstream + removed)]
-        impacted = [x for x in list(
-            set(
-                self.summary_change_set.models.diffs +
-                self.summary_change_set.metrics.diffs +
-                self.summary_change_set.seeds.diffs
-            )) if x in potentially_impacted]
-        assessed_no_impacted = [x for x in list(
-            set(
-                self.summary_change_set.models.no_diffs +
-                self.summary_change_set.metrics.no_diffs +
-                self.summary_change_set.seeds.no_diffs
-            )) if x in potentially_impacted]
+        impacted = [x for x in list(set(
+            self.summary_change_set.models.diffs + self.summary_change_set.metrics.diffs + self.summary_change_set.seeds.diffs
+        )) if x in potentially_impacted]
+        assessed_no_impacted = [x for x in list(set(
+            self.summary_change_set.models.no_diffs + self.summary_change_set.metrics.no_diffs + self.summary_change_set.seeds.no_diffs
+        )) if x in potentially_impacted]
         impact_summary = [
             f"potentially_impacted={len(potentially_impacted)}",
             f"assessed={len(impacted) + len(assessed_no_impacted)}",
