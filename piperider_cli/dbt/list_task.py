@@ -571,7 +571,7 @@ def list_modified_with_downstream(
     setattr(dbt_flags, "selector_name", None)
     setattr(dbt_flags, "output", "json")
     setattr(dbt_flags, "output_keys", "unique_id,name,resource_type,original_file_path")
-    setattr(dbt_flags, "resource_types", {NodeType.Model, NodeType.Metric})
+    setattr(dbt_flags, "resource_types", {NodeType.Model, NodeType.Metric, NodeType.Seed})
     setattr(dbt_flags, "selector", None)
 
     task.previous_state = _InMemoryPreviousState(base_manifest)

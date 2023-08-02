@@ -96,6 +96,8 @@ class SummaryAggregate:
             self.resource_type = 'model'
         elif self.display_name == 'Metrics':
             self.resource_type = 'metric'
+        elif self.display_name == 'Seeds':
+            self.resource_type = 'seed'
         else:
             raise ValueError(f'Unknown type for {display_name}')
 
@@ -329,6 +331,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
 
         self.models = SummaryAggregate('Models')
         self.metrics = SummaryAggregate('Metrics')
+        self.seeds = SummaryAggregate('Seeds')
 
         # TODO the execute should be merged into each aggregate
         self.execute()
@@ -345,12 +348,16 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         self.metrics.explicit_changeset = self.find_explicit_changes('metric')
         self.update_metrics_value_changes()
 
+        self.seeds.explicit_changeset = self.find_explicit_changes('seed')
+        self.update_seeds_value_changes()
+
         # configure the modified + downstream
         modified_with_downstream = [ChangeUnit(unique_id=x.get('unique_id'), change_type=ChangeType.IGNORED,
                                                resource_type=ResourceType.of(x.get('resource_type')))
                                     for x in self.modified_models_and_metrics_with_downstream]
         self.models.modified_with_downstream = modified_with_downstream
         self.metrics.modified_with_downstream = modified_with_downstream
+        self.seeds.modified_with_downstream = modified_with_downstream
         self.update_modified_with_downstream(modified_with_downstream)
 
         # update total values
@@ -411,19 +418,67 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                     if resolved_id:
                         diffs.append(resolved_id)
             else:
-                if self.has_changed(b, t):
+                if b and t and self.has_changed(b, t):
                     resolved_id = _resolve_id(ref_id, table_name)
                     if resolved_id:
                         diffs.append(resolved_id)
                 else:
-                    if ref_id:
-                        resolved_id = _resolve_id(ref_id, table_name)
-                        if resolved_id:
+                    resolved_id = _resolve_id(ref_id, table_name)
+                    if resolved_id:
+                        if not math.isnan(r2):
+                            no_diffs.append(resolved_id)
+                        else:
                             skipped.append(resolved_id)
 
         self.models.diffs = list(set(diffs))
         self.models.no_diffs = list(set(no_diffs))
         self.models.skipped = list(set(skipped))
+
+    def update_seeds_value_changes(self):
+        # list implicit changes and exclude added and removed tables
+        diffs = []
+        no_diffs = []
+        skipped = []
+
+        def _resolve_id(ref_id: str, table_name: str):
+            if ref_id:
+                if not ref_id.startswith("seed."):
+                    return None
+                return ref_id
+            else:
+                resolved_id = self.resolve_unique_id(table_name, "seed")
+                assert resolved_id is not None
+                return resolved_id
+
+        for table_name, ref_id, b, t in self.tables.table_data_iterator():
+            r1, r2 = self.tables.row_counts(table_name)
+            c1, c2 = self.tables.column_counts(table_name)
+            both_profiled = not math.isnan(r1) and not math.isnan(r2)
+            if both_profiled:
+                if r1 == r2 and c1 == c2 and not self.has_changed(b, t):
+                    resolved_id = _resolve_id(ref_id, table_name)
+                    if resolved_id:
+                        no_diffs.append(resolved_id)
+                else:
+                    resolved_id = _resolve_id(ref_id, table_name)
+                    if resolved_id:
+                        diffs.append(resolved_id)
+            else:
+                if b and t and self.has_changed(b, t):
+                    resolved_id = _resolve_id(ref_id, table_name)
+                    if resolved_id:
+                        diffs.append(resolved_id)
+                else:
+                    resolved_id = _resolve_id(ref_id, table_name)
+                    if resolved_id:
+                        if not math.isnan(r2):
+                            no_diffs.append(resolved_id)
+                        else:
+                            skipped.append(resolved_id)
+
+        self.seeds.diffs = list(set(diffs))
+        self.seeds.no_diffs = list(set(no_diffs))
+        self.seeds.skipped = list(set(skipped))
 
     def update_metrics_value_changes(self):
         # exclude added and removed
@@ -461,19 +516,24 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                     if resolved_id:
                         no_diffs.append(ref_id)
             else:
-                metric = metrics_t if x in metrics_t else metrics_b
-                ref_id = metric.get(x).get("ref_id")
-                ref_id = _resolve_id(ref_id, metric)
-                if ref_id:
-                    skipped.append(ref_id)
+                if x in metrics_t:
+                    ref_id = metrics_t.get(x).get("ref_id")
+                    ref_id = _resolve_id(ref_id, metrics_t)
+                    if ref_id:
+                        no_diffs.append(ref_id)
+                elif x in metrics_b:
+                    ref_id = metrics_b.get(x).get("ref_id")
+                    ref_id = _resolve_id(ref_id, metrics_b)
+                    if ref_id:
+                        skipped.append(ref_id)
 
         self.metrics.diffs = list(set(diffs))
-        self.metrics.no_diffs = list(set(no_diffs))
-        self.metrics.skipped = list(set(skipped))
+        self.metrics.no_diffs = list(set(no_diffs) - set(diffs))
+        self.metrics.skipped = list(set(skipped) - set(diffs) - set(no_diffs))
 
     def update_modified_with_downstream(self, units: List[ChangeUnit]):
-        explicit_changes = self.models.explicit_changeset + self.metrics.explicit_changeset
-        implicit_changes = self.models.implicit_changeset + self.metrics.implicit_changeset
+        explicit_changes = self.models.explicit_changeset + self.metrics.explicit_changeset + self.seeds.explicit_changeset
+        implicit_changes = self.models.implicit_changeset + self.metrics.implicit_changeset + self.seeds.implicit_changeset
         changes = explicit_changes + implicit_changes
 
         for unit in units:
@@ -502,7 +562,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
             out(f"[PipeRider Report]({self.get_url()})")
         out("### Code Change")
         mt = MarkdownTable(headers=['Added', 'Removed', 'Modified'])
-        explicit_changes = self.models.explicit_changeset + self.metrics.explicit_changeset
+        explicit_changes = self.models.explicit_changeset + self.metrics.explicit_changeset + self.seeds.explicit_changeset
         added = [x for x in explicit_changes if x.change_type == ChangeType.ADDED]
         removed = [x for x in explicit_changes if x.change_type == ChangeType.REMOVED]
         modified = [x for x in explicit_changes if x.change_type == ChangeType.MODIFIED]
@@ -512,8 +572,8 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         out("### Resource Impact Summary")
         mt = MarkdownTable(headers=['Potentially Impacted', 'Assessed', 'Impacted'])
         potentially_impacted = [x.unique_id for x in (self.models.modified_with_downstream + removed)]
-        impacted = [x for x in list(set(self.models.diffs + self.metrics.diffs)) if x in potentially_impacted]
-        assessed_no_impacted = [x for x in list(set(self.models.no_diffs + self.metrics.no_diffs)) if x in potentially_impacted]
+        impacted = [x for x in list(set(self.models.diffs + self.metrics.diffs + self.seeds.diffs)) if x in potentially_impacted]
+        assessed_no_impacted = [x for x in list(set(self.models.no_diffs + self.metrics.no_diffs + self.seeds.no_diffs)) if x in potentially_impacted]
 
         mt.add_row([len(potentially_impacted),
                     f"{len(impacted) + len(assessed_no_impacted)} assessed, "
