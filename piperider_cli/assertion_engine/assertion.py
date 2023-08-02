@@ -12,13 +12,13 @@ from sqlalchemy import inspect
 from sqlalchemy.engine import Engine
 
 from piperider_cli import safe_load_yaml, round_trip_load_yaml
+from piperider_cli.configuration import FileSystem
 from piperider_cli.error import \
     AssertionError, \
     IllegalStateAssertionError
 from .event import AssertionEventHandler, DefaultAssertionEventHandler
 from .recommender import AssertionRecommender
 from .recommender import RECOMMENDED_ASSERTION_TAG
-from piperider_cli.configuration import FileSystem
 
 
 def load_yaml_configs(path, config_path):
@@ -136,7 +136,7 @@ class ValidationResult:
 
         base_type = type(values[0])
         for v in values:
-            if type(v) != base_type:
+            if not isinstance(v, base_type):
                 self.errors.append(f'{name} parameter should be the same types')
                 return self
 
