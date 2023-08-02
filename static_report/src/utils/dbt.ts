@@ -95,10 +95,19 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
   } = {};
 
   /* Add the pseudo node for piperider table */
-  Object.values(run?.tables).forEach((table) => {
-    const uniqueId = `table.${table?.name}`;
+  const table_ids: string[] = Object.keys(run?.tables);
+  Object.entries(run?.tables).forEach(([key, table]) => {
+    let uniqueId = '';
+    let name = '';
+    if (table_ids.includes(table?.ref_id as string)) {
+      uniqueId = `table.${table?.ref_id}`;
+      name = table?.ref_id ?? '';
+    } else {
+      uniqueId = `table.${table?.name}`;
+      name = table?.name ?? '';
+    }
     dbtNodes[uniqueId] = {
-      name: table?.name ?? '',
+      name: name,
       description: table?.description ?? '',
       unique_id: uniqueId,
       resource_type: 'table',
@@ -117,14 +126,22 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
       const dbtNode: DbtNode = node;
 
       if (node.resource_type === 'source' || node.resource_type === 'seed') {
-        dbtNode.__table = run.tables[node.name];
+        if (table_ids.includes(node.unique_id)) {
+          dbtNode.__table = run.tables[node.unique_id];
+        } else {
+          dbtNode.__table = run.tables[node.name];
+        }
       }
 
       if (
         node.resource_type === 'model' &&
         node.config.materialized !== 'ephemeral'
       ) {
-        dbtNode.__table = run.tables[node.name];
+        if (table_ids.includes(node.unique_id)) {
+          dbtNode.__table = run.tables[node.unique_id];
+        } else {
+          dbtNode.__table = run.tables[node.name];
+        }
       }
     });
 
