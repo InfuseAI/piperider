@@ -29,7 +29,7 @@ setup(name='piperider',
       entry_points={
           'console_scripts': ['piperider = piperider_cli.cli:cli']
       },
-      python_requires=">=3.7",
+      python_requires=">=3.9",
       packages=find_packages(),
       install_requires=[
           'ruamel.yaml',
@@ -45,7 +45,7 @@ setup(name='piperider',
           'requests>=2.28.1',
           'requests_toolbelt>=0.9.1',
           'deepmerge',
-          'dbt-core>=1.3'
+          'dbt-core>=1.3,<1.6'
       ],
       tests_require=['pytest'],
       extras_require={
@@ -88,9 +88,9 @@ setup(name='piperider',
           "Bug Tracker": "https://github.com/InfuseAI/piperider/issues",
       },
       classifiers=[
-          "Programming Language :: Python :: 3.7",
-          "Programming Language :: Python :: 3.8",
           "Programming Language :: Python :: 3.9",
+          "Programming Language :: Python :: 3.10",
+          "Programming Language :: Python :: 3.11",
           "License :: OSI Approved :: Apache Software License",
           "Operating System :: OS Independent",
           "Development Status :: 4 - Beta"
