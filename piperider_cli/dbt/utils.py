@@ -217,6 +217,7 @@ class ChangeType(Enum):
 class ResourceType(Enum):
     MODEL = "model"
     METRIC = "metric"
+    SEED = "seed"
 
     @classmethod
     def of(cls, resource_type: str):
@@ -224,6 +225,8 @@ class ResourceType(Enum):
             return cls.MODEL
         if resource_type == cls.METRIC.value:
             return cls.METRIC
+        if resource_type == cls.SEED.value:
+            return cls.SEED
         raise NotImplementedError(f"no such type: {resource_type}")
 
 

@@ -204,62 +204,9 @@ class ComparisonData(object):
             # TODO: rename input -> target in schema and result json
             input=self._target,
             implicit=self.implicit,
-            explicit=self.explicit
+            explicit=self.explicit,
         )
         return json.dumps(output, separators=(',', ':'))
-
-    def to_summary_markdown(self):
-        out = io.StringIO()
-
-        # Comparison summary
-        out.write(self._render_compare_markdown())
-
-        # Per-table Comparison
-        base = self._base.get('tables')
-        target = self._target.get('tables')
-
-        states = {}
-        per_table_out = io.StringIO()
-        joined = join(base, target)
-        for table_name in joined.keys():
-            joined_table = joined[table_name]
-
-            columns_b = joined_table.get('base').get('columns') if joined_table.get('base') else None
-            columns_t = joined_table.get('target').get('columns') if joined_table.get('target') else None
-
-            state, result = self._render_table_summary_markdown(table_name, columns_b, columns_t)
-            if state == self.STATE_ADD:
-                if states.get('added') is None:
-                    states['added'] = 0
-                states['added'] += 1
-            elif state == self.STATE_DEL:
-                if states.get('deleted') is None:
-                    states['deleted'] = 0
-                states['deleted'] += 1
-            elif state == self.STATE_MOD:
-                if states.get('schema changed') is None:
-                    states['schema changed'] = 0
-                states['schema changed'] += 1
-            per_table_out.write(result)
-
-        # Per-table summary
-        states = sorted(states.items())
-        table_summary_hint = ', '.join([f'{state}={num}' for state, num in states])
-        if table_summary_hint:
-            table_summary_hint = f' ({table_summary_hint})'
-
-        out.write("<details>\n")
-        out.write(f"<summary>Tables Summary{table_summary_hint}</summary>\n")
-        out.write("<blockquote>\n")
-        out.write("\n")
-        out.write(per_table_out.getvalue())
-        out.write("</blockquote></details>")
-
-        base = self._base.get('metrics', [])
-        target = self._target.get('metrics', [])
-        out.write(self._render_metrics_comparison_markdown(base, target))
-
-        return out.getvalue()
 
     def to_summary_markdown_ng(self):
         if self._base.get('dbt') is None or self._target.get('dbt') is None:
@@ -275,359 +222,42 @@ class ComparisonData(object):
 
         return ""
 
-    @staticmethod
-    def _value_with_annotation(key, annotation=None):
-        annotation_str = f" ({annotation})" if annotation else ''
-        return f"{key}{annotation_str}"
-
-    @staticmethod
-    def _value_with_change(base, target):
-        if target is None:
-            return f"~~{base}~~"
-        elif base is None:
-            return target
-        elif base != target:
-            return f"~~{base}~~<br/>{target}"
-        else:
-            return target
-
-    @staticmethod
-    def _value_with_delta(base, target, percentage=False):
-        if target is None:
-            return '-'
-
-        annotation = '%' if percentage else ''
-        delta = ''
-        if base is not None:
-            diff = target - base
-            if percentage:
-                diff *= 100
-            delta = f" ({'+' if target >= base else ''}{round(diff, 2)}{annotation})"
-
-        if percentage:
-            target = round(target * 100, 2)
-
-        return f"{target}{annotation}{delta}"
-
-    @staticmethod
-    def _display_metrics_delta(b_value, t_value):
-        if b_value == '' or t_value == '':
-            return ''
-        elif isinstance(b_value, str) and b_value.startswith('~~'):
-            return ''
-        elif isinstance(t_value, str) and t_value.startswith('~~'):
-            return ''
-        elif b_value == t_value:
-            return '-'
-        b_value = 0 if b_value == '-' else b_value
-        t_value = 0 if t_value == '-' else t_value
-        delta = t_value - b_value
-
-        return f"{'+' if delta >= 0 else ''}{delta}"
-
-    @staticmethod
-    def _get_column_changed(base, target):
-        columns_b = base.get('columns') if base else None
-        columns_t = target.get('columns') if target else None
-        joined = join(columns_b, columns_t)
-        added = 0
-        deleted = 0
-        changed = 0
-
-        for column_name in joined.keys():
-            joined_column = joined[column_name]
-            b = joined_column.get('base')
-            t = joined_column.get('target')
-
-            schema_type_b = b.get('schema_type') if b else None
-            schema_type_t = t.get('schema_type') if t else None
-
-            if b is None:
-                added += 1
-            elif t is None:
-                deleted += 1
-            elif schema_type_b != schema_type_t:
-                changed += 1
-
-        return {
-            'added': added,
-            'deleted': deleted,
-            'changed': changed,
-        }
-
-    def _render_compare_markdown(self):
-        base = self._base.get('tables')
-        target = self._target.get('tables')
-
-        out = io.StringIO()
-        joined = join(base, target)
-        print("Table | Rows | Columns ", file=out)
-        print("--- | --- | ---", file=out)
-        for table_name in joined.keys():
-            joined_table = joined[table_name]
-            b = joined_table.get('base')
-            t = joined_table.get('target')
-
-            annotation = None
-            change_message_str = ''
-
-            if b is None:
-                annotation = '+'
-            elif t is None:
-                annotation = '-'
-            else:
-                column_changed = self._get_column_changed(b, t)
-                messages = []
-
-                if column_changed['added'] > 0:
-                    annotation = '!'
-                    messages.append(f"added={column_changed['added']}")
-                if column_changed['deleted'] > 0:
-                    annotation = '!'
-                    messages.append(f"deleted={column_changed['deleted']}")
-                if column_changed['changed'] > 0:
-                    annotation = '!'
-                    messages.append(f"changed={column_changed['changed']}")
-
-                if messages:
-                    change_message_str = ', '.join(messages)
-                    change_message_str = f"<br/>({change_message_str})"
-
-            rows_b, cols_b = (b.get('row_count'), b.get('col_count')) if b else (None, None)
-            rows_t, cols_t = (t.get('row_count'), t.get('col_count')) if t else (None, None)
-
-            out.write(f"{self._value_with_annotation(table_name, annotation)} | ")
-            out.write(f"{self._value_with_delta(rows_b, rows_t)} | ")
-            out.write(f"{self._value_with_delta(cols_b, cols_t)}{change_message_str} \n")
-
-        base = self._base.get('metrics', [])
-        target = self._target.get('metrics', [])
-        base_metrics = {base_metric.get('name'): base_metric for base_metric in base}
-        target_metrics = {target_metric.get('name'): target_metric for target_metric in target}
-
-        joined = join(base_metrics, target_metrics)
-        out_metrics = io.StringIO()
-        if joined:
-            def _display_period_annotation(period_grain):
-                if period_grain == 'day':
-                    return '(Yesterday)'
-                else:
-                    return f'(Last {period_grain})'
-
-            print("Metric | Period | Base | Target | +/- ", file=out_metrics)
-            print("--- | --- | :-: | :-: | :-: ", file=out_metrics)
-            for metric_name in joined.keys():
-                joined_metric = joined[metric_name]
-                b = joined_metric.get('base')
-                t = joined_metric.get('target')
-                b_data = {}
-                t_data = {}
-                if b:
-                    grain = b.get('grain')
-                    metric_label = b.get('label')
-                    b_data = {row[0]: row[1] for row in b.get('data')}
-                if t:
-                    grain = t.get('grain')
-                    metric_label = t.get('label')
-                    t_data = {row[0]: row[1] for row in t.get('data')}
-
-                t_dates = t_data.keys() if t_data.keys() else b_data.keys()
-                t_dates = sorted(list(t_dates), key=lambda k: date.fromisoformat(k), reverse=True)
-                t_last_date = t_dates[1]
-
-                if t_last_date not in b_data:
-                    b_result = ''
-                else:
-                    b_result = b_data.get(t_last_date) if b_data.get(t_last_date) is not None else '-'
-
-                if t_last_date not in t_data:
-                    t_result = ''
-                else:
-                    t_result = t_data.get(t_last_date) if t_data.get(t_last_date) is not None else '-'
-
-                out_metrics.write(f"{metric_label} | {t_last_date} {_display_period_annotation(grain)} | ")
-                out_metrics.write(f"{b_result} | {t_result} | {self._display_metrics_delta(b_result, t_result)} \n ")
-
-        return f"""<details>
-<summary>Comparison Summary</summary>
-
-{out.getvalue()}
-{out_metrics.getvalue()}
-</details>
-"""
-
-    def _render_table_summary_markdown(self, table_name, base, target):
-        out = io.StringIO()
-        joined = join(base, target)
-        print("Column | Type | Valid % | Distinct %", file=out)
-        print("--- | --- | --- | ---", file=out)
-        table_modified = False
-        for column_name in joined.keys():
-            joined_column = joined[column_name]
-            b = joined_column.get('base')
-            t = joined_column.get('target')
-
-            schema_type_b = self._get_metric_from_report(b, 'schema_type', None)
-            valids_p_b = self._get_metric_from_report(b, 'valids_p', None)
-            distinct_p_b = self._get_metric_from_report(b, 'distinct_p', None)
-
-            schema_type_t = self._get_metric_from_report(t, 'schema_type', None)
-            valids_p_t = self._get_metric_from_report(t, 'valids_p', None)
-            distinct_p_t = self._get_metric_from_report(t, 'distinct_p', None)
-
-            annotation = None
-            if b is None:
-                annotation = '+'
-                table_modified = True
-            elif t is None:
-                annotation = '-'
-                table_modified = True
-            elif schema_type_b != schema_type_t:
-                annotation = '!'
-                table_modified = True
-
-            out.write(f"{self._value_with_annotation(column_name, annotation)} | ")
-            out.write(f"{self._value_with_change(schema_type_b, schema_type_t)} | ")
-            out.write(f"{self._value_with_delta(valids_p_b, valids_p_t, percentage=True)} | ")
-            out.write(f"{self._value_with_delta(distinct_p_b, distinct_p_t, percentage=True)} \n")
-
-        annotation = ''
-        state = None
-        if base is None:
-            annotation = ' (+)'
-            state = self.STATE_ADD
-        elif target is None:
-            annotation = ' (-)'
-            state = self.STATE_DEL
-        elif table_modified:
-            annotation = ' (!)'
-            state = self.STATE_MOD
-
-        return state, f"""<details>
-<summary>{table_name}{annotation}</summary>
-
-{out.getvalue()}
-</details>
-"""
-
-    @staticmethod
-    def _get_metric_from_report(report, metric, default):
-        return report.get(metric, default) if report else default
-
-    def _render_metrics_comparison_markdown(self, base, target):
-        out = io.StringIO()
-
-        base_metrics = {base_metric.get('name'): base_metric for base_metric in base}
-        target_metrics = {target_metric.get('name'): target_metric for target_metric in target}
-        joined = join(base_metrics, target_metrics)
-        if joined:
-            out_metrics = io.StringIO()
-            states = {}
-            for metric_name in joined.keys():
-                notation = ''
-                metric_warn = False
-                joined_metric = joined[metric_name]
-                b = joined_metric.get('base')
-                t = joined_metric.get('target')
-                date_grain = 'date'
-                b_data = {}
-                t_data = {}
-                if b:
-                    date_grain = b.get('headers')[0]
-                    date_grain = date_grain[0].upper() + date_grain[1:]
-                    metric_label = b.get('label')
-                    b_data = {row[0]: row[1] for row in b.get('data')}
-                else:
-                    notation = '(+)'
-                    if states.get('added') is None:
-                        states['added'] = 0
-                    states['added'] += 1
-                if t:
-                    date_grain = t.get('headers')[0]
-                    date_grain = date_grain[0].upper() + date_grain[1:]
-                    metric_label = t.get('label')
-                    t_data = {row[0]: row[1] for row in t.get('data')}
-                else:
-                    notation = '(-)'
-                    if states.get('deleted') is None:
-                        states['deleted'] = 0
-                    states['deleted'] += 1
-
-                b_dates = b_data.keys() if b_data.keys() else t_data.keys()
-                b_dates = sorted(list(b_dates), key=lambda k: date.fromisoformat(k), reverse=True)
-                b_latest_date = b_dates[0]
-                t_dates = t_data.keys() if t_data.keys() else b_data.keys()
-                t_dates = sorted(list(t_dates), key=lambda k: date.fromisoformat(k), reverse=True)
-                t_latest_date = t_dates[0]
-
-                out_metric = io.StringIO()
-                for d in t_dates:
-                    if d not in b_data:
-                        b_result = ''
-                    else:
-                        b_result = b_data.get(d) if b_data.get(d) is not None else '-'
-                        if date.fromisoformat(d) == date.fromisoformat(b_latest_date):
-                            b_result = f'~~{b_data.get(d)}~~' if b_data.get(d) is not None else '-'
-
-                    if d not in t_data:
-                        t_result = ''
-                    else:
-                        t_result = t_data.get(d) if t_data.get(d) is not None else '-'
-                        if date.fromisoformat(d) == date.fromisoformat(t_latest_date):
-                            t_result = f'~~{t_data.get(d)}~~' if t_data.get(d) is not None else '-'
-
-                    if date.fromisoformat(t_latest_date) >= date.fromisoformat(d) >= date.fromisoformat(b_latest_date):
-                        delta = ''
-                    else:
-                        delta = self._display_metrics_delta(b_result, t_result)
-                        if delta != '-' and delta != '':
-                            metric_warn = True
-                    out_metric.write(f"{d} | {b_result} | {t_result} | {delta}\n")
-
-                if metric_warn:
-                    notation = '(!)'
-                    if states.get('metric changed') is None:
-                        states['metric changed'] = 0
-                    states['metric changed'] += 1
-
-                out_metrics.write("<details>\n")
-                out_metrics.write(f"<summary>{metric_label} {notation}</summary>\n\n")
-                if not t:
-                    out_metrics.write("Metric is not available in target\n")
-                else:
-                    out_metrics.write(f"{date_grain} | Base | Target | -/+ \n")
-                    out_metrics.write(":-: | :-: | :-: | :-: \n")
-                    out_metrics.write(out_metric.getvalue())
-                out_metrics.write("</details>\n")
-
-            states = sorted(states.items())
-            metrics_summary_hint = ', '.join([f'{state}={num}' for state, num in states])
-            if metrics_summary_hint:
-                metrics_summary_hint = f' ({metrics_summary_hint})'
-            out.write("<details>\n")
-            out.write(f"<summary>Metrics Summary{metrics_summary_hint}</summary>\n")
-            out.write("<blockquote>\n\n")
-            out.write(out_metrics.getvalue())
-            out.write("</blockquote></details>")
-
-        return out.getvalue()
-
     def to_cli_stats(self, console):
         console.print()
 
         if self.summary_change_set is None:
             return
 
-        console.print("Statistics:")
+        console.print("Impact Summary:")
 
-        for d in [self.summary_change_set.models, self.summary_change_set.metrics]:
-            output = [f"  {d.resource_type}: total={d.total}, impacted={d.impacted}, explicit={d.explicit_changes}",
-                      f"(added={len([x for x in d.explicit_changeset if x.change_type == ChangeType.ADDED])}, "
-                      f"removed={len([x for x in d.explicit_changeset if x.change_type == ChangeType.REMOVED])}, "
-                      f"modified={len([x for x in d.explicit_changeset if x.change_type == ChangeType.MODIFIED])}), ",
-                      f"implicit={d.implicit_changes}"]
+        change_set = self.summary_change_set.models.explicit_changeset
+        change_set += self.summary_change_set.metrics.explicit_changeset
+        change_set += self.summary_change_set.seeds.explicit_changeset
+        added = [x for x in change_set if x.change_type == ChangeType.ADDED]
+        removed = [x for x in change_set if x.change_type == ChangeType.REMOVED]
+        modified = [x for x in change_set if x.change_type == ChangeType.MODIFIED]
+        code_change = [
+            f"added={len(added)}",
+            f"removed={len(removed)}",
+            f"modified={len(modified)}",
+        ]
 
-            console.print("".join(output))
+        potentially_impacted = [x.unique_id for x in (self.summary_change_set.models.modified_with_downstream + removed)]
+        impacted = [x for x in list(set(
+            self.summary_change_set.models.diffs + self.summary_change_set.metrics.diffs + self.summary_change_set.seeds.diffs
+        )) if x in potentially_impacted]
+        assessed_no_impacted = [x for x in list(set(
+            self.summary_change_set.models.no_diffs + self.summary_change_set.metrics.no_diffs + self.summary_change_set.seeds.no_diffs
+        )) if x in potentially_impacted]
+        impact_summary = [
+            f"potentially_impacted={len(potentially_impacted)}",
+            f"assessed={len(impacted) + len(assessed_no_impacted)}",
+            f"skipped={len(potentially_impacted) - len(impacted) - len(assessed_no_impacted)}",
+            f"impacted={len(impacted)}",
+        ]
+
+        console.print("  Code Changes: " + ", ".join(code_change))
+        console.print("  Resource Impact: " + ", ".join(impact_summary))
 
         console.print("")
 
