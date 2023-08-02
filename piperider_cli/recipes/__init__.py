@@ -274,6 +274,7 @@ def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = No
         state = cfg.base.state_path
     elif dbtutil.check_dbt_manifest(target_path) is False:
         # Need to compile the dbt project if the manifest file does not exist
+        execute_dbt_deps(cfg.base)
         execute_dbt_compile(cfg.base)
 
     if state:
@@ -334,17 +335,37 @@ def execute_dbt_compile_archive(model: RecipeModel, debug=False):
         model.tmp_dir_path = tool().git_archive(branch_or_commit)
         model.state_path = os.path.join(model.tmp_dir_path, 'state')
 
-    execute_dbt_compile(model, model.tmp_dir_path, model.state_path)
+    execute_dbt_deps(model, model.tmp_dir_path, FileSystem.DBT_PROFILES_DIR)
+    execute_dbt_compile(model, model.tmp_dir_path, FileSystem.DBT_PROFILES_DIR, model.state_path)
     pass
 
 
-def execute_dbt_compile(model: RecipeModel, project_dir: str = None, target_path: str = None):
+def execute_dbt_deps(model: RecipeModel, project_dir: str = None, profiles_dir: str = None):
+    console.print("Run: \[dbt deps]")
+    cmd = 'dbt deps'
+    if project_dir:
+        cmd += f' --project-dir {project_dir}'
+    if profiles_dir:
+        cmd += f' --profiles-dir {profiles_dir}'
+    exit_code = tool().execute_command_with_showing_output(cmd.strip(), model.dbt.envs())
+    if exit_code != 0:
+        console.print(
+            f"[bold yellow]Warning: [/bold yellow] Dbt command failed: '{cmd}' with exit code: {exit_code}")
+        sys.exit(exit_code)
+    console.print()
+    pass
+
+
+def execute_dbt_compile(model: RecipeModel, project_dir: str = None, profiles_dir: str = None,
+                        target_path: str = None, ):
     console.print("Run: \[dbt compile]")
     cmd = 'dbt compile'
     if project_dir:
         cmd += f' --project-dir {project_dir}'
     if target_path:
         cmd += f' --target-path {target_path}'
+    if profiles_dir:
+        cmd += f' --profiles-dir {profiles_dir}'
     exit_code = tool().execute_command_with_showing_output(cmd.strip(), model.dbt.envs())
     if exit_code != 0:
         console.print(
