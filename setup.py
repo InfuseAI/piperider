@@ -29,7 +29,7 @@ setup(name='piperider',
       entry_points={
           'console_scripts': ['piperider = piperider_cli.cli:cli']
       },
-      python_requires=">=3.9",
+      python_requires=">=3.8",
       packages=find_packages(),
       install_requires=[
           'ruamel.yaml',
@@ -88,6 +88,7 @@ setup(name='piperider',
           "Bug Tracker": "https://github.com/InfuseAI/piperider/issues",
       },
       classifiers=[
+          "Programming Language :: Python :: 3.8",
           "Programming Language :: Python :: 3.9",
           "Programming Language :: Python :: 3.10",
           "Programming Language :: Python :: 3.11",
