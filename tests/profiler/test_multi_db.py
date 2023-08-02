@@ -29,6 +29,7 @@ class TestMultiDB:
         create_table(engine2, "test2", data)
 
         profiler = Profiler(data_source)
-        result = profiler.profile([ProfileSubject('test1', database='db1'), ProfileSubject('test2', database='db2')])
+        result = profiler.profile([ProfileSubject('test1', database='db1', ref_id='foo.test1'),
+                                   ProfileSubject('test2', database='db2', ref_id='foo.test2')])
         assert "test1" in result["tables"]
         assert "test2" in result["tables"]

@@ -362,6 +362,9 @@ def _append_descriptions(profile_result):
 
 
 def _clean_up_profile_null_properties(table_results):
+    if not table_results:
+        return
+
     removed = []
     for t_metric, t_metric_val in table_results.items():
         if t_metric_val is None:
@@ -406,14 +409,17 @@ def _append_descriptions_from_assertion(profile_result):
 
 def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_results):
     tables = profiled_result.get('tables', [])
+    tables = {k: v for k, v in tables.items() if v}
     event_payload = RunEventPayload()
     event_payload.tables = len(tables)
 
     # Table info
     for t in tables:
-        event_payload.columns.append(profiled_result['tables'][t]['col_count'])
+        table = profiled_result['tables'][t]
+        # null col_count when the metadata is not available
+        event_payload.columns.append(table.get('col_count'))
         # null row_count when the table is not profiled
-        event_payload.rows.append(profiled_result['tables'][t].get('row_count'))
+        event_payload.rows.append(table.get('row_count'))
 
     # Count PipeRider assertions
     for r in assertion_results or []:

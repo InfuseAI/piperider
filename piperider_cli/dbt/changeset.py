@@ -202,6 +202,7 @@ class LookUpTable:
         return str(timedelta(seconds=seconds))[:-4]
 
     def _build_tests_mapping(self):
+        # TODO the test should be ref by the unique_id
         from collections import Counter
         # convert test results to (table_name, pass_or_not): count form
         b = Counter([(x.get('table'), x.get('status')) for x in self.c.base.get('tests', [])])
@@ -476,7 +477,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         mt = MarkdownTable(headers=['', 'Model', column_header, 'Rows', 'Dbt Time', 'Failed Tests', 'All Tests'])
 
         def cols(c: ChangeUnit):
-            counts = self.tables.column_counts(table_name=c.table_name)
+            counts = self.tables.column_counts(c.unique_id)
             if c.change_type == ChangeType.ADDED:
                 _, t = counts
                 return t
@@ -490,7 +491,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                 16 ($\color{green}{\text{ 1 }}$ / $\color{red}{\text{ 1 }}$ / $\color{orange}{\text{ 5 }}$)
                 """
 
-                changes = list(self.tables.columns_changed_iterator(c.table_name))
+                changes = list(self.tables.columns_changed_iterator(c.unique_id))
 
                 def col_state(c: ColumnChangeEntry):
                     if c.base_view.data is not None and c.target_view.data is not None:
@@ -518,7 +519,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
             return '-'
 
         def rows(c: ChangeUnit):
-            rows = self.tables.row_counts(table_name=c.table_name)
+            rows = self.tables.row_counts(c.unique_id)
             if c.change_type == ChangeType.ADDED:
                 _, t = rows
                 return t

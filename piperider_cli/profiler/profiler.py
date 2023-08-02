@@ -5,7 +5,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, date, timezone
-from typing import Optional, Union, List, Tuple
+from typing import Dict, Optional, Union, List, Tuple
 
 import sentry_sdk
 from dateutil.relativedelta import relativedelta
@@ -99,16 +99,44 @@ class CollectedMetadata:
     subjects: List[ProfileSubject]
 
 
+def transform_as_run(profiled_tables) -> Dict:
+    from collections import Counter
+
+    def _t(k):
+        if k is None:
+            return "__no_such_table__"
+        return k.split(".")[-1]
+
+    c = Counter([_t(ref_id) for ref_id in profiled_tables.keys()])
+    conflicts = [k for k, v in c.items() if v > 1]
+
+    if not conflicts:
+        return {_t(k): v for k, v in profiled_tables.items()}
+
+    rebuilt_profiled_tables = {}
+    for ref_id, tresult in profiled_tables.items():
+        table_name = _t(ref_id)
+        if table_name not in conflicts:
+            rebuilt_profiled_tables[table_name] = tresult
+            continue
+
+        rebuilt_profiled_tables[ref_id] = tresult
+        if tresult:
+            rebuilt_profiled_tables[table_name] = tresult
+
+    return rebuilt_profiled_tables
+
+
 class Profiler:
     """
     Profiler profile tables and columns by a sqlalchemy engine.
     """
 
     def __init__(
-        self,
-        data_source: DataSource,
-        event_handler: ProfilerEventHandler = DefaultProfilerEventHandler(),
-        config: Configuration = None
+            self,
+            data_source: DataSource,
+            event_handler: ProfilerEventHandler = DefaultProfilerEventHandler(),
+            config: Configuration = None
     ):
         self.data_source = data_source
         self.event_handler = event_handler
@@ -128,7 +156,7 @@ class Profiler:
         self.event_handler.handle_metadata_start()
         self.event_handler.handle_metadata_progress(total, completed)
         for subject in subjects:
-            def _fetch_table_task(subject):
+            def _fetch_table_task(subject: ProfileSubject):
                 engine = self.data_source.get_engine_by_database(subject.database)
                 schema = subject.schema.lower() if subject.schema is not None else None
                 table = None
@@ -138,14 +166,14 @@ class Profiler:
                     # ignore the table metadata fetch error
                     sentry_sdk.capture_exception(e)
                     pass
-                return subject.name, table
+                return subject, table
 
             future = _run_in_executor(self.executor, _fetch_table_task, subject)
             futures.append(future)
 
         for future in asyncio.as_completed(futures):
-            name, table = await future
-            map_name_tables[name] = table
+            subject, table = await future
+            map_name_tables[subject.ref_id] = table
             completed += 1
             self.event_handler.handle_metadata_progress(total, completed)
         self.event_handler.handle_metadata_end()
@@ -187,7 +215,7 @@ class Profiler:
 
             for subject in subjects:
                 name = subject.name
-                table = map_name_tables.get(name)
+                table = map_name_tables.get(subject.ref_id)
                 if table is None:
                     continue
                 engine = self.data_source.get_engine_by_database(subject.database)
@@ -204,9 +232,6 @@ class Profiler:
 
     async def _collect_metadata(self, subjects: List[ProfileSubject], metadata_subjects: List[ProfileSubject]):
         profiled_tables = {}
-        result = {
-            "tables": profiled_tables,
-        }
         if subjects is None:
             subjects = []
             table_names = inspect(self.data_source.get_engine_by_database()).get_table_names()
@@ -216,7 +241,6 @@ class Profiler:
 
         # Fetch schema data
         map_name_tables = await self._fetch_metadata(metadata_subjects if metadata_subjects else subjects)
-        map_name_tables = {k: v for k, v in map_name_tables.items() if v is not None}
 
         if metadata_subjects is None:
             # for compatible with non-dbt cases, we use subjects as the metadata_subjects
@@ -224,16 +248,19 @@ class Profiler:
 
         for subject in metadata_subjects:
             engine = self.data_source.get_engine_by_database(subject.database)
-            table = map_name_tables.get(subject.name)
-            if table is None:
-                continue
-            table_profiler = TableProfiler(engine, self.executor, subject, table, self.event_handler, self.config)
-            tresult = await table_profiler.fetch_schema()
-            profiled_tables[subject.name] = tresult
+            table = map_name_tables.get(subject.ref_id)
 
+            if table is not None:
+                table_profiler = TableProfiler(engine, self.executor, subject, table, self.event_handler, self.config)
+                tresult = await table_profiler.fetch_schema()
+                profiled_tables[subject.ref_id] = tresult
+            else:
+                profiled_tables[subject.ref_id] = dict(name=subject.name, columns={}, ref_id=subject.ref_id)
+
+        profiled_tables = transform_as_run(profiled_tables)
         self.collected_metadata = CollectedMetadata(map_name_tables=map_name_tables,
                                                     profiled_tables=profiled_tables,
-                                                    result=result,
+                                                    result=dict(tables=profiled_tables),
                                                     subjects=subjects)
         return self.collected_metadata
 
