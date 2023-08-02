@@ -903,11 +903,13 @@ class GraphDataChangeSet(DefaultChangeSetOpMixin):
                     pass
                 else:
                     if ref_id:
-                        if not ref_id.startswith("model."):
+                        if not ref_id.startswith("model.") or not ref_id.startswith("seed."):
                             continue
                         diffs.append(ref_id)
                     else:
                         resolved_id = self.resolve_unique_id(table_name, "model")
+                        if not resolved_id:
+                            resolved_id = self.resolve_unique_id(table_name, "seed")
                         assert resolved_id is not None
                         diffs.append(resolved_id)
 
