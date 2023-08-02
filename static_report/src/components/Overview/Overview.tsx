@@ -257,7 +257,9 @@ export function Overview({ singleOnly }: Props) {
     <>
       <Flex direction="column" w={'100%'} minHeight="650px">
         <Flex w={'100%'} paddingBottom="10px" marginBottom="20px">
-          <Heading fontSize={24}>Overview</Heading>
+          <Heading fontSize={24}>
+            {singleOnly ? 'Overview' : 'Impact Summary'}
+          </Heading>
           <Spacer />
           {isCloud && (
             <Button
