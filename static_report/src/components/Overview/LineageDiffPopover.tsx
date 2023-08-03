@@ -83,8 +83,8 @@ function LineageDiffPopoverBody() {
           Sign up PipeRider Cloud: <Code>piperider cloud signup</Code>
         </ListItem>
         <ListItem>
-          Upload the latest piperider report:{' '}
-          <Code>piperider cloud upload-report</Code>
+          Upload the latest piperider comparison report:{' '}
+          <Code>piperider compare-reports --upload --last</Code>
         </ListItem>
         <ListItem>
           Login your PipeRider Cloud to view report:{' '}
