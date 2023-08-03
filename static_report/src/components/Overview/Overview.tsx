@@ -1,4 +1,17 @@
-import { Tab, Tabs, TabList, Spacer, Heading, Button } from '@chakra-ui/react';
+import {
+  Tab,
+  Tabs,
+  TabList,
+  Spacer,
+  Heading,
+  Button,
+  Alert,
+  AlertIcon,
+  Box,
+  AlertTitle,
+  AlertDescription,
+  Code,
+} from '@chakra-ui/react';
 
 import {
   Flex,
@@ -175,6 +188,17 @@ function getTabItems(tableColumnsOnly: CompDbtNodeEntryItem[]) {
   return tabItems;
 }
 
+function checkIsProfiled(tableColumnsOnly: CompDbtNodeEntryItem[]): boolean {
+  for (const [, { base }] of tableColumnsOnly) {
+    if (base?.resource_type === 'model' || base?.resource_type === 'seed') {
+      if (base?.__table?.row_count) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 type FilterOptions = {
   search?: string;
   filterBy?: 'code_changed' | 'potentially_impacted' | 'all';
@@ -202,6 +226,9 @@ export function Overview({ singleOnly }: Props) {
 
   const tabItems = getTabItems(tableColumnsOnly);
   const resourceType = tabItems[resourceIndex].resourceType;
+  const isNoProfiled = singleOnly
+    ? checkIsProfiled(tableColumnsOnly) === false
+    : false;
 
   const allResources = useMemo(() => {
     return tableColumnsOnly.filter(([key, { base, target }]) => {
@@ -286,6 +313,21 @@ export function Overview({ singleOnly }: Props) {
             <LineageDiffPopover singleOnly={singleOnly} />
           )}
         </Flex>
+        {isNoProfiled && (
+          <>
+            <Alert status="warning" mb={5}>
+              <AlertIcon />
+              <Box>
+                <AlertTitle>None of models or seeds are profiled</AlertTitle>
+                <AlertDescription fontSize="sm">
+                  Please execute <Code colorScheme="orange">piperider run</Code>{' '}
+                  with option <Code colorScheme="orange">--select</Code> to
+                  specific select the models and seeds to profile.
+                </AlertDescription>
+              </Box>
+            </Alert>
+          </>
+        )}
 
         {!singleOnly && <ChangeSummary tableColumnsOnly={allResources} />}
 
