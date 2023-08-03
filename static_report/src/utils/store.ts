@@ -65,7 +65,7 @@ export type CompColEntryItem = [
     base?: Partial<ColumnSchema>;
     target?: Partial<ColumnSchema>;
   },
-  { changeStatus?: ChangeStatus },
+  { changeStatus?: ChangeStatus; mismatched?: boolean },
 ];
 
 export type CompDbtNodeEntryItem = [
@@ -228,6 +228,8 @@ const buildDbtNodeEntryItems = (rawData: ComparableReport) => {
       const base = baseColumns[key];
       const target = targetColumns[key];
       const changeStatus = compareColumn(base, target);
+      const mismatched =
+        !base || !target || base.schema_type !== target.schema_type;
 
       if (changeStatus === 'col_added') {
         added += 1;
@@ -237,7 +239,7 @@ const buildDbtNodeEntryItems = (rawData: ComparableReport) => {
         changed += 1;
       }
 
-      columns.push([key, { base, target }, { changeStatus }]);
+      columns.push([key, { base, target }, { changeStatus, mismatched }]);
     });
 
     if (!base) {
