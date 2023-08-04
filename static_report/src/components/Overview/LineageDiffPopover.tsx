@@ -15,7 +15,8 @@ import {
   Code,
   Link,
 } from '@chakra-ui/react';
-import { CloudPlusIcon, Comparable } from '../../lib';
+import { Comparable } from '../../lib';
+import { CloudPlusIcon } from '../Icons';
 
 function UploadReportPopoverBody() {
   return (

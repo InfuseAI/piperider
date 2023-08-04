@@ -4,7 +4,6 @@ import { BiPlug } from 'react-icons/bi';
 import { BsGearWideConnected } from 'react-icons/bs';
 import { GoGitBranch } from 'react-icons/go';
 import { borderVal } from '../../utils';
-import { CloudPlusIcon } from '../../utils/icons';
 
 interface Props {
   datasource?: string;

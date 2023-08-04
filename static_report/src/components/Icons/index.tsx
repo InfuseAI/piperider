@@ -1,8 +1,9 @@
+import { IconType } from 'react-icons';
 import { AiOutlineFileText } from 'react-icons/ai';
 import { BiQuestionMark, BiText } from 'react-icons/bi';
 import { BsCalendarDate } from 'react-icons/bs';
 import { FaChartBar } from 'react-icons/fa';
-import { FiGrid } from 'react-icons/fi';
+import { FiCloud, FiGrid, FiPlus } from 'react-icons/fi';
 import { TbCircleHalf } from 'react-icons/tb';
 import { TiSortNumerically } from 'react-icons/ti';
 import {
@@ -186,3 +187,20 @@ export function getIconForColumnType(type?: string): {
   }
   return { backgroundColor: 'gray.500', icon: BiQuestionMark };
 }
+
+export const CloudPlusIcon: IconType = () => {
+  return (
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <FiCloud size={30} color="#888888" />
+      <FiPlus
+        size={15}
+        color="#888888"
+        style={{
+          position: 'absolute',
+          bottom: '7px',
+          right: '10px',
+        }}
+      />
+    </div>
+  );
+};
