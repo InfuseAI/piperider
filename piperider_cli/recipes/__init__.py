@@ -239,6 +239,16 @@ def verify_dbt_dependencies(cfg: RecipeConfiguration):
     tool().check_dbt_command()
 
 
+def update_select_with_recipe(cfg: RecipeConfiguration):
+    for cmd in cfg.target.dbt.commands:
+        words = cmd.split(' ')
+        if '-s' in words:
+            return tuple(words[words.index('-s') + 1:])
+        elif '--select' in words:
+            return tuple(words[words.index('--select') + 1:])
+    return None
+
+
 def update_select_with_modified(select: tuple = None, modified: bool = False):
     if modified is False:
         return select
@@ -263,6 +273,8 @@ def replace_commands_dbt_state_path(commands: List[str], dbt_state_path: str):
 def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = None, modified: bool = False):
     config = Configuration.instance()
     state = None
+    if not select:
+        select = update_select_with_recipe(cfg)
     if not select:
         select = (f'tag:{config.dbt.get("tag")}',) if config.dbt.get('tag') else ()
     select = update_select_with_modified(select, modified)
