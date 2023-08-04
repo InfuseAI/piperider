@@ -318,11 +318,12 @@ export function Overview({ singleOnly }: Props) {
             <Alert status="warning" mb={5}>
               <AlertIcon />
               <Box>
-                <AlertTitle>None of models or seeds are profiled</AlertTitle>
+                <AlertTitle>No models or seeds are profiled</AlertTitle>
                 <AlertDescription fontSize="sm">
-                  Please execute <Code colorScheme="orange">piperider run</Code>{' '}
-                  with option <Code colorScheme="orange">--select</Code> to
-                  specific select the models and seeds to profile.
+                  execute the <Code colorScheme="orange">piperider run</Code>{' '}
+                  command with the <Code colorScheme="orange">--select</Code>{' '}
+                  option to specifically choose the models or seeds that you
+                  want to profile.
                 </AlertDescription>
               </Box>
             </Alert>
