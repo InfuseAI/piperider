@@ -24,6 +24,7 @@ import { getIconForResourceType } from '../Icons';
 import { useLocation } from 'wouter';
 import { useCloudReport } from '../../utils/cloud';
 import { ChangeSummary } from './ChangeSummary';
+import { LineageDiffPopover } from './LineageDiffPopover';
 
 function SelectMenu({
   filterOptions,
@@ -261,7 +262,8 @@ export function Overview({ singleOnly }: Props) {
             {singleOnly ? 'Overview' : 'Impact Summary'}
           </Heading>
           <Spacer />
-          {isCloud && (
+          {isCloud ? (
+            // For Cloud overview layout
             <Button
               size="sm"
               bg="piperider.500"
@@ -279,6 +281,9 @@ export function Overview({ singleOnly }: Props) {
               {singleOnly ? 'Lineage Graph' : 'Lineage Diff'}
               <Icon as={CgListTree} ml={1} />
             </Button>
+          ) : (
+            // For Open Source overview layout
+            <LineageDiffPopover singleOnly={singleOnly} />
           )}
         </Flex>
 
