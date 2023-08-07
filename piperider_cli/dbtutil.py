@@ -465,30 +465,6 @@ def read_dbt_resources(source: Union[str, io.TextIOWrapper, list]):
     return dict(metrics=metrics, models=models)
 
 
-def get_fqn_list_by_tag(tag: str, project_dir: str):
-    dbt_project = load_dbt_project(project_dir)
-    dbt_state_dir = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
-    if os.path.isabs(dbt_state_dir) is False:
-        from piperider_cli.configuration import FileSystem
-        dbt_state_dir = os.path.join(FileSystem.WORKING_DIRECTORY, project_dir, dbt_state_dir)
-
-    path = os.path.join(dbt_state_dir, 'manifest.json')
-    with open(path) as f:
-        manifest = json.load(f)
-
-    fqn_list = []
-    for key, item in manifest.get('nodes', {}).items():
-        if item.get('resource_type') in ['model', 'seed'] and tag in item.get('tags'):
-            fqn_list.append('.'.join(item.get('fqn', [])))
-    for key, item in manifest.get('sources', {}).items():
-        if tag in item.get('tags'):
-            fqn_list.append('source:' + '.'.join(item.get('fqn', [])))
-    for key, item in manifest.get('metrics', {}).items():
-        if tag in item.get('tags'):
-            fqn_list.append(key.replace('metric.', 'metric:'))
-    return fqn_list
-
-
 def prepare_topological_graph(manifest: Dict):
     child_map = manifest.get('child_map', {})
     graph = {}
