@@ -322,8 +322,8 @@ export function Overview({ singleOnly }: Props) {
                 <AlertDescription fontSize="sm">
                   execute the <Code colorScheme="orange">piperider run</Code>{' '}
                   command with the <Code colorScheme="orange">--select</Code>{' '}
-                  option to specifically choose the models or seeds that you
-                  want to profile.
+                  option to specifically choose the resources that you want to
+                  profile.
                 </AlertDescription>
               </Box>
             </Alert>

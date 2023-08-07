@@ -274,11 +274,11 @@ def run(**kwargs):
             # No module was profiled
             if dbt_list or dbt_resources or select:
                 Guide().show(
-                    'No module was profiled. Please use "--select" option to choose the specific modules to profile.')
+                    'No resources was profiled. Please use "--select" option to choose the specific resources to profile.')
             else:
                 Guide().show(
-                    'No module was profiled. PipeRider will default to profiling the modules with the \'tag:piperider\'. '
-                    'Please modify your dbt modules with the tag \'piperider\' or use the \'--select\' option to choose the specific modules to profile.')
+                    'No resources was profiled. PipeRider will default to profiling the resources with the \'tag:piperider\'. '
+                    'Please modify your dbt resources with the tag \'piperider\' or use the \'--select\' option to choose the specific resources to profile.')
 
         if CloudConnector.is_login() and is_cloud_view:
             ret = CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
