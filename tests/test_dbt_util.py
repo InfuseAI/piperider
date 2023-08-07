@@ -60,8 +60,8 @@ class TestRunner(TestCase):
         self.assertEqual(tables[0].get('alias'), 'PRICE_PRESENT')
 
     def test_get_dbt_state_candidate_resources_only_models(self):
-        models = ['infusetude.amplitude.session',
-                  'infusetude.amplitude.user']
+        models = ['model.infusetude.session',
+                  'model.infusetude.user']
         resources = dict(models=models, metrics=[])
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=resources,
@@ -71,8 +71,8 @@ class TestRunner(TestCase):
         self.assertEqual(tables[1].get('name'), 'user')
 
     def test_get_dbt_state_candidate_resources_only_seeds(self):
-        models = ['infusetude.project_block',
-                  'infusetude.user_block']
+        models = ['seed.infusetude.project_block',
+                  'seed.infusetude.user_block']
         resources = dict(models=models, metrics=[])
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=resources,
@@ -107,9 +107,9 @@ class TestRunner(TestCase):
         self.assertEqual(len(tables), 0)
 
     def test_get_dbt_state_candidate_resources_without_view_profile(self):
-        models = ['infusetude.amplitude.stg_event',
-                  'infusetude.amplitude.session',
-                  'infusetude.amplitude.user']
+        models = ['model.infusetude.stg_event',
+                  'model.infusetude.session',
+                  'model.infusetude.user']
         resources = dict(models=models, metrics=[])
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=resources,

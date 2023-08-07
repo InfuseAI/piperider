@@ -46,7 +46,7 @@ class TestRunner(TestCase):
         options = dict(
             view_profile=None,
             dbt_resources=dict(
-                models=['infusetude.amplitude.project'],
+                models=['model.infusetude.project'],
                 metrics=[]
             ),
             tag=None
