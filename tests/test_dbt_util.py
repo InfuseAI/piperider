@@ -4,7 +4,7 @@ from unittest import TestCase, mock
 
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli.datasource.sqlite import SqliteDataSource
-from piperider_cli.dbt.list_task import dbt_version
+from piperider_cli.dbt import dbt_version
 from piperider_cli.profiler import Profiler
 from tests.common import create_table
 from tests.test_dbt_manifest_compatible import _load_manifest
@@ -250,16 +250,18 @@ class TestRunner(TestCase):
 
     @mock.patch('piperider_cli.dbtutil.get_dbt_manifest')
     def test_load_dbt_resources(self, get_dbt_manifest):
-        v = dbt_version()
+        v = dbt_version
         target_path = os.path.join(os.path.dirname(__file__), 'mock_dbt_data')
-        if v == '1.5':
+        if v == '1.6':
+            get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.6.0-manifest.json')
+        elif v == '1.5':
             get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.5.1-manifest.json')
         elif v == '1.4':
             get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.4.2-manifest.json')
         elif v == '1.3':
             get_dbt_manifest.return_value = _load_manifest('dbt-postgres-1.3.4-manifest.json')
         else:
-            raise Exception('Unsupported dbt version')
+            raise Exception(f'Unsupported dbt version: {v}')
         resources = dbtutil.load_dbt_resources(target_path)
         self.assertIn('models', resources)
         self.assertIn('metrics', resources)
