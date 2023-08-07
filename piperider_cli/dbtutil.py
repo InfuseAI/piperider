@@ -12,7 +12,7 @@ from rich.table import Table
 from ruamel import yaml
 
 from piperider_cli import load_jinja_template, load_jinja_string_template
-from piperider_cli.dbt.list_task import load_manifest, list_resources_from_manifest, load_full_manifest
+from piperider_cli.dbt.list_task import load_manifest, list_resources_unique_id_from_manifest, load_full_manifest
 from piperider_cli.error import \
     DbtProjectInvalidError, \
     DbtProfileInvalidError, \
@@ -181,7 +181,7 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict, *, select_for_met
     def profiling_chosen_fn(key, node):
         statistics = Statistics()
         if dbt_resources:
-            chosen = '.'.join(node.get('fqn')) in dbt_resources['models']
+            chosen = node.get('unique_id') in dbt_resources['models']
             if not chosen:
                 statistics.add_field_one('filter')
             return chosen
@@ -363,7 +363,7 @@ def get_dbt_manifest(dbt_state_dir: str):
 def load_dbt_resources(target_path: str, select: tuple = None, state=None):
     manifest = load_manifest(get_dbt_manifest(target_path)) if state is None else load_full_manifest(target_path)
     try:
-        list_resources = list_resources_from_manifest(manifest, select=select, state=state)
+        list_resources = list_resources_unique_id_from_manifest(manifest, select=select, state=state)
     except RuntimeError as e:
         raise DbtRunTimeError(e, select, state)
     return read_dbt_resources(list_resources)

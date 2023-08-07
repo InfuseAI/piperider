@@ -8,7 +8,7 @@ from dbt.contracts.graph.manifest import Manifest
 
 from piperider_cli.dbt.list_task import (
     list_changes_in_unique_id,
-    list_modified_with_downstream, list_resources_unique_id_from_manifest,
+    list_modified_with_downstream, list_resources_data_from_manifest,
     load_manifest,
 )
 from piperider_cli.dbt.markdown import MarkdownTable
@@ -322,8 +322,8 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         self.tables = JoinedTables(self.base, self.target)
 
         # resources in this format [{unique_id, name, resource_type}]
-        self.base_resources = list_resources_unique_id_from_manifest(self.base_manifest)
-        self.target_resources = list_resources_unique_id_from_manifest(self.target_manifest)
+        self.base_resources = list_resources_data_from_manifest(self.base_manifest)
+        self.target_resources = list_resources_data_from_manifest(self.target_manifest)
 
         self.mapper = LookUpTable(self)
 
@@ -839,10 +839,8 @@ class GraphDataChangeSet(DefaultChangeSetOpMixin):
         self.target_manifest: Manifest = self.load_run_as_manifest(target)
 
         # resources in this format [{unique_id, name, resource_type}]
-        self.base_resources = list_resources_unique_id_from_manifest(self.base_manifest)
-        self.target_resources = list_resources_unique_id_from_manifest(
-            self.target_manifest
-        )
+        self.base_resources = list_resources_data_from_manifest(self.base_manifest)
+        self.target_resources = list_resources_data_from_manifest(self.target_manifest)
 
         self.explicit_changes = sorted(self._do_list_explicit_changes())
 
