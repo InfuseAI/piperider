@@ -14,7 +14,7 @@ from piperider_cli.configuration import FileSystem, is_piperider_workspace_exist
 from piperider_cli.error import RecipeConfigException, DbtProjectNotFoundError, PipeRiderConflictOptionsError
 from piperider_cli.event import UserProfileConfigurator
 from piperider_cli.event.track import TrackCommand
-from piperider_cli.exitcode import EC_ERR_TEST_FAILED
+from piperider_cli.exitcode import EC_ERR_TEST_FAILED, EC_WARN_NO_PROFILED_MODULES
 from piperider_cli.feedback import Feedback
 from piperider_cli.generate_report import GenerateReport
 from piperider_cli.guide import Guide
@@ -260,7 +260,7 @@ def run(**kwargs):
                       dbt_select=select,
                       dbt_state=state,
                       report_dir=kwargs.get('report_dir'))
-    if ret in (0, EC_ERR_TEST_FAILED):
+    if ret in (0, EC_ERR_TEST_FAILED, EC_WARN_NO_PROFILED_MODULES):
         if enable_share:
             force_upload = True
 
@@ -269,6 +269,16 @@ def run(**kwargs):
 
         if not skip_report:
             GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report, is_cloud_view)
+
+        if ret == EC_WARN_NO_PROFILED_MODULES:
+            # No module was profiled
+            if dbt_list or dbt_resources or select:
+                Guide().show(
+                    'No resources was profiled. Please use "--select" option to choose the specific resources to profile.')
+            else:
+                Guide().show(
+                    'No resources was profiled. PipeRider will default to profiling the resources with the \'tag:piperider\'. '
+                    'Please modify your dbt resources with the tag \'piperider\' or use the \'--select\' option to choose the specific resources to profile.')
 
         if CloudConnector.is_login() and is_cloud_view:
             ret = CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),

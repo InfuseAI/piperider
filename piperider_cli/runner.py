@@ -26,7 +26,7 @@ from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration, FileSystem, ReportDirectory
 from piperider_cli.datasource import DataSource
-from piperider_cli.exitcode import EC_ERR_TEST_FAILED
+from piperider_cli.exitcode import EC_ERR_TEST_FAILED, EC_WARN_NO_PROFILED_MODULES
 from piperider_cli.metrics_engine import MetricEngine, MetricEventHandler
 from piperider_cli.profiler import ProfileSubject, Profiler, ProfilerEventHandler
 from piperider_cli.statistics import Statistics
@@ -815,5 +815,8 @@ class Runner():
 
         if not _check_assertion_status(assertion_results, assertion_exceptions):
             return EC_ERR_TEST_FAILED
+
+        if len(subjects) == 0:
+            return EC_WARN_NO_PROFILED_MODULES
 
         return 0
