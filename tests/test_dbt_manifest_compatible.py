@@ -2,8 +2,6 @@ import json
 import os
 
 import pytest
-from dbt.contracts.graph.manifest import WritableManifest
-
 from piperider_cli.dbt import disable_dbt_compile_stats
 from piperider_cli.dbt.list_task import dbt_version_obj, load_manifest
 from packaging import version
@@ -34,16 +32,19 @@ def manifest_from_1_5():
 
 
 def test_load_manifest_v7(manifest_from_1_3):
+    from dbt.contracts.graph.manifest import WritableManifest
     assert isinstance(load_manifest(manifest_from_1_3), WritableManifest)
 
 
 @pytest.mark.skipif(v < version.parse('v1.4'), reason='skip manifest test before dbt-core 1.4')
 def test_load_manifest_v8(manifest_from_1_4):
+    from dbt.contracts.graph.manifest import WritableManifest
     assert isinstance(load_manifest(manifest_from_1_4), WritableManifest)
 
 
 @pytest.mark.skipif(v < version.parse('v1.5'), reason='skip manifest test before dbt-core 1.5')
 def test_load_manifest_v9(manifest_from_1_5):
+    from dbt.contracts.graph.manifest import WritableManifest
     assert isinstance(load_manifest(manifest_from_1_5), WritableManifest)
 
 
