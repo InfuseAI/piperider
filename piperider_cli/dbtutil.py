@@ -382,7 +382,8 @@ def load_dbt_project(path: str):
 
     if not os.path.isabs(path):
         from piperider_cli.configuration import FileSystem
-        path = os.path.join(FileSystem.WORKING_DIRECTORY, path)
+        if os.path.exists(path) is False:
+            path = os.path.join(FileSystem.WORKING_DIRECTORY, path)
 
     with open(path, 'r') as fd:
         try:
