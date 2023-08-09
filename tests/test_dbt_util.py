@@ -252,14 +252,16 @@ class TestRunner(TestCase):
     def test_load_dbt_resources(self, get_dbt_manifest):
         v = dbt_version()
         target_path = os.path.join(os.path.dirname(__file__), 'mock_dbt_data')
-        if v == '1.5':
+        if v == '1.6':
+            get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.6.0-manifest.json')
+        elif v == '1.5':
             get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.5.1-manifest.json')
         elif v == '1.4':
             get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.4.2-manifest.json')
         elif v == '1.3':
             get_dbt_manifest.return_value = _load_manifest('dbt-postgres-1.3.4-manifest.json')
         else:
-            raise Exception('Unsupported dbt version')
+            raise Exception(f'Unsupported dbt version: {v}')
         resources = dbtutil.load_dbt_resources(target_path)
         self.assertIn('models', resources)
         self.assertIn('metrics', resources)

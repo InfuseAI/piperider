@@ -18,3 +18,46 @@ def disable_dbt_compile_stats():
         pass
 
     return context_class()
+
+
+class DbtVersionTool:
+
+    def __init__(self):
+        from dbt import version as dbt_version
+        self.dbt_version = self.parse(dbt_version.__version__)
+
+    @staticmethod
+    def parse(version: str):
+        from packaging import version as v
+        return v.parse(version)
+
+    def __ge__(self, other):
+        if isinstance(other, str):
+            return self.dbt_version >= self.parse(other)
+        raise ValueError(f'{other} must be a string')
+
+    def __gt__(self, other):
+        if isinstance(other, str):
+            return self.dbt_version > self.parse(other)
+        raise ValueError(f'{other} must be a string')
+
+    def __lt__(self, other):
+        if isinstance(other, str):
+            return self.dbt_version < self.parse(other)
+        raise ValueError(f'{other} must be a string')
+
+    def __le__(self, other):
+        if isinstance(other, str):
+            return self.dbt_version <= self.parse(other)
+        raise ValueError(f'{other} must be a string')
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.dbt_version == self.parse(other)
+        raise ValueError(f'{other} must be a string')
+
+    def __str__(self):
+        return self.dbt_version
+
+
+dbtv = DbtVersionTool()

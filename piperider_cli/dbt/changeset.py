@@ -6,6 +6,7 @@ from typing import Callable, Dict, List
 
 from dbt.contracts.graph.manifest import Manifest
 
+from piperider_cli.dbt import dbtv
 from piperider_cli.dbt.list_task import (
     list_changes_in_unique_id,
     list_modified_with_downstream, list_resources_data_from_manifest,
@@ -61,13 +62,13 @@ class DefaultChangeSetOpMixin:
 
         for k in base_cols:
             if ColumnChangeView(base_cols.get(k)) != ColumnChangeView(
-                target_cols.get(k)
+                    target_cols.get(k)
             ):
                 return True
 
         for k in target_cols:
             if ColumnChangeView(base_cols.get(k)) != ColumnChangeView(
-                target_cols.get(k)
+                    target_cols.get(k)
             ):
                 return True
 
@@ -181,11 +182,11 @@ class LookUpTable:
 
     def tests(self, unique_id: str):
         return sum(self.base_tests.get(unique_id, dict(passed=0, failed=0)).values()), \
-               sum(self.target_tests.get(unique_id, dict(passed=0, failed=0)).values())
+            sum(self.target_tests.get(unique_id, dict(passed=0, failed=0)).values())
 
     def failed_tests(self, unique_id: str):
         return self.base_tests.get(unique_id, dict(passed=0, failed=0)).get('failed'), \
-               self.target_tests.get(unique_id, dict(passed=0, failed=0)).get('failed')
+            self.target_tests.get(unique_id, dict(passed=0, failed=0)).get('failed')
 
     def _build_dbt_time_mapping(self):
         base_execution = {x.get('unique_id'): x.get('execution_time') for x in
@@ -573,8 +574,10 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         out("### Resource Impact")
         mt = MarkdownTable(headers=['Potentially Impacted', 'Assessed', 'Impacted'])
         potentially_impacted = [x.unique_id for x in (self.models.modified_with_downstream + removed)]
-        impacted = [x for x in list(set(self.models.diffs + self.metrics.diffs + self.seeds.diffs)) if x in potentially_impacted]
-        assessed_no_impacted = [x for x in list(set(self.models.no_diffs + self.metrics.no_diffs + self.seeds.no_diffs)) if x in potentially_impacted]
+        impacted = [x for x in list(set(self.models.diffs + self.metrics.diffs + self.seeds.diffs)) if
+                    x in potentially_impacted]
+        assessed_no_impacted = [x for x in list(set(self.models.no_diffs + self.metrics.no_diffs + self.seeds.no_diffs))
+                                if x in potentially_impacted]
 
         mt.add_row([len(potentially_impacted),
                     f"{len(impacted) + len(assessed_no_impacted)} assessed, "
@@ -601,7 +604,9 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
         Columns <br> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-plus%402x.png" width="10px"> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-minus%402x.png" width="10px"> <img src="https://raw.githubusercontent.com/InfuseAI/piperider/main/images/icons/icon-diff-delta-explicit%402x.png" width="10px">
         """.strip()
 
-        mt = MarkdownTable(headers=['&nbsp;&nbsp;&nbsp;', 'Model', 'Impact', column_header, 'Rows', 'Dbt Time', 'Failed Tests', 'All Tests'])
+        mt = MarkdownTable(
+            headers=['&nbsp;&nbsp;&nbsp;', 'Model', 'Impact', column_header, 'Rows', 'Dbt Time', 'Failed Tests',
+                     'All Tests'])
 
         def impact(c: ChangeUnit):
             impacted = self.models.diffs
@@ -787,7 +792,8 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
                 text = text.replace('%', '\%')
             return r'$\color{orange}{\text{ %s }}$' % str(text)
 
-        mt = MarkdownTable(headers=['&nbsp;&nbsp;&nbsp;', 'Metric', 'Impact', f"Queries <br> total ({latex_orange('change')})"])
+        mt = MarkdownTable(
+            headers=['&nbsp;&nbsp;&nbsp;', 'Metric', 'Impact', f"Queries <br> total ({latex_orange('change')})"])
 
         def impact(c: ChangeUnit):
             impacted = self.metrics.diffs
@@ -864,6 +870,9 @@ class GraphDataChangeSet(DefaultChangeSetOpMixin):
         return self.explicit_changes
 
     def _metrics_implicit_changes(self):
+        if dbtv >= '1.6':
+            return []
+
         # exclude added and removed
         metrics_b = {x.get("name"): x for x in self.base.get("metrics", {})}
         metrics_t = {x.get("name"): x for x in self.target.get("metrics", {})}
