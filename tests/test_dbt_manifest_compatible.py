@@ -2,11 +2,9 @@ import json
 import os
 
 import pytest
-from piperider_cli.dbt import disable_dbt_compile_stats
-from piperider_cli.dbt.list_task import dbt_version_obj, load_manifest
+from piperider_cli.dbt import dbt_version, disable_dbt_compile_stats
+from piperider_cli.dbt.list_task import load_manifest
 from packaging import version
-
-v = dbt_version_obj()
 
 
 def _load_manifest(file_name):
@@ -41,13 +39,13 @@ def test_load_manifest_v7(manifest_from_1_3):
     check_manifest_type(m)
 
 
-@pytest.mark.skipif(v < version.parse('v1.4'), reason='skip manifest test before dbt-core 1.4')
+@pytest.mark.skipif(dbt_version < version.parse('v1.4'), reason='skip manifest test before dbt-core 1.4')
 def test_load_manifest_v8(manifest_from_1_4):
     m = load_manifest(manifest_from_1_4)
     check_manifest_type(m)
 
 
-@pytest.mark.skipif(v < version.parse('v1.5'), reason='skip manifest test before dbt-core 1.5')
+@pytest.mark.skipif(dbt_version < version.parse('v1.5'), reason='skip manifest test before dbt-core 1.5')
 def test_load_manifest_v9(manifest_from_1_5):
     m = load_manifest(manifest_from_1_5)
     check_manifest_type(m)

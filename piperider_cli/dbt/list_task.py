@@ -18,58 +18,7 @@ from dbt.node_types import NodeType
 from dbt.task.list import ListTask
 from dbt.tracking import initialize_from_flags
 
-from piperider_cli.dbt import disable_dbt_compile_stats
-
-
-def dbt_version():
-    from dbt import version
-    try:
-        version_string = ".".join(version.__version__.split(".")[0:2])
-        return version_string
-    except BaseException:
-        return "unknown"
-
-
-def dbt_version_obj():
-    from packaging import version as v
-    from dbt import version as dbt_version
-    return v.parse(dbt_version.__version__)
-
-
-def is_v1_3():
-    from packaging import version as v
-    dbt_v = dbt_version_obj()
-    return v.parse('1.3.0') <= dbt_v < v.parse('v1.4.0')
-
-
-def is_v1_4():
-    from packaging import version as v
-    dbt_v = dbt_version_obj()
-    return v.parse('1.4.0') <= dbt_v < v.parse('v1.5.0')
-
-
-def is_lt_v1_5():
-    from packaging import version as v
-    dbt_v = dbt_version_obj()
-    return dbt_v < v.parse('v1.5.0')
-
-
-def is_v1_5():
-    from packaging import version as v
-    dbt_v = dbt_version_obj()
-    return v.parse('1.5.0') <= dbt_v < v.parse('v1.6.0')
-
-
-def is_ge_v1_5():
-    from packaging import version as v
-    dbt_v = dbt_version_obj()
-    return dbt_v >= v.parse('1.5.0')
-
-
-def is_ge_v1_4():
-    from packaging import version as v
-    dbt_v = dbt_version_obj()
-    return dbt_v >= v.parse('1.4.0')
+from piperider_cli.dbt import dbt_version, disable_dbt_compile_stats
 
 
 def create_temp_dir():
@@ -83,7 +32,7 @@ def load_full_manifest(target_path: str):
     runtime_config = PrepareRuntimeConfig(target_path)
     register_adapter(runtime_config)
 
-    v = dbt_version()
+    v = dbt_version
     if v == '1.5' or v == '1.6':
         return ManifestLoader.get_full_manifest(
             runtime_config, write_perf_info=False
@@ -96,7 +45,7 @@ def load_full_manifest(target_path: str):
 
 
 def load_manifest(manifest: Dict):
-    v = dbt_version()
+    v = dbt_version
     if v == '1.3':
         return _load_manifest_version_13(manifest)
 
@@ -296,7 +245,7 @@ def PrepareRuntimeConfig(target_path: str):
     setattr(flags, "profile", None)
     setattr(flags, "target", None)
 
-    v = dbt_version()
+    v = dbt_version
 
     if v == '1.5' or v == '1.6':
         return _get_v15_runtime_config(flags)
@@ -309,7 +258,7 @@ def PrepareRuntimeConfig(target_path: str):
 
 
 def _configure_warn_error_options(flags):
-    if is_ge_v1_4():
+    if dbt_version >= '1.4':
         from dbt.helper_types import WarnErrorOptions
         setattr(flags, "WARN_ERROR_OPTIONS", WarnErrorOptions([]))
 
@@ -393,7 +342,7 @@ class _DbtListTask(ListTask):
         self.args = flags_module.get_flag_obj()
         self.previous_state = None
 
-        if is_ge_v1_5() and hasattr(flags_module, 'set_flags'):
+        if dbt_version >= '1.5' and hasattr(flags_module, 'set_flags'):
             flags_module.set_flags(self.args)
 
         # The graph compiler tries to make directories when it initialized itself
@@ -471,7 +420,7 @@ def list_resources_data_from_manifest(manifest: Manifest, select: tuple = None, 
     setattr(dbt_flags, "models", None)
     setattr(dbt_flags, "project_target_path", create_temp_dir())
 
-    if is_lt_v1_5():
+    if dbt_version < '1.5':
         flags_module.INDIRECT_SELECTION = 'eager'
 
     setattr(dbt_flags, "selector_name", None)
@@ -502,7 +451,7 @@ def compare_models_between_manifests(
     task = _DbtListTask()
     task.manifest = altered_manifest
 
-    if is_lt_v1_5():
+    if dbt_version < '1.5':
         dbt_flags = task.args
         flags_module.INDIRECT_SELECTION = 'eager'
     else:
@@ -523,7 +472,7 @@ def compare_models_between_manifests(
     else:
         setattr(dbt_flags, "select", ("state:modified",))
 
-    if is_ge_v1_4():
+    if dbt_version >= '1.4':
         from dbt.exceptions import EventCompilationError as DbtCompilationErr
     else:
         from dbt.exceptions import CompilationException as DbtCompilationErr
@@ -544,7 +493,7 @@ def list_modified_with_downstream(
     task = _DbtListTask()
     task.manifest = altered_manifest
 
-    if is_lt_v1_5():
+    if dbt_version < '1.5':
         dbt_flags = task.args
         flags_module.INDIRECT_SELECTION = 'eager'
     else:
@@ -562,7 +511,7 @@ def list_modified_with_downstream(
     task.previous_state = _InMemoryPreviousState(base_manifest)
     setattr(dbt_flags, "select", ("state:modified+",))
 
-    if is_ge_v1_4():
+    if dbt_version >= '1.4':
         from dbt.exceptions import EventCompilationError as DbtCompilationErr
     else:
         from dbt.exceptions import CompilationException as DbtCompilationErr
@@ -582,7 +531,7 @@ def list_changes_in_unique_id(
     task = _DbtListTask()
     task.manifest = target_manifest
 
-    if is_lt_v1_5():
+    if dbt_version < '1.5':
         dbt_flags = task.args
         flags_module.INDIRECT_SELECTION = 'eager'
     else:
@@ -604,7 +553,7 @@ def list_changes_in_unique_id(
     else:
         setattr(dbt_flags, "select", None)
 
-    if is_ge_v1_4():
+    if dbt_version >= '1.4':
         from dbt.exceptions import EventCompilationError as DbtCompilationErr
     else:
         from dbt.exceptions import CompilationException as DbtCompilationErr

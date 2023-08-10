@@ -6,10 +6,9 @@ from unittest import TestCase
 
 from packaging import version
 
-from piperider_cli.dbt import dbtv
+from piperider_cli.dbt import dbt_version
 from piperider_cli.dbt.list_task import (
     compare_models_between_manifests,
-    dbt_version, dbt_version_obj,
     list_resources_unique_id_from_manifest,
     load_manifest,
 )
@@ -84,7 +83,7 @@ class TestDbtIntegration(_BaseDbtTest):
         super().setUp()
 
     def assertDbtResources(self, r1: List[str], r2: List[str]):
-        if dbtv >= 'v1.6':
+        if dbt_version >= 'v1.6':
             r1 = [x for x in r1 if not x.startswith('metric')]
             r2 = [x for x in r2 if not x.startswith('metric')]
         return self.assertEqual(r1, r2)
@@ -151,7 +150,7 @@ class TestDbtIntegration(_BaseDbtTest):
         print(c.list_implicit_changes())
 
     @unittest.skipIf(
-        dbt_version_obj() < version.parse("1.4"),
+        dbt_version < version.parse("1.4"),
         "this only works after manifests generated after the v1.4",
     )
     def test_list_explicit_changes_without_ref_ids(self):
@@ -168,7 +167,7 @@ class TestDbtIntegration(_BaseDbtTest):
         self.assertDbtResources(c.list_implicit_changes(), expected_implicit)
 
     @unittest.skipIf(
-        dbt_version_obj() < version.parse("1.4"),
+        dbt_version < version.parse("1.4"),
         "this only works after manifests generated after the v1.4",
     )
     def test_list_explicit_changes_with_ref_ids(self):
@@ -185,7 +184,7 @@ class TestDbtIntegration(_BaseDbtTest):
         self.assertDbtResources(c.list_implicit_changes(), expected_implicit)
 
     @unittest.skipIf(
-        dbt_version_obj() < version.parse("1.4"),
+        dbt_version < version.parse("1.4"),
         "this only works after manifests generated after the v1.4",
     )
     def test_list_changes_metrics_case(self):
@@ -201,7 +200,7 @@ class TestDbtIntegration(_BaseDbtTest):
         )
 
     @unittest.skipIf(
-        dbt_version_obj() < version.parse("1.4"),
+        dbt_version < version.parse("1.4"),
         "this only works after manifests generated after the v1.4",
     )
     def test_list_large_seeds_case(self):

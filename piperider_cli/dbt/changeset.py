@@ -6,7 +6,7 @@ from typing import Callable, Dict, List
 
 from dbt.contracts.graph.manifest import Manifest
 
-from piperider_cli.dbt import dbtv
+from piperider_cli.dbt import dbt_version
 from piperider_cli.dbt.list_task import (
     list_changes_in_unique_id,
     list_modified_with_downstream, list_resources_data_from_manifest,
@@ -870,7 +870,7 @@ class GraphDataChangeSet(DefaultChangeSetOpMixin):
         return self.explicit_changes
 
     def _metrics_implicit_changes(self):
-        if dbtv >= '1.6':
+        if dbt_version >= '1.6':
             return []
 
         # exclude added and removed
