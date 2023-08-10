@@ -133,10 +133,10 @@ class Profiler:
     """
 
     def __init__(
-            self,
-            data_source: DataSource,
-            event_handler: ProfilerEventHandler = DefaultProfilerEventHandler(),
-            config: Configuration = None
+        self,
+        data_source: DataSource,
+        event_handler: ProfilerEventHandler = DefaultProfilerEventHandler(),
+        config: Configuration = None
     ):
         self.data_source = data_source
         self.event_handler = event_handler
@@ -266,6 +266,40 @@ class Profiler:
 
     def collect_metadata(self, metadata_subjects: List[ProfileSubject], subjects: List[ProfileSubject]):
         return asyncio.run(self._collect_metadata(subjects, metadata_subjects))
+
+    async def _collect_metadata_from_dbt_manifest(self, dbt_manifest, metadata_subjects, subjects):
+        profiled_tables = {}
+        if subjects is None:
+            subjects = []
+            # table_nodes = filter(
+            #     lambda node: node.startswith('model.') or node.startswith('seed.') or node.startswith('source.'),
+            #     dbt_manifest['nodes'].keys())
+            # print(table_nodes)
+
+        if metadata_subjects is None:
+            metadata_subjects = subjects
+
+        for subject in metadata_subjects:
+            table_name = subject.name
+            ref_id = subject.ref_id
+            dbt_node = dbt_manifest.get('nodes', {}).get(ref_id, {})
+            columns = {}
+            for key, val in dbt_node.get('columns', {}).items():
+                name = val.get('name')
+                description = val.get('description')
+                columns[key] = dict(
+                    name=name,
+                    type=None,
+                    schema_type=None,
+                    description=description)
+
+            profiled_tables[ref_id] = dict(name=table_name, columns=columns, ref_id=ref_id)
+
+        return dict(tables=profiled_tables)
+
+    def collect_metadata_from_dbt_manifest(self, dbt_manifest, metadata_subjects: List[ProfileSubject],
+                                           subjects: List[ProfileSubject]):
+        return asyncio.run(self._collect_metadata_from_dbt_manifest(dbt_manifest, metadata_subjects, subjects))
 
     def profile(self, subjects: List[ProfileSubject] = None, *, metadata_subjects: List[ProfileSubject] = None) -> dict:
         def job():

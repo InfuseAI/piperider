@@ -279,6 +279,7 @@ def run(**kwargs):
                 Guide().show(
                     'No resources was profiled. PipeRider will default to profiling the resources with the \'tag:piperider\'. '
                     'Please modify your dbt resources with the tag \'piperider\' or use the \'--select\' option to choose the specific resources to profile.')
+            ret = 0
 
         if CloudConnector.is_login() and is_cloud_view:
             ret = CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),

@@ -7,6 +7,7 @@ import subprocess
 import sys
 import uuid
 from datetime import datetime
+from enum import Enum
 from typing import List, Optional
 
 from rich import box
@@ -317,6 +318,35 @@ def _transform_assertion_result(table: str, results):
     return dict(tests=tests, columns=columns)
 
 
+class PreRunValidatingResult(Enum):
+    OK = 0
+    ERROR = 1
+    SKIP_PROFILING = 2
+
+
+def _pre_run_validating(ds: DataSource) -> PreRunValidatingResult:
+    console = Console()
+    err = ds.verify_connector()
+    if err:
+        console.print(
+            f'[[bold yellow]WARNING[/bold yellow]] Failed to load the \'{ds.type_name}\' connector.')
+        return PreRunValidatingResult.SKIP_PROFILING
+
+    try:
+        ds.verify_connection()
+    except Exception:
+        console.print(
+            f'[[bold yellow]WARNING[/bold yellow]] Failed to connect the \'{ds.name}\' data source.')
+        return PreRunValidatingResult.SKIP_PROFILING
+
+    stop_runner = _validate_assertions(console)
+    if stop_runner:
+        console.print('\n\n[bold red]ERROR:[/bold red] Stop profiling, please fix the syntax errors above.')
+        return PreRunValidatingResult.ERROR
+
+    return PreRunValidatingResult.OK
+
+
 def _validate_assertions(console: Console):
     assertion_engine = AssertionEngine(None)
     assertion_engine.load_all_assertions_for_validation()
@@ -533,7 +563,7 @@ def get_dbt_profile_subjects(dbt_state_dir, options, filter_fn):
     return tagged_subjects
 
 
-def get_dbt_state_dir(target_path, dbt_config, ds):
+def get_dbt_state_dir(target_path, dbt_config, ds, skip_datasource_connection=False):
     if target_path is None or os.path.exists(target_path) is False:
         project_dir = dbt_config.get('projectDir')
         dbt_project = dbtutil.load_dbt_project(project_dir)
@@ -546,7 +576,7 @@ def get_dbt_state_dir(target_path, dbt_config, ds):
     if not dbtutil.is_dbt_state_ready(target_path):
         return None, f"[bold red]Error:[/bold red] No available 'manifest.json' under '{target_path}'"
 
-    if os.environ.get('PIPERIDER_SKIP_TARGET_CHECK', None) != '1':
+    if os.environ.get('PIPERIDER_SKIP_TARGET_CHECK', None) != '1' and skip_datasource_connection is False:
         if not check_dbt_manifest_compatibility(ds, target_path):
             return None, f"[bold red]Error:[/bold red] Target mismatched. Please run 'dbt compile -t {dbt_config.get('target')}' to generate the new manifest, or set the environment variable 'PIPERIDER_SKIP_TARGET_CHECK=1' to skip the check."
 
@@ -597,6 +627,7 @@ class Runner():
              dbt_resources: Optional[dict] = None, dbt_select: tuple = None, dbt_state: str = None,
              report_dir: str = None):
         console = Console()
+        skip_datasource_connection = False
 
         raise_exception_when_directory_not_writable(output)
 
@@ -641,22 +672,12 @@ class Runner():
 
         console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
         console.rule('Validating')
-        err = ds.verify_connector()
-        if err:
-            console.print(
-                f'[[bold red]FAILED[/bold red]] Failed to load the \'{ds.type_name}\' connector.')
-            raise err
-
-        try:
-            ds.verify_connection()
-        except Exception as err:
-            console.print(
-                f'[[bold red]FAILED[/bold red]] Failed to connect the \'{ds.name}\' data source.')
-            raise err
-        stop_runner = _validate_assertions(console)
-        if stop_runner:
-            console.print('\n\n[bold red]ERROR:[/bold red] Stop profiling, please fix the syntax errors above.')
+        result = _pre_run_validating(ds)
+        if result is PreRunValidatingResult.ERROR:
             return 1
+        elif result is PreRunValidatingResult.SKIP_PROFILING:
+            console.print('[[bold yellow]WARNING[/bold yellow]] [bold dark_orange]Skip profiling[/bold dark_orange]')
+            skip_datasource_connection = True
 
         dbt_config = ds.args.get('dbt')
         dbt_manifest = None
@@ -667,7 +688,7 @@ class Runner():
                 console.log(
                     '[bold red]ERROR:[/bold red] DBT configuration is not completed, please check the config.yml')
                 return sys.exit(1)
-            dbt_target_path, err_msg = get_dbt_state_dir(dbt_target_path, dbt_config, ds)
+            dbt_target_path, err_msg = get_dbt_state_dir(dbt_target_path, dbt_config, ds, skip_datasource_connection)
             if err_msg:
                 console.print(err_msg)
                 return sys.exit(1)
@@ -679,11 +700,13 @@ class Runner():
                                                                                                select=dbt_select,
                                                                                                state=dbt_state)
         console.print('everything is OK.')
-
         console.rule('Collect metadata')
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
-        engine = ds.get_engine_by_database()
+        if skip_datasource_connection:
+            engine = None
+        else:
+            engine = ds.get_engine_by_database()
 
         subjects: List[ProfileSubject]
         dbt_metadata_subjects: List[ProfileSubject] = None
@@ -720,38 +743,50 @@ class Runner():
                 subjects = list(filter(filter_fn, subjects))
 
         run_result = {}
+        profiler_result = {}
 
         statistics = Statistics()
+        # Profile the datasource
         profiler = Profiler(ds, RichProfilerEventHandler([subject.name for subject in subjects]), configuration)
-        try:
-            profiler.collect_metadata(dbt_metadata_subjects, subjects)
 
-            console.rule('Profile statistics')
-            profiler_result = profiler.profile(subjects, metadata_subjects=dbt_metadata_subjects)
+        if skip_datasource_connection:
+            # Generate run result from dbt manifest
+            profiler_result = profiler.collect_metadata_from_dbt_manifest(dbt_manifest, dbt_metadata_subjects, subjects)
             run_result.update(profiler_result)
-        except NoSuchTableError as e:
-            console.print(f"[bold red]Error:[/bold red] No such table '{str(e)}'")
-            return 1
-        except Exception as e:
-            raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
+        else:
+            try:
+                profiler.collect_metadata(dbt_metadata_subjects, subjects)
+
+                console.rule('Profile statistics')
+                profiler_result = profiler.profile(subjects, metadata_subjects=dbt_metadata_subjects)
+                run_result.update(profiler_result)
+            except NoSuchTableError as e:
+                console.print(f"[bold red]Error:[/bold red] No such table '{str(e)}'")
+                return 1
+            except Exception as e:
+                raise Exception(f'Profiler Exception: {type(e).__name__}(\'{e}\')')
 
         statistics.reset()
         metrics = []
         if dbt_config:
             metrics = dbtutil.get_dbt_state_metrics(dbt_target_path, dbt_config.get('tag', 'piperider'), dbt_resources)
 
-        console.rule('Query metrics')
-        statistics.display_statistic('query', 'metric')
-        if metrics:
-            run_result['metrics'] = MetricEngine(
-                ds,
-                metrics,
-                RichMetricEventHandler([m.label for m in metrics])
-            ).execute()
+        if skip_datasource_connection is False:
+            console.rule('Query metrics')
+            statistics.display_statistic('query', 'metric')
+            if metrics:
+                run_result['metrics'] = MetricEngine(
+                    ds,
+                    metrics,
+                    RichMetricEventHandler([m.label for m in metrics])
+                ).execute()
 
         # TODO: refactor input unused arguments
-        assertion_results, assertion_exceptions = _execute_assertions(console, engine, ds.name, output,
-                                                                      profiler_result, created_at)
+        if skip_datasource_connection:
+            assertion_results, assertion_exceptions = [], []
+        else:
+            assertion_results, assertion_exceptions = _execute_assertions(console, engine, ds.name, output,
+                                                                          profiler_result, created_at)
 
         run_result['tests'] = []
         if assertion_results or dbt_test_results:
