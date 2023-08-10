@@ -64,7 +64,9 @@ def test_fetch_pr_metadata(mock_github_event, mock_github_token, mock_get_reques
     assert result["github_pr_title"] == "Update README.md"
 
 
-def test_fetch_pr_metadata_no_event(mock_get_request_success):
+def test_fetch_pr_metadata_no_event(mock_get_request_success, monkeypatch):
+    monkeypatch.delenv("GITHUB_EVENT_PATH", raising=False)
+
     result = fetch_pr_metadata()
 
     assert result is None
