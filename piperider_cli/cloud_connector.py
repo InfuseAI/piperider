@@ -444,6 +444,7 @@ class CloudConnector:
                                 project_name: str = None, debug: bool = False):
         # TODO: Change to use new front-end URL pattern
         def _generate_legacy_compare_report_url(base_id, target_id, project=None):
+            metadata = None
             if project is None:
                 project = piperider_cloud.get_default_project()
             if os.environ.get('GITHUB_EVENT_PATH'):
@@ -489,8 +490,7 @@ class CloudConnector:
 
         console.print(f"Creating comparison report id={base_id} ... id={target_id}")
 
-        metadata = dict()
-
+        metadata = None
         if os.environ.get('GITHUB_EVENT_PATH'):
             metadata = fetch_pr_metadata()
 
