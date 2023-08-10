@@ -427,42 +427,20 @@ class _InMemoryPreviousState(PreviousState):
         self.manifest = manifest
 
 
-class ResourceSelector:
-    def __init__(self):
-        self.selected_node_types = []
-
-    def model(self):
-        self.selected_node_types.append(NodeType.Model)
-        return self
-
-    def test(self):
-        self.selected_node_types.append(NodeType.Test)
-        return self
-
-    def seed(self):
-        self.selected_node_types.append(NodeType.Seed)
-        return self
-
-    def source(self):
-        self.selected_node_types.append(NodeType.Source)
-        return self
-
-    def metric(self):
-        self.selected_node_types.append(NodeType.Metric)
-        return self
-
-    def build_selected_set(self):
-        return set(
-            [x for x in self.selected_node_types if x and isinstance(x, NodeType)]
-        )
+def list_resources_unique_id_from_manifest(manifest: Manifest, select: tuple = None, state: str = None) -> List[str]:
+    result: List[Dict] = list_resources_data_from_manifest(manifest, select=select, state=state)
+    return [x.get('unique_id') for x in result]
 
 
-def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector = None, select: tuple = None,
-                                 state: str = None) -> List[str]:
+def list_resources_data_from_manifest(manifest: Manifest, select: tuple = None, state: str = None) -> List[Dict]:
     task = _DbtListTask()
     task.manifest = manifest
 
     dbt_flags = task.args
+
+    setattr(dbt_flags, "output", "json")
+    setattr(dbt_flags, "output_keys", "unique_id,name,resource_type,original_file_path")
+
     setattr(dbt_flags, "state", Path(state) if state else None)
     setattr(dbt_flags, "models", None)
     setattr(dbt_flags, "project_target_path", create_temp_dir())
@@ -470,40 +448,13 @@ def list_resources_from_manifest(manifest: Manifest, selector: ResourceSelector 
     if is_lt_v1_5():
         flags_module.INDIRECT_SELECTION = 'eager'
 
-    setattr(dbt_flags, "output", "selector")
     setattr(dbt_flags, "selector_name", None)
     setattr(dbt_flags, "resource_types", [])
-    if selector is not None:
-        setattr(dbt_flags, "resource_types", selector.build_selected_set())
-
     setattr(dbt_flags, "selector", None)
     setattr(dbt_flags, "select", select)
     if state:
         task.set_previous_state()
 
-    with disable_dbt_compile_stats():
-        return task.run()
-
-
-def list_resources_unique_id_from_manifest(manifest: Manifest):
-    task = _DbtListTask()
-    task.manifest = manifest
-
-    dbt_flags = task.args
-    setattr(dbt_flags, "state", None)
-    setattr(dbt_flags, "models", None)
-    setattr(dbt_flags, "project_target_path", create_temp_dir())
-
-    if is_lt_v1_5():
-        flags_module.INDIRECT_SELECTION = 'eager'
-
-    setattr(dbt_flags, "output", "json")
-    setattr(dbt_flags, "output_keys", "unique_id,name,resource_type,original_file_path")
-    setattr(dbt_flags, "selector_name", None)
-    setattr(dbt_flags, "resource_types", [])
-
-    setattr(dbt_flags, "selector", None)
-    setattr(dbt_flags, "select", None)
     with disable_dbt_compile_stats():
         output = task.run()
         return [json.loads(x) for x in output]

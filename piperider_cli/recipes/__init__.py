@@ -332,11 +332,6 @@ def execute_recipe(model: RecipeModel, debug=False, recipe_type='base'):
             sys.exit(exit_code)
         console.print()
 
-    # if recipe_type == 'target':
-    #     config = Configuration.instance()
-    #     fqn_list = dbtutil.get_fqn_list_by_tag(config.dbt.get('tag'), config.dbt.get('projectDir'))
-    #     model.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(fqn_list)
-
 
 def execute_dbt_compile_archive(model: RecipeModel, debug=False):
     branch_or_commit = tool().git_merge_base(model.branch, 'HEAD') or model.branch

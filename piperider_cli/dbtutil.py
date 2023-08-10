@@ -12,7 +12,7 @@ from rich.table import Table
 from ruamel import yaml
 
 from piperider_cli import load_jinja_template, load_jinja_string_template
-from piperider_cli.dbt.list_task import load_manifest, list_resources_from_manifest, load_full_manifest
+from piperider_cli.dbt.list_task import load_manifest, list_resources_unique_id_from_manifest, load_full_manifest
 from piperider_cli.error import \
     DbtProjectInvalidError, \
     DbtProfileInvalidError, \
@@ -181,7 +181,7 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict, *, select_for_met
     def profiling_chosen_fn(key, node):
         statistics = Statistics()
         if dbt_resources:
-            chosen = '.'.join(node.get('fqn')) in dbt_resources['models']
+            chosen = node.get('unique_id') in dbt_resources['models']
             if not chosen:
                 statistics.add_field_one('filter')
             return chosen
@@ -363,7 +363,7 @@ def get_dbt_manifest(dbt_state_dir: str):
 def load_dbt_resources(target_path: str, select: tuple = None, state=None):
     manifest = load_manifest(get_dbt_manifest(target_path)) if state is None else load_full_manifest(target_path)
     try:
-        list_resources = list_resources_from_manifest(manifest, select=select, state=state)
+        list_resources = list_resources_unique_id_from_manifest(manifest, select=select, state=state)
     except RuntimeError as e:
         raise DbtRunTimeError(e, select, state)
     return read_dbt_resources(list_resources)
@@ -464,30 +464,6 @@ def read_dbt_resources(source: Union[str, io.TextIOWrapper, list]):
         else:
             models.append(dbt_resource)
     return dict(metrics=metrics, models=models)
-
-
-def get_fqn_list_by_tag(tag: str, project_dir: str):
-    dbt_project = load_dbt_project(project_dir)
-    dbt_state_dir = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
-    if os.path.isabs(dbt_state_dir) is False:
-        from piperider_cli.configuration import FileSystem
-        dbt_state_dir = os.path.join(FileSystem.WORKING_DIRECTORY, project_dir, dbt_state_dir)
-
-    path = os.path.join(dbt_state_dir, 'manifest.json')
-    with open(path) as f:
-        manifest = json.load(f)
-
-    fqn_list = []
-    for key, item in manifest.get('nodes', {}).items():
-        if item.get('resource_type') in ['model', 'seed'] and tag in item.get('tags'):
-            fqn_list.append('.'.join(item.get('fqn', [])))
-    for key, item in manifest.get('sources', {}).items():
-        if tag in item.get('tags'):
-            fqn_list.append('source:' + '.'.join(item.get('fqn', [])))
-    for key, item in manifest.get('metrics', {}).items():
-        if tag in item.get('tags'):
-            fqn_list.append(key.replace('metric.', 'metric:'))
-    return fqn_list
 
 
 def prepare_topological_graph(manifest: Dict):
