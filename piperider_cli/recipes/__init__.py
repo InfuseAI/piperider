@@ -284,10 +284,10 @@ def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = No
     if any('state:' in item for item in select) is True:
         execute_dbt_compile_archive(cfg.base)
         state = cfg.base.state_path
-    elif dbtutil.check_dbt_manifest(target_path) is False:
-        # Need to compile the dbt project if the manifest file does not exist
-        execute_dbt_deps(cfg.base)
-        execute_dbt_compile(cfg.base)
+    # elif dbtutil.check_dbt_manifest(target_path) is False:
+    # Need to compile the dbt project if the manifest file does not exist
+    execute_dbt_deps(cfg.base)
+    execute_dbt_compile(cfg.base)
 
     if state:
         console.print(f"Run: \[dbt list] select option '{' '.join(select)}' with state")
@@ -484,13 +484,12 @@ def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None,
     try:
         console.rule("Recipe executor: prepare execution environments")
         dbt_resources, dbt_state_path = prepare_dbt_resources_candidate(cfg, select=select, modified=modified)
-        if dbt_resources:
-            if debug:
-                console.print(f'Config: piperider env "PIPERIDER_DBT_RESOURCES" = {dbt_resources}')
-            else:
-                console.print('Config: piperider env "PIPERIDER_DBT_RESOURCES"')
-            cfg.base.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
-            cfg.target.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
+        if debug:
+            console.print(f'Config: piperider env "PIPERIDER_DBT_RESOURCES" = {dbt_resources}')
+        else:
+            console.print('Config: piperider env "PIPERIDER_DBT_RESOURCES"')
+        cfg.base.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
+        cfg.target.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
 
         if dbt_state_path:
             cfg.target.dbt.commands = replace_commands_dbt_state_path(cfg.target.dbt.commands, dbt_state_path)

@@ -289,7 +289,8 @@ def run(**kwargs):
             console.print('[bold yellow]Warning: [/bold yellow]The report is not uploaded due to not logged in.')
 
     if ret != 0:
-        sys.exit(ret)
+        if ret != EC_WARN_NO_PROFILED_MODULES:
+            sys.exit(ret)
     return ret
 
 
