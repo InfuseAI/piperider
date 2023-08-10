@@ -393,7 +393,6 @@ class Configuration(object):
         type_name = credential.get('type')
         dbt = {
             'projectDir': os.path.relpath(os.path.dirname(dbt_project_path), FileSystem.WORKING_DIRECTORY),
-            'tag': 'piperider',
         }
 
         if dbt_profiles_dir:

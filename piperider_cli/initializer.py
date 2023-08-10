@@ -84,10 +84,6 @@ def _inherit_datasource_from_dbt_project(dbt_project_path, dbt_profiles_dir=None
     dbt_config.dump(FileSystem.PIPERIDER_CONFIG_PATH)
 
     console.print(f'[[bold green] DBT [/bold green]] Use the existing dbt project file: {dbt_project_path}')
-    console.print(
-        "[[bold green] DBT [/bold green]] "
-        "By default, PipeRider will profile the models and metrics with 'piperider' tag\n"
-        "        Apply 'piperider' tag to your models or change the tag in '.piperider/config.yml'\n")
 
     return dbt_config
 
