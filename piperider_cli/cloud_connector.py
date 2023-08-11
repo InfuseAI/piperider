@@ -17,6 +17,7 @@ from piperider_cli.compare_report import CompareReport, RunOutput
 from piperider_cli.configuration import Configuration
 from piperider_cli.datasource import FANCY_USER_INPUT
 from piperider_cli.error import CloudReportError
+from piperider_cli.githubutil import fetch_pr_metadata
 
 console = Console()
 piperider_cloud = PipeRiderCloud()
@@ -282,10 +283,11 @@ def get_run_report_id(project: PipeRiderProject, report_key: str) -> Optional[in
     return None
 
 
-def create_compare_reports(base_id: str, target_id: str, tables_from, project: PipeRiderProject = None) -> dict:
+def create_compare_reports(base_id: str, target_id: str, tables_from, project: PipeRiderProject = None,
+                           metadata: dict = None) -> dict:
     if project is None:
         project = piperider_cloud.get_default_project()
-    response = piperider_cloud.compare_reports(base_id, target_id, tables_from, project=project)
+    response = piperider_cloud.compare_reports(base_id, target_id, tables_from, project=project, metadata=metadata)
     return response
 
 
@@ -442,9 +444,13 @@ class CloudConnector:
                                 project_name: str = None, debug: bool = False):
         # TODO: Change to use new front-end URL pattern
         def _generate_legacy_compare_report_url(base_id, target_id, project=None):
+            metadata = None
             if project is None:
                 project = piperider_cloud.get_default_project()
-            response = create_compare_reports(base_id, target_id, tables_from, project=project)
+            if os.environ.get('GITHUB_EVENT_PATH'):
+                metadata = fetch_pr_metadata()
+
+            response = create_compare_reports(base_id, target_id, tables_from, project=project, metadata=metadata)
             return response
 
         try:
@@ -483,7 +489,12 @@ class CloudConnector:
                 f'Please upload reports to PipeRider Cloud first.')
 
         console.print(f"Creating comparison report id={base_id} ... id={target_id}")
-        response = create_compare_reports(base_id, target_id, tables_from, project=project)
+
+        metadata = None
+        if os.environ.get('GITHUB_EVENT_PATH'):
+            metadata = fetch_pr_metadata()
+
+        response = create_compare_reports(base_id, target_id, tables_from, project=project, metadata=metadata)
         if response is None:
             console.print('Failed to create the comparison report')
         else:
