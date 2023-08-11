@@ -457,10 +457,10 @@ def read_dbt_resources(source: Union[str, io.TextIOWrapper, list]):
         if ' ' in dbt_resource:
             # From dbt 1.5.x, `dbt list` will output runtime logs as well. Need to ignore them
             continue
-        elif dbt_resource.startswith('source:'):
+        elif dbt_resource.startswith('source.'):
             continue
-        elif dbt_resource.startswith('metric:'):
-            metrics.append(dbt_resource.replace('metric:', 'metric.'))
+        elif dbt_resource.startswith('metric.'):
+            metrics.append(dbt_resource)
         else:
             models.append(dbt_resource)
     return dict(metrics=metrics, models=models)
