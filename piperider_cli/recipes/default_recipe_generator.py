@@ -55,8 +55,12 @@ def _create_target_recipe(dbt_project_path=None, options: dict = None) -> Recipe
     target = RecipeModel()
     select_and_state_options = ''
 
-    if options.get('modified') is True or any('state:modified' in item for item in options.get('select', ())) is True:
+    if not options.get('select', ()):
         select_and_state_options = '--select state:modified+ --state <DBT_STATE_PATH>'
+    elif any('state:modified' in item for item in options.get('select', ())) is True:
+        select_and_state_options = '--select ' + ','.join(options.get('select', ())) + ' --state <DBT_STATE_PATH>'
+    else:
+        select_and_state_options = '--select ' + ','.join(options.get('select', ()))
 
     dbt_project = _read_dbt_project_file(dbt_project_path)
     if dbt_project:

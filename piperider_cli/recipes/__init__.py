@@ -164,9 +164,10 @@ class RecipeModel:
 
 
 class RecipeConfiguration:
-    def __init__(self, base: RecipeModel, target: RecipeModel):
+    def __init__(self, base: RecipeModel, target: RecipeModel, auto_generated: bool = True):
         self.base: RecipeModel = base
         self.target: RecipeModel = target
+        self.auto_generated: bool = auto_generated
 
     def __dict__(self):
         return {
@@ -207,7 +208,8 @@ class RecipeConfiguration:
 
         return cls(
             base=base,
-            target=target
+            target=target,
+            auto_generated=False
         )
 
 
@@ -246,14 +248,11 @@ def update_select_with_recipe(cfg: RecipeConfiguration):
             return tuple(words[words.index('-s') + 1:])
         elif '--select' in words:
             return tuple(words[words.index('--select') + 1:])
-    return None
+    return ()
 
 
-def update_select_with_modified(select: tuple = None, modified: bool = False):
-    if modified is False:
-        return select
-
-    if len(select) == 0:
+def update_select_with_cli_option(select: tuple = None):
+    if select is None or len(select) == 0:
         return ('state:modified+',)
 
     if any('state:modified' in item for item in select) is True:
@@ -270,14 +269,13 @@ def replace_commands_dbt_state_path(commands: List[str], dbt_state_path: str):
     return [command.replace('<DBT_STATE_PATH>', dbt_state_path) for command in commands]
 
 
-def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = None, modified: bool = False):
+def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = None):
     config = Configuration.instance()
     state = None
-    if not select:
+    if not cfg.auto_generated:
         select = update_select_with_recipe(cfg)
-    if not select:
-        select = (f'tag:{config.dbt.get("tag")}',) if config.dbt.get('tag') else ()
-    select = update_select_with_modified(select, modified)
+    else:
+        select = update_select_with_cli_option(select)
     dbt_project = dbtutil.load_dbt_project(config.dbt.get('projectDir'))
     target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
 
@@ -468,7 +466,7 @@ def clean_up(cfg: RecipeConfiguration):
         tool().remove_dir(cfg.target.tmp_dir_path)
 
 
-def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None, modified: bool = False, debug=False):
+def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None, debug=False):
     console.rule("Recipe executor: verify execution environments")
     # check the dependencies
     console.print("Check: git")
@@ -478,7 +476,7 @@ def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None,
 
     try:
         console.rule("Recipe executor: prepare execution environments")
-        dbt_resources, dbt_state_path = prepare_dbt_resources_candidate(cfg, select=select, modified=modified)
+        dbt_resources, dbt_state_path = prepare_dbt_resources_candidate(cfg, select=select)
         if debug:
             console.print(f'Config: piperider env "PIPERIDER_DBT_RESOURCES" = {dbt_resources}')
         else:
