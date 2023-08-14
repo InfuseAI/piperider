@@ -31,6 +31,7 @@ export function MasterDetailContainer({
           flex="0 1 400px"
           maxWidth="400px"
           minWidth="280px"
+          ml="16px"
           maxHeight={`calc(100vh - ${sideNavTop})`}
         >
           <SideBar singleOnly={singleOnly} />
@@ -39,7 +40,7 @@ export function MasterDetailContainer({
         <Box
           maxHeight={mainContentAreaHeight}
           h={'100%'}
-          p={9}
+          p="16px"
           flex="1 0 800px"
           width="800px"
         >
