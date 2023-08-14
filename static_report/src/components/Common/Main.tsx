@@ -39,6 +39,7 @@ export function Main({ children, isSingleReport, ...props }: Props) {
       <Box position={'sticky'} top={0} bg={bgColor[colorMode]} zIndex="banner">
         <ReportContextBar
           data={isSingleReport ? (rawData.base as any) : (rawData as any)}
+          singleOnly={isSingleReport}
         ></ReportContextBar>
       </Box>
 
