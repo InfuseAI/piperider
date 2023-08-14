@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         version: [ '3.11' ]
-        dbt: [ ">=1.5,<1.6" ]
+        dbt: [ ">=1.5,<1.6", ">=1.6,<1.7" ]
 
     steps:
       - uses: actions/checkout@v2

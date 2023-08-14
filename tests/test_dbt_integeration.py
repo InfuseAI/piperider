@@ -1,14 +1,14 @@
 import json
 import os
 import unittest
-from typing import Dict
+from typing import Dict, List
 from unittest import TestCase
 
 from packaging import version
 
+from piperider_cli.dbt import dbt_version
 from piperider_cli.dbt.list_task import (
     compare_models_between_manifests,
-    dbt_version_obj,
     list_resources_unique_id_from_manifest,
     load_manifest,
 )
@@ -82,6 +82,12 @@ class TestDbtIntegration(_BaseDbtTest):
     def setUp(self):
         super().setUp()
 
+    def assertDbtResources(self, r1: List[str], r2: List[str]):
+        if dbt_version >= 'v1.6':
+            r1 = [x for x in r1 if not x.startswith('metric')]
+            r2 = [x for x in r2 if not x.startswith('metric')]
+        return self.assertEqual(r1, r2)
+
     def test_list_all_resources(self):
         expected = [
             "metric.jaffle_shop.revenue",
@@ -117,7 +123,7 @@ class TestDbtIntegration(_BaseDbtTest):
 
         all_results = list_resources_unique_id_from_manifest(self.base_manifest())
 
-        self.assertListEqual(expected, all_results)
+        self.assertDbtResources(expected, all_results)
 
     def test_compare_with_manifests(self):
         without_downstream = compare_models_between_manifests(
@@ -125,26 +131,26 @@ class TestDbtIntegration(_BaseDbtTest):
         )
 
         expected = ["jaffle_shop.customers", "jaffle_shop.orders"]
-        self.assertListEqual(without_downstream, expected)
+        self.assertDbtResources(without_downstream, expected)
 
         with_downstream = compare_models_between_manifests(
             self.base_manifest(), self.target_manifest(), True
         )
 
         expected = ["jaffle_shop.customers", "jaffle_shop.orders"]
-        self.assertListEqual(with_downstream, expected)
+        self.assertDbtResources(with_downstream, expected)
 
     def test_list_explicit_changes(self):
         c = GraphDataChangeSet(self.base_run(), self.target_run())
 
         expected = ["model.jaffle_shop.customers", "model.jaffle_shop.orders"]
         changes = c.list_explicit_changes()
-        self.assertListEqual(changes, expected)
+        self.assertDbtResources(changes, expected)
 
         print(c.list_implicit_changes())
 
     @unittest.skipIf(
-        dbt_version_obj() < version.parse("1.4"),
+        dbt_version < version.parse("1.4"),
         "this only works after manifests generated after the v1.4",
     )
     def test_list_explicit_changes_without_ref_ids(self):
@@ -152,16 +158,16 @@ class TestDbtIntegration(_BaseDbtTest):
 
         expected = ["model.jaffle_shop.orders"]
         changes = c.list_explicit_changes()
-        self.assertListEqual(changes, expected)
+        self.assertDbtResources(changes, expected)
 
         expected_implicit = [
             "metric.jaffle_shop.average_order_amount",
             "model.jaffle_shop.orders",
         ]
-        self.assertListEqual(c.list_implicit_changes(), expected_implicit)
+        self.assertDbtResources(c.list_implicit_changes(), expected_implicit)
 
     @unittest.skipIf(
-        dbt_version_obj() < version.parse("1.4"),
+        dbt_version < version.parse("1.4"),
         "this only works after manifests generated after the v1.4",
     )
     def test_list_explicit_changes_with_ref_ids(self):
@@ -169,32 +175,32 @@ class TestDbtIntegration(_BaseDbtTest):
 
         expected = ["model.jaffle_shop.orders"]
         changes = c.list_explicit_changes()
-        self.assertListEqual(changes, expected)
+        self.assertDbtResources(changes, expected)
 
         expected_implicit = [
             "metric.jaffle_shop.average_order_amount",
             "model.jaffle_shop.orders",
         ]
-        self.assertListEqual(c.list_implicit_changes(), expected_implicit)
+        self.assertDbtResources(c.list_implicit_changes(), expected_implicit)
 
     @unittest.skipIf(
-        dbt_version_obj() < version.parse("1.4"),
+        dbt_version < version.parse("1.4"),
         "this only works after manifests generated after the v1.4",
     )
     def test_list_changes_metrics_case(self):
         c = GraphDataChangeSet(self.base_31587_metrics(), self.target_31587_metrics())
         expected = ["model.jaffle_shop.orders"]
         changes = c.list_explicit_changes()
-        self.assertListEqual(changes, expected)
+        self.assertDbtResources(changes, expected)
 
         changes = c.list_implicit_changes()
-        self.assertListEqual(
+        self.assertDbtResources(
             changes,
             ["metric.jaffle_shop.average_order_amount", "model.jaffle_shop.orders"],
         )
 
     @unittest.skipIf(
-        dbt_version_obj() < version.parse("1.4"),
+        dbt_version < version.parse("1.4"),
         "this only works after manifests generated after the v1.4",
     )
     def test_list_large_seeds_case(self):
@@ -206,7 +212,7 @@ class TestDbtIntegration(_BaseDbtTest):
         expected = ["metric.jaffle_shop.expenses", "model.jaffle_shop.stg_payments"]
 
         changes = c.list_explicit_changes()
-        self.assertListEqual(changes, expected)
+        self.assertDbtResources(changes, expected)
 
         expected = [
             "metric.jaffle_shop.expenses",
@@ -215,4 +221,4 @@ class TestDbtIntegration(_BaseDbtTest):
         ]
 
         changes = c.list_implicit_changes()
-        self.assertListEqual(changes, expected)
+        self.assertDbtResources(changes, expected)

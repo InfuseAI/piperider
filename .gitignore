@@ -322,3 +322,4 @@ piperider-getting-started
 
 .envrc
 tests/output*.md
+e2e-jaffle-shop/jaffle_shop
