@@ -35,13 +35,13 @@ export function ReportContextBar({
   if (data) {
     if (singleOnly) {
       const report = data as SingleReportSchema;
-      datasource = report.datasource.name;
+      datasource = report.datasource?.name;
       version = report.version;
-      gitBranch = report.datasource.git_branch;
+      gitBranch = report.datasource?.git_branch;
     } else {
       const report = data as ComparisonReportSchema;
       const fallback = report.input ?? report.base;
-      datasource = fallback.datasource.name;
+      datasource = fallback.datasource?.name;
       version = fallback.version;
 
       if (
@@ -52,7 +52,12 @@ export function ReportContextBar({
       }
 
       if (report.metadata?.github_pr_id && report.metadata?.github_pr_url) {
-        githubPr = `#${report.metadata?.github_pr_id} ${report.metadata?.github_pr_title}`;
+        if (report.metadata?.github_pr_title) {
+          githubPr = `#${report.metadata?.github_pr_id} ${report.metadata?.github_pr_title}`;
+        } else {
+          githubPr = `#${report.metadata?.github_pr_id}`;
+        }
+
         githubPrUrl = report.metadata?.github_pr_url;
       }
     }
