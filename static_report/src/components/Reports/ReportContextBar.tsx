@@ -1,12 +1,4 @@
-import {
-  Box,
-  Button,
-  Flex,
-  FlexProps,
-  Link,
-  Spacer,
-  Text,
-} from '@chakra-ui/react';
+import { Box, Flex, FlexProps, Link, Text } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { BiPlug } from 'react-icons/bi';
 import { BsGearWideConnected } from 'react-icons/bs';
@@ -74,7 +66,7 @@ export function ReportContextBar({
       bg={'gray.100'}
       border={borderVal}
       borderX={0}
-      px="80px"
+      px="96px"
       py="10px"
       {...props}
     >

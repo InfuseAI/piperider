@@ -1,4 +1,4 @@
-import { Box, Button, Flex, FlexProps, useColorMode } from '@chakra-ui/react';
+import { Box, Flex, FlexProps, useColorMode } from '@chakra-ui/react';
 import { useEffect, ReactNode } from 'react';
 import * as amplitude from '@amplitude/analytics-browser';
 
