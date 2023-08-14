@@ -283,8 +283,18 @@ class Profiler:
             table_name = subject.name
             ref_id = subject.ref_id
             dbt_node = dbt_manifest.get('nodes', {}).get(ref_id, {})
+            dbt_source = dbt_manifest.get('sources', {}).get(ref_id, {})
+            dbt_columns = {}
             columns = {}
-            for key, val in dbt_node.get('columns', {}).items():
+            if dbt_node:
+                # Read columns from dbt manifest `columns` field
+                dbt_columns = dbt_node.get('columns', {})
+            elif dbt_source:
+                # Read columns from dbt manifest `sources` field
+                dbt_columns = dbt_source.get('columns', {})
+
+            # Fill the columns with name and description
+            for key, val in dbt_columns.items():
                 name = val.get('name')
                 description = val.get('description')
                 columns[key] = dict(
