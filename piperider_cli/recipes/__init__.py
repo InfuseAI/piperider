@@ -2,6 +2,7 @@ import os
 import sys
 from abc import ABCMeta
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List
 
 import jsonschema
@@ -338,10 +339,10 @@ def execute_dbt_compile_archive(model: RecipeModel, debug=False):
 
     if model.tmp_dir_path is None:
         model.tmp_dir_path = tool().git_archive(branch_or_commit)
-        model.state_path = os.path.join(model.tmp_dir_path, 'state')
+        model.state_path = Path(os.path.join(model.tmp_dir_path, 'state')).as_posix()
 
-    execute_dbt_deps(model, model.tmp_dir_path, FileSystem.DBT_PROFILES_DIR)
-    execute_dbt_compile(model, model.tmp_dir_path, FileSystem.DBT_PROFILES_DIR, model.state_path)
+    execute_dbt_deps(model, model.tmp_dir_path, Path(FileSystem.DBT_PROFILES_DIR).as_posix())
+    execute_dbt_compile(model, model.tmp_dir_path, Path(FileSystem.DBT_PROFILES_DIR).as_posix(), model.state_path)
     pass
 
 
