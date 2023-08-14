@@ -1,15 +1,26 @@
-import { Flex, FlexProps, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Flex,
+  FlexProps,
+  Link,
+  Spacer,
+  Text,
+} from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { BiPlug } from 'react-icons/bi';
 import { BsGearWideConnected } from 'react-icons/bs';
 import { GoGitBranch } from 'react-icons/go';
+import { VscGitPullRequest } from 'react-icons/vsc';
+import {
+  Comparable,
+  ComparisonReportSchema,
+  SingleReportSchema,
+} from '../../types';
 import { borderVal } from '../../utils';
 
-interface Props {
-  datasource?: string;
-  version?: string;
-  gitBranch?: string;
-  showProjectInfo?: boolean;
+interface Props extends Comparable, FlexProps {
+  data?: Partial<ComparisonReportSchema> | Partial<SingleReportSchema>;
   children?: ReactNode;
   actionArea?: ReactNode;
 }
@@ -17,17 +28,46 @@ interface Props {
  * A UI Bar that provides information about the active report or a project's summary and run-selector, when available. Defaults to only show one active report.
  */
 export function ReportContextBar({
-  datasource,
-  version,
-  gitBranch,
-  showProjectInfo,
+  data,
   children,
   actionArea,
+  singleOnly,
   ...props
-}: Props & FlexProps) {
+}: Props) {
+  let datasource: string | undefined = undefined;
+  let version: string | undefined = undefined;
+  let gitBranch: string | undefined = undefined;
+  let githubPr: string | undefined = undefined;
+  let githubPrUrl: string | undefined = undefined;
+
+  if (data) {
+    if (singleOnly) {
+      const report = data as SingleReportSchema;
+      datasource = report.datasource.name;
+      version = report.version;
+      gitBranch = report.datasource.git_branch;
+    } else {
+      const report = data as ComparisonReportSchema;
+      const fallback = report.input ?? report.base;
+      datasource = fallback.datasource.name;
+      version = fallback.version;
+
+      if (
+        report.base?.datasource.git_branch &&
+        report.input?.datasource.git_branch
+      ) {
+        gitBranch = `${report.base?.datasource.git_branch} ↔ ${report.input?.datasource.git_branch}`;
+      }
+
+      if (report.metadata?.github_pr_id && report.metadata?.github_pr_url) {
+        githubPr = `#${report.metadata?.github_pr_id} ${report.metadata?.github_pr_title}`;
+        githubPrUrl = report.metadata?.github_pr_url;
+      }
+    }
+  }
+
   return (
     <Flex
-      w={'100%'}
       gap={5}
       justify={'space-between'}
       alignItems={'center'}
@@ -38,28 +78,55 @@ export function ReportContextBar({
       py="10px"
       {...props}
     >
-      <Flex gap={5}>
-        {children}
-        {showProjectInfo && (
+      {children && <Box flex="0 0 auto">{children}</Box>}
+      <Flex overflow="hidden" gap={5} justify={'flex-start'} flex="1">
+        {datasource && (
           <Flex gap={5}>
             <Flex alignItems={'center'} gap={2}>
               <BiPlug />
-              <Text color={'gray.500'}>Source: {datasource}</Text>
+              <Text color={'gray.500'}>{datasource}</Text>
             </Flex>
-            <Flex alignItems={'center'} gap={2}>
-              <BsGearWideConnected />
-              <Text color={'gray.500'}>Version: {version}</Text>
-            </Flex>
+          </Flex>
+        )}
+        {version && (
+          <Flex alignItems={'center'} gap={2}>
+            <BsGearWideConnected />
+            <Text color={'gray.500'}>{version}</Text>
+          </Flex>
+        )}
+        {githubPr && githubPrUrl && (
+          <Flex alignItems={'center'} gap={2} overflow="hidden">
+            <VscGitPullRequest />
+
+            <Text
+              flex="1"
+              color={'gray.500'}
+              whiteSpace="nowrap"
+              textOverflow="ellipsis"
+              overflow="hidden"
+            >
+              <Link href={githubPrUrl} target="_blank">
+                {githubPr}
+              </Link>
+            </Text>
           </Flex>
         )}
         {gitBranch && (
-          <Flex alignItems={'center'} gap={2}>
+          <Flex alignItems={'center'} gap={2} flex="1" overflow="hidden">
             <GoGitBranch />
-            <Text color={'gray.500'}>Branch: {gitBranch}</Text>
+            <Text
+              flex="1"
+              color={'gray.500'}
+              whiteSpace="nowrap"
+              textOverflow="ellipsis"
+              overflow="hidden"
+            >
+              {gitBranch}
+            </Text>
           </Flex>
         )}
       </Flex>
-      {actionArea}
+      {actionArea && <Box flex="0 0 auto">{actionArea}</Box>}
     </Flex>
   );
 }
