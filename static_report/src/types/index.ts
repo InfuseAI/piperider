@@ -48,6 +48,12 @@ export interface SaferTableSchema
 export interface ComparisonReportSchema {
   base: SaferSRSchema;
   input: SaferSRSchema;
+  metadata?: {
+    github_pr_id?: number;
+    github_pr_title?: string;
+    github_pr_url?: string;
+    [key: string]: any;
+  };
   implicit?: string[];
   explicit?: string[];
 }
