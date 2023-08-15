@@ -1,9 +1,6 @@
 import { Button, useClipboard } from '@chakra-ui/react';
 import { useEffect } from 'react';
-
-type Props = {
-  params: URLSearchParams;
-};
+import { useHashParams } from '../../hooks';
 
 function getWindow(): Window | undefined {
   if (typeof window === 'undefined') {
@@ -13,10 +10,11 @@ function getWindow(): Window | undefined {
   return window;
 }
 
-export function CopyGraphUrlButton({ params }: Props) {
+export function CopyGraphUrlButton() {
   const _window = getWindow();
 
   const { onCopy, setValue, hasCopied } = useClipboard('');
+  const hashParams = useHashParams();
 
   useEffect(() => {
     let url = _window?.location?.href;
@@ -24,12 +22,8 @@ export function CopyGraphUrlButton({ params }: Props) {
       return;
     }
 
-    if (url && url.includes('#')) {
-      url = url.split('#')[0];
-    }
-
-    setValue(`${url}#/?${params.toString()}`);
-  }, [_window, params, setValue]);
+    setValue(url);
+  }, [_window, hashParams, setValue]);
 
   return (
     <Button variant="outline" colorScheme="gray" size="sm" onClick={onCopy}>
