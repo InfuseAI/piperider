@@ -281,7 +281,7 @@ class Configuration(object):
         self.profiler_config = kwargs.get('profiler', {}) or {}
         self.includes = kwargs.get('includes', None)
         self.excludes = kwargs.get('excludes', None)
-        self.include_views = kwargs.get('include_views', False)
+        self.include_views = kwargs.get('include_views', True)
         self.tables = kwargs.get('tables', {})
 
         # only the legacy project will set telemetry_id from config
@@ -536,7 +536,7 @@ class Configuration(object):
             tables=config.get('tables', {}),
             includes=config.get('includes', None),
             excludes=config.get('excludes', None),
-            include_views=config.get('include_views', False),
+            include_views=config.get('include_views', True),
             telemetry_id=config.get('telemetry', {}).get('id'),
             report_dir=config.get('report_dir', '.'),
             dbt=dbt,

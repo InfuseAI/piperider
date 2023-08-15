@@ -738,7 +738,7 @@ class Runner():
         statistics.reset()
         metrics = []
         if dbt_config:
-            metrics = dbtutil.get_dbt_state_metrics(dbt_target_path, dbt_config.get('tag', 'piperider'), dbt_resources)
+            metrics = dbtutil.get_dbt_state_metrics(dbt_target_path, dbt_config.get('tag'), dbt_resources)
 
         console.rule('Query metrics')
         statistics.display_statistic('query', 'metric')
