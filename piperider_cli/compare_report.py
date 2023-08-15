@@ -9,6 +9,7 @@ from typing import Dict, List, Optional
 import inquirer
 import readchar
 from rich.console import Console
+from piperider_cli.githubutil import fetch_pr_metadata
 
 import piperider_cli.hack.inquirer as inquirer_hack
 from piperider_cli import clone_directory, datetime_to_str, open_report_in_browser, \
@@ -177,9 +178,11 @@ class ComparisonData(object):
 
         self.implicit = []
         self.explicit = []
+        self.metadata = {}
 
         self.summary_change_set: Optional[SummaryChangeSet] = None
         self._update_implicit_and_explicit_changeset()
+        self._update_github_pr_info()
 
     def _update_implicit_and_explicit_changeset(self):
         try:
@@ -194,6 +197,10 @@ class ComparisonData(object):
             console.print(
                 f'[bold yellow]Warning:[/bold yellow] {e}. Got problem to generate changeset.')
 
+    def _update_github_pr_info(self):
+        if os.environ.get('GITHUB_EVENT_PATH'):
+            self.metadata = fetch_pr_metadata()
+
     def id(self):
         return self._id
 
@@ -205,6 +212,7 @@ class ComparisonData(object):
             input=self._target,
             implicit=self.implicit,
             explicit=self.explicit,
+            metadata=self.metadata,
         )
         return json.dumps(output, separators=(',', ':'))
 
@@ -242,7 +250,8 @@ class ComparisonData(object):
             f"modified={len(modified)}",
         ]
 
-        potentially_impacted = [x.unique_id for x in (self.summary_change_set.models.modified_with_downstream + removed)]
+        potentially_impacted = [x.unique_id for x in
+                                (self.summary_change_set.models.modified_with_downstream + removed)]
         impacted = [x for x in list(set(
             self.summary_change_set.models.diffs + self.summary_change_set.metrics.diffs + self.summary_change_set.seeds.diffs
         )) if x in potentially_impacted]

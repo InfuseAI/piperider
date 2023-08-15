@@ -79,16 +79,32 @@ export function ReportContextBar({
       <Flex overflow="hidden" gap={5} justify={'flex-start'} flex="1">
         {datasource && (
           <Flex gap={5}>
-            <Flex alignItems={'center'} gap={2}>
+            <Flex alignItems={'center'} gap={2} overflow="hidden">
               <BiPlug />
-              <Text color={'gray.500'}>{datasource}</Text>
+              <Text
+                flex="1"
+                color={'gray.500'}
+                whiteSpace="nowrap"
+                textOverflow="ellipsis"
+                overflow="hidden"
+              >
+                {datasource}
+              </Text>
             </Flex>
           </Flex>
         )}
         {version && (
-          <Flex alignItems={'center'} gap={2}>
+          <Flex alignItems={'center'} gap={2} overflow="hidden">
             <BsGearWideConnected />
-            <Text color={'gray.500'}>{version}</Text>
+            <Text
+              flex="1"
+              color={'gray.500'}
+              whiteSpace="nowrap"
+              textOverflow="ellipsis"
+              overflow="hidden"
+            >
+              {version}
+            </Text>
           </Flex>
         )}
         {githubPr && githubPrUrl && (
