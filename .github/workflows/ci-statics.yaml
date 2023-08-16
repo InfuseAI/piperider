@@ -5,10 +5,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
       # Trigger when PR is created and/or head of branch is updated.
-    paths:
-      - "static_report/**"
-      - "piperider_cli/**"
-      # Trigger when diffs detected in statics source code
+    # paths:
+    #   - "static_report/**"
+    #   - "piperider_cli/**"
+    #   # Trigger when diffs detected in statics source code
     branches:
       - main
       # Only PR target is `main`
