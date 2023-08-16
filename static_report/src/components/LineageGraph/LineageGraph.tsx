@@ -113,7 +113,8 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
     'g_ci',
     'potentially_impacted_plus',
   );
-  const [changeSelect, setChangeSelect] = useState<string>(
+  const [changeSelect, setChangeSelect] = useHashState(
+    'g_cs',
     'potentially_impacted',
   );
 
