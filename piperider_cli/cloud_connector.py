@@ -433,7 +433,7 @@ class CloudConnector:
 
         if enable_share:
             run_id = response.get('run_id')
-            CloudConnector.share_run_report(run_id, debug)
+            CloudConnector.share_run_report(run_id, debug, project_name=project_name)
 
         return rc
 
@@ -502,12 +502,16 @@ class CloudConnector:
                 f.write(response.get('summary'))
 
     @staticmethod
-    def share_run_report(run_id=None, debug=False):
+    def share_run_report(run_id=None, debug=False, project_name=None):
         if piperider_cloud.available is False:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
 
-        workspace_name, project_name = piperider_cloud.get_default_workspace_and_project()
+        if project_name is None:
+            workspace_name, project_name = piperider_cloud.get_default_workspace_and_project()
+        else:
+            workspace_name, project_name = project_name.split('/')
+
         if workspace_name is None or project_name is None:
             console.rule('Please select a workspace and a project first', style='red')
             return 1
