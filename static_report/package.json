@@ -52,7 +52,7 @@
     "@types/react-dom": "^18.0.5",
     "chalk": "^5.0.1",
     "craco-esbuild": "^0.5.1",
-    "cypress": "^10.3.0",
+    "cypress": "^12.17.4",
     "dagre": "^0.8.5",
     "dotenv": "^16.0.3",
     "dotenv-cli": "^6.0.0",
