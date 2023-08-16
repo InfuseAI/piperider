@@ -522,7 +522,7 @@ class CompareReport(object):
         if summary_data:
             console.print(f"Comparison summary: {summary_md_path}")
         if report_url:
-            console.print(f"Comparison report URL: {report_url}", soft_wrap=True)
+            console.print(f"Comparison report URL: {report_url}?utm_source=cli", soft_wrap=True)
 
         if open_report:
             if report_url:

@@ -10,6 +10,24 @@ function getWindow(): Window | undefined {
   return window;
 }
 
+function patchUrl(url) {
+  const urlObj = new URL(url);
+  const utmParams = [
+    'utm_source',
+    'utm_medium',
+    'utm_campaign',
+    'utm_term',
+    'utm_content',
+  ];
+
+  for (const param of utmParams) {
+    urlObj.searchParams.delete(param);
+  }
+
+  urlObj.searchParams.append('utm_source', 'lineage');
+  return urlObj.toString();
+}
+
 export function CopyGraphUrlButton() {
   const _window = getWindow();
 
@@ -21,7 +39,7 @@ export function CopyGraphUrlButton() {
     if (!url) {
       return;
     }
-
+    url = patchUrl(url);
     setValue(url);
   }, [_window, hashParams, setValue]);
 

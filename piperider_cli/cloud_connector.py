@@ -427,7 +427,7 @@ class CloudConnector:
             console.print(ascii_table)
 
             for report in reports:
-                console.print(f'Report #{report[0]} URL: [deep_sky_blue1]{report[1]}[/deep_sky_blue1]', soft_wrap=True)
+                console.print(f'Report #{report[0]} URL: [deep_sky_blue1]{report[1]}?utm_source=cli[/deep_sky_blue1]', soft_wrap=True)
 
         if open_report:
             url = response.get('report_url')
@@ -499,7 +499,7 @@ class CloudConnector:
             console.print('Failed to create the comparison report')
         else:
             url = response.get('url')
-            console.print(f'Comparison report URL: {url}')
+            console.print(f'Comparison report URL: {url}?utm_source=cli')
 
         if debug:
             console.print(response)

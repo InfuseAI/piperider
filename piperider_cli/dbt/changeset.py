@@ -22,7 +22,7 @@ def embed_url_cli(content: str, url: str, unique_id: str, resource_type: str):
 
 
 def embed_url_cloud(content: str, url: str, unique_id: str, resource_type: str):
-    return f"[{content}]({url}#/{resource_type}s/{urllib.parse.quote(unique_id)})"
+    return f"[{content}]({url}?utm_source=pr#/{resource_type}s/{urllib.parse.quote(unique_id)})"
 
 
 embed_url = None
@@ -561,7 +561,7 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
     def generate_impact_summary_section(self, out: Callable[[str], None]) -> None:
         out("# Impact Summary")
         if self.get_url():
-            out(f"[PipeRider Report]({self.get_url()})")
+            out(f"[PipeRider Report]({self.get_url()}?utm_source=pr)")
         out("### Code Changes")
         mt = MarkdownTable(headers=['Added', 'Removed', 'Modified'])
         explicit_changes = self.models.explicit_changeset + self.metrics.explicit_changeset + self.seeds.explicit_changeset
