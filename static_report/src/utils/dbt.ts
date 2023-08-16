@@ -164,7 +164,7 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
     );
   }
 
-  if (runResults) {
+  if (runResults && runResults.results) {
     runResults.results.forEach((result) => {
       const uniqueId = result.unique_id;
       if (dbtNodes[uniqueId]) {
