@@ -242,26 +242,25 @@ def verify_dbt_dependencies(cfg: RecipeConfiguration):
     tool().check_dbt_command()
 
 
-def update_select_with_recipe(cfg: RecipeConfiguration):
-    for cmd in cfg.target.dbt.commands:
-        words = cmd.split(' ')
-        if '-s' in words:
-            return tuple(words[words.index('-s') + 1:])
-        elif '--select' in words:
-            return tuple(words[words.index('--select') + 1:])
-    return ()
-
-
 def update_select_with_cli_option(select: tuple = None):
     if select is None or len(select) == 0:
         return ('state:modified+',)
 
-    if any('state:modified' in item for item in select) is True:
-        return select
+    return select
 
-    select_list = list(select)
-    select_list[0] = select_list[0] + ',state:modified+'
-    return tuple(select_list)
+
+def require_base_state(cfg: RecipeConfiguration):
+    if cfg.auto_generated:
+        return True
+
+    for cmd in cfg.target.dbt.commands:
+        words = cmd.split(' ')
+        if '-s' in words and 'state:modified' in words[words.index('-s') + 1]:
+            return True
+        if '--select' in words and 'state:modified' in words[words.index('--select') + 1]:
+            return True
+
+    return False
 
 
 def replace_commands_dbt_state_path(commands: List[str], dbt_state_path: str):
@@ -273,14 +272,12 @@ def replace_commands_dbt_state_path(commands: List[str], dbt_state_path: str):
 def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = None):
     config = Configuration.instance()
     state = None
-    if not cfg.auto_generated:
-        select = update_select_with_recipe(cfg)
-    else:
+    if cfg.auto_generated:
         select = update_select_with_cli_option(select)
     dbt_project = dbtutil.load_dbt_project(config.dbt.get('projectDir'))
     target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
 
-    if any('state:' in item for item in select) is True:
+    if require_base_state(cfg):
         execute_dbt_compile_archive(cfg.base)
         state = cfg.base.state_path
     # elif dbtutil.check_dbt_manifest(target_path) is False:
@@ -288,12 +285,14 @@ def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = No
     execute_dbt_deps(cfg.base)
     execute_dbt_compile(cfg.base)
 
-    if state:
+    if any('state:' in item for item in select):
         console.print(f"Run: \[dbt list] select option '{' '.join(select)}' with state")
+        resources = tool().list_dbt_resources(target_path, select=select, state=state)
     else:
         console.print(f"Run: \[dbt list] select option '{' '.join(select)}'")
+        resources = tool().list_dbt_resources(target_path, select=select)
     console.print()
-    return tool().list_dbt_resources(target_path, select=select, state=state), state
+    return resources, state
 
 
 def execute_recipe(model: RecipeModel, debug=False, recipe_type='base'):

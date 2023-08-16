@@ -493,6 +493,7 @@ def cloud_compare_reports(**kwargs):
               help='Prompt for confirmation to proceed with the run (Y/N)')
 @add_options([
     dbt_select_option_builder(),
+    click.option('--modified', default=False, is_flag=True, help='Only compare the modified models.'),
     click.option('--base-branch', default='main', type=click.STRING, help='Specify the base branch.',
                  show_default=True),
 ])
@@ -511,6 +512,7 @@ def compare_with_recipe(**kwargs):
     project_name = kwargs.get('project')
     debug = kwargs.get('debug', False)
     select = kwargs.get('select')
+    modified = kwargs.get('modified')
 
     base_branch = kwargs.get('base_branch')
 
@@ -544,6 +546,7 @@ def compare_with_recipe(**kwargs):
         recipe_config: RecipeConfiguration = RecipeExecutor.exec(
             recipe_name=recipe,
             select=select,
+            modified=modified,
             base_branch=base_branch,
             debug=debug)
         last = False
