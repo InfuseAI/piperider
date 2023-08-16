@@ -299,8 +299,8 @@ class Profiler:
                 description = val.get('description')
                 columns[key] = dict(
                     name=name,
-                    type=None,
-                    schema_type=None,
+                    type='other',
+                    schema_type='other',
                     description=description)
 
             profiled_tables[ref_id] = dict(name=table_name, columns=columns, ref_id=ref_id)
