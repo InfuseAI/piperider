@@ -275,6 +275,7 @@ def run(**kwargs):
             if dbt_list or dbt_resources or select:
                 Guide().show('No resources was profiled. Please check given "--select", "--dbt-list" option or '
                              'environment variable "PIPERIDER_DBT_RESOURCES" to choose the resources to profile.')
+                ret = 0
 
         if CloudConnector.is_login() and is_cloud_view:
             ret = CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),

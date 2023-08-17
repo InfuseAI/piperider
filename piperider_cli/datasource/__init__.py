@@ -105,9 +105,13 @@ class DataSource(metaclass=ABCMeta):
 
     @property
     def threads(self):
+        try:
+            engine = self.get_engine_by_database()
+        except Exception:
+            engine = None
         if self.credential.get('threads'):
             return self.credential.get('threads')
-        elif not isinstance(self.get_engine_by_database().pool, SingletonThreadPool):
+        elif engine and not isinstance(engine.pool, SingletonThreadPool):
             return 5
         else:
             return 1
