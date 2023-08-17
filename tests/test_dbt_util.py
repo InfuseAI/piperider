@@ -4,7 +4,7 @@ from unittest import TestCase, mock
 
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli.datasource.sqlite import SqliteDataSource
-from piperider_cli.dbt.list_task import dbt_version
+from piperider_cli.dbt import dbt_version
 from piperider_cli.profiler import Profiler
 from tests.common import create_table
 from tests.test_dbt_manifest_compatible import _load_manifest
@@ -60,8 +60,8 @@ class TestRunner(TestCase):
         self.assertEqual(tables[0].get('alias'), 'PRICE_PRESENT')
 
     def test_get_dbt_state_candidate_resources_only_models(self):
-        models = ['infusetude.amplitude.session',
-                  'infusetude.amplitude.user']
+        models = ['model.infusetude.session',
+                  'model.infusetude.user']
         resources = dict(models=models, metrics=[])
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=resources,
@@ -71,8 +71,8 @@ class TestRunner(TestCase):
         self.assertEqual(tables[1].get('name'), 'user')
 
     def test_get_dbt_state_candidate_resources_only_seeds(self):
-        models = ['infusetude.project_block',
-                  'infusetude.user_block']
+        models = ['seed.infusetude.project_block',
+                  'seed.infusetude.user_block']
         resources = dict(models=models, metrics=[])
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=resources,
@@ -107,9 +107,9 @@ class TestRunner(TestCase):
         self.assertEqual(len(tables), 0)
 
     def test_get_dbt_state_candidate_resources_without_view_profile(self):
-        models = ['infusetude.amplitude.stg_event',
-                  'infusetude.amplitude.session',
-                  'infusetude.amplitude.user']
+        models = ['model.infusetude.stg_event',
+                  'model.infusetude.session',
+                  'model.infusetude.user']
         resources = dict(models=models, metrics=[])
         tables = dbtutil.get_dbt_state_candidate(self.dbt_state_dir, dict(view_profile=None,
                                                                           dbt_resources=resources,
@@ -250,16 +250,18 @@ class TestRunner(TestCase):
 
     @mock.patch('piperider_cli.dbtutil.get_dbt_manifest')
     def test_load_dbt_resources(self, get_dbt_manifest):
-        v = dbt_version()
+        v = dbt_version
         target_path = os.path.join(os.path.dirname(__file__), 'mock_dbt_data')
-        if v == '1.5':
+        if v == '1.6':
+            get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.6.0-manifest.json')
+        elif v == '1.5':
             get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.5.1-manifest.json')
         elif v == '1.4':
             get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.4.2-manifest.json')
         elif v == '1.3':
             get_dbt_manifest.return_value = _load_manifest('dbt-postgres-1.3.4-manifest.json')
         else:
-            raise Exception('Unsupported dbt version')
+            raise Exception(f'Unsupported dbt version: {v}')
         resources = dbtutil.load_dbt_resources(target_path)
         self.assertIn('models', resources)
         self.assertIn('metrics', resources)

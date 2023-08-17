@@ -2,13 +2,6 @@ import json
 import os
 import shutil
 
-import pytest
-from dbt.contracts.graph.manifest import WritableManifest
-
-from piperider_cli.dbt import disable_dbt_compile_stats
-from piperider_cli.dbt.list_task import dbt_version_obj, load_manifest
-from packaging import version
-
 from piperider_cli.utils import create_link
 
 

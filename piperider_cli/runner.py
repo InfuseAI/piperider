@@ -769,7 +769,7 @@ class Runner():
         statistics.reset()
         metrics = []
         if dbt_config:
-            metrics = dbtutil.get_dbt_state_metrics(dbt_target_path, dbt_config.get('tag', 'piperider'), dbt_resources)
+            metrics = dbtutil.get_dbt_state_metrics(dbt_target_path, dbt_config.get('tag'), dbt_resources)
 
         if skip_datasource_connection is False:
             console.rule('Query metrics')

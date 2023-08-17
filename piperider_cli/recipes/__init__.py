@@ -2,6 +2,7 @@ import os
 import sys
 from abc import ABCMeta
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List
 
 import jsonschema
@@ -164,9 +165,10 @@ class RecipeModel:
 
 
 class RecipeConfiguration:
-    def __init__(self, base: RecipeModel, target: RecipeModel):
+    def __init__(self, base: RecipeModel, target: RecipeModel, auto_generated: bool = True):
         self.base: RecipeModel = base
         self.target: RecipeModel = target
+        self.auto_generated: bool = auto_generated
 
     def __dict__(self):
         return {
@@ -207,7 +209,8 @@ class RecipeConfiguration:
 
         return cls(
             base=base,
-            target=target
+            target=target,
+            auto_generated=False
         )
 
 
@@ -239,29 +242,25 @@ def verify_dbt_dependencies(cfg: RecipeConfiguration):
     tool().check_dbt_command()
 
 
-def update_select_with_recipe(cfg: RecipeConfiguration):
-    for cmd in cfg.target.dbt.commands:
-        words = cmd.split(' ')
-        if '-s' in words:
-            return tuple(words[words.index('-s') + 1:])
-        elif '--select' in words:
-            return tuple(words[words.index('--select') + 1:])
-    return None
-
-
-def update_select_with_modified(select: tuple = None, modified: bool = False):
-    if modified is False:
-        return select
-
-    if len(select) == 0:
+def update_select_with_cli_option(select: tuple = None):
+    if select is None or len(select) == 0:
         return ('state:modified+',)
 
-    if any('state:modified' in item for item in select) is True:
-        return select
+    return select
 
-    select_list = list(select)
-    select_list[0] = select_list[0] + ',state:modified+'
-    return tuple(select_list)
+
+def require_base_state(cfg: RecipeConfiguration):
+    if cfg.auto_generated:
+        return True
+
+    for cmd in cfg.target.dbt.commands:
+        words = cmd.split(' ')
+        if '-s' in words and 'state:modified' in words[words.index('-s') + 1]:
+            return True
+        if '--select' in words and 'state:modified' in words[words.index('--select') + 1]:
+            return True
+
+    return False
 
 
 def replace_commands_dbt_state_path(commands: List[str], dbt_state_path: str):
@@ -270,31 +269,30 @@ def replace_commands_dbt_state_path(commands: List[str], dbt_state_path: str):
     return [command.replace('<DBT_STATE_PATH>', dbt_state_path) for command in commands]
 
 
-def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = None, modified: bool = False):
+def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = None):
     config = Configuration.instance()
     state = None
-    if not select:
-        select = update_select_with_recipe(cfg)
-    if not select:
-        select = (f'tag:{config.dbt.get("tag")}',) if config.dbt.get('tag') else ()
-    select = update_select_with_modified(select, modified)
+    if cfg.auto_generated:
+        select = update_select_with_cli_option(select)
     dbt_project = dbtutil.load_dbt_project(config.dbt.get('projectDir'))
     target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
 
-    if any('state:' in item for item in select) is True:
+    if require_base_state(cfg):
         execute_dbt_compile_archive(cfg.base)
         state = cfg.base.state_path
-    elif dbtutil.check_dbt_manifest(target_path) is False:
-        # Need to compile the dbt project if the manifest file does not exist
-        execute_dbt_deps(cfg.base)
-        execute_dbt_compile(cfg.base)
+    # elif dbtutil.check_dbt_manifest(target_path) is False:
+    # Need to compile the dbt project if the manifest file does not exist
+    execute_dbt_deps(cfg.base)
+    execute_dbt_compile(cfg.base)
 
-    if state:
+    if any('state:' in item for item in select):
         console.print(f"Run: \[dbt list] select option '{' '.join(select)}' with state")
+        resources = tool().list_dbt_resources(target_path, select=select, state=state)
     else:
         console.print(f"Run: \[dbt list] select option '{' '.join(select)}'")
+        resources = tool().list_dbt_resources(target_path, select=select)
     console.print()
-    return tool().list_dbt_resources(target_path, select=select, state=state), state
+    return resources, state
 
 
 def execute_recipe(model: RecipeModel, debug=False, recipe_type='base'):
@@ -332,11 +330,6 @@ def execute_recipe(model: RecipeModel, debug=False, recipe_type='base'):
             sys.exit(exit_code)
         console.print()
 
-    # if recipe_type == 'target':
-    #     config = Configuration.instance()
-    #     fqn_list = dbtutil.get_fqn_list_by_tag(config.dbt.get('tag'), config.dbt.get('projectDir'))
-    #     model.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(fqn_list)
-
 
 def execute_dbt_compile_archive(model: RecipeModel, debug=False):
     branch_or_commit = tool().git_merge_base(model.branch, 'HEAD') or model.branch
@@ -345,10 +338,10 @@ def execute_dbt_compile_archive(model: RecipeModel, debug=False):
 
     if model.tmp_dir_path is None:
         model.tmp_dir_path = tool().git_archive(branch_or_commit)
-        model.state_path = os.path.join(model.tmp_dir_path, 'state')
+        model.state_path = Path(os.path.join(model.tmp_dir_path, 'state')).as_posix()
 
-    execute_dbt_deps(model, model.tmp_dir_path, FileSystem.DBT_PROFILES_DIR)
-    execute_dbt_compile(model, model.tmp_dir_path, FileSystem.DBT_PROFILES_DIR, model.state_path)
+    execute_dbt_deps(model, model.tmp_dir_path, Path(FileSystem.DBT_PROFILES_DIR).as_posix())
+    execute_dbt_compile(model, model.tmp_dir_path, Path(FileSystem.DBT_PROFILES_DIR).as_posix(), model.state_path)
     pass
 
 
@@ -473,7 +466,7 @@ def clean_up(cfg: RecipeConfiguration):
         tool().remove_dir(cfg.target.tmp_dir_path)
 
 
-def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None, modified: bool = False, debug=False):
+def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None, debug=False):
     console.rule("Recipe executor: verify execution environments")
     # check the dependencies
     console.print("Check: git")
@@ -483,14 +476,13 @@ def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None,
 
     try:
         console.rule("Recipe executor: prepare execution environments")
-        dbt_resources, dbt_state_path = prepare_dbt_resources_candidate(cfg, select=select, modified=modified)
-        if dbt_resources:
-            if debug:
-                console.print(f'Config: piperider env "PIPERIDER_DBT_RESOURCES" = {dbt_resources}')
-            else:
-                console.print('Config: piperider env "PIPERIDER_DBT_RESOURCES"')
-            cfg.base.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
-            cfg.target.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
+        dbt_resources, dbt_state_path = prepare_dbt_resources_candidate(cfg, select=select)
+        if debug:
+            console.print(f'Config: piperider env "PIPERIDER_DBT_RESOURCES" = {dbt_resources}')
+        else:
+            console.print('Config: piperider env "PIPERIDER_DBT_RESOURCES"')
+        cfg.base.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
+        cfg.target.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
 
         if dbt_state_path:
             cfg.target.dbt.commands = replace_commands_dbt_state_path(cfg.target.dbt.commands, dbt_state_path)

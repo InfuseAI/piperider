@@ -83,7 +83,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const hashParams = useHashParams();
 
   const [selected, setSelected] = useState<string | undefined>();
@@ -91,13 +91,30 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
   const [expandLeft, setExpandLeft] = useState<string[]>([]);
   const [expandRight, setExpandRight] = useState<string[]>([]);
 
-  const [stat, setStat] = useState<string>(
-    hashParams.get('g_s') || (singleOnly ? 'row_count' : 'impact'),
+  // stat
+  const useHashState = useCallback(
+    (param, defaultValue) => {
+      const value =
+        hashParams.get(param) !== null ? hashParams.get(param) : defaultValue;
+      const setValue = (value: string) => {
+        hashParams.set(param, value);
+        setLocation(location + '?' + hashParams.toString());
+      };
+      return [value, setValue];
+    },
+    [hashParams, setLocation, location],
   );
-  const [changeInclude, setChangeInclude] = useState<string>(
+  const [stat, setStat] = useHashState(
+    'g_s',
+    singleOnly ? 'row_count' : 'impact',
+  );
+
+  const [changeInclude, setChangeInclude] = useHashState(
+    'g_ci',
     'potentially_impacted_plus',
   );
-  const [changeSelect, setChangeSelect] = useState<string>(
+  const [changeSelect, setChangeSelect] = useHashState(
+    'g_cs',
     'potentially_impacted',
   );
 
@@ -129,28 +146,6 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
       page: 'lineage-graph',
     },
   });
-
-  const paramStat = hashParams.get('g_s');
-  const paramChangeInclude = hashParams.get('g_ci');
-
-  useEffect(() => {
-    if (paramStat) {
-      setStat(paramStat);
-    }
-  }, [paramStat]);
-
-  useEffect(() => {
-    if (paramChangeInclude) {
-      setChangeInclude(paramChangeInclude);
-    }
-  }, [paramChangeInclude]);
-
-  const copyParams = new URLSearchParams();
-  copyParams.append('g_v', '1');
-  copyParams.append('g_s', stat);
-  if (!singleOnly) {
-    copyParams.append('g_ci', changeInclude);
-  }
 
   const onResetClick = () => {
     setSelected(undefined);
@@ -366,7 +361,7 @@ function LineageGraphWrapped({ singleOnly }: Comparable) {
           <Controls showInteractive={false} />
           <MiniMap nodeStrokeWidth={3} zoomable pannable />
           <Panel position="top-right">
-            <CopyGraphUrlButton params={copyParams} />
+            <CopyGraphUrlButton />
           </Panel>
           {!singleOnly && (
             <Panel position="top-left">

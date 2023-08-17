@@ -164,7 +164,7 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
     );
   }
 
-  if (runResults) {
+  if (runResults && runResults.results) {
     runResults.results.forEach((result) => {
       const uniqueId = result.unique_id;
       if (dbtNodes[uniqueId]) {
@@ -185,21 +185,27 @@ export function compareColumn(
     return 'col_added';
   } else if (!target) {
     return 'col_removed';
-  } else if (base.schema_type !== target?.schema_type) {
+  } else if (
+    base.schema_type &&
+    target.schema_type &&
+    base.schema_type !== target.schema_type
+  ) {
     return 'col_changed';
   }
 
   // value change
-  if (base?.nulls !== target?.nulls) {
-    return 'col_changed';
-  }
+  if (base?.nulls !== undefined && target?.nulls !== undefined) {
+    if (base?.nulls !== target?.nulls) {
+      return 'col_changed';
+    }
 
-  if (base?.distinct !== target?.distinct) {
-    return 'col_changed';
-  }
+    if (base?.distinct !== target?.distinct) {
+      return 'col_changed';
+    }
 
-  if (base?.duplicates !== target?.duplicates) {
-    return 'col_changed';
+    if (base?.duplicates !== target?.duplicates) {
+      return 'col_changed';
+    }
   }
 }
 

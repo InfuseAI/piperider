@@ -92,8 +92,14 @@ class DuckDBDataSource(DataSource):
         from piperider_cli.configuration import FileSystem
         dbpath = credential.get('path')
         if os.path.isabs(dbpath) is False:
-            dbpath = os.path.join(os.getcwd(), dbpath)
-        duckdb_path = os.path.abspath(dbpath)
+            current_directory_path = os.path.join(os.getcwd(), dbpath)
+            working_directory_path = os.path.join(FileSystem.WORKING_DIRECTORY, dbpath)
+            if os.path.exists(current_directory_path):
+                duckdb_path = os.path.abspath(current_directory_path)
+            else:
+                duckdb_path = os.path.abspath(working_directory_path)
+        else:
+            duckdb_path = dbpath
         if not os.path.exists(duckdb_path):
             raise PipeRiderDataBaseConnectionError(self.name, self.type_name, db_path=duckdb_path)
         return f"duckdb:///{duckdb_path}"

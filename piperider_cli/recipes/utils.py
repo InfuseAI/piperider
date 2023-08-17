@@ -12,7 +12,7 @@ from typing import Dict, Tuple
 from rich.console import Console
 
 from piperider_cli.configuration import FileSystem
-from piperider_cli.dbt.list_task import list_resources_from_manifest, load_full_manifest, load_manifest
+from piperider_cli.dbt.list_task import list_resources_unique_id_from_manifest, load_full_manifest, load_manifest
 from piperider_cli.dbtutil import get_dbt_manifest
 from piperider_cli.error import PipeRiderError, RecipeException
 
@@ -166,7 +166,7 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
             manifest = load_full_manifest(target_path)
         else:
             manifest = load_manifest(get_dbt_manifest(target_path))
-        return list_resources_from_manifest(manifest, select=select, state=state)
+        return list_resources_unique_id_from_manifest(manifest, select=select, state=state)
 
 
 class RecipeUtils(AbstractRecipeUtils):

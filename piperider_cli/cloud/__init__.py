@@ -325,14 +325,16 @@ class PipeRiderCloud:
 
         return response.json()
 
-    def compare_reports(self, base_id: int, target_id: int, tables_from, project: PipeRiderProject):
+    def compare_reports(self, base_id: int, target_id: int, tables_from, project: PipeRiderProject,
+                        metadata: dict = None):
         if not self.available:
             self.raise_error()
 
         url = self.service.url(
             f'/api/v2/workspaces/{project.workspace_name}/projects/{project.name}/runs/{base_id}/compare/{target_id}')
         headers = self.service.auth_headers()
-        response = requests.post(url, data=json.dumps({'tables_from': tables_from}), headers=headers)
+        data = json.dumps({'tables_from': tables_from, 'metadata': metadata})
+        response = requests.post(url, data=data, headers=headers)
 
         if response.status_code != 200:
             self.raise_error(response.reason)

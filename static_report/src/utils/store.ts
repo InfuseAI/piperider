@@ -147,7 +147,7 @@ const getReportOnly = (rawData: ComparableReport) => {
 const getReportDisplayTime = (rawData: ComparableReport) => {
   const baseTime = formatReportTime(rawData.base?.created_at);
   const targetTime = formatReportTime(rawData.input?.created_at);
-  const result = targetTime ? `${baseTime} ➡️ ${targetTime}` : baseTime;
+  const result = targetTime ? `${baseTime} ↔ ${targetTime}` : baseTime;
   return result;
 };
 const getReportTime = (rawData: ComparableReport) => {
