@@ -1,9 +1,9 @@
-import io
+import json
 import json
 import os
 import shutil
 import sys
-from datetime import date, datetime
+from datetime import datetime
 from typing import Dict, List, Optional
 
 import inquirer
@@ -15,9 +15,9 @@ import piperider_cli.hack.inquirer as inquirer_hack
 from piperider_cli import clone_directory, datetime_to_str, open_report_in_browser, \
     raise_exception_when_directory_not_writable, str_to_datetime
 from piperider_cli.configuration import Configuration, ReportDirectory
-from piperider_cli.generate_report import setup_report_variables
 from piperider_cli.dbt.changeset import SummaryChangeSet
 from piperider_cli.dbt.utils import ChangeType
+from piperider_cli.generate_report import setup_report_variables
 from piperider_cli.utils import create_link, remove_link
 
 
@@ -501,7 +501,7 @@ class CompareReport(object):
                 from piperider_cli.cloud_connector import CloudConnector
                 base = str(report.a.cloud.get('run_id'))
                 target = str(report.b.cloud.get('run_id'))
-                CloudConnector.share_compare_report(base, target)
+                CloudConnector.share_compare_report(base, target, project_name=project_name)
 
         if output:
             clone_directory(default_report_directory, output)

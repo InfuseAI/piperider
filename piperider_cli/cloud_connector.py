@@ -536,12 +536,16 @@ class CloudConnector:
         )
 
     @staticmethod
-    def share_compare_report(base_id=None, target_id=None, debug=False):
+    def share_compare_report(base_id=None, target_id=None, debug=False, project_name=None):
         if piperider_cloud.available is False:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
 
-        workspace_name, project_name = piperider_cloud.get_default_workspace_and_project()
+        if project_name is None:
+            workspace_name, project_name = piperider_cloud.get_default_workspace_and_project()
+        else:
+            workspace_name, project_name = project_name.split('/')
+
         if workspace_name is None or project_name is None:
             console.rule('Please select a workspace and a project first', style='red')
             return 1
