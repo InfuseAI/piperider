@@ -273,12 +273,8 @@ def run(**kwargs):
         if ret == EC_WARN_NO_PROFILED_MODULES:
             # No module was profiled
             if dbt_list or dbt_resources or select:
-                Guide().show(
-                    'No resources was profiled. Please use "--select" option to choose the specific resources to profile.')
-            else:
-                Guide().show(
-                    'No resources was profiled. PipeRider will default to profiling the resources with the \'tag:piperider\'. '
-                    'Please modify your dbt resources with the tag \'piperider\' or use the \'--select\' option to choose the specific resources to profile.')
+                Guide().show('No resources was profiled. Please check given "--select", "--dbt-list" option or '
+                             'environment variable "PIPERIDER_DBT_RESOURCES" to choose the resources to profile.')
 
         if CloudConnector.is_login() and is_cloud_view:
             ret = CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),

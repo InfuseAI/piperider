@@ -300,10 +300,12 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
             if not chosen:
                 statistics.add_field_one('filter')
             return chosen
-        chosen = dbt_tag in metric.get('tags')
-        if not chosen:
-            statistics.add_field_one('notag')
-        return chosen
+        if dbt_tag is not None:
+            chosen = dbt_tag in metric.get('tags')
+            if not chosen:
+                statistics.add_field_one('notag')
+            return chosen
+        return True
 
     metrics = []
     metric_map = {}

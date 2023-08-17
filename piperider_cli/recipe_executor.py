@@ -32,9 +32,8 @@ class RecipeExecutor:
                 # generate a default recipe
                 console.rule("Recipe executor: generate recipe")
                 options = dict(base_branch=base_branch, target_branch=target_branch)
-                if select or modified:
+                if select:
                     options['select'] = select
-                    options['modified'] = modified
                 recipe = generate_default_recipe(overwrite_existing=False,
                                                  dbt_project_path=dbt_project_path,
                                                  options=options)
@@ -48,6 +47,6 @@ class RecipeExecutor:
                 raise FileNotFoundError(f"Cannot find the recipe '{recipe_name}'")
         else:
             recipe = RecipeConfiguration.load(recipe_path)
-        execute_recipe_configuration(recipe, select=select, modified=modified, debug=debug)
+        execute_recipe_configuration(recipe, select=select, debug=debug)
 
         return recipe
