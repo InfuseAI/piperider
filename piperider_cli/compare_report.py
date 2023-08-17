@@ -1,5 +1,4 @@
 import json
-import json
 import os
 import shutil
 import sys
@@ -9,7 +8,6 @@ from typing import Dict, List, Optional
 import inquirer
 import readchar
 from rich.console import Console
-from piperider_cli.githubutil import fetch_pr_metadata
 
 import piperider_cli.hack.inquirer as inquirer_hack
 from piperider_cli import clone_directory, datetime_to_str, open_report_in_browser, \
@@ -18,6 +16,7 @@ from piperider_cli.configuration import Configuration, ReportDirectory
 from piperider_cli.dbt.changeset import SummaryChangeSet
 from piperider_cli.dbt.utils import ChangeType
 from piperider_cli.generate_report import setup_report_variables
+from piperider_cli.githubutil import fetch_pr_metadata
 from piperider_cli.utils import create_link, remove_link
 
 
