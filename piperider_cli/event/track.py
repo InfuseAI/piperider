@@ -64,6 +64,8 @@ class TrackCommand(Command):
 
     def invoke(self, ctx: Context) -> t.Any:
         status = False
+        sentry_sdk.set_tag('command', ctx.command.name)
+
         try:
             self._apply_project_parameters(ctx)
 
