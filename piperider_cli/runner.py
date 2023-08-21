@@ -27,6 +27,8 @@ from piperider_cli.assertion_engine import AssertionEngine
 from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration, FileSystem, ReportDirectory
 from piperider_cli.datasource import DataSource
+from piperider_cli.datasource.unsupported import UnsupportedDataSource
+from piperider_cli.error import PipeRiderInvalidDataSourceError, PipeRiderError, PipeRiderConnectorUnsupportedError
 from piperider_cli.exitcode import EC_ERR_TEST_FAILED, EC_WARN_NO_PROFILED_MODULES
 from piperider_cli.metrics_engine import MetricEngine, MetricEventHandler
 from piperider_cli.profiler import ProfileSubject, Profiler, ProfilerEventHandler
@@ -321,30 +323,26 @@ def _transform_assertion_result(table: str, results):
 class PreRunValidatingResult(Enum):
     OK = 0
     ERROR = 1
-    SKIP_PROFILING = 2
+    FAILED_TO_LOAD_CONNECTOR = 2
+    FAILED_TO_CONNECT_DATASOURCE = 3
 
 
-def _pre_run_validating(ds: DataSource) -> PreRunValidatingResult:
+def _pre_run_validating(ds: DataSource) -> (PreRunValidatingResult, Exception):
     console = Console()
     err = ds.verify_connector()
     if err:
-        console.print(
-            f'[[bold yellow]WARNING[/bold yellow]] Failed to load the \'{ds.type_name}\' connector.')
-        return PreRunValidatingResult.SKIP_PROFILING
+        return PreRunValidatingResult.FAILED_TO_LOAD_CONNECTOR, err
 
     try:
         ds.verify_connection()
-    except Exception:
-        console.print(
-            f'[[bold yellow]WARNING[/bold yellow]] Failed to connect the \'{ds.name}\' data source.')
-        return PreRunValidatingResult.SKIP_PROFILING
+    except Exception as err:
+        return PreRunValidatingResult.FAILED_TO_CONNECT_DATASOURCE, err
 
     stop_runner = _validate_assertions(console)
     if stop_runner:
-        console.print('\n\n[bold red]ERROR:[/bold red] Stop profiling, please fix the syntax errors above.')
-        return PreRunValidatingResult.ERROR
+        return PreRunValidatingResult.ERROR, None
 
-    return PreRunValidatingResult.OK
+    return PreRunValidatingResult.OK, None
 
 
 def _validate_assertions(console: Console):
@@ -623,11 +621,11 @@ def get_git_branch():
 
 class Runner():
     @staticmethod
-    def exec(datasource=None, table=None, output=None, skip_report=False, dbt_target_path: str = None,
+    def \
+        exec(datasource=None, table=None, output=None, skip_report=False, dbt_target_path: str = None,
              dbt_resources: Optional[dict] = None, dbt_select: tuple = None, dbt_state: str = None,
-             report_dir: str = None):
+             report_dir: str = None, skip_datasource_connection: bool = False):
         console = Console()
-        skip_datasource_connection = False
 
         raise_exception_when_directory_not_writable(output)
 
@@ -640,8 +638,16 @@ class Runner():
             datasources[ds.name] = ds
 
         if len(datasource_names) == 0:
-            console.print("[bold red]Error: no datasource found[/bold red]")
-            return 1
+            if skip_datasource_connection is False:
+                console.print(
+                    "[[bold red]Error[/bold red]] Data source not found. "
+                    "Please check your dbt 'profiles.yml' configuration.")
+                return 1
+            else:
+                configuration.dbt['target'] = 'dev'
+                configuration.dbt['profile'] = 'unsupported-data-source'
+                datasources = {'dev': UnsupportedDataSource('Unknown', dbt=configuration.dbt)}
+                datasource_names = ['dev']
 
         if datasource:
             ds_name = datasource
@@ -651,7 +657,7 @@ class Runner():
             ds_name = configuration.dbt.get('target') if configuration.dbt else datasource_names[0]
 
         if ds_name not in datasource_names:
-            console.print(f"[bold red]Error: datasource '{ds_name}' doesn't exist[/bold red]")
+            console.print(f"[[bold red]Error[/bold red]] Datasource '{ds_name}' doesn't exist")
             console.print(f"Available datasources: {', '.join(datasource_names)}")
             return 1
 
@@ -672,12 +678,32 @@ class Runner():
 
         console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
         console.rule('Validating')
-        result = _pre_run_validating(ds)
+        result, err = _pre_run_validating(ds)
         if result is PreRunValidatingResult.ERROR:
+            console.print('\n\n[[bold red]ERROR[/bold red]] Stop profiling, please fix the syntax errors above.')
             return 1
-        elif result is PreRunValidatingResult.SKIP_PROFILING:
-            console.print('[[bold yellow]WARNING[/bold yellow]] [bold dark_orange]Skip profiling[/bold dark_orange]')
-            skip_datasource_connection = True
+        elif result is PreRunValidatingResult.FAILED_TO_LOAD_CONNECTOR:
+            if skip_datasource_connection is False:
+                if isinstance(err, PipeRiderConnectorUnsupportedError):
+                    console.print(f'[[bold red]Error[/bold red]] {err}')
+                    raise err
+                else:
+                    console.print(
+                        f'[[bold red]Error[/bold red]] Failed to load the \'{ds.credential.get("type")}\' connector.')
+                    if isinstance(err, PipeRiderError):
+                        console.print(f'Hint: {err.hint}')
+                return 1
+        elif result is PreRunValidatingResult.FAILED_TO_CONNECT_DATASOURCE:
+            if skip_datasource_connection is False:
+                console.print(
+                    '[[bold red]ERROR[/bold red]] Unable to connect the data source, please check the configuration')
+                if ds.type_name == 'unsupported':
+                    data_source_type = ds.credential.get('type')
+                    raise PipeRiderInvalidDataSourceError(data_source_type, FileSystem.dbt_profiles_path)
+                return 1
+
+        if skip_datasource_connection is True:
+            console.rule('Skip Profiling', style='dark_orange')
 
         dbt_config = ds.args.get('dbt')
         dbt_manifest = None
@@ -686,7 +712,7 @@ class Runner():
         if dbt_config:
             if not dbtutil.is_ready(dbt_config):
                 console.log(
-                    '[bold red]ERROR:[/bold red] DBT configuration is not completed, please check the config.yml')
+                    '[[bold red]ERROR:[/bold red]] DBT configuration is not completed, please check the config.yml')
                 return sys.exit(1)
             dbt_target_path, err_msg = get_dbt_state_dir(dbt_target_path, dbt_config, ds, skip_datasource_connection)
             if err_msg:

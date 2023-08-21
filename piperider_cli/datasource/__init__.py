@@ -272,6 +272,8 @@ def _list_datasource_providers():
     from .duckdb import DuckDBDataSource, CsvDataSource, ParquetDataSource
     from .athena import AthenaDataSource
     from .databricks import DataBricksDataSource
+    from .unsupported import UnsupportedDataSource
+
     return {
         'snowflake': SnowflakeDataSource,
         'bigquery': BigQueryDataSource,
@@ -287,4 +289,10 @@ def _list_datasource_providers():
     }
 
 
-DATASOURCE_PROVIDERS = _list_datasource_providers()
+class DataSourceProviders(dict):
+    def __getitem__(self, key):
+        from .unsupported import UnsupportedDataSource
+        return super().get(key, UnsupportedDataSource)
+
+
+DATASOURCE_PROVIDERS = DataSourceProviders(_list_datasource_providers())

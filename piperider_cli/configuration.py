@@ -16,6 +16,7 @@ from ruamel.yaml import CommentedMap, CommentedSeq
 
 from piperider_cli import raise_exception_when_directory_not_writable, round_trip_load_yaml, safe_load_yaml, dbtutil
 from piperider_cli.datasource import DATASOURCE_PROVIDERS, DataSource
+from piperider_cli.datasource.unsupported import UnsupportedDataSource
 from piperider_cli.error import \
     PipeRiderConfigError, \
     PipeRiderConfigTypeError, \
@@ -65,6 +66,10 @@ class _FileSystem:
             return os.getcwd()
         else:
             return os.path.expanduser(DBT_PROFILES_DIR_DEFAULT)
+
+    @property
+    def dbt_profiles_path(self):
+        return os.path.join(self.DBT_PROFILES_DIR, DBT_PROFILE_FILE)
 
     @property
     def PIPERIDER_WORKSPACE_NAME(self):
@@ -399,13 +404,15 @@ class Configuration(object):
             dbt['profilesDir'] = dbt_profiles_dir
 
         if type_name not in DATASOURCE_PROVIDERS:
-            raise PipeRiderInvalidDataSourceError(type_name, dbt_profile_path)
+            console.print(f"[[bold yellow]WARNING[/bold yellow]] Unsupported data source type '{type_name}' is found")
+            # raise PipeRiderInvalidDataSourceError(type_name, dbt_profile_path)
+            datasource_class = UnsupportedDataSource
+        else:
+            # Set 'pass' as the alias of 'password'
+            if credential.get('pass') and credential.get('password') is None:
+                credential['password'] = credential.pop('pass')
+            datasource_class = DATASOURCE_PROVIDERS[type_name]
 
-        # Set 'pass' as the alias of 'password'
-        if credential.get('pass') and credential.get('password') is None:
-            credential['password'] = credential.pop('pass')
-
-        datasource_class = DATASOURCE_PROVIDERS[type_name]
         datasource: DataSource = datasource_class(name=profile_name, dbt=dbt, credential=credential)
         datasource.show_installation_information()
 

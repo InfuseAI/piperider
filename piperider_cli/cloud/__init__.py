@@ -8,7 +8,7 @@ from rich.progress import Progress, TextColumn, BarColumn, DownloadColumn, TimeE
 from ruamel import yaml
 
 from piperider_cli import __version__
-from piperider_cli.configuration import Configuration, FileSystem
+from piperider_cli.configuration import Configuration
 from piperider_cli.error import PipeRiderNoDefaultProjectError, CloudReportError, PipeRiderConfigError
 from piperider_cli.event import load_user_profile, update_user_profile
 
@@ -117,9 +117,9 @@ class CloudServiceHelper:
 class PipeRiderCloud:
 
     def __init__(self):
-        self.service = CloudServiceHelper()
-        self.config: dict = self.service.get_config()
         try:
+            self.service = CloudServiceHelper()
+            self.config: dict = self.service.get_config()
             self.available, self.me = self.service.validate()
         except BaseException:
             self.available = False
