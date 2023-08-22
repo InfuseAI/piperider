@@ -101,6 +101,25 @@ class RichProfilerEventHandler(ProfilerEventHandler):
         task_id = self.tasks['__metadata__']
         self.progress.remove_task(task_id)
 
+    def handle_manifest_start(self):
+        self.progress.start()
+        padding = ' ' * (len(str(self.table_total)) - len(str(self.table_completed)))
+        coft = f'[{padding}{self.table_completed}/{self.table_total}]'
+        task_id = self.progress.add_task('DBT Manifest', total=None, coft=coft)
+        self.tasks['__manifest__'] = task_id
+        pass
+
+    def handle_manifest_progress(self, total, completed):
+        task_id = self.tasks['__manifest__']
+        self.progress.update(task_id, completed=completed, total=total)
+        pass
+
+    def handle_manifest_end(self):
+        self.progress.stop()
+        task_id = self.tasks['__manifest__']
+        self.progress.remove_task(task_id)
+        pass
+
     def handle_table_start(self, table_name):
         self.progress.start()
         self.table_completed += 1
@@ -702,9 +721,6 @@ class Runner():
                     raise PipeRiderInvalidDataSourceError(data_source_type, FileSystem.dbt_profiles_path)
                 return 1
 
-        if skip_datasource_connection is True:
-            console.rule('Skip Profiling', style='dark_orange')
-
         dbt_config = ds.args.get('dbt')
         dbt_manifest = None
         dbt_run_results = None
@@ -726,7 +742,6 @@ class Runner():
                                                                                                select=dbt_select,
                                                                                                state=dbt_state)
         console.print('everything is OK.')
-        console.rule('Collect metadata')
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
         if skip_datasource_connection:
@@ -777,10 +792,13 @@ class Runner():
 
         if skip_datasource_connection:
             # Generate run result from dbt manifest
+            console.rule('Analyze dbt manifest')
             profiler_result = profiler.collect_metadata_from_dbt_manifest(dbt_manifest, dbt_metadata_subjects, subjects)
+            console.rule('Skip Profile Data Source', style='dark_orange')
             run_result.update(profiler_result)
         else:
             try:
+                console.rule('Collect metadata')
                 profiler.collect_metadata(dbt_metadata_subjects, subjects)
 
                 console.rule('Profile statistics')
