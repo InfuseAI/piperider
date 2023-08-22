@@ -1,0 +1,8 @@
+# PipeRider haven't supported hive yet
+jaffle_shop:
+  target: dev
+  outputs:
+    dev:
+      type: hive
+      host: localhost
+      port: 10000

@@ -1,12 +1,15 @@
 import os
+import shutil
 from unittest import TestCase
 
+from piperider_cli.configuration import FileSystem, Configuration
+from piperider_cli.error import PipeRiderConnectorUnsupportedError
 from piperider_cli.profiler import ProfileSubject
-from piperider_cli.runner import _filter_subject, get_dbt_profile_subjects
+from piperider_cli.runner import _filter_subject, get_dbt_profile_subjects, Runner
 from piperider_cli.statistics import Statistics
 
 
-class TestRunner(TestCase):
+class TestRunnerSubjectFilter(TestCase):
 
     def setUp(self):
         self.dbt_state_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mock_dbt_data")
@@ -137,3 +140,38 @@ class TestRunner(TestCase):
         self.assertEqual(10, self.statistics.statistic['total'])
         self.assertEqual(8, self.statistics.statistic['filter'])
         self.assertEqual(1, self.statistics.statistic['view'])
+
+
+class TestExecuteRunnerWithoutDataSourceConnection(TestCase):
+    def setUp(self) -> None:
+        self.original_working_directory = FileSystem.WORKING_DIRECTORY
+        self.original_profiles_dir = FileSystem.dbt_profiles_dir
+        self.dbt_project_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mock_dbt_project',
+                                            'skip_datasource_connection')
+
+        FileSystem.set_working_directory(self.dbt_project_dir)
+        FileSystem.set_dbt_profiles_dir(self.dbt_project_dir)
+        Configuration.cleanup()
+        pass
+
+    def test_skip_datasource(self):
+        rc = Runner.exec(skip_datasource_connection=True)
+        assert rc == 0
+
+    def test_non_skip_datasource(self):
+        # PipeRider has not supported 'hive' datasource yet
+        with self.assertRaises(PipeRiderConnectorUnsupportedError):
+            Runner.exec(skip_datasource_connection=False)
+
+    def tearDown(self) -> None:
+        FileSystem.set_working_directory(self.original_working_directory)
+        FileSystem.dbt_profiles_dir = self.original_profiles_dir
+
+        # Clean up piperider output files
+        piperider_output_dir = os.path.join(self.dbt_project_dir, '.piperider', 'outputs')
+        try:
+            shutil.rmtree(piperider_output_dir)
+        except FileNotFoundError:
+            pass
+        Configuration.cleanup()
+        pass

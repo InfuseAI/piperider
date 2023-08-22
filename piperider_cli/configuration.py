@@ -431,6 +431,11 @@ class Configuration(object):
         return configuration_instance
 
     @classmethod
+    def cleanup(cls):
+        global configuration_instance
+        configuration_instance = None
+
+    @classmethod
     def search_piperider_project_path(cls) -> str:
         paths = list(Path.cwd().parents)
         paths.insert(0, Path.cwd())
