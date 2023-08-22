@@ -188,8 +188,8 @@ def diagnose(**kwargs):
 @click.option('--upload', is_flag=True, help='Upload the report to the PipeRider Cloud.')
 @click.option('--project', default=None, type=click.STRING, help='Specify the project name to upload.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
-@click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
-@click.option('--skip-datasource-connection', default=False, is_flag=True,
+@click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser.')
+@click.option('--skip-datasource', default=False, is_flag=True,
               help='Skip accessing the connection of datasource.')
 @add_options([
     dbt_select_option_builder(),
@@ -262,7 +262,7 @@ def run(**kwargs):
                       dbt_select=select,
                       dbt_state=state,
                       report_dir=kwargs.get('report_dir'),
-                      skip_datasource_connection=kwargs.get('skip_datasource_connection'))
+                      skip_datasource_connection=kwargs.get('skip_datasource'))
     if ret in (0, EC_ERR_TEST_FAILED, EC_WARN_NO_PROFILED_MODULES):
         if enable_share:
             force_upload = True
