@@ -193,8 +193,13 @@ class ComparisonData(object):
             self.summary_change_set = SummaryChangeSet(self._base, self._target)
         except BaseException as e:
             console = Console()
-            console.print(
-                f'[bold yellow]Warning:[/bold yellow] {e}. Got problem to generate changeset.')
+            console.print('[bold yellow]Warning:[/bold yellow]')
+            if isinstance(e, ValueError) and e.args:
+                for line in e.args[0]:
+                    console.print(f'  {line}', end='\n')
+            else:
+                console.print(e)
+            console.print('\nGot problem to generate changeset.')
 
     def _update_github_pr_info(self):
         if os.environ.get('GITHUB_EVENT_PATH'):
