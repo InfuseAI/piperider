@@ -350,6 +350,114 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
     return metrics
 
 
+def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optional[dict] = None):
+    manifest = _get_state_manifest(dbt_state_dir)
+
+    def is_chosen(key, metric):
+        statistics = Statistics()
+        if dbt_resources:
+            chosen = key in dbt_resources['metrics']
+            if not chosen:
+                statistics.add_field_one('filter')
+            return chosen
+        if dbt_tag is not None:
+            chosen = dbt_tag in metric.get('tags')
+            if not chosen:
+                statistics.add_field_one('notag')
+            return chosen
+        return True
+
+    metrics = []
+    metric_map = {}
+
+    for key, metric in manifest.get('metrics').items():
+        if metric.get('type') == 'simple':
+            primary_entity = None
+            metric_filter = []
+            if metric.get('filter') is not None:
+                sql_filter = load_jinja_string_template(metric.get('filter').get('where_sql_template')).render()
+                metric_filter.append({'field': sql_filter.split(' ')[0],
+                                      'operator': sql_filter.split(' ')[1],
+                                      'value': sql_filter.split(' ')[2]})
+
+            nodes = metric.get('depends_on').get('nodes', [])
+            depends_on = nodes[0]
+            if depends_on.startswith('semantic_model.'):
+                semantic_model = manifest.get('semantic_models').get(depends_on)
+                table = semantic_model.get('node_relation').get('alias')
+                schema = semantic_model.get('node_relation').get('schema_name')
+                database = semantic_model.get('node_relation').get('database')
+                # find measure definition
+                measure = None
+                for obj in semantic_model.get('measures'):
+                    if obj.get('name') == metric.get('type_params').get('measure').get('name'):
+                        measure = obj
+                        break
+                # TODO: remove assertion
+                assert measure is not None, 'Measure not found'
+                expression = measure.get('expr') if measure.get('expr') is not None else measure.get('name')
+                calculation_method = measure.get('agg')
+
+                for entity in semantic_model.get('entities'):
+                    if entity.get('type') == 'primary':
+                        primary_entity = entity.get('name')
+                        break
+
+                agg_time_dimension = measure.get('agg_time_dimension') if measure.get('agg_time_dimension') else semantic_model.get('defaults').get('agg_time_dimension')
+                timestamp = None
+                time_grain = None
+                if agg_time_dimension is not None:
+                    # find dimension definition - time
+                    for obj in semantic_model.get('dimensions'):
+                        if obj.get('name') == agg_time_dimension:
+                            timestamp = obj.get('expr')
+                            grain = obj.get('type_params').get('time_granularity')
+                            time_grain = ['day', 'week', 'month', 'quarter', 'year']
+                            time_grain = time_grain[time_grain.index(grain):]
+                            break
+
+                if metric.get('filter') is not None:
+                    # find dimension definition - categorical
+                    for obj in semantic_model.get('dimensions'):
+                        if obj.get('name') in metric_filter[0]['field']:
+                            expr = obj.get('expr') or obj.get('name')
+                            metric_filter[0]['field'] = metric_filter[0]['field'].replace(obj.get('name'), expr)
+                            break
+            else:
+                # TODO: remove assertion
+                assert False, 'Simple type metric should depend on semantic model.'
+
+            m = Metric(metric.get('name'), table, schema, database, expression, timestamp,
+                       calculation_method, time_grain, dimensions=None,
+                       filters=metric_filter, label=metric.get('label'), description=metric.get('description'),
+                       ref_id=metric.get('unique_id'))
+
+            metric_map[key] = m
+            statistics = Statistics()
+            statistics.add_field_one('total')
+
+            if is_chosen(key, metric):
+                if metric.get('filter'):
+                    f = metric_map[key].filters[0]
+                    if primary_entity not in f['field']:
+                        console.print(
+                            f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. "
+                            f"Property 'filter' is not supported.")
+                        statistics.add_field_one('nosupport')
+                        continue
+                    else:
+                        f['field'] = f['field'].replace(f'{primary_entity}__', '')
+                if metric_map[key].calculation_method == 'median':
+                    console.print(
+                        f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric_map[key].name}'. "
+                        f"Aggregation type 'median' is not supported.")
+                    statistics.add_field_one('nosupport')
+                    continue
+                metrics.append(m)
+
+    return metrics
+
+
 def check_dbt_manifest(dbt_state_dir: str) -> bool:
     path = os.path.join(dbt_state_dir, 'manifest.json')
     if os.path.isabs(path) is False:

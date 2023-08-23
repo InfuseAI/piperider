@@ -193,6 +193,9 @@ def _init_jinja_env(env):
             return var
         return os.getenv(var, default)
 
+    def dimension(var):
+        return var
+
     def as_bool(var):
         if var is None:
             return var
@@ -216,6 +219,7 @@ def _init_jinja_env(env):
         return var
 
     env.globals['env_var'] = env_var
+    env.globals['Dimension'] = dimension
     env.filters['as_bool'] = as_bool
     env.filters['as_number'] = as_number
     env.filters['as_text'] = as_text

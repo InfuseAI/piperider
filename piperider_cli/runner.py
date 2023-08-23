@@ -641,8 +641,7 @@ def get_git_branch():
 
 class Runner():
     @staticmethod
-    def \
-        exec(datasource=None, table=None, output=None, skip_report=False, dbt_target_path: str = None,
+    def exec(datasource=None, table=None, output=None, skip_report=False, dbt_target_path: str = None,
              dbt_resources: Optional[dict] = None, dbt_select: tuple = None, dbt_state: str = None,
              report_dir: str = None, skip_datasource_connection: bool = False):
         console = Console()
@@ -814,7 +813,7 @@ class Runner():
         statistics.reset()
         metrics = []
         if dbt_config:
-            metrics = dbtutil.get_dbt_state_metrics(dbt_target_path, dbt_config.get('tag'), dbt_resources)
+            metrics = dbtutil.get_dbt_state_metrics_16(dbt_target_path, dbt_config.get('tag'), dbt_resources)
 
         if skip_datasource_connection is False:
             console.rule('Query metrics')
