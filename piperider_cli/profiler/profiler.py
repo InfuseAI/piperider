@@ -1427,7 +1427,10 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             _type = "monthly"
             interval = relativedelta(months=+1)
             dmin = date(min.year, min.month, 1)
-            dmax = date(max.year, max.month, 1) + interval
+            if max.year < 3000:
+                dmax = date(max.year, max.month, 1) + interval
+            else:
+                dmax = date(3000, 1, 1)
             period = relativedelta(dmax, dmin)
             num_buckets = (period.years * 12 + period.months)
             cte = select(date_trunc("MONTH", column).label("d")).select_from(table).cte()
@@ -1435,7 +1438,10 @@ class DatetimeColumnProfiler(BaseColumnProfiler):
             _type = "daily"
             interval = relativedelta(days=+1)
             dmin = date(min.year, min.month, min.day)
-            dmax = date(max.year, max.month, max.day) + interval
+            if max.year < 3000:
+                dmax = date(max.year, max.month, max.day) + interval
+            else:
+                dmax = date(3000, 1, 1)
             num_buckets = (dmax - dmin).days
             cte = select(date_trunc("DAY", column).label("d")).select_from(table).cte()
 
