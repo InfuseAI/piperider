@@ -69,6 +69,13 @@ class PipeRiderConnectorError(PipeRiderError):
         self.hint = f'Please run \"pip install \'piperider[{datasource_name}]\'\" to get the {datasource_name} connector'
 
 
+class PipeRiderConnectorUnsupportedError(PipeRiderError):
+    def __init__(self, err_msg, datasource_type):
+        self.message = err_msg
+        self.hint = (f'Please contact us to support \'{datasource_type}\' connector by '
+                     f'https://github.com/InfuseAI/piperider/issues/new/choose')
+
+
 class PipeRiderTableConnectionError(PipeRiderError):
     def __init__(self, name, type_name):
         self.message = f'No available table found or no access permission found from \'{name}\' data source.'

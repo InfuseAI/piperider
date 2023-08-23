@@ -279,6 +279,9 @@ class Profiler:
         if metadata_subjects is None:
             metadata_subjects = subjects
 
+        self.event_handler.handle_manifest_start()
+        total = len(metadata_subjects)
+        completed = 0
         for subject in metadata_subjects:
             table_name = subject.name
             ref_id = subject.ref_id
@@ -302,9 +305,11 @@ class Profiler:
                     type='other',
                     schema_type='other',
                     description=description)
-
             profiled_tables[ref_id] = dict(name=table_name, columns=columns, ref_id=ref_id)
+            completed += 1
+            self.event_handler.handle_manifest_progress(total, completed)
 
+        self.event_handler.handle_manifest_end()
         return dict(tables=profiled_tables)
 
     def collect_metadata_from_dbt_manifest(self, dbt_manifest, metadata_subjects: List[ProfileSubject],

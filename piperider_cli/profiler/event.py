@@ -17,6 +17,15 @@ class ProfilerEventHandler:
     def handle_metadata_end(self):
         pass
 
+    def handle_manifest_start(self):
+        pass
+
+    def handle_manifest_progress(self, total, completed):
+        pass
+
+    def handle_manifest_end(self):
+        pass
+
     def handle_table_start(self, table_name):
         pass
 
@@ -56,6 +65,15 @@ class DefaultProfilerEventHandler(ProfilerEventHandler):
         pass
 
     def handle_metadata_end(self):
+        pass
+
+    def handle_manifest_start(self):
+        pass
+
+    def handle_manifest_progress(self, total, completed):
+        pass
+
+    def handle_manifest_end(self):
         pass
 
     def handle_table_start(self, table_name):
