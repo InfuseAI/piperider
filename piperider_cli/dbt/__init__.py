@@ -55,7 +55,7 @@ class DbtVersionTool:
         return self.dbt_version.release[:2] == self.as_version(other).release[:2]
 
     def __str__(self):
-        return self.dbt_version
+        return ".".join([str(x) for x in list(self.dbt_version.release)])
 
 
 dbt_version = DbtVersionTool()
