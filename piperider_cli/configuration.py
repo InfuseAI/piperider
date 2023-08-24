@@ -344,7 +344,7 @@ class Configuration(object):
         _yml = yaml.YAML()
 
         with open(FileSystem.PIPERIDER_CONFIG_PATH, 'r') as f:
-            config = _yml.load(f)
+            config = _yml.load(f) or {}
 
         config[key] = update_values
         with open(FileSystem.PIPERIDER_CONFIG_PATH, 'w+', encoding='utf-8') as f:
