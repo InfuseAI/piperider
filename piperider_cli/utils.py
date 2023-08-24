@@ -9,7 +9,7 @@ def remove_link(link_path):
             if os.path.exists(link_path):
                 subprocess.run(["rmdir", link_path], shell=True, check=True)
         else:
-            if os.path.exists(link_path):
+            if os.path.exists(link_path) or os.path.islink(link_path):
                 os.unlink(link_path)
     except OSError as e:
         raise e

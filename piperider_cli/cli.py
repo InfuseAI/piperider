@@ -1,8 +1,10 @@
+import json
 import os.path
 import sys
 
 import click
 import sentry_sdk
+from click import Context, Parameter
 from rich.console import Console
 
 import piperider_cli.dbtutil as dbtutil
@@ -23,6 +25,7 @@ from piperider_cli.recipe_executor import RecipeExecutor
 from piperider_cli.recipes import RecipeConfiguration, configure_recipe_execution_flags, is_recipe_dry_run
 from piperider_cli.runner import Runner
 from piperider_cli.validator import Validator
+import typing as t
 
 release_version = __version__ if sentry_env != 'development' else None
 
@@ -75,6 +78,53 @@ def add_options(options):
         return func
 
     return _add_options
+
+
+class RunDataPath(click.Path):
+
+    def __init__(self):
+        super().__init__(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            writable=False,
+            readable=True,
+            resolve_path=True,
+            allow_dash=False,
+            path_type=None,
+            executable=False
+        )
+
+    def convert(
+            self, value: t.Any, param: t.Optional["Parameter"], ctx: t.Optional["Context"]
+    ) -> t.Any:
+        rv = value
+
+        try:
+            data = self.read_file(rv)
+            self.validate(data)
+        except BaseException as e:
+            self.fail(f'{e} from: "{value}"')
+            pass
+
+        return super().convert(rv, param, ctx)
+
+    def read_file(self, rv):
+        try:
+            with open(rv) as fh:
+                return json.loads(fh.read())
+        except BaseException:
+            raise ValueError('failed to read data')
+
+    def validate(self, data):
+        if not isinstance(data, t.Dict):
+            raise ValueError('type mismatched, we expected a dict')
+        required_keys = {'tables', 'datasource'}
+        if not set(data.keys()).issuperset(required_keys):
+            raise ValueError(f'missing one of required keys: {required_keys}')
+
+        if 'dbt' in data and data.get('dbt', {}).get('manifest') is None:
+            raise ValueError('there is no dbt manifest data in the run.json')
 
 
 @click.group(name="piperider", invoke_without_command=True)
@@ -313,7 +363,7 @@ def generate_assertions(**kwargs):
 
 
 @cli.command(short_help='Generate a report.', cls=TrackCommand)
-@click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
+@click.option('--input', default=None, type=RunDataPath(), help='Specify the raw result file.')
 @click.option('--output', '-o', default=None, type=click.STRING, help='Directory to save the results.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @add_options(debug_option)
@@ -323,8 +373,8 @@ def generate_report(**kwargs):
 
 
 @cli.command(short_help='Compare two existing reports.', cls=TrackCommand)
-@click.option('--base', default=None, type=click.Path(exists=True), help='Specify the base report file.')
-@click.option('--target', default=None, type=click.Path(exists=True), help='Specify the report file to be compared.')
+@click.option('--base', default=None, type=RunDataPath(), help='Specify the base report file.')
+@click.option('--target', default=None, type=RunDataPath(), help='Specify the report file to be compared.')
 @click.option('--last', default=None, is_flag=True, help='Compare the last two reports.')
 @click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
               help='Specify the datasource.')
@@ -428,7 +478,7 @@ def cloud(**kwargs):
 
 
 @cloud.command(short_help='Upload a report to the PipeRider Cloud.', cls=TrackCommand)
-@click.option('--run', type=click.Path(exists=True), help='Specify the raw result file.')
+@click.option('--run', type=RunDataPath(), help='Specify the raw result file.')
 @click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
 @click.option('--datasource', default=None, type=click.STRING, metavar='DATASOURCE_NAME',
               help='Specify the datasource.')

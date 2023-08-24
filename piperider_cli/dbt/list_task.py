@@ -85,9 +85,6 @@ def _load_manifest_version_14(data: Dict):
 
 
 def _load_manifest_version_15(manifest: Dict):
-    from dbt.exceptions import IncompatibleSchemaError
-
-    # return WritableManifest.read_and_check_versions(manifest_path)
     data = manifest
 
     # Check metadata version. There is a class variable 'dbt_schema_version', but
@@ -98,10 +95,14 @@ def _load_manifest_version_15(manifest: Dict):
             previous_schema_version = data["metadata"]["dbt_schema_version"]
             # cls.dbt_schema_version is a SchemaVersion object
             if not WritableManifest.is_compatible_version(previous_schema_version):
-                raise IncompatibleSchemaError(
-                    expected=str(WritableManifest.dbt_schema_version),
-                    found=previous_schema_version,
-                )
+                messages = [
+                    f'Current dbt (version: {dbt_version}) could not recognize the schema in the manifest file. ',
+                    f'  supported: "{WritableManifest.dbt_schema_version}"',
+                    f'  unknown:   "{previous_schema_version}"',
+                    'Please re-generate the manifest with the compatible version.',
+                ]
+                raise ValueError(messages)
+
     return WritableManifest.upgrade_schema_version(data)
 
 

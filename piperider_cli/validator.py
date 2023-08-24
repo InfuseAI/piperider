@@ -97,8 +97,13 @@ class CheckConnections(AbstractChecker):
             type = ds.type_name
 
             if dbt:  # dbt provider
-                self.console.print(f'  DBT: {ds.type_name} > {dbt["profile"]} > {dbt["target"]} ', end='')
+                from piperider_cli.dbt import dbt_version
+                self.console.print('  DBT: ', end='')
                 self.console.print('[[bold green]OK[/bold green]]')
+                self.console.print(f'    Version: {dbt_version}')
+                self.console.print(f'    Adapter: {ds.type_name}')
+                self.console.print(f'    Profile: {dbt["profile"]}')
+                self.console.print(f'    Target:  {dbt["target"]} ')
 
             self.console.print(f'  Name: {name}')
             self.console.print(f'  Type: {type}')
@@ -107,11 +112,11 @@ class CheckConnections(AbstractChecker):
             if err:
                 all_passed = False
                 reason = err
-                self.console.print(f'  connector: [[bold red]FAILED[/bold red]] reason: {err}')
+                self.console.print(f'  Connector: [[bold red]FAILED[/bold red]] reason: {err}')
                 self.console.print(f'\n{escape(err.hint)}\n')
                 continue
             else:
-                self.console.print('  connector: [[bold green]OK[/bold green]]')
+                self.console.print('  Connector: [[bold green]OK[/bold green]]')
 
             try:
                 ds.verify_connection()
