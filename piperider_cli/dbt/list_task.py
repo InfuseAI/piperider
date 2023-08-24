@@ -230,7 +230,8 @@ def PrepareRuntimeConfig(target_path: str):
             flags
         )
 
-    flags = flags_module.get_flag_obj()
+    flags = make_flag()
+
     setattr(flags, 'target_path', target_path)
     setattr(flags, "WRITE_JSON", None)
     setattr(flags, "exclude", None)
@@ -246,7 +247,6 @@ def PrepareRuntimeConfig(target_path: str):
     setattr(flags, "target", None)
 
     v = dbt_version
-
     if v == '1.5' or v == '1.6':
         return _get_v15_runtime_config(flags)
     elif v == '1.4':
@@ -255,6 +255,15 @@ def PrepareRuntimeConfig(target_path: str):
         return _get_v13_runtime_config(flags)
 
     raise NotImplementedError(f'dbt-core version: {v} is not supported')
+
+
+def make_flag():
+    v = dbt_version
+    if v == '1.3':
+        flags = argparse.Namespace(USE_COLORS=True)
+    else:
+        flags = flags_module.get_flag_obj()
+    return flags
 
 
 def _configure_warn_error_options(flags):
@@ -339,7 +348,7 @@ class _RuntimeConfig(RuntimeConfig):
 class _DbtListTask(ListTask):
     def __init__(self):
         self.config = _RuntimeConfig()
-        self.args = flags_module.get_flag_obj()
+        self.args = make_flag()
         self.previous_state = None
 
         if dbt_version >= '1.5' and hasattr(flags_module, 'set_flags'):
