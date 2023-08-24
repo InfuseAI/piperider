@@ -263,6 +263,8 @@ def make_flag():
         flags = argparse.Namespace(USE_COLORS=True)
     else:
         flags = flags_module.get_flag_obj()
+        setattr(flags, 'PARTIAL_PARSE_FILE_DIFF', True)
+
     return flags
 
 
