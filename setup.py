@@ -50,7 +50,8 @@ setup(name='piperider',
       tests_require=['pytest'],
       extras_require={
           'snowflake': [
-              'snowflake-sqlalchemy>=1.4.3'
+              'snowflake-sqlalchemy>=1.4.6',
+              'snowflake-connector-python>=2.9'
           ],
           'postgres': [
               # you need a postgres for m1 to install psycopg2
