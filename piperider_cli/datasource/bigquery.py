@@ -226,7 +226,7 @@ class BigQueryDataSource(DataSource):
 
     def verify_connector(self):
         try:
-            import sqlalchemy_bigquery
+            from sqlalchemy_bigquery import BigQueryDialect
 
             # do nothing when everything is ok
             return None
