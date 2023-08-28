@@ -58,7 +58,7 @@ setup(name='piperider',
               'psycopg2-binary'
           ],
           'bigquery': [
-              'sqlalchemy-bigquery',
+              'sqlalchemy-bigquery>=1.6',
           ],
           'redshift': [
               'sqlalchemy-redshift',
