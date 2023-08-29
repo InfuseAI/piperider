@@ -10,7 +10,7 @@ from rich.console import Console
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli.assertion_generator import AssertionGenerator
-from piperider_cli.cloud_connector import CloudConnector
+from piperider_cli.cli_utils.cloud_state import CloudState
 from piperider_cli.compare_report import CompareReport
 from piperider_cli.configuration import FileSystem, is_piperider_workspace_exist
 from piperider_cli.error import RecipeConfigException, DbtProjectNotFoundError, PipeRiderConflictOptionsError
@@ -317,7 +317,7 @@ def run(**kwargs):
         if enable_share:
             force_upload = True
 
-        auto_upload = CloudConnector.is_auto_upload()
+        auto_upload = CloudState.is_auto_upload()
         is_cloud_view = (force_upload or auto_upload)
 
         if not skip_report:
@@ -330,11 +330,11 @@ def run(**kwargs):
                              'environment variable "PIPERIDER_DBT_RESOURCES" to choose the resources to profile.')
                 ret = 0
 
-        if CloudConnector.is_login() and is_cloud_view:
-            ret = CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
+        if CloudState.is_login() and is_cloud_view:
+            ret = CloudState.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
                                                       open_report=open_report, enable_share=enable_share,
                                                       project_name=project_name)
-        elif not CloudConnector.is_login() and is_cloud_view:
+        elif not CloudState.is_login() and is_cloud_view:
             console = Console()
             console.print('[bold yellow]Warning: [/bold yellow]The report is not uploaded due to not logged in.')
 
@@ -404,10 +404,10 @@ def compare_reports(**kwargs):
     enable_share = kwargs.get('share')
     project_name = kwargs.get('project')
 
-    if enable_share or CloudConnector.is_auto_upload():
+    if enable_share or CloudState.is_auto_upload():
         force_upload = True
 
-    if force_upload and not CloudConnector.is_login():
+    if force_upload and not CloudState.is_login():
         force_upload = False
         console = Console()
         console.print('[bold yellow]Warning: [/bold yellow]Reports will not be uploaded due to not logged in.')
@@ -451,13 +451,13 @@ def delete(**kwargs):
 
 @config.command(name='enable-auto-upload', short_help='Enable auto upload to PipeRider Cloud.', cls=TrackCommand)
 def enable_auto_upload(**kwargs):
-    CloudConnector.config_auto_upload(True)
+    CloudState.config_auto_upload(True)
     pass
 
 
 @config.command(name='disable-auto-upload', short_help='Disable auto upload to PipeRider Cloud.', cls=TrackCommand)
 def disable_auto_upload(**kwargs):
-    CloudConnector.config_auto_upload(False)
+    CloudState.config_auto_upload(False)
     pass
 
 
@@ -493,7 +493,7 @@ def upload_report(**kwargs):
     datasource = kwargs.get('datasource')
     report_dir = kwargs.get('report_dir')
     project_name = kwargs.get('project')
-    ret = CloudConnector.upload_report(report_path=report_path, datasource=datasource, report_dir=report_dir,
+    ret = CloudState.upload_report(report_path=report_path, datasource=datasource, report_dir=report_dir,
                                        project_name=project_name,
                                        debug=kwargs.get('debug', False))
     return ret
@@ -521,7 +521,7 @@ def cloud_compare_reports(**kwargs):
     summary_file = kwargs.get('summary_file')
     project_name = kwargs.get('project')
 
-    ret = CloudConnector.compare_reports(base=base, target=target, tables_from=tables_from, summary_file=summary_file,
+    ret = CloudState.compare_reports(base=base, target=target, tables_from=tables_from, summary_file=summary_file,
                                          project_name=project_name, debug=kwargs.get('debug', False))
 
     if ret != 0:
@@ -572,7 +572,7 @@ def compare_with_recipe(**kwargs):
     if enable_share:
         force_upload = True
 
-    if force_upload is True and CloudConnector.is_login() is False:
+    if force_upload is True and CloudState.is_login() is False:
         raise RecipeConfigException(
             message='Please login to PipeRider Cloud first.',
             hint='Run "piperider cloud login" to login to PipeRider Cloud.'
@@ -626,7 +626,7 @@ def compare_with_recipe(**kwargs):
 @cloud.command(short_help='Signup to PipeRider Cloud.', cls=TrackCommand)
 @add_options(debug_option)
 def signup(**kwargs):
-    ret = CloudConnector.signup(debug=kwargs.get('debug', False))
+    ret = CloudState.signup(debug=kwargs.get('debug', False))
     return ret
 
 
@@ -646,21 +646,21 @@ def login(**kwargs):
     if kwargs.get('no_interaction') is True:
         options['no_interaction'] = True
 
-    ret = CloudConnector.login(api_token=kwargs.get('token'), options=options, debug=kwargs.get('debug', False))
+    ret = CloudState.login(api_token=kwargs.get('token'), options=options, debug=kwargs.get('debug', False))
     return ret
 
 
 @cloud.command(short_help='Logout from PipeRider Cloud.', cls=TrackCommand)
 @add_options(debug_option)
 def logout(**kwargs):
-    ret = CloudConnector.logout()
+    ret = CloudState.logout()
     return ret
 
 
 @cloud.command(short_help='List projects on PipeRider Cloud.', cls=TrackCommand)
 @add_options(debug_option)
 def list_projects(**kwargs):
-    ret = CloudConnector.list_projects()
+    ret = CloudState.list_projects()
     return ret
 
 
@@ -672,5 +672,5 @@ def list_projects(**kwargs):
 def select_project(**kwargs):
     project_name = kwargs.get('project')
     no_interaction: bool = kwargs.get('no_interaction', False)
-    ret = CloudConnector.select_project(project_name=project_name, no_interaction=no_interaction)
+    ret = CloudState.select_project(project_name=project_name, no_interaction=no_interaction)
     return ret
