@@ -12,7 +12,7 @@ from rich.table import Table
 from ruamel import yaml
 
 from piperider_cli import load_jinja_template, load_jinja_string_template
-from piperider_cli.dbt.list_task import load_manifest, list_resources_unique_id_from_manifest, load_full_manifest
+
 from piperider_cli.error import \
     DbtProjectInvalidError, \
     DbtProfileInvalidError, \
@@ -363,6 +363,7 @@ def get_dbt_manifest(dbt_state_dir: str):
 
 
 def load_dbt_resources(target_path: str, select: tuple = None, state=None):
+    from piperider_cli.dbt.list_task import load_manifest, list_resources_unique_id_from_manifest, load_full_manifest
     manifest = load_manifest(get_dbt_manifest(target_path)) if state is None else load_full_manifest(target_path)
     try:
         list_resources = list_resources_unique_id_from_manifest(manifest, select=select, state=state)
