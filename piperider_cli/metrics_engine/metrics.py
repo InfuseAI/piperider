@@ -25,7 +25,7 @@ def dtof(value: Union[int, float, decimal.Decimal]) -> Union[int, float]:
     return value
 
 
-class Metric:
+class SemanticModel:
     def __init__(
         self,
         name,
@@ -34,13 +34,7 @@ class Metric:
         database,
         expression,
         timestamp,
-        calculation_method,
-        time_grains=None,
-        dimensions=None,
         filters=None,
-        label=None,
-        description=None,
-        ref_id=None,
     ):
         self.name = name
         self.table = table
@@ -48,13 +42,30 @@ class Metric:
         self.schema = schema.lower() if schema is not None else None
         self.expression = expression
         self.timestamp = timestamp
+        self.filters = filters
+
+
+class Metric:
+    def __init__(
+        self,
+        name: str,
+        model: SemanticModel = None,
+        calculation_method=None,
+        time_grains=None,
+        expression: str = None,
+        label=None,
+        description=None,
+        ref_metrics=None,
+        ref_id=None,
+    ):
+        self.name = name
+        self.model = model
         self.calculation_method = calculation_method
         self.time_grains = time_grains
-        self.dimensions = dimensions
-        self.filters = filters
+        self.expression = expression
         self.label = label
         self.description = description
-        self.ref_metrics: List[Metric] = []
+        self.ref_metrics: List[Metric] = ref_metrics or []
         self.ref_id = ref_id
 
 
@@ -82,12 +93,8 @@ class MetricEngine:
         for grain in metric.time_grains:
             if grain not in ['day', 'week', 'month', 'quarter', 'year']:
                 continue
-            if not metric.dimensions:
-                yield grain, []
-            else:
-                for r in range(1, len(metric.dimensions) + 1):
-                    for dims in itertools.combinations(metric.dimensions, r):
-                        yield grain, list(dims)
+
+            yield grain, []
 
     @staticmethod
     def _compose_query_name(grain: str, dimensions: List[str], label=False) -> str:
@@ -134,12 +141,13 @@ class MetricEngine:
             )
         else:
             # Source model
+            model = metric.model
             if self.data_source.type_name == 'bigquery':
-                source_model = text(f"`{metric.database}.{metric.schema}.{metric.table}`")
+                source_model = text(f"`{model.database}.{model.schema}.{model.table}`")
             elif self.data_source.type_name == 'databricks':
-                source_model = text(f"{metric.schema}.{metric.table}")
+                source_model = text(f"{model.schema}.{model.table}")
             else:
-                source_model = text(f"{metric.database}.{metric.schema}.{metric.table}")
+                source_model = text(f"{model.database}.{model.schema}.{model.table}")
 
             # Base model
             # 1. map expression to 'c'
@@ -149,16 +157,16 @@ class MetricEngine:
             start_date = self.date_trunc(grain, func.current_date()) - self._interval(grain,
                                                                                       self._slot_count_by_grain(grain))
             stmt = select(
-                literal_column(metric.expression).label('c'),
-                self.date_trunc(grain, func.cast(literal_column(metric.timestamp), Date)).label('d'),
+                literal_column(model.expression).label('c'),
+                self.date_trunc(grain, func.cast(literal_column(model.timestamp), Date)).label('d'),
             ).select_from(
                 source_model
             ).where(
-                func.cast(literal_column(metric.timestamp), Date) >= start_date
+                func.cast(literal_column(model.timestamp), Date) >= start_date
             )
-            for f in metric.filters:
+            for f in model.filters:
                 stmt = stmt.where(text(f"{f.get('field')} {f.get('operator')} {f.get('value')}"))
-            base_model = stmt.cte(f"{metric.name}_base_model")
+            base_model = stmt.cte(f"{model.name}_base_model")
 
             # Aggregated model
             # 1. select 'd'
@@ -304,7 +312,8 @@ class MetricEngine:
 
             total_param = len(list(self._get_query_param(metric)))
             completed_param = 0
-            engine = self.data_source.get_engine_by_database(metric.database)
+            engine = self.data_source.get_engine_by_database(
+                metric.model.database if metric.model is not None else None)
 
             query_results = {}
             futures = []

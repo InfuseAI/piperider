@@ -18,6 +18,7 @@ from piperider_cli.error import \
     DbtProfileInvalidError, \
     DbtProfileBigQueryAuthWithTokenUnsupportedError, DbtRunTimeError
 from piperider_cli.metrics_engine import Metric
+from piperider_cli.metrics_engine.metrics import SemanticModel
 from piperider_cli.statistics import Statistics
 
 console = Console()
@@ -371,11 +372,21 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: str, dbt_resources: Op
     metric_map = {}
 
     for key, metric in manifest.get('metrics').items():
+        metric_map[metric.get('name')] = metric
+
+    def _create_metric(name, filter=None, alias=None):
+        metric = metric_map.get(name)
+
         if metric.get('type') == 'simple':
             primary_entity = None
             metric_filter = []
             if metric.get('filter') is not None:
                 sql_filter = load_jinja_string_template(metric.get('filter').get('where_sql_template')).render()
+                metric_filter.append({'field': sql_filter.split(' ')[0],
+                                      'operator': sql_filter.split(' ')[1],
+                                      'value': sql_filter.split(' ')[2]})
+            if filter is not None:
+                sql_filter = load_jinja_string_template(filter.get('where_sql_template')).render()
                 metric_filter.append({'field': sql_filter.split(' ')[0],
                                       'operator': sql_filter.split(' ')[1],
                                       'value': sql_filter.split(' ')[2]})
@@ -403,7 +414,8 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: str, dbt_resources: Op
                         primary_entity = entity.get('name')
                         break
 
-                agg_time_dimension = measure.get('agg_time_dimension') if measure.get('agg_time_dimension') else semantic_model.get('defaults').get('agg_time_dimension')
+                agg_time_dimension = measure.get('agg_time_dimension') if measure.get(
+                    'agg_time_dimension') else semantic_model.get('defaults').get('agg_time_dimension')
                 timestamp = None
                 time_grain = None
                 if agg_time_dimension is not None:
@@ -427,33 +439,59 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: str, dbt_resources: Op
                 # TODO: remove assertion
                 assert False, 'Simple type metric should depend on semantic model.'
 
-            m = Metric(metric.get('name'), table, schema, database, expression, timestamp,
-                       calculation_method, time_grain, dimensions=None,
-                       filters=metric_filter, label=metric.get('label'), description=metric.get('description'),
+            model = SemanticModel(metric.get('name'), table, schema, database, expression, timestamp,
+                                  filters=metric_filter)
+
+            m = Metric(metric.get('name'), model=model, calculation_method=calculation_method, time_grains=time_grain,
+                       label=metric.get('label'), description=metric.get('description'),
                        ref_id=metric.get('unique_id'))
 
-            metric_map[key] = m
             statistics = Statistics()
             statistics.add_field_one('total')
 
-            if is_chosen(key, metric):
-                if metric.get('filter'):
-                    f = metric_map[key].filters[0]
-                    if primary_entity not in f['field']:
-                        console.print(
-                            f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. "
-                            f"Property 'filter' is not supported.")
-                        statistics.add_field_one('nosupport')
-                        continue
-                    else:
-                        f['field'] = f['field'].replace(f'{primary_entity}__', '')
-                if metric_map[key].calculation_method == 'median':
+            for f in m.model.filters:
+                if primary_entity not in f['field']:
                     console.print(
-                        f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric_map[key].name}'. "
-                        f"Aggregation type 'median' is not supported.")
+                        f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. "
+                        f"Property 'filter' is not supported.")
                     statistics.add_field_one('nosupport')
-                    continue
-                metrics.append(m)
+                    return None
+                else:
+                    f['field'] = f['field'].replace(f'{primary_entity}__', '')
+            if m.calculation_method == 'median':
+                console.print(
+                    f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. "
+                    f"Aggregation type 'median' is not supported.")
+                statistics.add_field_one('nosupport')
+                return None
+
+            return m
+        elif metric.get('type') == 'derived':
+            ref_metrics = []
+            for ref_metric in metric.get('type_params').get('metrics'):
+                m2 = _create_metric(
+                    ref_metric.get('name'),
+                    filter=ref_metric.get('filter'),
+                    alias=ref_metric.get('alias'))
+                ref_metrics.append(m2)
+
+            m = Metric(metric.get('name'),
+                       calculation_method='derived',
+                       expression=metric.get('type_params').get('expr'),
+                       time_grains=['day', 'month', 'year'],
+                       label=metric.get('label'), description=metric.get('description'), ref_metrics=ref_metrics,
+                       ref_id=metric.get('unique_id'))
+            return m
+
+        return None
+
+    for key, metric in manifest.get('metrics').items():
+        if not is_chosen(key, metric):
+            continue
+
+        m = _create_metric(metric.get('name'))
+        if m is not None:
+            metrics.append(m)
 
     return metrics
 
