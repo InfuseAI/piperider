@@ -11,7 +11,7 @@ import piperider_cli.dbtutil as dbtutil
 from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cli_utils.cloud_state import CloudState
-from piperider_cli.compare_report import CompareReport
+
 from piperider_cli.configuration import FileSystem, is_piperider_workspace_exist
 from piperider_cli.error import RecipeConfigException, DbtProjectNotFoundError, PipeRiderConflictOptionsError
 from piperider_cli.event import UserProfileConfigurator
@@ -332,8 +332,8 @@ def run(**kwargs):
 
         if CloudState.is_login() and is_cloud_view:
             ret = CloudState.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
-                                                      open_report=open_report, enable_share=enable_share,
-                                                      project_name=project_name)
+                                                  open_report=open_report, enable_share=enable_share,
+                                                  project_name=project_name)
         elif not CloudState.is_login() and is_cloud_view:
             console = Console()
             console.print('[bold yellow]Warning: [/bold yellow]The report is not uploaded due to not logged in.')
@@ -412,6 +412,7 @@ def compare_reports(**kwargs):
         console = Console()
         console.print('[bold yellow]Warning: [/bold yellow]Reports will not be uploaded due to not logged in.')
 
+    from piperider_cli.compare_report import CompareReport
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
                        report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), summary_file=summary_file,
                        tables_from=tables_from, force_upload=force_upload, enable_share=enable_share,
@@ -494,8 +495,8 @@ def upload_report(**kwargs):
     report_dir = kwargs.get('report_dir')
     project_name = kwargs.get('project')
     ret = CloudState.upload_report(report_path=report_path, datasource=datasource, report_dir=report_dir,
-                                       project_name=project_name,
-                                       debug=kwargs.get('debug', False))
+                                   project_name=project_name,
+                                   debug=kwargs.get('debug', False))
     return ret
 
 
@@ -522,7 +523,7 @@ def cloud_compare_reports(**kwargs):
     project_name = kwargs.get('project')
 
     ret = CloudState.compare_reports(base=base, target=target, tables_from=tables_from, summary_file=summary_file,
-                                         project_name=project_name, debug=kwargs.get('debug', False))
+                                     project_name=project_name, debug=kwargs.get('debug', False))
 
     if ret != 0:
         sys.exit(ret)
@@ -608,6 +609,7 @@ def compare_with_recipe(**kwargs):
             target = recipe_config.target.get_run_report()
 
         if not is_recipe_dry_run():
+            from piperider_cli.compare_report import CompareReport
             CompareReport.exec(a=base, b=target, last=last, datasource=None,
                                output=kwargs.get('output'), tables_from="all",
                                summary_file=summary_file,
