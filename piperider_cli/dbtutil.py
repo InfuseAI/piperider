@@ -531,7 +531,40 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: str, dbt_resources: Op
                        label=metric.get('label'), description=metric.get('description'), ref_metrics=ref_metrics,
                        ref_id=metric.get('unique_id'))
             return m
+        elif metric.get('type') == 'ratio':
+            ref_metrics = []
+            time_grains = ['day', 'month', 'year']
+            numerator = metric.get('type_params').get('numerator')
+            m2 = _create_metric(
+                numerator.get('name'),
+                filter=numerator.get('filter'),
+                alias=numerator.get('alias'))
+            ref_metrics.append(m2)
+            derived_time_grains = find_derived_time_grains(manifest, metric_map[numerator.get('name')])
+            if len(time_grains) < len(derived_time_grains):
+                time_grains = derived_time_grains
 
+            denominator = metric.get('type_params').get('denominator')
+            m2 = _create_metric(
+                denominator.get('name'),
+                filter=denominator.get('filter'),
+                alias=denominator.get('alias'))
+            ref_metrics.append(m2)
+            derived_time_grains = find_derived_time_grains(manifest, metric_map[denominator.get('name')])
+            if len(time_grains) < len(derived_time_grains):
+                time_grains = derived_time_grains
+
+            m = Metric(metric.get('name'),
+                       calculation_method='derived',
+                       expression=f"{numerator.get('name')} / {denominator.get('name')}",
+                       time_grains=time_grains,
+                       label=metric.get('label'), description=metric.get('description'), ref_metrics=ref_metrics,
+                       ref_id=metric.get('unique_id'))
+            return m
+        else:
+            console.print(
+                f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. "
+                f"Metric type 'Cumulative' is not supported.")
         return None
 
     for key, metric in manifest.get('metrics').items():
