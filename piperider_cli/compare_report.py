@@ -192,6 +192,8 @@ class ComparisonData(object):
 
             self.summary_change_set = SummaryChangeSet(self._base, self._target)
         except BaseException as e:
+            self.warning_for_legacy_metrics(e)
+
             console = Console()
             console.print('[bold yellow]Warning:[/bold yellow]')
             if isinstance(e, ValueError) and e.args:
@@ -200,6 +202,21 @@ class ComparisonData(object):
             else:
                 console.print(e)
             console.print('\nGot problem to generate changeset.')
+
+    def warning_for_legacy_metrics(self, e):
+        if not hasattr(e, 'MESSAGE') or getattr(e, 'MESSAGE') != 'Compilation Error':
+            return
+
+        """"
+        Example for "msg":
+        'model.git_repo_analytics.commit_weekly' depends on 'metric.git_repo_analytics.total_commits' which is not in the graph!
+        """
+        if not hasattr(e, 'msg') or "depends on" not in getattr(e, 'msg'):
+            return
+
+        from piperider_cli.error import PipeRiderError
+        raise PipeRiderError("Found legacy metrics",
+                             hint="The dbt_metrics package has been deprecated and replaced with MetricFlow.")
 
     def _update_github_pr_info(self):
         if os.environ.get('GITHUB_EVENT_PATH'):

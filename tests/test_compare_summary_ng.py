@@ -8,6 +8,7 @@ from packaging import version
 
 from piperider_cli.compare_report import ComparisonData
 from piperider_cli.dbt import dbt_version
+from piperider_cli.error import PipeRiderError
 
 
 def pbcopy_string(input_string):
@@ -86,3 +87,12 @@ class TestCompareSummaryNG(TestCase):
 
         with open("output.md", "w") as fh:
             fh.write(result)
+
+    @unittest.skipIf(dbt_version < version.parse('1.6'), 'before 1.6 the legacy metrics are supported')
+    def test_in_memory_compare_with_manifests_v_1_6(self):
+        run1 = self.manifest_dict("git-repo-analytics_metrics_1.json")
+        run2 = self.manifest_dict("git-repo-analytics_metrics_2.json")
+
+        with self.assertRaises(PipeRiderError) as ctx:
+            data = ComparisonData(run1, run2, None)
+        self.assertEqual("Found legacy metrics", ctx.exception.message)
