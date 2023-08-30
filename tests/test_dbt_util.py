@@ -265,3 +265,19 @@ class TestRunner(TestCase):
         resources = dbtutil.load_dbt_resources(target_path)
         self.assertIn('models', resources)
         self.assertIn('metrics', resources)
+
+    def test_get_support_time_grain(self):
+        time_grains = dbtutil.get_support_time_grains('day')
+        self.assertListEqual(time_grains, ['day', 'month', 'year'])
+
+        time_grains = dbtutil.get_support_time_grains('week')
+        self.assertListEqual(time_grains, ['month', 'year'])
+
+        time_grains = dbtutil.get_support_time_grains('month')
+        self.assertListEqual(time_grains, ['month', 'year'])
+
+        time_grains = dbtutil.get_support_time_grains('quarter')
+        self.assertListEqual(time_grains, ['year'])
+
+        time_grains = dbtutil.get_support_time_grains('year')
+        self.assertListEqual(time_grains, ['year'])
