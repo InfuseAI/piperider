@@ -11,6 +11,7 @@ import {
   AlertTitle,
   AlertDescription,
   Code,
+  Link,
 } from '@chakra-ui/react';
 
 import {
@@ -38,6 +39,7 @@ import { useLocation } from 'wouter';
 import { useCloudReport } from '../../utils/cloud';
 import { ChangeSummary } from './ChangeSummary';
 import { LineageDiffPopover } from './LineageDiffPopover';
+import { ExternalLinkIcon } from '@chakra-ui/icons';
 
 function SelectMenu({
   filterOptions,
@@ -207,7 +209,12 @@ type FilterOptions = {
 type Props = {} & Comparable;
 
 export function Overview({ singleOnly }: Props) {
-  const { tableColumnsOnly = [], lineageGraph } = useReportStore.getState();
+  const {
+    tableColumnsOnly = [],
+    lineageGraph,
+    rawData,
+  } = useReportStore.getState();
+  const isBrokenByMetrics = rawData.broken_by_metrics || false;
   const [sortMethod, setSortMethod] = useState('topology');
   const [resourceIndex, setResourceIndex] = useState(0);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
@@ -280,6 +287,79 @@ export function Overview({ singleOnly }: Props) {
 
     return true;
   });
+
+  if (isBrokenByMetrics) {
+    return (
+      <>
+        <Flex direction="column" w={'100%'} minHeight="650px">
+          <Flex w={'100%'} paddingBottom="10px" marginBottom="20px">
+            <Heading fontSize={24}>
+              {singleOnly ? 'Overview' : 'Impact Summary'}
+            </Heading>
+            <Spacer />
+            {isCloud ? (
+              // For Cloud overview layout
+              <Button
+                size="sm"
+                bg="piperider.500"
+                color="white"
+                _hover={{
+                  bg: 'piperider.600',
+                }}
+                _active={{
+                  bg: 'piperider.800',
+                }}
+                onClick={() => {
+                  setLocation(`${location}?g_v=1`);
+                }}
+                disabled={true}
+              >
+                {singleOnly ? 'Lineage Graph' : 'Lineage Diff'}
+                <Icon as={CgListTree} ml={1} />
+              </Button>
+            ) : (
+              // For Open Source overview layout
+              <LineageDiffPopover singleOnly={singleOnly} />
+            )}
+          </Flex>
+          <Alert status="warning" mb={5}>
+            <AlertIcon />
+            <Box>
+              <AlertTitle>Impact Summary is not available</AlertTitle>
+              <AlertDescription fontSize="sm">
+                <Box>
+                  We discovered that your reports contain <b>legacy metrics</b>.
+                  Please note that the
+                  <Code colorScheme="orange">
+                    <Link
+                      href="https://docs.getdbt.com/docs/build/metrics"
+                      isExternal
+                    >
+                      dbt_metrics package
+                      <ExternalLinkIcon mx="2px" />
+                    </Link>
+                  </Code>
+                  has been deprecated and superseded by
+                  <Code colorScheme="orange">
+                    <Link
+                      href="https://docs.getdbt.com/docs/build/about-metricflow"
+                      isExternal
+                    >
+                      MetricFlow
+                      <ExternalLinkIcon mx="2px" />
+                    </Link>
+                  </Code>
+                  . Kindly uninstall the dbt_metrics package from your dbt
+                  project and then regenerate the reports to obtain the impact
+                  summary report.
+                </Box>
+              </AlertDescription>
+            </Box>
+          </Alert>
+        </Flex>
+      </>
+    );
+  }
 
   return (
     <>
