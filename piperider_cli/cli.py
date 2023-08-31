@@ -25,7 +25,7 @@ from piperider_cli.initializer import Initializer
 from piperider_cli.recipe_executor import RecipeExecutor
 from piperider_cli.recipes import RecipeConfiguration, configure_recipe_execution_flags, is_recipe_dry_run
 from piperider_cli.runner import Runner
-from piperider_cli.validator import Validator
+
 import typing as t
 
 release_version = __version__ if sentry_env != 'development' else None
@@ -221,6 +221,7 @@ def diagnose(**kwargs):
 
     console.print(f'[bold dark_orange]PipeRider Version:[/bold dark_orange] {__version__}')
 
+    from piperider_cli.validator import Validator
     if not Validator.diagnose():
         sys.exit(1)
 
