@@ -1,3 +1,4 @@
+import hashlib
 import json
 import math
 import os
@@ -849,7 +850,20 @@ class Runner():
             if dbt_config:
                 run_result['dbt'] = dict()
                 if dbt_manifest:
-                    run_result['dbt']['manifest'] = dbt_manifest
+                    def _slim_dbt_manifest(manifest):
+                        for key in manifest['nodes'].keys():
+                            raw_code = manifest['nodes'][key]['raw_code']
+                            sha1 = hashlib.sha1()
+                            sha1.update(raw_code.encode('utf-8'))
+                            manifest['nodes'][key]['raw_code'] = sha1.hexdigest()
+                        return manifest
+
+                    size = sys.getsizeof(dbt_manifest)
+                    if size > 1024 * 1024 * 10:
+                        # Reduce the manifest size if it's larger than 10MB
+                        run_result['dbt']['manifest'] = _slim_dbt_manifest(dbt_manifest)
+                    else:
+                        run_result['dbt']['manifest'] = dbt_manifest
                 if dbt_run_results:
                     run_result['dbt']['run_results'] = dbt_run_results
 

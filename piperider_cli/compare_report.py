@@ -30,6 +30,7 @@ class RunOutput(object):
         self.pass_count = 0
         self.fail_count = 0
         self.cloud = None
+        self.file_size = os.path.getsize(path)
 
         try:
             with open(path, 'r') as f:
@@ -68,10 +69,18 @@ class RunOutput(object):
         created_at_str = datetime_to_str(str_to_datetime(self.created_at),
                                          to_tzlocal=True)
 
+        def human_readable_size(size, decimal_places=2):
+            for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']:
+                if size < 1024.0 or unit == 'PiB':
+                    break
+                size /= 1024.0
+            return f"{size:.{decimal_places}f} {unit}"
+
         return f'{self.name:12} ' \
                f'#table={self.table_count:<6} ' \
                f'#pass={self.pass_count:<5} ' \
                f'#fail={self.fail_count:<5} ' \
+               f'size={human_readable_size(self.file_size):<12}' \
                f'{created_at_str}'
 
 
@@ -328,10 +337,10 @@ class CompareReport(object):
         def _walk_throw_runs(path):
             outputs = []
             for root, dirs, _ in os.walk(path):
-                for dir in dirs:
-                    if dir == 'latest':
+                for dir_name in dirs:
+                    if dir_name == 'latest':
                         continue
-                    run_json = os.path.join(root, dir, 'run.json')
+                    run_json = os.path.join(root, dir_name, 'run.json')
                     if not os.path.exists(run_json):
                         continue
                     output = RunOutput(run_json)
