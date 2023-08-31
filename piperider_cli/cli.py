@@ -404,8 +404,8 @@ def upload_report(**kwargs):
     report_dir = kwargs.get('report_dir')
     project_name = kwargs.get('project')
     ret = CloudConnectorHelper.upload_report(report_path=report_path, datasource=datasource, report_dir=report_dir,
-                                       project_name=project_name,
-                                       debug=kwargs.get('debug', False))
+                                             project_name=project_name,
+                                             debug=kwargs.get('debug', False))
     return ret
 
 
@@ -431,8 +431,9 @@ def cloud_compare_reports(**kwargs):
     summary_file = kwargs.get('summary_file')
     project_name = kwargs.get('project')
 
-    ret = CloudConnectorHelper.compare_reports(base=base, target=target, tables_from=tables_from, summary_file=summary_file,
-                                         project_name=project_name, debug=kwargs.get('debug', False))
+    ret = CloudConnectorHelper.compare_reports(base=base, target=target, tables_from=tables_from,
+                                               summary_file=summary_file,
+                                               project_name=project_name, debug=kwargs.get('debug', False))
 
     if ret != 0:
         sys.exit(ret)
