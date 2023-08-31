@@ -396,7 +396,7 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: str, dbt_resources: Op
     manifest = _get_state_manifest(dbt_state_dir)
 
     if not is_dbt_schema_version_16(manifest):
-        console.print('Metric is not supported for dbt version < 0.16')
+        console.print("[[bold yellow]Skip[/bold yellow]] Metric query is not supported for dbt < 1.6")
         return []
 
     def is_chosen(key, metric):

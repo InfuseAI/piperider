@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from unittest import TestCase, mock
+from unittest import TestCase, mock, skip
 
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli.datasource.sqlite import SqliteDataSource
@@ -196,6 +196,7 @@ class TestRunner(TestCase):
         self.assertEqual('The symbol name',
                          profile_results['tables']['PRICE_PRESENT']['columns']['symbol']['description'])
 
+    @skip("deprecated after v0.33.0, skipping")
     def test_get_dbt_state_metrics_only_tag(self):
         metrics = dbtutil.get_dbt_state_metrics(self.dbt_state_dir, 'piperider', None)
 
@@ -206,6 +207,7 @@ class TestRunner(TestCase):
         self.assertEqual(len(metrics), 1)
         self.assertEqual(metrics[0].name, 'active_projects_per_user')
 
+    @skip("deprecated after v0.33.0, skipping")
     def test_get_dbt_state_metrics_only_resources(self):
         metrics = ['metric.infusetude.active_projects',
                    'metric.infusetude.active_projects_per_user',
