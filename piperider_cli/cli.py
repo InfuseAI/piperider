@@ -8,7 +8,6 @@ from click import Context, Parameter
 from rich.console import Console
 
 from piperider_cli import __version__, sentry_dns, sentry_env, event
-from piperider_cli.assertion_generator import AssertionGenerator
 from piperider_cli.cli_utils import DbtUtil
 from piperider_cli.cli_utils.cloud import CloudConnectorHelper
 
@@ -358,6 +357,8 @@ def generate_assertions(**kwargs):
     report_dir = kwargs.get('report_dir')
     no_recommend = kwargs.get('no_recommend')
     table = kwargs.get('table')
+    
+    from piperider_cli.assertion_generator import AssertionGenerator
     ret = AssertionGenerator.exec(input_path=input_path, report_dir=report_dir, no_recommend=no_recommend, table=table)
     if ret != 0:
         sys.exit(ret)
