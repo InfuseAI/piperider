@@ -5,7 +5,6 @@ from typing import Union
 from rich.console import Console
 from ruamel import yaml
 
-from piperider_cli.configuration import Configuration
 from piperider_cli.event.collector import Collector
 
 PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
@@ -73,6 +72,7 @@ def _generate_user_profile():
 
 def _obtain_project_info(datasource=None):
     try:
+        from piperider_cli.configuration import Configuration
         datasource_types = []
         project_type = '-'
         configuration = Configuration.instance()
