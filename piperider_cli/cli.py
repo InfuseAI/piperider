@@ -7,9 +7,9 @@ import sentry_sdk
 from click import Context, Parameter
 from rich.console import Console
 
-import piperider_cli.dbtutil as dbtutil
 from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli.assertion_generator import AssertionGenerator
+from piperider_cli.cli_utils import DbtUtil
 from piperider_cli.cli_utils.cloud import CloudConnectorHelper
 
 from piperider_cli.compare_report import CompareReport
@@ -177,7 +177,7 @@ def init(**kwargs):
     # Search dbt project config files
     dbt_project_dir = kwargs.get('dbt_project_dir')
     no_auto_search = kwargs.get('no_auto_search')
-    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search)
+    dbt_project_path = DbtUtil.get_dbt_project_path(dbt_project_dir, no_auto_search)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     if dbt_project_path:
         FileSystem.set_working_directory(dbt_project_path)
@@ -208,7 +208,7 @@ def diagnose(**kwargs):
     # Search dbt project config files
     dbt_project_dir = kwargs.get('dbt_project_dir')
     no_auto_search = kwargs.get('no_auto_search')
-    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search)
+    dbt_project_path = DbtUtil.get_dbt_project_path(dbt_project_dir, no_auto_search)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     if dbt_project_path:
         FileSystem.set_working_directory(dbt_project_path)
@@ -281,7 +281,7 @@ def run(**kwargs):
     # Search dbt project config files
     dbt_project_dir = kwargs.get('dbt_project_dir')
     no_auto_search = kwargs.get('no_auto_search')
-    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search, recursive=False)
+    dbt_project_path = DbtUtil.get_dbt_project_path(dbt_project_dir, no_auto_search, recursive=False)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     if dbt_project_path:
         working_dir = os.path.dirname(dbt_project_path) if dbt_project_path.endswith('.yml') else dbt_project_path
@@ -301,9 +301,9 @@ def run(**kwargs):
         )
 
     if dbt_list:
-        dbt_resources = dbtutil.read_dbt_resources(sys.stdin)
+        dbt_resources = DbtUtil.read_dbt_resources(sys.stdin)
     if env_dbt_resources is not None:
-        dbt_resources = dbtutil.read_dbt_resources(env_dbt_resources)
+        dbt_resources = DbtUtil.read_dbt_resources(env_dbt_resources)
 
     ret = Runner.exec(datasource=datasource,
                       table=table,
@@ -583,7 +583,7 @@ def compare_with_recipe(**kwargs):
     # Search dbt project config files
     dbt_project_dir = kwargs.get('dbt_project_dir')
     no_auto_search = kwargs.get('no_auto_search')
-    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search, recursive=False)
+    dbt_project_path = DbtUtil.get_dbt_project_path(dbt_project_dir, no_auto_search, recursive=False)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     if dbt_project_path:
         FileSystem.set_working_directory(dbt_project_path)
