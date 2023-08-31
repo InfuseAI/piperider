@@ -11,7 +11,6 @@ from piperider_cli import __version__, sentry_dns, sentry_env, event
 from piperider_cli.cli_utils import DbtUtil
 from piperider_cli.cli_utils.cloud import CloudConnectorHelper
 
-from piperider_cli.compare_report import CompareReport
 from piperider_cli.configuration import FileSystem, is_piperider_workspace_exist
 from piperider_cli.error import RecipeConfigException, DbtProjectNotFoundError, PipeRiderConflictOptionsError
 from piperider_cli.event import UserProfileConfigurator
@@ -357,7 +356,7 @@ def generate_assertions(**kwargs):
     report_dir = kwargs.get('report_dir')
     no_recommend = kwargs.get('no_recommend')
     table = kwargs.get('table')
-    
+
     from piperider_cli.assertion_generator import AssertionGenerator
     ret = AssertionGenerator.exec(input_path=input_path, report_dir=report_dir, no_recommend=no_recommend, table=table)
     if ret != 0:
@@ -415,6 +414,7 @@ def compare_reports(**kwargs):
         console = Console()
         console.print('[bold yellow]Warning: [/bold yellow]Reports will not be uploaded due to not logged in.')
 
+    from piperider_cli.compare_report import CompareReport
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
                        report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), summary_file=summary_file,
                        tables_from=tables_from, force_upload=force_upload, enable_share=enable_share,
@@ -611,6 +611,7 @@ def compare_with_recipe(**kwargs):
             target = recipe_config.target.get_run_report()
 
         if not is_recipe_dry_run():
+            from piperider_cli.compare_report import CompareReport
             CompareReport.exec(a=base, b=target, last=last, datasource=None,
                                output=kwargs.get('output'), tables_from="all",
                                summary_file=summary_file,
