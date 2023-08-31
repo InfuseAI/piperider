@@ -513,7 +513,13 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: str, dbt_resources: Op
         elif metric.get('type') == 'derived':
             ref_metrics = []
             time_grains = ['day', 'month', 'year']
+            expr = metric.get('type_params').get('expr')
             for ref_metric in metric.get('type_params').get('metrics'):
+                if ref_metric.get('offset_window') is not None:
+                    console.print(
+                        f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. "
+                        f"Derived metric property 'offset_window' is not supported.")
+                    return None
                 m2 = _create_metric(
                     ref_metric.get('name'),
                     filter=ref_metric.get('filter'),
@@ -524,9 +530,12 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: str, dbt_resources: Op
                 if len(time_grains) < len(derived_time_grains):
                     time_grains = derived_time_grains
 
+                if ref_metric.get('alias') is not None:
+                    expr = expr.replace(ref_metric.get('alias'), ref_metric.get('name'))
+
             m = Metric(metric.get('name'),
                        calculation_method='derived',
-                       expression=metric.get('type_params').get('expr'),
+                       expression=expr,
                        time_grains=time_grains,
                        label=metric.get('label'), description=metric.get('description'), ref_metrics=ref_metrics,
                        ref_id=metric.get('unique_id'))
