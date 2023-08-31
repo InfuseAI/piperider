@@ -56,6 +56,7 @@ export interface ComparisonReportSchema {
   };
   implicit?: string[];
   explicit?: string[];
+  broken_by_metrics?: boolean;
 }
 
 export type ComparsionSource = 'base' | 'target';
