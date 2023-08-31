@@ -420,6 +420,7 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: str, dbt_resources: Op
         metric_map[metric.get('name')] = metric
 
     def _create_metric(name, filter=None, alias=None):
+        statistics = Statistics()
         metric = metric_map.get(name)
 
         if metric.get('type') == 'simple':
@@ -490,21 +491,18 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: str, dbt_resources: Op
                        label=metric.get('label'), description=metric.get('description'),
                        ref_id=metric.get('unique_id'))
 
-            statistics = Statistics()
-            statistics.add_field_one('total')
-
             for f in m.model.filters:
-                if primary_entity not in f['field']:
+                if primary_entity in f['field']:
+                    f['field'] = f['field'].replace(f'{primary_entity}__', '')
+                else:
                     console.print(
-                        f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. "
-                        f"Property 'filter' is not supported.")
+                        f"[[bold yellow]Skip[/bold yellow]] Metric '{metric.get('name')}'. "
+                        f"Dimension of foreign entities is not supported.")
                     statistics.add_field_one('nosupport')
                     return None
-                else:
-                    f['field'] = f['field'].replace(f'{primary_entity}__', '')
             if m.calculation_method == 'median':
                 console.print(
-                    f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. "
+                    f"[[bold yellow]Skip[/bold yellow]] Metric '{metric.get('name')}'. "
                     f"Aggregation type 'median' is not supported.")
                 statistics.add_field_one('nosupport')
                 return None
@@ -517,8 +515,9 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: str, dbt_resources: Op
             for ref_metric in metric.get('type_params').get('metrics'):
                 if ref_metric.get('offset_window') is not None:
                     console.print(
-                        f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. "
+                        f"[[bold yellow]Skip[/bold yellow]] Metric '{metric.get('name')}'. "
                         f"Derived metric property 'offset_window' is not supported.")
+                    statistics.add_field_one('nosupport')
                     return None
                 m2 = _create_metric(
                     ref_metric.get('name'),
@@ -572,11 +571,15 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: str, dbt_resources: Op
             return m
         else:
             console.print(
-                f"[[bold yellow]Warning[/bold yellow]] Skip metric '{metric.get('name')}'. "
+                f"[[bold yellow]Skip[/bold yellow]] Metric '{metric.get('name')}'. "
                 f"Metric type 'Cumulative' is not supported.")
+            statistics.add_field_one('nosupport')
         return None
 
     for key, metric in manifest.get('metrics').items():
+        statistics = Statistics()
+        statistics.add_field_one('total')
+
         if not is_chosen(key, metric):
             continue
 
