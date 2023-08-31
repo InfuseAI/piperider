@@ -10,8 +10,9 @@ import {
   Box,
   AlertTitle,
   AlertDescription,
-  Code, Link
-} from "@chakra-ui/react";
+  Code,
+  Link,
+} from '@chakra-ui/react';
 
 import {
   Flex,
@@ -38,7 +39,7 @@ import { useLocation } from 'wouter';
 import { useCloudReport } from '../../utils/cloud';
 import { ChangeSummary } from './ChangeSummary';
 import { LineageDiffPopover } from './LineageDiffPopover';
-import { ExternalLinkIcon } from "@chakra-ui/icons";
+import { ExternalLinkIcon } from '@chakra-ui/icons';
 
 function SelectMenu({
   filterOptions,
@@ -208,7 +209,11 @@ type FilterOptions = {
 type Props = {} & Comparable;
 
 export function Overview({ singleOnly }: Props) {
-  const { tableColumnsOnly = [], lineageGraph, rawData } = useReportStore.getState();
+  const {
+    tableColumnsOnly = [],
+    lineageGraph,
+    rawData,
+  } = useReportStore.getState();
   const isBrokenByMetrics = rawData.broken_by_metrics || false;
   const [sortMethod, setSortMethod] = useState('topology');
   const [resourceIndex, setResourceIndex] = useState(0);
@@ -282,7 +287,6 @@ export function Overview({ singleOnly }: Props) {
 
     return true;
   });
-
 
   if (isBrokenByMetrics) {
     return (
