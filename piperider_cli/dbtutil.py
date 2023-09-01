@@ -358,6 +358,19 @@ def is_dbt_schema_version_16(manifest: Dict):
     return int(version[1:]) >= 10
 
 
+def load_metric_jinja_string_template(value: str):
+    from jinja2 import Environment, BaseLoader
+    env = Environment(loader=BaseLoader())
+
+    def dimension(var):
+        return var
+
+    env.globals['Dimension'] = dimension
+    template = env.from_string(value)
+
+    return template
+
+
 def get_support_time_grains(grain: str):
     all_time_grains = ['day', 'week', 'month', 'quarter', 'year']
     available_time_grains = all_time_grains[all_time_grains.index(grain):]
@@ -427,12 +440,12 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
             primary_entity = None
             metric_filter = []
             if metric.get('filter') is not None:
-                sql_filter = load_jinja_string_template(metric.get('filter').get('where_sql_template')).render()
+                sql_filter = load_metric_jinja_string_template(metric.get('filter').get('where_sql_template')).render()
                 metric_filter.append({'field': sql_filter.split(' ')[0],
                                       'operator': sql_filter.split(' ')[1],
                                       'value': sql_filter.split(' ')[2]})
             if filter is not None:
-                sql_filter = load_jinja_string_template(filter.get('where_sql_template')).render()
+                sql_filter = load_metric_jinja_string_template(filter.get('where_sql_template')).render()
                 metric_filter.append({'field': sql_filter.split(' ')[0],
                                       'operator': sql_filter.split(' ')[1],
                                       'value': sql_filter.split(' ')[2]})
