@@ -29,6 +29,11 @@ def manifest_from_1_5():
     return _load_manifest('dbt-duckdb-1.5.1-manifest.json')
 
 
+@pytest.fixture()
+def manifest_from_1_6():
+    return _load_manifest('dbt-duckdb-1.6.0-manifest.json')
+
+
 def check_manifest_type(m):
     from dbt.contracts.graph.manifest import Manifest, WritableManifest
     assert isinstance(m, Manifest) or isinstance(m, WritableManifest)
@@ -48,6 +53,12 @@ def test_load_manifest_v8(manifest_from_1_4):
 @pytest.mark.skipif(dbt_version < version.parse('v1.5'), reason='skip manifest test before dbt-core 1.5')
 def test_load_manifest_v9(manifest_from_1_5):
     m = load_manifest(manifest_from_1_5)
+    check_manifest_type(m)
+
+
+@pytest.mark.skipif(dbt_version < version.parse('v1.6'), reason='skip manifest test before dbt-core 1.6')
+def test_load_manifest_10(manifest_from_1_6):
+    m = load_manifest(manifest_from_1_6)
     check_manifest_type(m)
 
 

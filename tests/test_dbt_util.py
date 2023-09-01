@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 from unittest import TestCase, mock, skip
 
+import pytest
+
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli.datasource.sqlite import SqliteDataSource
 from piperider_cli.dbt import dbt_version
@@ -221,6 +223,34 @@ class TestRunner(TestCase):
         metrics = dbtutil.get_dbt_state_metrics(self.dbt_state_dir, 'abc', resources)
         self.assertEqual(len(metrics), 5)
         self.assertEqual(metrics[0].name, 'total_events')
+
+    @pytest.mark.skipif(dbt_version < '1.6', reason="only for dbt 1.6")
+    @mock.patch('piperider_cli.dbtutil._get_state_manifest')
+    def test_get_dbt_state_metrics_16(self, _get_state_manifest):
+        _get_state_manifest.return_value = _load_manifest('dbt-duckdb-1.6.0-manifest.json')
+        metrics = dbtutil.get_dbt_state_metrics_16(self.dbt_state_dir, dbt_tag=None, dbt_resources=None)
+
+        self.assertEqual(len(metrics), 4)
+        # expenses
+        self.assertEqual(metrics[0].name, 'expenses')
+
+        # revenue
+        self.assertEqual(metrics[1].calculation_method, 'sum')
+
+        # average_order_amount
+        self.assertEqual(metrics[2].model.table, 'orders')
+        self.assertEqual(metrics[2].model.timestamp, 'order_date')
+        self.assertEqual(metrics[2].model.expression, 'amount')
+
+        # profit
+        self.assertEqual(metrics[3].model, None)
+        self.assertEqual(metrics[3].calculation_method, 'derived')
+        self.assertEqual(metrics[3].expression, 'revenue - expenses')
+
+        # skip metric < 1.6
+        _get_state_manifest.return_value = _load_manifest('dbt-duckdb-1.5.1-manifest.json')
+        metrics = dbtutil.get_dbt_state_metrics_16(self.dbt_state_dir, dbt_tag=None, dbt_resources=None)
+        self.assertEqual(len(metrics), 0)
 
     @mock.patch('pathlib.Path.cwd',
                 return_value=Path(os.path.join(os.path.dirname(__file__), 'mock_dbt_project', 'dir_1', 'dir_2')))

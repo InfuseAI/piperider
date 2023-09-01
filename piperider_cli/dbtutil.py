@@ -392,7 +392,7 @@ def find_derived_time_grains(manifest: Dict, metric: Dict):
         return time_grains
 
 
-def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optional[dict] = None):
+def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, dbt_resources: Optional[dict] = None):
     manifest = _get_state_manifest(dbt_state_dir)
 
     if not is_dbt_schema_version_16(manifest):
