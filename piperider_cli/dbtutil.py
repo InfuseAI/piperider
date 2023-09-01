@@ -18,6 +18,7 @@ from piperider_cli.error import \
     DbtProfileInvalidError, \
     DbtProfileBigQueryAuthWithTokenUnsupportedError, DbtRunTimeError
 from piperider_cli.metrics_engine import Metric
+from piperider_cli.metrics_engine.metrics import SemanticModel
 from piperider_cli.statistics import Statistics
 
 console = Console()
@@ -346,6 +347,258 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
         if metric.calculation_method == 'derived':
             for depends_on_metric in manifest.get('metrics').get(key).get('depends_on').get('nodes'):
                 metric.ref_metrics.append(metric_map.get(depends_on_metric))
+
+    return metrics
+
+
+def is_dbt_schema_version_16(manifest: Dict):
+    # dbt_schema_version: 'https://schemas.getdbt.com/dbt/manifest/v10.json'
+    schema_version = manifest['metadata'].get('dbt_schema_version').split('/')[-1]
+    version = schema_version.split('.')[0]
+    return int(version[1:]) >= 10
+
+
+def load_metric_jinja_string_template(value: str):
+    from jinja2 import Environment, BaseLoader
+    env = Environment(loader=BaseLoader())
+
+    def dimension(var):
+        return var
+
+    env.globals['Dimension'] = dimension
+    template = env.from_string(value)
+
+    return template
+
+
+def get_support_time_grains(grain: str):
+    all_time_grains = ['day', 'week', 'month', 'quarter', 'year']
+    available_time_grains = all_time_grains[all_time_grains.index(grain):]
+    support_time_grains = ['day', 'month', 'year']
+
+    return [x for x in support_time_grains if x in available_time_grains]
+
+
+def find_derived_time_grains(manifest: Dict, metric: Dict):
+    nodes = metric.get('depends_on').get('nodes', [])
+    depends_on = nodes[0]
+    if depends_on.startswith('semantic_model.'):
+        semantic_model = manifest.get('semantic_models').get(depends_on)
+        measure = None
+        for obj in semantic_model.get('measures'):
+            if obj.get('name') == metric.get('type_params').get('measure').get('name'):
+                measure = obj
+                break
+
+        agg_time_dimension = measure.get('agg_time_dimension') if measure.get(
+            'agg_time_dimension') else semantic_model.get('defaults').get('agg_time_dimension')
+
+        time_grains = None
+        if agg_time_dimension is not None:
+            # find dimension definition - time
+            for obj in semantic_model.get('dimensions'):
+                if obj.get('name') == agg_time_dimension:
+                    grain = obj.get('type_params').get('time_granularity')
+                    time_grains = get_support_time_grains(grain)
+                    break
+
+        return time_grains
+
+
+def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, dbt_resources: Optional[dict] = None):
+    manifest = _get_state_manifest(dbt_state_dir)
+
+    if not is_dbt_schema_version_16(manifest):
+        console.print("[[bold yellow]Skip[/bold yellow]] Metric query is not supported for dbt < 1.6")
+        return []
+
+    def is_chosen(key, metric):
+        statistics = Statistics()
+        if dbt_resources:
+            chosen = key in dbt_resources['metrics']
+            if not chosen:
+                statistics.add_field_one('filter')
+            return chosen
+        if dbt_tag is not None:
+            chosen = dbt_tag in metric.get('tags')
+            if not chosen:
+                statistics.add_field_one('notag')
+            return chosen
+        return True
+
+    metrics = []
+    metric_map = {}
+
+    for key, metric in manifest.get('metrics').items():
+        metric_map[metric.get('name')] = metric
+
+    def _create_metric(name, filter=None, alias=None):
+        statistics = Statistics()
+        metric = metric_map.get(name)
+
+        if metric.get('type') == 'simple':
+            primary_entity = None
+            metric_filter = []
+            if metric.get('filter') is not None:
+                sql_filter = load_metric_jinja_string_template(metric.get('filter').get('where_sql_template')).render()
+                metric_filter.append({'field': sql_filter.split(' ')[0],
+                                      'operator': sql_filter.split(' ')[1],
+                                      'value': sql_filter.split(' ')[2]})
+            if filter is not None:
+                sql_filter = load_metric_jinja_string_template(filter.get('where_sql_template')).render()
+                metric_filter.append({'field': sql_filter.split(' ')[0],
+                                      'operator': sql_filter.split(' ')[1],
+                                      'value': sql_filter.split(' ')[2]})
+
+            nodes = metric.get('depends_on').get('nodes', [])
+            depends_on = nodes[0]
+            if depends_on.startswith('semantic_model.'):
+                semantic_model = manifest.get('semantic_models').get(depends_on)
+                table = semantic_model.get('node_relation').get('alias')
+                schema = semantic_model.get('node_relation').get('schema_name')
+                database = semantic_model.get('node_relation').get('database')
+                # find measure definition
+                measure = None
+                for obj in semantic_model.get('measures'):
+                    if obj.get('name') == metric.get('type_params').get('measure').get('name'):
+                        measure = obj
+                        break
+                # TODO: remove assertion
+                assert measure is not None, 'Measure not found'
+                expression = measure.get('expr') if measure.get('expr') is not None else measure.get('name')
+                calculation_method = measure.get('agg')
+
+                for entity in semantic_model.get('entities'):
+                    if entity.get('type') == 'primary':
+                        primary_entity = entity.get('name')
+                        break
+
+                agg_time_dimension = measure.get('agg_time_dimension') if measure.get(
+                    'agg_time_dimension') else semantic_model.get('defaults').get('agg_time_dimension')
+                timestamp = None
+                time_grains = None
+                if agg_time_dimension is not None:
+                    # find dimension definition - time
+                    for obj in semantic_model.get('dimensions'):
+                        if obj.get('name') == agg_time_dimension:
+                            timestamp = obj.get('expr')
+                            grain = obj.get('type_params').get('time_granularity')
+                            time_grains = get_support_time_grains(grain)
+                            break
+
+                if metric.get('filter') is not None:
+                    # find dimension definition - categorical
+                    for obj in semantic_model.get('dimensions'):
+                        if obj.get('name') in metric_filter[0]['field']:
+                            expr = obj.get('expr') or obj.get('name')
+                            metric_filter[0]['field'] = metric_filter[0]['field'].replace(obj.get('name'), expr)
+                            break
+            else:
+                # TODO: remove assertion
+                assert False, 'Simple type metric should depend on semantic model.'
+
+            model = SemanticModel(metric.get('name'), table, schema, database, expression, timestamp,
+                                  filters=metric_filter)
+
+            m = Metric(metric.get('name'), model=model, calculation_method=calculation_method, time_grains=time_grains,
+                       label=metric.get('label'), description=metric.get('description'),
+                       ref_id=metric.get('unique_id'))
+
+            for f in m.model.filters:
+                if primary_entity in f['field']:
+                    f['field'] = f['field'].replace(f'{primary_entity}__', '')
+                else:
+                    console.print(
+                        f"[[bold yellow]Skip[/bold yellow]] Metric '{metric.get('name')}'. "
+                        f"Dimension of foreign entities is not supported.")
+                    statistics.add_field_one('nosupport')
+                    return None
+            if m.calculation_method == 'median':
+                console.print(
+                    f"[[bold yellow]Skip[/bold yellow]] Metric '{metric.get('name')}'. "
+                    f"Aggregation type 'median' is not supported.")
+                statistics.add_field_one('nosupport')
+                return None
+
+            return m
+        elif metric.get('type') == 'derived':
+            ref_metrics = []
+            time_grains = ['day', 'month', 'year']
+            expr = metric.get('type_params').get('expr')
+            for ref_metric in metric.get('type_params').get('metrics'):
+                if ref_metric.get('offset_window') is not None:
+                    console.print(
+                        f"[[bold yellow]Skip[/bold yellow]] Metric '{metric.get('name')}'. "
+                        f"Derived metric property 'offset_window' is not supported.")
+                    statistics.add_field_one('nosupport')
+                    return None
+                m2 = _create_metric(
+                    ref_metric.get('name'),
+                    filter=ref_metric.get('filter'),
+                    alias=ref_metric.get('alias'))
+                ref_metrics.append(m2)
+
+                derived_time_grains = find_derived_time_grains(manifest, metric_map[ref_metric.get('name')])
+                if len(time_grains) < len(derived_time_grains):
+                    time_grains = derived_time_grains
+
+                if ref_metric.get('alias') is not None:
+                    expr = expr.replace(ref_metric.get('alias'), ref_metric.get('name'))
+
+            m = Metric(metric.get('name'),
+                       calculation_method='derived',
+                       expression=expr,
+                       time_grains=time_grains,
+                       label=metric.get('label'), description=metric.get('description'), ref_metrics=ref_metrics,
+                       ref_id=metric.get('unique_id'))
+            return m
+        elif metric.get('type') == 'ratio':
+            ref_metrics = []
+            time_grains = ['day', 'month', 'year']
+            numerator = metric.get('type_params').get('numerator')
+            m2 = _create_metric(
+                numerator.get('name'),
+                filter=numerator.get('filter'),
+                alias=numerator.get('alias'))
+            ref_metrics.append(m2)
+            derived_time_grains = find_derived_time_grains(manifest, metric_map[numerator.get('name')])
+            if len(time_grains) < len(derived_time_grains):
+                time_grains = derived_time_grains
+
+            denominator = metric.get('type_params').get('denominator')
+            m2 = _create_metric(
+                denominator.get('name'),
+                filter=denominator.get('filter'),
+                alias=denominator.get('alias'))
+            ref_metrics.append(m2)
+            derived_time_grains = find_derived_time_grains(manifest, metric_map[denominator.get('name')])
+            if len(time_grains) < len(derived_time_grains):
+                time_grains = derived_time_grains
+
+            m = Metric(metric.get('name'),
+                       calculation_method='derived',
+                       expression=f"{numerator.get('name')} / {denominator.get('name')}",
+                       time_grains=time_grains,
+                       label=metric.get('label'), description=metric.get('description'), ref_metrics=ref_metrics,
+                       ref_id=metric.get('unique_id'))
+            return m
+        else:
+            console.print(
+                f"[[bold yellow]Skip[/bold yellow]] Metric '{metric.get('name')}'. "
+                f"Metric type 'Cumulative' is not supported.")
+            statistics.add_field_one('nosupport')
+        return None
+
+    for key, metric in manifest.get('metrics').items():
+        statistics = Statistics()
+        statistics.add_field_one('total')
+
+        if not is_chosen(key, metric):
+            continue
+
+        m = _create_metric(metric.get('name'))
+        if m is not None:
+            metrics.append(m)
 
     return metrics
 
