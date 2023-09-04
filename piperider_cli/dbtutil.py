@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, Optional, Union
 
 import inquirer
+from jinja2 import UndefinedError
 from rich.console import Console
 from rich.table import Table
 from ruamel import yaml
@@ -353,9 +354,16 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
 
 def is_dbt_schema_version_16(manifest: Dict):
     # dbt_schema_version: 'https://schemas.getdbt.com/dbt/manifest/v10.json'
-    schema_version = manifest['metadata'].get('dbt_schema_version').split('/')[-1]
-    version = schema_version.split('.')[0]
-    return int(version[1:]) >= 10
+    schema_version_url = manifest['metadata'].get('dbt_schema_version')
+
+    def parse_version_from_url(url: str):
+        import re
+        match = re.match(r"(.*?)\/v(\d+)\.json", url)
+        if match:
+            return int(match.group(2))
+
+    version = parse_version_from_url(schema_version_url)
+    return version >= 10
 
 
 def load_metric_jinja_string_template(value: str):
@@ -377,6 +385,23 @@ def get_support_time_grains(grain: str):
     support_time_grains = ['day', 'month', 'year']
 
     return [x for x in support_time_grains if x in available_time_grains]
+
+
+def get_metric_filter(metric_name, raw_filter):
+    try:
+        sql_filter = load_metric_jinja_string_template(raw_filter.get('where_sql_template')).render()
+        return {
+            'field': sql_filter.split(' ')[0],
+            'operator': sql_filter.split(' ')[1],
+            'value': sql_filter.split(' ')[2]
+        }
+    except UndefinedError as e:
+        func_name = e.message.split(' ')[0]
+        console.print(
+            f"[[bold yellow]Skip[/bold yellow]] Metric '{metric_name}'. "
+            f"Jinja function {func_name} of filter is not supported.")
+
+    return None
 
 
 def find_derived_time_grains(manifest: Dict, metric: Dict):
@@ -440,15 +465,20 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
             primary_entity = None
             metric_filter = []
             if metric.get('filter') is not None:
-                sql_filter = load_metric_jinja_string_template(metric.get('filter').get('where_sql_template')).render()
-                metric_filter.append({'field': sql_filter.split(' ')[0],
-                                      'operator': sql_filter.split(' ')[1],
-                                      'value': sql_filter.split(' ')[2]})
+                f = get_metric_filter(metric.get('name'), metric.get('filter'))
+                if f is not None:
+                    metric_filter.append(f)
+                else:
+                    statistics.add_field_one('nosupport')
+                    return None
+
             if filter is not None:
-                sql_filter = load_metric_jinja_string_template(filter.get('where_sql_template')).render()
-                metric_filter.append({'field': sql_filter.split(' ')[0],
-                                      'operator': sql_filter.split(' ')[1],
-                                      'value': sql_filter.split(' ')[2]})
+                f = get_metric_filter(metric.get('name'), filter)
+                if f is not None:
+                    metric_filter.append(f)
+                else:
+                    statistics.add_field_one('nosupport')
+                    return None
 
             nodes = metric.get('depends_on').get('nodes', [])
             depends_on = nodes[0]
