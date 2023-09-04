@@ -513,10 +513,10 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
                         f"Dimension of foreign entities is not supported.")
                     statistics.add_field_one('nosupport')
                     return None
-            if m.calculation_method == 'median':
+            if m.calculation_method in ['sum_boolean', 'median', 'percentile']:
                 console.print(
                     f"[[bold yellow]Skip[/bold yellow]] Metric '{metric.get('name')}'. "
-                    f"Aggregation type 'median' is not supported.")
+                    f"Aggregation type '{m.calculation_method}' is not supported.")
                 statistics.add_field_one('nosupport')
                 return None
 
