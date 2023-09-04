@@ -908,7 +908,7 @@ class Runner():
         if not _check_assertion_status(assertion_results, assertion_exceptions):
             return EC_ERR_TEST_FAILED
 
-        if len(subjects) == 0:
+        if len(subjects) == 0 and len(run_result.get('metrics', [])) == 0:
             return EC_WARN_NO_PROFILED_MODULES
 
         return 0
