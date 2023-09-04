@@ -14,7 +14,8 @@ from rich.console import Console
 from ruamel import yaml
 from ruamel.yaml import CommentedMap, CommentedSeq
 
-from piperider_cli import raise_exception_when_directory_not_writable, round_trip_load_yaml, safe_load_yaml, dbtutil
+from piperider_cli import raise_exception_when_directory_not_writable, round_trip_load_yaml, safe_load_yaml
+from piperider_cli.cli_utils import DbtUtil
 from piperider_cli.datasource import DATASOURCE_PROVIDERS, DataSource
 from piperider_cli.datasource.unsupported import UnsupportedDataSource
 from piperider_cli.error import \
@@ -378,7 +379,7 @@ class Configuration(object):
         if not os.path.exists(os.path.expanduser(dbt_profile_path)):
             raise DbtProfileNotFoundError(dbt_profile_path)
 
-        dbt_profile = dbtutil.load_dbt_profile(os.path.expanduser(dbt_profile_path))
+        dbt_profile = DbtUtil.load_dbt_profile(os.path.expanduser(dbt_profile_path))
 
         console = Console()
         profile_name = dbt_project.get('profile', '')
@@ -394,7 +395,7 @@ class Configuration(object):
                           f"The profile '{profile_name}' does not have a target named '{target_name}'.\n"
                           "Please check the dbt profile format.")
             sys.exit(1)
-        credential = dbtutil.load_credential_from_dbt_profile(dbt_profile, profile_name, target_name)
+        credential = DbtUtil.load_credential_from_dbt_profile(dbt_profile, profile_name, target_name)
         type_name = credential.get('type')
         dbt = {
             'projectDir': os.path.relpath(os.path.dirname(dbt_project_path), FileSystem.WORKING_DIRECTORY),
@@ -482,10 +483,10 @@ class Configuration(object):
                 profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
                 if '~' in profile_path:
                     profile_path = os.path.expanduser(profile_path)
-                profile = dbtutil.load_dbt_profile(profile_path)
+                profile = DbtUtil.load_dbt_profile(profile_path)
                 profile_name = dbt.get('profile')
                 target_name = dbt.get('target')
-                credential.update(dbtutil.load_credential_from_dbt_profile(profile, profile_name, target_name))
+                credential.update(DbtUtil.load_credential_from_dbt_profile(profile, profile_name, target_name))
                 # TODO: extract duplicate code from func 'from_dbt_project'
                 if credential.get('pass') and credential.get('password') is None:
                     credential['password'] = credential.pop('pass')
@@ -506,7 +507,7 @@ class Configuration(object):
         dbt = config.get('dbt')
         if dbt:
             project_dir = config.get('dbt').get('projectDir')
-            project = dbtutil.load_dbt_project(project_dir)
+            project = DbtUtil.load_dbt_project(project_dir)
             profile_name = project.get('profile')
 
             # Precedence reference
@@ -519,11 +520,11 @@ class Configuration(object):
             profile_path = os.path.join(profile_dir, DBT_PROFILE_FILE)
             if '~' in profile_path:
                 profile_path = os.path.expanduser(profile_path)
-            profile = dbtutil.load_dbt_profile(profile_path)
+            profile = DbtUtil.load_dbt_profile(profile_path)
             if profile.get(profile_name):
                 target_names = list(profile.get(profile_name).get('outputs').keys())
                 for target in target_names:
-                    credential = dbtutil.load_credential_from_dbt_profile(profile, profile_name, target)
+                    credential = DbtUtil.load_credential_from_dbt_profile(profile, profile_name, target)
                     if credential.get('pass') and credential.get('password') is None:
                         credential['password'] = credential.pop('pass')
                     datasource_class = DATASOURCE_PROVIDERS[credential.get('type')]

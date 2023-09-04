@@ -1,31 +1,24 @@
 import json
 import os.path
 import sys
+import typing as t
 
 import click
 import sentry_sdk
 from click import Context, Parameter
 from rich.console import Console
 
-import piperider_cli.dbtutil as dbtutil
-from piperider_cli import __version__, sentry_dns, sentry_env, event
-from piperider_cli.assertion_generator import AssertionGenerator
-from piperider_cli.cloud_connector import CloudConnector
-from piperider_cli.compare_report import CompareReport
+from piperider_cli import __version__, event, sentry_dns, sentry_env
+from piperider_cli.cli_utils import DbtUtil
+from piperider_cli.cli_utils.cloud import CloudConnectorHelper
 from piperider_cli.configuration import FileSystem, is_piperider_workspace_exist
-from piperider_cli.error import RecipeConfigException, DbtProjectNotFoundError, PipeRiderConflictOptionsError
+from piperider_cli.error import DbtProjectNotFoundError
 from piperider_cli.event import UserProfileConfigurator
 from piperider_cli.event.track import TrackCommand
-from piperider_cli.exitcode import EC_ERR_TEST_FAILED, EC_WARN_NO_PROFILED_MODULES
 from piperider_cli.feedback import Feedback
 from piperider_cli.generate_report import GenerateReport
 from piperider_cli.guide import Guide
 from piperider_cli.initializer import Initializer
-from piperider_cli.recipe_executor import RecipeExecutor
-from piperider_cli.recipes import RecipeConfiguration, configure_recipe_execution_flags, is_recipe_dry_run
-from piperider_cli.runner import Runner
-from piperider_cli.validator import Validator
-import typing as t
 
 release_version = __version__ if sentry_env != 'development' else None
 
@@ -176,7 +169,7 @@ def init(**kwargs):
     # Search dbt project config files
     dbt_project_dir = kwargs.get('dbt_project_dir')
     no_auto_search = kwargs.get('no_auto_search')
-    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search)
+    dbt_project_path = DbtUtil.get_dbt_project_path(dbt_project_dir, no_auto_search)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     if dbt_project_path:
         FileSystem.set_working_directory(dbt_project_path)
@@ -207,7 +200,7 @@ def diagnose(**kwargs):
     # Search dbt project config files
     dbt_project_dir = kwargs.get('dbt_project_dir')
     no_auto_search = kwargs.get('no_auto_search')
-    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search)
+    dbt_project_path = DbtUtil.get_dbt_project_path(dbt_project_dir, no_auto_search)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
     if dbt_project_path:
         FileSystem.set_working_directory(dbt_project_path)
@@ -220,6 +213,7 @@ def diagnose(**kwargs):
 
     console.print(f'[bold dark_orange]PipeRider Version:[/bold dark_orange] {__version__}')
 
+    from piperider_cli.validator import Validator
     if not Validator.diagnose():
         sys.exit(1)
 
@@ -249,99 +243,12 @@ def diagnose(**kwargs):
 @add_options(dbt_related_options)
 @add_options(debug_option)
 def run(**kwargs):
-    'Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
+    """
+    Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".
+    """
 
-    datasource = kwargs.get('datasource')
-    table = kwargs.get('table')
-    output = kwargs.get('output')
-    open_report = kwargs.get('open')
-    enable_share = kwargs.get('share')
-    skip_report = kwargs.get('skip_report')
-    dbt_target_path = kwargs.get('dbt_target_path')
-    dbt_list = kwargs.get('dbt_list')
-    force_upload = kwargs.get('upload')
-    project_name = kwargs.get('project')
-    select = kwargs.get('select')
-    state = kwargs.get('state')
-
-    if project_name is not None:
-        os.environ.get('PIPERIDER_API_PROJECT')
-
-    console = Console()
-    env_dbt_resources = os.environ.get('PIPERIDER_DBT_RESOURCES')
-
-    # True -> 1, False -> 0
-    if sum([True if table else False, dbt_list, env_dbt_resources is not None]) > 1:
-        console.print("[bold red]Error:[/bold red] "
-                      "['--table', '--dbt-list'] are mutually exclusive")
-        sys.exit(1)
-
-    # Search dbt project config files
-    dbt_project_dir = kwargs.get('dbt_project_dir')
-    no_auto_search = kwargs.get('no_auto_search')
-    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search, recursive=False)
-    dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
-    if dbt_project_path:
-        working_dir = os.path.dirname(dbt_project_path) if dbt_project_path.endswith('.yml') else dbt_project_path
-        FileSystem.set_working_directory(working_dir)
-        if dbt_profiles_dir:
-            FileSystem.set_dbt_profiles_dir(dbt_profiles_dir)
-        # Only run initializer when dbt project path is provided
-        Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
-    elif is_piperider_workspace_exist() is False:
-        raise DbtProjectNotFoundError()
-
-    dbt_resources = None
-    if select and dbt_list is True:
-        raise PipeRiderConflictOptionsError(
-            'Cannot use options "--select" with "--dbt-list"',
-            hint='Remove "--select" option and use "--dbt-list" instead.'
-        )
-
-    if dbt_list:
-        dbt_resources = dbtutil.read_dbt_resources(sys.stdin)
-    if env_dbt_resources is not None:
-        dbt_resources = dbtutil.read_dbt_resources(env_dbt_resources)
-
-    ret = Runner.exec(datasource=datasource,
-                      table=table,
-                      output=output,
-                      skip_report=skip_report,
-                      dbt_target_path=dbt_target_path,
-                      dbt_resources=dbt_resources,
-                      dbt_select=select,
-                      dbt_state=state,
-                      report_dir=kwargs.get('report_dir'),
-                      skip_datasource_connection=kwargs.get('skip_datasource'))
-    if ret in (0, EC_ERR_TEST_FAILED, EC_WARN_NO_PROFILED_MODULES):
-        if enable_share:
-            force_upload = True
-
-        auto_upload = CloudConnector.is_auto_upload()
-        is_cloud_view = (force_upload or auto_upload)
-
-        if not skip_report:
-            GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report, is_cloud_view)
-
-        if ret == EC_WARN_NO_PROFILED_MODULES:
-            # No module was profiled
-            if dbt_list or dbt_resources or select:
-                Guide().show('No resources was profiled. Please check given "--select", "--dbt-list" option or '
-                             'environment variable "PIPERIDER_DBT_RESOURCES" to choose the resources to profile.')
-                ret = 0
-
-        if CloudConnector.is_login() and is_cloud_view:
-            ret = CloudConnector.upload_latest_report(report_dir=kwargs.get('report_dir'), debug=kwargs.get('debug'),
-                                                      open_report=open_report, enable_share=enable_share,
-                                                      project_name=project_name)
-        elif not CloudConnector.is_login() and is_cloud_view:
-            console = Console()
-            console.print('[bold yellow]Warning: [/bold yellow]The report is not uploaded due to not logged in.')
-
-    if ret != 0:
-        if ret != EC_WARN_NO_PROFILED_MODULES:
-            sys.exit(ret)
-    return ret
+    from piperider_cli.cli_utils.run_cmd import run as cmd
+    return cmd(**kwargs)
 
 
 @cli.command(short_help='Generate recommended assertions. - Deprecated', cls=TrackCommand)
@@ -356,6 +263,8 @@ def generate_assertions(**kwargs):
     report_dir = kwargs.get('report_dir')
     no_recommend = kwargs.get('no_recommend')
     table = kwargs.get('table')
+
+    from piperider_cli.assertion_generator import AssertionGenerator
     ret = AssertionGenerator.exec(input_path=input_path, report_dir=report_dir, no_recommend=no_recommend, table=table)
     if ret != 0:
         sys.exit(ret)
@@ -404,14 +313,15 @@ def compare_reports(**kwargs):
     enable_share = kwargs.get('share')
     project_name = kwargs.get('project')
 
-    if enable_share or CloudConnector.is_auto_upload():
+    if enable_share or CloudConnectorHelper.is_auto_upload():
         force_upload = True
 
-    if force_upload and not CloudConnector.is_login():
+    if force_upload and not CloudConnectorHelper.is_login():
         force_upload = False
         console = Console()
         console.print('[bold yellow]Warning: [/bold yellow]Reports will not be uploaded due to not logged in.')
 
+    from piperider_cli.compare_report import CompareReport
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
                        report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), summary_file=summary_file,
                        tables_from=tables_from, force_upload=force_upload, enable_share=enable_share,
@@ -451,13 +361,13 @@ def delete(**kwargs):
 
 @config.command(name='enable-auto-upload', short_help='Enable auto upload to PipeRider Cloud.', cls=TrackCommand)
 def enable_auto_upload(**kwargs):
-    CloudConnector.config_auto_upload(True)
+    CloudConnectorHelper.config_auto_upload(True)
     pass
 
 
 @config.command(name='disable-auto-upload', short_help='Disable auto upload to PipeRider Cloud.', cls=TrackCommand)
 def disable_auto_upload(**kwargs):
-    CloudConnector.config_auto_upload(False)
+    CloudConnectorHelper.config_auto_upload(False)
     pass
 
 
@@ -493,9 +403,9 @@ def upload_report(**kwargs):
     datasource = kwargs.get('datasource')
     report_dir = kwargs.get('report_dir')
     project_name = kwargs.get('project')
-    ret = CloudConnector.upload_report(report_path=report_path, datasource=datasource, report_dir=report_dir,
-                                       project_name=project_name,
-                                       debug=kwargs.get('debug', False))
+    ret = CloudConnectorHelper.upload_report(report_path=report_path, datasource=datasource, report_dir=report_dir,
+                                             project_name=project_name,
+                                             debug=kwargs.get('debug', False))
     return ret
 
 
@@ -521,8 +431,9 @@ def cloud_compare_reports(**kwargs):
     summary_file = kwargs.get('summary_file')
     project_name = kwargs.get('project')
 
-    ret = CloudConnector.compare_reports(base=base, target=target, tables_from=tables_from, summary_file=summary_file,
-                                         project_name=project_name, debug=kwargs.get('debug', False))
+    ret = CloudConnectorHelper.compare_reports(base=base, target=target, tables_from=tables_from,
+                                               summary_file=summary_file,
+                                               project_name=project_name, debug=kwargs.get('debug', False))
 
     if ret != 0:
         sys.exit(ret)
@@ -554,79 +465,14 @@ def compare_with_recipe(**kwargs):
     Generate the comparison report for your branch.
     """
 
-    recipe = kwargs.get('recipe')
-    summary_file = kwargs.get('summary_file')
-    force_upload = kwargs.get('upload')
-    enable_share = kwargs.get('share')
-    open_report = kwargs.get('open')
-    project_name = kwargs.get('project')
-    debug = kwargs.get('debug', False)
-    select = kwargs.get('select')
-    modified = kwargs.get('modified')
-
-    base_branch = kwargs.get('base_branch')
-
-    # reconfigure recipe global flags
-    configure_recipe_execution_flags(dry_run=kwargs.get('dry_run'), interactive=kwargs.get('interactive'))
-
-    if enable_share:
-        force_upload = True
-
-    if force_upload is True and CloudConnector.is_login() is False:
-        raise RecipeConfigException(
-            message='Please login to PipeRider Cloud first.',
-            hint='Run "piperider cloud login" to login to PipeRider Cloud.'
-        )
-
-    # Search dbt project config files
-    dbt_project_dir = kwargs.get('dbt_project_dir')
-    no_auto_search = kwargs.get('no_auto_search')
-    dbt_project_path = dbtutil.get_dbt_project_path(dbt_project_dir, no_auto_search, recursive=False)
-    dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
-    if dbt_project_path:
-        FileSystem.set_working_directory(dbt_project_path)
-        # Only run initializer when dbt project path is provided
-        Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
-    elif is_piperider_workspace_exist() is False:
-        raise DbtProjectNotFoundError()
-
-    ret = 0
-    try:
-        # note: dry-run and interactive are set by configure_recipe_execution_flags
-        recipe_config: RecipeConfiguration = RecipeExecutor.exec(
-            recipe_name=recipe,
-            select=select,
-            modified=modified,
-            base_branch=base_branch,
-            debug=debug)
-        last = False
-        base = target = None
-        if not recipe_config.base.is_file_specified() and not recipe_config.target.is_file_specified():
-            last = True
-        else:
-            base = recipe_config.base.get_run_report()
-            target = recipe_config.target.get_run_report()
-
-        if not is_recipe_dry_run():
-            CompareReport.exec(a=base, b=target, last=last, datasource=None,
-                               output=kwargs.get('output'), tables_from="all",
-                               summary_file=summary_file,
-                               force_upload=force_upload,
-                               enable_share=enable_share,
-                               open_report=open_report,
-                               project_name=project_name,
-                               show_progress=True,
-                               debug=debug)
-    except Exception as e:
-        raise e
-
-    return ret
+    from piperider_cli.cli_utils.compare_with_recipe import compare_with_recipe as cmd
+    return cmd(**kwargs)
 
 
 @cloud.command(short_help='Signup to PipeRider Cloud.', cls=TrackCommand)
 @add_options(debug_option)
 def signup(**kwargs):
-    ret = CloudConnector.signup(debug=kwargs.get('debug', False))
+    ret = CloudConnectorHelper.signup(debug=kwargs.get('debug', False))
     return ret
 
 
@@ -646,21 +492,21 @@ def login(**kwargs):
     if kwargs.get('no_interaction') is True:
         options['no_interaction'] = True
 
-    ret = CloudConnector.login(api_token=kwargs.get('token'), options=options, debug=kwargs.get('debug', False))
+    ret = CloudConnectorHelper.login(api_token=kwargs.get('token'), options=options, debug=kwargs.get('debug', False))
     return ret
 
 
 @cloud.command(short_help='Logout from PipeRider Cloud.', cls=TrackCommand)
 @add_options(debug_option)
 def logout(**kwargs):
-    ret = CloudConnector.logout()
+    ret = CloudConnectorHelper.logout()
     return ret
 
 
 @cloud.command(short_help='List projects on PipeRider Cloud.', cls=TrackCommand)
 @add_options(debug_option)
 def list_projects(**kwargs):
-    ret = CloudConnector.list_projects()
+    ret = CloudConnectorHelper.list_projects()
     return ret
 
 
@@ -672,5 +518,5 @@ def list_projects(**kwargs):
 def select_project(**kwargs):
     project_name = kwargs.get('project')
     no_interaction: bool = kwargs.get('no_interaction', False)
-    ret = CloudConnector.select_project(project_name=project_name, no_interaction=no_interaction)
+    ret = CloudConnectorHelper.select_project(project_name=project_name, no_interaction=no_interaction)
     return ret
