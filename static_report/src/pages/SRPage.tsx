@@ -21,11 +21,13 @@ import {
   TABLE_DETAILS_ROUTE_PATH,
   TABLE_LIST_ROUTE_PATH,
   METRIC_DETAILS_ROUTE_PATH,
+  SEMANTIC_MODEL_DETAILS_ROUTE_PATH,
 } from '../utils/routes';
 import { SRAssertionListPage } from './SRAssertionListPage';
 import { SRBMPage } from './SRBMPage';
 import SRColumnDetailPage from './SRColumnDetailPage';
 import { SROverviewPage } from './SROverviewPage';
+import { SRSemanticModelPage } from './SRSemanticModelPage';
 import SRTableDetailPage from './SRTableDetailPage';
 import { SRTablesListPage } from './SRTablesListPage';
 
@@ -94,6 +96,10 @@ export function SRPage({ data, cloud, sideNavTop = '0px' }: Props) {
 
             <Route path={METRIC_DETAILS_ROUTE_PATH}>
               <SRBMPage />
+            </Route>
+
+            <Route path={SEMANTIC_MODEL_DETAILS_ROUTE_PATH}>
+              <SRSemanticModelPage />
             </Route>
 
             <Route path={SSR_ROUTE_PATH}>

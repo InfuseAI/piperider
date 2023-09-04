@@ -6,6 +6,7 @@ import { FaChartBar } from 'react-icons/fa';
 import { FiCloud, FiGrid, FiPlus } from 'react-icons/fi';
 import { TbCircleHalf } from 'react-icons/tb';
 import { TiSortNumerically } from 'react-icons/ti';
+import { RxCube } from 'react-icons/rx';
 import {
   VscDiffAdded,
   VscDiffModified,
@@ -152,12 +153,14 @@ export function getIconForResourceType(resourceType?: string): {
     return { color: '#c0eafd', icon: FiGrid };
   } else if (resourceType === 'source' || resourceType === 'seed') {
     return { color: '#a6dda6', icon: FiGrid };
+  } else if (resourceType === 'semantic_model') {
+    return { color: '#fb8caf', icon: RxCube };
   } else if (
     resourceType === 'metric' ||
     resourceType === 'exposure' ||
     resourceType === 'analysis'
   ) {
-    return { color: 'rgb(255 230 238)', icon: FaChartBar };
+    return { color: '#ffe6ee', icon: FaChartBar };
   } else {
     return { color: 'inherit', icon: undefined };
   }

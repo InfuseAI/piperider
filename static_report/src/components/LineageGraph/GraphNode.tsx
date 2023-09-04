@@ -89,7 +89,7 @@ export function GraphNode({ selected, data }: GraphNodeProps) {
     >
       <Flex
         width="300px"
-        _hover={{ backgroundColor: 'gray.100' }}
+        _hover={{ backgroundColor: showContent ? 'gray.100' : color }}
         borderColor={borderColor}
         borderWidth={borderWidth}
         borderStyle={borderStyle}

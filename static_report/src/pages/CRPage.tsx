@@ -21,11 +21,13 @@ import {
   MODEL_DETAILS_ROUTE_PATH,
   MODEL_COLUMN_DETAILS_ROUTE_PATH,
   METRIC_DETAILS_ROUTE_PATH,
+  SEMANTIC_MODEL_DETAILS_ROUTE_PATH,
 } from '../utils/routes';
 import { CRAssertionListPage } from './CRAssertionListPage';
 import { CRBMPage } from './CRBMPage';
 import CRColumnDetailPage from './CRColumnDetailPage';
 import { CROverviewPage } from './CROverviewPage';
+import { CRSemanticModelPage } from './CRSemanticModelPage';
 import CRTableDetailPage from './CRTableDetailPage';
 import { CRTablesListPage } from './CRTableListPage';
 
@@ -91,6 +93,10 @@ export function CRPage({ data, cloud, sideNavTop = '0px' }: Props) {
 
             <Route path={METRIC_DETAILS_ROUTE_PATH}>
               <CRBMPage />
+            </Route>
+
+            <Route path={SEMANTIC_MODEL_DETAILS_ROUTE_PATH}>
+              <CRSemanticModelPage />
             </Route>
 
             <Route path={SSR_ROUTE_PATH}>

@@ -20,6 +20,7 @@ export type ItemType =
   | DbtManifestSchema['sources'][string]['resource_type']
   | DbtManifestSchema['metrics'][string]['resource_type']
   | DbtManifestSchema['exposures'][string]['resource_type']
+  | DbtManifestSchema['semantic_models'][string]['resource_type']
   | 'overview'
   | 'folder'
   | 'database'
@@ -161,6 +162,7 @@ export const buildDbtNodes = (run?: SaferSRSchema) => {
       manifest?.sources,
       manifest?.metrics,
       manifest?.nodes,
+      manifest?.semantic_models,
     );
   }
 
