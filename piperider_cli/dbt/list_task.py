@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 import tempfile
 from dataclasses import fields
 from pathlib import Path
@@ -103,7 +104,23 @@ def _load_manifest_version_15(manifest: Dict):
                 ]
                 raise ValueError(messages)
 
-    return WritableManifest.upgrade_schema_version(data)
+    def patched_get_manifest_schema_version(dct: dict) -> int:
+        schema_version = dct.get("metadata", {}).get("dbt_schema_version", None)
+        if not schema_version:
+            raise ValueError("Manifest doesn't have schema version")
+
+        match = re.search(r'/v(\d+).json', schema_version)
+        if match:
+            return int(match.group(1))
+        raise ValueError("Manifest doesn't have schema version")
+
+    import dbt.contracts.graph.manifest
+    origin_function = dbt.contracts.graph.manifest.get_manifest_schema_version
+    dbt.contracts.graph.manifest.get_manifest_schema_version = patched_get_manifest_schema_version
+
+    result = WritableManifest.upgrade_schema_version(data)
+    dbt.contracts.graph.manifest.get_manifest_schema_version = origin_function
+    return result
 
 
 def _load_manifest_version_16(manifest: Dict):
