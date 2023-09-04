@@ -117,7 +117,7 @@ export function selectUpstream(
   return getUpstreamSet(
     keys,
     (id) => {
-      return Object.keys(lineageGraph[id].dependsOn);
+      return Object.keys(lineageGraph[id]?.dependsOn ?? {});
     },
     degree,
   );
@@ -131,7 +131,7 @@ export function selectDownstream(
   return getDownstreamSet(
     keys,
     (id) => {
-      return Object.keys(lineageGraph[id].children);
+      return Object.keys(lineageGraph[id]?.children ?? {});
     },
     degree,
   );

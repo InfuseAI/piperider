@@ -13,6 +13,7 @@ import {
 import {
   DbtManifestSchema,
   Metric,
+  SemanticModel,
   SourceDefinition,
 } from '../sdlc/dbt-manifest-schema';
 import { RunResultOutput } from '../sdlc/dbt-run-results-schema';
@@ -29,6 +30,7 @@ export type DbtNode = (
   | SourceDefinition
   | TableNode
   | Metric
+  | SemanticModel
 ) & {
   __table?: SaferTableSchema;
   __queries?: BusinessMetric[];

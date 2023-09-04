@@ -21,6 +21,7 @@ export const SEED_COLUMN_DETAILS_ROUTE_PATH =
   '/seeds/:uniqueId/columns/:columnName';
 
 export const METRIC_DETAILS_ROUTE_PATH = '/metrics/:uniqueId';
+export const SEMANTIC_MODEL_DETAILS_ROUTE_PATH = '/semantic_models/:uniqueId';
 
 /**
  * Server side render. Because in the SSR, there is no hash path. We need to use a different path to indicate it is rendered in SSR.
@@ -57,6 +58,10 @@ export function useTableRoute(): {
     METRIC_DETAILS_ROUTE_PATH,
     location,
   );
+  const [matchSemanticModel, paramsSemanticModel] = router.matcher(
+    METRIC_DETAILS_ROUTE_PATH,
+    location,
+  );
 
   if (matchTable) {
     return paramsTable;
@@ -68,6 +73,8 @@ export function useTableRoute(): {
     return paramsSeed;
   } else if (matchMetric) {
     return paramsMetric;
+  } else if (matchSemanticModel) {
+    return paramsSemanticModel;
   } else {
     return {};
   }
