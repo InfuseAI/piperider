@@ -62,13 +62,13 @@ class DefaultChangeSetOpMixin:
 
         for k in base_cols:
             if ColumnChangeView(base_cols.get(k)) != ColumnChangeView(
-                    target_cols.get(k)
+                target_cols.get(k)
             ):
                 return True
 
         for k in target_cols:
             if ColumnChangeView(base_cols.get(k)) != ColumnChangeView(
-                    target_cols.get(k)
+                target_cols.get(k)
             ):
                 return True
 
@@ -182,11 +182,11 @@ class LookUpTable:
 
     def tests(self, unique_id: str):
         return sum(self.base_tests.get(unique_id, dict(passed=0, failed=0)).values()), \
-            sum(self.target_tests.get(unique_id, dict(passed=0, failed=0)).values())
+               sum(self.target_tests.get(unique_id, dict(passed=0, failed=0)).values())
 
     def failed_tests(self, unique_id: str):
         return self.base_tests.get(unique_id, dict(passed=0, failed=0)).get('failed'), \
-            self.target_tests.get(unique_id, dict(passed=0, failed=0)).get('failed')
+               self.target_tests.get(unique_id, dict(passed=0, failed=0)).get('failed')
 
     def _build_dbt_time_mapping(self):
         base_execution = {x.get('unique_id'): x.get('execution_time') for x in
@@ -870,9 +870,6 @@ class GraphDataChangeSet(DefaultChangeSetOpMixin):
         return self.explicit_changes
 
     def _metrics_implicit_changes(self):
-        if dbt_version >= '1.6':
-            return []
-
         # exclude added and removed
         metrics_b = {x.get("name"): x for x in self.base.get("metrics", {})}
         metrics_t = {x.get("name"): x for x in self.target.get("metrics", {})}
