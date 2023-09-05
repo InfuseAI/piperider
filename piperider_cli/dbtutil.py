@@ -473,7 +473,7 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
                     return None
 
             if filter is not None:
-                f = get_metric_filter(metric.get('name'), filter)
+                f = get_metric_filter(derived_metric if derived_metric else metric.get('name'), filter)
                 if f is not None:
                     metric_filter.append(f)
                 else:
