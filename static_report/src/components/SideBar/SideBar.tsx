@@ -42,9 +42,12 @@ export function SideBar({ singleOnly }: Comparable) {
 
   // make sure the tree is expanded for the current path
   useEffect(() => {
-    if (location !== '/ssr' && tabIndex < 0) {
+    if (location !== '/ssr') {
       expandTreeForPath(location);
-      setTabIndex(0);
+
+      if (tabIndex < 0) {
+        setTabIndex(0);
+      }
     }
   }, [location, tabIndex, expandTreeForPath]);
 

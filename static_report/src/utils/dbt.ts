@@ -286,7 +286,7 @@ export function buildSourceTree(
           type: 'folder',
           name: sourceName,
           items: [],
-          expanded: true,
+          expanded: false,
         };
       }
 
@@ -361,7 +361,7 @@ export function buildModelOrSeedTree(
           type: 'folder',
           name: dir,
           items: {},
-          expanded: true,
+          expanded: false,
         };
       }
       curDir = curDir[dir].items;
@@ -424,7 +424,7 @@ export function buildMetricTree(
           type: 'folder',
           name: packageName,
           items: [],
-          expanded: true,
+          expanded: false,
         };
       }
 
@@ -497,26 +497,26 @@ export function buildProjectTree(
     name: 'Sources',
     type: 'folder',
     items: buildSourceTree(itemsNodeComparison),
-    expanded: true,
+    expanded: false,
   };
   const seed: SidebarTreeItem = {
     name: 'Seeds',
     type: 'folder',
     items: buildModelOrSeedTree(itemsNodeComparison, 'seed'),
-    expanded: true,
+    expanded: false,
   };
   const model: SidebarTreeItem = {
     name: 'Models',
     type: 'folder',
     items: buildModelOrSeedTree(itemsNodeComparison, 'model'),
-    expanded: true,
+    expanded: false,
   };
   const table: SidebarTreeItem = {
     name: 'Tables',
     type: 'folder',
     path: `/tables`,
     items: buildLegacyTablesTree(itemsNodeComparison),
-    expanded: true,
+    expanded: false,
   };
   const metric: SidebarTreeItem = {
     name: 'Metrics',
@@ -590,7 +590,7 @@ export function buildDatabaseTree(
       type: 'database',
       name: db,
       items: [],
-      expanded: true,
+      expanded: false,
     };
     items.push(itemDatabase);
 
@@ -600,7 +600,7 @@ export function buildDatabaseTree(
         type: 'schema',
         name: schema,
         items: [],
-        expanded: true,
+        expanded: false,
       };
 
       itemDatabase.items!.push(itemSchema);
