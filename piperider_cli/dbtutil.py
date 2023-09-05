@@ -512,7 +512,7 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
                     # find dimension definition - time
                     for obj in semantic_model.get('dimensions'):
                         if obj.get('name') == agg_time_dimension:
-                            timestamp = obj.get('expr')
+                            timestamp = obj.get('expr') if obj.get('expr') else obj.get('name')
                             grain = obj.get('type_params').get('time_granularity')
                             time_grains = get_support_time_grains(grain)
                             break
