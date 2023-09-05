@@ -74,19 +74,8 @@ def add_options(options):
 
 
 class RunDataPath(click.Path):
-
     def __init__(self):
-        super().__init__(
-            exists=True,
-            file_okay=True,
-            dir_okay=False,
-            writable=False,
-            readable=True,
-            resolve_path=True,
-            allow_dash=False,
-            path_type=None,
-            executable=False
-        )
+        super().__init__(exists=True, dir_okay=False, resolve_path=True)
 
     def convert(
             self, value: t.Any, param: t.Optional["Parameter"], ctx: t.Optional["Context"]
