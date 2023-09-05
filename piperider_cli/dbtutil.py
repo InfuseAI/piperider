@@ -619,8 +619,9 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
                 time_grains = derived_time_grains
 
             m = Metric(metric.get('name'),
-                       calculation_method='derived',
-                       expression=f"{numerator.get('name')} / {denominator.get('name')}",
+                       calculation_method='ratio',
+                       numerator=numerator.get('name'),
+                       denominator=denominator.get('name'),
                        time_grains=time_grains,
                        label=metric.get('label'), description=metric.get('description'), ref_metrics=ref_metrics,
                        ref_id=metric.get('unique_id'))
