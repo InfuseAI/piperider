@@ -457,7 +457,8 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
     for key, metric in manifest.get('metrics').items():
         metric_map[metric.get('name')] = metric
 
-    def _create_metric(name, filter=None, alias=None, derived_metric=None):
+    def _create_metric(name, filter=None, alias=None, root_name=None):
+        root_name = name if root_name is None else root_name
         statistics = Statistics()
         metric = metric_map.get(name)
 
@@ -465,7 +466,7 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
             primary_entity = None
             metric_filter = []
             if metric.get('filter') is not None:
-                f = get_metric_filter(metric.get('name'), metric.get('filter'))
+                f = get_metric_filter(root_name, metric.get('filter'))
                 if f is not None:
                     metric_filter.append(f)
                 else:
@@ -473,7 +474,7 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
                     return None
 
             if filter is not None:
-                f = get_metric_filter(derived_metric if derived_metric else metric.get('name'), filter)
+                f = get_metric_filter(root_name, filter)
                 if f is not None:
                     metric_filter.append(f)
                 else:
@@ -540,7 +541,7 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
                 else:
                     console.print(
                         f"[[bold yellow]Skip[/bold yellow]] "
-                        f"Metric '{derived_metric if derived_metric else metric.get('name')}'. "
+                        f"Metric '{root_name if root_name else metric.get('name')}'. "
                         f"Dimension of foreign entities is not supported.")
                     statistics.add_field_one('nosupport')
                     return None
@@ -567,7 +568,7 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
                     ref_metric.get('name'),
                     filter=ref_metric.get('filter'),
                     alias=ref_metric.get('alias'),
-                    derived_metric=metric.get('name')
+                    root_name=root_name
                 )
                 if m2 is None:
                     return None
@@ -595,7 +596,7 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
                 numerator.get('name'),
                 filter=numerator.get('filter'),
                 alias=numerator.get('alias'),
-                derived_metric=metric.get('name')
+                root_name=root_name
             )
             if m2 is None:
                 return None
@@ -609,7 +610,7 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
                 denominator.get('name'),
                 filter=denominator.get('filter'),
                 alias=denominator.get('alias'),
-                derived_metric=metric.get('name')
+                root_name=root_name
             )
             if m2 is None:
                 return None
