@@ -457,7 +457,7 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
     for key, metric in manifest.get('metrics').items():
         metric_map[metric.get('name')] = metric
 
-    def _create_metric(name, filter=None, alias=None):
+    def _create_metric(name, filter=None, alias=None, derived_metric=None):
         statistics = Statistics()
         metric = metric_map.get(name)
 
@@ -539,7 +539,8 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
                     f['field'] = f['field'].replace(f'{primary_entity}__', '')
                 else:
                     console.print(
-                        f"[[bold yellow]Skip[/bold yellow]] Metric '{metric.get('name')}'. "
+                        f"[[bold yellow]Skip[/bold yellow]] "
+                        f"Metric '{derived_metric if derived_metric else metric.get('name')}'. "
                         f"Dimension of foreign entities is not supported.")
                     statistics.add_field_one('nosupport')
                     return None
@@ -565,7 +566,11 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
                 m2 = _create_metric(
                     ref_metric.get('name'),
                     filter=ref_metric.get('filter'),
-                    alias=ref_metric.get('alias'))
+                    alias=ref_metric.get('alias'),
+                    derived_metric=metric.get('name')
+                )
+                if m2 is None:
+                    return None
                 ref_metrics.append(m2)
 
                 derived_time_grains = find_derived_time_grains(manifest, metric_map[ref_metric.get('name')])
@@ -589,7 +594,11 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
             m2 = _create_metric(
                 numerator.get('name'),
                 filter=numerator.get('filter'),
-                alias=numerator.get('alias'))
+                alias=numerator.get('alias'),
+                derived_metric=metric.get('name')
+            )
+            if m2 is None:
+                return None
             ref_metrics.append(m2)
             derived_time_grains = find_derived_time_grains(manifest, metric_map[numerator.get('name')])
             if len(time_grains) < len(derived_time_grains):
@@ -599,7 +608,11 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
             m2 = _create_metric(
                 denominator.get('name'),
                 filter=denominator.get('filter'),
-                alias=denominator.get('alias'))
+                alias=denominator.get('alias'),
+                derived_metric=metric.get('name')
+            )
+            if m2 is None:
+                return None
             ref_metrics.append(m2)
             derived_time_grains = find_derived_time_grains(manifest, metric_map[denominator.get('name')])
             if len(time_grains) < len(derived_time_grains):
