@@ -53,6 +53,8 @@ class Metric:
         calculation_method=None,
         time_grains=None,
         expression: str = None,
+        numerator: str = None,
+        denominator: str = None,
         label=None,
         description=None,
         ref_metrics=None,
@@ -63,6 +65,8 @@ class Metric:
         self.calculation_method = calculation_method
         self.time_grains = time_grains
         self.expression = expression
+        self.numerator = numerator
+        self.denominator = denominator
         self.label = label
         self.description = description
         self.ref_metrics: List[Metric] = ref_metrics or []
@@ -111,7 +115,7 @@ class MetricEngine:
     def _get_query_stmt(self, metric: Metric, grain: str, dimension: List[str], date_spine_model: CTE):
         metric_column_name = metric.name
 
-        if metric.calculation_method == 'derived':
+        if metric.calculation_method == 'derived' or metric.calculation_method == 'ratio':
             selectable = None
 
             # Join all parent metrics
@@ -123,8 +127,11 @@ class MetricEngine:
                 else:
                     selectable = join(selectable, cte, selectable.c.d == cte.c.d)
 
-            # a / b / c -> a / nullif(b, 0) / nullif(c, 0)
             expression = metric.expression
+            if metric.calculation_method == 'ratio':
+                expression = f"{metric.numerator}/{metric.denominator}"
+
+            # a / b / c -> a / nullif(b, 0) / nullif(c, 0)
             if '/' in expression:
                 expression_list = expression.split('/')
                 dividend = expression_list[0]

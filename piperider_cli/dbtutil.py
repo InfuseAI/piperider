@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, Optional, Union
 
 import inquirer
+from jinja2 import UndefinedError
 from rich.console import Console
 from rich.table import Table
 from ruamel import yaml
@@ -353,9 +354,16 @@ def get_dbt_state_metrics(dbt_state_dir: str, dbt_tag: str, dbt_resources: Optio
 
 def is_dbt_schema_version_16(manifest: Dict):
     # dbt_schema_version: 'https://schemas.getdbt.com/dbt/manifest/v10.json'
-    schema_version = manifest['metadata'].get('dbt_schema_version').split('/')[-1]
-    version = schema_version.split('.')[0]
-    return int(version[1:]) >= 10
+    schema_version_url = manifest['metadata'].get('dbt_schema_version')
+
+    def parse_version_from_url(url: str):
+        import re
+        match = re.match(r"(.*?)\/v(\d+)\.json", url)
+        if match:
+            return int(match.group(2))
+
+    version = parse_version_from_url(schema_version_url)
+    return version >= 10
 
 
 def load_metric_jinja_string_template(value: str):
@@ -377,6 +385,23 @@ def get_support_time_grains(grain: str):
     support_time_grains = ['day', 'month', 'year']
 
     return [x for x in support_time_grains if x in available_time_grains]
+
+
+def get_metric_filter(metric_name, raw_filter):
+    try:
+        sql_filter = load_metric_jinja_string_template(raw_filter.get('where_sql_template')).render()
+        return {
+            'field': sql_filter.split(' ')[0],
+            'operator': sql_filter.split(' ')[1],
+            'value': sql_filter.split(' ')[2]
+        }
+    except UndefinedError as e:
+        func_name = e.message.split(' ')[0]
+        console.print(
+            f"[[bold yellow]Skip[/bold yellow]] Metric '{metric_name}'. "
+            f"Jinja function {func_name} of filter is not supported.")
+
+    return None
 
 
 def find_derived_time_grains(manifest: Dict, metric: Dict):
@@ -432,7 +457,8 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
     for key, metric in manifest.get('metrics').items():
         metric_map[metric.get('name')] = metric
 
-    def _create_metric(name, filter=None, alias=None):
+    def _create_metric(name, filter=None, alias=None, root_name=None):
+        root_name = name if root_name is None else root_name
         statistics = Statistics()
         metric = metric_map.get(name)
 
@@ -440,15 +466,20 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
             primary_entity = None
             metric_filter = []
             if metric.get('filter') is not None:
-                sql_filter = load_metric_jinja_string_template(metric.get('filter').get('where_sql_template')).render()
-                metric_filter.append({'field': sql_filter.split(' ')[0],
-                                      'operator': sql_filter.split(' ')[1],
-                                      'value': sql_filter.split(' ')[2]})
+                f = get_metric_filter(root_name, metric.get('filter'))
+                if f is not None:
+                    metric_filter.append(f)
+                else:
+                    statistics.add_field_one('nosupport')
+                    return None
+
             if filter is not None:
-                sql_filter = load_metric_jinja_string_template(filter.get('where_sql_template')).render()
-                metric_filter.append({'field': sql_filter.split(' ')[0],
-                                      'operator': sql_filter.split(' ')[1],
-                                      'value': sql_filter.split(' ')[2]})
+                f = get_metric_filter(root_name, filter)
+                if f is not None:
+                    metric_filter.append(f)
+                else:
+                    statistics.add_field_one('nosupport')
+                    return None
 
             nodes = metric.get('depends_on').get('nodes', [])
             depends_on = nodes[0]
@@ -509,14 +540,15 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
                     f['field'] = f['field'].replace(f'{primary_entity}__', '')
                 else:
                     console.print(
-                        f"[[bold yellow]Skip[/bold yellow]] Metric '{metric.get('name')}'. "
+                        f"[[bold yellow]Skip[/bold yellow]] "
+                        f"Metric '{root_name if root_name else metric.get('name')}'. "
                         f"Dimension of foreign entities is not supported.")
                     statistics.add_field_one('nosupport')
                     return None
-            if m.calculation_method == 'median':
+            if m.calculation_method in ['sum_boolean', 'median', 'percentile']:
                 console.print(
                     f"[[bold yellow]Skip[/bold yellow]] Metric '{metric.get('name')}'. "
-                    f"Aggregation type 'median' is not supported.")
+                    f"Aggregation type '{m.calculation_method}' is not supported.")
                 statistics.add_field_one('nosupport')
                 return None
 
@@ -535,7 +567,11 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
                 m2 = _create_metric(
                     ref_metric.get('name'),
                     filter=ref_metric.get('filter'),
-                    alias=ref_metric.get('alias'))
+                    alias=ref_metric.get('alias'),
+                    root_name=root_name
+                )
+                if m2 is None:
+                    return None
                 ref_metrics.append(m2)
 
                 derived_time_grains = find_derived_time_grains(manifest, metric_map[ref_metric.get('name')])
@@ -559,7 +595,11 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
             m2 = _create_metric(
                 numerator.get('name'),
                 filter=numerator.get('filter'),
-                alias=numerator.get('alias'))
+                alias=numerator.get('alias'),
+                root_name=root_name
+            )
+            if m2 is None:
+                return None
             ref_metrics.append(m2)
             derived_time_grains = find_derived_time_grains(manifest, metric_map[numerator.get('name')])
             if len(time_grains) < len(derived_time_grains):
@@ -569,15 +609,20 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
             m2 = _create_metric(
                 denominator.get('name'),
                 filter=denominator.get('filter'),
-                alias=denominator.get('alias'))
+                alias=denominator.get('alias'),
+                root_name=root_name
+            )
+            if m2 is None:
+                return None
             ref_metrics.append(m2)
             derived_time_grains = find_derived_time_grains(manifest, metric_map[denominator.get('name')])
             if len(time_grains) < len(derived_time_grains):
                 time_grains = derived_time_grains
 
             m = Metric(metric.get('name'),
-                       calculation_method='derived',
-                       expression=f"{numerator.get('name')} / {denominator.get('name')}",
+                       calculation_method='ratio',
+                       numerator=numerator.get('name'),
+                       denominator=denominator.get('name'),
                        time_grains=time_grains,
                        label=metric.get('label'), description=metric.get('description'), ref_metrics=ref_metrics,
                        ref_id=metric.get('unique_id'))
