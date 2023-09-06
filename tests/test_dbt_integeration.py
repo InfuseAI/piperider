@@ -55,6 +55,12 @@ class _BaseDbtTest(TestCase):
     def target_run(self):
         return self.run_object("jaffle_shop_target_1.3.json")
 
+    def base_run_1_6(self):
+        return self.run_object("jaffle_shop_base_1_6.json")
+
+    def target_run_1_6(self):
+        return self.run_object("jaffle_shop_target_1_6.json")
+
     def base_31587(self):
         return self.run_object("sc-31587-base.json")
 
@@ -196,16 +202,21 @@ class TestDbtIntegration(_BaseDbtTest):
         self.assertDbtResources(with_downstream, expected)
 
     def test_list_explicit_changes(self):
-        c = GraphDataChangeSet(self.base_run(), self.target_run())
+        if dbt_version < '1.6':
+            c = GraphDataChangeSet(self.base_run(), self.target_run())
 
-        expected = ["model.jaffle_shop.customers", "model.jaffle_shop.orders"]
-        changes = c.list_explicit_changes()
-        self.assertDbtResources(changes, expected)
+            expected = ["model.jaffle_shop.customers", "model.jaffle_shop.orders"]
+            changes = c.list_explicit_changes()
+            self.assertDbtResources(changes, expected)
+        else:
+            c = GraphDataChangeSet(self.base_run_1_6(), self.target_run_1_6())
 
-        print(c.list_implicit_changes())
+            expected = ["model.jaffle_shop.orders"]
+            changes = c.list_explicit_changes()
+            self.assertDbtResources(changes, expected)
 
     @unittest.skipIf(
-        dbt_version < version.parse("1.4"),
+        dbt_version < '1.4' or dbt_version >= '1.6',
         "this only works after manifests generated after the v1.4",
     )
     def test_list_explicit_changes_without_ref_ids(self):
@@ -243,16 +254,28 @@ class TestDbtIntegration(_BaseDbtTest):
         "this only works after manifests generated after the v1.4",
     )
     def test_list_changes_metrics_case(self):
-        c = GraphDataChangeSet(self.base_31587_metrics(), self.target_31587_metrics())
-        expected = ["model.jaffle_shop.orders"]
-        changes = c.list_explicit_changes()
-        self.assertDbtResources(changes, expected)
+        if dbt_version < '1.6':
+            c = GraphDataChangeSet(self.base_31587_metrics(), self.target_31587_metrics())
+            expected = ["model.jaffle_shop.orders"]
+            changes = c.list_explicit_changes()
+            self.assertDbtResources(changes, expected)
 
-        changes = c.list_implicit_changes()
-        self.assertDbtResources(
-            changes,
-            ["metric.jaffle_shop.average_order_amount", "model.jaffle_shop.orders"],
-        )
+            changes = c.list_implicit_changes()
+            self.assertDbtResources(
+                changes,
+                ["metric.jaffle_shop.average_order_amount", "model.jaffle_shop.orders"],
+            )
+        else:
+            c = GraphDataChangeSet(self.base_run_1_6(), self.target_run_1_6())
+            expected = ["model.jaffle_shop.orders"]
+            changes = c.list_explicit_changes()
+            self.assertDbtResources(changes, expected)
+
+            changes = c.list_implicit_changes()
+            self.assertDbtResources(
+                changes,
+                ["metric.jaffle_shop.average_order_amount", "model.jaffle_shop.orders"],
+            )
 
     @unittest.skipIf(
         dbt_version < version.parse("1.4"),
