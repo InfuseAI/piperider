@@ -6,6 +6,7 @@ from rich.syntax import Syntax
 
 from piperider_cli.configuration import FileSystem
 from piperider_cli.dbtutil import load_dbt_project
+from piperider_cli.error import RecipeException
 from piperider_cli.recipes import (RecipeConfiguration,
                                    RecipeDbtField, RecipeModel,
                                    RecipePiperiderField, tool)
@@ -31,7 +32,22 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
     base = RecipeModel()
 
     if tool().git_branch() is not None:
-        base.branch = options.get('base_branch', 'main') if options else 'main'
+        if options.get('base_branch') is not None:
+            if tool().git_branch(options.get('base_branch')) is not None:
+                base.branch = options.get('base_branch')
+            else:
+                ex = RecipeException(f"Cannot find specified base branch: {options.get('base_branch')}")
+                ex.hint = f"Please check is the specified branch name '{options.get('base_branch')}' correct?"
+                raise ex
+        else:
+            if tool().git_branch('main') is not None:
+                base.branch = 'main'
+            elif tool().git_branch('master') is not None:
+                base.branch = 'master'
+            else:
+                ex = RecipeException("Cannot find default 'main' or 'master' branch")
+                ex.hint = "Please specify the base branch by '--base-branch'"
+                raise ex
 
     dbt_project = _read_dbt_project_file(dbt_project_path)
     if dbt_project:

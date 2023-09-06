@@ -88,9 +88,9 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
 
         return proc.returncode
 
-    def git_branch(self):
+    def git_branch(self, obj_name: str = 'HEAD'):
         outs, errs, exit_code = self.dryrun_ignored_execute_command(
-            "git rev-parse --abbrev-ref HEAD"
+            f"git rev-parse --abbrev-ref {obj_name}"
         )
         if exit_code != 0:
             return None
@@ -117,7 +117,8 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
                 matched = re.match(r"fatal: Not a valid object name (.*)", errs)
                 ex.message = f"Invalid git branch: {matched.group(1)}"
                 ex.hint = (
-                    f"Please check is the base branch name '{matched.group(1)}' correct in your recipe?"
+                    f"Please check is the base branch name '{matched.group(1)}' correct in your recipe? "
+                    f"or try '--base-branch' option to have auto-generated recipe."
                 )
             raise ex
         return outs
