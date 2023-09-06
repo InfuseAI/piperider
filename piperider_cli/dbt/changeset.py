@@ -748,8 +748,11 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
 
         if len(changeset) > 50:
             remainings = len(changeset) - 50
-            mt.add_row(
-                ['', f'{remainings} more potentially impacted models', '', '', '', '', ''])
+            footer = ['', f'{remainings} more potentially impacted models']
+            if mt.num_of_columns > 2:
+                footer += [''] * (mt.num_of_columns - 2)
+
+            mt.add_row(footer)
 
         out(mt.build())
 
@@ -821,8 +824,11 @@ class SummaryChangeSet(DefaultChangeSetOpMixin):
 
         if len(changeset) > 50:
             remainings = len(changeset) - 50
-            mt.add_row(
-                ['', f'{remainings} more potentially impacted metrics', ''])
+            footer = ['', f'{remainings} more potentially impacted metrics']
+            if mt.num_of_columns > 2:
+                footer += [''] * (mt.num_of_columns - 2)
+
+            mt.add_row(footer)
 
         out(mt.build())
 
