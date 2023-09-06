@@ -117,7 +117,7 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
                 matched = re.match(r"fatal: Not a valid object name (.*)", errs)
                 ex.message = f"Invalid git branch: {matched.group(1)}"
                 ex.hint = (
-                    f"Please check is the branch name '{matched.group(1)}' correct?"
+                    f"Please check is the base branch name '{matched.group(1)}' correct in your recipe?"
                 )
             raise ex
         return outs

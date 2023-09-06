@@ -48,7 +48,7 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
     return base
 
 
-def _create_target_recipe(dbt_project_path=None, options: dict = None) -> RecipeModel:
+def _create_target_recipe(dbt_project_path=None) -> RecipeModel:
     """
     Create the target recipe
     """
@@ -81,7 +81,7 @@ def generate_default_recipe(overwrite_existing: bool = False,
             console.print('[bold green]Piperider default recipe already exist[/bold green]')
         return None
     base = _create_base_recipe(dbt_project_path, options)
-    target = _create_target_recipe(dbt_project_path, options)
+    target = _create_target_recipe(dbt_project_path)
     recipe = RecipeConfiguration(base=base, target=target)
 
     try:
