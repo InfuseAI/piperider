@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import sys
+import tempfile
 import webbrowser
 from datetime import datetime
 
@@ -11,6 +12,8 @@ from rich.console import Console
 from ruamel import yaml
 
 PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
+if os.access(os.path.expanduser('~/'), os.W_OK) is False:
+    PIPERIDER_USER_HOME = os.path.join(tempfile.gettempdir(), '.piperider')
 PIPERIDER_USER_PROFILE = os.path.join(PIPERIDER_USER_HOME, 'profile.yml')
 
 

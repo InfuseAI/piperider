@@ -1,4 +1,5 @@
 import os
+import tempfile
 import uuid
 from typing import Union
 
@@ -8,6 +9,9 @@ from ruamel import yaml
 from piperider_cli.event.collector import Collector
 
 PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
+if os.access(os.path.expanduser('~/'), os.W_OK) is False:
+    # If we can't create file in user home directory, fallback to use temp folder
+    PIPERIDER_USER_HOME = os.path.join(tempfile.gettempdir(), '.piperider')
 PIPERIDER_USER_PROFILE = os.path.join(PIPERIDER_USER_HOME, 'profile.yml')
 PIPERIDER_USER_EVENT_PATH = os.path.join(PIPERIDER_USER_HOME, '.unsend_events.json')
 PIPERIDER_FLUSH_EVENTS_WHITELIST = ['init', 'run', 'generate-report', 'compare-reports']
