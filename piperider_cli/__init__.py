@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import sys
+import tempfile
 import webbrowser
 from datetime import datetime
 
@@ -10,7 +11,11 @@ from dateutil import tz
 from rich.console import Console
 from ruamel import yaml
 
-from piperider_cli.event import PIPERIDER_USER_HOME, PIPERIDER_USER_PROFILE
+PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
+if os.access(os.path.expanduser('~/'), os.W_OK) is False:
+    # If we can't create file in user home directory, fallback to use temp folder
+    PIPERIDER_USER_HOME = os.path.join(tempfile.gettempdir(), '.piperider')
+PIPERIDER_USER_PROFILE = os.path.join(PIPERIDER_USER_HOME, 'profile.yml')
 
 
 def create_logger(name) -> logging.Logger:
