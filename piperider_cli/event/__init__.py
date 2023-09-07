@@ -5,10 +5,9 @@ from typing import Union
 from rich.console import Console
 from ruamel import yaml
 
+from piperider_cli import PIPERIDER_USER_HOME, PIPERIDER_USER_PROFILE
 from piperider_cli.event.collector import Collector
 
-PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
-PIPERIDER_USER_PROFILE = os.path.join(PIPERIDER_USER_HOME, 'profile.yml')
 PIPERIDER_USER_EVENT_PATH = os.path.join(PIPERIDER_USER_HOME, '.unsend_events.json')
 PIPERIDER_FLUSH_EVENTS_WHITELIST = ['init', 'run', 'generate-report', 'compare-reports']
 
