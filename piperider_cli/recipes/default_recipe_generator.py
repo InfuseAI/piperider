@@ -37,7 +37,7 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
                 base.branch = options.get('base_branch')
             else:
                 ex = RecipeException(f"Cannot find specified base branch: {options.get('base_branch')}")
-                ex.hint = f"Please check is the specified branch name '{options.get('base_branch')}' correct?"
+                ex.hint = f"Please check if the specified branch name '{options.get('base_branch')}' is correct."
                 raise ex
         else:
             if tool().git_branch('main') is not None:
@@ -46,7 +46,7 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
                 base.branch = 'master'
             else:
                 ex = RecipeException("Cannot find default 'main' or 'master' branch")
-                ex.hint = "Please specify the base branch by '--base-branch'"
+                ex.hint = "Please specify the base branch using the '--base-branch' option."
                 raise ex
 
     dbt_project = _read_dbt_project_file(dbt_project_path)

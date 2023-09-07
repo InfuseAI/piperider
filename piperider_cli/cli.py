@@ -444,7 +444,7 @@ def cloud_compare_reports(**kwargs):
 @add_options([
     dbt_select_option_builder(),
     click.option('--modified', default=False, is_flag=True, help='Only compare the modified models.'),
-    click.option('--base-branch', type=click.STRING, help='Specify the base branch.',
+    click.option('--base-branch', type=click.STRING, help='Specify the base branch for an auto-generated recipe.',
                  show_default=True),
 ])
 @add_options(dbt_related_options)
