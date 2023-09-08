@@ -352,11 +352,15 @@ class _RuntimeConfig(RuntimeConfig):
 
         found_restrict_access = any(field.name == 'restrict_access' for field in fields(RuntimeConfig))
         found_packages_specified_path = any(field.name == 'packages_specified_path' for field in fields(RuntimeConfig))
+        found_dbt_cloud = any(field.name == 'dbt_cloud' for field in fields(RuntimeConfig))
         if found_restrict_access:
             data['restrict_access'] = False
 
         if found_packages_specified_path:
             data['packages_specified_path'] = "packages.yml"
+
+        if found_dbt_cloud:
+            data['dbt_cloud'] = {}
 
         super().__init__(args=None, **data)
 
