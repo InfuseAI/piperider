@@ -157,7 +157,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def rename_relation(
-            self, from_relation: BaseRelation, to_relation: BaseRelation
+        self, from_relation: BaseRelation, to_relation: BaseRelation
     ) -> None:
         pass
 
@@ -168,7 +168,7 @@ class _Adapter(BaseAdapter):
         pass
 
     def list_relations_without_caching(
-            self, schema_relation: BaseRelation
+        self, schema_relation: BaseRelation
     ) -> List[BaseRelation]:
         pass
 
@@ -348,6 +348,7 @@ class _RuntimeConfig(RuntimeConfig):
             "project_env_vars": {},
             "cli_vars": {},
             "dependencies": None,
+            "dbt_cloud": None,
         }
 
         found_restrict_access = any(field.name == 'restrict_access' for field in fields(RuntimeConfig))
@@ -473,9 +474,9 @@ def list_resources_data_from_manifest(manifest: Manifest, select: tuple = None, 
 
 
 def compare_models_between_manifests(
-        base_manifest: Manifest,
-        altered_manifest: Manifest,
-        include_downstream: bool = False,
+    base_manifest: Manifest,
+    altered_manifest: Manifest,
+    include_downstream: bool = False,
 ):
     task = _DbtListTask()
     task.manifest = altered_manifest
@@ -516,8 +517,8 @@ def compare_models_between_manifests(
 
 
 def list_modified_with_downstream(
-        base_manifest: Manifest,
-        altered_manifest: Manifest,
+    base_manifest: Manifest,
+    altered_manifest: Manifest,
 ):
     task = _DbtListTask()
     task.manifest = altered_manifest
@@ -555,8 +556,8 @@ def list_modified_with_downstream(
 
 
 def list_changes_in_unique_id(
-        base_manifest: Manifest,
-        target_manifest: Manifest, show_modified_only=False) -> List[Dict[str, str]]:
+    base_manifest: Manifest,
+    target_manifest: Manifest, show_modified_only=False) -> List[Dict[str, str]]:
     task = _DbtListTask()
     task.manifest = target_manifest
 
