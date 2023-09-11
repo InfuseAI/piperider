@@ -44,9 +44,8 @@ def fetch_pr_metadata_from_env() -> dict:
     all_present = all(key in os.environ for key in keys)
     if all_present is False:
         return None
-
     return dict(
-        github_pr_id=os.getenv("GITHUB_PR_ID"),
+        github_pr_id=int(os.getenv("GITHUB_PR_ID")),
         github_pr_url=os.getenv("GITHUB_PR_URL"),
         github_pr_title=os.getenv("GITHUB_PR_TITLE"),
     )
