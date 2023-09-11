@@ -430,6 +430,7 @@ def cloud_compare_reports(**kwargs):
 
 
 @cli.command(name='compare', short_help='Compare the change for the current branch.', cls=TrackCommand)
+@click.argument('commits', nargs=-1, type=click.STRING)
 @click.option('--recipe', default=None, type=click.STRING, help='Select a different recipe.')
 @click.option('--upload', default=False, is_flag=True, help='Upload the report to PipeRider Cloud.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
@@ -450,10 +451,25 @@ def cloud_compare_reports(**kwargs):
 ])
 @add_options(dbt_related_options)
 @add_options(debug_option)
-def compare_with_recipe(**kwargs):
+def compare_with_recipe(commits, **kwargs):
     """
     Generate the comparison report for your branch.
     """
+
+    console = Console()
+    if len(commits) > 1:
+        console.print('[bold red]Error:[/bold red] Commit format is not supported')
+        sys.exit(1)
+    elif len(commits) == 1:
+        commits = commits[0]
+        if '...' in commits:
+            kwargs['base_branch'] = commits.split('...')[0]
+            kwargs['target_branch'] = commits.split('...')[1]
+        elif '..' in commits:
+            console.print('[bold red]Error:[/bold red] Two-dot diff comparisons are not supported')
+            sys.exit(1)
+        else:
+            kwargs['base_branch'] = commits
 
     from piperider_cli.cli_utils.compare_with_recipe import compare_with_recipe as cmd
     return cmd(**kwargs)

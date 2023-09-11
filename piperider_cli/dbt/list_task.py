@@ -26,11 +26,11 @@ def create_temp_dir():
     return tempfile.mkdtemp()
 
 
-def load_full_manifest(target_path: str):
+def load_full_manifest(target_path: str, project_dir: str = None):
     from dbt.adapters.factory import register_adapter
     from dbt.parser.manifest import ManifestLoader
 
-    runtime_config = PrepareRuntimeConfig(target_path)
+    runtime_config = PrepareRuntimeConfig(target_path, project_dir=project_dir)
     register_adapter(runtime_config)
 
     v = dbt_version
@@ -207,9 +207,9 @@ class _Adapter(BaseAdapter):
         pass
 
 
-def PrepareRuntimeConfig(target_path: str):
+def PrepareRuntimeConfig(target_path: str, project_dir: str = None):
     from piperider_cli.configuration import FileSystem
-    project_root = FileSystem.WORKING_DIRECTORY
+    project_root = project_dir if project_dir is not None else FileSystem.WORKING_DIRECTORY
     profiles_dir = FileSystem.DBT_PROFILES_DIR
 
     def _get_v13_runtime_config(flags):

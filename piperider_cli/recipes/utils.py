@@ -162,11 +162,11 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
         if exit_code != 0:
             raise PipeRiderError("dbt is not installed", hint="Please install it first")
 
-    def list_dbt_resources(self, target_path, select=None, state=None):
+    def list_dbt_resources(self, target_path, project_dir=None, select=None, state=None):
         if state:
-            manifest = load_full_manifest(target_path)
+            manifest = load_full_manifest(target_path, project_dir=project_dir)
         else:
-            manifest = load_manifest(get_dbt_manifest(target_path))
+            manifest = load_manifest(get_dbt_manifest(target_path, project_dir=project_dir))
         return list_resources_unique_id_from_manifest(manifest, select=select, state=state)
 
 
@@ -194,7 +194,7 @@ class DryRunRecipeUtils(AbstractRecipeUtils):
         self.console.print(f"[green]:external-command:>[/green] [default]{cmd}[/default]")
         return '/path/to/tmp'
 
-    def list_dbt_resources(self, target_path, select=None, state=None):
+    def list_dbt_resources(self, target_path, project_dir=None, select=None, state=None):
         state_msg = ''
         if state:
             state_msg = f'state: {state}'

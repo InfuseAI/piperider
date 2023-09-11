@@ -89,6 +89,15 @@ def _create_target_recipe(dbt_project_path=None, options: dict = None) -> Recipe
     """
     target = RecipeModel()
 
+    if tool().git_branch() is not None:
+        if options.get('target_branch') is not None:
+            if tool().git_branch(options.get('target_branch')) is not None:
+                target.branch = options.get('target_branch')
+            else:
+                ex = RecipeException(f"Cannot find specified base branch: {options.get('target_branch')}")
+                ex.hint = f"Please check if the specified branch name '{options.get('target_branch')}' is correct."
+                raise ex
+
     dbt_project = _read_dbt_project_file(dbt_project_path)
     if dbt_project:
         target.dbt = _prepare_dbt_cmds(options, target=True)
