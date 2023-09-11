@@ -4,19 +4,19 @@ import os
 import requests
 
 
-def fetch_pr_metadata() -> dict:
-    '''
-    If piperider is running in a GitHub Action, this function will return the pull request metadata.
+def fetch_pr_metadata_from_event_path() -> dict | None:
+    """
+        If piperider is running in a GitHub Action, this function will return the pull request metadata.
 
-    Example:
-    {
-        "github_pr_id": 1,
-        "github_pr_url": "https://github.com/xyz/abc/pull/1
-        "github_pr_title": "Update README.md"
-    }
+        Example:
+        {
+            "github_pr_id": 1,
+            "github_pr_url": "https://github.com/xyz/abc/pull/1
+            "github_pr_title": "Update README.md"
+        }
 
-    :return: dict
-    '''
+        :return: dict
+    """
 
     # get the event json from the path in GITHUB_EVENT_PATH
     event_path = os.getenv("GITHUB_EVENT_PATH")
@@ -39,7 +39,26 @@ def fetch_pr_metadata() -> dict:
     return None
 
 
-def _fetch_pr_title(endpoint) -> str:
+def fetch_pr_metadata_from_env() -> dict | None:
+    keys = ['GITHUB_PR_ID', 'GITHUB_PR_URL', 'GITHUB_PR_TITLE']
+    all_present = all(key in os.environ for key in keys)
+    if all_present is False:
+        return None
+
+    return dict(
+        github_pr_id=os.getenv("GITHUB_PR_ID"),
+        github_pr_url=os.getenv("GITHUB_PR_URL"),
+        github_pr_title=os.getenv("GITHUB_PR_TITLE"),
+    )
+
+
+def fetch_pr_metadata() -> dict | None:
+    if os.getenv("GITHUB_EVENT_PATH"):
+        return fetch_pr_metadata_from_event_path()
+    return fetch_pr_metadata_from_env()
+
+
+def _fetch_pr_title(endpoint) -> str | None:
     github_token = os.getenv("GITHUB_TOKEN")
 
     if github_token is None:
