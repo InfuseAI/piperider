@@ -4,7 +4,7 @@ import os
 import requests
 
 
-def fetch_pr_metadata_from_event_path() -> dict | None:
+def fetch_pr_metadata_from_event_path() -> dict:
     """
         If piperider is running in a GitHub Action, this function will return the pull request metadata.
 
@@ -39,7 +39,7 @@ def fetch_pr_metadata_from_event_path() -> dict | None:
     return None
 
 
-def fetch_pr_metadata_from_env() -> dict | None:
+def fetch_pr_metadata_from_env() -> dict:
     keys = ['GITHUB_PR_ID', 'GITHUB_PR_URL', 'GITHUB_PR_TITLE']
     all_present = all(key in os.environ for key in keys)
     if all_present is False:
@@ -52,13 +52,13 @@ def fetch_pr_metadata_from_env() -> dict | None:
     )
 
 
-def fetch_pr_metadata() -> dict | None:
+def fetch_pr_metadata() -> dict:
     if os.getenv("GITHUB_EVENT_PATH"):
         return fetch_pr_metadata_from_event_path()
     return fetch_pr_metadata_from_env()
 
 
-def _fetch_pr_title(endpoint) -> str | None:
+def _fetch_pr_title(endpoint) -> str:
     github_token = os.getenv("GITHUB_TOKEN")
 
     if github_token is None:
