@@ -348,8 +348,11 @@ class _RuntimeConfig(RuntimeConfig):
             "project_env_vars": {},
             "cli_vars": {},
             "dependencies": None,
-            "dbt_cloud": None,
         }
+
+        if dbt_version >= '1.6.2':
+            # Since dbt-core v1.6.2 'dbt_cloud' is required in RuntimeConfig
+            data['dbt_cloud'] = None
 
         found_restrict_access = any(field.name == 'restrict_access' for field in fields(RuntimeConfig))
         found_packages_specified_path = any(field.name == 'packages_specified_path' for field in fields(RuntimeConfig))
