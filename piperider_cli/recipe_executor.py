@@ -13,26 +13,27 @@ console = Console()
 class RecipeExecutor:
     @staticmethod
     def exec(recipe_name: str, auto_generate_default_recipe: bool = True, select: tuple = None, modified: bool = False,
-             debug=False, base_branch: str = None):
+             base_branch: str = None, skip_datasource_connection: bool = False, debug=False) -> RecipeConfiguration:
         config = Configuration.instance()
         recipe_path = select_recipe_file(recipe_name)
 
         if recipe_name and (select or modified or base_branch):
             console.print(
                 "[[bold yellow]Warning[/bold yellow]] "
-                "The recipe will be ignored when '--select', '--modified' or '--base-branch' is provided."
+                "The recipe will be ignored when '--select', '--modified', '--base-branch', "
+                "or '--skip-datasource' is provided."
             )
-        if select:
+        if not skip_datasource_connection and select:
             console.print(
                 f"[[bold green]Select[/bold green]] Manually select the dbt nodes to run by '{','.join(select)}'")
-        if recipe_path is None or select or modified or base_branch:
+        if recipe_path is None or select or modified or base_branch or skip_datasource_connection:
             if auto_generate_default_recipe:
                 dbt_project_path = None
                 if config.dataSources and config.dataSources[0].args.get('dbt'):
                     dbt_project_path = os.path.relpath(config.dataSources[0].args.get('dbt', {}).get('projectDir'))
                 # generate a default recipe
                 console.rule("Recipe executor: generate recipe")
-                options = dict(base_branch=base_branch)
+                options = dict(base_branch=base_branch, skip_datasource_connection=skip_datasource_connection)
                 if select:
                     options['select'] = select
                 recipe = generate_default_recipe(overwrite_existing=False,
@@ -48,6 +49,8 @@ class RecipeExecutor:
                 raise FileNotFoundError(f"Cannot find the recipe '{recipe_name}'")
         else:
             recipe = RecipeConfiguration.load(recipe_path)
-        execute_recipe_configuration(recipe, select=select, debug=debug)
+
+        options = dict(skip_datasource_connection=skip_datasource_connection, select=select)
+        execute_recipe_configuration(recipe, options, debug=debug)
 
         return recipe

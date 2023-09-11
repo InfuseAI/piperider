@@ -51,20 +51,26 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
 
     dbt_project = _read_dbt_project_file(dbt_project_path)
     if dbt_project:
+        dbt_cmds = ['dbt deps']
+        if options.get('skip_datasource_connection'):
+            dbt_cmds.append('dbt parse')
+        else:
+            dbt_cmds.append('dbt build')
+
         base.dbt = RecipeDbtField({
-            'commands': [
-                'dbt deps',
-                'dbt build'
-            ]
+            'commands': dbt_cmds
         })
 
+    piperider_cmd = 'piperider run'
+    if options.get('skip_datasource_connection'):
+        piperider_cmd += ' --skip-datasource'
     base.piperider = RecipePiperiderField({
-        'command': 'piperider run',
+        'command': piperider_cmd
     })
     return base
 
 
-def _create_target_recipe(dbt_project_path=None) -> RecipeModel:
+def _create_target_recipe(dbt_project_path=None, options: dict = None) -> RecipeModel:
     """
     Create the target recipe
     """
@@ -73,15 +79,21 @@ def _create_target_recipe(dbt_project_path=None) -> RecipeModel:
 
     dbt_project = _read_dbt_project_file(dbt_project_path)
     if dbt_project:
+        dbt_cmds = ['dbt deps']
+        if options.get('skip_datasource_connection'):
+            dbt_cmds.append('dbt parse')
+        else:
+            dbt_cmds.append(f'dbt build {select_and_state_options}'.strip())
+
         target.dbt = RecipeDbtField({
-            'commands': [
-                'dbt deps',
-                f'dbt build {select_and_state_options}'.strip(),
-            ]
+            'commands': dbt_cmds
         })
 
+    piperider_cmd = 'piperider run'
+    if options.get('skip_datasource_connection'):
+        piperider_cmd += ' --skip-datasource'
     target.piperider = RecipePiperiderField({
-        'command': 'piperider run',
+        'command': piperider_cmd
     })
     return target
 
@@ -97,7 +109,7 @@ def generate_default_recipe(overwrite_existing: bool = False,
             console.print('[bold green]Piperider default recipe already exist[/bold green]')
         return None
     base = _create_base_recipe(dbt_project_path, options)
-    target = _create_target_recipe(dbt_project_path)
+    target = _create_target_recipe(dbt_project_path, options)
     recipe = RecipeConfiguration(base=base, target=target)
 
     try:

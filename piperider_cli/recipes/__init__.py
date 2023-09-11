@@ -242,9 +242,13 @@ def verify_dbt_dependencies(cfg: RecipeConfiguration):
     tool().check_dbt_command()
 
 
-def update_select_with_cli_option(select: tuple = None):
+def update_select_with_cli_option(options):
+    if options.get('skip_datasource_connection'):
+        return ()
+
+    select = options.get('select')
     if select is None or len(select) == 0:
-        return ('state:modified+',)
+        return 'state:modified+',
 
     return select
 
@@ -269,11 +273,12 @@ def replace_commands_dbt_state_path(commands: List[str], dbt_state_path: str):
     return [command.replace('<DBT_STATE_PATH>', dbt_state_path) for command in commands]
 
 
-def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = None):
+def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, options: Dict):
     config = Configuration.instance()
     state = None
+    select = ()
     if cfg.auto_generated:
-        select = update_select_with_cli_option(select)
+        select = update_select_with_cli_option(options)
     dbt_project = dbtutil.load_dbt_project(config.dbt.get('projectDir'))
     target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
 
@@ -288,6 +293,9 @@ def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, select: tuple = No
     if any('state:' in item for item in select):
         console.print(f"Run: \[dbt list] select option '{' '.join(select)}' with state")
         resources = tool().list_dbt_resources(target_path, select=select, state=state)
+    elif options.get('skip_datasource_connection'):
+        console.print("Skip: \[dbt list] due to the command option '--skip-datasource'")
+        resources = []
     else:
         console.print(f"Run: \[dbt list] select option '{' '.join(select)}'")
         resources = tool().list_dbt_resources(target_path, select=select)
@@ -466,7 +474,7 @@ def clean_up(cfg: RecipeConfiguration):
         tool().remove_dir(cfg.target.tmp_dir_path)
 
 
-def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None, debug=False):
+def execute_recipe_configuration(cfg: RecipeConfiguration, options, debug=False):
     console.rule("Recipe executor: verify execution environments")
     # check the dependencies
     console.print("Check: git")
@@ -476,7 +484,7 @@ def execute_recipe_configuration(cfg: RecipeConfiguration, select: tuple = None,
 
     try:
         console.rule("Recipe executor: prepare execution environments")
-        dbt_resources, dbt_state_path = prepare_dbt_resources_candidate(cfg, select=select)
+        dbt_resources, dbt_state_path = prepare_dbt_resources_candidate(cfg, options)
         if debug:
             console.print(f'Config: piperider env "PIPERIDER_DBT_RESOURCES" = {dbt_resources}')
         else:

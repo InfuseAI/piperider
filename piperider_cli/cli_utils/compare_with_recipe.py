@@ -21,6 +21,7 @@ def compare_with_recipe(**kwargs):
     modified = kwargs.get('modified')
 
     base_branch = kwargs.get('base_branch')
+    skip_datasource_connection = kwargs.get('skip_datasource')
 
     # reconfigure recipe global flags
     configure_recipe_execution_flags(dry_run=kwargs.get('dry_run'), interactive=kwargs.get('interactive'))
@@ -55,6 +56,7 @@ def compare_with_recipe(**kwargs):
             select=select,
             modified=modified,
             base_branch=base_branch,
+            skip_datasource_connection=skip_datasource_connection,
             debug=debug)
         last = False
         base = target = None
