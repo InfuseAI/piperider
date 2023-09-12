@@ -228,8 +228,9 @@ class ComparisonData(object):
                              hint="The dbt_metrics package has been deprecated and replaced with MetricFlow.")
 
     def _update_github_pr_info(self):
-        if os.environ.get('GITHUB_EVENT_PATH'):
-            self.metadata = fetch_pr_metadata()
+        metadata = fetch_pr_metadata()
+        if metadata:
+            self.metadata = metadata
 
     def id(self):
         return self._id

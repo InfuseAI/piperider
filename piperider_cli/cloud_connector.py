@@ -427,7 +427,8 @@ class CloudConnector:
             console.print(ascii_table)
 
             for report in reports:
-                console.print(f'Report #{report[0]} URL: [deep_sky_blue1]{report[1]}?utm_source=cli[/deep_sky_blue1]', soft_wrap=True)
+                console.print(f'Report #{report[0]} URL: [deep_sky_blue1]{report[1]}?utm_source=cli[/deep_sky_blue1]',
+                              soft_wrap=True)
 
         if open_report:
             url = response.get('report_url')
@@ -444,11 +445,9 @@ class CloudConnector:
                                 project_name: str = None, debug: bool = False):
         # TODO: Change to use new front-end URL pattern
         def _generate_legacy_compare_report_url(base_id, target_id, project=None):
-            metadata = None
+            metadata = fetch_pr_metadata()
             if project is None:
                 project = piperider_cloud.get_default_project()
-            if os.environ.get('GITHUB_EVENT_PATH'):
-                metadata = fetch_pr_metadata()
 
             response = create_compare_reports(base_id, target_id, tables_from, project=project, metadata=metadata)
             return response
@@ -490,9 +489,7 @@ class CloudConnector:
 
         console.print(f"Creating comparison report id={base_id} ... id={target_id}")
 
-        metadata = None
-        if os.environ.get('GITHUB_EVENT_PATH'):
-            metadata = fetch_pr_metadata()
+        metadata = fetch_pr_metadata()
 
         response = create_compare_reports(base_id, target_id, tables_from, project=project, metadata=metadata)
         if response is None:
