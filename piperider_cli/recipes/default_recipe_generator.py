@@ -25,6 +25,32 @@ def _read_dbt_project_file(dbt_project_path):
     return dbt_project
 
 
+def _prepare_dbt_cmds(options: dict, target: bool = False) -> RecipeDbtField:
+    dbt_cmds = ['dbt deps']
+    if options.get('skip_datasource_connection'):
+        dbt_cmds.append('dbt parse')
+    else:
+        if target:
+            select_and_state_options = '--select state:modified+ --state <DBT_STATE_PATH>'
+            dbt_cmds.append(f'dbt build {select_and_state_options}')
+        else:
+            dbt_cmds.append('dbt build')
+
+    return RecipeDbtField(
+        {'commands': dbt_cmds}
+    )
+
+
+def _prepare_piperider_cmd(options: dict) -> RecipePiperiderField:
+    piperider_cmd = 'piperider run'
+    if options.get('skip_datasource_connection'):
+        piperider_cmd += ' --skip-datasource'
+
+    return RecipePiperiderField({
+        'command': piperider_cmd
+    })
+
+
 def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeModel:
     """
     Create the base recipe
@@ -51,22 +77,9 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
 
     dbt_project = _read_dbt_project_file(dbt_project_path)
     if dbt_project:
-        dbt_cmds = ['dbt deps']
-        if options.get('skip_datasource_connection'):
-            dbt_cmds.append('dbt parse')
-        else:
-            dbt_cmds.append('dbt build')
+        base.dbt = _prepare_dbt_cmds(options)
 
-        base.dbt = RecipeDbtField({
-            'commands': dbt_cmds
-        })
-
-    piperider_cmd = 'piperider run'
-    if options.get('skip_datasource_connection'):
-        piperider_cmd += ' --skip-datasource'
-    base.piperider = RecipePiperiderField({
-        'command': piperider_cmd
-    })
+    base.piperider = _prepare_piperider_cmd(options)
     return base
 
 
@@ -75,26 +88,12 @@ def _create_target_recipe(dbt_project_path=None, options: dict = None) -> Recipe
     Create the target recipe
     """
     target = RecipeModel()
-    select_and_state_options = '--select state:modified+ --state <DBT_STATE_PATH>'
 
     dbt_project = _read_dbt_project_file(dbt_project_path)
     if dbt_project:
-        dbt_cmds = ['dbt deps']
-        if options.get('skip_datasource_connection'):
-            dbt_cmds.append('dbt parse')
-        else:
-            dbt_cmds.append(f'dbt build {select_and_state_options}'.strip())
+        target.dbt = _prepare_dbt_cmds(options, target=True)
 
-        target.dbt = RecipeDbtField({
-            'commands': dbt_cmds
-        })
-
-    piperider_cmd = 'piperider run'
-    if options.get('skip_datasource_connection'):
-        piperider_cmd += ' --skip-datasource'
-    target.piperider = RecipePiperiderField({
-        'command': piperider_cmd
-    })
+    target.piperider = _prepare_piperider_cmd(options)
     return target
 
 
