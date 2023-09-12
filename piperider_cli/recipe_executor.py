@@ -17,7 +17,7 @@ class RecipeExecutor:
         config = Configuration.instance()
         recipe_path = select_recipe_file(recipe_name)
 
-        if recipe_name and (select or modified or base_branch):
+        if recipe_name and (select or modified or base_branch or skip_datasource_connection):
             console.print(
                 "[[bold yellow]Warning[/bold yellow]] "
                 "The recipe will be ignored when '--select', '--modified', '--base-branch', "
