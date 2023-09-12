@@ -639,7 +639,7 @@ def get_git_branch():
     return git_branch, git_sha
 
 
-class Runner():
+class Runner:
     @staticmethod
     def exec(datasource=None, table=None, output=None, skip_report=False, dbt_target_path: str = None,
              dbt_resources: Optional[dict] = None, dbt_select: tuple = None, dbt_state: str = None,
@@ -908,7 +908,7 @@ class Runner():
         if not _check_assertion_status(assertion_results, assertion_exceptions):
             return EC_ERR_TEST_FAILED
 
-        if len(subjects) == 0 and len(run_result.get('metrics', [])) == 0:
+        if len(subjects) == 0 and len(run_result.get('metrics', [])) == 0 and not skip_datasource_connection:
             return EC_WARN_NO_PROFILED_MODULES
 
         return 0

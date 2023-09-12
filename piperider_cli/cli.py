@@ -441,6 +441,7 @@ def cloud_compare_reports(**kwargs):
 @click.option('--dry-run', is_flag=True, default=False, help='Display the run details without actually executing it')
 @click.option('--interactive', is_flag=True, default=False,
               help='Prompt for confirmation to proceed with the run (Y/N)')
+@click.option('--skip-datasource', default=False, is_flag=True, help='Skip accessing the connection of datasource.')
 @add_options([
     dbt_select_option_builder(),
     click.option('--modified', default=False, is_flag=True, help='Only compare the modified models.'),

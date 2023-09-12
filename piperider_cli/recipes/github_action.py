@@ -97,6 +97,9 @@ def make_recipe_command():
     if os.environ.get('INPUT_SELECT'):
         command_builder.append(f"--select {os.environ.get('INPUT_SELECT')}")
 
+    if os.environ.get('INPUT_SKIP_DATASOURCE', 'false').lower() == 'true':
+        command_builder.append("--skip-datasource")
+
     compare_command = " ".join(command_builder)
     print(compare_command)
 
