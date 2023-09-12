@@ -2,14 +2,16 @@ import os
 import uuid
 from typing import Union
 
+import sentry_sdk
 from rich.console import Console
 from ruamel import yaml
 
-from piperider_cli import PIPERIDER_USER_HOME, PIPERIDER_USER_PROFILE
+from piperider_cli import PIPERIDER_USER_HOME, PIPERIDER_USER_PROFILE, is_executed_manually
 from piperider_cli.event.collector import Collector
+from .events import CompareEventPayload
 
 PIPERIDER_USER_EVENT_PATH = os.path.join(PIPERIDER_USER_HOME, '.unsend_events.json')
-PIPERIDER_FLUSH_EVENTS_WHITELIST = ['init', 'run', 'generate-report', 'compare-reports']
+PIPERIDER_FLUSH_EVENTS_WHITELIST = ['init', 'run', 'generate-report', 'compare-reports', 'compare']
 
 _collector = Collector()
 _yml = yaml.YAML()
@@ -98,16 +100,6 @@ def flush_events(command=None):
         _collector.send_events()
 
 
-def log_usage_event(command, params, status):
-    prop = dict(
-        command=command,
-        status=status,
-        upload=params.get('upload', False),
-        share=params.get('share', False)
-    )
-    log_event(prop, 'usage', params=params)
-
-
 def log_event(prop, event_type, **kwargs):
     with open(PIPERIDER_USER_PROFILE, 'r') as f:
         user_profile = _yml.load(f)
@@ -133,6 +125,23 @@ def log_event(prop, event_type, **kwargs):
         **prop,
     )
     _collector.log_event(payload, event_type)
+
+
+def capture_exception(e):
+    user_id = load_user_profile().get('user_id')
+    if is_executed_manually() is False:
+        project_info = _obtain_project_info()
+        project_id = project_info.get('project_id')
+        if not project_id:
+            return
+        user_id = f"{project_id}_CI"
+
+    sentry_sdk.set_tag("user_id", user_id)
+    sentry_sdk.capture_exception(e)
+
+
+def flush_exceptions():
+    sentry_sdk.flush()
 
 
 class UserProfileConfigurator(object):

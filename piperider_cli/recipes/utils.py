@@ -23,7 +23,7 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def execute_command_in_silent(
-            self, command_line, env: Dict = None
+        self, command_line, env: Dict = None
     ) -> Tuple[str, str, int]:
         """
         Execute command without showing outputs
@@ -35,7 +35,7 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def execute_command_with_showing_output(
-            self, command_line, env: Dict = None
+        self, command_line, env: Dict = None
     ) -> int:
         """
         Execute command and showing outputs
@@ -58,6 +58,10 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
                 cwd=FileSystem.WORKING_DIRECTORY,
             )
             outs, errs = proc.communicate()
+        except KeyboardInterrupt as e:
+            print("subprocess interrupted")
+            raise e
+
         except BaseException as e:
             if proc:
                 proc.kill()
@@ -79,7 +83,7 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
         try:
             proc = Popen(cmd, env=env or os.environ.copy(), cwd=FileSystem.WORKING_DIRECTORY)
             proc.communicate()
-        except BaseException:
+        except Exception:
             if proc:
                 proc.kill()
                 proc.communicate()
@@ -242,7 +246,7 @@ class InteractiveRecipeDecorator(AbstractRecipeUtils):
         self.decoratee = utils
 
     def execute_command_in_silent(
-            self, command_line, env: Dict = None
+        self, command_line, env: Dict = None
     ) -> Tuple[str, str, int]:
         # ask user continue
         if self.should_continue(command_line):
@@ -253,7 +257,7 @@ class InteractiveRecipeDecorator(AbstractRecipeUtils):
         raise InteractiveStopException()
 
     def execute_command_with_showing_output(
-            self, command_line, env: Dict = None
+        self, command_line, env: Dict = None
     ) -> int:
         # ask user continue
         if self.should_continue(command_line):

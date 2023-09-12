@@ -4,6 +4,7 @@ from rich.console import Console
 
 from piperider_cli.configuration import Configuration
 from piperider_cli.error import RecipeConfigException
+from piperider_cli.event import CompareEventPayload
 from piperider_cli.recipes import select_recipe_file, RecipeConfiguration, execute_recipe_configuration
 from piperider_cli.recipes.default_recipe_generator import generate_default_recipe, show_recipe_content
 
@@ -13,9 +14,16 @@ console = Console()
 class RecipeExecutor:
     @staticmethod
     def exec(recipe_name: str, select: tuple = None, modified: bool = False, base_ref: str = None,
-             target_ref: str = None, skip_datasource_connection: bool = False, debug=False) -> RecipeConfiguration:
+             target_ref: str = None, skip_datasource_connection: bool = False, debug=False, event_payload=CompareEventPayload()) -> RecipeConfiguration:
         config = Configuration.instance()
         recipe_path = select_recipe_file(recipe_name)
+
+        event_payload.step = "prepare recipe"
+        ds = config.get_datasource()
+        if ds is not None:
+            event_payload.datasource_type = ds.type_name
+        if skip_datasource_connection:
+            event_payload.skip_datasource = True
 
         if recipe_name and (select or modified or base_ref or skip_datasource_connection):
             console.print(
@@ -52,6 +60,6 @@ class RecipeExecutor:
             recipe = RecipeConfiguration.load(recipe_path)
 
         options = dict(skip_datasource_connection=skip_datasource_connection, select=select)
-        execute_recipe_configuration(recipe, options, debug=debug)
+        execute_recipe_configuration(recipe, options, debug=debug, event_payload=event_payload)
 
         return recipe

@@ -30,31 +30,12 @@ from piperider_cli.configuration import Configuration, FileSystem, ReportDirecto
 from piperider_cli.datasource import DataSource
 from piperider_cli.datasource.unsupported import UnsupportedDataSource
 from piperider_cli.error import PipeRiderInvalidDataSourceError, PipeRiderError, PipeRiderConnectorUnsupportedError
-from piperider_cli.exitcode import EC_ERR_TEST_FAILED, EC_WARN_NO_PROFILED_MODULES
+from piperider_cli.event.events import RunEventPayload
+from piperider_cli.exitcode import EC_WARN_NO_PROFILED_MODULES
 from piperider_cli.metrics_engine import MetricEngine, MetricEventHandler
 from piperider_cli.profiler import ProfileSubject, Profiler, ProfilerEventHandler
 from piperider_cli.statistics import Statistics
 from piperider_cli.utils import create_link, remove_link
-
-
-class RunEventPayload:
-
-    def __init__(self):
-        # all fields
-        self.tables = 0
-        self.columns = []
-        self.rows = []
-        self.dbt_command = ''
-        self.passed_assertions = 0
-        self.failed_assertions = 0
-        self.passed_dbt_testcases = 0
-        self.failed_dbt_testcases = 0
-        self.build_in_assertions = 0
-        self.custom_assertions = 0
-        self.recommended_assertions = 0
-
-    def to_dict(self):
-        return self.__dict__
 
 
 class RichProfilerEventHandler(ProfilerEventHandler):
@@ -455,10 +436,9 @@ def _append_descriptions_from_assertion(profile_result):
                     'description'] = f'{column_desc}'
 
 
-def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_results):
+def _analyse_run_event(event_payload: RunEventPayload, profiled_result, assertion_results, dbt_test_results):
     tables = profiled_result.get('tables', [])
     tables = {k: v for k, v in tables.items() if v}
-    event_payload = RunEventPayload()
     event_payload.tables = len(tables)
 
     # Table info
@@ -491,8 +471,6 @@ def _analyse_and_log_run_event(profiled_result, assertion_results, dbt_test_resu
                 event_payload.passed_dbt_testcases += 1
             else:
                 event_payload.failed_dbt_testcases += 1
-
-    event.log_event(event_payload.to_dict(), 'run')
 
 
 def decorate_with_metadata(profile_result: dict):
@@ -644,45 +622,30 @@ class Runner:
     @staticmethod
     def exec(datasource=None, table=None, output=None, skip_report=False, dbt_target_path: str = None,
              dbt_resources: Optional[dict] = None, dbt_select: tuple = None, dbt_state: str = None,
-             report_dir: str = None, skip_datasource_connection: bool = False):
+             report_dir: str = None, skip_datasource_connection: bool = False, event_payload=RunEventPayload()):
         console = Console()
 
         raise_exception_when_directory_not_writable(output)
 
         configuration = Configuration.instance()
         filesystem = configuration.activate_report_directory(report_dir=report_dir)
-        datasources = {}
-        datasource_names = []
-        for ds in configuration.dataSources:
-            datasource_names.append(ds.name)
-            datasources[ds.name] = ds
-
-        if len(datasource_names) == 0:
+        ds = configuration.get_datasource(datasource)
+        if ds is None:
             if skip_datasource_connection is False:
                 console.print(
                     "[[bold red]Error[/bold red]] Data source not found. "
                     "Please check your dbt 'profiles.yml' configuration.")
                 return 1
             else:
-                configuration.dbt['target'] = 'dev'
-                configuration.dbt['profile'] = 'unsupported-data-source'
-                datasources = {'dev': UnsupportedDataSource('Unknown', dbt=configuration.dbt)}
-                datasource_names = ['dev']
-
-        if datasource:
-            ds_name = datasource
+                ds = UnsupportedDataSource('Unknown', dbt=configuration.dbt)
         else:
-            # if global dbt config exists, use dbt profile target
-            # else use the first datasource
-            ds_name = configuration.dbt.get('target') if configuration.dbt else datasource_names[0]
+            event_payload.datasource_type = ds.type_name
+        if skip_datasource_connection:
+            event_payload.skip_datasource = True
 
-        if ds_name not in datasource_names:
-            console.print(f"[[bold red]Error[/bold red]] Datasource '{ds_name}' doesn't exist")
-            console.print(f"Available datasources: {', '.join(datasource_names)}")
-            return 1
-
-        ds = datasources[ds_name]
-
+        # Validating
+        console.rule('Validating')
+        event_payload.step = 'validate'
         passed, reasons = ds.validate()
         if not passed:
             console.print(f"[bold red]Error:[/bold red] The credential of '{ds.name}' is not configured.")
@@ -692,12 +655,6 @@ class Runner:
                 "[bold yellow]Hint:[/bold yellow]\n  Please execute command 'piperider init' to move forward.")
             return 1
 
-        if not datasource and configuration.dbt is None and len(datasource_names) > 1:
-            console.print(
-                f"[bold yellow]Warning: multiple datasources found ({', '.join(datasource_names)}), using '{ds_name}'[/bold yellow]\n")
-
-        console.print(f'[bold dark_orange]DataSource:[/bold dark_orange] {ds.name}')
-        console.rule('Validating')
         result, err = _pre_run_validating(ds)
         if result is PreRunValidatingResult.ERROR:
             console.print('\n\n[[bold red]ERROR[/bold red]] Stop profiling, please fix the syntax errors above.')
@@ -730,11 +687,11 @@ class Runner:
             if not dbtutil.is_ready(dbt_config):
                 console.log(
                     '[[bold red]ERROR:[/bold red]] DBT configuration is not completed, please check the config.yml')
-                return sys.exit(1)
+                return 1
             dbt_target_path, err_msg = get_dbt_state_dir(dbt_target_path, dbt_config, ds, skip_datasource_connection)
             if err_msg:
                 console.print(err_msg)
-                return sys.exit(1)
+                return 1
             dbt_manifest = dbtutil.get_dbt_manifest(dbt_target_path)
             dbt_run_results = dbtutil.get_dbt_run_results(dbt_target_path)
             if dbt_select:
@@ -743,6 +700,9 @@ class Runner:
                                                                                                select=dbt_select,
                                                                                                state=dbt_state)
         console.print('everything is OK.')
+
+        # Profiling
+        event_payload.step = 'pre-profile'
         run_id = uuid.uuid4().hex
         created_at = datetime.utcnow()
         if skip_datasource_connection:
@@ -788,7 +748,6 @@ class Runner:
         profiler_result = {}
 
         statistics = Statistics()
-        # Profile the datasource
         profiler = Profiler(ds, RichProfilerEventHandler([subject.name for subject in subjects]), configuration)
 
         if skip_datasource_connection:
@@ -799,9 +758,11 @@ class Runner:
             run_result.update(profiler_result)
         else:
             try:
+                event_payload.step = 'schema'
                 console.rule('Collect metadata')
                 profiler.collect_metadata(dbt_metadata_subjects, subjects)
 
+                event_payload.step = 'profile'
                 console.rule('Profile statistics')
                 profiler_result = profiler.profile(subjects, metadata_subjects=dbt_metadata_subjects)
                 run_result.update(profiler_result)
@@ -813,6 +774,8 @@ class Runner:
 
         statistics.reset()
 
+        # Query metrics
+        event_payload.step = 'metric'
         if skip_datasource_connection is False:
             console.rule('Query metrics')
             metrics = []
@@ -833,6 +796,8 @@ class Runner:
             assertion_results, assertion_exceptions = _execute_assertions(console, engine, ds.name, output,
                                                                           profiler_result, created_at)
 
+        # Assertion
+        event_payload.step = 'assertion'
         run_result['tests'] = []
         if assertion_results or dbt_test_results:
             console.rule('Assertion Results')
@@ -874,6 +839,8 @@ class Runner:
             dbtutil.append_descriptions(run_result, dbt_target_path)
         _append_descriptions_from_assertion(run_result)
 
+        # Generate report
+        event_payload.step = 'report'
         run_result['id'] = run_id
         run_result['created_at'] = datetime_to_str(created_at)
         git_branch, git_sha = get_git_branch()
@@ -904,10 +871,11 @@ class Runner:
         if skip_report:
             console.print(f'Results saved to {output if output else output_path}')
 
-        _analyse_and_log_run_event(run_result, assertion_results, dbt_test_results)
+        _analyse_run_event(event_payload, run_result, assertion_results, dbt_test_results)
 
-        if not _check_assertion_status(assertion_results, assertion_exceptions):
-            return EC_ERR_TEST_FAILED
+        # The assertion is deprecated. We should not run failed event the dbt test failed.
+        # if not _check_assertion_status(assertion_results, assertion_exceptions):
+        #     return EC_ERR_TEST_FAILED
 
         if len(subjects) == 0 and len(run_result.get('metrics', [])) == 0 and not skip_datasource_connection:
             return EC_WARN_NO_PROFILED_MODULES

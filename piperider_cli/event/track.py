@@ -2,6 +2,7 @@ import os
 import sys
 import traceback
 import typing as t
+import time
 
 import sentry_sdk
 from click.core import Command, Context, Group
@@ -64,6 +65,8 @@ class TrackCommand(Command):
 
     def invoke(self, ctx: Context) -> t.Any:
         status = False
+        start_time = time.time()
+
         try:
             self._apply_project_parameters(ctx)
 
@@ -71,7 +74,16 @@ class TrackCommand(Command):
             if ret is None or ret == 0:
                 guide.show_tips(ctx.command.name)
                 status = True
+                reason = 'ok'
+            else:
+                reason = 'error'
             return ret
+        except SystemExit as e:
+            reason = 'error'
+            raise e
+        except KeyboardInterrupt as e:
+            reason = 'aborted'
+            raise e
         except Exception as e:
             if _enable_trackback:
                 print(traceback.format_exc())
@@ -99,11 +111,26 @@ Consider using the following options to select a project:
                 self._show_error_message(e, ctx.params)
 
             if not ignored:
-                sentry_sdk.capture_exception(e)
-            sentry_sdk.flush()
+                event.capture_exception(e)
+                reason = 'fatal'
+            else:
+                reason = 'error'
+            event.flush_exceptions()
             sys.exit(1)
         finally:
-            event.log_usage_event(ctx.command.name, ctx.params, status)
+            end_time = time.time()
+            duration = end_time - start_time
+            props = dict(
+                command=ctx.command.name,
+                status=status,
+                reason=reason,
+                duration=duration,
+                upload=ctx.params.get('upload', False),
+                share=ctx.params.get('share', False),
+            )
+
+            event.log_event(props, 'usage', params=ctx.params)
+
             event.flush_events(ctx.command.name)
 
     def _apply_project_parameters(self, ctx):

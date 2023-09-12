@@ -15,6 +15,7 @@ import piperider_cli.dbtutil as dbtutil
 from piperider_cli import get_run_json_path, load_jinja_template, load_json
 from piperider_cli.configuration import Configuration, FileSystem
 from piperider_cli.error import RecipeConfigException
+from piperider_cli.event import CompareEventPayload
 from piperider_cli.recipes.utils import InteractiveStopException
 
 PIPERIDER_RECIPES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), 'recipe_schema.json')
@@ -308,7 +309,7 @@ def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, options: Dict):
     return resources, state
 
 
-def execute_recipe(cfg: RecipeConfiguration, recipe_type='base', debug=False):
+def execute_recipe(cfg: RecipeConfiguration, recipe_type='base', debug=False, event_payload=CompareEventPayload()):
     """
     We execute a recipe in the following steps:
     1. run dbt commands
@@ -324,6 +325,7 @@ def execute_recipe(cfg: RecipeConfiguration, recipe_type='base', debug=False):
         return
 
     # model.dbt.commands
+    event_payload.step = f"{recipe_type}:dbt"
     for cmd in model.dbt.commands or []:
         console.print(f"Run: \[{cmd}]")
         exit_code = tool().execute_command_with_showing_output(cmd, model.dbt.envs())
@@ -336,6 +338,7 @@ def execute_recipe(cfg: RecipeConfiguration, recipe_type='base', debug=False):
         console.print()
 
     # model.piperider.commands
+    event_payload.step = f"{recipe_type}:piperider"
     for cmd in model.piperider.commands or []:
         console.print(f"Run: \[{cmd}]")
         exit_code = tool().execute_command_with_showing_output(cmd, model.piperider.envs())
@@ -404,7 +407,7 @@ def execute_dbt_compile(model: RecipeModel, project_dir: str = None, profiles_di
     console.print()
 
 
-def execute_recipe_archive(cfg: RecipeConfiguration, recipe_type='base', debug=False):
+def execute_recipe_archive(cfg: RecipeConfiguration, recipe_type='base', debug=False, event_payload=CompareEventPayload()):
     """
     We execute a recipe in the following steps:
     1. export the repo with specified commit or branch if needed
@@ -421,6 +424,8 @@ def execute_recipe_archive(cfg: RecipeConfiguration, recipe_type='base', debug=F
         console.print(f"Select {recipe_type} report: \[{model.file}]")
         return
 
+    # git archive
+    event_payload.step = f"{recipe_type}:git-archive"
     diff_target = 'HEAD'
     if recipe_type == 'target':
         branch_or_commit = tool().git_rev_parse(cfg.target.ref)
@@ -445,6 +450,7 @@ def execute_recipe_archive(cfg: RecipeConfiguration, recipe_type='base', debug=F
         console.print()
 
     # model.dbt.commands
+    event_payload.step = f"{recipe_type}:dbt"
     for cmd in model.dbt.commands or []:
         console.print(f"Run: \[{cmd}]")
         # TODO: handle existing flags in command from recipe
@@ -459,6 +465,7 @@ def execute_recipe_archive(cfg: RecipeConfiguration, recipe_type='base', debug=F
         console.print()
 
     # model.piperider.commands
+    event_payload.step = f"{recipe_type}:piperider"
     for cmd in model.piperider.commands or []:
         console.print(f"Run: \[{cmd}]")
         cmd = f'{cmd} --dbt-project-dir {model.tmp_dir_path} --dbt-target-path {model.tmp_dir_path}/target' if model.tmp_dir_path else cmd
@@ -507,7 +514,7 @@ def clean_up(cfg: RecipeConfiguration):
         tool().remove_dir(cfg.target.tmp_dir_path)
 
 
-def execute_recipe_configuration(cfg: RecipeConfiguration, options, debug=False):
+def execute_recipe_configuration(cfg: RecipeConfiguration, options, debug=False, event_payload=CompareEventPayload()):
     console.rule("Recipe executor: verify execution environments")
     # check the dependencies
     console.print("Check: git")
@@ -529,13 +536,13 @@ def execute_recipe_configuration(cfg: RecipeConfiguration, options, debug=False)
             cfg.target.dbt.commands = replace_commands_dbt_state_path(cfg.target.dbt.commands, dbt_state_path)
 
         console.rule("Recipe executor: base phase")
-        execute_recipe_archive(cfg, recipe_type='base', debug=debug)
+        execute_recipe_archive(cfg, recipe_type='base', debug=debug, event_payload=event_payload)
 
         console.rule("Recipe executor: target phase")
         if cfg.target.ref:
-            execute_recipe_archive(cfg, recipe_type='target', debug=debug)
+            execute_recipe_archive(cfg, recipe_type='target', debug=debug, event_payload=event_payload)
         else:
-            execute_recipe(cfg, recipe_type='target', debug=debug)
+            execute_recipe(cfg, recipe_type='target', debug=debug, event_payload=event_payload)
 
     except Exception as e:
         if isinstance(e, InteractiveStopException):
