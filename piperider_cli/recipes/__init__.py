@@ -355,7 +355,7 @@ def execute_dbt_compile_archive(cfg: RecipeConfiguration, recipe_type='base'):
         model = cfg.base
 
     if recipe_type == 'target':
-        branch_or_commit = cfg.target.branch
+        branch_or_commit = tool().git_rev_parse(cfg.target.branch)
     else:
         diff_target = cfg.target.branch if cfg.target.branch else 'HEAD'
         branch_or_commit = tool().git_merge_base(cfg.base.branch, diff_target) or cfg.base.branch
@@ -423,7 +423,7 @@ def execute_recipe_archive(cfg: RecipeConfiguration, recipe_type='base', debug=F
 
     diff_target = 'HEAD'
     if recipe_type == 'target':
-        branch_or_commit = cfg.target.branch
+        branch_or_commit = tool().git_rev_parse(cfg.target.branch)
     else:
         diff_target = cfg.target.branch if cfg.target.branch else 'HEAD'
         branch_or_commit = tool().git_merge_base(cfg.base.branch, diff_target) or cfg.base.branch
