@@ -430,7 +430,7 @@ def cloud_compare_reports(**kwargs):
 
 
 @cli.command(name='compare', short_help='Compare the change for the current branch.', cls=TrackCommand)
-@click.argument('commits', nargs=-1, type=click.STRING)
+@click.argument('refs', nargs=-1, type=click.STRING)
 @click.option('--recipe', default=None, type=click.STRING, help='Select a different recipe.')
 @click.option('--upload', default=False, is_flag=True, help='Upload the report to PipeRider Cloud.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
@@ -451,32 +451,21 @@ def cloud_compare_reports(**kwargs):
 ])
 @add_options(dbt_related_options)
 @add_options(debug_option)
-def compare_with_recipe(commits, **kwargs):
+def compare_with_recipe(refs, **kwargs):
     """
     Generate the comparison report for your branch.
     """
 
-    console = Console()
-    if len(commits) > 1:
-        console.print('[bold red]Error:[/bold red] Commit format is not supported')
-        sys.exit(1)
-    elif len(commits) == 1:
-        commits = commits[0]
-        if '...' in commits:
-            kwargs['base_ref'] = commits.split('...')[0]
-            kwargs['target_ref'] = commits.split('...')[1]
-        elif '..' in commits:
-            console.print('[bold red]Error:[/bold red] Two-dot diff comparisons are not supported')
-            sys.exit(1)
-        else:
-            kwargs['base_ref'] = commits
+    from piperider_cli.cli_utils.compare_with_recipe import assign_compare_ref, compare_with_recipe as cmd
+    options = kwargs
+    err, msg = assign_compare_ref(refs, options)
 
-    if kwargs.get('base_branch') and kwargs.get('base_ref'):
-        console.print("[bold red]Error:[/bold red] '--base-branch' option and commit argument cannot be used together")
+    if err != 0:
+        console = Console()
+        console.print(msg)
         sys.exit(1)
 
-    from piperider_cli.cli_utils.compare_with_recipe import compare_with_recipe as cmd
-    return cmd(**kwargs)
+    return cmd(**options)
 
 
 @cloud.command(short_help='Signup to PipeRider Cloud.', cls=TrackCommand)

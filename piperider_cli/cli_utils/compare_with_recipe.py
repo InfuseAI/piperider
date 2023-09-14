@@ -1,3 +1,24 @@
+def assign_compare_ref(refs: tuple, options: dict):
+    if len(refs) > 1:
+        return -1, '[bold red]Error:[/bold red] Commit format is not supported'
+    elif len(refs) == 1:
+        refs = refs[0]
+        if '...' in refs:
+            options['base_ref'] = refs.split('...')[0]
+            options['target_ref'] = refs.split('...')[1]
+            if options['base_ref'] == '' or options['target_ref'] == '':
+                return -1, '[bold red]Error:[/bold red] Commit format is not supported'
+        elif '..' in refs:
+            return -1, '[bold red]Error:[/bold red] Two-dot diff comparisons are not supported'
+        else:
+            options['base_ref'] = refs
+
+    if options.get('base_branch') and options.get('base_ref'):
+        return -1, "[bold red]Error:[/bold red] '--base-branch' option and '[REF]' argument cannot be used together"
+
+    return 0, None
+
+
 def compare_with_recipe(**kwargs):
     """
     Generate the comparison report for your branch.
