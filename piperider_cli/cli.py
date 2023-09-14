@@ -78,7 +78,7 @@ class RunDataPath(click.Path):
         super().__init__(exists=True, dir_okay=False, resolve_path=True)
 
     def convert(
-            self, value: t.Any, param: t.Optional["Parameter"], ctx: t.Optional["Context"]
+        self, value: t.Any, param: t.Optional["Parameter"], ctx: t.Optional["Context"]
     ) -> t.Any:
         rv = value
 
@@ -306,9 +306,8 @@ def compare_reports(**kwargs):
         force_upload = True
 
     if force_upload and not CloudConnectorHelper.is_login():
-        force_upload = False
         console = Console()
-        console.print('[bold yellow]Warning: [/bold yellow]Reports will not be uploaded due to not logged in.')
+        console.print('[bold yellow]Warning: [/bold yellow]Reports will be uploaded as a temporary quick look.')
 
     from piperider_cli.compare_report import CompareReport
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
