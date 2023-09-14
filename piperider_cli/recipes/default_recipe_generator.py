@@ -62,8 +62,8 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
             if tool().git_branch(options.get('base_ref')) is not None:
                 base.ref = options.get('base_ref')
             else:
-                ex = RecipeException(f"Cannot find specified base branch: {options.get('base_ref')}")
-                ex.hint = f"Please check if the specified branch name '{options.get('base_ref')}' is correct."
+                ex = RecipeException(f"Cannot find specified base ref: {options.get('base_ref')}")
+                ex.hint = f"Please check if the specified ref name '{options.get('base_ref')}' is correct."
                 raise ex
         else:
             if tool().git_branch('main') is not None:
@@ -94,8 +94,8 @@ def _create_target_recipe(dbt_project_path=None, options: dict = None) -> Recipe
             if tool().git_branch(options.get('target_ref')) is not None:
                 target.ref = options.get('target_ref')
             else:
-                ex = RecipeException(f"Cannot find specified base branch: {options.get('target_ref')}")
-                ex.hint = f"Please check if the specified branch name '{options.get('target_ref')}' is correct."
+                ex = RecipeException(f"Cannot find specified base ref: {options.get('target_ref')}")
+                ex.hint = f"Please check if the specified ref name '{options.get('target_ref')}' is correct."
                 raise ex
 
     dbt_project = _read_dbt_project_file(dbt_project_path)

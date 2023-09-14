@@ -28,7 +28,7 @@ class TestRecipe(TestCase):
         self.assertEqual((), select)
 
     def test_prepare_piperider_cmd(self):
-        options = dict(base_branch=None, skip_datasource_connection=False)
+        options = dict(base_ref=None, target_ref=None, skip_datasource_connection=False)
 
         # base
         dbt_field = _prepare_dbt_cmds(options)
