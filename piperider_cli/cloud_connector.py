@@ -2,7 +2,7 @@ import json
 import os
 import sys
 import webbrowser
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import inquirer
 import readchar
@@ -289,7 +289,8 @@ def get_run_report_id(project: PipeRiderProject, report_key: str) -> Optional[in
     return None
 
 
-def create_compare_reports(base_id: str | int, target_id: str | int, tables_from, project: PipeRiderProject = None,
+def create_compare_reports(base_id: Union[str, int], target_id: Union[str, int], tables_from,
+                           project: PipeRiderProject = None,
                            metadata: dict = None) -> dict:
     if project is None:
         project = piperider_cloud.get_default_project()

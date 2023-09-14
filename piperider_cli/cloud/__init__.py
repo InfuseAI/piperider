@@ -1,6 +1,6 @@
 import json
 import os
-from typing import List
+from typing import List, Union
 
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
@@ -338,7 +338,8 @@ class PipeRiderCloud:
 
         return response.json()
 
-    def compare_reports(self, base_id: int | str, target_id: int | str, tables_from, project: PipeRiderProject,
+    def compare_reports(self, base_id: Union[int, str], target_id: Union[int, str], tables_from,
+                        project: PipeRiderProject,
                         metadata: dict = None):
         if isinstance(project, PipeRiderTemporaryProject):
             api_url = self.service.url(f'/api/v2/temporary/runs/{base_id}/compare/{target_id}')
