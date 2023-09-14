@@ -95,7 +95,7 @@ class RecipeCloudField(AbstractRecipeField):
 
 
 class RecipeModel:
-    branch: str = None
+    ref: str = None
     dbt: RecipeDbtField = None
     piperider: RecipePiperiderField = None
     cloud: RecipeCloudField = None
@@ -107,7 +107,7 @@ class RecipeModel:
             return
 
         # git branch name
-        self.branch: str = content.get('branch')
+        self.ref: str = content.get('branch') if content.get('branch') is not None else content.get('ref')
         if content.get('file') is not None:
             self.file: str = content.get('file')
         self.dbt: RecipeDbtField = RecipeDbtField(content.get('dbt'))
@@ -116,8 +116,8 @@ class RecipeModel:
 
     def __dict__(self):
         d = dict()
-        if self.branch:
-            d['branch'] = self.branch
+        if self.ref:
+            d['ref'] = self.ref
         if self.is_file_specified():
             d['file'] = self.file
         if self.dbt:
@@ -131,15 +131,15 @@ class RecipeModel:
     def is_file_specified(self):
         return hasattr(self, 'file')
 
-    def is_branch_specified(self):
-        return self.branch is not None
+    def is_ref_specified(self):
+        return self.ref is not None
 
     def is_piperider_commands_specified(self):
         return len(self.piperider.commands) > 0
 
     def validate_recipe(self):
         # check conflict
-        if (self.is_branch_specified() or self.is_piperider_commands_specified()) and self.is_file_specified():
+        if (self.is_ref_specified() or self.is_piperider_commands_specified()) and self.is_file_specified():
             raise RecipeConfigException(
                 message="Both 'file' and 'branch/piperider commands' are specified.",
                 hint="Please modify the recipe file to use either 'file' or 'branch/piperider commands'.")
@@ -215,7 +215,7 @@ class RecipeConfiguration:
 
 
 def verify_git_dependencies(cfg: RecipeConfiguration):
-    if cfg.base.branch is None and cfg.target.branch is None:
+    if cfg.base.ref is None and cfg.target.ref is None:
         # nobody set the git branch, skip the verification
         return
 
@@ -284,7 +284,7 @@ def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, options: Dict):
         execute_dbt_compile_archive(cfg, recipe_type='base')
         state = cfg.base.state_path
 
-    if cfg.target.branch is not None:
+    if cfg.target.ref is not None:
         execute_dbt_compile_archive(cfg, recipe_type='target')
         target_path = 'state'
     else:
@@ -355,10 +355,10 @@ def execute_dbt_compile_archive(cfg: RecipeConfiguration, recipe_type='base'):
         model = cfg.base
 
     if recipe_type == 'target':
-        branch_or_commit = tool().git_rev_parse(cfg.target.branch)
+        branch_or_commit = tool().git_rev_parse(cfg.target.ref)
     else:
-        diff_target = cfg.target.branch if cfg.target.branch else 'HEAD'
-        branch_or_commit = tool().git_merge_base(cfg.base.branch, diff_target) or cfg.base.branch
+        diff_target = cfg.target.ref if cfg.target.ref else 'HEAD'
+        branch_or_commit = tool().git_merge_base(cfg.base.ref, diff_target) or cfg.base.ref
 
     if not branch_or_commit:
         raise RecipeConfigException("Branch is not specified")
@@ -423,21 +423,21 @@ def execute_recipe_archive(cfg: RecipeConfiguration, recipe_type='base', debug=F
 
     diff_target = 'HEAD'
     if recipe_type == 'target':
-        branch_or_commit = tool().git_rev_parse(cfg.target.branch)
+        branch_or_commit = tool().git_rev_parse(cfg.target.ref)
     else:
-        diff_target = cfg.target.branch if cfg.target.branch else 'HEAD'
-        branch_or_commit = tool().git_merge_base(cfg.base.branch, diff_target) or cfg.base.branch
+        diff_target = cfg.target.ref if cfg.target.ref else 'HEAD'
+        branch_or_commit = tool().git_merge_base(cfg.base.ref, diff_target) or cfg.base.ref
 
     if branch_or_commit:
         if recipe_type == 'target':
-            console.print(f"Run: \[git archive] {model.branch}")
+            console.print(f"Run: \[git archive] {model.ref}")
         else:
-            console.print(f"Run: \[git archive] {model.branch}...{diff_target} = {branch_or_commit}")
+            console.print(f"Run: \[git archive] {model.ref}...{diff_target} = {branch_or_commit}")
         if model.tmp_dir_path is None:
             model.tmp_dir_path = tool().git_archive(branch_or_commit)
         # NOTE: Passing git branch information through environment variables,
         #       as the archived folder does not have a .git folder.
-        model.piperider.environments['PIPERIDER_GIT_BRANCH'] = model.branch
+        model.piperider.environments['PIPERIDER_GIT_BRANCH'] = model.ref
         model.piperider.environments['PIPERIDER_GIT_SHA'] = branch_or_commit
         console.print()
 
@@ -474,7 +474,7 @@ def get_current_branch(cfg: RecipeConfiguration):
     Update the effective branch name for cfg and return the original branch before execution
     """
 
-    if cfg.base.branch is None and cfg.target.branch is None:
+    if cfg.base.ref is None and cfg.target.ref is None:
         # We don't care the current branch, because we won't change it
         return None
 
@@ -529,7 +529,7 @@ def execute_recipe_configuration(cfg: RecipeConfiguration, options, debug=False)
         execute_recipe_archive(cfg, recipe_type='base', debug=debug)
 
         console.rule("Recipe executor: target phase")
-        if cfg.target.branch:
+        if cfg.target.ref:
             execute_recipe_archive(cfg, recipe_type='target', debug=debug)
         else:
             execute_recipe(cfg, recipe_type='target', debug=debug)

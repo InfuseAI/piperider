@@ -463,13 +463,17 @@ def compare_with_recipe(commits, **kwargs):
     elif len(commits) == 1:
         commits = commits[0]
         if '...' in commits:
-            kwargs['base_branch'] = commits.split('...')[0]
-            kwargs['target_branch'] = commits.split('...')[1]
+            kwargs['base_ref'] = commits.split('...')[0]
+            kwargs['target_ref'] = commits.split('...')[1]
         elif '..' in commits:
             console.print('[bold red]Error:[/bold red] Two-dot diff comparisons are not supported')
             sys.exit(1)
         else:
-            kwargs['base_branch'] = commits
+            kwargs['base_ref'] = commits
+
+    if kwargs.get('base_branch') and kwargs.get('base_ref'):
+        console.print("[bold red]Error:[/bold red] '--base-branch' option and commit argument cannot be used together")
+        sys.exit(1)
 
     from piperider_cli.cli_utils.compare_with_recipe import compare_with_recipe as cmd
     return cmd(**kwargs)
