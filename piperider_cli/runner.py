@@ -605,7 +605,8 @@ def get_git_branch():
     # NOTE: Provide git branch information directly for the archived dbt project without .git folder
     git_branch = os.environ.get('PIPERIDER_GIT_BRANCH', None)
     git_sha = os.environ.get('PIPERIDER_GIT_SHA', None)
-    if git_branch is not None and git_sha is not None:
+    # there's no git branch information when comparing to tag or commit
+    if git_branch is not None or git_sha is not None:
         return git_branch, git_sha
 
     def _exec(command_line: str):

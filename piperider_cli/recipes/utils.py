@@ -106,6 +106,15 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
 
         return outs
 
+    def git_is_ref_branch(self, obj_name: str) -> bool:
+        outs, errs, exit_code = self.dryrun_ignored_execute_command(
+            f"git show-ref --verify refs/heads/{obj_name}"
+        )
+        if exit_code != 0:
+            return False
+
+        return True
+
     def git_checkout_to(self, commit_or_branch):
         outs, errs, exit_code = self.execute_command_in_silent(
             f"git checkout {commit_or_branch}"
