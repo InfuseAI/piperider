@@ -439,6 +439,8 @@ def execute_recipe_archive(cfg: RecipeConfiguration, recipe_type='base', debug=F
         #       as the archived folder does not have a .git folder.
         if tool().git_is_ref_branch(model.ref):
             model.piperider.environments['PIPERIDER_GIT_BRANCH'] = model.ref
+        elif model.ref == 'HEAD':
+            model.piperider.environments['PIPERIDER_GIT_BRANCH'] = tool().git_current_branch()
         model.piperider.environments['PIPERIDER_GIT_SHA'] = branch_or_commit
         console.print()
 
