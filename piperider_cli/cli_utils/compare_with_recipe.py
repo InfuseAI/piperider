@@ -1,25 +1,29 @@
-def assign_compare_ref(refs: tuple, options: dict):
-    if len(refs) > 1:
-        return -1, '[bold red]Error:[/bold red] Commit format is not supported'
-    elif len(refs) == 1:
-        refs = refs[0]
-        if '...' in refs:
-            options['base_ref'] = refs.split('...')[0]
-            options['target_ref'] = refs.split('...')[1]
-            if options['base_ref'] == '' or options['target_ref'] == '':
-                return -1, '[bold red]Error:[/bold red] Commit format is not supported'
-        elif '..' in refs:
-            return -1, '[bold red]Error:[/bold red] Two-dot diff comparisons are not supported'
-        else:
-            options['base_ref'] = refs
-
-    if options.get('base_branch') and options.get('base_ref'):
-        return -1, "[bold red]Error:[/bold red] '--base-branch' option and '[REF]' argument cannot be used together"
-
-    return 0, None
+from rich.console import Console
 
 
-def compare_with_recipe(**kwargs):
+def parse_compare_ref(refs: str):
+    console = Console()
+
+    if refs is None:
+        return None, None
+
+    if '...' in refs:
+        base_ref = refs.split('...')[0]
+        target_ref = refs.split('...')[1]
+        if base_ref == '' or target_ref == '':
+            console.print('[bold red]Error:[/bold red] Commit format is not supported')
+            return None, None
+    elif '..' in refs:
+        console.print('[bold red]Error:[/bold red] Two-dot diff comparisons are not supported')
+        return None, None
+    else:
+        base_ref = refs
+        target_ref = None
+
+    return base_ref, target_ref
+
+
+def compare_with_recipe(ref_diff, **kwargs):
     """
     Generate the comparison report for your branch.
     """
@@ -31,6 +35,8 @@ def compare_with_recipe(**kwargs):
     from piperider_cli.initializer import Initializer
     from piperider_cli.recipes import RecipeConfiguration, configure_recipe_execution_flags, is_recipe_dry_run
 
+    console = Console()
+
     recipe = kwargs.get('recipe')
     summary_file = kwargs.get('summary_file')
     force_upload = kwargs.get('upload')
@@ -40,10 +46,18 @@ def compare_with_recipe(**kwargs):
     debug = kwargs.get('debug', False)
     select = kwargs.get('select')
     modified = kwargs.get('modified')
-
-    base_ref = kwargs.get('base_branch') if kwargs.get('base_branch') else kwargs.get('base_ref')
-    target_ref = kwargs.get('target_ref')
     skip_datasource_connection = kwargs.get('skip_datasource')
+
+    base_ref, target_ref = parse_compare_ref(ref_diff)
+    if ref_diff is not None and base_ref is None:
+        return -1
+
+    if base_ref is not None and kwargs.get('base_branch') is not None:
+        console.print("[bold red]Error:[/bold red] "
+                      "'--base-branch' option and '[REF-DIFF]' argument cannot be used together")
+        return -1
+    elif base_ref is None:
+        base_ref = kwargs.get('base_branch')
 
     # reconfigure recipe global flags
     configure_recipe_execution_flags(dry_run=kwargs.get('dry_run'), interactive=kwargs.get('interactive'))

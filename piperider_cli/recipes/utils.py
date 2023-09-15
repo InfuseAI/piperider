@@ -117,7 +117,7 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
 
     def git_current_branch(self):
         outs, errs, exit_code = self.dryrun_ignored_execute_command(
-            f"git branch --show-current"
+            "git branch --show-current"
         )
         if exit_code != 0:
             return None
