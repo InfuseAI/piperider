@@ -42,12 +42,12 @@ def prepare_for_action(recipe_name: str = None):
     if recipe_path:
         print(f'[Prepare] check recipe from file: {recipe_path}')
         cfg = RecipeConfiguration.load(recipe_path)
-        if cfg.base.branch:
-            print(f'[Prepare] switch to base branch: {cfg.base.branch}')
-            git_switch_to(cfg.base.branch)
-        if cfg.target.branch:
-            print(f'[Prepare] switch to target branch: {cfg.target.branch}')
-            git_switch_to(cfg.target.branch)
+        if cfg.base.ref:
+            print(f'[Prepare] switch to base branch: {cfg.base.ref}')
+            git_switch_to(cfg.base.ref)
+        if cfg.target.ref:
+            print(f'[Prepare] switch to target branch: {cfg.target.ref}')
+            git_switch_to(cfg.target.ref)
 
         head_ref = os.environ.get('GITHUB_HEAD_REF')
         print(f'[Prepare] switch to GITHUB_HEAD_REF: {head_ref}')

@@ -58,18 +58,18 @@ def _create_base_recipe(dbt_project_path=None, options: dict = None) -> RecipeMo
     base = RecipeModel()
 
     if tool().git_branch() is not None:
-        if options.get('base_branch') is not None:
-            if tool().git_branch(options.get('base_branch')) is not None:
-                base.branch = options.get('base_branch')
+        if options.get('base_ref') is not None:
+            if tool().git_branch(options.get('base_ref')) is not None:
+                base.ref = options.get('base_ref')
             else:
-                ex = RecipeException(f"Cannot find specified base branch: {options.get('base_branch')}")
-                ex.hint = f"Please check if the specified branch name '{options.get('base_branch')}' is correct."
+                ex = RecipeException(f"Cannot find specified base ref: {options.get('base_ref')}")
+                ex.hint = f"Please check if the specified ref name '{options.get('base_ref')}' is correct."
                 raise ex
         else:
             if tool().git_branch('main') is not None:
-                base.branch = 'main'
+                base.ref = 'main'
             elif tool().git_branch('master') is not None:
-                base.branch = 'master'
+                base.ref = 'master'
             else:
                 ex = RecipeException("Cannot find default 'main' or 'master' branch")
                 ex.hint = "Please specify the base branch using the '--base-branch' option."
@@ -88,6 +88,15 @@ def _create_target_recipe(dbt_project_path=None, options: dict = None) -> Recipe
     Create the target recipe
     """
     target = RecipeModel()
+
+    if tool().git_branch() is not None:
+        if options.get('target_ref') is not None:
+            if tool().git_branch(options.get('target_ref')) is not None:
+                target.ref = options.get('target_ref')
+            else:
+                ex = RecipeException(f"Cannot find specified base ref: {options.get('target_ref')}")
+                ex.hint = f"Please check if the specified ref name '{options.get('target_ref')}' is correct."
+                raise ex
 
     dbt_project = _read_dbt_project_file(dbt_project_path)
     if dbt_project:

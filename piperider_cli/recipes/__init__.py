@@ -95,7 +95,7 @@ class RecipeCloudField(AbstractRecipeField):
 
 
 class RecipeModel:
-    branch: str = None
+    ref: str = None
     dbt: RecipeDbtField = None
     piperider: RecipePiperiderField = None
     cloud: RecipeCloudField = None
@@ -107,7 +107,7 @@ class RecipeModel:
             return
 
         # git branch name
-        self.branch: str = content.get('branch')
+        self.ref: str = content.get('branch') if content.get('branch') is not None else content.get('ref')
         if content.get('file') is not None:
             self.file: str = content.get('file')
         self.dbt: RecipeDbtField = RecipeDbtField(content.get('dbt'))
@@ -116,8 +116,8 @@ class RecipeModel:
 
     def __dict__(self):
         d = dict()
-        if self.branch:
-            d['branch'] = self.branch
+        if self.ref:
+            d['ref'] = self.ref
         if self.is_file_specified():
             d['file'] = self.file
         if self.dbt:
@@ -131,15 +131,15 @@ class RecipeModel:
     def is_file_specified(self):
         return hasattr(self, 'file')
 
-    def is_branch_specified(self):
-        return self.branch is not None
+    def is_ref_specified(self):
+        return self.ref is not None
 
     def is_piperider_commands_specified(self):
         return len(self.piperider.commands) > 0
 
     def validate_recipe(self):
         # check conflict
-        if (self.is_branch_specified() or self.is_piperider_commands_specified()) and self.is_file_specified():
+        if (self.is_ref_specified() or self.is_piperider_commands_specified()) and self.is_file_specified():
             raise RecipeConfigException(
                 message="Both 'file' and 'branch/piperider commands' are specified.",
                 hint="Please modify the recipe file to use either 'file' or 'branch/piperider commands'.")
@@ -215,7 +215,7 @@ class RecipeConfiguration:
 
 
 def verify_git_dependencies(cfg: RecipeConfiguration):
-    if cfg.base.branch is None and cfg.target.branch is None:
+    if cfg.base.ref is None and cfg.target.ref is None:
         # nobody set the git branch, skip the verification
         return
 
@@ -279,36 +279,45 @@ def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, options: Dict):
     select = ()
     if cfg.auto_generated:
         select = update_select_with_cli_option(options)
-    dbt_project = dbtutil.load_dbt_project(config.dbt.get('projectDir'))
-    target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
 
     if require_base_state(cfg):
-        execute_dbt_compile_archive(cfg.base)
+        execute_dbt_compile_archive(cfg, recipe_type='base')
         state = cfg.base.state_path
-    # elif dbtutil.check_dbt_manifest(target_path) is False:
-    # Need to compile the dbt project if the manifest file does not exist
-    execute_dbt_deps(cfg.base)
-    execute_dbt_compile(cfg.base)
+
+    if cfg.target.ref is not None:
+        execute_dbt_compile_archive(cfg, recipe_type='target')
+        target_path = 'state'
+    else:
+        execute_dbt_deps(cfg.target)
+        execute_dbt_compile(cfg.target)
+        dbt_project = dbtutil.load_dbt_project(config.dbt.get('projectDir'))
+        target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
 
     if any('state:' in item for item in select):
         console.print(f"Run: \[dbt list] select option '{' '.join(select)}' with state")
-        resources = tool().list_dbt_resources(target_path, select=select, state=state)
+        resources = tool().list_dbt_resources(
+            target_path, project_dir=cfg.target.tmp_dir_path, select=select, state=state
+        )
     elif options.get('skip_datasource_connection'):
         console.print("Skip: \[dbt list] due to the command option '--skip-datasource'")
         resources = []
     else:
         console.print(f"Run: \[dbt list] select option '{' '.join(select)}'")
-        resources = tool().list_dbt_resources(target_path, select=select)
+        resources = tool().list_dbt_resources(target_path, project_dir=cfg.target.tmp_dir_path, select=select)
     console.print()
     return resources, state
 
 
-def execute_recipe(model: RecipeModel, debug=False, recipe_type='base'):
+def execute_recipe(cfg: RecipeConfiguration, recipe_type='base', debug=False):
     """
     We execute a recipe in the following steps:
     1. run dbt commands
     2. run piperider commands
     """
+    if recipe_type == 'target':
+        model = cfg.target
+    else:
+        model = cfg.base
 
     if model.is_file_specified():
         console.print(f"Select {recipe_type} report: \[{model.file}]")
@@ -339,8 +348,18 @@ def execute_recipe(model: RecipeModel, debug=False, recipe_type='base'):
         console.print()
 
 
-def execute_dbt_compile_archive(model: RecipeModel, debug=False):
-    branch_or_commit = tool().git_merge_base(model.branch, 'HEAD') or model.branch
+def execute_dbt_compile_archive(cfg: RecipeConfiguration, recipe_type='base'):
+    if recipe_type == 'target':
+        model = cfg.target
+    else:
+        model = cfg.base
+
+    if recipe_type == 'target':
+        branch_or_commit = tool().git_rev_parse(cfg.target.ref)
+    else:
+        diff_target = cfg.target.ref if cfg.target.ref else 'HEAD'
+        branch_or_commit = tool().git_merge_base(cfg.base.ref, diff_target) or cfg.base.ref
+
     if not branch_or_commit:
         raise RecipeConfigException("Branch is not specified")
 
@@ -350,7 +369,6 @@ def execute_dbt_compile_archive(model: RecipeModel, debug=False):
 
     execute_dbt_deps(model, model.tmp_dir_path, Path(FileSystem.DBT_PROFILES_DIR).as_posix())
     execute_dbt_compile(model, model.tmp_dir_path, Path(FileSystem.DBT_PROFILES_DIR).as_posix(), model.state_path)
-    pass
 
 
 def execute_dbt_deps(model: RecipeModel, project_dir: str = None, profiles_dir: str = None):
@@ -366,7 +384,6 @@ def execute_dbt_deps(model: RecipeModel, project_dir: str = None, profiles_dir: 
             f"[bold yellow]Warning: [/bold yellow] Dbt command failed: '{cmd}' with exit code: {exit_code}")
         sys.exit(exit_code)
     console.print()
-    pass
 
 
 def execute_dbt_compile(model: RecipeModel, project_dir: str = None, profiles_dir: str = None,
@@ -385,10 +402,9 @@ def execute_dbt_compile(model: RecipeModel, project_dir: str = None, profiles_di
             f"[bold yellow]Warning: [/bold yellow] Dbt command failed: '{cmd}' with exit code: {exit_code}")
         sys.exit(exit_code)
     console.print()
-    pass
 
 
-def execute_recipe_archive(model: RecipeModel, debug=False, recipe_type='base'):
+def execute_recipe_archive(cfg: RecipeConfiguration, recipe_type='base', debug=False):
     """
     We execute a recipe in the following steps:
     1. export the repo with specified commit or branch if needed
@@ -396,18 +412,35 @@ def execute_recipe_archive(model: RecipeModel, debug=False, recipe_type='base'):
     3. run piperider commands
     """
 
+    if recipe_type == 'target':
+        model = cfg.target
+    else:
+        model = cfg.base
+
     if model.is_file_specified():
         console.print(f"Select {recipe_type} report: \[{model.file}]")
         return
 
-    branch_or_commit = tool().git_merge_base(model.branch, 'HEAD') or model.branch
+    diff_target = 'HEAD'
+    if recipe_type == 'target':
+        branch_or_commit = tool().git_rev_parse(cfg.target.ref)
+    else:
+        diff_target = cfg.target.ref if cfg.target.ref else 'HEAD'
+        branch_or_commit = tool().git_merge_base(cfg.base.ref, diff_target) or cfg.base.ref
+
     if branch_or_commit:
-        console.print(f"Run: \[git archive] {model.branch}...HEAD = {branch_or_commit}")
+        if recipe_type == 'target':
+            console.print(f"Run: \[git archive] {model.ref}")
+        else:
+            console.print(f"Run: \[git archive] {model.ref}...{diff_target} = {branch_or_commit}")
         if model.tmp_dir_path is None:
             model.tmp_dir_path = tool().git_archive(branch_or_commit)
         # NOTE: Passing git branch information through environment variables,
         #       as the archived folder does not have a .git folder.
-        model.piperider.environments['PIPERIDER_GIT_BRANCH'] = model.branch
+        if tool().git_is_ref_branch(model.ref):
+            model.piperider.environments['PIPERIDER_GIT_BRANCH'] = model.ref
+        elif model.ref == 'HEAD':
+            model.piperider.environments['PIPERIDER_GIT_BRANCH'] = tool().git_current_branch()
         model.piperider.environments['PIPERIDER_GIT_SHA'] = branch_or_commit
         console.print()
 
@@ -444,7 +477,7 @@ def get_current_branch(cfg: RecipeConfiguration):
     Update the effective branch name for cfg and return the original branch before execution
     """
 
-    if cfg.base.branch is None and cfg.target.branch is None:
+    if cfg.base.ref is None and cfg.target.ref is None:
         # We don't care the current branch, because we won't change it
         return None
 
@@ -496,10 +529,13 @@ def execute_recipe_configuration(cfg: RecipeConfiguration, options, debug=False)
             cfg.target.dbt.commands = replace_commands_dbt_state_path(cfg.target.dbt.commands, dbt_state_path)
 
         console.rule("Recipe executor: base phase")
-        execute_recipe_archive(cfg.base, recipe_type='base', debug=debug)
+        execute_recipe_archive(cfg, recipe_type='base', debug=debug)
 
         console.rule("Recipe executor: target phase")
-        execute_recipe(cfg.target, recipe_type='target', debug=debug)
+        if cfg.target.ref:
+            execute_recipe_archive(cfg, recipe_type='target', debug=debug)
+        else:
+            execute_recipe(cfg, recipe_type='target', debug=debug)
 
     except Exception as e:
         if isinstance(e, InteractiveStopException):

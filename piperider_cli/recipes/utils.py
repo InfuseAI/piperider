@@ -97,6 +97,33 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
 
         return outs
 
+    def git_rev_parse(self, obj_name: str = 'HEAD'):
+        outs, errs, exit_code = self.dryrun_ignored_execute_command(
+            f"git rev-parse {obj_name}"
+        )
+        if exit_code != 0:
+            return None
+
+        return outs
+
+    def git_is_ref_branch(self, obj_name: str) -> bool:
+        outs, errs, exit_code = self.dryrun_ignored_execute_command(
+            f"git show-ref --verify refs/heads/{obj_name}"
+        )
+        if exit_code != 0:
+            return False
+
+        return True
+
+    def git_current_branch(self):
+        outs, errs, exit_code = self.dryrun_ignored_execute_command(
+            "git branch --show-current"
+        )
+        if exit_code != 0:
+            return None
+
+        return outs
+
     def git_checkout_to(self, commit_or_branch):
         outs, errs, exit_code = self.execute_command_in_silent(
             f"git checkout {commit_or_branch}"
@@ -162,11 +189,11 @@ class AbstractRecipeUtils(metaclass=abc.ABCMeta):
         if exit_code != 0:
             raise PipeRiderError("dbt is not installed", hint="Please install it first")
 
-    def list_dbt_resources(self, target_path, select=None, state=None):
+    def list_dbt_resources(self, target_path, project_dir=None, select=None, state=None):
         if state:
-            manifest = load_full_manifest(target_path)
+            manifest = load_full_manifest(target_path, project_dir=project_dir)
         else:
-            manifest = load_manifest(get_dbt_manifest(target_path))
+            manifest = load_manifest(get_dbt_manifest(target_path, project_dir=project_dir))
         return list_resources_unique_id_from_manifest(manifest, select=select, state=state)
 
 
@@ -194,7 +221,7 @@ class DryRunRecipeUtils(AbstractRecipeUtils):
         self.console.print(f"[green]:external-command:>[/green] [default]{cmd}[/default]")
         return '/path/to/tmp'
 
-    def list_dbt_resources(self, target_path, select=None, state=None):
+    def list_dbt_resources(self, target_path, project_dir=None, select=None, state=None):
         state_msg = ''
         if state:
             state_msg = f'state: {state}'

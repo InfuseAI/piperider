@@ -134,9 +134,11 @@ def _get_state_run_results(dbt_state_dir: str):
     return run_results
 
 
-def _get_state_manifest(dbt_state_dir: str):
+def _get_state_manifest(dbt_state_dir: str, project_dir: str = None):
     path = os.path.join(dbt_state_dir, 'manifest.json')
-    if os.path.isabs(path) is False:
+    if project_dir is not None:
+        path = os.path.join(project_dir, path)
+    elif os.path.isabs(path) is False:
         from piperider_cli.configuration import FileSystem
         path = os.path.join(FileSystem.WORKING_DIRECTORY, path)
     with open(path) as f:
@@ -656,8 +658,8 @@ def check_dbt_manifest(dbt_state_dir: str) -> bool:
     return os.path.exists(path)
 
 
-def get_dbt_manifest(dbt_state_dir: str):
-    return _get_state_manifest(dbt_state_dir)
+def get_dbt_manifest(dbt_state_dir: str, project_dir: str = None):
+    return _get_state_manifest(dbt_state_dir, project_dir=project_dir)
 
 
 def load_dbt_resources(target_path: str, select: tuple = None, state=None):

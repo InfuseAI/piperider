@@ -430,6 +430,7 @@ def cloud_compare_reports(**kwargs):
 
 
 @cli.command(name='compare', short_help='Compare the change for the current branch.', cls=TrackCommand)
+@click.argument('ref', required=False, type=click.STRING)
 @click.option('--recipe', default=None, type=click.STRING, help='Select a different recipe.')
 @click.option('--upload', default=False, is_flag=True, help='Upload the report to PipeRider Cloud.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
@@ -450,13 +451,33 @@ def cloud_compare_reports(**kwargs):
 ])
 @add_options(dbt_related_options)
 @add_options(debug_option)
-def compare_with_recipe(**kwargs):
+def compare_with_recipe(ref, **kwargs):
     """
     Generate the comparison report for your branch.
+
+    \b
+    # compare with main/master branch
+    piperider compare
+
+    \b
+    # compare with specific branch
+    piperider compare --base-branch <branch>
+
+    \b
+    # compare with any reference
+    piperider compare <git-ref>
+
+    \b
+    # compare with two references
+    piperider compare <git-ref>...<git-ref>
+
+    \b
+    Note: <git-ref> can be reference that git understands. e.g., branch, tag, commit, etc.
+
     """
 
     from piperider_cli.cli_utils.compare_with_recipe import compare_with_recipe as cmd
-    return cmd(**kwargs)
+    return cmd(ref, **kwargs)
 
 
 @cloud.command(short_help='Signup to PipeRider Cloud.', cls=TrackCommand)

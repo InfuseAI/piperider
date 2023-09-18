@@ -1,4 +1,30 @@
-def compare_with_recipe(**kwargs):
+from rich.console import Console
+
+
+def parse_compare_ref(ref: str):
+    console = Console()
+
+    if ref is None:
+        return None, None
+
+    if '...' in ref:
+        base_ref = ref.split('...')[0]
+        target_ref = ref.split('...')[1]
+        if base_ref == '' or target_ref == '':
+            console.print('[bold red]Error:[/bold red] '
+                          'Please either provide a single git reference or a 3-dot diff comparison form.')
+            return None, None
+    elif '..' in ref:
+        console.print('[bold red]Error:[/bold red] Two-dot diff comparisons are not supported')
+        return None, None
+    else:
+        base_ref = ref
+        target_ref = None
+
+    return base_ref, target_ref
+
+
+def compare_with_recipe(ref, **kwargs):
     """
     Generate the comparison report for your branch.
     """
@@ -10,6 +36,8 @@ def compare_with_recipe(**kwargs):
     from piperider_cli.initializer import Initializer
     from piperider_cli.recipes import RecipeConfiguration, configure_recipe_execution_flags, is_recipe_dry_run
 
+    console = Console()
+
     recipe = kwargs.get('recipe')
     summary_file = kwargs.get('summary_file')
     force_upload = kwargs.get('upload')
@@ -19,9 +47,18 @@ def compare_with_recipe(**kwargs):
     debug = kwargs.get('debug', False)
     select = kwargs.get('select')
     modified = kwargs.get('modified')
-
-    base_branch = kwargs.get('base_branch')
     skip_datasource_connection = kwargs.get('skip_datasource')
+
+    base_ref, target_ref = parse_compare_ref(ref)
+    if ref is not None and base_ref is None:
+        return -1
+
+    if base_ref is not None and kwargs.get('base_branch') is not None:
+        console.print("[bold red]Error:[/bold red] "
+                      "'--base-branch' option and '[REF]' argument cannot be used together")
+        return -1
+    elif base_ref is None:
+        base_ref = kwargs.get('base_branch')
 
     # reconfigure recipe global flags
     configure_recipe_execution_flags(dry_run=kwargs.get('dry_run'), interactive=kwargs.get('interactive'))
@@ -55,7 +92,8 @@ def compare_with_recipe(**kwargs):
             recipe_name=recipe,
             select=select,
             modified=modified,
-            base_branch=base_branch,
+            base_ref=base_ref,
+            target_ref=target_ref,
             skip_datasource_connection=skip_datasource_connection,
             debug=debug)
         last = False

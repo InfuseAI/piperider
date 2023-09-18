@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+from piperider_cli.cli_utils.compare_with_recipe import parse_compare_ref
 from piperider_cli.recipes import update_select_with_cli_option
 from piperider_cli.recipes.default_recipe_generator import _prepare_dbt_cmds, _prepare_piperider_cmd
 
@@ -28,7 +29,7 @@ class TestRecipe(TestCase):
         self.assertEqual((), select)
 
     def test_prepare_piperider_cmd(self):
-        options = dict(base_branch=None, skip_datasource_connection=False)
+        options = dict(base_ref=None, target_ref=None, skip_datasource_connection=False)
 
         # base
         dbt_field = _prepare_dbt_cmds(options)
@@ -77,3 +78,28 @@ class TestRecipe(TestCase):
                          dbt_field.commands)
         self.assertEqual(['piperider run --skip-datasource'], piperider_field.commands)
 
+    def test_parse_compare_ref(self):
+        refs = None
+        base_ref, target_ref = parse_compare_ref(refs)
+        self.assertEqual(None, base_ref)
+        self.assertEqual(None, target_ref)
+
+        refs = 'master..develop'
+        base_ref, target_ref = parse_compare_ref(refs)
+        self.assertEqual(None, base_ref)
+        self.assertEqual(None, target_ref)
+
+        refs = 'master...'
+        err, _ = parse_compare_ref(refs)
+        self.assertEqual(None, base_ref)
+        self.assertEqual(None, target_ref)
+
+        refs = 'master...develop'
+        base_ref, target_ref = parse_compare_ref(refs)
+        self.assertEqual('master', base_ref)
+        self.assertEqual('develop', target_ref)
+
+        refs = 'master'
+        base_ref, target_ref = parse_compare_ref(refs)
+        self.assertEqual('master', base_ref)
+        self.assertEqual(None, target_ref)
