@@ -324,6 +324,31 @@ class Configuration(object):
             if not isinstance(self.excludes, List):
                 raise PipeRiderConfigTypeError("'excludes' should be a list of tables' name")
 
+    def get_datasource(self, datasource: str = None):
+        datasources = {}
+        datasource_names = []
+        for ds in self.dataSources:
+            datasource_names.append(ds.name)
+            datasources[ds.name] = ds
+
+        if len(datasource_names) == 0:
+            return None
+
+        if datasource:
+            ds_name = datasource
+        else:
+            # if global dbt config exists, use dbt profile target
+            # else use the first datasource
+            ds_name = self.dbt.get('target') if self.dbt else datasource_names[0]
+
+        if ds_name not in datasource_names:
+            console = Console()
+            console.print(f"[[bold red]Error[/bold red]] Datasource '{ds_name}' doesn't exist")
+            console.print(f"Available datasources: {', '.join(datasource_names)}")
+            return None
+
+        return datasources[ds_name]
+
     def get_telemetry_id(self):
         if self.telemetry_id is not None:
             return self.telemetry_id

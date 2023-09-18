@@ -21,6 +21,7 @@ from sqlalchemy.types import Float
 from .event import ProfilerEventHandler, DefaultProfilerEventHandler
 from ..configuration import Configuration
 from ..datasource import DataSource
+from ..event import capture_exception
 
 HISTOGRAM_NUM_BUCKET = 50
 
@@ -162,9 +163,9 @@ class Profiler:
                 table = None
                 try:
                     table = Table(subject.table, MetaData(), autoload_with=engine, schema=schema)
-                except BaseException as e:
+                except Exception as e:
                     # ignore the table metadata fetch error
-                    sentry_sdk.capture_exception(e)
+                    capture_exception(e)
                     pass
                 return subject, table
 

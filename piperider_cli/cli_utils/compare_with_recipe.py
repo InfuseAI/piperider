@@ -1,4 +1,6 @@
+import time
 from rich.console import Console
+from piperider_cli.event import CompareEventPayload, log_event
 
 
 def parse_compare_ref(ref: str):
@@ -48,6 +50,7 @@ def compare_with_recipe(ref, **kwargs):
     select = kwargs.get('select')
     modified = kwargs.get('modified')
     skip_datasource_connection = kwargs.get('skip_datasource')
+    event_payload = CompareEventPayload()
 
     base_ref, target_ref = parse_compare_ref(ref)
     if ref is not None and base_ref is None:
@@ -84,7 +87,9 @@ def compare_with_recipe(ref, **kwargs):
     elif is_piperider_workspace_exist() is False:
         raise DbtProjectNotFoundError()
 
-    ret = 0
+    status = False
+    reason = None
+    start_time = time.time()
     try:
         # note: dry-run and interactive are set by configure_recipe_execution_flags
         from piperider_cli.recipe_executor import RecipeExecutor
@@ -95,7 +100,8 @@ def compare_with_recipe(ref, **kwargs):
             base_ref=base_ref,
             target_ref=target_ref,
             skip_datasource_connection=skip_datasource_connection,
-            debug=debug)
+            debug=debug,
+            event_payload=event_payload)
         last = False
         base = target = None
         if not recipe_config.base.is_file_specified() and not recipe_config.target.is_file_specified():
@@ -105,6 +111,7 @@ def compare_with_recipe(ref, **kwargs):
             target = recipe_config.target.get_run_report()
 
         if not is_recipe_dry_run():
+            event_payload.step = "compare reports"
             from piperider_cli.compare_report import CompareReport
             CompareReport.exec(a=base, b=target, last=last, datasource=None,
                                output=kwargs.get('output'), tables_from="all",
@@ -115,7 +122,24 @@ def compare_with_recipe(ref, **kwargs):
                                project_name=project_name,
                                show_progress=True,
                                debug=debug)
-    except Exception as e:
-        raise e
 
-    return ret
+        status = True
+        reason = 'ok'
+        event_payload.step = "done"
+        return 0
+    except SystemExit as e:
+        reason = 'error'
+        raise e
+    except KeyboardInterrupt as e:
+        reason = 'aborted'
+        raise e
+    except Exception as e:
+        reason = 'fatal'
+        raise e
+    finally:
+        end_time = time.time()
+        duration = end_time - start_time
+        event_payload.status = status
+        event_payload.reason = reason
+        event_payload.duration = duration
+        log_event(event_payload.to_dict(), 'compare')
