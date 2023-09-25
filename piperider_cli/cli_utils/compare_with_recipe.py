@@ -1,5 +1,8 @@
 import time
+
 from rich.console import Console
+
+from piperider_cli.cli_utils import verify_upload_related_options
 from piperider_cli.event import CompareEventPayload, log_event
 
 
@@ -32,9 +35,8 @@ def compare_with_recipe(ref, **kwargs):
     """
 
     from piperider_cli.cli_utils import DbtUtil
-    from piperider_cli.cli_utils.cloud import CloudConnectorHelper
     from piperider_cli.configuration import FileSystem, is_piperider_workspace_exist
-    from piperider_cli.error import DbtProjectNotFoundError, RecipeConfigException
+    from piperider_cli.error import DbtProjectNotFoundError
     from piperider_cli.initializer import Initializer
     from piperider_cli.recipes import RecipeConfiguration, configure_recipe_execution_flags, is_recipe_dry_run
 
@@ -42,8 +44,6 @@ def compare_with_recipe(ref, **kwargs):
 
     recipe = kwargs.get('recipe')
     summary_file = kwargs.get('summary_file')
-    force_upload = kwargs.get('upload')
-    enable_share = kwargs.get('share')
     open_report = kwargs.get('open')
     project_name = kwargs.get('project')
     debug = kwargs.get('debug', False)
@@ -66,14 +66,7 @@ def compare_with_recipe(ref, **kwargs):
     # reconfigure recipe global flags
     configure_recipe_execution_flags(dry_run=kwargs.get('dry_run'), interactive=kwargs.get('interactive'))
 
-    if enable_share:
-        force_upload = True
-
-    if force_upload is True and CloudConnectorHelper.is_login() is False:
-        raise RecipeConfigException(
-            message='Please login to PipeRider Cloud first.',
-            hint='Run "piperider cloud login" to login to PipeRider Cloud.'
-        )
+    enable_upload, enable_share = verify_upload_related_options(**kwargs)
 
     # Search dbt project config files
     dbt_project_dir = kwargs.get('dbt_project_dir')
@@ -116,7 +109,7 @@ def compare_with_recipe(ref, **kwargs):
             CompareReport.exec(a=base, b=target, last=last, datasource=None,
                                output=kwargs.get('output'), tables_from="all",
                                summary_file=summary_file,
-                               force_upload=force_upload,
+                               force_upload=enable_upload,
                                enable_share=enable_share,
                                open_report=open_report,
                                project_name=project_name,

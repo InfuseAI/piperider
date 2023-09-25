@@ -9,7 +9,7 @@ from click import Context, Parameter
 from rich.console import Console
 
 from piperider_cli import __version__, event, sentry_dns, sentry_env
-from piperider_cli.cli_utils import DbtUtil
+from piperider_cli.cli_utils import DbtUtil, verify_upload_related_options
 from piperider_cli.cli_utils.cloud import CloudConnectorHelper
 from piperider_cli.configuration import FileSystem, is_piperider_workspace_exist
 from piperider_cli.error import DbtProjectNotFoundError
@@ -61,6 +61,11 @@ dbt_related_options = [
                  help='Directory to search for dbt profiles.yml.'),
     click.option('--no-auto-search', type=click.BOOL, default=False, is_flag=True,
                  help='Disable auto detection of dbt projects.'),
+]
+
+feature_flags = [
+    click.option('--enable-quick-look-share', envvar='PIPERIDER_ENABLE_QUICK_LOOK_SHARE',
+                 is_flag=True, default=False, hidden=True, help='Enable share to Quick Look.')
 ]
 
 
@@ -230,6 +235,7 @@ def diagnose(**kwargs):
                  help='If set, use the given directory as the source for JSON files to compare with this project.')
 ])
 @add_options(dbt_related_options)
+@add_options(feature_flags)
 @add_options(debug_option)
 def run(**kwargs):
     """
@@ -287,6 +293,7 @@ def generate_report(**kwargs):
               help='Specify the project name to upload.')
 @click.option('--share', default=False, is_flag=True, help='Enable public share of the report to PipeRider Cloud.')
 @click.option('--open', is_flag=True, help='Opens the generated report in the system\'s default browser')
+@add_options(feature_flags)
 @add_options(debug_option)
 def compare_reports(**kwargs):
     'Compare two existing reports selected in interactive mode or by option.'
@@ -298,21 +305,14 @@ def compare_reports(**kwargs):
     tables_from = kwargs.get('tables_from')
     summary_file = kwargs.get('summary_file')
     open_report = kwargs.get('open')
-    force_upload = kwargs.get('upload')
-    enable_share = kwargs.get('share')
     project_name = kwargs.get('project')
 
-    if enable_share or CloudConnectorHelper.is_auto_upload():
-        force_upload = True
-
-    if force_upload and not CloudConnectorHelper.is_login():
-        console = Console()
-        console.print('[bold yellow]Warning: [/bold yellow]Reports will be uploaded as a temporary quick look.')
+    enable_upload, enable_share = verify_upload_related_options(**kwargs)
 
     from piperider_cli.compare_report import CompareReport
     CompareReport.exec(a=a, b=b, last=last, datasource=datasource,
                        report_dir=kwargs.get('report_dir'), output=kwargs.get('output'), summary_file=summary_file,
-                       tables_from=tables_from, force_upload=force_upload, enable_share=enable_share,
+                       tables_from=tables_from, force_upload=enable_upload, enable_share=enable_share,
                        open_report=open_report, project_name=project_name, debug=kwargs.get('debug', False),
                        show_progress=True)
 
@@ -449,6 +449,7 @@ def cloud_compare_reports(**kwargs):
                  show_default=True),
 ])
 @add_options(dbt_related_options)
+@add_options(feature_flags)
 @add_options(debug_option)
 def compare_with_recipe(ref, **kwargs):
     """
