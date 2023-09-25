@@ -2,7 +2,7 @@ import json
 import os
 import sys
 import webbrowser
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import inquirer
 import readchar
@@ -12,7 +12,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 
 from piperider_cli import datetime_to_str, open_report_in_browser, str_to_datetime, get_run_json_path
-from piperider_cli.cloud import PipeRiderCloud, PipeRiderProject
+from piperider_cli.cloud import PipeRiderCloud, PipeRiderProject, PipeRiderTemporaryProject
 from piperider_cli.compare_report import CompareReport, RunOutput
 from piperider_cli.configuration import Configuration
 from piperider_cli.datasource import FANCY_USER_INPUT
@@ -236,10 +236,16 @@ def upload_to_cloud(run: RunOutput, debug=False, project: PipeRiderProject = Non
     def _patch_cloud_upload_response(run_path, project: PipeRiderProject, run_id):
         with open(run_path, 'r') as f:
             report = json.load(f)
-        report['cloud'] = {
-            'run_id': run_id,
-            'project_name': f'{project.workspace_name}/{project.name}'
-        }
+        if isinstance(project, PipeRiderTemporaryProject):
+            report['cloud'] = {
+                'run_id': run_id,
+                'is_temporary': True,
+            }
+        else:
+            report['cloud'] = {
+                'run_id': run_id,
+                'project_name': f'{project.workspace_name}/{project.name}'
+            }
         with open(run_path, 'w', encoding='utf-8') as f:
             f.write(json.dumps(report, separators=(',', ':')))
 
@@ -283,7 +289,8 @@ def get_run_report_id(project: PipeRiderProject, report_key: str) -> Optional[in
     return None
 
 
-def create_compare_reports(base_id: str, target_id: str, tables_from, project: PipeRiderProject = None,
+def create_compare_reports(base_id: Union[str, int], target_id: Union[str, int], tables_from,
+                           project: PipeRiderProject = None,
                            metadata: dict = None) -> dict:
     if project is None:
         project = piperider_cloud.get_default_project()
@@ -370,7 +377,10 @@ class CloudConnector:
     @staticmethod
     def upload_report(report_path=None, report_dir=None, datasource=None, debug=False, open_report=False,
                       enable_share=False, project_name=None, show_progress=True) -> int:
-        if piperider_cloud.available is False:
+        is_temporary_report = False
+        if piperider_cloud.available is False and enable_share is True:
+            is_temporary_report = True
+        elif piperider_cloud.available is False:
             console.rule('Please login PipeRider Cloud first', style='red')
             return 1
 
@@ -379,6 +389,8 @@ class CloudConnector:
             if project is None:
                 console.print(f'[[bold red]Error[/bold red]] Project \'{project_name}\' does not exist')
                 return 1
+        elif is_temporary_report:
+            project = PipeRiderTemporaryProject()
         else:
             project = piperider_cloud.get_default_project()
 
@@ -434,7 +446,7 @@ class CloudConnector:
             url = response.get('report_url')
             open_report_in_browser(url, True)
 
-        if enable_share:
+        if enable_share and is_temporary_report is False:
             run_id = response.get('run_id')
             CloudConnector.share_run_report(run_id, debug, project_name=project_name)
 
@@ -442,7 +454,7 @@ class CloudConnector:
 
     @staticmethod
     def generate_compare_report(base_id: str, target_id: str, tables_from='all',
-                                project_name: str = None, debug: bool = False):
+                                project_name: str = None, is_temporary: bool = False, debug: bool = False):
         # TODO: Change to use new front-end URL pattern
         def _generate_legacy_compare_report_url(base_id, target_id, project=None):
             metadata = fetch_pr_metadata()
@@ -454,7 +466,9 @@ class CloudConnector:
 
         try:
             # TODO: change to use workspace and project name instead of project id
-            if project_name:
+            if is_temporary is True:
+                project = PipeRiderTemporaryProject()
+            elif project_name:
                 project = piperider_cloud.get_project_by_name(project_name)
                 if project is None:
                     console.print(f'[[bold red]Error[/bold red]] Project \'{project_name}\' does not exist')

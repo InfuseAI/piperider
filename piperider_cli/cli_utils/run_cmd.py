@@ -4,6 +4,7 @@ import time
 
 from rich.console import Console
 
+from piperider_cli.cli_utils import verify_upload_related_options
 from piperider_cli.event import log_event
 
 
@@ -30,14 +31,14 @@ def run(**kwargs):
         table = kwargs.get('table')
         output = kwargs.get('output')
         open_report = kwargs.get('open')
-        enable_share = kwargs.get('share')
         skip_report = kwargs.get('skip_report')
         dbt_target_path = kwargs.get('dbt_target_path')
         dbt_list = kwargs.get('dbt_list')
-        force_upload = kwargs.get('upload')
         project_name = kwargs.get('project')
         select = kwargs.get('select')
         state = kwargs.get('state')
+
+        enable_upload, enable_share = verify_upload_related_options(**kwargs)
 
         if project_name is not None:
             os.environ.get('PIPERIDER_API_PROJECT')
@@ -90,14 +91,9 @@ def run(**kwargs):
                           skip_datasource_connection=kwargs.get('skip_datasource'),
                           event_payload=event_payload)
         if ret in (0, EC_WARN_NO_PROFILED_MODULES):
-            if enable_share:
-                force_upload = True
-
-            auto_upload = CloudConnectorHelper.is_auto_upload()
-            is_cloud_view = (force_upload or auto_upload)
 
             if not skip_report:
-                GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report, is_cloud_view)
+                GenerateReport.exec(None, kwargs.get('report_dir'), output, open_report, open_in_cloud=enable_upload)
 
             if ret == EC_WARN_NO_PROFILED_MODULES:
                 # No module was profiled
@@ -107,14 +103,11 @@ def run(**kwargs):
                     ret = 0
 
             event_payload.step = 'upload'
-            if CloudConnectorHelper.is_login() and is_cloud_view:
+            if enable_upload:
                 ret = CloudConnectorHelper.upload_latest_report(report_dir=kwargs.get('report_dir'),
                                                                 debug=kwargs.get('debug'),
                                                                 open_report=open_report, enable_share=enable_share,
                                                                 project_name=project_name)
-            elif not CloudConnectorHelper.is_login() and is_cloud_view:
-                console = Console()
-                console.print('[bold yellow]Warning: [/bold yellow]The report is not uploaded due to not logged in.')
 
         if ret != 0:
             reason = 'error'

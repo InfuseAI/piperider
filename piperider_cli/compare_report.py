@@ -35,6 +35,7 @@ class RunOutput(object):
         try:
             with open(path, 'r') as f:
                 run_result = json.load(f)
+                self.report_id = run_result['id']
                 self.name = run_result['datasource']['name']
                 self.created_at = run_result['created_at']
 
@@ -473,19 +474,29 @@ class CompareReport(object):
         summary_data = None
 
         if force_upload and (report.a.cloud is None or report.a.cloud.get('project_name') != project_name):
-            CloudConnector.upload_report(report.a.path, show_progress=show_progress, project_name=project_name)
+            CloudConnector.upload_report(report.a.path, show_progress=show_progress, project_name=project_name,
+                                         enable_share=enable_share)
             report.a.refresh()
 
         if force_upload and (report.b.cloud is None or report.b.cloud.get('project_name') != project_name):
-            CloudConnector.upload_report(report.b.path, show_progress=show_progress, project_name=project_name)
+            CloudConnector.upload_report(report.b.path, show_progress=show_progress, project_name=project_name,
+                                         enable_share=enable_share)
             report.b.refresh()
 
         # Generate comparison report URL & summary markdown
         if report.a.cloud and report.b.cloud:
-            base = str(report.a.cloud.get('run_id'))
-            target = str(report.b.cloud.get('run_id'))
-            project_name = report.a.cloud.get('project_name')
-            response = CloudConnector.generate_compare_report(base, target, project_name=project_name, debug=False)
+            is_temporary = report.a.cloud.get('is_temporary', False)
+            if is_temporary:
+                base = str(report.a.report_id)
+                target = str(report.b.report_id)
+                project_name = None
+                pass
+            else:
+                base = str(report.a.cloud.get('run_id'))
+                target = str(report.b.cloud.get('run_id'))
+                project_name = report.a.cloud.get('project_name')
+            response = CloudConnector.generate_compare_report(base, target, project_name=project_name,
+                                                              is_temporary=is_temporary, debug=False)
             if response:
                 report_url = response.get('url')
                 summary_data = response.get('summary')
@@ -530,9 +541,14 @@ class CompareReport(object):
                     '[[bold yellow]Skip[/bold yellow]] Please enable cloud auto upload or use "piperider compare --upload" to upload reports to cloud first.')
             else:
                 from piperider_cli.cloud_connector import CloudConnector
-                base = str(report.a.cloud.get('run_id'))
-                target = str(report.b.cloud.get('run_id'))
-                CloudConnector.share_compare_report(base, target, project_name=project_name)
+
+                def _is_temporary(cloud_a, cloud_b) -> bool:
+                    return cloud_a.get('is_temporary', False) is False and cloud_b.get('is_temporary', False) is False
+
+                if _is_temporary(report.a.cloud, report.b.cloud):
+                    base = str(report.a.cloud.get('run_id'))
+                    target = str(report.b.cloud.get('run_id'))
+                    CloudConnector.share_compare_report(base, target, project_name=project_name)
 
         if output:
             clone_directory(default_report_directory, output)
