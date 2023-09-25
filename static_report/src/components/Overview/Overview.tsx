@@ -30,6 +30,7 @@ import { LineageGraphData } from '../../utils/dbt';
 import { topologySort } from '../../utils/graph';
 import { CompDbtNodeEntryItem, useReportStore } from '../../utils/store';
 import { SearchTextInput } from '../Common/SearchTextInput';
+import { SkipDatasource } from '../Common/SkipDatasource';
 import { ModelList } from './ModelList';
 import { MetricList } from './MetricList';
 import { NodeList } from './NodeList';
@@ -364,14 +365,7 @@ export function Overview({ singleOnly }: Props) {
   return (
     <>
       <Flex direction="column" w={'100%'} minHeight="650px">
-        <Alert status="error" mb={3} rounded={10}>
-          <AlertIcon />
-          <AlertDescription>
-            Schemas and reports generated from manifest files are limited to
-            information in those manifests. <u>For a more detailed report, follow
-            these instructions</u>
-          </AlertDescription>
-        </Alert>
+        <SkipDatasource></SkipDatasource>
         <Flex w={'100%'} paddingBottom="10px" marginBottom="20px">
           <Heading fontSize={24}>
             {singleOnly ? 'Overview' : 'Impact Summary'}

@@ -25,6 +25,7 @@ import { useTableRoute } from '../utils/routes';
 import { NO_VALUE } from '../components/Columns/constants';
 import { TableGeneralStats } from '../components/Tables/TableMetrics/TableGeneralStats';
 import { DupedTableRowsWidget } from '../components/Widgets/DupedTableRowsWidget';
+import { SkipDatasource } from '../components/Common/SkipDatasource';
 
 export default function CRTableDetailPage() {
   let { tableName, uniqueId } = useTableRoute();
@@ -178,6 +179,7 @@ export default function CRTableDetailPage() {
 
   return (
     <Box>
+      <SkipDatasource />
       <HStack alignItems="flex-start">
         <TableColumnHeader
           title={name}
@@ -200,7 +202,6 @@ export default function CRTableDetailPage() {
           Show Dependencies
         </Button> */}
       </HStack>
-
       <ComparableGridHeader />
       <ComparisonContent>
         <VStack spacing={10}>

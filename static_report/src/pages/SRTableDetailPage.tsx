@@ -12,6 +12,7 @@ import {
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useTableRoute } from '../utils/routes';
+import { SkipDatasource } from '../components/Common/SkipDatasource';
 
 export default function SRTableDetailPage() {
   let { tableName, uniqueId } = useTableRoute();
@@ -59,6 +60,7 @@ export default function SRTableDetailPage() {
 
   return (
     <>
+      <SkipDatasource></SkipDatasource>
       <TableColumnHeader
         title={name}
         subtitle={'Table'}
