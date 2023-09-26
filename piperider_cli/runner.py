@@ -844,7 +844,9 @@ class Runner:
         run_result['id'] = run_id
         run_result['created_at'] = datetime_to_str(created_at)
         git_branch, git_sha = get_git_branch()
-        run_result['datasource'] = dict(name=ds.name, type=ds.type_name, git_branch=git_branch, git_sha=git_sha)
+        run_result['datasource'] = dict(name=ds.name, type=ds.type_name,
+                                        git_branch=git_branch, git_sha=git_sha,
+                                        skip_datasource=skip_datasource_connection)
 
         decorate_with_metadata(run_result)
 
