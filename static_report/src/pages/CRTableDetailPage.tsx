@@ -25,7 +25,7 @@ import { useTableRoute } from '../utils/routes';
 import { NO_VALUE } from '../components/Columns/constants';
 import { TableGeneralStats } from '../components/Tables/TableMetrics/TableGeneralStats';
 import { DupedTableRowsWidget } from '../components/Widgets/DupedTableRowsWidget';
-import { SkipDatasource } from '../components/Common/SkipDatasource';
+import { SkipDataSource } from '../components/Common/SkipDataSource';
 
 export default function CRTableDetailPage() {
   let { tableName, uniqueId } = useTableRoute();
@@ -39,7 +39,7 @@ export default function CRTableDetailPage() {
     },
   });
 
-  const { tableColumnsOnly = [] } = useReportStore.getState();
+  const { tableColumnsOnly = [], reportDataSource } = useReportStore.getState();
   const nodeKey = uniqueId ? uniqueId : `table.${tableName}`;
 
   const currentTableEntry = tableColumnsOnly.find(([key]) => key === nodeKey);
@@ -47,6 +47,9 @@ export default function CRTableDetailPage() {
     return <NoData text={`No data found for table '${nodeKey}'`} />;
   }
 
+  const skipDataSource =
+    reportDataSource?.base?.skip_datasource ||
+    reportDataSource?.target?.skip_datasource;
   const [, { base, target }] = currentTableEntry;
   const fallback = target || base;
 
@@ -179,7 +182,7 @@ export default function CRTableDetailPage() {
 
   return (
     <Box>
-      <SkipDatasource skipDataSource={false} />
+      {skipDataSource && <SkipDataSource />}
       <HStack alignItems="flex-start">
         <TableColumnHeader
           title={name}

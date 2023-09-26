@@ -1,14 +1,6 @@
 import { Alert, AlertIcon, AlertDescription } from '@chakra-ui/react';
 
-export function SkipDatasource({
-  skipDataSource,
-}: {
-  skipDataSource: boolean | undefined;
-}) {
-  if (!skipDataSource) {
-    return <></>;
-  }
-
+export function SkipDataSource() {
   return (
     <Alert status="error" mb={3} rounded={10}>
       <AlertIcon />
