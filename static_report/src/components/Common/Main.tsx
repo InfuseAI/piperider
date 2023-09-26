@@ -34,7 +34,6 @@ export function Main({ children, isSingleReport, ...props }: Props) {
       color={color[colorMode]}
       minHeight="100vh"
     >
-
       <Navbar isSingleReport={isSingleReport} />
 
       <Box position={'sticky'} top={0} bg={bgColor[colorMode]} zIndex="banner">
