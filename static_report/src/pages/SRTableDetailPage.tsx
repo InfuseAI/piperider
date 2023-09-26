@@ -24,7 +24,7 @@ export default function SRTableDetailPage() {
     },
   });
 
-  const { tableColumnsOnly = [] } = useReportStore.getState();
+  const { tableColumnsOnly = [], reportDataSource } = useReportStore.getState();
 
   const tableKey = tableName || uniqueId;
   if (tableKey === undefined) {
@@ -37,6 +37,7 @@ export default function SRTableDetailPage() {
     return <NoData text={`No data found for '${tableKey}'`} />;
   }
 
+  const skipDataSource = reportDataSource?.base?.skip_datasource || undefined;
   const [, { base: data }, { columns }] = currentTableEntry;
   const name = data?.name;
   const description = data?.description || undefined;
@@ -60,7 +61,7 @@ export default function SRTableDetailPage() {
 
   return (
     <>
-      <SkipDatasource></SkipDatasource>
+      <SkipDatasource skipDataSource={skipDataSource} />
       <TableColumnHeader
         title={name}
         subtitle={'Table'}

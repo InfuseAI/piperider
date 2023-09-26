@@ -179,7 +179,7 @@ export default function CRTableDetailPage() {
 
   return (
     <Box>
-      <SkipDatasource />
+      <SkipDatasource skipDataSource={false} />
       <HStack alignItems="flex-start">
         <TableColumnHeader
           title={name}

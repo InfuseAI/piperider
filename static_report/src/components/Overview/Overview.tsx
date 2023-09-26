@@ -214,6 +214,7 @@ export function Overview({ singleOnly }: Props) {
     tableColumnsOnly = [],
     lineageGraph,
     rawData,
+    reportDataSource,
   } = useReportStore.getState();
   const isBrokenByMetrics = rawData.broken_by_metrics || false;
   const [sortMethod, setSortMethod] = useState('topology');
@@ -232,6 +233,9 @@ export function Overview({ singleOnly }: Props) {
     }
   };
 
+  const skipDataSource =
+    reportDataSource?.base?.skip_datasource ||
+    reportDataSource?.target?.skip_datasource;
   const tabItems = getTabItems(tableColumnsOnly);
   const resourceType = tabItems[resourceIndex].resourceType;
   const isNoProfiled = singleOnly
@@ -365,7 +369,7 @@ export function Overview({ singleOnly }: Props) {
   return (
     <>
       <Flex direction="column" w={'100%'} minHeight="650px">
-        <SkipDatasource></SkipDatasource>
+        <SkipDatasource skipDataSource={skipDataSource} />
         <Flex w={'100%'} paddingBottom="10px" marginBottom="20px">
           <Heading fontSize={24}>
             {singleOnly ? 'Overview' : 'Impact Summary'}

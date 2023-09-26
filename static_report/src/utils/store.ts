@@ -5,6 +5,7 @@ import {
   ColumnSchema,
   ComparableData,
   ComparisonReportSchema,
+  DataSource,
   DbtNode,
   SaferSRSchema,
 } from '../types/index';
@@ -100,6 +101,10 @@ export interface ReportState {
   reportTitle?: string;
   reportTime?: string;
   reportDisplayTime?: string;
+  reportDataSource?: {
+    base: DataSource | undefined;
+    target: DataSource | undefined;
+  };
   reportOnly?: ComparableData<Omit<SaferSRSchema, 'tables'>>;
   tableColumnsOnly?: CompDbtNodeEntryItem[];
   assertionsOnly?: ComparableData<ComparedAssertionTestValue[]>;
@@ -166,6 +171,12 @@ const getReportTitle = (rawData: ComparableReport) => {
   const title = targetName ?? baseName;
 
   return title;
+};
+const getReportDataSource = (rawData: ComparableReport) => {
+  const baseDatasource = rawData.base?.datasource ?? undefined;
+  const targetDatasource = rawData.input?.datasource ?? undefined;
+
+  return { base: baseDatasource, target: targetDatasource };
 };
 
 /**
@@ -379,6 +390,7 @@ export const useReportStore = create<ReportState & ReportSetters>()(
         reportTime: getReportTime(rawData),
         reportDisplayTime: getReportDisplayTime(rawData),
         reportTitle: getReportTitle(rawData),
+        reportDataSource: getReportDataSource(rawData),
         /*Report */
         reportOnly: getReportOnly(rawData),
         tableColumnsOnly,
