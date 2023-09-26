@@ -388,6 +388,9 @@
         },
         "git_sha": {
           "type": "string"
+        },
+        "skip_datasource": {
+          "type": "boolean"
         }
       }
     },
