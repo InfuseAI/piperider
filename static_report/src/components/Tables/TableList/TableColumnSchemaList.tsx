@@ -24,11 +24,13 @@ import { CompColEntryItem } from '../../../lib';
 interface Props extends Comparable {
   columns?: CompColEntryItem[];
   visibleDetail?: boolean; //for reuse in other pages
+  skipDataSource?: boolean;
 }
 export function TableColumnSchemaList({
   columns,
   singleOnly,
   visibleDetail = false,
+  skipDataSource,
 }: Props) {
   const isNotSingle = !singleOnly;
 
@@ -101,7 +103,9 @@ export function TableColumnSchemaList({
                         borderRight={isNotSingle ? '1px solid lightgray' : ''}
                       >
                         <Text as={'span'} fontSize={'xs'}>
-                          {baseColumn?.schema_type ?? NO_VALUE}
+                          {skipDataSource
+                            ? '-'
+                            : baseColumn?.schema_type ?? NO_VALUE}
                         </Text>
                       </Td>
                       {isNotSingle ? (
@@ -128,7 +132,9 @@ export function TableColumnSchemaList({
                             }
                           >
                             <Text as={'span'} fontSize={'xs'}>
-                              {targetColumn?.schema_type ?? NO_VALUE}
+                              {skipDataSource
+                                ? '-'
+                                : targetColumn?.schema_type ?? NO_VALUE}
                             </Text>
                           </Td>
                         </>

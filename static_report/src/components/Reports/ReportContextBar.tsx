@@ -1,12 +1,4 @@
-import {
-  Box,
-  Flex,
-  FlexProps,
-  Icon,
-  Link,
-  Text,
-  Tooltip,
-} from '@chakra-ui/react';
+import { Box, Flex, FlexProps, Link, Text, Tooltip } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { BiPlug } from 'react-icons/bi';
 import { BsGearWideConnected } from 'react-icons/bs';
@@ -42,7 +34,8 @@ export function ReportContextBar({
   let gitBranch: string | undefined = undefined;
   let githubPr: string | undefined = undefined;
   let githubPrUrl: string | undefined = undefined;
-  let reportFrom: string | undefined = undefined;
+  let baseFrom: string | undefined = undefined;
+  let targetFrom: string | undefined = undefined;
   let skipDataSource: boolean | undefined = false;
 
   if (data) {
@@ -52,9 +45,9 @@ export function ReportContextBar({
       version = report.version;
       gitBranch = report.datasource?.git_branch;
       skipDataSource = report.datasource?.skip_datasource;
-      reportFrom = report.datasource?.skip_datasource
-        ? 'Manifest File'
-        : report.datasource.type;
+      baseFrom = report.datasource?.skip_datasource
+        ? 'Manifest file'
+        : `${report.datasource.type} connection`;
     } else {
       const report = data as ComparisonReportSchema;
       const fallback = report.input ?? report.base;
@@ -82,18 +75,12 @@ export function ReportContextBar({
         report.base?.datasource.skip_datasource ||
         report.input?.datasource.skip_datasource;
 
-      const baseFrom = report.base?.datasource.skip_datasource
-        ? 'Manifest File'
-        : report.base?.datasource.type;
-      const targetFrom = report.input?.datasource.skip_datasource
-        ? 'Manifest File'
-        : report.input?.datasource.type;
-
-      if (baseFrom !== targetFrom) {
-        reportFrom = `${baseFrom} ↔ ${targetFrom}`;
-      } else {
-        reportFrom = baseFrom;
-      }
+      baseFrom = report.base?.datasource.skip_datasource
+        ? 'Manifest file'
+        : `${report.base?.datasource.type} connection`;
+      targetFrom = report.input?.datasource.skip_datasource
+        ? 'Manifest file'
+        : `${report.input?.datasource.type} connection`;
     }
   }
 
@@ -104,17 +91,29 @@ export function ReportContextBar({
         label="Connect PipeRider to your datasource for full schema info"
         placement="top-start"
       >
-        <Icon as={FiInfo} />
+        <FiInfo />
       </Tooltip>
     ) : (
-      <Icon as={TbBuildingWarehouse} />
+      <TbBuildingWarehouse />
     );
   };
 
   const showReportSource = (
-    reportFrom: string | undefined,
+    singleOnly: boolean | undefined,
+    baseFrom: string | undefined,
+    targetFrom: string | undefined,
     skipDataSource: boolean | undefined,
   ) => {
+    let source: string | undefined = undefined;
+    if (singleOnly) {
+      source = baseFrom;
+    } else {
+      if (baseFrom !== targetFrom) {
+        source = `${baseFrom} ↔ ${targetFrom}`;
+      } else {
+        source = baseFrom;
+      }
+    }
     return (
       <Flex alignItems={'center'} gap={2} flex="1" overflow="hidden">
         {showIcon(skipDataSource)}
@@ -125,7 +124,7 @@ export function ReportContextBar({
           textOverflow="ellipsis"
           overflow="hidden"
         >
-          source: {reportFrom}
+          source: {source}
         </Text>
       </Flex>
     );
@@ -206,7 +205,7 @@ export function ReportContextBar({
             </Text>
           </Flex>
         )}
-        {showReportSource(reportFrom, skipDataSource)}
+        {showReportSource(singleOnly, baseFrom, targetFrom, skipDataSource)}
       </Flex>
       {actionArea && <Box flex="0 0 auto">{actionArea}</Box>}
     </Flex>

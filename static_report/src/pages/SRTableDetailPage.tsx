@@ -13,7 +13,6 @@ import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useTableRoute } from '../utils/routes';
 import { SkipDataSource } from '../components/Common/SkipDataSource';
-import { sk } from 'date-fns/locale';
 
 export default function SRTableDetailPage() {
   let { tableName, uniqueId } = useTableRoute();
@@ -88,7 +87,11 @@ export default function SRTableDetailPage() {
         </VStack>
 
         <Divider orientation="vertical" />
-        <TableColumnSchemaList columns={columns} singleOnly />
+        <TableColumnSchemaList
+          columns={columns}
+          singleOnly
+          skipDataSource={skipDataSource}
+        />
       </Grid>
     </>
   );

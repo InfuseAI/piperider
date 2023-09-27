@@ -210,7 +210,11 @@ export default function CRTableDetailPage() {
         <VStack spacing={10}>
           <SeparateView title="Table Statistics" Comp={TableGeneralStats} />
           <MergedView title="Schema">
-            <TableColumnSchemaCompList tableEntry={currentTableEntry} />
+            <TableColumnSchemaCompList
+              tableEntry={currentTableEntry}
+              skipBase={reportDataSource?.base?.skip_datasource}
+              skipTarget={reportDataSource?.target?.skip_datasource}
+            />
           </MergedView>
           <SeparateView title="Duplicate Rows" Comp={DupedTableRowsWidget} />
         </VStack>
@@ -247,7 +251,7 @@ function ComparableGridHeader() {
   );
 }
 
-function TableColumnSchemaCompList({ tableEntry }) {
+function TableColumnSchemaCompList({ tableEntry, skipBase, skipTarget }) {
   const [
     ,
     { base: baseTableColEntry, target: targetTableColEntry },
@@ -300,7 +304,7 @@ function TableColumnSchemaCompList({ tableEntry }) {
                       borderRightColor="gray.200"
                     >
                       <Text as={'span'} fontSize={'xs'}>
-                        {baseColumn?.schema_type ?? NO_VALUE}
+                        {skipBase ? '-' : baseColumn?.schema_type ?? NO_VALUE}
                       </Text>
                     </Td>
 
@@ -320,7 +324,9 @@ function TableColumnSchemaCompList({ tableEntry }) {
                     </Td>
                     <Td color={metadata?.mismatched ? 'red.500' : 'inherit'}>
                       <Text as={'span'} fontSize={'xs'}>
-                        {targetColumn?.schema_type ?? NO_VALUE}
+                        {skipTarget
+                          ? '-'
+                          : targetColumn?.schema_type ?? NO_VALUE}
                       </Text>
                     </Td>
                   </Tr>
@@ -369,7 +375,7 @@ function TableColumnSchemaCompList({ tableEntry }) {
                     </Td>
                     <Td>
                       <Text as={'span'} fontSize={'xs'}>
-                        {column?.schema_type ?? NO_VALUE}
+                        {skipBase ? '-' : column?.schema_type ?? NO_VALUE}
                       </Text>
                     </Td>
                   </Tr>
