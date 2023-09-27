@@ -6,8 +6,15 @@ export function SkipDataSource() {
       <AlertIcon />
       <AlertDescription>
         Schemas and reports generated from manifest files are limited to
-        information in those manifests. For a more detailed report, follow these
-        instructions
+        information in those manifests. For a more detailed report, follow these{' '}
+        <a
+          href={'https://docs.piperider.io/get-started/run'}
+          style={{ cursor: 'pointer', textDecoration: 'underline' }}
+          target="_blank"
+          rel="noreferrer"
+        >
+          instructions
+        </a>
       </AlertDescription>
     </Alert>
   );

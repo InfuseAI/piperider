@@ -2,7 +2,6 @@ import { Box, Flex, FlexProps, Link, Text, Tooltip } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { BiPlug } from 'react-icons/bi';
 import { BsGearWideConnected } from 'react-icons/bs';
-import { FiInfo } from 'react-icons/fi';
 import { GoGitBranch } from 'react-icons/go';
 import { TbBuildingWarehouse } from 'react-icons/tb';
 import { VscGitPullRequest } from 'react-icons/vsc';
@@ -46,8 +45,8 @@ export function ReportContextBar({
       gitBranch = report.datasource?.git_branch;
       skipDataSource = report.datasource?.skip_datasource;
       baseFrom = report.datasource?.skip_datasource
-        ? 'Manifest file'
-        : `${report.datasource.type} connection`;
+        ? 'Manifest File'
+        : `${report.datasource.type} Connection`;
     } else {
       const report = data as ComparisonReportSchema;
       const fallback = report.input ?? report.base;
@@ -76,11 +75,11 @@ export function ReportContextBar({
         report.input?.datasource.skip_datasource;
 
       baseFrom = report.base?.datasource.skip_datasource
-        ? 'Manifest file'
-        : `${report.base?.datasource.type} connection`;
+        ? 'Manifest File'
+        : `${report.base?.datasource.type} Connection`;
       targetFrom = report.input?.datasource.skip_datasource
-        ? 'Manifest file'
-        : `${report.input?.datasource.type} connection`;
+        ? 'Manifest File'
+        : `${report.input?.datasource.type} Connection`;
     }
   }
 
@@ -91,7 +90,7 @@ export function ReportContextBar({
         label="Connect PipeRider to your datasource for full schema info"
         placement="top-start"
       >
-        <FiInfo />
+        <TbBuildingWarehouse />
       </Tooltip>
     ) : (
       <TbBuildingWarehouse />
@@ -108,11 +107,7 @@ export function ReportContextBar({
     if (singleOnly) {
       source = baseFrom;
     } else {
-      if (baseFrom !== targetFrom) {
-        source = `${baseFrom} ↔ ${targetFrom}`;
-      } else {
-        source = baseFrom;
-      }
+      source = targetFrom ?? baseFrom;
     }
     return (
       <Flex alignItems={'center'} gap={2} flex="1" overflow="hidden">
@@ -124,7 +119,7 @@ export function ReportContextBar({
           textOverflow="ellipsis"
           overflow="hidden"
         >
-          source: {source}
+          {source}
         </Text>
       </Flex>
     );
