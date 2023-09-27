@@ -39,7 +39,7 @@ export default function CRTableDetailPage() {
     },
   });
 
-  const { tableColumnsOnly = [], reportDataSource } = useReportStore.getState();
+  const { tableColumnsOnly = [], rawData } = useReportStore.getState();
   const nodeKey = uniqueId ? uniqueId : `table.${tableName}`;
 
   const currentTableEntry = tableColumnsOnly.find(([key]) => key === nodeKey);
@@ -48,8 +48,8 @@ export default function CRTableDetailPage() {
   }
 
   const skipDataSource =
-    reportDataSource?.base?.skip_datasource ||
-    reportDataSource?.target?.skip_datasource;
+    rawData.base?.datasource.skip_datasource ||
+    rawData.input?.datasource.skip_datasource;
   const [, { base, target }] = currentTableEntry;
   const fallback = target || base;
 
