@@ -210,11 +210,7 @@ export default function CRTableDetailPage() {
         <VStack spacing={10}>
           <SeparateView title="Table Statistics" Comp={TableGeneralStats} />
           <MergedView title="Schema">
-            <TableColumnSchemaCompList
-              tableEntry={currentTableEntry}
-              skipBase={reportDataSource?.base?.skip_datasource}
-              skipTarget={reportDataSource?.target?.skip_datasource}
-            />
+            <TableColumnSchemaCompList tableEntry={currentTableEntry} />
           </MergedView>
           <SeparateView title="Duplicate Rows" Comp={DupedTableRowsWidget} />
         </VStack>
@@ -251,7 +247,7 @@ function ComparableGridHeader() {
   );
 }
 
-function TableColumnSchemaCompList({ tableEntry, skipBase, skipTarget }) {
+function TableColumnSchemaCompList({ tableEntry }) {
   const [
     ,
     { base: baseTableColEntry, target: targetTableColEntry },
@@ -304,7 +300,9 @@ function TableColumnSchemaCompList({ tableEntry, skipBase, skipTarget }) {
                       borderRightColor="gray.200"
                     >
                       <Text as={'span'} fontSize={'xs'}>
-                        {skipBase ? '-' : baseColumn?.schema_type ?? NO_VALUE}
+                        {baseColumn?.schema_type === ''
+                          ? NO_VALUE
+                          : baseColumn?.schema_type ?? NO_VALUE}
                       </Text>
                     </Td>
 
@@ -324,8 +322,8 @@ function TableColumnSchemaCompList({ tableEntry, skipBase, skipTarget }) {
                     </Td>
                     <Td color={metadata?.mismatched ? 'red.500' : 'inherit'}>
                       <Text as={'span'} fontSize={'xs'}>
-                        {skipTarget
-                          ? '-'
+                        {targetColumn?.schema_type === ''
+                          ? NO_VALUE
                           : targetColumn?.schema_type ?? NO_VALUE}
                       </Text>
                     </Td>
@@ -375,7 +373,9 @@ function TableColumnSchemaCompList({ tableEntry, skipBase, skipTarget }) {
                     </Td>
                     <Td>
                       <Text as={'span'} fontSize={'xs'}>
-                        {skipBase ? '-' : column?.schema_type ?? NO_VALUE}
+                        {column?.schema_type === ''
+                          ? NO_VALUE
+                          : column?.schema_type ?? NO_VALUE}
                       </Text>
                     </Td>
                   </Tr>

@@ -304,7 +304,7 @@ class Profiler:
                 columns[key] = dict(
                     name=name,
                     type='other',
-                    schema_type='other',
+                    schema_type='',
                     description=description)
             profiled_tables[ref_id] = dict(name=table_name, columns=columns, ref_id=ref_id)
             completed += 1

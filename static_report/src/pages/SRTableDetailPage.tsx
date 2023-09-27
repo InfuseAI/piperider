@@ -87,11 +87,7 @@ export default function SRTableDetailPage() {
         </VStack>
 
         <Divider orientation="vertical" />
-        <TableColumnSchemaList
-          columns={columns}
-          singleOnly
-          skipDataSource={skipDataSource}
-        />
+        <TableColumnSchemaList columns={columns} singleOnly />
       </Grid>
     </>
   );
