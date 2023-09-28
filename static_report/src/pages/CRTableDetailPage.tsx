@@ -25,6 +25,7 @@ import { useTableRoute } from '../utils/routes';
 import { NO_VALUE } from '../components/Columns/constants';
 import { TableGeneralStats } from '../components/Tables/TableMetrics/TableGeneralStats';
 import { DupedTableRowsWidget } from '../components/Widgets/DupedTableRowsWidget';
+import { SkipDataSource } from '../components/Common/SkipDataSource';
 
 export default function CRTableDetailPage() {
   let { tableName, uniqueId } = useTableRoute();
@@ -38,7 +39,7 @@ export default function CRTableDetailPage() {
     },
   });
 
-  const { tableColumnsOnly = [] } = useReportStore.getState();
+  const { tableColumnsOnly = [], rawData } = useReportStore.getState();
   const nodeKey = uniqueId ? uniqueId : `table.${tableName}`;
 
   const currentTableEntry = tableColumnsOnly.find(([key]) => key === nodeKey);
@@ -46,6 +47,9 @@ export default function CRTableDetailPage() {
     return <NoData text={`No data found for table '${nodeKey}'`} />;
   }
 
+  const skipDataSource =
+    rawData.base?.datasource.skip_datasource ||
+    rawData.input?.datasource.skip_datasource;
   const [, { base, target }] = currentTableEntry;
   const fallback = target || base;
 
@@ -178,6 +182,7 @@ export default function CRTableDetailPage() {
 
   return (
     <Box>
+      {skipDataSource && <SkipDataSource />}
       <HStack alignItems="flex-start">
         <TableColumnHeader
           title={name}
@@ -200,7 +205,6 @@ export default function CRTableDetailPage() {
           Show Dependencies
         </Button> */}
       </HStack>
-
       <ComparableGridHeader />
       <ComparisonContent>
         <VStack spacing={10}>
@@ -296,7 +300,9 @@ function TableColumnSchemaCompList({ tableEntry }) {
                       borderRightColor="gray.200"
                     >
                       <Text as={'span'} fontSize={'xs'}>
-                        {baseColumn?.schema_type ?? NO_VALUE}
+                        {baseColumn?.schema_type === ''
+                          ? NO_VALUE
+                          : baseColumn?.schema_type ?? NO_VALUE}
                       </Text>
                     </Td>
 
@@ -316,7 +322,9 @@ function TableColumnSchemaCompList({ tableEntry }) {
                     </Td>
                     <Td color={metadata?.mismatched ? 'red.500' : 'inherit'}>
                       <Text as={'span'} fontSize={'xs'}>
-                        {targetColumn?.schema_type ?? NO_VALUE}
+                        {targetColumn?.schema_type === ''
+                          ? NO_VALUE
+                          : targetColumn?.schema_type ?? NO_VALUE}
                       </Text>
                     </Td>
                   </Tr>
@@ -365,7 +373,9 @@ function TableColumnSchemaCompList({ tableEntry }) {
                     </Td>
                     <Td>
                       <Text as={'span'} fontSize={'xs'}>
-                        {column?.schema_type ?? NO_VALUE}
+                        {column?.schema_type === ''
+                          ? NO_VALUE
+                          : column?.schema_type ?? NO_VALUE}
                       </Text>
                     </Td>
                   </Tr>

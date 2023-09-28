@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 from unittest import TestCase
@@ -154,8 +155,15 @@ class TestExecuteRunnerWithoutDataSourceConnection(TestCase):
         Configuration.cleanup()
         pass
 
+    def read_skip_datasource_value(self):
+        with open(os.path.join(self.dbt_project_dir, "run.json"), "r") as fh:
+            ds = json.loads(fh.read()).get('datasource')
+            result = ds['skip_datasource']
+        return result
+
     def test_skip_datasource(self):
-        rc = Runner.exec(skip_datasource_connection=True)
+        rc = Runner.exec(skip_datasource_connection=True, output=self.dbt_project_dir)
+        self.assertTrue(self.read_skip_datasource_value())
         assert rc == 0
 
     def test_non_skip_datasource(self):
@@ -171,6 +179,7 @@ class TestExecuteRunnerWithoutDataSourceConnection(TestCase):
         piperider_output_dir = os.path.join(self.dbt_project_dir, '.piperider', 'outputs')
         try:
             shutil.rmtree(piperider_output_dir)
+            os.unlink(os.path.join(self.dbt_project_dir, 'run.json'))
         except FileNotFoundError:
             pass
         Configuration.cleanup()

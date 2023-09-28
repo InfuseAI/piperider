@@ -101,7 +101,9 @@ export function TableColumnSchemaList({
                         borderRight={isNotSingle ? '1px solid lightgray' : ''}
                       >
                         <Text as={'span'} fontSize={'xs'}>
-                          {baseColumn?.schema_type ?? NO_VALUE}
+                          {baseColumn?.schema_type === ''
+                            ? NO_VALUE
+                            : baseColumn?.schema_type ?? NO_VALUE}
                         </Text>
                       </Td>
                       {isNotSingle ? (
@@ -128,7 +130,9 @@ export function TableColumnSchemaList({
                             }
                           >
                             <Text as={'span'} fontSize={'xs'}>
-                              {targetColumn?.schema_type ?? NO_VALUE}
+                              {targetColumn?.schema_type === ''
+                                ? NO_VALUE
+                                : targetColumn?.schema_type ?? NO_VALUE}
                             </Text>
                           </Td>
                         </>

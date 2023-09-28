@@ -352,6 +352,7 @@ export interface DataSource {
   type: string;
   git_branch?: string;
   git_sha?: string;
+  skip_datasource?: boolean;
 }
 export interface Cloud {
   [k: string]: unknown;

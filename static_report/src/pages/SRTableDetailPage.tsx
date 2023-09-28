@@ -12,6 +12,7 @@ import {
 import { TableColumnHeader } from '../components/Tables/TableColumnHeader';
 import { useReportStore } from '../utils/store';
 import { useTableRoute } from '../utils/routes';
+import { SkipDataSource } from '../components/Common/SkipDataSource';
 
 export default function SRTableDetailPage() {
   let { tableName, uniqueId } = useTableRoute();
@@ -23,7 +24,7 @@ export default function SRTableDetailPage() {
     },
   });
 
-  const { tableColumnsOnly = [] } = useReportStore.getState();
+  const { tableColumnsOnly = [], rawData } = useReportStore.getState();
 
   const tableKey = tableName || uniqueId;
   if (tableKey === undefined) {
@@ -36,6 +37,7 @@ export default function SRTableDetailPage() {
     return <NoData text={`No data found for '${tableKey}'`} />;
   }
 
+  const skipDataSource = rawData.base?.datasource.skip_datasource || undefined;
   const [, { base: data }, { columns }] = currentTableEntry;
   const name = data?.name;
   const description = data?.description || undefined;
@@ -59,6 +61,7 @@ export default function SRTableDetailPage() {
 
   return (
     <>
+      {skipDataSource && <SkipDataSource />}
       <TableColumnHeader
         title={name}
         subtitle={'Table'}

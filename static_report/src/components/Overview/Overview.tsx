@@ -30,6 +30,7 @@ import { LineageGraphData } from '../../utils/dbt';
 import { topologySort } from '../../utils/graph';
 import { CompDbtNodeEntryItem, useReportStore } from '../../utils/store';
 import { SearchTextInput } from '../Common/SearchTextInput';
+import { SkipDataSource } from '../Common/SkipDataSource';
 import { ModelList } from './ModelList';
 import { MetricList } from './MetricList';
 import { NodeList } from './NodeList';
@@ -231,6 +232,9 @@ export function Overview({ singleOnly }: Props) {
     }
   };
 
+  const skipDataSource =
+    rawData.base?.datasource.skip_datasource ||
+    rawData.input?.datasource.skip_datasource;
   const tabItems = getTabItems(tableColumnsOnly);
   const resourceType = tabItems[resourceIndex].resourceType;
   const isNoProfiled = singleOnly
@@ -364,6 +368,7 @@ export function Overview({ singleOnly }: Props) {
   return (
     <>
       <Flex direction="column" w={'100%'} minHeight="650px">
+        {skipDataSource && <SkipDataSource />}
         <Flex w={'100%'} paddingBottom="10px" marginBottom="20px">
           <Heading fontSize={24}>
             {singleOnly ? 'Overview' : 'Impact Summary'}

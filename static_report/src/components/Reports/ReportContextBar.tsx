@@ -1,9 +1,11 @@
-import { Box, Flex, FlexProps, Link, Text } from '@chakra-ui/react';
+import { Box, Flex, FlexProps, Link, Text, Tooltip } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { BiPlug } from 'react-icons/bi';
 import { BsGearWideConnected } from 'react-icons/bs';
 import { GoGitBranch } from 'react-icons/go';
+import { TbBuildingWarehouse } from 'react-icons/tb';
 import { VscGitPullRequest } from 'react-icons/vsc';
+
 import {
   Comparable,
   ComparisonReportSchema,
@@ -31,6 +33,9 @@ export function ReportContextBar({
   let gitBranch: string | undefined = undefined;
   let githubPr: string | undefined = undefined;
   let githubPrUrl: string | undefined = undefined;
+  let baseFrom: string | undefined = undefined;
+  let targetFrom: string | undefined = undefined;
+  let skipDataSource: boolean | undefined = false;
 
   if (data) {
     if (singleOnly) {
@@ -38,6 +43,10 @@ export function ReportContextBar({
       datasource = report.datasource?.name;
       version = report.version;
       gitBranch = report.datasource?.git_branch;
+      skipDataSource = report.datasource?.skip_datasource;
+      baseFrom = report.datasource?.skip_datasource
+        ? 'Manifest File'
+        : `${report.datasource.type} Connection`;
     } else {
       const report = data as ComparisonReportSchema;
       const fallback = report.input ?? report.base;
@@ -60,8 +69,61 @@ export function ReportContextBar({
 
         githubPrUrl = report.metadata?.github_pr_url;
       }
+
+      skipDataSource =
+        report.base?.datasource.skip_datasource ||
+        report.input?.datasource.skip_datasource;
+
+      baseFrom = report.base?.datasource.skip_datasource
+        ? 'Manifest File'
+        : `${report.base?.datasource.type} Connection`;
+      targetFrom = report.input?.datasource.skip_datasource
+        ? 'Manifest File'
+        : `${report.input?.datasource.type} Connection`;
     }
   }
+
+  const showIcon = (skipDataSource: boolean | undefined) => {
+    return skipDataSource ? (
+      <Tooltip
+        shouldWrapChildren
+        label="Connect PipeRider to your datasource for full schema info"
+        placement="top-start"
+      >
+        <TbBuildingWarehouse />
+      </Tooltip>
+    ) : (
+      <TbBuildingWarehouse />
+    );
+  };
+
+  const showReportSource = (
+    singleOnly: boolean | undefined,
+    baseFrom: string | undefined,
+    targetFrom: string | undefined,
+    skipDataSource: boolean | undefined,
+  ) => {
+    let source: string | undefined = undefined;
+    if (singleOnly) {
+      source = baseFrom;
+    } else {
+      source = targetFrom ?? baseFrom;
+    }
+    return (
+      <Flex alignItems={'center'} gap={2} flex="1" overflow="hidden">
+        {showIcon(skipDataSource)}
+        <Text
+          flex="1"
+          color={'gray.500'}
+          whiteSpace="nowrap"
+          textOverflow="ellipsis"
+          overflow="hidden"
+        >
+          {source}
+        </Text>
+      </Flex>
+    );
+  };
 
   return (
     <Flex
@@ -125,7 +187,7 @@ export function ReportContextBar({
           </Flex>
         )}
         {gitBranch && (
-          <Flex alignItems={'center'} gap={2} flex="1" overflow="hidden">
+          <Flex alignItems={'center'} gap={2} overflow="hidden">
             <GoGitBranch />
             <Text
               flex="1"
@@ -138,6 +200,7 @@ export function ReportContextBar({
             </Text>
           </Flex>
         )}
+        {showReportSource(singleOnly, baseFrom, targetFrom, skipDataSource)}
       </Flex>
       {actionArea && <Box flex="0 0 auto">{actionArea}</Box>}
     </Flex>
