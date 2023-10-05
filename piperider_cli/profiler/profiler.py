@@ -17,6 +17,7 @@ from sqlalchemy.sql import FromClause, Selectable
 from sqlalchemy.sql.elements import ColumnClause
 from sqlalchemy.sql.expression import CTE, false, true, table as table_clause, column as column_clause
 from sqlalchemy.types import Float
+from sqlalchemy.exc import NoSuchTableError
 
 from .event import ProfilerEventHandler, DefaultProfilerEventHandler
 from ..configuration import Configuration
@@ -163,9 +164,11 @@ class Profiler:
                 table = None
                 try:
                     table = Table(subject.table, MetaData(), autoload_with=engine, schema=schema)
-                except Exception:
+                except NoSuchTableError:
                     # ignore the table metadata fetch error
                     pass
+                except Exception as e:
+                    capture_exception(e)
                 return subject, table
 
             future = _run_in_executor(self.executor, _fetch_table_task, subject)
