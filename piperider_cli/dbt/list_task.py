@@ -350,16 +350,16 @@ class _RuntimeConfig(RuntimeConfig):
             "dependencies": None,
         }
 
-        if dbt_version >= '1.6.2':
-            # Since dbt-core v1.6.2 'dbt_cloud' is required in RuntimeConfig
+        def has_field(field_name):
+            return field_name in {f.name for f in fields(RuntimeConfig)}
+
+        if has_field('dbt_cloud'):
             data['dbt_cloud'] = None
 
-        found_restrict_access = any(field.name == 'restrict_access' for field in fields(RuntimeConfig))
-        found_packages_specified_path = any(field.name == 'packages_specified_path' for field in fields(RuntimeConfig))
-        if found_restrict_access:
+        if has_field('restrict_access'):
             data['restrict_access'] = False
 
-        if found_packages_specified_path:
+        if has_field('packages_specified_path'):
             data['packages_specified_path'] = "packages.yml"
 
         super().__init__(args=None, **data)
