@@ -163,9 +163,8 @@ class Profiler:
                 table = None
                 try:
                     table = Table(subject.table, MetaData(), autoload_with=engine, schema=schema)
-                except Exception as e:
+                except Exception:
                     # ignore the table metadata fetch error
-                    capture_exception(e)
                     pass
                 return subject, table
 
