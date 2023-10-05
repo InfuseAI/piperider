@@ -150,6 +150,7 @@ class TestDbtIntegration(_BaseDbtTest):
             "seed.jaffle_shop.raw_customers",
             "seed.jaffle_shop.raw_orders",
             "seed.jaffle_shop.raw_payments",
+            "semantic_model.jaffle_shop.orders",
             "test.jaffle_shop.accepted_values_int_order_payments_pivoted_status__placed__shipped__completed__return_pending__returned.0ccdff53e8",
             "test.jaffle_shop.accepted_values_orders_status__placed__shipped__completed__return_pending__returned.be6b5b5ec3",
             "test.jaffle_shop.accepted_values_stg_orders_status__placed__shipped__completed__return_pending__returned.080fb20aad",
