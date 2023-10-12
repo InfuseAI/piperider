@@ -275,7 +275,7 @@ def replace_commands_dbt_state_path(commands: List[str], dbt_state_path: str):
     return [command.replace('<DBT_STATE_PATH>', dbt_state_path) for command in commands]
 
 
-def prepare_dbt_state(cfg: RecipeConfiguration, options: Dict, recipe_type: str = 'base'):
+def prepare_dbt_manifest(cfg: RecipeConfiguration, options: Dict, recipe_type: str = 'base'):
     if options.get('skip_datasource_connection') and dbt_version >= '1.5':
         execute_dbt_parse_archive(cfg, recipe_type=recipe_type)
     else:
@@ -290,11 +290,11 @@ def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, options: Dict):
         select = update_select_with_cli_option(options)
 
     if require_base_state(cfg):
-        prepare_dbt_state(cfg, options, recipe_type='base')
+        prepare_dbt_manifest(cfg, options, recipe_type='base')
         state = cfg.base.state_path
 
     if cfg.target.ref is not None:
-        prepare_dbt_state(cfg, options, recipe_type='target')
+        prepare_dbt_manifest(cfg, options, recipe_type='target')
         target_path = 'state'
     else:
         execute_dbt_deps(cfg.target)
@@ -362,7 +362,7 @@ def execute_recipe(cfg: RecipeConfiguration, recipe_type='base', debug=False, ev
         console.print()
 
 
-def execute_dbt_archive(cfg: RecipeConfiguration, recipe_type='base'):
+def calculate_git_ref(cfg: RecipeConfiguration, recipe_type='base'):
     if recipe_type == 'target':
         branch_or_commit = tool().git_rev_parse(cfg.target.ref)
     else:
@@ -370,13 +370,13 @@ def execute_dbt_archive(cfg: RecipeConfiguration, recipe_type='base'):
         branch_or_commit = tool().git_merge_base(cfg.base.ref, diff_target) or cfg.base.ref
 
     if not branch_or_commit:
-        raise RecipeConfigException("Branch is not specified")
+        raise RecipeConfigException("Ref is not specified")
 
     return branch_or_commit
 
 
 def execute_dbt_parse_archive(cfg: RecipeConfiguration, recipe_type='base'):
-    branch_or_commit = execute_dbt_archive(cfg, recipe_type)
+    branch_or_commit = calculate_git_ref(cfg, recipe_type)
 
     if recipe_type == 'target':
         model = cfg.target
@@ -392,7 +392,7 @@ def execute_dbt_parse_archive(cfg: RecipeConfiguration, recipe_type='base'):
 
 
 def execute_dbt_compile_archive(cfg: RecipeConfiguration, recipe_type='base'):
-    branch_or_commit = execute_dbt_archive(cfg, recipe_type)
+    branch_or_commit = calculate_git_ref(cfg, recipe_type)
 
     if recipe_type == 'target':
         model = cfg.target
