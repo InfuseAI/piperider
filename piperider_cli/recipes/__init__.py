@@ -277,6 +277,7 @@ def replace_commands_dbt_state_path(commands: List[str], dbt_state_path: str):
 
 def prepare_dbt_manifest(cfg: RecipeConfiguration, options: Dict, recipe_type: str = 'base'):
     if options.get('skip_datasource_connection') and dbt_version >= '1.5':
+        # dbt parse will write or return a manifest from 1.5
         execute_dbt_parse_archive(cfg, recipe_type=recipe_type)
     else:
         execute_dbt_compile_archive(cfg, recipe_type=recipe_type)
@@ -370,7 +371,7 @@ def calculate_git_ref(cfg: RecipeConfiguration, recipe_type='base'):
         branch_or_commit = tool().git_merge_base(cfg.base.ref, diff_target) or cfg.base.ref
 
     if not branch_or_commit:
-        raise RecipeConfigException("Ref is not specified")
+        raise RecipeConfigException("Git reference is not specified")
 
     return branch_or_commit
 
