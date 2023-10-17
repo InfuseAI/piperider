@@ -31,7 +31,7 @@ def load_user_profile():
         user_profile = _generate_user_profile()
     else:
         with open(PIPERIDER_USER_PROFILE, 'r') as f:
-            user_profile = _yml.load(f)
+            user_profile = yaml.YAML().load(f)
             if user_profile.get('user_id') is None:
                 user_profile = _generate_user_profile()
 
