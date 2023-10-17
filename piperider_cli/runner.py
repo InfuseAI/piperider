@@ -621,13 +621,14 @@ def get_git_branch():
 class Runner:
     @staticmethod
     def exec(datasource=None, table=None, output=None, skip_report=False, dbt_target_path: str = None,
-             dbt_resources: Optional[dict] = None, dbt_select: tuple = None, dbt_state: str = None,
+             dbt_resources: Optional[dict] = None, dbt_profile: str = None, dbt_target: str = None,
+             dbt_select: tuple = None, dbt_state: str = None,
              report_dir: str = None, skip_datasource_connection: bool = False, event_payload=RunEventPayload()):
         console = Console()
 
         raise_exception_when_directory_not_writable(output)
 
-        configuration = Configuration.instance()
+        configuration = Configuration.instance(dbt_profile=dbt_profile, dbt_target=dbt_target)
         filesystem = configuration.activate_report_directory(report_dir=report_dir)
         ds = configuration.get_datasource(datasource)
         if ds is None:
@@ -642,6 +643,12 @@ class Runner:
             event_payload.datasource_type = ds.type_name
         if skip_datasource_connection:
             event_payload.skip_datasource = True
+
+        console.rule('DBT')
+        console.print('Profile: ', style='bold', end='')
+        console.print(f'{configuration.dbt.get("profile")}', style='cyan')
+        console.print('Target: ', style='bold', end='')
+        console.print(f'{configuration.dbt.get("target")}', style='cyan')
 
         # Validating
         console.rule('Validating')

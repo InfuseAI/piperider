@@ -57,13 +57,16 @@ def run(**kwargs):
         no_auto_search = kwargs.get('no_auto_search')
         dbt_project_path = DbtUtil.get_dbt_project_path(dbt_project_dir, no_auto_search, recursive=False)
         dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
+        dbt_target = kwargs.get('dbt_target')
+        dbt_profile = kwargs.get('dbt_profile')
         if dbt_project_path:
             working_dir = os.path.dirname(dbt_project_path) if dbt_project_path.endswith('.yml') else dbt_project_path
             FileSystem.set_working_directory(working_dir)
             if dbt_profiles_dir:
                 FileSystem.set_dbt_profiles_dir(dbt_profiles_dir)
             # Only run initializer when dbt project path is provided
-            Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
+            Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False,
+                             dbt_profile=dbt_profile, dbt_target=dbt_target)
         elif is_piperider_workspace_exist() is False:
             raise DbtProjectNotFoundError()
 
@@ -85,6 +88,8 @@ def run(**kwargs):
                           skip_report=skip_report,
                           dbt_target_path=dbt_target_path,
                           dbt_resources=dbt_resources,
+                          dbt_profile=dbt_profile,
+                          dbt_target=dbt_target,
                           dbt_select=select,
                           dbt_state=state,
                           report_dir=kwargs.get('report_dir'),

@@ -57,10 +57,15 @@ def dbt_select_option_builder():
 dbt_related_options = [
     click.option('--dbt-project-dir', type=click.Path(exists=True),
                  help='The path to the dbt project directory.'),
+    click.option('--dbt-target', type=click.STRING, default=None,
+                 help='Specify which dbt target to load for the given dbt profile.'),
     click.option('--dbt-profiles-dir', type=click.Path(exists=True), default=None,
                  help='Directory to search for dbt profiles.yml.'),
+    click.option('--dbt-profile', type=click.STRING, default=None,
+                 help='Specify which dbt profile to load. Overrides setting in dbt_project.yml.'),
     click.option('--no-auto-search', type=click.BOOL, default=False, is_flag=True,
                  help='Disable auto detection of dbt projects.'),
+
 ]
 
 feature_flags = [
@@ -165,13 +170,18 @@ def init(**kwargs):
     no_auto_search = kwargs.get('no_auto_search')
     dbt_project_path = DbtUtil.get_dbt_project_path(dbt_project_dir, no_auto_search)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
+    dbt_profile = kwargs.get('dbt_profile')
+    dbt_target = kwargs.get('dbt_target')
     if dbt_project_path:
         FileSystem.set_working_directory(dbt_project_path)
 
     # TODO show the process and message to users
     console.print(f'Initialize piperider to path {FileSystem.PIPERIDER_WORKSPACE_PATH}')
 
-    config = Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir)
+    config = Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir,
+                              dbt_profile=dbt_profile,
+                              dbt_target=dbt_target,
+                              reload=False)
     if kwargs.get('debug'):
         for ds in config.dataSources:
             console.rule('Configuration')
@@ -180,7 +190,7 @@ def init(**kwargs):
         sys.exit(1)
 
     # Show the content of config.yml
-    Initializer.show_config()
+    Initializer.show_config_file()
 
 
 @cli.command(short_help='Check the configuraion and connection.', cls=TrackCommand)
@@ -196,10 +206,13 @@ def diagnose(**kwargs):
     no_auto_search = kwargs.get('no_auto_search')
     dbt_project_path = DbtUtil.get_dbt_project_path(dbt_project_dir, no_auto_search)
     dbt_profiles_dir = kwargs.get('dbt_profiles_dir')
+    dbt_profile = kwargs.get('dbt_profile')
+    dbt_target = kwargs.get('dbt_target')
     if dbt_project_path:
         FileSystem.set_working_directory(dbt_project_path)
         # Only run initializer when dbt project path is provided
-        Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False)
+        Initializer.exec(dbt_project_path=dbt_project_path, dbt_profiles_dir=dbt_profiles_dir, interactive=False,
+                         dbt_profile=dbt_profile, dbt_target=dbt_target)
     elif is_piperider_workspace_exist() is False:
         raise DbtProjectNotFoundError()
 
@@ -208,7 +221,7 @@ def diagnose(**kwargs):
     console.print(f'[bold dark_orange]PipeRider Version:[/bold dark_orange] {__version__}')
 
     from piperider_cli.validator import Validator
-    if not Validator.diagnose():
+    if not Validator.diagnose(dbt_profile=dbt_profile, dbt_target=dbt_target):
         sys.exit(1)
 
 
