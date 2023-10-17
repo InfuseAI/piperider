@@ -4,6 +4,7 @@ import platform
 import sys
 import time
 from datetime import datetime
+from json import JSONDecodeError
 
 import portalocker
 import requests
@@ -64,7 +65,6 @@ class Collector:
             app_version=__version__,
         )
 
-        # TODO: handle exception when writing to file
         self._store_to_file(event)
         if self._is_full():
             self.send_events()
@@ -102,7 +102,10 @@ class Collector:
 
     def _store_to_file(self, event):
         with portalocker.Lock(self._unsend_events_file, 'r+', timeout=5) as f:
-            o = json.loads(f.read())
+            try:
+                o = json.loads(f.read())
+            except JSONDecodeError:
+                o = dict(unsend_events=[])
             events = o.get('unsend_events', None)
             if events is None:
                 o['unsend_events'] = []
