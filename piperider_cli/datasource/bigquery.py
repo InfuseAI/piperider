@@ -1,12 +1,13 @@
 import json
 import os
-from typing import List
+from typing import List, Optional
 
 import inquirer
 
 from piperider_cli.error import PipeRiderConnectorError
+
 from . import DataSource
-from .field import PathField, ListField, DataSourceField, _default_validate_func
+from .field import DataSourceField, ListField, _default_validate_func
 
 APPLICATION_DEFAULT_CREDENTIALS = os.path.join(os.path.expanduser('~'), '.config', 'gcloud',
                                                'application_default_credentials.json')
@@ -222,6 +223,14 @@ class BigQueryDataSource(DataSource):
             args['credentials_path'] = self.credential.get('keyfile')
         elif self.credential.get('method') == AUTH_METHOD_SERVICE_ACCOUNT_JSON:
             args['credentials_info'] = self.credential.get('keyfile_json', {})
+
+        target_service_account_email = self.credential.get('impersonate_service_account', None)
+        if target_service_account_email:
+            # monkey-patch
+            import piperider_cli.datasource.bigquery_patch
+            from sqlalchemy_bigquery import _helpers
+            piperider_cli.datasource.bigquery_patch.target_service_account_email = target_service_account_email
+            _helpers.create_bigquery_client = piperider_cli.datasource.bigquery_patch.create_impersonated_bigquery_client
         return args
 
     def verify_connector(self):
