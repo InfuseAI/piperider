@@ -1,4 +1,5 @@
 import os
+import threading
 import uuid
 from typing import Union
 
@@ -15,6 +16,7 @@ PIPERIDER_FLUSH_EVENTS_WHITELIST = ['init', 'run', 'generate-report', 'compare-r
 
 _collector = Collector()
 _yml = yaml.YAML()
+user_profile_lock = threading.Lock()
 
 
 def init():
@@ -27,15 +29,17 @@ def init():
 
 
 def load_user_profile():
-    if not os.path.exists(PIPERIDER_USER_PROFILE):
-        user_profile = _generate_user_profile()
-    else:
-        with open(PIPERIDER_USER_PROFILE, 'r') as f:
-            user_profile = yaml.YAML().load(f)
-            if user_profile.get('user_id') is None:
-                user_profile = _generate_user_profile()
+    # can be called by multiple threads from capture_exception
+    with user_profile_lock:
+        if not os.path.exists(PIPERIDER_USER_PROFILE):
+            user_profile = _generate_user_profile()
+        else:
+            with open(PIPERIDER_USER_PROFILE, 'r') as f:
+                user_profile = _yml.load(f)
+                if user_profile.get('user_id') is None:
+                    user_profile = _generate_user_profile()
 
-    return user_profile
+        return user_profile
 
 
 def update_user_profile(update_values):
