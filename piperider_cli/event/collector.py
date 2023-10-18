@@ -3,6 +3,7 @@ import os
 import platform
 import sys
 import time
+from contextlib import contextmanager
 from datetime import datetime
 from json import JSONDecodeError
 
@@ -83,17 +84,27 @@ class Collector:
             o = json.loads(f.read())
             return len(o.get('unsend_events', [])) >= self._upload_threshold
 
-    def send_events(self):
+    @contextmanager
+    def load_json(self):
         with portalocker.Lock(self._unsend_events_file, 'r+', timeout=5) as f:
-            o = json.loads(f.read())
+            try:
+                o = json.loads(f.read())
+                yield o
+            except JSONDecodeError:
+                o = dict(unsend_events=[])
+                yield o
+            finally:
+                f.seek(0)
+                f.truncate()
+                f.write(json.dumps(o))
+
+    def send_events(self):
+        with self.load_json() as o:
             payload = dict(
                 api_key=self._api_key,
                 events=o['unsend_events'],
             )
             o['unsend_events'] = []
-            f.seek(0)
-            f.truncate()
-            f.write(json.dumps(o))
         try:
             requests.post(self._api_endpoint, json=payload)
         except Exception:
@@ -101,30 +112,18 @@ class Collector:
             pass
 
     def _store_to_file(self, event):
-        with portalocker.Lock(self._unsend_events_file, 'r+', timeout=5) as f:
-            try:
-                o = json.loads(f.read())
-            except JSONDecodeError:
-                o = dict(unsend_events=[])
+        with self.load_json() as o:
             events = o.get('unsend_events', None)
             if events is None:
                 o['unsend_events'] = []
 
             o['unsend_events'].append(event)
-            f.seek(0)
-            f.truncate()
-            f.write(json.dumps(o))
 
     def _cleanup_unsend_events(self):
-        with portalocker.Lock(self._unsend_events_file, 'r+', timeout=5) as f:
-            o = json.loads(f.read())
+        with self.load_json() as o:
             events = o.get('unsend_events', None)
             if events is None:
                 o['unsend_events'] = []
 
             while len(o['unsend_events']) > self._delete_threshold:
                 o['unsend_events'].pop(0)
-
-            f.seek(0)
-            f.truncate()
-            f.write(json.dumps(o))
