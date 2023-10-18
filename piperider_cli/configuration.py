@@ -564,9 +564,10 @@ class Configuration(object):
                     if credential.get('pass') and credential.get('password') is None:
                         credential['password'] = credential.pop('pass')
                     datasource_class = DATASOURCE_PROVIDERS[credential.get('type')]
+                    dbt.update(profile=profile_name, target=target)
                     data_source = datasource_class(
                         name=target,
-                        dbt=dbt.update(profile=profile_name, target=target),
+                        dbt=dict(dbt),
                         credential=credential
                     )
                     data_sources.append(data_source)
