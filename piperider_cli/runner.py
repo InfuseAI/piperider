@@ -644,11 +644,12 @@ class Runner:
         if skip_datasource_connection:
             event_payload.skip_datasource = True
 
-        console.rule('DBT')
-        console.print('Profile: ', style='bold', end='')
-        console.print(f'{configuration.dbt.get("profile")}', style='cyan')
-        console.print('Target: ', style='bold', end='')
-        console.print(f'{configuration.dbt.get("target")}', style='cyan')
+        if configuration.dbt:
+            console.rule('DBT')
+            console.print('Profile: ', style='bold', end='')
+            console.print(f'{configuration.dbt.get("profile")}', style='cyan')
+            console.print('Target: ', style='bold', end='')
+            console.print(f'{configuration.dbt.get("target")}', style='cyan')
 
         # Validating
         console.rule('Validating')
