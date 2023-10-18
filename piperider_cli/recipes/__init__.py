@@ -306,6 +306,9 @@ def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, options: Dict):
         dbt_project = dbtutil.load_dbt_project(config.dbt.get('projectDir'))
         target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
 
+    if not cfg.auto_generated:
+        return None, state
+
     if any('state:' in item for item in select):
         console.print(f"Run: \[dbt list] select option '{' '.join(select)}' with state")
         resources = tool().list_dbt_resources(
@@ -576,12 +579,14 @@ def execute_recipe_configuration(cfg: RecipeConfiguration, options, debug=False,
     try:
         console.rule("Recipe executor: prepare execution environments")
         dbt_resources, dbt_state_path = prepare_dbt_resources_candidate(cfg, options)
-        if debug:
-            console.print(f'Config: piperider env "PIPERIDER_DBT_RESOURCES" = {dbt_resources}')
-        else:
-            console.print('Config: piperider env "PIPERIDER_DBT_RESOURCES"')
-        cfg.base.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
-        cfg.target.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
+        if cfg.auto_generated:
+            if debug:
+                console.print(f'Config: piperider env "PIPERIDER_DBT_RESOURCES" = {dbt_resources}')
+            else:
+                console.print('Config: piperider env "PIPERIDER_DBT_RESOURCES"')
+
+            cfg.base.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
+            cfg.target.piperider.environments['PIPERIDER_DBT_RESOURCES'] = '\n'.join(dbt_resources)
 
         if dbt_state_path:
             cfg.target.dbt.commands = replace_commands_dbt_state_path(cfg.target.dbt.commands, dbt_state_path)
