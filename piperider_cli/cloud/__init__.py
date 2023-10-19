@@ -134,6 +134,7 @@ class PipeRiderCloud:
         except BaseException:
             self.available = False
             self.me = None
+            self.config: dict = {}
 
     def update_config(self, options: dict):
         self.service.update_config(options)

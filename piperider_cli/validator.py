@@ -25,10 +25,14 @@ class AbstractChecker(metaclass=ABCMeta):
 
 
 class CheckingHandler(object):
-    def __init__(self):
+    def __init__(self, dbt_profile=None, dbt_target=None):
         self.configurator = None
         self.checker_chain = []
         self.console = Console()
+        self.dbt = {
+            'profile': dbt_profile,
+            'target': dbt_target
+        }
 
     def set_checker(self, name: str, checker: AbstractChecker):
         self.checker_chain.append({'name': name, 'cls': checker()})
@@ -36,7 +40,8 @@ class CheckingHandler(object):
     def execute(self):
         if not self.configurator:
             try:
-                self.configurator = Configuration.instance()
+                self.configurator = Configuration.instance(dbt_profile=self.dbt.get('profile'),
+                                                           dbt_target=self.dbt.get('target'))
                 self.configurator.activate_report_directory()
             except Exception:
                 pass
@@ -177,8 +182,8 @@ class CloudAccountChecker(AbstractChecker):
 
 class Validator():
     @staticmethod
-    def diagnose():
-        handler = CheckingHandler()
+    def diagnose(dbt_profile: str = None, dbt_target: str = None):
+        handler = CheckingHandler(dbt_profile=dbt_profile, dbt_target=dbt_target)
         handler.set_checker('config files', CheckConfiguration)
         handler.set_checker('format of data sources', CheckDataSources)
         handler.set_checker('connections', CheckConnections)
