@@ -1,5 +1,5 @@
 FROM python:3.9-slim
-ARG PIPERIDER_VERSION=0.3.0
+ARG PIPERIDER_VERSION
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -10,7 +10,11 @@ RUN apt-get update && \
 # Install yq@4
 RUN curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /bin/yq && chmod +x /bin/yq
 
-RUN pip install --no-cache-dir piperider==${PIPERIDER_VERSION}
+RUN if [ -n "$PIPERIDER_VERSION" ]; then \
+        pip install --no-cache-dir piperider==${PIPERIDER_VERSION}; \
+    else \
+        pip install --no-cache-dir piperider; \
+    fi
 
 WORKDIR /usr/src/github/
 
