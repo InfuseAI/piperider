@@ -1,7 +1,9 @@
+import io
+import platform
 from abc import ABCMeta, abstractmethod
 from typing import List
 
-from rich.console import Console
+from rich.console import Console, _STD_STREAMS
 from rich.markup import escape
 
 from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
@@ -34,6 +36,22 @@ class CheckingHandler(object):
             'target': dbt_target
         }
 
+    def _escape_console_msg(self, msg: str) -> str:
+        # escape unsupported unicode emojis for legacy windows console (ref: rich/console.py)
+        use_legacy_windows_render = False
+        if platform.system() == "Windows" and self.console.legacy_windows:
+            try:
+                use_legacy_windows_render = (
+                    self.console.file.fileno() in _STD_STREAMS
+                )
+            except (ValueError, io.UnsupportedOperation):
+                pass
+
+        if use_legacy_windows_render:
+            return msg.encode(encoding='cp1252', errors='ignore').decode(encoding='cp1252')
+
+        return msg
+
     def set_checker(self, name: str, checker: AbstractChecker):
         self.checker_chain.append({'name': name, 'cls': checker()})
 
@@ -55,14 +73,14 @@ class CheckingHandler(object):
                     error_msg = ', '.join(str(e) for e in error_msg)
                 elif isinstance(error_msg, PipeRiderError):
                     hint = error_msg.hint
-                self.console.print(CONSOLE_MSG_FAIL)
+                self.console.print(self._escape_console_msg(CONSOLE_MSG_FAIL))
                 self.console.print(f"[bold red]Error:[/bold red] {checker['cls'].__class__.__name__}: {error_msg}")
                 if hint:
                     self.console.print(f'[bold yellow]Hint[/bold yellow]:\n  {escape(hint)}')
                 return False
-            self.console.print(CONSOLE_MSG_PASS)
+            self.console.print(self._escape_console_msg(CONSOLE_MSG_PASS))
 
-        self.console.print(CONSOLE_MSG_ALL_SET)
+        self.console.print(self._escape_console_msg(CONSOLE_MSG_ALL_SET))
         return True
 
 
