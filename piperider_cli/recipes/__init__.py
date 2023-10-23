@@ -303,7 +303,9 @@ def prepare_dbt_resources_candidate(cfg: RecipeConfiguration, options: Dict):
             execute_dbt_parse(cfg.target)
         else:
             execute_dbt_compile(cfg.target)
-        dbt_project = dbtutil.load_dbt_project(config.dbt.get('projectDir'))
+        # if global dbt config exists, use global dbt else use the first datasource
+        dbt = config.dbt if config.dbt else config.dataSources[0].args.get('dbt')
+        dbt_project = dbtutil.load_dbt_project(dbt.get('projectDir'))
         target_path = dbt_project.get('target-path') if dbt_project.get('target-path') else 'target'
 
     if not cfg.auto_generated:
@@ -461,7 +463,8 @@ def execute_dbt_parse(model: RecipeModel, project_dir: str = None, profiles_dir:
     console.print()
 
 
-def execute_recipe_archive(cfg: RecipeConfiguration, recipe_type='base', debug=False, event_payload=CompareEventPayload()):
+def execute_recipe_archive(cfg: RecipeConfiguration, recipe_type='base', debug=False,
+                           event_payload=CompareEventPayload()):
     """
     We execute a recipe in the following steps:
     1. export the repo with specified commit or branch if needed
