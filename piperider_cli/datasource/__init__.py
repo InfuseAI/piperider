@@ -110,7 +110,13 @@ class DataSource(metaclass=ABCMeta):
         except Exception:
             engine = None
         if self.credential.get('threads'):
-            return self.credential.get('threads')
+            try:
+                return int(self.credential.get('threads'))
+            except BaseException:
+                console = Console()
+                message = 'failed to parse the "threads" field, so we will use 1 thread to execute profiling.'
+                console.print(f'[bold yellow]Warning: [/bold yellow]:\n  {message}')
+                return 1
         elif engine and not isinstance(engine.pool, SingletonThreadPool):
             return 5
         else:

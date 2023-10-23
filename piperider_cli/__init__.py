@@ -205,9 +205,23 @@ def _init_jinja_env(env):
     def as_number(var):
         if var is None:
             return var
-        if var.isnumeric():
-            return int(var)
-        return float(var)
+
+        # the input has been a numeric value
+        if isinstance(var, int) or isinstance(var, float):
+            return var
+
+        # the input is str, but could convert to a numeric value
+        try:
+            if isinstance(var, str):
+                if var.isnumeric():
+                    return int(var)
+                else:
+                    return float(var)
+        except BaseException:
+            # fail to covert
+            raise
+        # unknown cases
+        return var
 
     def as_text(var):
         if var is None:
