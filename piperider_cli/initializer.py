@@ -7,7 +7,9 @@ from rich.prompt import Prompt
 from rich.syntax import Syntax
 from rich.table import Table
 
-from piperider_cli import clone_directory, safe_load_yaml
+from piperider_cli import clone_directory
+from piperider_cli.yaml import safe_load_yaml
+
 from piperider_cli.configuration import Configuration, FileSystem
 from piperider_cli.datasource import DataSource, FANCY_USER_INPUT
 from piperider_cli.datasource.survey import UserSurveyMockDataSource

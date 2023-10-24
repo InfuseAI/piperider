@@ -5,7 +5,6 @@ from typing import List, Union
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 from rich.progress import Progress, TextColumn, BarColumn, DownloadColumn, TimeElapsedColumn
-from ruamel import yaml
 
 from piperider_cli import __version__
 from piperider_cli.configuration import Configuration
@@ -16,8 +15,6 @@ PIPERIDER_CLOUD_SERVICE = 'https://cloud.piperider.io/'
 
 SERVICE_ENV_API_KEY = 'PIPERIDER_API_TOKEN'
 SERVICE_ENV_SERVICE_KEY = 'PIPERIDER_API_SERVICE'
-
-yml = yaml.YAML()
 
 
 class PipeRiderProject(object):

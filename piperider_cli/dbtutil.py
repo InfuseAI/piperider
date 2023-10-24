@@ -10,7 +10,7 @@ import inquirer
 from jinja2 import UndefinedError
 from rich.console import Console
 from rich.table import Table
-from ruamel import yaml
+from piperider_cli import yaml as pyml
 
 from piperider_cli import load_jinja_template, load_jinja_string_template
 from piperider_cli.dbt.list_task import load_manifest, list_resources_unique_id_from_manifest, load_full_manifest
@@ -689,9 +689,8 @@ def load_dbt_project(path: str):
 
     with open(path, 'r') as fd:
         try:
-            yml = yaml.YAML()
-            yml.allow_duplicate_keys = True
-            dbt_project = yml.load(fd)
+            loader = pyml.allow_duplicate_keys_loader()
+            dbt_project = loader(fd)
 
             content = {}
             for key, val in dbt_project.items():
@@ -710,9 +709,8 @@ def load_dbt_profile(path):
     template = load_jinja_template(path)
     profile = None
     try:
-        yml = yaml.YAML()
-        yml.allow_duplicate_keys = True
-        profile = yml.load(template.render())
+        loader = pyml.allow_duplicate_keys_loader()
+        profile = loader(template.render())
     except Exception as e:
         raise DbtProfileInvalidError(path, e)
     if profile is None:

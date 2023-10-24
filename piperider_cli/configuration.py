@@ -11,10 +11,9 @@ from typing import Callable, Dict, List, Optional, Union
 
 import inquirer
 from rich.console import Console
-from ruamel import yaml
-from ruamel.yaml import CommentedMap, CommentedSeq
 
-from piperider_cli import raise_exception_when_directory_not_writable, round_trip_load_yaml, safe_load_yaml
+from piperider_cli import raise_exception_when_directory_not_writable
+from piperider_cli.yaml import round_trip_load_yaml, safe_load_yaml
 from piperider_cli.cli_utils import DbtUtil
 from piperider_cli.datasource import DATASOURCE_PROVIDERS, DataSource
 from piperider_cli.datasource.unsupported import UnsupportedDataSource
@@ -24,6 +23,7 @@ from piperider_cli.error import \
     PipeRiderInvalidDataSourceError, \
     DbtProjectNotFoundError, \
     DbtProfileNotFoundError
+from piperider_cli import yaml as pyml
 
 # ref: https://docs.getdbt.com/dbt-cli/configure-your-profile
 DBT_PROFILES_DIR_DEFAULT = '~/.dbt/'
@@ -367,14 +367,12 @@ class Configuration(object):
 
     @staticmethod
     def update_config(key: str, update_values: Union[dict, str]):
-        _yml = yaml.YAML()
-
         with open(FileSystem.PIPERIDER_CONFIG_PATH, 'r') as f:
-            config = _yml.load(f) or {}
+            config = pyml.load(f) or {}
 
         config[key] = update_values
         with open(FileSystem.PIPERIDER_CONFIG_PATH, 'w+', encoding='utf-8') as f:
-            _yml.dump(config, f)
+            pyml.dump(config, f)
 
     @classmethod
     def from_dbt_project(cls, dbt_project_path, dbt_profiles_dir=None, dbt_profile: str = None, dbt_target: str = None):
@@ -462,7 +460,7 @@ class Configuration(object):
         if configuration_instance:
             dbt = configuration_instance.dbt
             if reload is False or dbt is None or (
-                dbt.get('profile') == dbt_profile and dbt.get('target') == dbt_target):
+                    dbt.get('profile') == dbt_profile and dbt.get('target') == dbt_target):
                 return configuration_instance
         configuration_instance = cls._load(piperider_config_path, dbt_profile=dbt_profile, dbt_target=dbt_target)
         return configuration_instance
@@ -530,7 +528,7 @@ class Configuration(object):
             else:
                 try:
                     with open(FileSystem.PIPERIDER_CREDENTIALS_PATH, 'r') as fd:
-                        credentials = yaml.safe_load(fd)
+                        credentials = pyml.safe_load(fd)
                         credential.update(credentials.get(ds.get('name'), {}))
                 except FileNotFoundError:
                     pass
@@ -623,9 +621,9 @@ class Configuration(object):
                 # non-dbt project
                 if d.credential_source == 'config':
                     datasource.update(**d.credential)
-            return CommentedMap(datasource)
+            return pyml.CommentedMap(datasource)
 
-        flush_data_sources = CommentedSeq()
+        flush_data_sources = pyml.CommentedSeq()
 
         for ds in self.dataSources:
             exist_ds = _get_exist_datasource(ds, config)
@@ -641,7 +639,7 @@ class Configuration(object):
             config.yaml_set_comment_before_after_key('profiler', before='\n')
 
         with open(path, 'w', encoding='utf-8') as fd:
-            yaml.YAML().dump(config, fd)
+            pyml.dump(config, fd)
         pass
 
     def dump(self, path):
@@ -660,7 +658,7 @@ class Configuration(object):
         datasource = dict(name=d.name, type=d.type_name)
         if d.args.get('dbt'):
             # dbt project
-            config['dbt'] = CommentedMap(d.args.get('dbt'))
+            config['dbt'] = pyml.CommentedMap(d.args.get('dbt'))
         else:
             # non-dbt project
             if d.credential_source == 'config':
@@ -671,10 +669,10 @@ class Configuration(object):
         if self.cloud_config:
             config['cloud_config'] = self.cloud_config
 
-        config_yaml = CommentedMap(config)
+        config_yaml = pyml.CommentedMap(config)
 
         with open(path, 'w', encoding='utf-8') as fd:
-            yaml.YAML().dump(config_yaml, fd)
+            pyml.dump(config_yaml, fd)
 
     def dump_credentials(self, path, after_init_config=False):
         """
@@ -693,7 +691,7 @@ class Configuration(object):
 
         if creds:
             with open(path, 'w', encoding='utf-8') as fd:
-                yaml.round_trip_dump(creds, fd)
+                pyml.round_trip_dump(creds, fd)
 
     def to_sqlalchemy_config(self, datasource_name):
         # TODO we will convert a data source to a sqlalchemy parameters

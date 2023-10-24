@@ -1,9 +1,7 @@
 import inspect
 from typing import Callable, List, Dict
 
-from ruamel.yaml.comments import CommentedMap, CommentedSeq
-from ruamel.yaml.error import CommentMark
-from ruamel.yaml.tokens import CommentToken
+from piperider_cli import yaml as pyml
 
 from .recommended_rules import RecommendedAssertion, RecommendedRules
 
@@ -14,7 +12,7 @@ RECOMMENDED_ASSERTION_TAG = 'RECOMMENDED'
 
 class AssertionRecommender:
     def __init__(self):
-        self.assertions: Dict[CommentedMap] = {}
+        self.assertions: Dict[pyml.CommentedMap] = {}
         self.recommended_rule_callbacks = []
         self.load_recommended_rules()
         self.generated_assertions: List[RecommendedAssertion] = []
@@ -22,20 +20,20 @@ class AssertionRecommender:
     def prepare_assertion_template(self, profiling_result):
         for name, table in profiling_result.get('tables', {}).items():
             # Generate template of assertions
-            table_assertions = CommentedSeq()
-            columns = CommentedMap()
+            table_assertions = pyml.CommentedSeq()
+            columns = pyml.CommentedMap()
 
             # Generate assertions for columns
             for col in table.get('columns', {}).keys():
                 column_name = str(col)
-                column_assertions = CommentedSeq()
-                columns[column_name] = CommentedMap({
+                column_assertions = pyml.CommentedSeq()
+                columns[column_name] = pyml.CommentedMap({
                     'tests': column_assertions,
                 })
 
             # Generate assertions for table
-            recommended_assertion = CommentedMap({
-                name: CommentedMap({
+            recommended_assertion = pyml.CommentedMap({
+                name: pyml.CommentedMap({
                     'tests': table_assertions,
                     'columns': columns,
                 })})
@@ -54,20 +52,20 @@ class AssertionRecommender:
             self.prepare_assertion_template(profiling_result)
 
         for table, ta in self.assertions.items():
-            table_assertions: CommentedSeq = ta[table]['tests']
+            table_assertions: pyml.CommentedSeq = ta[table]['tests']
             for callback in self.recommended_rule_callbacks:
                 assertion: RecommendedAssertion = callback(table, None, profiling_result)
                 if assertion:
                     if assertion.name:
-                        table_assertions.append(CommentedMap({
+                        table_assertions.append(pyml.CommentedMap({
                             'name': assertion.name,
-                            'assert': CommentedMap(assertion.asserts),
+                            'assert': pyml.CommentedMap(assertion.asserts),
                             'tags': [RECOMMENDED_ASSERTION_TAG]
                         }))
                     else:
-                        table_assertions.append(CommentedMap({
+                        table_assertions.append(pyml.CommentedMap({
                             'metric': assertion.metric,
-                            'assert': CommentedMap(assertion.asserts),
+                            'assert': pyml.CommentedMap(assertion.asserts),
                             'tags': [RECOMMENDED_ASSERTION_TAG]
                         }))
                     assertion.table = table
@@ -82,13 +80,13 @@ class AssertionRecommender:
                     assertion.table = table
                     assertion.column = column
                     if assertion.asserts:
-                        column_assertions.append(CommentedMap({
+                        column_assertions.append(pyml.CommentedMap({
                             'name': assertion.name,
-                            'assert': CommentedMap(assertion.asserts),
+                            'assert': pyml.CommentedMap(assertion.asserts),
                             'tags': [RECOMMENDED_ASSERTION_TAG]
                         }))
                     else:
-                        column_assertions.append(CommentedMap({
+                        column_assertions.append(pyml.CommentedMap({
                             'name': assertion.name,
                             'tags': [RECOMMENDED_ASSERTION_TAG]
                         }))
