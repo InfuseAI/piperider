@@ -32,7 +32,7 @@ setup(name='piperider',
       python_requires=">=3.8",
       packages=find_packages(),
       install_requires=[
-          'ruamel.yaml',
+          'ruamel.yaml<0.18.0',
           'sqlalchemy>=1.4',
           'sentry-sdk',
           'rich>=12.0.0',
