@@ -6,12 +6,11 @@ from importlib import import_module
 from typing import List, Dict
 
 from deepmerge import always_merger
-from ruamel import yaml
-from ruamel.yaml.comments import CommentedMap
 from sqlalchemy import inspect
 from sqlalchemy.engine import Engine
 
-from piperider_cli import safe_load_yaml, round_trip_load_yaml
+from piperider_cli import yaml as pyml
+from piperider_cli.yaml import safe_load_yaml, round_trip_load_yaml
 from piperider_cli.configuration import FileSystem
 from piperider_cli.error import \
     AssertionError, \
@@ -532,7 +531,7 @@ class AssertionEngine:
         def merge_assertions(target: str, existed_items: List, new_generating_items: List):
             if new_generating_items.get(target) is None:
                 # Column or table doesn't exist in the existing assertions
-                new_generating_items[target] = CommentedMap(existed_items[target])
+                new_generating_items[target] = pyml.CommentedMap(existed_items[target])
                 is_generated_by_us = False
                 for assertion in new_generating_items[target].get('tests', []):
                     is_generated_by_us = self._is_recommended_assertion(assertion)
@@ -605,7 +604,7 @@ class AssertionEngine:
             if assertion.get('skip'):  # skip if it already exists user-defined assertions
                 continue
             with open(file_path, 'w') as f:
-                yaml.YAML().dump(assertion, f)
+                pyml.dump(assertion, f)
                 paths.append(file_path)
         return paths
 

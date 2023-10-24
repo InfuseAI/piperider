@@ -8,11 +8,10 @@ from typing import Any, Dict, List
 import jsonschema
 from jsonschema.exceptions import ValidationError
 from rich.console import Console
-from ruamel import yaml
-from ruamel.yaml import CommentedSeq
 
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli import get_run_json_path, load_jinja_template, load_json
+from piperider_cli import yaml as pyml
 from piperider_cli.configuration import Configuration, FileSystem
 from piperider_cli.dbt import dbt_version
 from piperider_cli.error import RecipeConfigException
@@ -44,7 +43,7 @@ class AbstractRecipeField(metaclass=ABCMeta):
 
         if content.get('command'):
             data = content.get('command')
-            if isinstance(data, CommentedSeq):
+            if isinstance(data, pyml.CommentedSeq):
                 for c in data:
                     self.commands.append(c)
             else:
@@ -181,7 +180,7 @@ class RecipeConfiguration:
     def dump(self):
         payload = self.__dict__()
         RecipeConfiguration.validate(payload)
-        return yaml.round_trip_dump(payload)
+        return pyml.round_trip_dump(payload)
 
     @staticmethod
     def validate(content: dict = None):
@@ -192,9 +191,8 @@ class RecipeConfiguration:
     def load(cls, path: str) -> 'RecipeConfiguration':
         template = load_jinja_template(path)
         try:
-            yml = yaml.YAML()
-            yml.allow_duplicate_keys = True
-            content = yml.load(template.render())
+            loader = pyml.allow_duplicate_keys_loader()
+            content = loader(template.render())
         except Exception:
             raise
 

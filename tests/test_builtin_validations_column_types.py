@@ -1,14 +1,13 @@
 from io import StringIO
 from unittest import TestCase
 
-from ruamel import yaml
-
+from piperider_cli import yaml as pyml
 from piperider_cli.assertion_engine import AssertionEngine
 
 
 def _(assertion_content: str):
     def content_provider(self):
-        self.assertions_content = yaml.safe_load(StringIO(assertion_content))
+        self.assertions_content = pyml.safe_load(StringIO(assertion_content))
         return [], []
 
     return content_provider
