@@ -68,6 +68,10 @@ dbt_related_options = [
 
 ]
 
+# Quick Look (https://cloud.piperider.io/quick-look) is a public-facing page on PipeRider Cloud.
+# Every user can paste the GitHub repo or PR URL, and PipeRider Cloud will analyze that URL by the CLI on the air.
+# The reports on the Quick Look are default shared public with a limited time.
+# PipeRider Cloud uses this feature flag to upload those reports to the Quick Look storage.
 feature_flags = [
     click.option('--enable-quick-look-share', envvar='PIPERIDER_ENABLE_QUICK_LOOK_SHARE',
                  is_flag=True, default=False, hidden=True, help='Enable share to Quick Look.')
