@@ -1,5 +1,6 @@
 import json
 import os
+from json import JSONDecodeError
 from typing import List, Union
 
 import requests
@@ -320,7 +321,12 @@ class PipeRiderCloud:
             if show_progress:
                 upload_progress.stop()
 
-            return response.json()
+            try:
+                response_data = response.json()
+            except JSONDecodeError:
+                response_data = {"success": False, "message": response.reason}
+
+            return response_data
 
     def share_run_report(self, workspace_name: str, project_name: str, run_id: int):
         if not self.available:
