@@ -241,7 +241,6 @@ class PreRunValidatingResult(Enum):
 
 
 def _pre_run_validating(ds: DataSource) -> (PreRunValidatingResult, Exception):
-    console = Console()
     err = ds.verify_connector()
     if err:
         return PreRunValidatingResult.FAILED_TO_LOAD_CONNECTOR, err
