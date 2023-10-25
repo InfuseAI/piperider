@@ -9,7 +9,7 @@ from piperider_cli.event import log_event
 
 
 def run(**kwargs):
-    'Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
+    'Profile data source and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".'
 
     from piperider_cli.cli_utils import DbtUtil
     from piperider_cli.cli_utils.cloud import CloudConnectorHelper

@@ -201,7 +201,7 @@ def init(**kwargs):
 @add_options(dbt_related_options)
 @add_options(debug_option)
 def diagnose(**kwargs):
-    'Check project configuration, datasource, connections, and assertion configuration.'
+    'Check project configuration, datasource, and connections configuration.'
 
     console = Console()
 
@@ -256,31 +256,11 @@ def diagnose(**kwargs):
 @add_options(debug_option)
 def run(**kwargs):
     """
-    Profile data source, run assertions, and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".
+    Profile data source and generate report(s). By default, the raw results and reports are saved in ".piperider/outputs".
     """
 
     from piperider_cli.cli_utils.run_cmd import run as cmd
     return cmd(**kwargs)
-
-
-@cli.command(short_help='Generate recommended assertions. - Deprecated', cls=TrackCommand)
-@click.option('--input', default=None, type=click.Path(exists=True), help='Specify the raw result file.')
-@click.option('--no-recommend', is_flag=True, help='Generate assertions templates only.')
-@click.option('--report-dir', default=None, type=click.STRING, help='Use a different report directory.')
-@click.option('--table', default=None, type=click.STRING, help='Generate assertions for the given table')
-@add_options(debug_option)
-def generate_assertions(**kwargs):
-    'Generate recommended assertions based on the latest result. By default, the profiling result will be loaded from ".piperider/outputs".'
-    input_path = kwargs.get('input')
-    report_dir = kwargs.get('report_dir')
-    no_recommend = kwargs.get('no_recommend')
-    table = kwargs.get('table')
-
-    from piperider_cli.assertion_generator import AssertionGenerator
-    ret = AssertionGenerator.exec(input_path=input_path, report_dir=report_dir, no_recommend=no_recommend, table=table)
-    if ret != 0:
-        sys.exit(ret)
-    return ret
 
 
 @cli.command(short_help='Generate a report.', cls=TrackCommand)
