@@ -30,7 +30,7 @@ export function ReportContextBar({
 }: Props) {
   let datasource: string | undefined = undefined;
   let version: string | undefined = undefined;
-  let gitBranch: string | undefined = undefined;
+  let gitBranch: string | null | undefined = undefined;
   let githubPr: string | undefined = undefined;
   let githubPrUrl: string | undefined = undefined;
   let baseFrom: string | undefined = undefined;
@@ -58,6 +58,8 @@ export function ReportContextBar({
         report.input?.datasource.git_branch
       ) {
         gitBranch = `${report.base?.datasource.git_branch} ↔ ${report.input?.datasource.git_branch}`;
+      } else if (report.input?.datasource.git_branch) {
+        gitBranch = report.input?.datasource.git_branch;
       }
 
       if (report.metadata?.github_pr_id && report.metadata?.github_pr_url) {
