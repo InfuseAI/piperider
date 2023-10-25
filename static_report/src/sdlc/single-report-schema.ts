@@ -350,7 +350,7 @@ export interface AssertionTest {
 export interface DataSource {
   name: string;
   type: string;
-  git_branch?: string;
+  git_branch?: string | null;
   git_sha?: string;
   skip_datasource?: boolean;
 }
