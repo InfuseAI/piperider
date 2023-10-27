@@ -104,6 +104,15 @@ class DuckDBDataSource(DataSource):
             raise PipeRiderDataBaseConnectionError(self.name, self.type_name, db_path=duckdb_path)
         return f"duckdb:///{duckdb_path}"
 
+    def engine_args(self):
+
+        args = dict(
+            preload_extensions=list(self.credential.get('extensions', [])),
+            config=dict(self.credential.get('settings', {}))
+        )
+
+        return dict(connect_args=args)
+
     def _formalize_table_name(self, name):
         if not name:
             return f'{self.type_name}_table'
