@@ -14,7 +14,6 @@ from typing import List, Optional
 from rich import box
 from rich.color import Color
 from rich.console import Console
-from rich.pretty import Pretty
 from rich.progress import BarColumn, Column, MofNCompleteColumn, Progress, TextColumn, TimeElapsedColumn
 from rich.style import Style
 from rich.table import Table
@@ -24,8 +23,6 @@ from sqlalchemy.exc import NoSuchTableError
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli import clone_directory, convert_to_tzlocal, datetime_to_str, event, \
     raise_exception_when_directory_not_writable
-from piperider_cli.assertion_engine import AssertionEngine
-from piperider_cli.assertion_engine.recommender import RECOMMENDED_ASSERTION_TAG
 from piperider_cli.configuration import Configuration, FileSystem, ReportDirectory
 from piperider_cli.datasource import DataSource
 from piperider_cli.datasource.unsupported import UnsupportedDataSource
@@ -196,19 +193,6 @@ def _filter_subject(name: str, includes: List[str], excludes: List[str]) -> bool
     return True
 
 
-def _execute_assertions(console: Console, engine, ds_name: str, output, profiler_result, created_at):
-    # TODO: Implement running test cases based on profiling result
-    assertion_engine = AssertionEngine(engine)
-    assertion_engine.load_assertions(profiler_result)
-
-    results = exceptions = []
-    # Execute assertions
-    if len(assertion_engine.assertions):
-        console.rule('Testing')
-        results, exceptions = assertion_engine.evaluate_all()
-    return results, exceptions
-
-
 def _show_dbt_test_result(dbt_test_results, title=None, failed_only=False):
     console = Console()
     ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta',
@@ -249,78 +233,6 @@ def _show_dbt_test_result(dbt_test_results, title=None, failed_only=False):
         console.print(ascii_table)
 
 
-def _show_assertion_result(results, exceptions, failed_only=False, single_table=None, title=None):
-    console = Console()
-
-    def _wrap_pretty(obj):
-        if obj is None:
-            return '-'
-        return obj if isinstance(obj, str) else Pretty(obj)
-
-    if results:
-        ascii_table = Table(show_header=True, show_edge=True, header_style='bold magenta',
-                            box=box.SIMPLE, title=title)
-        ascii_table.add_column('Status', style='bold white')
-        ascii_table.add_column('Test Subject', style='bold')
-        ascii_table.add_column('Assertion', style='bold green')
-        ascii_table.add_column('Expected', style='bold')
-        ascii_table.add_column('Actual', style='cyan')
-
-        for assertion in results:
-            if single_table and single_table != assertion.table:
-                continue
-            if failed_only and assertion.result.status():
-                continue
-            table = assertion.table
-            column = assertion.column
-            test_function = assertion.result.name
-            success = assertion.result.status()
-            target = f'[yellow]{table}[/yellow].[blue]{column}[/blue]' if column else f'[yellow]{table}[/yellow]'
-            if success:
-                ascii_table.add_row(
-                    '[[bold green]  OK  [/bold green]]',
-                    target,
-                    test_function,
-                    _wrap_pretty(assertion.result.expected),
-                    _wrap_pretty(assertion.result.actual)
-                )
-            else:
-                ascii_table.add_row(
-                    '[[bold red]FAILED[/bold red]]',
-                    target,
-                    test_function,
-                    _wrap_pretty(assertion.result.expected),
-                    _wrap_pretty(assertion.result.actual)
-                )
-                if assertion.result.exception:
-                    msg = f'[grey11 on white][purple4]{type(assertion.result.exception).__name__}[/purple4](\'{assertion.result.exception}\')[/grey11 on white]'
-                    ascii_table.add_row('', '', '', msg)
-
-        if ascii_table.rows:
-            console.print(ascii_table)
-    # TODO: Handle exceptions
-    pass
-
-
-def _transform_assertion_result(table: str, results):
-    tests = []
-    columns = {}
-    if results is None:
-        return dict(tests=tests, columns=columns)
-
-    for r in results:
-        if r.table == table:
-            entry = r.to_result_entry()
-            if r.column:
-                if r.column not in columns:
-                    columns[r.column] = []
-                columns[r.column].append(entry)
-            else:
-                tests.append(entry)
-
-    return dict(tests=tests, columns=columns)
-
-
 class PreRunValidatingResult(Enum):
     OK = 0
     ERROR = 1
@@ -329,7 +241,6 @@ class PreRunValidatingResult(Enum):
 
 
 def _pre_run_validating(ds: DataSource) -> (PreRunValidatingResult, Exception):
-    console = Console()
     err = ds.verify_connector()
     if err:
         return PreRunValidatingResult.FAILED_TO_LOAD_CONNECTOR, err
@@ -339,28 +250,7 @@ def _pre_run_validating(ds: DataSource) -> (PreRunValidatingResult, Exception):
     except Exception as err:
         return PreRunValidatingResult.FAILED_TO_CONNECT_DATASOURCE, err
 
-    stop_runner = _validate_assertions(console)
-    if stop_runner:
-        return PreRunValidatingResult.ERROR, None
-
     return PreRunValidatingResult.OK, None
-
-
-def _validate_assertions(console: Console):
-    assertion_engine = AssertionEngine(None)
-    assertion_engine.load_all_assertions_for_validation()
-    results = assertion_engine.validate_assertions()
-    # if results
-    for result in results:
-        # result
-        console.print(f'  [[bold red]FAILED[/bold red]] {result.as_user_report()}')
-
-    if results:
-        # stop runner
-        return True
-
-    # continue to run profiling
-    return False
 
 
 def prepare_default_output_path(filesystem: ReportDirectory, created_at, ds):
@@ -416,27 +306,7 @@ def _clean_up_profile_null_properties(table_results):
         del table_results['columns'][r['col']][r['key']]
 
 
-def _append_descriptions_from_assertion(profile_result):
-    engine = AssertionEngine(None)
-    engine.load_assertion_content()
-    for table_name, table_v in engine.assertions_content.items():
-        if table_name not in profile_result['tables'] or table_v is None:
-            continue
-        table_desc = table_v.get('description', '')
-        if table_desc:
-            profile_result['tables'][table_name]['description'] = f'{table_desc}'
-
-        columns_content = table_v.get('columns') if table_v.get('columns') else {}
-        for column_name, column_v in columns_content.items():
-            if column_name not in profile_result['tables'][table_name]['columns'] or column_v is None:
-                continue
-            column_desc = column_v.get('description', '')
-            if column_desc:
-                profile_result['tables'][table_name]['columns'][column_name][
-                    'description'] = f'{column_desc}'
-
-
-def _analyse_run_event(event_payload: RunEventPayload, profiled_result, assertion_results, dbt_test_results):
+def _analyse_run_event(event_payload: RunEventPayload, profiled_result, dbt_test_results):
     tables = profiled_result.get('tables', [])
     tables = {k: v for k, v in tables.items() if v}
     event_payload.tables = len(tables)
@@ -448,21 +318,6 @@ def _analyse_run_event(event_payload: RunEventPayload, profiled_result, assertio
         event_payload.columns.append(table.get('col_count'))
         # null row_count when the table is not profiled
         event_payload.rows.append(table.get('row_count'))
-
-    # Count PipeRider assertions
-    for r in assertion_results or []:
-        if r.is_builtin:
-            event_payload.build_in_assertions += 1
-        else:
-            event_payload.custom_assertions += 1
-
-        if RECOMMENDED_ASSERTION_TAG in r.tags:
-            event_payload.recommended_assertions += 1
-
-        if r.result.status():
-            event_payload.passed_assertions += 1
-        else:
-            event_payload.failed_assertions += 1
 
     # Count dbt-test cases
     if dbt_test_results:
@@ -484,18 +339,6 @@ def decorate_with_metadata(profile_result: dict):
     profile_result['project_id'] = f'{project_id}'
     profile_result['user_id'] = f'{event._collector._user_id}'
     profile_result['metadata_version'] = schema_version()
-
-
-def _check_assertion_status(assertion_results, assertion_exceptions):
-    if assertion_exceptions and len(assertion_exceptions) > 0:
-        return False
-
-    if assertion_results:
-        for assertion in assertion_results:
-            if not assertion.result.status():
-                return False
-
-    return True
 
 
 def check_dbt_manifest_compatibility(ds: DataSource, dbt_state_dir: str):
@@ -664,10 +507,7 @@ class Runner:
             return 1
 
         result, err = _pre_run_validating(ds)
-        if result is PreRunValidatingResult.ERROR:
-            console.print('\n\n[[bold red]ERROR[/bold red]] Stop profiling, please fix the syntax errors above.')
-            return 1
-        elif result is PreRunValidatingResult.FAILED_TO_LOAD_CONNECTOR:
+        if result is PreRunValidatingResult.FAILED_TO_LOAD_CONNECTOR:
             if skip_datasource_connection is False:
                 if isinstance(err, PipeRiderConnectorUnsupportedError):
                     console.print(f'[[bold red]Error[/bold red]] {err}')
@@ -798,26 +638,14 @@ class Runner:
                 ).execute()
 
         # TODO: refactor input unused arguments
-        if skip_datasource_connection:
-            assertion_results, assertion_exceptions = [], []
-        else:
-            assertion_results, assertion_exceptions = _execute_assertions(console, engine, ds.name, output,
-                                                                          profiler_result, created_at)
 
-        # Assertion
-        event_payload.step = 'assertion'
+        # DBT Test
+        event_payload.step = 'dbt test'
         run_result['tests'] = []
-        if assertion_results or dbt_test_results:
-            console.rule('Assertion Results')
-            if dbt_test_results:
-                console.rule('dbt')
-                _show_dbt_test_result(dbt_test_results)
-                run_result['tests'].extend(dbt_test_results)
-                if assertion_results:
-                    console.rule('PipeRider')
-            if assertion_results:
-                _show_assertion_result(assertion_results, assertion_exceptions)
-                run_result['tests'].extend([r.to_result_entry() for r in assertion_results])
+        if dbt_test_results:
+            console.rule('DBT Test Results')
+            _show_dbt_test_result(dbt_test_results)
+            run_result['tests'].extend(dbt_test_results)
 
         if not table:
             if dbt_config:
@@ -845,7 +673,6 @@ class Runner:
 
         if dbt_config:
             dbtutil.append_descriptions(run_result, dbt_target_path)
-        _append_descriptions_from_assertion(run_result)
 
         # Generate report
         event_payload.step = 'report'
@@ -881,11 +708,7 @@ class Runner:
         if skip_report:
             console.print(f'Results saved to {output if output else output_path}')
 
-        _analyse_run_event(event_payload, run_result, assertion_results, dbt_test_results)
-
-        # The assertion is deprecated. We should not run failed event the dbt test failed.
-        # if not _check_assertion_status(assertion_results, assertion_exceptions):
-        #     return EC_ERR_TEST_FAILED
+        _analyse_run_event(event_payload, run_result, dbt_test_results)
 
         if len(subjects) == 0 and len(run_result.get('metrics', [])) == 0 and not skip_datasource_connection:
             return EC_WARN_NO_PROFILED_MODULES

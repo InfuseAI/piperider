@@ -1,12 +1,10 @@
 import io
 import platform
 from abc import ABCMeta, abstractmethod
-from typing import List
 
 from rich.console import Console, _STD_STREAMS
 from rich.markup import escape
 
-from piperider_cli.assertion_engine import AssertionEngine, ValidationResult
 from piperider_cli.cloud import PipeRiderCloud
 from piperider_cli.configuration import Configuration, FileSystem
 from piperider_cli.error import PipeRiderError
@@ -152,36 +150,6 @@ class CheckConnections(AbstractChecker):
         return all_passed, reason
 
 
-class CheckAssertionFiles(AbstractChecker):
-    def check_function(self, configurator: Configuration) -> (bool, str):
-        engine = AssertionEngine(None)
-        passed_files, failed_files = engine.load_all_assertions_for_validation()
-        results: List[ValidationResult] = engine.validate_assertions()
-
-        for file in passed_files:
-            self.console.print(f'  {file}: [[bold green]OK[/bold green]]')
-
-        for file in failed_files:
-            self.console.print(f'  {file}: [[bold red]FAILED[/bold red]]')
-
-        newline_section = False
-        validate_fail = False
-        error_msg = ''
-        for result in results:
-            if result.has_errors():
-                if not newline_section:
-                    self.console.line()
-                    newline_section = True
-                self.console.print(f'  [[bold red]FAILED[/bold red]] {result.as_user_report()}')
-                validate_fail = True
-
-        if validate_fail or len(failed_files):
-            error_msg = 'Syntax problem of PipeRider assertion yaml files'
-            self.console.line()
-
-        return error_msg == '', error_msg
-
-
 class CloudAccountChecker(AbstractChecker):
     def check_function(self, configurator: Configuration) -> (bool, str):
         if not piperider_cloud.available:
@@ -205,7 +173,6 @@ class Validator():
         handler.set_checker('config files', CheckConfiguration)
         handler.set_checker('format of data sources', CheckDataSources)
         handler.set_checker('connections', CheckConnections)
-        handler.set_checker('assertion files', CheckAssertionFiles)
         if piperider_cloud.has_configured():
             handler.set_checker('cloud account', CloudAccountChecker)
         return handler.execute()
