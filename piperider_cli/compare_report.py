@@ -360,7 +360,6 @@ class CompareReport(object):
     def get_the_last_two_reports(self):
         outputs = self.list_existing_outputs()
         outputs.sort(key=lambda x: x.created_at)
-        outputs = list(filter(lambda x: x.name == outputs[-1].name, outputs))
         if len(outputs) < 2:
             return None, None
         return outputs[-2:]
