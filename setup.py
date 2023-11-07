@@ -76,6 +76,7 @@ setup(name='piperider',
           'csv': duckdb_require_packages,
           'parquet': duckdb_require_packages,
           'dev': [
+              'tox',
               'pytest>=4.6',
               'pytest-flake8',
               'flake8==3.9.2',
