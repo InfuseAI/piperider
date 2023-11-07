@@ -11,7 +11,10 @@ from rich.console import Console
 
 import piperider_cli.dbtutil as dbtutil
 from piperider_cli import get_run_json_path, load_jinja_template, load_json
-from piperider_cli import yaml as pyml
+try:
+    from piperider_cli.yaml import yaml_rich_type as pyml
+except ImportError:
+    from piperider_cli.yaml import yaml_less_type as pyml
 from piperider_cli.configuration import Configuration, FileSystem
 from piperider_cli.dbt import dbt_version
 from piperider_cli.error import RecipeConfigException

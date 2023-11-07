@@ -13,7 +13,6 @@ import inquirer
 from rich.console import Console
 
 from piperider_cli import raise_exception_when_directory_not_writable
-from piperider_cli.yaml import round_trip_load_yaml, safe_load_yaml
 from piperider_cli.cli_utils import DbtUtil
 from piperider_cli.datasource import DATASOURCE_PROVIDERS, DataSource
 from piperider_cli.datasource.unsupported import UnsupportedDataSource
@@ -23,7 +22,10 @@ from piperider_cli.error import \
     PipeRiderInvalidDataSourceError, \
     DbtProjectNotFoundError, \
     DbtProfileNotFoundError
-from piperider_cli import yaml as pyml
+try:
+    from piperider_cli.yaml import yaml_rich_type as pyml
+except ImportError:
+    from piperider_cli.yaml import yaml_less_type as pyml
 
 # ref: https://docs.getdbt.com/dbt-cli/configure-your-profile
 DBT_PROFILES_DIR_DEFAULT = '~/.dbt/'
@@ -488,7 +490,7 @@ class Configuration(object):
         credentials = None
         piperider_config_path = piperider_config_path or FileSystem.PIPERIDER_CONFIG_PATH
 
-        config = safe_load_yaml(piperider_config_path)
+        config = pyml.safe_load_yaml(piperider_config_path)
         if config is None:
             raise PipeRiderConfigError(piperider_config_path)
 
@@ -602,7 +604,7 @@ class Configuration(object):
         :return:
         """
 
-        config = round_trip_load_yaml(path)
+        config = pyml.round_trip_load_yaml(path)
         if config is None:
             raise PipeRiderConfigError(path)
 

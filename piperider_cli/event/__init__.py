@@ -5,7 +5,10 @@ from typing import Union
 
 import sentry_sdk
 from rich.console import Console
-from piperider_cli import yaml as pyml
+try:
+    from piperider_cli.yaml import yaml_rich_type as pyml
+except ImportError:
+    from piperider_cli.yaml import yaml_less_type as pyml
 
 from piperider_cli import PIPERIDER_USER_HOME, PIPERIDER_USER_PROFILE, is_executed_manually
 from piperider_cli.event.collector import Collector

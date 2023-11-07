@@ -8,7 +8,10 @@ from rich.syntax import Syntax
 from rich.table import Table
 
 from piperider_cli import clone_directory
-from piperider_cli.yaml import safe_load_yaml
+try:
+    from piperider_cli.yaml.yaml_rich_type import safe_load_yaml
+except ImportError:
+    from piperider_cli.yaml.yaml_less_type import safe_load_yaml
 
 from piperider_cli.configuration import Configuration, FileSystem
 from piperider_cli.datasource import DataSource, FANCY_USER_INPUT

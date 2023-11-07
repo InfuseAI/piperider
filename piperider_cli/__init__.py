@@ -9,7 +9,10 @@ from datetime import datetime
 
 from dateutil import tz
 from rich.console import Console
-from piperider_cli import yaml as pyml
+try:
+    from piperider_cli.yaml import yaml_rich_type as pyml
+except ImportError:
+    from piperider_cli.yaml import yaml_less_type as pyml
 
 PIPERIDER_USER_HOME = os.path.expanduser('~/.piperider')
 if os.access(os.path.expanduser('~/'), os.W_OK) is False:

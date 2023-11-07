@@ -10,7 +10,10 @@ import inquirer
 from jinja2 import UndefinedError
 from rich.console import Console
 from rich.table import Table
-from piperider_cli import yaml as pyml
+try:
+    from piperider_cli.yaml import yaml_rich_type as pyml
+except ImportError:
+    from piperider_cli.yaml import yaml_less_type as pyml
 
 from piperider_cli import load_jinja_template, load_jinja_string_template
 from piperider_cli.dbt.list_task import load_manifest, list_resources_unique_id_from_manifest, load_full_manifest
