@@ -1,8 +1,6 @@
-from pathlib import Path
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable
 
 from ruamel import yaml
-from ruamel.yaml import StreamTextType, StreamType, VersionType
 from ruamel.yaml import CommentedMap as _cm, CommentedSeq as _cs
 
 _yaml = yaml.YAML()
@@ -12,7 +10,7 @@ CommentedSeq = _cs
 YAMLError = yaml.YAMLError
 
 
-def load(stream: Union[Path, StreamTextType]) -> Any:
+def load(stream) -> Any:
     return _yaml.load(stream)
 
 
@@ -22,12 +20,12 @@ def allow_duplicate_keys_loader() -> Callable:
     return yml.load
 
 
-def safe_load(stream: StreamTextType, version: Optional[VersionType] = None) -> Any:
+def safe_load(stream, version=None) -> Any:
     return yaml.safe_load(stream, version)
 
 
 def dump(
-        data: Union[Path, StreamType], stream: Any = None, *, transform: Any = None
+        data, stream: Any = None, *, transform: Any = None
 ) -> Any:
     return _yaml.dump(data, stream, transform=transform)
 
@@ -56,5 +54,5 @@ def round_trip_load_yaml(file_path):
 
 def round_trip_dump(
         data: Any,
-        stream: Optional[StreamType] = None):
+        stream=None):
     return yaml.round_trip_dump(data, stream)
