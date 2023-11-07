@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import shlex
@@ -558,17 +559,20 @@ class Configuration(object):
             if profile.get(profile_name):
                 target_names = list(profile.get(profile_name).get('outputs').keys())
                 for target in target_names:
+                    dbt_config = copy.deepcopy(dbt)
                     credential = DbtUtil.load_credential_from_dbt_profile(profile, profile_name, target)
                     if credential.get('pass') and credential.get('password') is None:
                         credential['password'] = credential.pop('pass')
                     datasource_class = DATASOURCE_PROVIDERS[credential.get('type')]
-                    dbt.update(profile=profile_name, target=target)
+                    dbt_config.update(profile=profile_name, target=target)
                     data_source = datasource_class(
                         name=target,
-                        dbt=dict(dbt),
+                        dbt=dict(dbt_config),
                         credential=credential
                     )
                     data_sources.append(data_source)
+
+                dbt['profile'] = profile_name
                 # dbt behavior: dbt uses 'default' as target name if no target given in profiles.yml
                 dbt['target'] = dbt_target if dbt_target else dbt.get('target',
                                                                       profile.get(profile_name).get('target',
