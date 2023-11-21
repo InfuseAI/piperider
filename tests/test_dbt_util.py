@@ -252,6 +252,30 @@ class TestRunner(TestCase):
         metrics = dbtutil.get_dbt_state_metrics_16(self.dbt_state_dir, dbt_tag=None, dbt_resources=None)
         self.assertEqual(len(metrics), 0)
 
+    @pytest.mark.skipif(dbt_version < '1.7', reason="only for dbt 1.7")
+    @mock.patch('piperider_cli.dbtutil._get_state_manifest')
+    def test_get_dbt_state_metrics_17(self, _get_state_manifest):
+        _get_state_manifest.return_value = _load_manifest('dbt-duckdb-1.7.0-manifest.json')
+        metrics = dbtutil.get_dbt_state_metrics_16(self.dbt_state_dir, dbt_tag=None, dbt_resources=None)
+
+        self.assertEqual(len(metrics), 4)
+
+        # average_order_amount
+        self.assertEqual(metrics[0].model.table, 'orders')
+        self.assertEqual(metrics[0].model.timestamp, 'order_date')
+        self.assertEqual(metrics[0].model.expression, 'amount')
+
+        # profit
+        self.assertEqual(metrics[1].model, None)
+        self.assertEqual(metrics[1].calculation_method, 'derived')
+        self.assertEqual(metrics[1].expression, 'revenue - expenses')
+
+        # expenses
+        self.assertEqual(metrics[2].name, 'expenses')
+
+        # revenue
+        self.assertEqual(metrics[3].calculation_method, 'sum')
+
     @mock.patch('pathlib.Path.cwd',
                 return_value=Path(os.path.join(os.path.dirname(__file__), 'mock_dbt_project', 'dir_1', 'dir_2')))
     def test_search_dbt_project_path(self, *args):
@@ -284,7 +308,9 @@ class TestRunner(TestCase):
     def test_load_dbt_resources(self, get_dbt_manifest):
         v = dbt_version
         target_path = os.path.join(os.path.dirname(__file__), 'mock_dbt_data')
-        if v == '1.6':
+        if v == '1.7':
+            get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.7.0-manifest.json')
+        elif v == '1.6':
             get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.6.0-manifest.json')
         elif v == '1.5':
             get_dbt_manifest.return_value = _load_manifest('dbt-duckdb-1.5.1-manifest.json')
