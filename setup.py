@@ -45,7 +45,7 @@ setup(name='piperider',
           'requests>=2.28.1',
           'requests_toolbelt>=0.9.1',
           'deepmerge',
-          'dbt-core>=1.3,<1.7'
+          'dbt-core>=1.3'
       ],
       tests_require=['pytest'],
       extras_require={
