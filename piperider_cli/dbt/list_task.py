@@ -34,7 +34,7 @@ def load_full_manifest(target_path: str, project_dir: str = None):
     register_adapter(runtime_config)
 
     v = dbt_version
-    if v == '1.5' or v == '1.6':
+    if v == '1.5' or v == '1.6' or v == '1.7':
         return ManifestLoader.get_full_manifest(
             runtime_config, write_perf_info=False
         )
@@ -56,7 +56,7 @@ def load_manifest(manifest: Dict):
     if v == '1.5':
         return _load_manifest_version_15(manifest)
 
-    if v == '1.6':
+    if v == '1.6' or v == '1.7':
         return _load_manifest_version_16(manifest)
 
     raise NotImplementedError(f'dbt-core version: {v} is not supported')
@@ -260,7 +260,7 @@ def PrepareRuntimeConfig(target_path: str, project_dir: str = None):
     setattr(flags, "target", None)
 
     v = dbt_version
-    if v == '1.5' or v == '1.6':
+    if v == '1.5' or v == '1.6' or v == '1.7':
         return _get_v15_runtime_config(flags)
     elif v == '1.4':
         return _get_v14_runtime_config(flags)
@@ -356,6 +356,13 @@ class _RuntimeConfig(RuntimeConfig):
 
         if has_field('packages_specified_path'):
             data['packages_specified_path'] = "packages.yml"
+
+        # dbt 1.7
+        if has_field('semantic_models'):
+            data['semantic_models'] = {}
+
+        if has_field('saved_queries'):
+            data['saved_queries'] = {}
 
         super().__init__(args=None, **data)
 
