@@ -114,12 +114,7 @@ def _load_manifest_version_15(manifest: Dict):
             return int(match.group(1))
         raise ValueError("Manifest doesn't have schema version")
 
-    import dbt.contracts.graph.manifest
-    origin_function = dbt.contracts.graph.manifest.get_manifest_schema_version
-    dbt.contracts.graph.manifest.get_manifest_schema_version = patched_get_manifest_schema_version
-
     result = WritableManifest.upgrade_schema_version(data)
-    dbt.contracts.graph.manifest.get_manifest_schema_version = origin_function
     return result
 
 
