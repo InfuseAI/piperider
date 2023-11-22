@@ -468,20 +468,39 @@ def get_dbt_state_metrics_16(dbt_state_dir: str, dbt_tag: Optional[str] = None, 
             primary_entity = None
             metric_filter = []
             if metric.get('filter') is not None:
-                f = get_metric_filter(root_name, metric.get('filter'))
-                if f is not None:
-                    metric_filter.append(f)
+                # in dbt 1.7, there's an additional layer of 'where_filters'
+                if 'where_filters' in metric.get('filter'):
+                    for where_filter in metric.get('filter').get('where_filters', []):
+                        f = get_metric_filter(root_name, where_filter)
+                        if f is not None:
+                            metric_filter.append(f)
+                        else:
+                            statistics.add_field_one('nosupport')
+                            return None
                 else:
-                    statistics.add_field_one('nosupport')
-                    return None
+                    f = get_metric_filter(root_name, metric.get('filter'))
+                    if f is not None:
+                        metric_filter.append(f)
+                    else:
+                        statistics.add_field_one('nosupport')
+                        return None
 
             if filter is not None:
-                f = get_metric_filter(root_name, filter)
-                if f is not None:
-                    metric_filter.append(f)
+                if 'where_filters' in filter:
+                    for where_filter in filter.get('where_filters', []):
+                        f = get_metric_filter(root_name, where_filter)
+                        if f is not None:
+                            metric_filter.append(f)
+                        else:
+                            statistics.add_field_one('nosupport')
+                            return None
                 else:
-                    statistics.add_field_one('nosupport')
-                    return None
+                    f = get_metric_filter(root_name, filter)
+                    if f is not None:
+                        metric_filter.append(f)
+                    else:
+                        statistics.add_field_one('nosupport')
+                        return None
 
             nodes = metric.get('depends_on').get('nodes', [])
             depends_on = nodes[0]
