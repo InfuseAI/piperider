@@ -10,9 +10,9 @@ import inquirer
 from jinja2 import UndefinedError
 from rich.console import Console
 from rich.table import Table
-from piperider_cli import yaml as pyml
 
 from piperider_cli import load_jinja_template, load_jinja_string_template
+from piperider_cli import yaml as pyml
 from piperider_cli.dbt.list_task import load_manifest, list_resources_unique_id_from_manifest, load_full_manifest
 from piperider_cli.error import \
     DbtProjectInvalidError, \
@@ -185,7 +185,9 @@ def get_dbt_state_candidate(dbt_state_dir: str, options: dict, *, select_for_met
     def profiling_chosen_fn(key, node):
         statistics = Statistics()
         if dbt_resources:
-            chosen = node.get('unique_id') in dbt_resources['models']
+            fqn = '.'.join(node.get('fqn'))
+            unique_id = node.get('unique_id')
+            chosen = unique_id in dbt_resources['models'] or fqn in dbt_resources['models']
             if not chosen:
                 statistics.add_field_one('filter')
             return chosen
