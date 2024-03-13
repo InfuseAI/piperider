@@ -13,6 +13,9 @@
   <a href="https://blog.infuseai.io/data-reliability-automated-with-piperider-7a823521ef11"> Blog </a> 
 </p>
 
+> \[!IMPORTANT\]
+> PipeRider has been superseded by [Recce](https://datarecce.io). We recommend that users requiring pre-merge data validation checks migrate to Recce. PipeRider will not longer be updated on a regular basis. You are still welcome to open a PR with bug fixes or feature requests. For questions and help regarding this update, please contact [product@piperider.io](mailto:product@infuseai.io) or leave a message in the [Recce Discord](https://discord.gg/VpwXRC34jz).
+
 # Code review for data in dbt
 
 PipeRider automatically compares your data to highlight the difference in impacted downstream dbt models so you can
