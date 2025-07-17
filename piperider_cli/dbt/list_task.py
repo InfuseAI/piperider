@@ -9,9 +9,9 @@ from typing import Dict, List
 import agate
 import dbt.flags as flags_module
 from dbt.adapters.base import BaseAdapter, BaseRelation, Column as BaseColumn
+from dbt.adapters.contracts.connection import QueryComment
 from dbt.config.project import VarProvider
 from dbt.config.runtime import RuntimeConfig
-from dbt.contracts.connection import QueryComment
 from dbt.contracts.graph.manifest import Manifest, WritableManifest
 from dbt.contracts.project import PackageConfig, UserConfig
 from dbt.contracts.state import PreviousState
